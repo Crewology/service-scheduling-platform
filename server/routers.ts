@@ -179,6 +179,15 @@ const serviceRouter = router({
     .query(async ({ input }) => {
       return await db.searchServices(input.searchTerm);
     }),
+    
+  listMine: protectedProcedure
+    .query(async ({ ctx }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) {
+        return [];
+      }
+      return await db.getServicesByProviderId(provider.id);
+    }),
 });
 
 // ============================================================================
@@ -277,6 +286,15 @@ const bookingRouter = router({
       }
       
       return await db.getProviderBookings(provider.id, input.status);
+    }),
+    
+  listForProvider: protectedProcedure
+    .query(async ({ ctx }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) {
+        return [];
+      }
+      return await db.getProviderBookings(provider.id);
     }),
     
   updateStatus: protectedProcedure
