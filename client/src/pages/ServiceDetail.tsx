@@ -6,12 +6,13 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useParams } from "wouter";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
 import { Calendar } from "@/components/ui/calendar";
 import { MapPin, Clock, DollarSign, Star } from "lucide-react";
+import { generateTimeSlots, formatTimeForDisplay, type TimeSlot } from "@shared/timeSlots";
 
 export default function ServiceDetail() {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +20,7 @@ export default function ServiceDetail() {
   const [, setLocation] = useLocation();
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState("");
+  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   
   const { data: service } = trpc.service.getById.useQuery({ id: parseInt(id!) });
   const { data: provider } = trpc.provider.getById.useQuery(
@@ -30,13 +32,70 @@ export default function ServiceDetail() {
     { enabled: !!service }
   );
   
+  // Fetch provider's schedule and overrides
+  const { data: weeklySchedule } = trpc.availability.getSchedule.useQuery(
+    { providerId: service?.providerId || 0 },
+    { enabled: !!service }
+  );
+  
+  const { data: overrides } = trpc.availability.getOverrides.useQuery(
+    { 
+      providerId: service?.providerId || 0,
+      startDate: selectedDate ? selectedDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      endDate: selectedDate ? selectedDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+    },
+    { enabled: !!service && !!selectedDate }
+  );
+  
+  // Fetch existing bookings for the selected date
+  const { data: existingBookings } = trpc.booking.listByDateRange.useQuery(
+    { 
+      providerId: service?.providerId || 0,
+      startDate: selectedDate ? selectedDate.toISOString().split('T')[0] : undefined,
+      endDate: selectedDate ? selectedDate.toISOString().split('T')[0] : undefined
+    },
+    { enabled: !!service && !!selectedDate }
+  );
+  
+  // Generate available time slots when date is selected
+  useEffect(() => {
+    if (!selectedDate || !service || !weeklySchedule) {
+      setAvailableSlots([]);
+      return;
+    }
+    
+    const dateStr = selectedDate.toISOString().split('T')[0];
+    const slots = generateTimeSlots(
+      dateStr,
+      service.durationMinutes || 60,
+      weeklySchedule.map((s: any) => ({
+        dayOfWeek: s.dayOfWeek,
+        startTime: s.startTime,
+        endTime: s.endTime,
+        isAvailable: s.isAvailable
+      })),
+      (overrides || []).map((o: any) => ({
+        overrideDate: o.overrideDate,
+        startTime: o.startTime,
+        endTime: o.endTime,
+        isAvailable: o.isAvailable
+      })),
+      (existingBookings || []).map((b: any) => ({
+        bookingDate: b.bookingDate,
+        bookingTime: b.startTime,
+        status: b.status
+      }))
+    );
+    
+    setAvailableSlots(slots);
+  }, [selectedDate, service, weeklySchedule, overrides, existingBookings]);
+  
   const createBooking = trpc.booking.create.useMutation({
     onSuccess: (data) => {
-      toast.success("Booking created! Redirecting to payment...");
-      // TODO: Redirect to Stripe checkout
-      setLocation("/bookings");
+      toast.success("Booking created successfully!");
+      setLocation(`/booking/${data.id}`);
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast.error(error.message || "Failed to create booking");
     },
   });
@@ -249,13 +308,26 @@ export default function ServiceDetail() {
                 {selectedDate && (
                   <>
                     <div>
-                      <Label htmlFor="time">Select Time</Label>
-                      <Input
-                        id="time"
-                        type="time"
-                        value={selectedTime}
-                        onChange={(e) => setSelectedTime(e.target.value)}
-                      />
+                      <Label className="mb-2 block">Available Time Slots</Label>
+                      {availableSlots.length === 0 ? (
+                        <p className="text-sm text-muted-foreground py-4 text-center">
+                          No available time slots for this date
+                        </p>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
+                          {availableSlots.map((slot) => (
+                            <Button
+                              key={slot.time}
+                              variant={selectedTime === slot.time ? "default" : "outline"}
+                              disabled={!slot.available}
+                              onClick={() => setSelectedTime(slot.time)}
+                              className="h-auto py-2"
+                            >
+                              {formatTimeForDisplay(slot.time)}
+                            </Button>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     {service.serviceType === "mobile" && (

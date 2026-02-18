@@ -230,7 +230,7 @@ const bookingRouter = router({
       
       const remainingAmount = totalAmount - depositAmount;
       
-      await db.createBooking({
+      const bookingId = await db.createBooking({
         bookingNumber,
         customerId: ctx.user.id,
         providerId: service.providerId,
@@ -253,7 +253,7 @@ const bookingRouter = router({
         remainingAmount: remainingAmount.toString(),
       });
       
-      return { success: true, bookingNumber };
+      return { success: true, bookingNumber, id: bookingId };
     }),
     
   getById: protectedProcedure
@@ -295,6 +295,24 @@ const bookingRouter = router({
         return [];
       }
       return await db.getProviderBookings(provider.id);
+    }),
+    
+  listMine: protectedProcedure
+    .query(async ({ ctx }) => {
+      return await db.getCustomerBookings(ctx.user.id);
+    }),
+    
+  listByDateRange: publicProcedure
+    .input(z.object({
+      providerId: z.number(),
+      startDate: z.string().optional(),
+      endDate: z.string().optional(),
+    }))
+    .query(async ({ input }) => {
+      if (input.startDate && input.endDate) {
+        return await db.getBookingsByDateRange(input.providerId, input.startDate, input.endDate);
+      }
+      return await db.getProviderBookings(input.providerId);
     }),
     
   updateStatus: protectedProcedure
@@ -509,6 +527,16 @@ const availabilityRouter = router({
       const startDate = new Date().toISOString().split('T')[0];
       const endDate = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
       return await db.getProviderOverrides(provider.id, startDate, endDate);
+    }),
+    
+  getOverrides: publicProcedure
+    .input(z.object({
+      providerId: z.number(),
+      startDate: z.string(),
+      endDate: z.string(),
+    }))
+    .query(async ({ input }) => {
+      return await db.getProviderOverrides(input.providerId, input.startDate, input.endDate);
     }),
     
   createOverride: protectedProcedure

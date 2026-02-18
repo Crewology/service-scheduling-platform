@@ -123,3 +123,28 @@
 
 ## Bug Fixes
 - [x] Fix nested anchor tag error on homepage
+
+## Phase 1: Core Transaction Flow (IN PROGRESS)
+
+### Real-time Availability System
+- [x] Create time slot generation utility function
+- [x] Fetch provider schedule and overrides in ServiceDetail
+- [x] Query existing bookings to block unavailable slots
+- [x] Build interactive time slot selection UI
+- [x] Add conflict detection logic
+- [x] Implement timezone handling### Booking Submission Flow
+- [x] Create booking summary component
+- [x] Build booking review step with customer info
+- [x] Implement booking confirmation page
+- [x] Add booking number generation
+- [x] Build customer bookings dashboard
+- [x] Add booking status trackingcellation flow
+
+### Stripe Payment Integration
+- [ ] Set up Stripe Connect for providers
+- [ ] Create checkout session API endpoint
+- [ ] Implement deposit payment flow
+- [ ] Build webhook handler for payment confirmation
+- [ ] Add automatic payout logic
+- [ ] Implement refund policy engine
+- [ ] Generate payment receipts

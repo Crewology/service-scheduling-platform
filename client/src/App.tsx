@@ -11,6 +11,8 @@ import ProviderDashboard from "./pages/ProviderDashboard";
 import CreateService from "./pages/CreateService";
 import ManageAvailability from "./pages/ManageAvailability";
 import ServiceDetail from "./pages/ServiceDetail";
+import BookingConfirmation from "./pages/BookingConfirmation";
+import MyBookings from "./pages/MyBookings";
 
 function Router() {
   return (
@@ -22,6 +24,8 @@ function Router() {
       <Route path="/provider/services/new" component={CreateService} />
       <Route path="/provider/availability" component={ManageAvailability} />
       <Route path="/service/:id" component={ServiceDetail} />
+      <Route path="/booking/:id" component={BookingConfirmation} />
+      <Route path="/my-bookings" component={MyBookings} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
