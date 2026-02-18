@@ -202,6 +202,51 @@ describe("Service Management", () => {
   });
 });
 
+describe("Availability Management", () => {
+  it("should create availability schedule", async () => {
+    const { ctx } = await createAuthContext("provider");
+    const caller = appRouter.createCaller(ctx);
+
+    await caller.provider.create({
+      businessName: "Availability Test Provider",
+      businessType: "sole_proprietor",
+      acceptsMobile: true,
+      acceptsFixedLocation: false,
+      acceptsVirtual: false,
+    });
+
+    const result = await caller.availability.createSchedule({
+      dayOfWeek: 1, // Monday
+      startTime: "09:00",
+      endTime: "17:00",
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("should create availability override", async () => {
+    const { ctx } = await createAuthContext("provider");
+    const caller = appRouter.createCaller(ctx);
+
+    await caller.provider.create({
+      businessName: "Override Test Provider",
+      businessType: "sole_proprietor",
+      acceptsMobile: true,
+      acceptsFixedLocation: false,
+      acceptsVirtual: false,
+    });
+
+    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const result = await caller.availability.createOverride({
+      overrideDate: tomorrow,
+      isAvailable: false,
+      reason: "Holiday",
+    });
+
+    expect(result.success).toBe(true);
+  });
+});
+
 describe("Booking System", () => {
   it("should create a booking with correct pricing calculations", async () => {
     const { ctx } = await createAuthContext("customer");

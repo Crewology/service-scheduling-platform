@@ -277,10 +277,13 @@ export default function ProviderDashboard() {
             <Card>
               <CardContent className="py-12 text-center">
                 <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground mb-4">Availability calendar coming soon</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-muted-foreground mb-4">Manage your availability</p>
+                <p className="text-sm text-muted-foreground mb-4">
                   Set your weekly schedule and manage date-specific overrides
                 </p>
+                <Button onClick={() => setLocation("/provider/availability")}>
+                  Manage Availability
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>

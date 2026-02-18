@@ -490,6 +490,27 @@ const availabilityRouter = router({
       return { success: true };
     }),
     
+  getMySchedule: protectedProcedure
+    .query(async ({ ctx }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) {
+        return [];
+      }
+      return await db.getProviderAvailability(provider.id);
+    }),
+    
+  getMyOverrides: protectedProcedure
+    .query(async ({ ctx }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) {
+        return [];
+      }
+      // Get overrides for next 90 days
+      const startDate = new Date().toISOString().split('T')[0];
+      const endDate = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      return await db.getProviderOverrides(provider.id, startDate, endDate);
+    }),
+    
   createOverride: protectedProcedure
     .input(z.object({
       overrideDate: z.string(),

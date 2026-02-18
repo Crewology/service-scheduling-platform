@@ -8,6 +8,9 @@ import Home from "./pages/Home";
 import Browse from "./pages/Browse";
 import CategoryDetail from "./pages/CategoryDetail";
 import ProviderDashboard from "./pages/ProviderDashboard";
+import CreateService from "./pages/CreateService";
+import ManageAvailability from "./pages/ManageAvailability";
+import ServiceDetail from "./pages/ServiceDetail";
 
 function Router() {
   return (
@@ -16,6 +19,9 @@ function Router() {
       <Route path="/browse" component={Browse} />
       <Route path="/category/:slug" component={CategoryDetail} />
       <Route path="/provider/dashboard" component={ProviderDashboard} />
+      <Route path="/provider/services/new" component={CreateService} />
+      <Route path="/provider/availability" component={ManageAvailability} />
+      <Route path="/service/:id" component={ServiceDetail} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

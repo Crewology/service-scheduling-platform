@@ -94,12 +94,13 @@
 ### Provider Dashboard
 - [x] Create provider dashboard layout with navigation
 - [x] Build "My Services" management page (create, edit, delete services)
-- [ ] Implement "Manage Availability" calendar interface
-- [ ] Add weekly recurring schedule editor
-- [ ] Create date-specific override functionality
+- [x] Implement "Manage Availability" calendar interface
+- [x] Add weekly recurring schedule editor
+- [x] Create date-specific override functionality
 - [x] Build "My Bookings" list with status filters
 - [ ] Add booking detail view and status management
 - [x] Create earnings/analytics overview
+- [x] Create service creation form with all pricing models
 
 ### Customer Booking Flow
 - [ ] Build service detail page with booking form
