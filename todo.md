@@ -120,3 +120,6 @@
 - [ ] Create automatic payout logic
 - [ ] Implement refund policy based on cancellation timing
 - [ ] Add payment receipt generation
+
+## Bug Fixes
+- [x] Fix nested anchor tag error on homepage

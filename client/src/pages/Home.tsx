@@ -21,19 +21,19 @@ export default function Home() {
       <header className="border-b bg-white sticky top-0 z-50">
         <div className="container">
           <div className="flex items-center justify-between h-16">
-            <Link href="/">
-              <a className="text-2xl font-bold gradient-text">SkillLink</a>
+            <Link href="/" className="text-2xl font-bold gradient-text">
+              SkillLink
             </Link>
             
             <nav className="hidden md:flex items-center gap-6">
-              <Link href="/browse">
-                <a className="text-sm font-medium hover:text-primary transition-colors">Browse Services</a>
+              <Link href="/browse" className="text-sm font-medium hover:text-primary transition-colors">
+                Browse Services
               </Link>
-              <Link href="/how-it-works">
-                <a className="text-sm font-medium hover:text-primary transition-colors">How It Works</a>
+              <Link href="/how-it-works" className="text-sm font-medium hover:text-primary transition-colors">
+                How It Works
               </Link>
-              <Link href="/become-provider">
-                <a className="text-sm font-medium hover:text-primary transition-colors">Become a Provider</a>
+              <Link href="/become-provider" className="text-sm font-medium hover:text-primary transition-colors">
+                Become a Provider
               </Link>
             </nav>
             
@@ -251,26 +251,26 @@ export default function Home() {
             <div>
               <h4 className="font-semibold mb-4">For Customers</h4>
               <ul className="space-y-2 text-sm opacity-80">
-                <li><Link href="/browse"><a className="hover:opacity-100">Browse Services</a></Link></li>
-                <li><Link href="/how-it-works"><a className="hover:opacity-100">How It Works</a></Link></li>
-                <li><Link href="/safety"><a className="hover:opacity-100">Safety & Trust</a></Link></li>
+                <li><Link href="/browse" className="hover:opacity-100">Browse Services</Link></li>
+                <li><Link href="/how-it-works" className="hover:opacity-100">How It Works</Link></li>
+                <li><Link href="/safety" className="hover:opacity-100">Safety & Trust</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">For Providers</h4>
               <ul className="space-y-2 text-sm opacity-80">
-                <li><Link href="/become-provider"><a className="hover:opacity-100">Become a Provider</a></Link></li>
-                <li><Link href="/provider-benefits"><a className="hover:opacity-100">Benefits</a></Link></li>
-                <li><Link href="/provider-resources"><a className="hover:opacity-100">Resources</a></Link></li>
+                <li><Link href="/become-provider" className="hover:opacity-100">Become a Provider</Link></li>
+                <li><Link href="/provider-benefits" className="hover:opacity-100">Benefits</Link></li>
+                <li><Link href="/provider-resources" className="hover:opacity-100">Resources</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-sm opacity-80">
-                <li><Link href="/about"><a className="hover:opacity-100">About Us</a></Link></li>
-                <li><Link href="/contact"><a className="hover:opacity-100">Contact</a></Link></li>
-                <li><Link href="/terms"><a className="hover:opacity-100">Terms of Service</a></Link></li>
-                <li><Link href="/privacy"><a className="hover:opacity-100">Privacy Policy</a></Link></li>
+                <li><Link href="/about" className="hover:opacity-100">About Us</Link></li>
+                <li><Link href="/contact" className="hover:opacity-100">Contact</Link></li>
+                <li><Link href="/terms" className="hover:opacity-100">Terms of Service</Link></li>
+                <li><Link href="/privacy" className="hover:opacity-100">Privacy Policy</Link></li>
               </ul>
             </div>
           </div>
