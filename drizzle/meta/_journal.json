@@ -1,5 +1,27 @@
 {
   "version": "7",
   "dialect": "mysql",
-  "entries": []
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1771372375683,
+      "tag": "0000_thick_gorilla_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1771372929808,
+      "tag": "0001_blushing_gertrude_yorkes",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1771373300277,
+      "tag": "0002_productive_agent_brand",
+      "breakpoints": true
+    }
+  ]
 }
