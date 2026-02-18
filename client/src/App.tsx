@@ -15,6 +15,8 @@ import BookingConfirmation from "./pages/BookingConfirmation";
 import MyBookings from "./pages/MyBookings";
 import Messages from "./pages/Messages";
 import Search from "./pages/Search";
+import AdminDashboard from "./pages/AdminDashboard";
+import SubmitReview from "./pages/SubmitReview";
 
 function Router() {
   return (
@@ -30,6 +32,8 @@ function Router() {
       <Route path="/booking/:id" component={BookingConfirmation} />
       <Route path="/my-bookings" component={MyBookings} />
       <Route path="/messages/:bookingId" component={Messages} />
+      <Route path="/admin" component={AdminDashboard} />
+      <Route path="/booking/:id/review" component={SubmitReview} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

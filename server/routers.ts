@@ -6,6 +6,7 @@ import { z } from "zod";
 import * as db from "./db";
 import { TRPCError } from "@trpc/server";
 import { stripeRouter } from "./stripeRouter";
+import { adminRouter } from "./adminRouter";
 
 // ============================================================================
 // AUTHENTICATION & USER MANAGEMENT
@@ -605,6 +606,7 @@ export const appRouter = router({
   notification: notificationRouter,
   availability: availabilityRouter,
   stripe: stripeRouter,
+  admin: adminRouter,
 });
 
 export type AppRouter = typeof appRouter;

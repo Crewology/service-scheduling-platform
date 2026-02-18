@@ -63,6 +63,7 @@ export const serviceProviders = mysqlTable("service_providers", {
   averageRating: decimal("averageRating", { precision: 3, scale: 2 }).default("0.00"),
   totalReviews: int("totalReviews").default(0).notNull(),
   totalBookings: int("totalBookings").default(0).notNull(),
+  verificationStatus: mysqlEnum("verificationStatus", ["pending", "verified", "rejected"]).default("pending").notNull(),
   stripeAccountId: varchar("stripeAccountId", { length: 255 }),
   payoutEnabled: boolean("payoutEnabled").default(false).notNull(),
   commissionRate: decimal("commissionRate", { precision: 5, scale: 2 }).default("15.00"),

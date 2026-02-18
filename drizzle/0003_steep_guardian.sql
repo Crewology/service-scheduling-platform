@@ -1,0 +1,1 @@
+ALTER TABLE `service_providers` ADD `verificationStatus` enum('pending','verified','rejected') DEFAULT 'pending' NOT NULL;

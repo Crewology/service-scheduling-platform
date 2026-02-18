@@ -120,6 +120,13 @@ export async function getUserById(id: number) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+export async function getAllUsers() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(users).orderBy(users.createdAt);
+}
+
 // ============================================================================
 // SERVICE PROVIDER MANAGEMENT
 // ============================================================================
@@ -187,6 +194,15 @@ export async function updateProviderRating(providerId: number) {
       averageRating,
       totalReviews: providerReviews.length 
     })
+    .where(eq(serviceProviders.id, providerId));
+}
+
+export async function updateProviderVerification(providerId: number, status: "pending" | "verified" | "rejected") {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(serviceProviders)
+    .set({ verificationStatus: status })
     .where(eq(serviceProviders.id, providerId));
 }
 
@@ -334,6 +350,13 @@ export async function getProviderBookings(providerId: number, status?: string) {
   return await db.select().from(bookings)
     .where(and(...conditions))
     .orderBy(desc(bookings.bookingDate));
+}
+
+export async function getAllBookings() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(bookings).orderBy(bookings.createdAt).limit(100);
 }
 
 export async function getBookingsByDateRange(providerId: number, startDate: string, endDate: string) {

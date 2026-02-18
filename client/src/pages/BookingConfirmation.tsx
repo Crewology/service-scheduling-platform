@@ -268,6 +268,24 @@ export default function BookingConfirmation() {
           </CardContent>
         </Card>
 
+        {/* Review CTA for completed bookings */}
+        {booking.status === "completed" && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>How was your experience?</CardTitle>
+              <CardDescription>Share your feedback to help others</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                onClick={() => setLocation(`/booking/${id}/review`)}
+                className="w-full"
+              >
+                Write a Review
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Action Buttons */}
         <div className="flex gap-4">
           {depositAmount && !(booking as any).depositPaidAt && (
