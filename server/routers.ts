@@ -5,6 +5,7 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
 import { TRPCError } from "@trpc/server";
+import { stripeRouter } from "./stripeRouter";
 
 // ============================================================================
 // AUTHENTICATION & USER MANAGEMENT
@@ -448,6 +449,21 @@ const messageRouter = router({
     return await db.getUserConversations(ctx.user.id);
   }),
   
+  listByBooking: protectedProcedure
+    .input(z.object({ bookingId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const booking = await db.getBookingById(input.bookingId);
+      if (!booking) return [];
+      
+      // Verify user has access to this booking
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (booking.customerId !== ctx.user.id && booking.providerId !== provider?.id) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+      }
+      
+      return await db.getMessagesByBooking(input.bookingId);
+    }),
+  
   markAsRead: protectedProcedure
     .input(z.object({ conversationId: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -581,6 +597,7 @@ export const appRouter = router({
   message: messageRouter,
   notification: notificationRouter,
   availability: availabilityRouter,
+  stripe: stripeRouter,
 });
 
 export type AppRouter = typeof appRouter;

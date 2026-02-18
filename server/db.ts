@@ -282,12 +282,14 @@ export async function searchServices(searchTerm: string) {
 // BOOKING MANAGEMENT
 // ============================================================================
 
-export async function createBooking(data: typeof bookings.$inferInsert) {
+export async function createBooking(data: typeof bookings.$inferInsert): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
   const result = await db.insert(bookings).values(data);
-  return result;
+  // MySQL returns insertId as a bigint or number
+  const insertId = (result as any).insertId || (result as any)[0]?.insertId;
+  return Number(insertId);
 }
 
 export async function getBookingById(id: number): Promise<Booking | undefined> {
@@ -503,6 +505,15 @@ export async function markMessagesAsRead(conversationId: string, userId: number)
       eq(messages.recipientId, userId),
       eq(messages.isRead, false)
     ));
+}
+
+export async function getMessagesByBooking(bookingId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(messages)
+    .where(eq(messages.bookingId, bookingId))
+    .orderBy(asc(messages.createdAt));
 }
 
 // ============================================================================

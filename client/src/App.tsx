@@ -13,6 +13,7 @@ import ManageAvailability from "./pages/ManageAvailability";
 import ServiceDetail from "./pages/ServiceDetail";
 import BookingConfirmation from "./pages/BookingConfirmation";
 import MyBookings from "./pages/MyBookings";
+import Messages from "./pages/Messages";
 
 function Router() {
   return (
@@ -26,6 +27,7 @@ function Router() {
       <Route path="/service/:id" component={ServiceDetail} />
       <Route path="/booking/:id" component={BookingConfirmation} />
       <Route path="/my-bookings" component={MyBookings} />
+      <Route path="/messages/:bookingId" component={Messages} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

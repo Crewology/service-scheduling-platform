@@ -93,12 +93,33 @@ export default function ServiceDetail() {
   const createBooking = trpc.booking.create.useMutation({
     onSuccess: (data) => {
       toast.success("Booking created successfully!");
-      setLocation(`/booking/${data.id}`);
+      // If payment is required, redirect to payment
+      if (service?.depositRequired || service?.pricingModel !== "custom_quote") {
+        handlePayment(data.id);
+      } else {
+        setLocation(`/booking/${data.id}`);
+      }
     },
     onError: (error) => {
       toast.error(error.message || "Failed to create booking");
     },
   });
+  
+  const createCheckout = trpc.stripe.createCheckoutSession.useMutation({
+    onSuccess: (data) => {
+      if (data.url) {
+        toast.info("Redirecting to payment...");
+        window.open(data.url, "_blank");
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to create checkout session");
+    },
+  });
+  
+  const handlePayment = (bookingId: number) => {
+    createCheckout.mutate({ bookingId });
+  };
 
   const [bookingForm, setBookingForm] = useState({
     addressLine1: "",

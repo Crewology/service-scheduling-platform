@@ -4,10 +4,28 @@ import { CheckCircle, Calendar, Clock, MapPin, DollarSign } from "lucide-react";
 import { useLocation, useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { formatTimeForDisplay } from "@shared/timeSlots";
+import { toast } from "sonner";
 
 export default function BookingConfirmation() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
+  
+  const createCheckout = trpc.stripe.createCheckoutSession.useMutation({
+    onSuccess: (data) => {
+      if (data.url) {
+        toast.info("Redirecting to payment...");
+        window.open(data.url, "_blank");
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to create checkout session");
+    },
+  });
+  
+  const handlePayment = () => {
+    if (!id) return;
+    createCheckout.mutate({ bookingId: parseInt(id) });
+  };
   
   const { data: booking, isLoading } = trpc.booking.getById.useQuery({ id: parseInt(id!) });
   const { data: service } = trpc.service.getById.useQuery(
@@ -252,9 +270,26 @@ export default function BookingConfirmation() {
 
         {/* Action Buttons */}
         <div className="flex gap-4">
+          {depositAmount && !(booking as any).depositPaidAt && (
+            <Button 
+              onClick={() => handlePayment()}
+              className="flex-1"
+            >
+              Pay Deposit (${depositAmount.toFixed(2)})
+            </Button>
+          )}
+          {!depositAmount && !(booking as any).paidAt && booking.status === "confirmed" && (
+            <Button 
+              onClick={() => handlePayment()}
+              className="flex-1"
+            >
+              Pay Now ({getPrice()})
+            </Button>
+          )}
           <Button 
             onClick={() => setLocation("/my-bookings")}
             className="flex-1"
+            variant={depositAmount && !(booking as any).depositPaidAt ? "outline" : "default"}
           >
             View My Bookings
           </Button>

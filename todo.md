@@ -148,3 +148,30 @@
 - [ ] Add automatic payout logic
 - [ ] Implement refund policy engine
 - [ ] Generate payment receipts
+
+## Phase 2: Payment, Messaging, and Notifications
+
+### Stripe Payment Integration
+- [x] Create Stripe checkout session endpoint
+- [x] Add payment processing to booking flow
+- [x] Implement deposit payment handling
+- [x] Build payment confirmation page
+- [x] Add Stripe webhook handler for payment events
+- [ ] Implement automatic provider payouts (requires Stripe Connect)
+- [ ] Add refund handling for cancellations
+
+### Messaging System
+- [x] Create messages database table
+- [x] Build message router with send/list procedures
+- [x] Create messaging UI component
+- [x] Add conversation threading by booking
+- [x] Implement real-time message updates (5s polling)
+- [ ] Add unread message indicators
+
+### Email Notifications
+- [ ] Set up email service integration
+- [ ] Create email templates for booking confirmations
+- [ ] Add booking status update emails
+- [ ] Implement reminder emails before appointments
+- [ ] Add payment receipt emails
+- [ ] Include unsubscribe links in all emails
