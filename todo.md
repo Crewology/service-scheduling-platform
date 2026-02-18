@@ -175,3 +175,42 @@
 - [ ] Implement reminder emails before appointments
 - [ ] Add payment receipt emails
 - [ ] Include unsubscribe links in all emails
+
+
+## Code Audit & Refactoring
+- [x] Audit codebase for code duplication
+- [x] Identify repeated patterns in components
+- [x] Extract common utilities and helpers
+- [ ] Refactor duplicated database queries
+- [x] Create reusable UI components
+- [x] Document architecture decisions
+
+## Phase 3: Notifications, Search, and Admin
+
+### Notification System (Email + SMS-ready)
+- [x] Design unified notification architecture supporting multiple channels
+- [x] Create notification service abstraction layer
+- [x] Implement email notification provider
+- [x] Build SMS notification provider (stub for future)
+- [x] Create notification templates for all events
+- [ ] Add email unsubscribe functionality
+- [ ] Build notification preferences UI
+- [ ] Add notification history tracking
+
+### Search & Filtering
+- [x] Implement service search by keywords
+- [ ] Add location-based filtering (future enhancement)
+- [x] Create price range filters
+- [ ] Add rating and review filters (needs review data)
+- [x] Build category-based navigation
+- [x] Implement sort options (price, rating, distance)
+- [x] Add search results page with pagination
+
+### Admin Dashboard
+- [ ] Create admin-only routes and guards
+- [ ] Build user management interface
+- [ ] Add provider verification workflow
+- [ ] Create booking oversight and dispute resolution
+- [ ] Implement platform analytics and reporting
+- [ ] Add transaction monitoring
+- [ ] Build content moderation tools

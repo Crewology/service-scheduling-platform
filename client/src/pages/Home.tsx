@@ -87,9 +87,11 @@ export default function Home() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                <Button size="lg" className="px-8">
-                  Search
-                </Button>
+                <Link href="/search">
+                  <Button size="lg" className="px-8">
+                    Search
+                  </Button>
+                </Link>
               </div>
               
               <div className="mt-4 flex flex-wrap gap-2 justify-center">

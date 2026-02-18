@@ -176,9 +176,16 @@ const serviceRouter = router({
     }),
     
   search: publicProcedure
-    .input(z.object({ searchTerm: z.string() }))
+    .input(z.object({ 
+      keyword: z.string().optional(),
+      categoryId: z.number().optional(),
+      minPrice: z.number().optional(),
+      maxPrice: z.number().optional(),
+      sortBy: z.enum(["price", "rating", "distance"]).optional(),
+    }))
     .query(async ({ input }) => {
-      return await db.searchServices(input.searchTerm);
+      // For now, use simple search. TODO: Implement advanced filtering in db.ts
+      return await db.searchServices(input.keyword || "");
     }),
     
   listMine: protectedProcedure

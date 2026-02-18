@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import Stripe from "stripe";
 import { ENV } from "./_core/env";
 import * as db from "./db";
+import { sendNotification } from "./notifications";
 
 const stripe = new Stripe(ENV.stripeSecretKey, {
   apiVersion: "2026-01-28.clover",
@@ -104,7 +105,32 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     console.log(`[Stripe] Full payment recorded for booking ${bookingId}`);
   }
 
-  // TODO: Send email notification to customer and provider
+  // Send email notifications
+  const customer = await db.getUserById(booking.customerId);
+  const provider = await db.getProviderById(booking.providerId);
+  const service = await db.getServiceById(booking.serviceId);
+  
+  if (customer && customer.email) {
+    await sendNotification({
+      type: paymentType === "deposit" ? "payment_received" : "booking_confirmed",
+      channel: "email",
+      recipient: {
+        userId: customer.id,
+        email: customer.email,
+        name: customer.name || "Customer",
+      },
+      data: {
+        bookingId: booking.id,
+        bookingNumber: booking.bookingNumber,
+        serviceName: service?.name || "Service",
+        providerName: provider?.businessName || "Provider",
+        amount: paymentType === "deposit" ? booking.depositAmount || "0" : booking.totalAmount || "0",
+        date: booking.bookingDate,
+        time: booking.startTime,
+        bookingUrl: `${ENV.forgeApiUrl}/booking/${booking.id}`,
+      },
+    });
+  }
 }
 
 async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {

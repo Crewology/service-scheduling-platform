@@ -14,12 +14,14 @@ import ServiceDetail from "./pages/ServiceDetail";
 import BookingConfirmation from "./pages/BookingConfirmation";
 import MyBookings from "./pages/MyBookings";
 import Messages from "./pages/Messages";
+import Search from "./pages/Search";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/browse" component={Browse} />
+      <Route path="/search" component={Search} />
       <Route path="/category/:slug" component={CategoryDetail} />
       <Route path="/provider/dashboard" component={ProviderDashboard} />
       <Route path="/provider/services/new" component={CreateService} />
