@@ -243,3 +243,14 @@
 - [ ] Add review moderation tools for admins
 - [ ] Create review notification emails
 - [ ] Build "My Reviews" page for customers
+
+
+## Phase 5: Review Display & Provider Response
+- [x] Create reusable ReviewCard component
+- [x] Create ReviewList component with pagination
+- [x] Add review fetching to service detail page
+- [x] Display average rating and review count
+- [x] Build provider response form
+- [x] Add response display in review cards
+- [ ] Implement response notifications
+- [ ] Test review display and responses

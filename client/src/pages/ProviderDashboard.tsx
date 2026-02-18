@@ -153,6 +153,7 @@ export default function ProviderDashboard() {
             <TabsTrigger value="bookings">Bookings</TabsTrigger>
             <TabsTrigger value="services">My Services</TabsTrigger>
             <TabsTrigger value="availability">Availability</TabsTrigger>
+            <TabsTrigger value="reviews">Reviews</TabsTrigger>
             <TabsTrigger value="earnings">Earnings</TabsTrigger>
           </TabsList>
 
@@ -283,6 +284,26 @@ export default function ProviderDashboard() {
                 </p>
                 <Button onClick={() => setLocation("/provider/availability")}>
                   Manage Availability
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Reviews Tab */}
+          <TabsContent value="reviews" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold">Customer Reviews</h2>
+            </div>
+
+            <Card>
+              <CardContent className="py-12 text-center">
+                <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground mb-4">Manage customer reviews</p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  View and respond to customer feedback
+                </p>
+                <Button onClick={() => setLocation("/provider/reviews")}>
+                  View Reviews
                 </Button>
               </CardContent>
             </Card>

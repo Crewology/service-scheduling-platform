@@ -13,6 +13,7 @@ import { getLoginUrl } from "@/const";
 import { Calendar } from "@/components/ui/calendar";
 import { MapPin, Clock, DollarSign, Star } from "lucide-react";
 import { generateTimeSlots, formatTimeForDisplay, type TimeSlot } from "@shared/timeSlots";
+import { ReviewList } from "@/components/shared/ReviewList";
 
 export default function ServiceDetail() {
   const { id } = useParams<{ id: string }>();
@@ -266,7 +267,7 @@ export default function ServiceDetail() {
                     <p className="text-sm text-muted-foreground">
                       {service.depositType === "fixed" 
                         ? `$${service.depositAmount} deposit` 
-                        : `${service.depositPercentage}% deposit`} required to secure booking
+                        : `${service.depositPercentage}% deposit`}
                     </p>
                   </div>
                 )}
@@ -279,29 +280,13 @@ export default function ServiceDetail() {
                 <CardHeader>
                   <CardTitle>Customer Reviews</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  {reviews.slice(0, 5).map((review: any) => (
-                    <div key={review.id} className="border-b pb-4 last:border-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="flex">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`h-4 w-4 ${
-                                i < review.rating ? "fill-warning text-warning" : "text-muted"
-                              }`}
-                            />
-                          ))}
-                        </div>
-                        <span className="text-sm text-muted-foreground">
-                          {new Date(review.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                      {review.reviewText && (
-                        <p className="text-sm text-muted-foreground">{review.reviewText}</p>
-                      )}
-                    </div>
-                  ))}
+                <CardContent>
+                  <ReviewList
+                    reviews={reviews}
+                    averageRating={provider?.averageRating ? Number(provider.averageRating) : undefined}
+                    totalReviews={provider?.totalReviews ? Number(provider.totalReviews) : undefined}
+                    showProviderResponse={true}
+                  />
                 </CardContent>
               </Card>
             )}

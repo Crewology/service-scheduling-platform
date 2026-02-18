@@ -464,6 +464,26 @@ export async function getReviewByBookingId(bookingId: number): Promise<Review | 
   return result.length > 0 ? result[0] : undefined;
 }
 
+export async function getReviewById(reviewId: number): Promise<Review | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(reviews).where(eq(reviews.id, reviewId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function addReviewResponse(reviewId: number, response: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(reviews)
+    .set({ 
+      responseText: response,
+      respondedAt: new Date()
+    })
+    .where(eq(reviews.id, reviewId));
+}
+
 export async function addProviderResponse(reviewId: number, responseText: string) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

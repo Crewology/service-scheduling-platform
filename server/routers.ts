@@ -80,6 +80,11 @@ const providerRouter = router({
       return await db.getProviderById(input.id);
     }),
     
+  getMine: protectedProcedure
+    .query(async ({ ctx }) => {
+      return await db.getProviderByUserId(ctx.user.id);
+    }),
+    
   list: publicProcedure
     .input(z.object({
       city: z.string().optional(),
@@ -360,6 +365,34 @@ const bookingRouter = router({
 // ============================================================================
 
 const reviewRouter = router({
+  listByProvider: publicProcedure
+    .input(z.object({ providerId: z.number() }))
+    .query(async ({ input }) => {
+      const reviews = await db.getReviewsByProviderId(input.providerId);
+      return reviews;
+    }),
+  
+  addResponse: protectedProcedure
+    .input(z.object({
+      reviewId: z.number(),
+      response: z.string().min(1),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const review = await db.getReviewById(input.reviewId);
+      if (!review) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Review not found" });
+      }
+      
+      // Check if user is the provider for this review
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider || provider.id !== review.providerId) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Only the provider can respond" });
+      }
+      
+      await db.addReviewResponse(input.reviewId, input.response);
+      return { success: true };
+    }),
+  
   create: protectedProcedure
     .input(z.object({
       bookingId: z.number(),
@@ -393,28 +426,6 @@ const reviewRouter = router({
         rating: input.rating,
         reviewText: input.reviewText,
       });
-      
-      return { success: true };
-    }),
-    
-  listByProvider: publicProcedure
-    .input(z.object({ providerId: z.number() }))
-    .query(async ({ input }) => {
-      return await db.getReviewsByProviderId(input.providerId);
-    }),
-    
-  addResponse: protectedProcedure
-    .input(z.object({
-      reviewId: z.number(),
-      responseText: z.string(),
-    }))
-    .mutation(async ({ ctx, input }) => {
-      const provider = await db.getProviderByUserId(ctx.user.id);
-      if (!provider) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
-      }
-      
-      await db.addProviderResponse(input.reviewId, input.responseText);
       
       return { success: true };
     }),
