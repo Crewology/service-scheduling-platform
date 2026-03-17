@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
 import { MapPin, Star, Clock, DollarSign, ArrowLeft } from "lucide-react";
 import { Link, useParams } from "wouter";
+import { NavHeader } from "@/components/shared/NavHeader";
 
 export default function CategoryDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -23,20 +24,7 @@ export default function CategoryDetail() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-white sticky top-0 z-50">
-        <div className="container">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/">
-              <a className="text-2xl font-bold gradient-text">SkillLink</a>
-            </Link>
-            
-            <Link href="/dashboard">
-              <Button variant="outline">Dashboard</Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+      <NavHeader />
 
       {/* Page Header */}
       <section className="py-12 bg-gradient-to-br from-primary/5 to-accent/5">

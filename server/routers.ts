@@ -470,6 +470,10 @@ const messageRouter = router({
       await db.markMessagesAsRead(input.conversationId, ctx.user.id);
       return { success: true };
     }),
+
+  unreadCount: protectedProcedure.query(async ({ ctx }) => {
+    return await db.getUnreadMessageCount(ctx.user.id);
+  }),
 });
 
 // ============================================================================

@@ -5,6 +5,7 @@ import { useLocation, useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { formatTimeForDisplay } from "@shared/timeSlots";
 import { toast } from "sonner";
+import { NavHeader } from "@/components/shared/NavHeader";
 
 export default function BookingConfirmation() {
   const { id } = useParams<{ id: string }>();
@@ -100,14 +101,7 @@ export default function BookingConfirmation() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-white sticky top-0 z-50">
-        <div className="container">
-          <div className="flex items-center justify-between h-16">
-            <h1 className="text-xl font-bold">SkillLink</h1>
-          </div>
-        </div>
-      </header>
+      <NavHeader />
 
       <div className="container py-12 max-w-3xl">
         {/* Success Message */}

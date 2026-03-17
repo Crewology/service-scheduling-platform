@@ -9,6 +9,7 @@ import { Slider } from "@/components/ui/slider";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Search as SearchIcon, MapPin, DollarSign, Star } from "lucide-react";
+import { NavHeader } from "@/components/shared/NavHeader";
 
 export default function Search() {
   const [keyword, setKeyword] = useState("");
@@ -31,7 +32,8 @@ export default function Search() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      <NavHeader />
+      {/* Page Title */}
       <div className="bg-white border-b">
         <div className="container py-8">
           <h1 className="text-3xl font-bold mb-2">Search Services</h1>

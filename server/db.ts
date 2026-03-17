@@ -537,6 +537,19 @@ export async function getUserConversations(userId: number) {
   return Array.from(conversationMap.values());
 }
 
+export async function getUnreadMessageCount(userId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+
+  const result = await db.select({ count: sql<number>`COUNT(*)` })
+    .from(messages)
+    .where(and(
+      eq(messages.recipientId, userId),
+      eq(messages.isRead, false)
+    ));
+  return result[0]?.count ?? 0;
+}
+
 export async function markMessagesAsRead(conversationId: string, userId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

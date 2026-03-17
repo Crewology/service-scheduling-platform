@@ -8,6 +8,7 @@ import { Calendar, Clock, MapPin, DollarSign, MessageSquare } from "lucide-react
 import { useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
 import { formatTimeForDisplay } from "@shared/timeSlots";
+import { NavHeader } from "@/components/shared/NavHeader";
 
 export default function MyBookings() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -68,18 +69,7 @@ export default function MyBookings() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-white sticky top-0 z-50">
-        <div className="container">
-          <div className="flex items-center justify-between h-16">
-            <Button variant="ghost" onClick={() => setLocation("/")}>
-              ← Back
-            </Button>
-            <h1 className="text-xl font-bold">SkillLink</h1>
-            <div className="w-20"></div>
-          </div>
-        </div>
-      </header>
+      <NavHeader />
 
       <div className="container py-8 max-w-5xl">
         <div className="mb-8">

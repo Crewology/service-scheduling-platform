@@ -9,6 +9,7 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation, useParams } from "wouter";
 import { getLoginUrl } from "@/const";
 import { toast } from "sonner";
+import { NavHeader } from "@/components/shared/NavHeader";
 
 export default function Messages() {
   const { bookingId } = useParams<{ bookingId: string }>();
@@ -110,18 +111,7 @@ export default function Messages() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-white sticky top-0 z-50">
-        <div className="container">
-          <div className="flex items-center justify-between h-16">
-            <Button variant="ghost" onClick={() => setLocation(`/booking/${bookingId}`)}>
-              ← Back to Booking
-            </Button>
-            <h1 className="text-xl font-bold">SkillLink</h1>
-            <div className="w-32"></div>
-          </div>
-        </div>
-      </header>
+      <NavHeader />
 
       <div className="container py-8 max-w-4xl">
         {/* Conversation Header */}

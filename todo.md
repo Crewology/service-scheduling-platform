@@ -166,7 +166,7 @@
 - [x] Create messaging UI component
 - [x] Add conversation threading by booking
 - [x] Implement real-time message updates (5s polling)
-- [ ] Add unread message indicators
+- [x] Add unread message indicators
 
 ### Email Notifications
 - [ ] Set up email service integration
@@ -280,3 +280,28 @@
 - [x] DevToolsPanel: quick navigation links for each role
 - [x] DevToolsPanel: testing workflow guide
 - [x] DevToolsPanel: platform info (categories, commission, payment mode)
+
+## Phase 7: Next Steps Implementation
+### Seed Test Data
+- [x] Create comprehensive seed data script (seed-data.mjs)
+- [x] Seed 5+ test providers across different categories
+- [x] Seed 10+ test services with various pricing models
+- [x] Seed test bookings in various states (pending, confirmed, completed, cancelled)
+- [x] Seed test reviews and ratings
+- [x] Seed test availability schedules for providers
+
+### Unread Message Indicators
+- [x] Add unread count query to message router
+- [x] Create NavHeader component with useUnreadMessages polling
+- [x] Add badge indicators to navigation across all pages
+- [x] Show unread count in NavHeader message icon
+
+### Interactive Booking Calendar
+- [x] Build date picker calendar component for service detail page
+- [x] Connect availability schedule to calendar (highlight available days)
+- [x] Create time slot selection grid based on provider availability
+- [x] Show booked/unavailable slots as disabled
+- [x] Integrate booking form with calendar selection
+- [x] Add step-by-step booking flow (date → time → details → confirm)
+- [x] Add breadcrumb navigation on service detail page
+- [x] Add booking summary before submission

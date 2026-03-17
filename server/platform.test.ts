@@ -5,11 +5,11 @@ import * as db from "./db";
 
 type AuthenticatedUser = NonNullable<TrpcContext["user"]>;
 
-let testUserIdCounter = 2000;
+let testUserIdCounter = 0;
 
 async function createAuthContext(role: "customer" | "provider" | "admin" = "customer"): Promise<{ ctx: TrpcContext; userId: number }> {
   const testId = testUserIdCounter++;
-  const openId = `test-user-${testId}`;
+  const openId = `platform-test-${Date.now()}-${testId}-${Math.random().toString(36).slice(2, 8)}`;
   
   // Create user in database for foreign key constraints
   await db.upsertUser({

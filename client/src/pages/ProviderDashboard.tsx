@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
+import { NavHeader } from "@/components/shared/NavHeader";
 
 export default function ProviderDashboard() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -75,23 +76,7 @@ export default function ProviderDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-white sticky top-0 z-50">
-        <div className="container">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/">
-              <a className="text-2xl font-bold gradient-text">SkillLink</a>
-            </Link>
-            
-            <div className="flex items-center gap-3">
-              <Link href="/">
-                <Button variant="ghost">View Site</Button>
-              </Link>
-              <span className="text-sm text-muted-foreground">{user?.name}</span>
-            </div>
-          </div>
-        </div>
-      </header>
+      <NavHeader />
 
       <div className="container py-8">
         {/* Welcome Section */}

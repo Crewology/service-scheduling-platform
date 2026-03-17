@@ -2,65 +2,31 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { Search, Calendar, Shield, Star, ArrowRight, CheckCircle2 } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useState } from "react";
+import { NavHeader } from "@/components/shared/NavHeader";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
+  const [, setLocation] = useLocation();
   const { data: categories } = trpc.category.list.useQuery();
 
   const featuredCategories = categories?.slice(0, 8) || [];
 
+  const handleSearch = () => {
+    if (searchTerm.trim()) {
+      setLocation(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
+    } else {
+      setLocation("/search");
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <header className="border-b bg-white sticky top-0 z-50">
-        <div className="container">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/" className="text-2xl font-bold gradient-text">
-              SkillLink
-            </Link>
-            
-            <nav className="hidden md:flex items-center gap-6">
-              <Link href="/browse" className="text-sm font-medium hover:text-primary transition-colors">
-                Browse Services
-              </Link>
-              <Link href="/how-it-works" className="text-sm font-medium hover:text-primary transition-colors">
-                How It Works
-              </Link>
-              <Link href="/become-provider" className="text-sm font-medium hover:text-primary transition-colors">
-                Become a Provider
-              </Link>
-            </nav>
-            
-            <div className="flex items-center gap-3">
-              {isAuthenticated ? (
-                <>
-                  <Link href="/dashboard">
-                    <Button variant="ghost">Dashboard</Button>
-                  </Link>
-                  <Link href="/profile">
-                    <Button variant="outline">Profile</Button>
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <a href={getLoginUrl()}>
-                    <Button variant="ghost">Sign In</Button>
-                  </a>
-                  <a href={getLoginUrl()}>
-                    <Button>Get Started</Button>
-                  </a>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+      <NavHeader />
 
       {/* Hero Section */}
       <section className="py-20 md:py-32 bg-gradient-to-br from-primary/5 via-background to-accent/5">
@@ -85,21 +51,22 @@ export default function Home() {
                     className="pl-10 border-0 focus-visible:ring-0 text-lg h-12"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                   />
                 </div>
-                <Link href="/search">
-                  <Button size="lg" className="px-8">
-                    Search
-                  </Button>
-                </Link>
+                <Button size="lg" className="px-8" onClick={handleSearch}>
+                  Search
+                </Button>
               </div>
               
               <div className="mt-4 flex flex-wrap gap-2 justify-center">
                 <span className="text-sm text-muted-foreground">Popular:</span>
                 {["Handyman", "Massage", "Barber", "Photography", "Cleaning"].map((service) => (
-                  <Button key={service} variant="outline" size="sm" className="rounded-full">
-                    {service}
-                  </Button>
+                  <Link key={service} href={`/search?q=${encodeURIComponent(service)}`}>
+                    <Button variant="outline" size="sm" className="rounded-full">
+                      {service}
+                    </Button>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -230,7 +197,7 @@ export default function Home() {
               </div>
             </div>
             
-            <Link href="/become-provider">
+            <Link href="/browse">
               <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90">
                 Become a Provider
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -254,25 +221,25 @@ export default function Home() {
               <h4 className="font-semibold mb-4">For Customers</h4>
               <ul className="space-y-2 text-sm opacity-80">
                 <li><Link href="/browse" className="hover:opacity-100">Browse Services</Link></li>
-                <li><Link href="/how-it-works" className="hover:opacity-100">How It Works</Link></li>
-                <li><Link href="/safety" className="hover:opacity-100">Safety & Trust</Link></li>
+                <li><Link href="/search" className="hover:opacity-100">Search</Link></li>
+                <li><Link href="/my-bookings" className="hover:opacity-100">My Bookings</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">For Providers</h4>
               <ul className="space-y-2 text-sm opacity-80">
-                <li><Link href="/become-provider" className="hover:opacity-100">Become a Provider</Link></li>
-                <li><Link href="/provider-benefits" className="hover:opacity-100">Benefits</Link></li>
-                <li><Link href="/provider-resources" className="hover:opacity-100">Resources</Link></li>
+                <li><Link href="/provider/dashboard" className="hover:opacity-100">Provider Dashboard</Link></li>
+                <li><Link href="/provider/services/new" className="hover:opacity-100">Add Service</Link></li>
+                <li><Link href="/provider/availability" className="hover:opacity-100">Manage Availability</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-sm opacity-80">
-                <li><Link href="/about" className="hover:opacity-100">About Us</Link></li>
-                <li><Link href="/contact" className="hover:opacity-100">Contact</Link></li>
-                <li><Link href="/terms" className="hover:opacity-100">Terms of Service</Link></li>
-                <li><Link href="/privacy" className="hover:opacity-100">Privacy Policy</Link></li>
+                <li><Link href="/browse" className="hover:opacity-100">About Us</Link></li>
+                <li><Link href="/browse" className="hover:opacity-100">Contact</Link></li>
+                <li><Link href="/browse" className="hover:opacity-100">Terms of Service</Link></li>
+                <li><Link href="/browse" className="hover:opacity-100">Privacy Policy</Link></li>
               </ul>
             </div>
           </div>
