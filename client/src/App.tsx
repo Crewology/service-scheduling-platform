@@ -18,6 +18,7 @@ import Search from "./pages/Search";
 import AdminDashboard from "./pages/AdminDashboard";
 import SubmitReview from "./pages/SubmitReview";
 import ProviderReviews from "./pages/ProviderReviews";
+import { DevToolsPanel } from "./components/DevToolsPanel";
 
 function Router() {
   return (
@@ -49,6 +50,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
+          <DevToolsPanel />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

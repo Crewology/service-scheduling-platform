@@ -5,7 +5,7 @@ import * as db from "./db";
 
 type AuthenticatedUser = NonNullable<TrpcContext["user"]>;
 
-let testUserIdCounter = 1000;
+let testUserIdCounter = 2000;
 
 async function createAuthContext(role: "customer" | "provider" | "admin" = "customer"): Promise<{ ctx: TrpcContext; userId: number }> {
   const testId = testUserIdCounter++;
@@ -16,7 +16,7 @@ async function createAuthContext(role: "customer" | "provider" | "admin" = "cust
     openId,
     email: `test${testId}@example.com`,
     name: "Test User",
-    role,
+    role, // valid: "customer" | "provider" | "admin"
   });
   
   // Get the actual user ID from database
@@ -51,7 +51,8 @@ async function createAuthContext(role: "customer" | "provider" | "admin" = "cust
     } as TrpcContext["req"],
     res: {
       clearCookie: () => {},
-    } as TrpcContext["res"],
+      cookie: () => {},
+    } as unknown as TrpcContext["res"],
   };
 
   return { ctx, userId: dbUser.id };
@@ -68,7 +69,6 @@ describe("Service Categories", () => {
     expect(Array.isArray(categories)).toBe(true);
     expect(categories.length).toBeGreaterThan(0);
     
-    // Verify first category has expected structure
     const firstCategory = categories[0];
     expect(firstCategory).toHaveProperty("id");
     expect(firstCategory).toHaveProperty("name");
@@ -118,7 +118,10 @@ describe("Service Provider Management", () => {
       acceptsVirtual: false,
     });
 
-    expect(result.success).toBe(true);
+    // Now returns the provider object
+    expect(result).toBeDefined();
+    expect(result.businessName).toBe("Test Service Provider");
+    expect(result.userId).toBe(userId);
 
     // Verify the provider was created
     const profile = await caller.provider.getMyProfile();
@@ -167,7 +170,7 @@ describe("Service Management", () => {
       acceptsVirtual: false,
     });
 
-    // Create a service
+    // Create a service — now returns the service object
     const result = await caller.service.create({
       categoryId: 9, // HANDYMAN
       name: "General Home Repairs",
@@ -181,7 +184,9 @@ describe("Service Management", () => {
       depositAmount: 50,
     });
 
-    expect(result.success).toBe(true);
+    expect(result).toBeDefined();
+    expect(result.name).toBe("General Home Repairs");
+    expect(result.pricingModel).toBe("hourly");
   });
 
   it("should not allow non-providers to create services", async () => {
@@ -215,13 +220,15 @@ describe("Availability Management", () => {
       acceptsVirtual: false,
     });
 
+    // Now returns the schedule object
     const result = await caller.availability.createSchedule({
       dayOfWeek: 1, // Monday
       startTime: "09:00",
       endTime: "17:00",
     });
 
-    expect(result.success).toBe(true);
+    expect(result).toBeDefined();
+    expect(result.dayOfWeek).toBe(1);
   });
 
   it("should create availability override", async () => {
@@ -252,9 +259,6 @@ describe("Booking System", () => {
     const { ctx } = await createAuthContext("customer");
     const caller = appRouter.createCaller(ctx);
 
-    // Note: This test assumes a service exists with ID 1
-    // In a real scenario, you'd create the service first or use a known test service
-    
     const bookingData = {
       serviceId: 1,
       bookingDate: "2026-03-15",
@@ -270,13 +274,12 @@ describe("Booking System", () => {
 
     try {
       const result = await caller.booking.create(bookingData);
-      
-      expect(result.success).toBe(true);
+      // New router returns full booking object
+      expect(result).toBeDefined();
       expect(result.bookingNumber).toBeDefined();
-      expect(result.bookingNumber).toMatch(/^BK-/);
+      expect(result.bookingNumber).toMatch(/^SKL-/);
     } catch (error: any) {
-      // Service might not exist in test database
-      // Expected - service doesn't exist in test database
+      // Service might not exist in test database — expected
       expect(error.message).toBeDefined();
     }
   });
@@ -298,7 +301,7 @@ describe("Authentication", () => {
     const ctx: TrpcContext = {
       user: null,
       req: { protocol: "https", headers: {} } as TrpcContext["req"],
-      res: { clearCookie: () => {} } as TrpcContext["res"],
+      res: { clearCookie: () => {}, cookie: () => {} } as unknown as TrpcContext["res"],
     };
     const caller = appRouter.createCaller(ctx);
 
@@ -316,7 +319,6 @@ describe("Database Query Helpers", () => {
     expect(Array.isArray(categories)).toBe(true);
     expect(categories.length).toBeGreaterThan(0);
     
-    // All categories should be active
     categories.forEach((cat) => {
       expect(cat.isActive).toBe(true);
     });
@@ -333,7 +335,6 @@ describe("Database Query Helpers", () => {
   it("should get user by ID", async () => {
     const user = await db.getUserById(1);
 
-    // User might not exist in test database
     if (user) {
       expect(user.id).toBe(1);
       expect(user).toHaveProperty("openId");

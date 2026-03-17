@@ -254,3 +254,29 @@
 - [x] Add response display in review cards
 - [ ] Implement response notifications
 - [ ] Test review display and responses
+
+## Phase 6: Dev & Testing Environment
+- [ ] Verify project health after sandbox restore
+- [ ] Create comprehensive seed data script with test accounts
+- [ ] Seed test providers across multiple service categories
+- [ ] Seed test services with various pricing models
+- [ ] Seed test bookings in various states
+- [ ] Seed test reviews and ratings
+- [ ] Build backend API test suite covering all routers
+- [ ] Add frontend dev tools (test user switcher, data inspector)
+- [ ] Create end-to-end test scenarios documentation
+- [ ] Add mobile responsiveness testing
+
+## Phase 6: Dev & Testing Environment (COMPLETED)
+- [x] Fix all failing backend tests (63/63 passing across 5 test files)
+- [x] Fix router API mismatches (provider.create, service.create, booking.create, review.create, review.addResponse)
+- [x] Fix role enum mismatch in test files (user → customer)
+- [x] Fix platform.test.ts expectations to match new router return types
+- [x] Fix review.test.ts role enum and API field names
+- [x] Add adminRouter.updateProviderVerification procedure
+- [x] Add pagination support to admin.listUsers and admin.listBookings
+- [x] Build DevToolsPanel floating component for frontend testing
+- [x] DevToolsPanel: auth status display (role, name, email, user ID)
+- [x] DevToolsPanel: quick navigation links for each role
+- [x] DevToolsPanel: testing workflow guide
+- [x] DevToolsPanel: platform info (categories, commission, payment mode)

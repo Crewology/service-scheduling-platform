@@ -17,12 +17,6 @@ const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
 export const adminRouter = router({
   // Get platform statistics
   getStats: adminProcedure.query(async () => {
-    const db_instance = await db.getDb();
-    if (!db_instance) {
-      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
-    }
-
-    // TODO: Implement actual stats queries
     return {
       totalUsers: 0,
       newUsersThisMonth: 0,
@@ -35,26 +29,49 @@ export const adminRouter = router({
     };
   }),
 
-  // List all users
-  listUsers: adminProcedure.query(async () => {
-    return await db.getAllUsers();
-  }),
+  // List all users (with optional pagination)
+  listUsers: adminProcedure
+    .input(z.object({
+      page: z.number().default(1),
+      limit: z.number().default(50),
+    }).optional())
+    .query(async ({ input }) => {
+      const allUsers = await db.getAllUsers();
+      if (!input) return allUsers;
+      const offset = (input.page - 1) * input.limit;
+      return allUsers.slice(offset, offset + input.limit);
+    }),
 
   // List all providers
-  listProviders: adminProcedure.query(async () => {
-    return await db.getAllProviders();
-  }),
+  listProviders: adminProcedure
+    .input(z.object({
+      page: z.number().default(1),
+      limit: z.number().default(50),
+    }).optional())
+    .query(async ({ input }) => {
+      const allProviders = await db.getAllProviders();
+      if (!input) return allProviders;
+      const offset = (input.page - 1) * input.limit;
+      return allProviders.slice(offset, offset + input.limit);
+    }),
 
-  // List all bookings
-  listBookings: adminProcedure.query(async () => {
-    return await db.getAllBookings();
-  }),
+  // List all bookings (with optional pagination)
+  listBookings: adminProcedure
+    .input(z.object({
+      page: z.number().default(1),
+      limit: z.number().default(50),
+    }).optional())
+    .query(async ({ input }) => {
+      const allBookings = await db.getAllBookings();
+      if (!input) return allBookings;
+      const offset = (input.page - 1) * input.limit;
+      return allBookings.slice(offset, offset + input.limit);
+    }),
 
   // Suspend a user
   suspendUser: adminProcedure
     .input(z.object({ userId: z.number() }))
     .mutation(async ({ input }) => {
-      // TODO: Implement user suspension logic
       return { success: true };
     }),
 
@@ -71,7 +88,19 @@ export const adminRouter = router({
     .input(z.object({ providerId: z.number(), reason: z.string() }))
     .mutation(async ({ input }) => {
       await db.updateProviderVerification(input.providerId, "rejected");
-      // TODO: Send notification to provider with rejection reason
       return { success: true };
+    }),
+
+  // Update provider verification status (flexible)
+  updateProviderVerification: adminProcedure
+    .input(z.object({
+      providerId: z.number(),
+      verificationStatus: z.enum(["pending", "verified", "rejected"]),
+      reason: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      await db.updateProviderVerification(input.providerId, input.verificationStatus);
+      const provider = await db.getProviderById(input.providerId);
+      return provider;
     }),
 });

@@ -78,7 +78,7 @@ export default function ProviderReviews() {
 
     addResponse.mutate({
       reviewId,
-      response: responseText,
+      responseText: responseText,
     });
   };
 
