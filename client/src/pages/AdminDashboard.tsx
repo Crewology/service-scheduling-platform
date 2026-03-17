@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { toast } from "sonner";
 import { 
   Users, 
   Briefcase, 
@@ -16,14 +17,18 @@ import {
   CheckCircle, 
   XCircle,
   AlertCircle,
-  BarChart3
+  BarChart3,
+  Ban,
+  Undo2,
 } from "lucide-react";
 import { Link } from "wouter";
 import { formatCurrency, formatDate } from "@/lib/dateUtils";
+import { NavHeader } from "@/components/shared/NavHeader";
 
 export default function AdminDashboard() {
   const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
+  const utils = trpc.useUtils();
   
   useProtectedPage();
 
@@ -51,31 +56,55 @@ export default function AdminDashboard() {
   const { data: providers, isLoading: providersLoading } = trpc.admin.listProviders.useQuery();
   const { data: bookings, isLoading: bookingsLoading } = trpc.admin.listBookings.useQuery();
 
-  const suspendUser = trpc.admin.suspendUser.useMutation();
-  const verifyProvider = trpc.admin.verifyProvider.useMutation();
+  const suspendUser = trpc.admin.suspendUser.useMutation({
+    onSuccess: () => {
+      utils.admin.listUsers.invalidate();
+      utils.admin.getStats.invalidate();
+      toast.success("User suspended");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const unsuspendUser = trpc.admin.unsuspendUser.useMutation({
+    onSuccess: () => {
+      utils.admin.listUsers.invalidate();
+      toast.success("User unsuspended");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const verifyProvider = trpc.admin.verifyProvider.useMutation({
+    onSuccess: () => {
+      utils.admin.listProviders.invalidate();
+      utils.admin.getStats.invalidate();
+      toast.success("Provider verified");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const rejectProvider = trpc.admin.rejectProvider.useMutation({
+    onSuccess: () => {
+      utils.admin.listProviders.invalidate();
+      utils.admin.getStats.invalidate();
+      toast.success("Provider rejected");
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
   if (authLoading || statsLoading) {
     return <LoadingSpinner message="Loading admin dashboard..." />;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b">
-        <div className="container py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-              <p className="text-muted-foreground mt-1">Platform management and oversight</p>
-            </div>
-            <Link href="/">
-              <Button variant="outline">Back to Platform</Button>
-            </Link>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-background">
+      <NavHeader />
 
       <div className="container py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+          <p className="text-muted-foreground mt-1">Platform management and oversight</p>
+        </div>
+
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
@@ -123,9 +152,9 @@ export default function AdminDashboard() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(stats?.totalRevenue || 0)}</div>
+              <div className="text-2xl font-bold">{formatCurrency(Number(stats?.totalRevenue || 0))}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                {formatCurrency(stats?.revenueThisMonth || 0)} this month
+                {formatCurrency(Number(stats?.revenueThisMonth || 0))} this month
               </p>
             </CardContent>
           </Card>
@@ -135,44 +164,80 @@ export default function AdminDashboard() {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6">
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="providers">Providers</TabsTrigger>
-            <TabsTrigger value="bookings">Bookings</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="users">Users ({users?.length || 0})</TabsTrigger>
+            <TabsTrigger value="providers">Providers ({providers?.length || 0})</TabsTrigger>
+            <TabsTrigger value="bookings">Bookings ({bookings?.length || 0})</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
           <TabsContent value="overview">
-            <div className="grid gap-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Pending Verifications */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Recent Activity</CardTitle>
-                  <CardDescription>Latest platform events and actions</CardDescription>
+                  <CardTitle>Pending Verifications</CardTitle>
+                  <CardDescription>Providers awaiting verification</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                      <CheckCircle className="h-5 w-5 text-green-500" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">New booking created</p>
-                        <p className="text-xs text-muted-foreground">2 minutes ago</p>
-                      </div>
+                  {providers?.filter((p: any) => p.verificationStatus === "pending").length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">No pending verifications</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {providers?.filter((p: any) => p.verificationStatus === "pending").slice(0, 5).map((provider: any) => (
+                        <div key={provider.id} className="flex items-center justify-between py-2 border-b last:border-0">
+                          <div>
+                            <p className="text-sm font-medium">{provider.businessName}</p>
+                            <p className="text-xs text-muted-foreground capitalize">{provider.businessType?.replace('_', ' ')}</p>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button size="sm" onClick={() => verifyProvider.mutate({ providerId: provider.id })} disabled={verifyProvider.isPending}>
+                              <CheckCircle className="h-3.5 w-3.5 mr-1" />
+                              Verify
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => rejectProvider.mutate({ providerId: provider.id, reason: "Does not meet requirements" })} disabled={rejectProvider.isPending}>
+                              <XCircle className="h-3.5 w-3.5 mr-1" />
+                              Reject
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <div className="flex items-center gap-4">
-                      <Users className="h-5 w-5 text-blue-500" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">New user registered</p>
-                        <p className="text-xs text-muted-foreground">15 minutes ago</p>
-                      </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Recent Bookings */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Bookings</CardTitle>
+                  <CardDescription>Latest platform bookings</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {bookings?.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">No bookings yet</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {bookings?.slice(0, 5).map((booking: any) => (
+                        <div key={booking.id} className="flex items-center justify-between py-2 border-b last:border-0">
+                          <div>
+                            <p className="text-sm font-medium">{booking.bookingNumber}</p>
+                            <p className="text-xs text-muted-foreground">{booking.bookingDate}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">{formatCurrency(parseFloat(booking.totalAmount || "0"))}</span>
+                            <Badge variant={
+                              booking.status === "completed" ? "default" :
+                              booking.status === "confirmed" ? "default" :
+                              booking.status === "cancelled" ? "destructive" :
+                              "secondary"
+                            }>
+                              {booking.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <div className="flex items-center gap-4">
-                      <AlertCircle className="h-5 w-5 text-orange-500" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">Provider verification pending</p>
-                        <p className="text-xs text-muted-foreground">1 hour ago</p>
-                      </div>
-                    </div>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -192,6 +257,7 @@ export default function AdminDashboard() {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead>ID</TableHead>
                         <TableHead>Name</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Role</TableHead>
@@ -201,21 +267,38 @@ export default function AdminDashboard() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {users?.map((user: any) => (
-                        <TableRow key={user.id}>
-                          <TableCell className="font-medium">{user.name || "N/A"}</TableCell>
-                          <TableCell>{user.email}</TableCell>
+                      {users?.map((u: any) => (
+                        <TableRow key={u.id}>
+                          <TableCell className="text-muted-foreground">{u.id}</TableCell>
+                          <TableCell className="font-medium">{u.name || "N/A"}</TableCell>
+                          <TableCell>{u.email}</TableCell>
                           <TableCell>
-                            <Badge variant={user.role === "admin" ? "default" : "secondary"}>
-                              {user.role}
+                            <Badge variant={u.role === "admin" ? "default" : "secondary"}>
+                              {u.role}
                             </Badge>
                           </TableCell>
-                          <TableCell>{formatDate(user.createdAt)}</TableCell>
+                          <TableCell>{formatDate(u.createdAt)}</TableCell>
                           <TableCell>
-                            <Badge variant="outline">Active</Badge>
+                            {u.deletedAt ? (
+                              <Badge variant="destructive">Suspended</Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-green-600 border-green-600">Active</Badge>
+                            )}
                           </TableCell>
                           <TableCell>
-                            <Button size="sm" variant="outline">View</Button>
+                            {u.role !== "admin" && (
+                              u.deletedAt ? (
+                                <Button size="sm" variant="outline" onClick={() => unsuspendUser.mutate({ userId: u.id })} disabled={unsuspendUser.isPending}>
+                                  <Undo2 className="h-3.5 w-3.5 mr-1" />
+                                  Unsuspend
+                                </Button>
+                              ) : (
+                                <Button size="sm" variant="outline" className="text-destructive" onClick={() => suspendUser.mutate({ userId: u.id })} disabled={suspendUser.isPending}>
+                                  <Ban className="h-3.5 w-3.5 mr-1" />
+                                  Suspend
+                                </Button>
+                              )
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -242,6 +325,7 @@ export default function AdminDashboard() {
                       <TableRow>
                         <TableHead>Business Name</TableHead>
                         <TableHead>Type</TableHead>
+                        <TableHead>Location</TableHead>
                         <TableHead>Verification</TableHead>
                         <TableHead>Rating</TableHead>
                         <TableHead>Joined</TableHead>
@@ -252,7 +336,8 @@ export default function AdminDashboard() {
                       {providers?.map((provider: any) => (
                         <TableRow key={provider.id}>
                           <TableCell className="font-medium">{provider.businessName}</TableCell>
-                          <TableCell>{provider.businessType}</TableCell>
+                          <TableCell className="capitalize">{provider.businessType?.replace('_', ' ')}</TableCell>
+                          <TableCell>{provider.city ? `${provider.city}, ${provider.state}` : "N/A"}</TableCell>
                           <TableCell>
                             <Badge 
                               variant={
@@ -267,19 +352,28 @@ export default function AdminDashboard() {
                           <TableCell>
                             <div className="flex items-center gap-1">
                               <span className="text-yellow-500">★</span>
-                              <span>{provider.rating?.toFixed(1) || "N/A"}</span>
+                              <span>{provider.averageRating ? parseFloat(provider.averageRating).toFixed(1) : "N/A"}</span>
                             </div>
                           </TableCell>
                           <TableCell>{formatDate(provider.createdAt)}</TableCell>
                           <TableCell>
-                            {provider.verificationStatus === "pending" && (
-                              <Button 
-                                size="sm" 
-                                onClick={() => verifyProvider.mutate({ providerId: provider.id })}
-                              >
-                                Verify
-                              </Button>
-                            )}
+                            <div className="flex gap-1">
+                              {provider.verificationStatus === "pending" && (
+                                <>
+                                  <Button size="sm" onClick={() => verifyProvider.mutate({ providerId: provider.id })} disabled={verifyProvider.isPending}>
+                                    Verify
+                                  </Button>
+                                  <Button size="sm" variant="outline" onClick={() => rejectProvider.mutate({ providerId: provider.id, reason: "Does not meet requirements" })} disabled={rejectProvider.isPending}>
+                                    Reject
+                                  </Button>
+                                </>
+                              )}
+                              {provider.verificationStatus === "rejected" && (
+                                <Button size="sm" variant="outline" onClick={() => verifyProvider.mutate({ providerId: provider.id })} disabled={verifyProvider.isPending}>
+                                  Re-verify
+                                </Button>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -305,21 +399,20 @@ export default function AdminDashboard() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Booking #</TableHead>
-                        <TableHead>Service</TableHead>
-                        <TableHead>Customer</TableHead>
                         <TableHead>Date</TableHead>
+                        <TableHead>Time</TableHead>
+                        <TableHead>Location</TableHead>
                         <TableHead>Amount</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {bookings?.map((booking: any) => (
                         <TableRow key={booking.id}>
                           <TableCell className="font-medium">{booking.bookingNumber}</TableCell>
-                          <TableCell>{booking.serviceName || "Service"}</TableCell>
-                          <TableCell>{booking.customerName || "Customer"}</TableCell>
                           <TableCell>{booking.bookingDate}</TableCell>
+                          <TableCell>{booking.startTime} - {booking.endTime}</TableCell>
+                          <TableCell className="capitalize">{booking.locationType?.replace('_', ' ')}</TableCell>
                           <TableCell>{formatCurrency(parseFloat(booking.totalAmount || "0"))}</TableCell>
                           <TableCell>
                             <Badge
@@ -333,9 +426,6 @@ export default function AdminDashboard() {
                               {booking.status}
                             </Badge>
                           </TableCell>
-                          <TableCell>
-                            <Button size="sm" variant="outline">View</Button>
-                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -343,26 +433,6 @@ export default function AdminDashboard() {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
-
-          {/* Analytics Tab */}
-          <TabsContent value="analytics">
-            <div className="grid gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Platform Analytics</CardTitle>
-                  <CardDescription>Key metrics and trends</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-center h-64 text-muted-foreground">
-                    <div className="text-center">
-                      <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>Analytics charts coming soon</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
           </TabsContent>
         </Tabs>
       </div>

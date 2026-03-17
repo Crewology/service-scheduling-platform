@@ -27,9 +27,12 @@ const authRouter = router({
       lastName: z.string().optional(),
       phone: z.string().optional(),
       profilePhotoUrl: z.string().optional(),
+      email: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      return { success: true };
+      await db.updateUserProfile(ctx.user.id, input);
+      const updated = await db.getUserById(ctx.user.id);
+      return updated!;
     }),
 });
 
@@ -90,6 +93,34 @@ const providerRouter = router({
 
   listFeatured: publicProcedure.query(async () => {
     return await db.getAllProviders({ isActive: true });
+  }),
+
+  update: protectedProcedure
+    .input(z.object({
+      businessName: z.string().optional(),
+      description: z.string().optional(),
+      addressLine1: z.string().optional(),
+      addressLine2: z.string().optional(),
+      city: z.string().optional(),
+      state: z.string().optional(),
+      postalCode: z.string().optional(),
+      serviceRadiusMiles: z.number().optional(),
+      acceptsMobile: z.boolean().optional(),
+      acceptsFixedLocation: z.boolean().optional(),
+      acceptsVirtual: z.boolean().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+      await db.updateProviderProfile(provider.id, input);
+      const updated = await db.getProviderByUserId(ctx.user.id);
+      return updated!;
+    }),
+
+  earnings: protectedProcedure.query(async ({ ctx }) => {
+    const provider = await db.getProviderByUserId(ctx.user.id);
+    if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+    return await db.getProviderEarnings(provider.id);
   }),
 });
 
@@ -198,6 +229,55 @@ const serviceRouter = router({
     if (!provider) return [];
     return await db.getServicesByProviderId(provider.id);
   }),
+
+  update: protectedProcedure
+    .input(z.object({
+      id: z.number(),
+      name: z.string().optional(),
+      description: z.string().optional(),
+      categoryId: z.number().optional(),
+      serviceType: z.enum(["mobile", "fixed_location", "virtual", "hybrid"]).optional(),
+      pricingModel: z.enum(["fixed", "hourly", "package", "custom_quote"]).optional(),
+      basePrice: z.union([z.number(), z.string()]).optional(),
+      hourlyRate: z.union([z.number(), z.string()]).optional(),
+      durationMinutes: z.number().optional(),
+      depositRequired: z.boolean().optional(),
+      depositType: z.enum(["fixed", "percentage"]).optional(),
+      depositAmount: z.union([z.number(), z.string()]).optional(),
+      depositPercentage: z.union([z.number(), z.string()]).optional(),
+      cancellationPolicy: z.string().optional(),
+      specialRequirements: z.string().optional(),
+      isActive: z.boolean().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+      const service = await db.getServiceById(input.id);
+      if (!service) throw new TRPCError({ code: "NOT_FOUND", message: "Service not found" });
+      if (service.providerId !== provider.id) throw new TRPCError({ code: "FORBIDDEN", message: "Not your service" });
+      const { id, ...updateData } = input;
+      const cleanData: Record<string, any> = {};
+      for (const [key, value] of Object.entries(updateData)) {
+        if (value !== undefined) {
+          cleanData[key] = ["basePrice", "hourlyRate", "depositAmount", "depositPercentage"].includes(key) ? value.toString() : value;
+        }
+      }
+      await db.updateService(input.id, cleanData);
+      const updated = await db.getServiceById(input.id);
+      return updated!;
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+      const service = await db.getServiceById(input.id);
+      if (!service) throw new TRPCError({ code: "NOT_FOUND", message: "Service not found" });
+      if (service.providerId !== provider.id) throw new TRPCError({ code: "FORBIDDEN", message: "Not your service" });
+      await db.deleteService(input.id);
+      return { success: true };
+    }),
 });
 
 // ============================================================================
@@ -570,6 +650,24 @@ const availabilityRouter = router({
         reason: input.reason,
       });
       
+      return { success: true };
+    }),
+
+  deleteSchedule: protectedProcedure
+    .input(z.object({ scheduleId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+      await db.deleteAvailabilitySchedule(input.scheduleId);
+      return { success: true };
+    }),
+
+  deleteOverride: protectedProcedure
+    .input(z.object({ overrideId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+      await db.deleteAvailabilityOverride(input.overrideId);
       return { success: true };
     }),
 });

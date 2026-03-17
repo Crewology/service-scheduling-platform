@@ -1,0 +1,544 @@
+# SkillLink Platform — Build Log
+
+This document provides a complete, chronological record of every phase of the SkillLink Service Scheduling Platform build. It is intended as a reference for debugging, onboarding, and future development decisions.
+
+---
+
+## Project Overview
+
+| Field | Value |
+|---|---|
+| **Project Name** | SkillLink (service-scheduling-platform) |
+| **Stack** | React 19 + Tailwind 4 + Express 4 + tRPC 11 + Drizzle ORM + MySQL (TiDB) |
+| **Auth** | Manus OAuth (session cookie) |
+| **Payments** | Stripe Checkout (test mode) |
+| **Notifications** | Email via Manus Forge API, SMS stub ready |
+| **Hosting** | Manus built-in hosting with custom domain support |
+| **Total Source Files** | 131 (excluding node_modules and test files) |
+| **Total Lines of Code** | ~20,386 |
+| **Test Files** | 7 files, 102 tests (all passing) |
+| **Database Tables** | 14 |
+| **Frontend Pages** | 17 (including UserProfile) |
+| **tRPC Routers** | 12 (auth, provider, category, service, booking, review, message, notification, availability, stripe, admin, system) |
+
+---
+
+## Phase 1: Foundation and Database Schema
+
+**Objective:** Design and implement the complete database schema to support a multi-sided marketplace connecting customers with service providers across 42 categories.
+
+**What was built:**
+
+The database schema was designed with 14 tables in `drizzle/schema.ts` and pushed via `pnpm db:push`. The tables are:
+
+| Table | Purpose | Key Fields |
+|---|---|---|
+| `users` | Core user accounts with role-based access | `role` enum: customer, provider, admin |
+| `service_providers` | Provider business profiles | businessName, businessType, verificationStatus, stripeAccountId, commissionRate |
+| `service_categories` | 42 predefined service categories | name, slug, isMobileEnabled, isFixedLocationEnabled, isVirtualEnabled |
+| `services` | Individual services offered by providers | pricingModel (fixed/hourly/package/custom_quote), depositRequired, durationMinutes |
+| `service_photos` | Photo gallery for services | photoUrl, caption, sortOrder, isPrimary |
+| `availability_schedules` | Recurring weekly availability | dayOfWeek (0-6), startTime, endTime, maxConcurrentBookings |
+| `availability_overrides` | Date-specific schedule changes | overrideDate, isAvailable, reason |
+| `bookings` | Customer-provider booking records | bookingNumber, status (7 states), pricing breakdown, location details |
+| `payments` | Stripe payment tracking | stripePaymentIntentId, paymentType (deposit/final/full/refund) |
+| `reviews` | Customer reviews with provider responses | rating (1-5), reviewText, responseText, respondedAt |
+| `messages` | Booking-linked messaging | conversationId, senderId, recipientId, isRead |
+| `notifications` | Multi-channel notification records | notificationType, isSentEmail, isSentSms |
+| `verification_documents` | Provider identity/license verification | documentType, verificationStatus, expirationDate |
+
+All 42 service categories were seeded into the database with IDs matching the project specification (e.g., BARBER SHOP = ID 7, HANDYMAN = ID 9, MASSAGE THERAPIST = ID 10, etc.).
+
+**Database indexes** were added on all foreign keys and frequently queried columns (provider ratings, booking status+date, category active+sort order, etc.) for production-ready performance.
+
+**Key decisions:**
+- Used `varchar` for bookingDate and overrideDate (YYYY-MM-DD format) instead of MySQL `date` type for simpler string comparisons in availability queries.
+- Used `decimal(10,2)` for all monetary fields to avoid floating-point precision issues.
+- Booking status uses a 7-state enum: pending → confirmed → in_progress → completed, with cancelled/no_show/refunded as terminal states.
+
+---
+
+## Phase 2: Authentication and User Management
+
+**Objective:** Implement role-based authentication with three user types.
+
+**What was built:**
+
+The Manus OAuth flow was configured (pre-built in the template). The `users` table was extended with a `role` enum supporting three roles:
+
+- **Customer** (default): Can browse services, book appointments, leave reviews, send messages.
+- **Provider**: Can create a business profile, list services, manage availability, accept/decline bookings.
+- **Admin**: Full platform oversight — user management, provider verification, booking monitoring.
+
+The `authRouter` exposes:
+- `auth.me` — returns current user or null
+- `auth.logout` — clears session cookie
+- `auth.updateProfile` — updates user profile fields
+
+The `useAuth()` hook on the frontend provides `user`, `loading`, and `isAuthenticated` state. The `useProtectedPage()` hook redirects unauthenticated users to the login page.
+
+**Key decisions:**
+- Role is set at user creation time. Provider role is assigned when a user creates a provider profile (the `provider.create` procedure does not change the user's role — it creates a linked `service_providers` record). Admin role is auto-assigned to the platform owner via `ENV.ownerOpenId`.
+
+---
+
+## Phase 3: Provider Onboarding and Profiles
+
+**Objective:** Allow users to register as service providers with business information.
+
+**What was built:**
+
+The `providerRouter` handles provider lifecycle:
+- `provider.create` — creates a provider profile (validates no duplicate exists)
+- `provider.getMyProfile` / `provider.getMine` — retrieves the current user's provider profile
+- `provider.getById` — public lookup by provider ID
+- `provider.list` — public listing with optional city/state/isActive filters
+- `provider.listFeatured` — returns active providers sorted by rating
+
+The **Provider Dashboard** (`/provider/dashboard`) was built with:
+- Overview cards showing total services, active bookings, and average rating
+- "My Services" tab listing all services with edit/delete actions
+- "My Bookings" tab with status filters and booking management
+- Quick action buttons for creating services and managing availability
+
+The **Create Service** page (`/provider/services/new`) supports:
+- Category selection from all 42 categories
+- Four pricing models: fixed price, hourly rate, package, custom quote
+- Deposit configuration (fixed amount or percentage)
+- Service type selection (mobile, fixed location, virtual, hybrid)
+- Duration, preparation time, cleanup time, and buffer time settings
+
+**Key decisions:**
+- Provider profiles are linked 1:1 with user accounts via `userId` unique constraint.
+- Verification status starts as "pending" and must be approved by an admin.
+
+---
+
+## Phase 4: Service Catalog and Browsing
+
+**Objective:** Build the public-facing service discovery experience.
+
+**What was built:**
+
+The `categoryRouter` provides:
+- `category.list` — all active categories
+- `category.getById` / `category.getBySlug` — single category lookup
+
+The `serviceRouter` provides:
+- `service.create` — provider-only service creation
+- `service.getById` — public service detail
+- `service.listByProvider` / `service.listByCategory` — filtered listings
+- `service.search` — keyword search across service names and descriptions
+- `service.listMine` — provider's own services
+
+Frontend pages:
+- **Home** (`/`) — hero section with search bar, popular category chips, featured providers
+- **Browse** (`/browse`) — grid of all 42 service categories with service counts
+- **Category Detail** (`/category/:slug`) — services within a specific category
+- **Search** (`/search`) — keyword search with results display
+- **Service Detail** (`/service/:id`) — full service information with booking calendar
+
+**Key decisions:**
+- Search is implemented as a server-side LIKE query on service name and description. For MVP this is sufficient; a full-text search index could be added later.
+- Categories use URL-friendly slugs (e.g., "massage-therapist", "barber-shop") generated from the category name.
+
+---
+
+## Phase 5: Availability Scheduling System
+
+**Objective:** Allow providers to define when they are available for bookings.
+
+**What was built:**
+
+The `availabilityRouter` provides:
+- `availability.createSchedule` — set recurring weekly availability (day of week + time range)
+- `availability.getSchedule` / `availability.getMySchedule` — retrieve provider schedules
+- `availability.createOverride` — date-specific overrides (e.g., holidays, special hours)
+- `availability.getOverrides` / `availability.getMyOverrides` — retrieve overrides
+
+The **Manage Availability** page (`/provider/availability`) provides:
+- A weekly schedule editor with day-by-day time range configuration
+- An override calendar for blocking specific dates or adding special hours
+- Visual display of the current schedule
+
+The shared `timeSlots.ts` utility generates available time slots by:
+1. Checking the provider's weekly schedule for the requested day of week
+2. Applying any date-specific overrides
+3. Filtering out slots that conflict with existing bookings
+4. Returning an array of `{ time, available, bookingId? }` objects
+
+**Key decisions:**
+- Time slots are generated in 30-minute intervals by default.
+- The system supports `maxConcurrentBookings` per time slot (default: 1) for providers who can serve multiple customers simultaneously.
+
+---
+
+## Phase 6: Booking System
+
+**Objective:** Implement the complete booking lifecycle from request to completion.
+
+**What was built:**
+
+The `bookingRouter` provides:
+- `booking.create` — creates a booking with automatic pricing calculation
+- `booking.getById` — retrieves booking with access control (customer, provider, or admin)
+- `booking.myBookings` / `booking.listMine` — customer's bookings with optional status filter
+- `booking.providerBookings` / `booking.listForProvider` — provider's bookings
+- `booking.listByDateRange` — bookings within a date range (for availability checking)
+- `booking.updateStatus` — status transitions with cancellation tracking
+
+The **Service Detail** page (`/service/:id`) includes a 4-step booking flow:
+1. **Select Date** — calendar with visual availability indicators (green = available, gray = unavailable)
+2. **Select Time** — time slot grid generated from provider availability
+3. **Enter Details** — location information and customer notes
+4. **Review and Confirm** — pricing summary with subtotal, platform fee, deposit, and total
+
+The **Booking Confirmation** page (`/booking/:id`) shows:
+- Booking number, status badge, and all booking details
+- Payment button (Stripe checkout) for pending bookings
+- Messaging link to contact the provider
+- Review link for completed bookings
+
+The **My Bookings** page (`/my-bookings`) shows:
+- All customer bookings with status filters
+- Booking cards with service name, provider, date, time, and amount
+- Quick actions (view details, cancel, leave review)
+
+**Pricing calculation:**
+- Subtotal is based on the service's base price or hourly rate × duration
+- Platform fee is 15% of the subtotal
+- Total = subtotal + platform fee
+- Deposit amount is calculated based on the service's deposit settings (fixed or percentage)
+- Remaining amount = total - deposit
+
+**Key decisions:**
+- Booking numbers use the format `SKL-{timestamp}-{random}` for uniqueness.
+- Status transitions are enforced at the API level with access control checks.
+- Both customers and providers can cancel bookings, with the `cancelledBy` field tracking who initiated.
+
+---
+
+## Phase 7: Stripe Payment Integration
+
+**Objective:** Enable secure payment processing for booking deposits and full payments.
+
+**What was built:**
+
+The `stripeRouter` provides:
+- `stripe.createCheckoutSession` — creates a Stripe Checkout session for a booking
+
+The `stripeWebhook.ts` handles:
+- `checkout.session.completed` — updates booking with payment confirmation, sends email notification
+- `payment_intent.succeeded` — logs successful payment
+- `payment_intent.payment_failed` — logs failed payment (TODO: customer notification)
+- `charge.refunded` — logs refund (TODO: booking status update)
+- Test event detection (`evt_test_*`) for webhook verification
+
+The `products.ts` file provides:
+- `calculatePlatformFee(subtotal)` — 15% platform fee
+- `calculateDepositAmount(total, type, amount, percentage)` — deposit calculation
+- `calculateBookingTotal(servicePrice)` — full pricing breakdown
+
+**Webhook registration:** The webhook endpoint is registered at `/api/stripe/webhook` with `express.raw()` middleware before `express.json()` to preserve the raw body for Stripe signature verification.
+
+**Key decisions:**
+- Stripe is in test mode. Users can test with card `4242 4242 4242 4242`.
+- Checkout sessions open in a new browser tab.
+- Payment metadata includes bookingId, customerId, providerId, serviceId, and bookingNumber for reconciliation.
+- Promotion codes are enabled via `allow_promotion_codes: true`.
+
+---
+
+## Phase 8: Messaging System
+
+**Objective:** Enable direct communication between customers and providers linked to bookings.
+
+**What was built:**
+
+The `messageRouter` provides:
+- `message.send` — sends a message with automatic conversation ID generation
+- `message.getConversation` — retrieves all messages in a conversation
+- `message.myConversations` — lists all conversations for the current user
+- `message.listByBooking` — messages linked to a specific booking
+- `message.markAsRead` — marks messages as read
+- `message.unreadCount` — returns unread message count for the current user
+
+The **Messages** page (`/messages/:bookingId`) provides:
+- Real-time message display with 5-second polling
+- Message input with send button
+- Booking context header showing service and provider info
+- Read receipts (messages marked as read when conversation is opened)
+
+The **NavHeader** component displays an unread message badge across all pages.
+
+**Key decisions:**
+- Conversation IDs are deterministic: `conv-{lowerUserId}-{higherUserId}` ensures both parties share the same conversation.
+- Messages are linked to bookings via `bookingId` for context.
+- Polling interval is 5 seconds (a reasonable balance between responsiveness and server load for MVP).
+
+---
+
+## Phase 9: Review and Rating System
+
+**Objective:** Allow customers to rate and review completed services, and providers to respond.
+
+**What was built:**
+
+The `reviewRouter` provides:
+- `review.create` — submit a review (only for completed bookings, one per booking)
+- `review.listByProvider` — paginated reviews for a provider
+- `review.addResponse` — provider response to a review
+
+The **Submit Review** page (`/booking/:id/review`) provides:
+- Star rating selector (1-5)
+- Text review input
+- Booking context display
+
+The **Provider Reviews** page (`/provider/reviews`) provides:
+- List of all reviews for the provider
+- Response form for each review
+- Average rating display
+
+Reusable components:
+- `ReviewCard` — displays a single review with rating, text, and provider response
+- `ReviewList` — paginated list of reviews with loading states
+
+The `updateProviderRating()` helper recalculates and updates the provider's `averageRating` and `totalReviews` fields whenever a new review is submitted.
+
+**Key decisions:**
+- Reviews are limited to one per booking (enforced by unique constraint on `bookingId`).
+- Only customers who completed a booking can leave a review.
+- Provider responses are stored in the same `reviews` table (`responseText` field).
+
+---
+
+## Phase 10: Notification System
+
+**Objective:** Build a multi-channel notification architecture supporting email and SMS.
+
+**What was built:**
+
+The notification system uses a plugin architecture:
+- `NotificationService` — singleton service that routes notifications to registered providers
+- `EmailProvider` — sends emails via Manus Forge API with HTML-formatted templates
+- `SMSProvider` — stub implementation ready for Twilio integration
+- `templates.ts` — 10 notification templates covering the full booking lifecycle
+
+Templates implemented:
+1. `new_booking_request` — sent to provider when a new booking is created
+2. `booking_confirmed` — sent to customer when provider confirms
+3. `booking_cancelled` — sent to customer with optional refund info
+4. `booking_completed` — sent to customer with review link
+5. `payment_received` — sent to customer confirming payment
+6. `payment_failed` — sent to customer requesting payment update
+7. `message_received` — sent when a new message arrives
+8. `review_received` — sent to provider when a review is posted
+9. `reminder_24h` — 24-hour appointment reminder
+10. `reminder_1h` — 1-hour appointment reminder
+
+The `notificationRouter` provides:
+- `notification.list` — user's notifications with optional unread filter
+- `notification.markAsRead` — marks a notification as read
+
+**Key decisions:**
+- Email HTML templates include SkillLink branding with gradient header.
+- SMS bodies are kept under 160 characters for single-message delivery.
+- The architecture supports adding push notifications or other channels without modifying existing code.
+
+---
+
+## Phase 11: Admin Dashboard
+
+**Objective:** Provide platform administrators with oversight and management tools.
+
+**What was built:**
+
+The `adminRouter` provides:
+- `admin.getStats` — real platform-wide statistics (total users, providers, bookings, revenue with month-over-month)
+- `admin.listUsers` — paginated user list with suspension status
+- `admin.listProviders` — paginated provider list with verification status
+- `admin.listBookings` — paginated booking list
+- `admin.suspendUser` — suspend a user account (sets deletedAt timestamp)
+- `admin.unsuspendUser` — restore a suspended user account
+- `admin.verifyProvider` / `admin.rejectProvider` — provider verification workflow
+- `admin.updateProviderVerification` — flexible verification status update
+
+The **Admin Dashboard** page (`/admin`) provides:
+- Overview tab with stats cards (users, providers, bookings, revenue)
+- Users tab with user list and suspend action
+- Providers tab with verification approve/reject actions
+- Bookings tab with booking list and status overview
+
+**Key decisions:**
+- Admin access is enforced at the procedure level via `adminProcedure` middleware.
+- The admin role is auto-assigned to the platform owner.
+
+---
+
+## Phase 12: Dev and Testing Environment
+
+**Objective:** Create a robust development and testing environment for the platform.
+
+**What was built:**
+
+**Test suite** (88 tests across 6 files):
+- `auth.logout.test.ts` — authentication logout flow
+- `platform.test.ts` — categories, providers, services, availability, bookings, auth, DB helpers (15 tests)
+- `skilllink.test.ts` — comprehensive end-to-end tests for all routers (27 tests)
+- `review.test.ts` — review creation, provider response, listing (3 tests)
+- `next-steps.test.ts` — unread message count, booking calendar features (16 tests)
+- `timeSlots.test.ts` — time slot generation utility (26 tests)
+
+**Seed data script** (`seed-data.mjs`):
+- 11 test users (1 admin, 5 providers, 5 customers)
+- 6 provider profiles across different categories
+- 17 services with various pricing models
+- 18 bookings in various states (pending, confirmed, completed, cancelled)
+- 9 reviews with ratings and provider responses
+- 3 message conversations
+- Availability schedules for all providers
+
+**DevTools Panel** — floating development tool (bottom-right corner):
+- Current auth status display (role, name, email, user ID)
+- Quick navigation links organized by role (Customer, Provider, Admin)
+- Testing workflow guide
+- Platform info (categories count, commission rate, payment mode)
+
+**Key decisions:**
+- Test users use timestamp-based unique IDs to avoid collisions between test runs.
+- Seed data uses high ID ranges (270000+) to avoid conflicting with production data.
+
+---
+
+## Shared Utilities
+
+| File | Purpose |
+|---|---|
+| `shared/timeSlots.ts` | Time slot generation with availability checking |
+| `shared/types.ts` | Unified type exports from schema |
+| `shared/const.ts` | Shared constants (cookie name, etc.) |
+| `client/src/lib/dateUtils.ts` | Date/time formatting (formatDate, formatCurrency, formatRelativeTime) |
+| `client/src/lib/trpc.ts` | tRPC client binding |
+| `server/products.ts` | Pricing calculation helpers |
+| `server/storage.ts` | S3 file storage helpers |
+
+---
+
+## Reusable Components
+
+| Component | Location | Purpose |
+|---|---|---|
+| `NavHeader` | `components/shared/NavHeader.tsx` | Unified navigation bar with auth state, unread message badge, role-based links |
+| `ReviewCard` | `components/shared/ReviewCard.tsx` | Single review display with rating stars and provider response |
+| `ReviewList` | `components/shared/ReviewList.tsx` | Paginated review list with loading states |
+| `StatusBadge` | `components/shared/StatusBadge.tsx` | Color-coded booking status badge |
+| `EmptyState` | `components/shared/EmptyState.tsx` | Empty state placeholder with icon and message |
+| `LoadingSpinner` | `components/shared/LoadingSpinner.tsx` | Full-page loading spinner |
+| `DevToolsPanel` | `components/DevToolsPanel.tsx` | Development tools overlay |
+| `DashboardLayout` | `components/DashboardLayout.tsx` | Sidebar layout for admin/dashboard pages |
+| `ErrorBoundary` | `components/ErrorBoundary.tsx` | React error boundary wrapper |
+
+---
+
+## Frontend Routes
+
+| Route | Page | Access | Description |
+|---|---|---|---|
+| `/` | Home | Public | Landing page with search, categories, featured providers |
+| `/browse` | Browse | Public | All 42 service categories grid |
+| `/search` | Search | Public | Keyword search with results |
+| `/category/:slug` | CategoryDetail | Public | Services within a category |
+| `/service/:id` | ServiceDetail | Public | Service detail with booking calendar |
+| `/booking/:id` | BookingConfirmation | Protected | Booking details, payment, messaging |
+| `/booking/:id/review` | SubmitReview | Protected | Review submission form |
+| `/my-bookings` | MyBookings | Protected | Customer's booking history |
+| `/messages/:bookingId` | Messages | Protected | Booking-linked messaging |
+| `/provider/dashboard` | ProviderDashboard | Protected | Provider management hub |
+| `/provider/services/new` | CreateService | Protected | Service creation form |
+| `/provider/availability` | ManageAvailability | Protected | Availability schedule editor |
+| `/provider/reviews` | ProviderReviews | Protected | Provider's reviews and responses |
+| `/admin` | AdminDashboard | Admin only | Platform administration |
+| `/404` | NotFound | Public | 404 error page |
+
+---
+
+## Environment Variables
+
+| Variable | Purpose | Source |
+|---|---|---|
+| `DATABASE_URL` | MySQL/TiDB connection string | System |
+| `JWT_SECRET` | Session cookie signing | System |
+| `VITE_APP_ID` | Manus OAuth app ID | System |
+| `OAUTH_SERVER_URL` | Manus OAuth backend URL | System |
+| `VITE_OAUTH_PORTAL_URL` | Manus login portal URL | System |
+| `OWNER_OPEN_ID` | Platform owner's user ID | System |
+| `OWNER_NAME` | Platform owner's name | System |
+| `BUILT_IN_FORGE_API_URL` | Manus Forge API URL | System |
+| `BUILT_IN_FORGE_API_KEY` | Manus Forge API key | System |
+| `VITE_FRONTEND_FORGE_API_KEY` | Frontend Forge API key | System |
+| `VITE_FRONTEND_FORGE_API_URL` | Frontend Forge API URL | System |
+| `STRIPE_SECRET_KEY` | Stripe secret key (test mode) | Configured |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret | Configured |
+| `VITE_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key | Configured |
+
+---
+
+## Known Gaps and Future Work
+
+The following items are identified but not yet implemented:
+
+1. **Service photo upload** — schema exists but no upload UI or API
+2. **Verification document upload** — schema exists but no upload UI or API
+3. **Provider payouts** — Stripe Connect not configured; no payout logic
+4. **Refund handling** — webhook handler logs but doesn't update booking status
+5. **Payment failure notification** — webhook handler logs but doesn't notify customer
+6. **SMS notifications** — provider is a stub awaiting Twilio credentials
+7. **Embeddable booking widget** — not started
+8. **Location-based search** — not implemented
+
+### Resolved in Phase 13 (MVP Gap Fixes)
+
+- ~~Admin stats are hardcoded~~ → Now uses real database queries
+- ~~User suspension is a stub~~ → Now sets/clears `deletedAt` timestamp
+- ~~Profile update is a stub~~ → Now persists to database
+- ~~Service editing/deletion~~ → Full CRUD with UI
+- ~~Provider profile editing~~ → Edit form in provider dashboard
+
+---
+
+## Phase 13: MVP Gap Fixes and Documentation
+
+**Objective:** Close all remaining MVP gaps, create comprehensive documentation, and ensure all user roles have complete workflows.
+
+**What was built:**
+
+**Backend fixes:**
+- `admin.getStats` now queries real data: total users, new users this month, total providers, pending verifications, total bookings, bookings this month, total revenue, revenue this month
+- `admin.suspendUser` now sets `deletedAt` timestamp on the user record
+- `admin.unsuspendUser` (new) clears `deletedAt` to restore access
+- `admin.rejectProvider` (new) rejects a provider with a reason
+- `auth.updateProfile` now persists firstName, lastName, phone, email to the database
+- `provider.update` (new) allows providers to edit business name, description, phone, address fields
+- `provider.earnings` (new) returns total earnings, completed bookings, pending earnings, and recent transactions
+- `service.update` (new) allows providers to edit service name, description, price, duration, and status
+- `service.delete` (new) allows providers to delete their services
+- `availability.deleteSchedule` / `availability.deleteOverride` (new) allow providers to remove availability entries
+
+**Frontend additions:**
+- **UserProfile** page (`/profile`) — view and edit personal information
+- **AdminDashboard** — real stats, working suspend/unsuspend, verify/reject providers
+- **ProviderDashboard** — service edit/delete dialogs, profile editing, real earnings data, booking status management
+- **NavHeader** — profile link with user icon
+
+**Tests:** 14 new tests in `mvp-gaps.test.ts` covering admin stats, suspension, profile updates, provider updates, earnings, service CRUD, availability deletion, and provider verification.
+
+---
+
+## Checkpoint History
+
+| Version | Description |
+|---|---|
+| `385207ae` | Initial project scaffold |
+| `6c32aea2` | Dev/testing environment: all 63 tests passing, DevTools panel |
+| `c5a74fb0` | Next steps: seed data, unread message indicators, enhanced booking calendar (88 tests) |
+| (pending) | MVP gap fixes, documentation, UserProfile page (102 tests) |

@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { Link, useLocation } from "wouter";
-import { MessageSquare, Calendar, Bell, Menu, X } from "lucide-react";
+import { MessageSquare, Calendar, Bell, Menu, X, User } from "lucide-react";
 import { useState } from "react";
 
 export function NavHeader() {
@@ -120,10 +120,13 @@ export function NavHeader() {
                   </Link>
                 )}
 
-                {/* User name */}
-                <span className="text-sm text-muted-foreground ml-1">
-                  {user?.name || user?.email}
-                </span>
+                {/* User profile */}
+                <Link href="/profile">
+                  <Button variant="ghost" size="sm" className="gap-1">
+                    <User className="h-4 w-4" />
+                    {user?.name || user?.email}
+                  </Button>
+                </Link>
               </>
             ) : (
               <>
@@ -186,6 +189,12 @@ export function NavHeader() {
                     <Button variant="ghost" className="w-full justify-start">Admin</Button>
                   </Link>
                 )}
+                <Link href="/profile" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start">
+                    <User className="h-4 w-4 mr-2" />
+                    My Profile
+                  </Button>
+                </Link>
               </>
             ) : (
               <a href={getLoginUrl()}>

@@ -649,3 +649,224 @@ export async function createAvailabilityOverride(data: typeof availabilityOverri
   const result = await db.insert(availabilityOverrides).values(data);
   return result;
 }
+
+
+// ============================================================================
+// ADMIN STATISTICS
+// ============================================================================
+
+export async function getAdminStats() {
+  const db = await getDb();
+  if (!db) return {
+    totalUsers: 0, newUsersThisMonth: 0,
+    totalProviders: 0, pendingVerifications: 0,
+    totalBookings: 0, bookingsThisMonth: 0,
+    totalRevenue: 0, revenueThisMonth: 0,
+  };
+
+  const now = new Date();
+  const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const [
+    totalUsersResult,
+    newUsersResult,
+    totalProvidersResult,
+    pendingResult,
+    totalBookingsResult,
+    bookingsMonthResult,
+    totalRevenueResult,
+    revenueMonthResult,
+  ] = await Promise.all([
+    db.select({ count: sql<number>`COUNT(*)` }).from(users),
+    db.select({ count: sql<number>`COUNT(*)` }).from(users).where(gte(users.createdAt, firstOfMonth)),
+    db.select({ count: sql<number>`COUNT(*)` }).from(serviceProviders),
+    db.select({ count: sql<number>`COUNT(*)` }).from(serviceProviders).where(eq(serviceProviders.verificationStatus, "pending")),
+    db.select({ count: sql<number>`COUNT(*)` }).from(bookings),
+    db.select({ count: sql<number>`COUNT(*)` }).from(bookings).where(gte(bookings.createdAt, firstOfMonth)),
+    db.select({ total: sql<number>`COALESCE(SUM(CAST(${bookings.totalAmount} AS DECIMAL(10,2))), 0)` }).from(bookings).where(eq(bookings.status, "completed" as any)),
+    db.select({ total: sql<number>`COALESCE(SUM(CAST(${bookings.totalAmount} AS DECIMAL(10,2))), 0)` }).from(bookings).where(and(eq(bookings.status, "completed" as any), gte(bookings.createdAt, firstOfMonth))),
+  ]);
+
+  return {
+    totalUsers: totalUsersResult[0]?.count ?? 0,
+    newUsersThisMonth: newUsersResult[0]?.count ?? 0,
+    totalProviders: totalProvidersResult[0]?.count ?? 0,
+    pendingVerifications: pendingResult[0]?.count ?? 0,
+    totalBookings: totalBookingsResult[0]?.count ?? 0,
+    bookingsThisMonth: bookingsMonthResult[0]?.count ?? 0,
+    totalRevenue: totalRevenueResult[0]?.total ?? 0,
+    revenueThisMonth: revenueMonthResult[0]?.total ?? 0,
+  };
+}
+
+// ============================================================================
+// USER PROFILE UPDATE
+// ============================================================================
+
+export async function updateUserProfile(userId: number, data: {
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  profilePhotoUrl?: string;
+  email?: string;
+  name?: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const updateData: Record<string, any> = {};
+  if (data.firstName !== undefined) updateData.firstName = data.firstName;
+  if (data.lastName !== undefined) updateData.lastName = data.lastName;
+  if (data.phone !== undefined) updateData.phone = data.phone;
+  if (data.profilePhotoUrl !== undefined) updateData.profilePhotoUrl = data.profilePhotoUrl;
+  if (data.email !== undefined) updateData.email = data.email;
+  if (data.name !== undefined) updateData.name = data.name;
+
+  if (Object.keys(updateData).length === 0) return;
+
+  await db.update(users).set(updateData).where(eq(users.id, userId));
+}
+
+// ============================================================================
+// USER SUSPENSION
+// ============================================================================
+
+export async function suspendUser(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users).set({ deletedAt: new Date() }).where(eq(users.id, userId));
+}
+
+export async function unsuspendUser(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users).set({ deletedAt: null }).where(eq(users.id, userId));
+}
+
+// ============================================================================
+// PROVIDER PROFILE UPDATE
+// ============================================================================
+
+export async function updateProviderProfile(providerId: number, data: {
+  businessName?: string;
+  description?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  serviceRadiusMiles?: number;
+  acceptsMobile?: boolean;
+  acceptsFixedLocation?: boolean;
+  acceptsVirtual?: boolean;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const updateData: Record<string, any> = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (value !== undefined) updateData[key] = value;
+  }
+
+  if (Object.keys(updateData).length === 0) return;
+
+  await db.update(serviceProviders).set(updateData).where(eq(serviceProviders.id, providerId));
+}
+
+// ============================================================================
+// SERVICE UPDATE & DELETE
+// ============================================================================
+
+export async function updateService(serviceId: number, data: {
+  name?: string;
+  description?: string;
+  categoryId?: number;
+  serviceType?: string;
+  pricingModel?: string;
+  basePrice?: string;
+  hourlyRate?: string;
+  durationMinutes?: number;
+  depositRequired?: boolean;
+  depositType?: string;
+  depositAmount?: string;
+  depositPercentage?: string;
+  cancellationPolicy?: string;
+  specialRequirements?: string;
+  isActive?: boolean;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const updateData: Record<string, any> = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (value !== undefined) updateData[key] = value;
+  }
+
+  if (Object.keys(updateData).length === 0) return;
+
+  await db.update(services).set(updateData).where(eq(services.id, serviceId));
+}
+
+export async function deleteService(serviceId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Soft delete
+  await db.update(services)
+    .set({ isActive: false, deletedAt: new Date() })
+    .where(eq(services.id, serviceId));
+}
+
+// ============================================================================
+// PROVIDER EARNINGS
+// ============================================================================
+
+export async function getProviderEarnings(providerId: number) {
+  const db = await getDb();
+  if (!db) return { totalEarnings: 0, thisMonthEarnings: 0, pendingPayouts: 0, completedBookings: 0 };
+
+  const now = new Date();
+  const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const [totalResult, monthResult, pendingResult, completedResult] = await Promise.all([
+    db.select({ total: sql<number>`COALESCE(SUM(CAST(${bookings.subtotal} AS DECIMAL(10,2))), 0)` })
+      .from(bookings)
+      .where(and(eq(bookings.providerId, providerId), eq(bookings.status, "completed" as any))),
+    db.select({ total: sql<number>`COALESCE(SUM(CAST(${bookings.subtotal} AS DECIMAL(10,2))), 0)` })
+      .from(bookings)
+      .where(and(eq(bookings.providerId, providerId), eq(bookings.status, "completed" as any), gte(bookings.createdAt, firstOfMonth))),
+    db.select({ total: sql<number>`COALESCE(SUM(CAST(${bookings.subtotal} AS DECIMAL(10,2))), 0)` })
+      .from(bookings)
+      .where(and(eq(bookings.providerId, providerId), eq(bookings.status, "confirmed" as any))),
+    db.select({ count: sql<number>`COUNT(*)` })
+      .from(bookings)
+      .where(and(eq(bookings.providerId, providerId), eq(bookings.status, "completed" as any))),
+  ]);
+
+  return {
+    totalEarnings: totalResult[0]?.total ?? 0,
+    thisMonthEarnings: monthResult[0]?.total ?? 0,
+    pendingPayouts: pendingResult[0]?.total ?? 0,
+    completedBookings: completedResult[0]?.count ?? 0,
+  };
+}
+
+// ============================================================================
+// AVAILABILITY DELETE
+// ============================================================================
+
+export async function deleteAvailabilitySchedule(scheduleId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(availabilitySchedules).where(eq(availabilitySchedules.id, scheduleId));
+}
+
+export async function deleteAvailabilityOverride(overrideId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(availabilityOverrides).where(eq(availabilityOverrides.id, overrideId));
+}

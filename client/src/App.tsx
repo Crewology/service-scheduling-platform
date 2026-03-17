@@ -18,6 +18,7 @@ import Search from "./pages/Search";
 import AdminDashboard from "./pages/AdminDashboard";
 import SubmitReview from "./pages/SubmitReview";
 import ProviderReviews from "./pages/ProviderReviews";
+import UserProfile from "./pages/UserProfile";
 import { DevToolsPanel } from "./components/DevToolsPanel";
 
 function Router() {
@@ -37,6 +38,7 @@ function Router() {
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/booking/:id/review" component={SubmitReview} />
       <Route path="/provider/reviews" component={ProviderReviews} />
+      <Route path="/profile" component={UserProfile} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

@@ -15,18 +15,9 @@ const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
 });
 
 export const adminRouter = router({
-  // Get platform statistics
+  // Get platform statistics (real data)
   getStats: adminProcedure.query(async () => {
-    return {
-      totalUsers: 0,
-      newUsersThisMonth: 0,
-      totalProviders: 0,
-      pendingVerifications: 0,
-      totalBookings: 0,
-      bookingsThisMonth: 0,
-      totalRevenue: 0,
-      revenueThisMonth: 0,
-    };
+    return await db.getAdminStats();
   }),
 
   // List all users (with optional pagination)
@@ -68,10 +59,22 @@ export const adminRouter = router({
       return allBookings.slice(offset, offset + input.limit);
     }),
 
-  // Suspend a user
+  // Suspend a user (sets deletedAt timestamp)
   suspendUser: adminProcedure
     .input(z.object({ userId: z.number() }))
     .mutation(async ({ input }) => {
+      const user = await db.getUserById(input.userId);
+      if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      if (user.role === "admin") throw new TRPCError({ code: "BAD_REQUEST", message: "Cannot suspend admin users" });
+      await db.suspendUser(input.userId);
+      return { success: true };
+    }),
+
+  // Unsuspend a user
+  unsuspendUser: adminProcedure
+    .input(z.object({ userId: z.number() }))
+    .mutation(async ({ input }) => {
+      await db.unsuspendUser(input.userId);
       return { success: true };
     }),
 
