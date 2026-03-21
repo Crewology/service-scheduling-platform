@@ -8,6 +8,7 @@ import { TRPCError } from "@trpc/server";
 import { stripeRouter } from "./stripeRouter";
 import { stripeConnectRouter } from "./stripeConnectRouter";
 import { adminRouter } from "./adminRouter";
+import { subscriptionRouter } from "./subscriptionRouter";
 
 // ============================================================================
 // AUTHENTICATION & USER MANAGEMENT
@@ -151,6 +152,11 @@ const providerRouter = router({
     .mutation(async ({ ctx, input }) => {
       const provider = await db.getProviderByUserId(ctx.user.id);
       if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+      // Tier gating: only Basic+ can customize slug
+      const tier = await db.getProviderTier(provider.id);
+      if (tier === "free") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Custom profile URLs are available on the Professional plan and above. Upgrade to customize your link." });
+      }
       // Check slug uniqueness
       const existing = await db.getProviderBySlug(input.slug);
       if (existing && existing.id !== provider.id) {
@@ -214,6 +220,17 @@ const serviceRouter = router({
       const provider = await db.getProviderByUserId(ctx.user.id);
       if (!provider) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider to create services" });
+      }
+      // Subscription tier gating: check service limit
+      const existingServices = await db.getServicesByProviderId(provider.id);
+      const subscription = await db.getProviderSubscription(provider.id);
+      const tier = ((subscription?.tier as import("./products").SubscriptionTier) || "free");
+      const { canProviderAddService, SUBSCRIPTION_TIERS } = await import("./products");
+      if (!canProviderAddService(tier, existingServices.length)) {
+        throw new TRPCError({ 
+          code: "FORBIDDEN", 
+          message: `Your ${SUBSCRIPTION_TIERS[tier].name} plan allows up to ${SUBSCRIPTION_TIERS[tier].limits.maxServices} services. Upgrade your plan to add more.` 
+        });
       }
       await db.createService({
         providerId: provider.id,
@@ -322,6 +339,80 @@ const serviceRouter = router({
       await db.deleteService(input.id);
       return { success: true };
     }),
+
+  // Photo management
+  getPhotos: publicProcedure
+    .input(z.object({ serviceId: z.number() }))
+    .query(async ({ input }) => {
+      return await db.getServicePhotos(input.serviceId);
+    }),
+
+  uploadPhoto: protectedProcedure
+    .input(z.object({
+      serviceId: z.number(),
+      photoData: z.string(), // base64 encoded
+      contentType: z.string().default("image/jpeg"),
+      caption: z.string().optional(),
+      isPrimary: z.boolean().default(false),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+      const service = await db.getServiceById(input.serviceId);
+      if (!service) throw new TRPCError({ code: "NOT_FOUND", message: "Service not found" });
+      if (service.providerId !== provider.id) throw new TRPCError({ code: "FORBIDDEN", message: "Not your service" });
+
+      // Check photo limit (5 per service)
+      const existingPhotos = await db.getServicePhotos(input.serviceId);
+      if (existingPhotos.length >= 5) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Maximum 5 photos per service" });
+      }
+
+      // Check tier-based limits
+      const tier = await db.getProviderTier(provider.id);
+      if (tier === "free" && existingPhotos.length >= 2) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Free tier allows up to 2 photos per service. Upgrade to Basic or Premium for more." });
+      }
+
+      const { storagePut } = await import("./storage");
+      const buffer = Buffer.from(input.photoData, "base64");
+      const ext = input.contentType.split("/")[1] || "jpg";
+      const suffix = Math.random().toString(36).substring(2, 10);
+      const fileKey = `service-photos/${input.serviceId}/${Date.now()}-${suffix}.${ext}`;
+      const { url } = await storagePut(fileKey, buffer, input.contentType);
+
+      await db.addServicePhoto({
+        serviceId: input.serviceId,
+        photoUrl: url,
+        caption: input.caption,
+        sortOrder: existingPhotos.length,
+        isPrimary: input.isPrimary || existingPhotos.length === 0,
+      });
+
+      return { url, success: true };
+    }),
+
+  deletePhoto: protectedProcedure
+    .input(z.object({ photoId: z.number(), serviceId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+      const service = await db.getServiceById(input.serviceId);
+      if (!service || service.providerId !== provider.id) throw new TRPCError({ code: "FORBIDDEN", message: "Not your service" });
+      await db.deleteServicePhoto(input.photoId);
+      return { success: true };
+    }),
+
+  setPrimaryPhoto: protectedProcedure
+    .input(z.object({ photoId: z.number(), serviceId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+      const service = await db.getServiceById(input.serviceId);
+      if (!service || service.providerId !== provider.id) throw new TRPCError({ code: "FORBIDDEN", message: "Not your service" });
+      await db.setServicePrimaryPhoto(input.serviceId, input.photoId);
+      return { success: true };
+    }),
 });
 
 // ============================================================================
@@ -358,7 +449,7 @@ const bookingRouter = router({
       
       const subtotal = input.subtotal || (service.basePrice ? service.basePrice : "0.00");
       const subtotalNum = parseFloat(subtotal);
-      const platformFee = input.platformFee || (subtotalNum * 0.15).toFixed(2);
+      const platformFee = input.platformFee || (subtotalNum * 0.01).toFixed(2);
       const totalAmount = input.totalAmount || (subtotalNum + parseFloat(platformFee)).toFixed(2);
       const depositAmount = input.depositAmount || (service.depositRequired 
         ? (service.depositType === "fixed" 
@@ -470,6 +561,144 @@ const bookingRouter = router({
       await db.updateBookingStatus(input.id, input.status, additionalData);
       const updated = await db.getBookingById(input.id);
       return updated!;
+    }),
+
+  // Cancellation with automated refund calculation
+  cancel: protectedProcedure
+    .input(z.object({
+      bookingId: z.number(),
+      reason: z.string().min(1),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const booking = await db.getBookingById(input.bookingId);
+      if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
+
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      const isCustomer = booking.customerId === ctx.user.id;
+      const isProvider = provider && booking.providerId === provider.id;
+      const isAdmin = ctx.user.role === "admin";
+      if (!isCustomer && !isProvider && !isAdmin) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+      }
+
+      if (["completed", "cancelled", "refunded"].includes(booking.status)) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Cannot cancel a booking that is already " + booking.status });
+      }
+
+      const cancelledBy = isCustomer ? "customer" as const : isProvider ? "provider" as const : "admin" as const;
+
+      // Calculate refund based on cancellation timing
+      const service = await db.getServiceById(booking.serviceId);
+      const bookingDateTime = new Date(`${booking.bookingDate}T${booking.startTime}`);
+      const hoursUntilBooking = (bookingDateTime.getTime() - Date.now()) / (1000 * 60 * 60);
+      const totalPaid = parseFloat(booking.totalAmount || "0");
+
+      let refundPercentage = 0;
+      let refundReason = "";
+
+      if (cancelledBy === "provider" || cancelledBy === "admin") {
+        // Provider/admin cancellation = full refund
+        refundPercentage = 100;
+        refundReason = `Cancelled by ${cancelledBy}: ${input.reason}`;
+      } else {
+        // Customer cancellation — time-based refund tiers
+        if (hoursUntilBooking >= 48) {
+          refundPercentage = 100;
+          refundReason = "Full refund: cancelled 48+ hours before appointment";
+        } else if (hoursUntilBooking >= 24) {
+          refundPercentage = 75;
+          refundReason = "75% refund: cancelled 24-48 hours before appointment";
+        } else if (hoursUntilBooking >= 4) {
+          refundPercentage = 50;
+          refundReason = "50% refund: cancelled 4-24 hours before appointment";
+        } else {
+          refundPercentage = 0;
+          refundReason = "No refund: cancelled less than 4 hours before appointment";
+        }
+      }
+
+      const refundAmount = (totalPaid * refundPercentage / 100).toFixed(2);
+
+      // Process Stripe refund if payment exists
+      const payment = await db.getPaymentByBookingId(input.bookingId);
+      let stripeRefundId: string | undefined;
+
+      if (payment?.stripePaymentIntentId && parseFloat(refundAmount) > 0) {
+        try {
+          const Stripe = (await import("stripe")).default;
+          const { ENV } = await import("./_core/env");
+          const stripe = new Stripe(ENV.stripeSecretKey, { apiVersion: "2025-12-18.acacia" as any });
+          const refund = await stripe.refunds.create({
+            payment_intent: payment.stripePaymentIntentId,
+            amount: Math.round(parseFloat(refundAmount) * 100),
+            reason: cancelledBy === "provider" ? "requested_by_customer" : "requested_by_customer",
+          });
+          stripeRefundId = refund.id;
+
+          await db.updatePaymentRefund(payment.id, {
+            status: "refunded",
+            refundAmount,
+            refundReason,
+            stripeRefundId,
+            refundedAt: new Date(),
+          });
+        } catch (err: any) {
+          console.error("[Cancellation] Stripe refund failed:", err.message);
+          // Still cancel the booking even if refund fails
+        }
+      }
+
+      // Cancel the booking
+      await db.cancelBooking(input.bookingId, {
+        cancellationReason: input.reason,
+        cancelledBy,
+        cancelledAt: new Date(),
+      });
+
+      // Send notifications
+      const { sendNotification } = await import("./notifications");
+      const customer = await db.getUserById(booking.customerId);
+      const providerData = await db.getProviderById(booking.providerId);
+      const providerUser = providerData ? await db.getUserById(providerData.userId) : null;
+
+      if (customer?.email) {
+        await sendNotification({
+          type: "booking_cancelled",
+          channel: "email",
+          recipient: { userId: customer.id, email: customer.email, name: customer.name || "Customer" },
+          data: {
+            bookingNumber: booking.bookingNumber,
+            serviceName: service?.name || "Service",
+            cancelledBy,
+            refundAmount,
+            refundPercentage: refundPercentage.toString(),
+            reason: input.reason,
+          },
+        });
+      }
+
+      if (providerUser?.email && cancelledBy === "customer") {
+        await sendNotification({
+          type: "booking_cancelled",
+          channel: "email",
+          recipient: { userId: providerUser.id, email: providerUser.email, name: providerUser.name || "Provider" },
+          data: {
+            bookingNumber: booking.bookingNumber,
+            serviceName: service?.name || "Service",
+            cancelledBy,
+            reason: input.reason,
+          },
+        });
+      }
+
+      const updated = await db.getBookingById(input.bookingId);
+      return {
+        booking: updated!,
+        refundAmount,
+        refundPercentage,
+        refundReason,
+        stripeRefundId,
+      };
     }),
 });
 
@@ -733,6 +962,7 @@ export const appRouter = router({
   availability: availabilityRouter,
   stripe: stripeRouter,
   stripeConnect: stripeConnectRouter,
+  subscription: subscriptionRouter,
   admin: adminRouter,
 });
 

@@ -20,6 +20,7 @@ import SubmitReview from "./pages/SubmitReview";
 import ProviderReviews from "./pages/ProviderReviews";
 import UserProfile from "./pages/UserProfile";
 import PublicProviderProfile from "./pages/PublicProviderProfile";
+import SubscriptionManagement from "./pages/SubscriptionManagement";
 import { DevToolsPanel } from "./components/DevToolsPanel";
 
 function Router() {
@@ -41,6 +42,7 @@ function Router() {
       <Route path="/provider/reviews" component={ProviderReviews} />
       <Route path="/profile" component={UserProfile} />
       <Route path="/p/:slug" component={PublicProviderProfile} />
+      <Route path="/provider/subscription" component={SubscriptionManagement} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

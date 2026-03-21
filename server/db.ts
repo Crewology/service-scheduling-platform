@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, desc, asc, sql, or, like } from "drizzle-orm";
+import { eq, and, gte, lte, desc, asc, sql, or, like, inArray, count } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, 
@@ -20,6 +20,8 @@ import {
   type Booking,
   type Review,
   type Message,
+  providerSubscriptions,
+  type ProviderSubscription,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -283,15 +285,40 @@ export async function searchServices(searchTerm: string) {
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(services)
+  // Search with priority boost for paid tier providers
+  const results = await db.select({
+    service: services,
+    tier: providerSubscriptions.tier,
+    subStatus: providerSubscriptions.status,
+    isFeatured: serviceProviders.isFeatured,
+  })
+    .from(services)
+    .leftJoin(serviceProviders, eq(services.providerId, serviceProviders.id))
+    .leftJoin(providerSubscriptions, eq(serviceProviders.id, providerSubscriptions.providerId))
     .where(and(
       or(
         like(services.name, `%${searchTerm}%`),
         like(services.description, `%${searchTerm}%`)
       ),
       eq(services.isActive, true)
-    ))
-    .orderBy(desc(services.createdAt));
+    ));
+
+  // Sort: featured first, then premium, then basic, then free
+  const tierOrder: Record<string, number> = { premium: 0, basic: 1, free: 2 };
+  results.sort((a, b) => {
+    // Featured providers first
+    if (a.isFeatured && !b.isFeatured) return -1;
+    if (!a.isFeatured && b.isFeatured) return 1;
+    // Then by tier
+    const aTier = (a.subStatus === "active" || a.subStatus === "trialing") ? (a.tier || "free") : "free";
+    const bTier = (b.subStatus === "active" || b.subStatus === "trialing") ? (b.tier || "free") : "free";
+    const tierDiff = (tierOrder[aTier] ?? 2) - (tierOrder[bTier] ?? 2);
+    if (tierDiff !== 0) return tierDiff;
+    // Then by creation date (newest first)
+    return (b.service.createdAt?.getTime() || 0) - (a.service.createdAt?.getTime() || 0);
+  });
+
+  return results.map(r => r.service);
 }
 
 // ============================================================================
@@ -941,4 +968,199 @@ export async function getProviderReviewsPublic(providerId: number, limit = 10) {
     ))
     .orderBy(desc(reviews.createdAt))
     .limit(limit);
+}
+
+
+// ─── Service Photo Helpers ────────────────────────────────────────────────────
+
+export async function addServicePhoto(data: {
+  serviceId: number;
+  photoUrl: string;
+  caption?: string;
+  sortOrder?: number;
+  isPrimary?: boolean;
+}) {
+  const database = await getDb();
+  if (!database) throw new Error("Database not available");
+  await database.insert(servicePhotos).values({
+    serviceId: data.serviceId,
+    photoUrl: data.photoUrl,
+    caption: data.caption || null,
+    sortOrder: data.sortOrder || 0,
+    isPrimary: data.isPrimary || false,
+  });
+}
+
+export async function getServicePhotos(serviceId: number) {
+  const database = await getDb();
+  if (!database) return [];
+  return database
+    .select()
+    .from(servicePhotos)
+    .where(eq(servicePhotos.serviceId, serviceId))
+    .orderBy(servicePhotos.sortOrder);
+}
+
+export async function getPhotosForServices(serviceIds: number[]) {
+  if (serviceIds.length === 0) return [];
+  const database = await getDb();
+  if (!database) return [];
+  return database
+    .select()
+    .from(servicePhotos)
+    .where(inArray(servicePhotos.serviceId, serviceIds))
+    .orderBy(servicePhotos.sortOrder);
+}
+
+export async function deleteServicePhoto(photoId: number) {
+  const database = await getDb();
+  if (!database) throw new Error("Database not available");
+  await database.delete(servicePhotos).where(eq(servicePhotos.id, photoId));
+}
+
+export async function updateServicePhotoOrder(photoId: number, sortOrder: number) {
+  const database = await getDb();
+  if (!database) throw new Error("Database not available");
+  await database
+    .update(servicePhotos)
+    .set({ sortOrder })
+    .where(eq(servicePhotos.id, photoId));
+}
+
+export async function setServicePrimaryPhoto(serviceId: number, photoId: number) {
+  const database = await getDb();
+  if (!database) throw new Error("Database not available");
+  await database
+    .update(servicePhotos)
+    .set({ isPrimary: false })
+    .where(eq(servicePhotos.serviceId, serviceId));
+  await database
+    .update(servicePhotos)
+    .set({ isPrimary: true })
+    .where(eq(servicePhotos.id, photoId));
+}
+
+// ─── Cancellation & Refund Helpers ────────────────────────────────────────────
+
+export async function getPaymentByBookingId(bookingId: number) {
+  const database = await getDb();
+  if (!database) return undefined;
+  const [payment] = await database
+    .select()
+    .from(payments)
+    .where(eq(payments.bookingId, bookingId))
+    .orderBy(desc(payments.createdAt))
+    .limit(1);
+  return payment;
+}
+
+export async function updatePaymentRefund(paymentId: number, data: {
+  status: string;
+  refundAmount: string;
+  refundReason: string;
+  stripeRefundId?: string;
+  refundedAt: Date;
+}) {
+  const database = await getDb();
+  if (!database) throw new Error("Database not available");
+  await database
+    .update(payments)
+    .set(data as any)
+    .where(eq(payments.id, paymentId));
+}
+
+export async function cancelBooking(bookingId: number, data: {
+  cancellationReason: string;
+  cancelledBy: "customer" | "provider" | "admin";
+  cancelledAt: Date;
+}) {
+  const database = await getDb();
+  if (!database) throw new Error("Database not available");
+  await database
+    .update(bookings)
+    .set({
+      status: "cancelled",
+      cancellationReason: data.cancellationReason,
+      cancelledBy: data.cancelledBy,
+      cancelledAt: data.cancelledAt,
+    } as any)
+    .where(eq(bookings.id, bookingId));
+}
+
+// ─── Subscription Helpers ─────────────────────────────────────────────────────
+
+export async function getProviderSubscription(providerId: number): Promise<ProviderSubscription | undefined> {
+  const database = await getDb();
+  if (!database) return undefined;
+  const [sub] = await database
+    .select()
+    .from(providerSubscriptions)
+    .where(eq(providerSubscriptions.providerId, providerId))
+    .limit(1);
+  return sub;
+}
+
+export async function upsertProviderSubscription(data: {
+  providerId: number;
+  tier: "free" | "basic" | "premium";
+  stripeSubscriptionId?: string;
+  stripeCustomerId?: string;
+  status: string;
+  currentPeriodStart?: Date;
+  currentPeriodEnd?: Date;
+  trialEndsAt?: Date;
+  cancelAtPeriodEnd?: boolean;
+}) {
+  const database = await getDb();
+  if (!database) throw new Error("Database not available");
+  
+  const existing = await getProviderSubscription(data.providerId);
+  if (existing) {
+    await database
+      .update(providerSubscriptions)
+      .set({
+        tier: data.tier,
+        stripeSubscriptionId: data.stripeSubscriptionId,
+        stripeCustomerId: data.stripeCustomerId,
+        status: data.status,
+        currentPeriodStart: data.currentPeriodStart,
+        currentPeriodEnd: data.currentPeriodEnd,
+        trialEndsAt: data.trialEndsAt,
+        cancelAtPeriodEnd: data.cancelAtPeriodEnd,
+      } as any)
+      .where(eq(providerSubscriptions.id, existing.id));
+  } else {
+    await database.insert(providerSubscriptions).values(data as any);
+  }
+}
+
+export async function getProviderTier(providerId: number): Promise<"free" | "basic" | "premium"> {
+  const sub = await getProviderSubscription(providerId);
+  if (!sub) return "free";
+  if (sub.status !== "active" && sub.status !== "trialing") return "free";
+  return sub.tier;
+}
+
+export async function getActiveServiceCount(providerId: number): Promise<number> {
+  const database = await getDb();
+  if (!database) return 0;
+  const result = await database
+    .select({ count: sql<number>`COUNT(*)` })
+    .from(services)
+    .where(and(eq(services.providerId, providerId), eq(services.isActive, true)));
+  return result[0]?.count || 0;
+}
+
+export async function getSubscriptionAnalytics() {
+  const database = await getDb();
+  if (!database) return { free: 0, basic: 0, premium: 0, trialing: 0 };
+  
+  const subs = await database.select().from(providerSubscriptions);
+  const active = subs.filter(s => s.status === "active" || s.status === "trialing");
+  const free = subs.length === 0 ? 0 : subs.filter(s => s.tier === "free" || s.status === "cancelled").length;
+  const basic = active.filter(s => s.tier === "basic").length;
+  const premium = active.filter(s => s.tier === "premium").length;
+  const trialing = subs.filter(s => s.status === "trialing").length;
+  
+  return { free, basic, premium, trialing };
 }

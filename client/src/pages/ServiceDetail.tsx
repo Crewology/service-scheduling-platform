@@ -12,12 +12,52 @@ import { useLocation, useParams, Link } from "wouter";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
 import { Calendar } from "@/components/ui/calendar";
-import { MapPin, Clock, DollarSign, Star, ChevronRight, CheckCircle2, ArrowLeft, Info } from "lucide-react";
+import { MapPin, Clock, DollarSign, Star, ChevronRight, CheckCircle2, ArrowLeft, Info, Image as ImageIcon } from "lucide-react";
 import { generateTimeSlots, formatTimeForDisplay, type TimeSlot } from "@shared/timeSlots";
 import { ReviewList } from "@/components/shared/ReviewList";
 import { NavHeader } from "@/components/shared/NavHeader";
 
 type BookingStep = "date" | "time" | "details" | "confirm";
+
+function ServicePhotoGallery({ serviceId }: { serviceId: number }) {
+  const [selectedPhoto, setSelectedPhoto] = useState(0);
+  const { data: photos } = trpc.service.getPhotos.useQuery({ serviceId });
+
+  if (!photos || photos.length === 0) return null;
+
+  return (
+    <div className="space-y-2">
+      {/* Main photo */}
+      <div className="rounded-xl overflow-hidden bg-muted aspect-[16/9]">
+        <img
+          src={photos[selectedPhoto]?.photoUrl}
+          alt={photos[selectedPhoto]?.caption || "Service photo"}
+          className="w-full h-full object-cover"
+        />
+      </div>
+      {/* Thumbnails */}
+      {photos.length > 1 && (
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {photos.map((photo: any, index: number) => (
+            <button
+              key={photo.id}
+              onClick={() => setSelectedPhoto(index)}
+              className={`rounded-lg overflow-hidden flex-shrink-0 w-16 h-16 border-2 transition-colors ${
+                selectedPhoto === index ? "border-primary" : "border-transparent hover:border-muted-foreground/30"
+              }`}
+            >
+              <img
+                src={photo.photoUrl}
+                alt={photo.caption || `Photo ${index + 1}`}
+                className="w-full h-full object-cover"
+              />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function ServiceDetail() {
   const { id } = useParams<{ id: string }>();
@@ -300,6 +340,9 @@ export default function ServiceDetail() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Service Details - Left Column */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Photo Gallery */}
+            <ServicePhotoGallery serviceId={parseInt(id!)} />
+
             <Card>
               <CardHeader>
                 <div className="flex items-start justify-between">

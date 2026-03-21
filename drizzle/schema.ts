@@ -369,3 +369,28 @@ export const verificationDocuments = mysqlTable("verification_documents", {
 
 export type VerificationDocument = typeof verificationDocuments.$inferSelect;
 export type InsertVerificationDocument = typeof verificationDocuments.$inferInsert;
+
+
+/**
+ * Provider subscription tiers (Free / Basic / Premium)
+ */
+export const providerSubscriptions = mysqlTable("provider_subscriptions", {
+  id: int("id").autoincrement().primaryKey(),
+  providerId: int("providerId").notNull().unique().references(() => serviceProviders.id),
+  tier: mysqlEnum("tier", ["free", "basic", "premium"]).default("free").notNull(),
+  status: mysqlEnum("status", ["active", "trialing", "past_due", "cancelled", "incomplete"]).default("active").notNull(),
+  stripeSubscriptionId: varchar("stripeSubscriptionId", { length: 255 }),
+  stripeCustomerId: varchar("stripeCustomerId", { length: 255 }),
+  currentPeriodStart: timestamp("currentPeriodStart"),
+  currentPeriodEnd: timestamp("currentPeriodEnd"),
+  trialEndsAt: timestamp("trialEndsAt"),
+  cancelAtPeriodEnd: boolean("cancelAtPeriodEnd").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  providerIdx: index("provider_sub_idx").on(table.providerId),
+  tierStatusIdx: index("tier_status_idx").on(table.tier, table.status),
+}));
+
+export type ProviderSubscription = typeof providerSubscriptions.$inferSelect;
+export type InsertProviderSubscription = typeof providerSubscriptions.$inferInsert;

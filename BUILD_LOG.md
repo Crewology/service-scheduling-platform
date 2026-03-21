@@ -11,15 +11,15 @@ This document provides a complete, chronological record of every phase of the Sk
 | **Project Name** | SkillLink (service-scheduling-platform) |
 | **Stack** | React 19 + Tailwind 4 + Express 4 + tRPC 11 + Drizzle ORM + MySQL (TiDB) |
 | **Auth** | Manus OAuth (session cookie) |
-| **Payments** | Stripe Connect (destination charges) — providers receive payments directly, platform takes 15% fee |
+| **Payments** | Stripe Connect (destination charges) — providers receive payments directly, platform takes 1% fee |
 | **Notifications** | Email via Manus Forge API, SMS stub ready |
 | **Hosting** | Manus built-in hosting with custom domain support |
 | **Total Source Files** | 131 (excluding node_modules and test files) |
 | **Total Lines of Code** | ~20,386 |
-| **Test Files** | 8 files, 114 tests (all passing) |
-| **Database Tables** | 14 |
-| **Frontend Pages** | 18 (including UserProfile and PublicProviderProfile) |
-| **tRPC Routers** | 13 (auth, provider, category, service, booking, review, message, notification, availability, stripe, stripeConnect, admin, system) |
+| **Test Files** | 9 files, 133 tests (all passing) |
+| **Database Tables** | 15 (added providerSubscriptions) |
+| **Frontend Pages** | 19 (added SubscriptionManagement) |
+| **tRPC Routers** | 14 (auth, provider, category, service, booking, review, message, notification, availability, stripe, stripeConnect, subscription, admin, system) |
 
 ---
 
@@ -572,6 +572,75 @@ The original model collected all payments centrally. The new model uses Stripe C
 
 ---
 
+## Phase 10: Photo Uploads, Cancellation/Refund Automation, and Subscription Tiers
+
+**Objective:** Implement three major features to complete the provider-first business model: service photo uploads via S3, automated cancellation with time-based refund tiers, and a subscription system (Free/Basic/Premium) that replaces the 15% transaction fee with a 1% fee plus monthly subscriptions.
+
+**Revenue Model Change:** The platform fee was reduced from 15% to 1% per transaction. Revenue now comes primarily from provider subscriptions:
+
+| Tier | Price | Max Services | Max Photos/Service | Custom Slug | Featured Listing | Priority Search |
+|---|---|---|---|---|---|---|
+| Starter (Free) | $0/mo | 3 | 2 | No | No | No |
+| Professional (Basic) | $29/mo | 10 | 5 | Yes | No | Yes |
+| Business (Premium) | $79/mo | Unlimited | 5 | Yes | Yes | Yes |
+
+**What was built:**
+
+**Service Photo Uploads:**
+- `service.uploadPhoto` procedure accepts base64-encoded image data, uploads to S3 via `storagePut`, and stores metadata in `servicePhotos` table
+- `service.getPhotos` and `service.deletePhoto` for management
+- `PhotoUpload` reusable React component with drag-and-drop feel, preview thumbnails, and delete buttons
+- Photo gallery on ServiceDetail page with lightbox-style image viewer
+- Photo thumbnails on PublicProviderProfile service cards
+- Tier-gated limits: Free tier gets 2 photos per service, Basic/Premium get 5
+
+**Cancellation and Refund Automation:**
+- Time-based refund policy engine in `booking.cancel` procedure:
+  - 48+ hours before appointment: 100% refund
+  - 24-48 hours: 75% refund
+  - 4-24 hours: 50% refund
+  - Less than 4 hours: 0% refund
+  - Provider/admin cancellation: always 100% refund
+- Automatic Stripe refund processing via `stripe.refunds.create` when payment exists
+- Payment record updated with refund amount, reason, and Stripe refund ID
+- Email notifications sent to both customer and provider on cancellation
+- MyBookings page updated with cancellation dialog (reason input, refund estimate)
+- Webhook handler updated for `charge.refunded` events
+
+**Provider Subscription Tiers:**
+- New `providerSubscriptions` database table tracking tier, status, Stripe subscription ID, and period dates
+- `subscriptionRouter` with procedures: `mySubscription`, `createCheckout`, `createPortalSession`, `cancelSubscription`
+- `products.ts` rewritten with tier definitions, limit helpers (`canProviderAddService`, `canProviderAddPhoto`), and 14-day trial configuration
+- Feature gating enforced at the procedure level:
+  - `service.create` checks service count against tier limit
+  - `service.uploadPhoto` checks photo count against tier limit
+  - `provider.updateSlug` requires Basic+ tier
+  - `searchServices` boosts paid tier providers in results via LEFT JOIN on subscriptions
+- `SubscriptionManagement` page with tier comparison cards, current plan display, and Stripe Checkout/Portal integration
+- Subscription link added to ProviderDashboard Payments tab
+- Webhook handler updated for subscription lifecycle events: `customer.subscription.created`, `updated`, `deleted`, `invoice.payment_failed`
+
+**Files created/modified:**
+- `drizzle/schema.ts` — added `providerSubscriptions` table
+- `server/db.ts` — added 12 new helpers for photos, subscriptions, and cancellations
+- `server/products.ts` — rewritten with tier definitions and 1% fee
+- `server/subscriptionRouter.ts` — new subscription management router
+- `server/routers.ts` — added photo upload/delete, cancellation, tier gating, search boost
+- `server/stripeRouter.ts` — updated to 1% application fee
+- `server/stripeWebhook.ts` — added subscription and refund event handlers
+- `server/notifications/types.ts` — added subscription notification types
+- `server/notifications/templates.ts` — added subscription notification templates
+- `client/src/components/PhotoUpload.tsx` — reusable photo upload component
+- `client/src/pages/SubscriptionManagement.tsx` — subscription tier selection page
+- `client/src/pages/ServiceDetail.tsx` — added photo gallery
+- `client/src/pages/PublicProviderProfile.tsx` — added photo thumbnails
+- `client/src/pages/MyBookings.tsx` — added cancellation flow with refund display
+- `client/src/pages/ProviderDashboard.tsx` — added photo management, subscription link, 1% fee display
+
+**Tests:** 19 new tests in `phase10.test.ts` covering photo access and authorization, cancellation with refund calculation, cancellation authorization, subscription tier feature gating (service limits, slug limits), 1% fee calculation, tier limit helpers, search with priority boost, and 14-day trial configuration.
+
+---
+
 ## Checkpoint History
 
 | Version | Description |
@@ -580,4 +649,5 @@ The original model collected all payments centrally. The new model uses Stripe C
 | `6c32aea2` | Dev/testing environment: all 63 tests passing, DevTools panel |
 | `c5a74fb0` | Next steps: seed data, unread message indicators, enhanced booking calendar (88 tests) |
 | `7ebd86c8` | MVP gap fixes, documentation, UserProfile page (102 tests) |
-| (pending) | Provider-first pivot: Stripe Connect, public profiles, slug management (114 tests) |
+| `0b0e50b0` | Provider-first pivot: Stripe Connect, public profiles, slug management (114 tests) |
+| (pending) | Photo uploads, cancellation/refund automation, subscription tiers with 1% fee (133 tests) |

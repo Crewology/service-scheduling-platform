@@ -1,14 +1,17 @@
+import { useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { trpc } from "@/lib/trpc";
-import { Calendar, Clock, MapPin, DollarSign, MessageSquare } from "lucide-react";
+import { Calendar, Clock, MapPin, DollarSign, MessageSquare, XCircle, AlertTriangle, Loader2 } from "lucide-react";
 import { useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
 import { formatTimeForDisplay } from "@shared/timeSlots";
 import { NavHeader } from "@/components/shared/NavHeader";
+import { toast } from "sonner";
 
 export default function MyBookings() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -30,33 +33,6 @@ export default function MyBookings() {
     window.location.href = getLoginUrl();
     return null;
   }
-
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-      pending: "secondary",
-      confirmed: "default",
-      in_progress: "default",
-      completed: "outline",
-      cancelled: "destructive",
-      no_show: "destructive",
-      refunded: "outline",
-    };
-
-    return (
-      <Badge variant={variants[status] || "default"}>
-        {status.replace('_', ' ').toUpperCase()}
-      </Badge>
-    );
-  };
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr + 'T00:00:00');
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
-    });
-  };
 
   const filterBookings = (status?: string[]) => {
     if (!bookings) return [];
@@ -154,8 +130,27 @@ export default function MyBookings() {
 }
 
 function BookingCard({ booking, setLocation }: { booking: any; setLocation: (path: string) => void }) {
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const utils = trpc.useUtils();
+
   const { data: service } = trpc.service.getById.useQuery({ id: booking.serviceId });
   const { data: provider } = trpc.provider.getById.useQuery({ id: booking.providerId });
+
+  const cancelBooking = trpc.booking.cancel.useMutation({
+    onSuccess: (data: any) => {
+      toast.success(
+        data.refundStatus === "full_refund" 
+          ? "Booking cancelled. Full refund will be processed." 
+          : data.refundStatus === "partial_refund"
+          ? `Booking cancelled. Partial refund of $${(data.refundAmount / 100).toFixed(2)} will be processed.`
+          : "Booking cancelled. No refund applicable per the cancellation policy."
+      );
+      utils.booking.listMine.invalidate();
+      setShowCancelDialog(false);
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr + 'T00:00:00');
@@ -184,79 +179,194 @@ function BookingCard({ booking, setLocation }: { booking: any; setLocation: (pat
     );
   };
 
+  // Calculate refund eligibility
+  const getRefundInfo = () => {
+    const bookingDate = new Date(booking.bookingDate + 'T00:00:00');
+    const now = new Date();
+    const hoursUntilBooking = (bookingDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+    if (hoursUntilBooking > 48) {
+      return { type: "full", message: "Full refund — more than 48 hours before your appointment." };
+    } else if (hoursUntilBooking > 24) {
+      return { type: "partial", message: "50% refund — between 24-48 hours before your appointment." };
+    } else {
+      return { type: "none", message: "No refund — less than 24 hours before your appointment." };
+    }
+  };
+
+  const refundInfo = getRefundInfo();
+  const canCancel = booking.status === "pending" || booking.status === "confirmed";
+
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div>
-            <CardTitle className="text-xl">{service?.name || "Loading..."}</CardTitle>
-            <CardDescription>
-              by {provider?.businessName || "Loading..."}
-            </CardDescription>
-            <p className="text-xs text-muted-foreground mt-1">
-              Booking #{booking.bookingNumber}
-            </p>
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div>
+              <CardTitle className="text-xl">{service?.name || "Loading..."}</CardTitle>
+              <CardDescription>
+                by {provider?.businessName || "Loading..."}
+              </CardDescription>
+              <p className="text-xs text-muted-foreground mt-1">
+                Booking #{booking.bookingNumber}
+              </p>
+            </div>
+            {getStatusBadge(booking.status)}
           </div>
-          {getStatusBadge(booking.status)}
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid md:grid-cols-2 gap-4">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm">{formatDate(booking.bookingDate)}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm">
-              {formatTimeForDisplay(booking.startTime)} - {formatTimeForDisplay(booking.endTime)}
-            </span>
-          </div>
-          {booking.locationType === "mobile" && booking.serviceAddressLine1 && (
-            <div className="flex items-center gap-2 md:col-span-2">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm">{formatDate(booking.bookingDate)}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm">
-                {booking.serviceAddressLine1}, {booking.serviceCity}, {booking.serviceState}
+                {formatTimeForDisplay(booking.startTime)} - {formatTimeForDisplay(booking.endTime)}
               </span>
             </div>
-          )}
-          {booking.totalPrice && (
-            <div className="flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm">${booking.totalPrice}</span>
-            </div>
-          )}
-        </div>
+            {booking.locationType === "mobile" && booking.serviceAddressLine1 && (
+              <div className="flex items-center gap-2 md:col-span-2">
+                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm">
+                  {booking.serviceAddressLine1}, {booking.serviceCity}, {booking.serviceState}
+                </span>
+              </div>
+            )}
+            {booking.totalPrice && (
+              <div className="flex items-center gap-2">
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm">${booking.totalPrice}</span>
+              </div>
+            )}
+          </div>
 
-        <div className="flex gap-2 pt-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setLocation(`/booking/${booking.id}`)}
-          >
-            View Details
-          </Button>
-          {(booking.status === "pending" || booking.status === "confirmed") && (
+          <div className="flex flex-wrap gap-2 pt-2">
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => setLocation(`/messages/${booking.id}`)}
+              onClick={() => setLocation(`/booking/${booking.id}`)}
             >
-              <MessageSquare className="h-4 w-4 mr-2" />
-              Message Provider
+              View Details
             </Button>
-          )}
-          {booking.status === "completed" && !booking.reviewId && (
+            {canCancel && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setLocation(`/messages/${booking.id}`)}
+              >
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Message Provider
+              </Button>
+            )}
+            {canCancel && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="text-destructive hover:text-destructive"
+                onClick={() => setShowCancelDialog(true)}
+              >
+                <XCircle className="h-4 w-4 mr-2" />
+                Cancel Booking
+              </Button>
+            )}
+            {booking.status === "completed" && !booking.reviewId && (
+              <Button 
+                variant="default" 
+                size="sm"
+                onClick={() => setLocation(`/booking/${booking.id}/review`)}
+              >
+                Leave Review
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Cancel Booking Dialog */}
+      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Cancel Booking
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to cancel this booking?
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Service info */}
+            <div className="p-3 rounded-lg bg-muted/50">
+              <p className="font-medium">{service?.name}</p>
+              <p className="text-sm text-muted-foreground">
+                {formatDate(booking.bookingDate)} at {formatTimeForDisplay(booking.startTime)}
+              </p>
+              {booking.totalPrice && (
+                <p className="text-sm font-medium mt-1">${booking.totalPrice}</p>
+              )}
+            </div>
+
+            {/* Refund policy info */}
+            <div className={`p-3 rounded-lg border ${
+              refundInfo.type === "full" 
+                ? "bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800" 
+                : refundInfo.type === "partial"
+                ? "bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800"
+                : "bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800"
+            }`}>
+              <p className={`text-sm font-medium ${
+                refundInfo.type === "full" 
+                  ? "text-green-700 dark:text-green-400" 
+                  : refundInfo.type === "partial"
+                  ? "text-amber-700 dark:text-amber-400"
+                  : "text-red-700 dark:text-red-400"
+              }`}>
+                {refundInfo.type === "full" && "✓ "}
+                {refundInfo.type === "partial" && "⚠ "}
+                {refundInfo.type === "none" && "✗ "}
+                {refundInfo.message}
+              </p>
+            </div>
+
+            {/* Reason */}
+            <div>
+              <label className="text-sm font-medium mb-1 block">Reason for cancellation (optional)</label>
+              <textarea
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[80px] resize-none"
+                placeholder="Let the provider know why you're cancelling..."
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCancelDialog(false)}>
+              Keep Booking
+            </Button>
             <Button 
-              variant="default" 
-              size="sm"
-              onClick={() => setLocation(`/review/${booking.id}`)}
+              variant="destructive"
+              onClick={() => cancelBooking.mutate({ 
+                bookingId: booking.id,
+                reason: cancelReason || "Customer requested cancellation",
+              })}
+              disabled={cancelBooking.isPending}
             >
-              Leave Review
+              {cancelBooking.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Cancelling...
+                </>
+              ) : (
+                "Confirm Cancellation"
+              )}
             </Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

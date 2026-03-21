@@ -8,7 +8,7 @@ const stripe = new Stripe(ENV.stripeSecretKey, {
   apiVersion: "2025-12-18.acacia" as any,
 });
 
-const PLATFORM_FEE_RATE = 0.15; // 15% platform fee
+const PLATFORM_FEE_RATE = 0.01; // 1% platform fee (revenue comes from subscriptions)
 
 export const stripeRouter = router({
   createCheckoutSession: protectedProcedure

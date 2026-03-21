@@ -62,6 +62,25 @@ export async function handleStripeWebhook(req: Request, res: Response) {
         break;
       }
 
+      case "customer.subscription.created":
+      case "customer.subscription.updated": {
+        const subscription = event.data.object as Stripe.Subscription;
+        await handleSubscriptionUpdate(subscription);
+        break;
+      }
+
+      case "customer.subscription.deleted": {
+        const subscription = event.data.object as Stripe.Subscription;
+        await handleSubscriptionCancelled(subscription);
+        break;
+      }
+
+      case "invoice.payment_failed": {
+        const invoice = event.data.object as Stripe.Invoice;
+        await handleInvoicePaymentFailed(invoice);
+        break;
+      }
+
       default:
         console.log(`[Stripe Webhook] Unhandled event type: ${event.type}`);
     }
@@ -145,5 +164,82 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
 
 async function handleRefund(charge: Stripe.Charge) {
   console.log("[Stripe] Refund processed:", charge.id);
-  // TODO: Update booking status and notify customer
+  
+  // Find the booking associated with this charge via payment_intent
+  const paymentIntentId = typeof charge.payment_intent === "string" 
+    ? charge.payment_intent 
+    : charge.payment_intent?.id;
+  
+  if (!paymentIntentId) {
+    console.log("[Stripe] No payment_intent on refund charge");
+    return;
+  }
+
+  // Find booking by searching payments table
+  // The refund was already processed by the cancel procedure, so just log it
+  console.log(`[Stripe] Refund confirmed for payment_intent: ${paymentIntentId}, amount: ${charge.amount_refunded}`);
+}
+
+async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
+  const providerId = subscription.metadata?.providerId;
+  const tier = subscription.metadata?.tier as "basic" | "premium" | undefined;
+  
+  if (!providerId || !tier) {
+    console.error("[Stripe] Missing providerId or tier in subscription metadata");
+    return;
+  }
+
+  const status = subscription.status === "active" ? "active" 
+    : subscription.status === "trialing" ? "trialing"
+    : subscription.status === "past_due" ? "past_due"
+    : "incomplete";
+
+  await db.upsertProviderSubscription({
+    providerId: parseInt(providerId),
+    tier,
+    stripeSubscriptionId: subscription.id,
+    stripeCustomerId: typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id || "",
+    status,
+    currentPeriodStart: new Date(subscription.start_date * 1000),
+    currentPeriodEnd: subscription.ended_at ? new Date(subscription.ended_at * 1000) : undefined,
+    trialEndsAt: subscription.trial_end ? new Date(subscription.trial_end * 1000) : undefined,
+    cancelAtPeriodEnd: subscription.cancel_at_period_end,
+  });
+
+  console.log(`[Stripe] Subscription ${subscription.id} updated for provider ${providerId}: ${tier} (${status})`);
+}
+
+async function handleSubscriptionCancelled(subscription: Stripe.Subscription) {
+  const providerId = subscription.metadata?.providerId;
+  if (!providerId) return;
+
+  await db.upsertProviderSubscription({
+    providerId: parseInt(providerId),
+    tier: "free",
+    stripeSubscriptionId: subscription.id,
+    stripeCustomerId: typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id || "",
+    status: "cancelled",
+  });
+
+  console.log(`[Stripe] Subscription cancelled for provider ${providerId}`);
+
+  // Notify provider
+  const provider = await db.getProviderById(parseInt(providerId));
+  if (provider) {
+    const user = await db.getUserById(provider.userId);
+    if (user?.email) {
+      await sendNotification({
+        type: "subscription_cancelled",
+        channel: "email",
+        recipient: { userId: user.id, email: user.email, name: user.name || "Provider" },
+        data: { businessName: provider.businessName },
+      });
+    }
+  }
+}
+
+async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
+  const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
+  console.log(`[Stripe] Invoice payment failed for customer: ${customerId}`);
+  // The subscription status will be updated via customer.subscription.updated event
 }

@@ -11,6 +11,20 @@ function formatCurrency(value: string | number | null | undefined): string {
   return `$${num.toFixed(2)}`;
 }
 
+function ServiceCardPhoto({ serviceId }: { serviceId: number }) {
+  const { data: photos } = trpc.service.getPhotos.useQuery({ serviceId });
+  if (!photos || photos.length === 0) return null;
+  return (
+    <div className="aspect-[3/1] bg-muted overflow-hidden">
+      <img
+        src={photos[0].photoUrl}
+        alt="Service"
+        className="w-full h-full object-cover"
+      />
+    </div>
+  );
+}
+
 export default function PublicProviderProfile() {
   const params = useParams<{ slug: string }>();
   const { data, isLoading, error } = trpc.provider.getBySlug.useQuery(
@@ -118,7 +132,8 @@ export default function PublicProviderProfile() {
                 <div className="space-y-3">
                   {services.map((service) => (
                     <Link key={service.id} href={`/service/${service.id}`}>
-                      <Card className="hover:border-primary/30 transition-colors cursor-pointer">
+                      <Card className="hover:border-primary/30 transition-colors cursor-pointer overflow-hidden">
+                        <ServiceCardPhoto serviceId={service.id} />
                         <CardContent className="p-5">
                           <div className="flex justify-between items-start gap-4">
                             <div className="flex-1 min-w-0">

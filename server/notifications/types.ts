@@ -15,7 +15,9 @@ export type NotificationType =
   | 'message_received'
   | 'review_received'
   | 'reminder_24h'
-  | 'reminder_1h';
+  | 'reminder_1h'
+  | 'subscription_cancelled'
+  | 'subscription_updated';
 
 export interface NotificationRecipient {
   userId: number;

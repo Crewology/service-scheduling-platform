@@ -125,11 +125,11 @@ describe("Stripe Connect & Public Profile", () => {
       expect(result.slug).toContain("test-barber-shop");
     });
 
-    it("should update a provider slug", async () => {
+    it("should update a provider slug (requires Basic+ tier)", async () => {
       const ctx = provCtx(providerUserId2, "SlugUpdate Provider");
       const caller = appRouter.createCaller(ctx);
 
-      await caller.provider.create({
+      const provider = await caller.provider.create({
         businessName: "Slug Update Shop SC",
         businessType: "sole_proprietor",
         addressLine1: "456 Oak Ave",
@@ -139,6 +139,14 @@ describe("Stripe Connect & Public Profile", () => {
       });
 
       await caller.provider.generateSlug();
+
+      // Give provider a basic subscription so slug update is allowed
+      const { upsertProviderSubscription } = await import("./db");
+      await upsertProviderSubscription({
+        providerId: provider.id,
+        tier: "basic",
+        status: "active",
+      });
 
       const customSlug = `custom-barber-sc-${Date.now()}`;
       const result = await caller.provider.updateSlug({ slug: customSlug });

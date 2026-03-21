@@ -211,6 +211,41 @@ SkillLink Team
       `.trim(),
       smsBody: `Your ${data.serviceName} appointment is in 1 hour at ${data.location}.`,
     },
+
+    subscription_cancelled: {
+      subject: `Subscription Cancelled - ${data.businessName || 'Your Account'}`,
+      body: `
+Hello,
+
+Your SkillLink subscription has been cancelled.
+
+**Business:** ${data.businessName || 'Your Account'}
+
+Your account has been downgraded to the Free tier. You can resubscribe at any time from your provider dashboard.
+
+Best regards,
+SkillLink Team
+      `.trim(),
+      smsBody: `Your SkillLink subscription has been cancelled. Visit your dashboard to resubscribe.`,
+    },
+
+    subscription_updated: {
+      subject: `Subscription Updated - ${data.tier || 'Plan Change'}`,
+      body: `
+Hello,
+
+Your SkillLink subscription has been updated.
+
+**New Plan:** ${data.tier || 'Updated'}
+**Business:** ${data.businessName || 'Your Account'}
+
+Enjoy your new features! Visit your dashboard to explore what's available.
+
+Best regards,
+SkillLink Team
+      `.trim(),
+      smsBody: `Your SkillLink subscription has been updated to ${data.tier}. Enjoy your new features!`,
+    },
   };
 
   return templates[type] || {

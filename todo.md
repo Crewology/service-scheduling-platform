@@ -384,3 +384,52 @@
 - [x] Test balance returns zero when no Stripe account
 - [x] Test customer cannot access provider-only endpoints
 - [x] Test getDashboardLink requires Stripe account
+
+## Phase 10: Photo Uploads, Refund Automation, Subscription Tiers
+
+### Service Photo Uploads
+- [x] Create photo upload tRPC endpoint (server-side S3 upload)
+- [x] Add PhotoUpload component for service images
+- [x] Add photo management dialog in ProviderDashboard
+- [x] Display photos on service detail page (gallery with lightbox)
+- [x] Display photos on public provider profile
+- [x] Support multiple photos per service (tier-gated: Free=2, Basic/Premium=5)
+- [x] Add photo deletion
+
+### Cancellation & Refund Automation
+- [x] Define cancellation policy engine (time-based refund tiers: 48h=100%, 24h=75%, 4h=50%, <4h=0%)
+- [x] Create cancellation procedure with refund calculation
+- [x] Wire Stripe refund processing in cancel procedure
+- [x] Wire Stripe webhook for charge.refunded events
+- [x] Update booking status on successful refund
+- [x] Send notification to provider and customer on cancellation
+- [x] Add cancellation UI to MyBookings page with reason dialog
+- [x] Show refund amount and percentage in cancellation result
+
+### Provider Subscription Tiers
+- [x] Create providerSubscriptions table in database schema
+- [x] Define Free/Basic/Premium tier limits and features
+- [x] Change platform fee from 15% to 1% transaction fee
+- [x] Create Stripe subscription products and prices in products.ts
+- [x] Build subscription checkout flow (subscriptionRouter)
+- [x] Implement feature gating: service limits (Free=3, Basic=10, Premium=unlimited)
+- [x] Implement feature gating: photo limits (Free=2, Basic/Premium=5)
+- [x] Implement feature gating: custom slug (Basic+ only)
+- [x] Implement search priority boost for paid tiers
+- [x] Add 14-day Premium trial option
+- [x] Build SubscriptionManagement page for providers
+- [x] Add subscription link in ProviderDashboard Payments tab
+- [x] Wire Stripe webhook for subscription events (created, updated, deleted, payment_failed)
+- [ ] Add upgrade prompts when limits are reached (toast notification added, could enhance)
+- [ ] Create subscription analytics for admin dashboard
+
+### Testing
+- [x] Write 19 tests for Phase 10 features (133 total passing)
+- [x] Test photo access and authorization
+- [x] Test cancellation with refund calculation
+- [x] Test cancellation authorization (can't cancel others' bookings)
+- [x] Test subscription tier feature gating (service limits, slug limits)
+- [x] Test 1% fee calculation
+- [x] Test tier limit helpers (canProviderAddService, canProviderAddPhoto)
+- [x] Test search with priority boost
+- [x] Test 14-day trial configuration

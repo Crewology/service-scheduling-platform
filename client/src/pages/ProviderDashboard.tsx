@@ -28,11 +28,41 @@ import {
   Copy,
   ExternalLink,
   AlertCircle,
+  Image as ImageIcon,
+  Crown,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { formatCurrency } from "@/lib/dateUtils";
+import { PhotoUpload } from "@/components/PhotoUpload";
+
+// ============================================================================
+// SERVICE PHOTOS MANAGER
+// ============================================================================
+function ServicePhotosManager({ serviceId, onClose }: { serviceId: number; onClose: () => void }) {
+  const utils = trpc.useUtils();
+  const { data: photos, refetch } = trpc.service.getPhotos.useQuery({ serviceId });
+
+  return (
+    <div>
+      <PhotoUpload
+        serviceId={serviceId}
+        existingPhotos={(photos || []).map((p: any) => ({
+          id: p.id,
+          url: p.photoUrl,
+          caption: p.caption,
+          displayOrder: p.sortOrder || 0,
+        }))}
+        maxPhotos={5}
+        onPhotosChanged={() => {
+          refetch();
+          utils.service.listByProvider.invalidate();
+        }}
+      />
+    </div>
+  );
+}
 
 // ============================================================================
 // STRIPE CONNECT SECTION
@@ -88,7 +118,7 @@ function StripeConnectSection({ provider }: { provider: any }) {
               <h3 className="text-lg font-semibold">Set Up Payments</h3>
               <p className="text-sm text-muted-foreground max-w-md mx-auto mt-2">
                 Connect with Stripe to accept credit cards, debit cards, and other payment methods.
-                Payments go directly to your bank account — the platform takes a small 15% service fee.
+                Payments go directly to your bank account — the platform takes just a 1% service fee.
               </p>
             </div>
             <Button
@@ -118,7 +148,7 @@ function StripeConnectSection({ provider }: { provider: any }) {
             </div>
             <div className="flex gap-3">
               <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">3</div>
-              <p>Money goes directly to your bank account (minus 15% platform fee)</p>
+              <p>Money goes directly to your bank account (minus 1% platform fee)</p>
             </div>
           </CardContent>
         </Card>
@@ -380,6 +410,7 @@ export default function ProviderDashboard() {
   const [profileForm, setProfileForm] = useState<any>({});
   const [serviceForm, setServiceForm] = useState<any>({});
   const [deletingServiceId, setDeletingServiceId] = useState<number | null>(null);
+  const [managingPhotosServiceId, setManagingPhotosServiceId] = useState<number | null>(null);
   
   const { data: provider } = trpc.provider.getMyProfile.useQuery(undefined, {
     enabled: isAuthenticated,
@@ -771,6 +802,12 @@ export default function ProviderDashboard() {
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
+                      <div className="mt-3 pt-3 border-t">
+                        <Button size="sm" variant="ghost" className="w-full text-xs" onClick={() => setManagingPhotosServiceId(service.id)}>
+                          <ImageIcon className="h-3.5 w-3.5 mr-1" />
+                          Manage Photos
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
@@ -893,6 +930,28 @@ export default function ProviderDashboard() {
           {/* Payments Tab - Stripe Connect */}
           <TabsContent value="payments" className="space-y-6">
             <StripeConnectSection provider={provider} />
+            
+            {/* Subscription Plan */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Subscription Plan</CardTitle>
+                <CardDescription>Upgrade your plan to unlock more features</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium capitalize">{(provider as any)?.subscriptionTier || "Free"} Plan</p>
+                    <p className="text-sm text-muted-foreground">Manage your subscription, upgrade, or view plan details</p>
+                  </div>
+                  <Link href="/provider/subscription">
+                    <Button variant="outline" size="sm">
+                      <Crown className="h-4 w-4 mr-1" />
+                      Manage Plan
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Public Profile Tab */}
@@ -1007,6 +1066,22 @@ export default function ProviderDashboard() {
               {updateService.isPending ? "Saving..." : "Save Changes"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Manage Photos Dialog */}
+      <Dialog open={!!managingPhotosServiceId} onOpenChange={() => setManagingPhotosServiceId(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Manage Service Photos</DialogTitle>
+            <DialogDescription>Upload, remove, or set cover photos for your service</DialogDescription>
+          </DialogHeader>
+          {managingPhotosServiceId && (
+            <ServicePhotosManager
+              serviceId={managingPhotosServiceId}
+              onClose={() => setManagingPhotosServiceId(null)}
+            />
+          )}
         </DialogContent>
       </Dialog>
 
