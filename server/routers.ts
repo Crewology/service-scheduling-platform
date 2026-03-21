@@ -485,6 +485,48 @@ const bookingRouter = router({
       
       const booking = await db.getBookingById(bookingId);
       if (!booking) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to retrieve created booking" });
+
+      // Send booking created notification to provider
+      try {
+        const { sendNotification } = await import("./notifications");
+        const providerData = await db.getProviderById(providerId);
+        const providerUser = providerData ? await db.getUserById(providerData.userId) : null;
+        if (providerUser?.email) {
+          await sendNotification({
+            type: "booking_created",
+            channel: "email",
+            recipient: { userId: providerUser.id, email: providerUser.email, name: providerUser.name || "Provider" },
+            data: {
+              bookingNumber,
+              serviceName: service.name,
+              customerName: ctx.user.name || "Customer",
+              date: input.bookingDate,
+              time: input.startTime,
+              providerName: providerData?.businessName || providerUser.name || "Provider",
+            },
+          });
+        }
+        // Send confirmation to customer
+        if (ctx.user.email) {
+          await sendNotification({
+            type: "booking_confirmed",
+            channel: "email",
+            recipient: { userId: ctx.user.id, email: ctx.user.email, name: ctx.user.name || "Customer" },
+            data: {
+              bookingNumber,
+              serviceName: service.name,
+              providerName: providerData?.businessName || "Provider",
+              customerName: ctx.user.name || "Customer",
+              date: input.bookingDate,
+              time: input.startTime,
+              amount: totalAmount,
+            },
+          });
+        }
+      } catch (err) {
+        console.error("[Booking] Notification send failed (non-blocking):", err);
+      }
+
       return booking;
     }),
     
@@ -560,6 +602,49 @@ const bookingRouter = router({
       
       await db.updateBookingStatus(input.id, input.status, additionalData);
       const updated = await db.getBookingById(input.id);
+
+      // Send notifications based on status change
+      try {
+        const { sendNotification } = await import("./notifications");
+        const service = await db.getServiceById(booking.serviceId);
+        const customer = await db.getUserById(booking.customerId);
+        const providerData = await db.getProviderById(booking.providerId);
+        const providerUser = providerData ? await db.getUserById(providerData.userId) : null;
+
+        if (input.status === "confirmed" && customer?.email) {
+          await sendNotification({
+            type: "booking_confirmed",
+            channel: "email",
+            recipient: { userId: customer.id, email: customer.email, name: customer.name || "Customer" },
+            data: {
+              bookingNumber: booking.bookingNumber,
+              serviceName: service?.name || "Service",
+              providerName: providerData?.businessName || providerUser?.name || "Provider",
+              customerName: customer.name || "Customer",
+              date: booking.bookingDate,
+              time: booking.startTime,
+              amount: booking.totalAmount || "0.00",
+            },
+          });
+        }
+
+        if (input.status === "completed" && customer?.email) {
+          await sendNotification({
+            type: "booking_completed",
+            channel: "email",
+            recipient: { userId: customer.id, email: customer.email, name: customer.name || "Customer" },
+            data: {
+              bookingNumber: booking.bookingNumber,
+              serviceName: service?.name || "Service",
+              providerName: providerData?.businessName || providerUser?.name || "Provider",
+              customerName: customer.name || "Customer",
+            },
+          });
+        }
+      } catch (err) {
+        console.error("[BookingStatus] Notification send failed (non-blocking):", err);
+      }
+
       return updated!;
     }),
 
@@ -846,6 +931,11 @@ const notificationRouter = router({
       await db.markNotificationAsRead(input.notificationId);
       return { success: true };
     }),
+
+  unreadCount: protectedProcedure.query(async ({ ctx }) => {
+    const notifications = await db.getUserNotifications(ctx.user.id, true);
+    return { count: notifications.length };
+  }),
 });
 
 // ============================================================================

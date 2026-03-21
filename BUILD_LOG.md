@@ -16,10 +16,11 @@ This document provides a complete, chronological record of every phase of the Sk
 | **Hosting** | Manus built-in hosting with custom domain support |
 | **Total Source Files** | 131 (excluding node_modules and test files) |
 | **Total Lines of Code** | ~20,386 |
-| **Test Files** | 9 files, 133 tests (all passing) |
-| **Database Tables** | 15 (added providerSubscriptions) |
-| **Frontend Pages** | 19 (added SubscriptionManagement) |
+| **Test Files** | 10 files, 154 tests (all passing) |
+| **Database Tables** | 15 (including providerSubscriptions) |
+| **Frontend Pages** | 21 (added ProviderOnboarding, SubscriptionAnalytics panel) |
 | **tRPC Routers** | 14 (auth, provider, category, service, booking, review, message, notification, availability, stripe, stripeConnect, subscription, admin, system) |
+| **Background Services** | 1 (Reminder Service — runs every 15 minutes) |
 
 ---
 
@@ -650,4 +651,113 @@ The original model collected all payments centrally. The new model uses Stripe C
 | `c5a74fb0` | Next steps: seed data, unread message indicators, enhanced booking calendar (88 tests) |
 | `7ebd86c8` | MVP gap fixes, documentation, UserProfile page (102 tests) |
 | `0b0e50b0` | Provider-first pivot: Stripe Connect, public profiles, slug management (114 tests) |
-| (pending) | Photo uploads, cancellation/refund automation, subscription tiers with 1% fee (133 tests) |
+| `8d5a7492` | Photo uploads, cancellation/refund automation, subscription tiers with 1% fee (133 tests) |
+| (pending) | Subscription analytics, provider onboarding wizard, customer notifications & reminders (154 tests) |
+
+---
+
+## Phase 11: Subscription Analytics, Provider Onboarding Wizard, Customer Notifications
+
+**Objective:** Complete three major features: (1) a subscription analytics panel for the admin dashboard, (2) a guided multi-step onboarding wizard for new providers, and (3) an automated customer notification and reminder system.
+
+**What was built:**
+
+### Subscription Analytics Panel (Admin Dashboard)
+
+A new analytics section was added to the Admin Dashboard that gives platform administrators real-time visibility into subscription metrics. The `getSubscriptionAnalytics` database helper queries the `providerSubscriptions` table and computes:
+
+| Metric | Description |
+|---|---|
+| **Monthly Recurring Revenue (MRR)** | Sum of active subscription prices ($29/mo for Basic, $79/mo for Premium) |
+| **Active Subscribers by Tier** | Count of providers on each tier (Free, Basic, Premium) |
+| **Conversion Rate** | Percentage of providers who upgraded from Free to a paid tier |
+| **Churn Rate** | Percentage of subscriptions that were cancelled vs total ever created |
+| **Total Revenue** | Cumulative subscription revenue |
+
+The admin dashboard displays these metrics in a dedicated "Subscription Analytics" card section with clear numeric displays and contextual labels.
+
+### Provider Onboarding Wizard
+
+A new `ProviderOnboarding` page provides a guided, multi-step setup flow for new providers. The wizard walks providers through five sequential steps:
+
+| Step | Title | What It Collects |
+|---|---|---|
+| 1 | Business Profile | Business name, type (sole proprietor/LLC/corporation/partnership), address, phone, description |
+| 2 | First Service | Service category, name, pricing model, base price, duration, description |
+| 3 | Availability | Weekly recurring schedule with day-of-week toggles and start/end times |
+| 4 | Stripe Connect | Initiates Stripe Connect onboarding for payment acceptance |
+| 5 | Subscription | Tier selection (Starter/Professional/Business) with feature comparison |
+
+The wizard includes progress tracking, step validation, and the ability to skip optional steps (Stripe, subscription). New providers are redirected to the wizard after registration if their profile is incomplete.
+
+### Customer Notification System
+
+The notification system was enhanced with three key capabilities:
+
+**Booking Confirmation Notifications:** When a booking is created, the system automatically sends email notifications to both the provider (alerting them of a new booking request) and the customer (confirming their booking submission). When a provider confirms a booking, an additional confirmation email is sent to the customer with appointment details.
+
+**Status Change Notifications:** Email notifications are triggered for all booking status transitions: confirmed, completed, and cancelled. Each notification uses a specific template with relevant details (booking number, service name, date/time, provider name, refund information for cancellations).
+
+**24-Hour Reminder System:** A background service (`reminderService.ts`) runs every 15 minutes and performs the following:
+
+1. Queries the database for confirmed bookings occurring in the next 23-25 hours that have not yet received a reminder (`reminderSent = false`)
+2. For each qualifying booking, sends email reminders to both the customer and the provider
+3. Creates in-app notifications in the `notifications` table for both parties
+4. Marks the booking's `reminderSent` flag as `true` to prevent duplicate reminders
+
+The reminder service is started automatically when the server boots and can also be triggered manually by admins via the `admin.triggerReminders` tRPC procedure.
+
+**Notification Architecture:**
+
+The notification system uses a plugin-based architecture with the following components:
+
+| Component | File | Purpose |
+|---|---|---|
+| `NotificationService` | `server/notifications/index.ts` | Central dispatcher that routes notifications to the appropriate provider |
+| `EmailProvider` | `server/notifications/providers/email.ts` | Sends emails via Manus Forge API |
+| `SMSProvider` | `server/notifications/providers/sms.ts` | Stub for Twilio SMS (ready for activation) |
+| `templates.ts` | `server/notifications/templates.ts` | 12 notification templates covering all event types |
+| `types.ts` | `server/notifications/types.ts` | TypeScript interfaces for notifications, channels, and providers |
+| `reminderService.ts` | `server/reminderService.ts` | Background service for 24-hour appointment reminders |
+
+All 12 notification types have both email templates (with subject and HTML body) and SMS templates (short text body):
+
+| Type | Trigger | Recipients |
+|---|---|---|
+| `booking_created` | New booking submitted | Provider |
+| `booking_confirmed` | Booking confirmed by provider | Customer |
+| `booking_cancelled` | Booking cancelled | Customer + Provider |
+| `booking_completed` | Service marked complete | Customer |
+| `payment_received` | Payment processed | Customer |
+| `payment_failed` | Payment failed | Customer |
+| `message_received` | New message in conversation | Recipient |
+| `review_received` | New review posted | Provider |
+| `reminder_24h` | 24 hours before appointment | Customer + Provider |
+| `reminder_1h` | 1 hour before appointment | Customer + Provider |
+| `subscription_cancelled` | Subscription cancelled | Provider |
+| `subscription_updated` | Subscription tier changed | Provider |
+
+**Files created/modified:**
+
+| File | Change |
+|---|---|
+| `server/reminderService.ts` | New: background reminder service with processReminders(), startReminderService(), stopReminderService() |
+| `server/_core/index.ts` | Modified: wired reminder service to start on server boot |
+| `server/adminRouter.ts` | Modified: added `triggerReminders` admin procedure |
+| `server/routers.ts` | Modified: added `notification.unreadCount` procedure, booking creation/update notifications already wired |
+| `server/db.ts` | Already had: `getBookingsNeedingReminders()`, `markReminderSent()`, `createNotification()` |
+| `server/notifications/index.ts` | Already had: `sendNotification()` dispatcher |
+| `server/notifications/templates.ts` | Already had: all 12 templates including `reminder_24h` and `reminder_1h` |
+| `client/src/pages/AdminDashboard.tsx` | Modified: subscription analytics panel |
+| `client/src/pages/ProviderOnboarding.tsx` | New: multi-step onboarding wizard |
+| `server/phase11.test.ts` | New: 21 tests for notifications, reminders, admin trigger, templates |
+
+**Tests:** 21 new tests in `phase11.test.ts` covering:
+- Notification router (list, unread count, create, mark as read)
+- Reminder database helpers (getBookingsNeedingReminders, markReminderSent)
+- Reminder service (processReminders, start/stop lifecycle)
+- Admin manual reminder trigger (authorization check)
+- Booking notification integration (creation and status change triggers)
+- Notification templates (all 12 types verified)
+
+**Total test count:** 154 tests passing across 10 test files.

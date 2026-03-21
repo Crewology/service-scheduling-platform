@@ -65,6 +65,13 @@ async function startServer() {
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
+    
+    // Start the reminder service (checks every 15 minutes for upcoming bookings)
+    import("../reminderService").then(({ startReminderService }) => {
+      startReminderService();
+    }).catch(err => {
+      console.error("Failed to start reminder service:", err);
+    });
   });
 }
 

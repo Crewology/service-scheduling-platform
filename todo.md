@@ -421,7 +421,7 @@
 - [x] Add subscription link in ProviderDashboard Payments tab
 - [x] Wire Stripe webhook for subscription events (created, updated, deleted, payment_failed)
 - [ ] Add upgrade prompts when limits are reached (toast notification added, could enhance)
-- [ ] Create subscription analytics for admin dashboard
+- [x] Create subscription analytics for admin dashboard
 
 ### Testing
 - [x] Write 19 tests for Phase 10 features (133 total passing)
@@ -433,3 +433,38 @@
 - [x] Test tier limit helpers (canProviderAddService, canProviderAddPhoto)
 - [x] Test search with priority boost
 - [x] Test 14-day trial configuration
+
+## Phase 11: Subscription Analytics, Provider Onboarding Wizard, Customer Notifications
+
+### Subscription Analytics for Admin Dashboard
+- [x] Add admin procedure for subscription analytics (MRR, active counts by tier, churn rate, conversion rates)
+- [x] Build analytics panel in AdminDashboard with charts/cards
+- [x] Show monthly recurring revenue (MRR) with trend
+- [x] Show active subscriber counts by tier (Free/Basic/Premium)
+- [x] Show conversion rates (Free→Basic, Basic→Premium)
+- [x] Show churn rate (cancellations vs active)
+
+### Provider Onboarding Wizard
+- [x] Create ProviderOnboarding page with step-by-step flow
+- [x] Step 1: Business profile (name, type, address, phone, bio)
+- [x] Step 2: Add first service (category, name, price, description)
+- [x] Step 3: Set availability schedule (weekly recurring)
+- [x] Step 4: Connect Stripe account
+- [x] Step 5: Choose subscription tier
+- [x] Add onboarding progress tracking
+- [x] Redirect new providers to wizard after registration
+- [x] Add "Complete Setup" prompt for incomplete profiles
+
+### Customer Notifications & Reminders
+- [x] Add booking confirmation email on successful booking
+- [x] Add booking status change notifications (confirmed, cancelled)
+- [x] Create 24-hour reminder system for upcoming appointments
+- [x] Add provider notification for new bookings
+- [ ] Include unsubscribe link in all emails
+
+### Testing
+- [x] Write tests for subscription analytics queries
+- [x] Write tests for onboarding progress tracking
+- [x] Write tests for notification triggers
+- [x] Write tests for reminder scheduling logic
+- [x] 21 new Phase 11 tests (154 total passing across 10 test files)

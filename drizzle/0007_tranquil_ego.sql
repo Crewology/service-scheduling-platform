@@ -1,0 +1,1 @@
+ALTER TABLE `bookings` ADD `reminderSent` boolean DEFAULT false NOT NULL;

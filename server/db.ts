@@ -1153,14 +1153,120 @@ export async function getActiveServiceCount(providerId: number): Promise<number>
 
 export async function getSubscriptionAnalytics() {
   const database = await getDb();
-  if (!database) return { free: 0, basic: 0, premium: 0, trialing: 0 };
-  
+  if (!database) return {
+    tiers: { free: 0, basic: 0, premium: 0, trialing: 0 },
+    mrr: 0,
+    churnRate: 0,
+    totalProviders: 0,
+    activeSubscribers: 0,
+    cancelledThisMonth: 0,
+    newThisMonth: 0,
+    conversionRates: { freeToBasic: 0, basicToPremium: 0 },
+  };
+
+  const now = new Date();
+  const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
   const subs = await database.select().from(providerSubscriptions);
+  const allProviders = await database.select({ count: sql<number>`COUNT(*)` }).from(serviceProviders);
+  const totalProviders = allProviders[0]?.count ?? 0;
+
   const active = subs.filter(s => s.status === "active" || s.status === "trialing");
-  const free = subs.length === 0 ? 0 : subs.filter(s => s.tier === "free" || s.status === "cancelled").length;
+  const cancelled = subs.filter(s => s.status === "cancelled");
+  const cancelledThisMonth = cancelled.filter(s => s.updatedAt && new Date(s.updatedAt) >= firstOfMonth).length;
+  const newThisMonth = subs.filter(s => s.createdAt && new Date(s.createdAt) >= firstOfMonth).length;
+
   const basic = active.filter(s => s.tier === "basic").length;
   const premium = active.filter(s => s.tier === "premium").length;
   const trialing = subs.filter(s => s.status === "trialing").length;
+  const freeCount = totalProviders - basic - premium;
+
+  // MRR: Basic=$29/mo, Premium=$79/mo
+  const mrr = (basic * 29) + (premium * 79);
+
+  // Churn rate: cancelled this month / (active at start of month + new this month)
+  const activeAtStart = active.length - newThisMonth + cancelledThisMonth;
+  const churnRate = activeAtStart > 0 ? (cancelledThisMonth / activeAtStart) * 100 : 0;
+
+  // Conversion rates: providers who upgraded from free to basic, basic to premium
+  const everBasicOrHigher = subs.filter(s => s.tier === "basic" || s.tier === "premium").length;
+  const everPremium = subs.filter(s => s.tier === "premium").length;
+  const freeToBasic = totalProviders > 0 ? (everBasicOrHigher / totalProviders) * 100 : 0;
+  const basicToPremium = everBasicOrHigher > 0 ? (everPremium / everBasicOrHigher) * 100 : 0;
+
+  return {
+    tiers: { free: freeCount, basic, premium, trialing },
+    mrr,
+    churnRate: Math.round(churnRate * 10) / 10,
+    totalProviders,
+    activeSubscribers: basic + premium,
+    cancelledThisMonth,
+    newThisMonth,
+    conversionRates: {
+      freeToBasic: Math.round(freeToBasic * 10) / 10,
+      basicToPremium: Math.round(basicToPremium * 10) / 10,
+    },
+  };
+}
+
+
+// ============================================================================
+// BOOKING REMINDERS
+// ============================================================================
+
+/**
+ * Get bookings that need 24-hour reminders.
+ * Finds confirmed bookings happening in the next 23-25 hours
+ * that haven't had a reminder sent yet.
+ */
+export async function getBookingsNeedingReminders(): Promise<any[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const now = new Date();
+  const in23h = new Date(now.getTime() + 23 * 60 * 60 * 1000);
+  const in25h = new Date(now.getTime() + 25 * 60 * 60 * 1000);
   
-  return { free, basic, premium, trialing };
+  // Get confirmed bookings in the 23-25 hour window
+  const upcomingBookings = await db.select()
+    .from(bookings)
+    .where(
+      and(
+        eq(bookings.status, "confirmed"),
+        eq(bookings.reminderSent, false),
+        gte(sql`CONCAT(${bookings.bookingDate}, ' ', ${bookings.startTime})`, in23h.toISOString().replace('T', ' ').slice(0, 19)),
+        lte(sql`CONCAT(${bookings.bookingDate}, ' ', ${bookings.startTime})`, in25h.toISOString().replace('T', ' ').slice(0, 19)),
+      )
+    );
+  
+  return upcomingBookings;
+}
+
+/**
+ * Mark a booking as having had its reminder sent
+ */
+export async function markReminderSent(bookingId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(bookings)
+    .set({ reminderSent: true })
+    .where(eq(bookings.id, bookingId));
+}
+
+/**
+ * Get all upcoming confirmed bookings for a specific user (for notification preferences)
+ */
+export async function getUpcomingBookingsForUser(userId: number): Promise<any[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const now = new Date();
+  return await db.select()
+    .from(bookings)
+    .where(
+      and(
+        eq(bookings.customerId, userId),
+        eq(bookings.status, "confirmed"),
+        gte(sql`CONCAT(${bookings.bookingDate}, ' ', ${bookings.startTime})`, now.toISOString().replace('T', ' ').slice(0, 19)),
+      )
+    )
+    .orderBy(asc(bookings.bookingDate), asc(bookings.startTime));
 }

@@ -16,14 +16,198 @@ import {
   TrendingUp, 
   CheckCircle, 
   XCircle,
-  AlertCircle,
-  BarChart3,
   Ban,
   Undo2,
+  Crown,
+  ArrowUpRight,
+  ArrowDownRight,
+  BarChart3,
+  Percent,
+  UserPlus,
+  UserMinus,
 } from "lucide-react";
 import { Link } from "wouter";
 import { formatCurrency, formatDate } from "@/lib/dateUtils";
 import { NavHeader } from "@/components/shared/NavHeader";
+
+function SubscriptionAnalyticsPanel() {
+  const { data: analytics, isLoading } = trpc.admin.getSubscriptionAnalytics.useQuery();
+
+  if (isLoading) return <LoadingSpinner message="Loading analytics..." />;
+  if (!analytics) return null;
+
+  const totalTierCount = analytics.tiers.free + analytics.tiers.basic + analytics.tiers.premium;
+  const basicPct = totalTierCount > 0 ? (analytics.tiers.basic / totalTierCount) * 100 : 0;
+  const premiumPct = totalTierCount > 0 ? (analytics.tiers.premium / totalTierCount) * 100 : 0;
+  const freePct = totalTierCount > 0 ? (analytics.tiers.free / totalTierCount) * 100 : 0;
+
+  return (
+    <div className="space-y-6">
+      {/* MRR and Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="border-l-4 border-l-green-500">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Monthly Recurring Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{formatCurrency(analytics.mrr)}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {analytics.activeSubscribers} paid subscriber{analytics.activeSubscribers !== 1 ? 's' : ''}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-blue-500">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Active Subscribers</CardTitle>
+            <Crown className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{analytics.activeSubscribers}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              of {analytics.totalProviders} total providers
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-orange-500">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Churn Rate</CardTitle>
+            {analytics.churnRate > 5 ? (
+              <ArrowUpRight className="h-4 w-4 text-red-500" />
+            ) : (
+              <ArrowDownRight className="h-4 w-4 text-green-500" />
+            )}
+          </CardHeader>
+          <CardContent>
+            <div className={`text-2xl font-bold ${analytics.churnRate > 5 ? 'text-red-600' : 'text-green-600'}`}>
+              {analytics.churnRate}%
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {analytics.cancelledThisMonth} cancelled this month
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-purple-500">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">New This Month</CardTitle>
+            <UserPlus className="h-4 w-4 text-purple-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-purple-600">{analytics.newThisMonth}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              new subscriptions
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Tier Distribution and Conversion */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Tier Distribution */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Tier Distribution
+            </CardTitle>
+            <CardDescription>Breakdown of providers by subscription tier</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Visual bar chart */}
+            <div className="space-y-3">
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-medium">Starter (Free)</span>
+                  <span className="text-sm text-muted-foreground">{analytics.tiers.free} ({freePct.toFixed(0)}%)</span>
+                </div>
+                <div className="h-3 bg-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-gray-400 rounded-full transition-all" style={{ width: `${freePct}%` }} />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-medium">Professional ($29/mo)</span>
+                  <span className="text-sm text-muted-foreground">{analytics.tiers.basic} ({basicPct.toFixed(0)}%)</span>
+                </div>
+                <div className="h-3 bg-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${basicPct}%` }} />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-medium">Business ($79/mo)</span>
+                  <span className="text-sm text-muted-foreground">{analytics.tiers.premium} ({premiumPct.toFixed(0)}%)</span>
+                </div>
+                <div className="h-3 bg-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-purple-500 rounded-full transition-all" style={{ width: `${premiumPct}%` }} />
+                </div>
+              </div>
+              {analytics.tiers.trialing > 0 && (
+                <div className="pt-2 border-t">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-amber-600">Currently Trialing</span>
+                    <span className="text-sm text-amber-600">{analytics.tiers.trialing}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Conversion Rates */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Percent className="h-5 w-5" />
+              Conversion Rates
+            </CardTitle>
+            <CardDescription>How providers move between tiers</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-4">
+              <div className="p-4 rounded-lg bg-muted/50">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="h-3 w-3 rounded-full bg-gray-400" />
+                    <span className="text-sm">Starter</span>
+                    <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+                    <div className="h-3 w-3 rounded-full bg-blue-500" />
+                    <span className="text-sm">Professional</span>
+                  </div>
+                </div>
+                <div className="text-3xl font-bold">{analytics.conversionRates.freeToBasic}%</div>
+                <p className="text-xs text-muted-foreground mt-1">of all providers have upgraded to Professional or higher</p>
+              </div>
+
+              <div className="p-4 rounded-lg bg-muted/50">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="h-3 w-3 rounded-full bg-blue-500" />
+                    <span className="text-sm">Professional</span>
+                    <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+                    <div className="h-3 w-3 rounded-full bg-purple-500" />
+                    <span className="text-sm">Business</span>
+                  </div>
+                </div>
+                <div className="text-3xl font-bold">{analytics.conversionRates.basicToPremium}%</div>
+                <p className="text-xs text-muted-foreground mt-1">of paid subscribers have upgraded to Business</p>
+              </div>
+            </div>
+
+            <div className="p-3 rounded-lg border border-dashed">
+              <p className="text-xs text-muted-foreground text-center">
+                Revenue per provider: {analytics.totalProviders > 0 ? formatCurrency(analytics.mrr / analytics.totalProviders) : '$0.00'}/mo avg
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
 
 export default function AdminDashboard() {
   const { user, loading: authLoading } = useAuth();
@@ -32,7 +216,6 @@ export default function AdminDashboard() {
   
   useProtectedPage();
 
-  // Check if user is admin
   if (!authLoading && user?.role !== "admin") {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -148,7 +331,7 @@ export default function AdminDashboard() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+              <CardTitle className="text-sm font-medium">Platform Revenue</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -164,6 +347,10 @@ export default function AdminDashboard() {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="subscriptions">
+              <Crown className="h-3.5 w-3.5 mr-1" />
+              Subscriptions
+            </TabsTrigger>
             <TabsTrigger value="users">Users ({users?.length || 0})</TabsTrigger>
             <TabsTrigger value="providers">Providers ({providers?.length || 0})</TabsTrigger>
             <TabsTrigger value="bookings">Bookings ({bookings?.length || 0})</TabsTrigger>
@@ -172,7 +359,6 @@ export default function AdminDashboard() {
           {/* Overview Tab */}
           <TabsContent value="overview">
             <div className="grid md:grid-cols-2 gap-6">
-              {/* Pending Verifications */}
               <Card>
                 <CardHeader>
                   <CardTitle>Pending Verifications</CardTitle>
@@ -206,7 +392,6 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
 
-              {/* Recent Bookings */}
               <Card>
                 <CardHeader>
                   <CardTitle>Recent Bookings</CardTitle>
@@ -241,6 +426,11 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          {/* Subscriptions Tab */}
+          <TabsContent value="subscriptions">
+            <SubscriptionAnalyticsPanel />
           </TabsContent>
 
           {/* Users Tab */}

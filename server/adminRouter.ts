@@ -94,6 +94,18 @@ export const adminRouter = router({
       return { success: true };
     }),
 
+  // Get subscription analytics
+  getSubscriptionAnalytics: adminProcedure.query(async () => {
+    return await db.getSubscriptionAnalytics();
+  }),
+
+  // Manually trigger reminder processing
+  triggerReminders: adminProcedure.mutation(async () => {
+    const { processReminders } = await import("./reminderService");
+    const result = await processReminders();
+    return result;
+  }),
+
   // Update provider verification status (flexible)
   updateProviderVerification: adminProcedure
     .input(z.object({
