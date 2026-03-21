@@ -870,3 +870,75 @@ export async function deleteAvailabilityOverride(overrideId: number) {
 
   await db.delete(availabilityOverrides).where(eq(availabilityOverrides.id, overrideId));
 }
+
+// ============================================================================
+// STRIPE CONNECT HELPERS
+// ============================================================================
+
+export async function updateProviderStripeAccount(providerId: number, data: {
+  stripeAccountId?: string;
+  stripeAccountStatus?: string;
+  stripeOnboardingComplete?: boolean;
+  payoutEnabled?: boolean;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const updateData: Record<string, any> = {};
+  if (data.stripeAccountId !== undefined) updateData.stripeAccountId = data.stripeAccountId;
+  if (data.stripeAccountStatus !== undefined) updateData.stripeAccountStatus = data.stripeAccountStatus;
+  if (data.stripeOnboardingComplete !== undefined) updateData.stripeOnboardingComplete = data.stripeOnboardingComplete;
+  if (data.payoutEnabled !== undefined) updateData.payoutEnabled = data.payoutEnabled;
+
+  await db.update(serviceProviders)
+    .set(updateData)
+    .where(eq(serviceProviders.id, providerId));
+}
+
+// ============================================================================
+// PUBLIC PROFILE HELPERS
+// ============================================================================
+
+export async function getProviderBySlug(slug: string): Promise<ServiceProvider | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const rows = await db.select().from(serviceProviders)
+    .where(eq(serviceProviders.profileSlug, slug))
+    .limit(1);
+  return rows[0];
+}
+
+export async function updateProviderSlug(providerId: number, slug: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(serviceProviders)
+    .set({ profileSlug: slug })
+    .where(eq(serviceProviders.id, providerId));
+}
+
+export async function getServicesByProvider(providerId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(services)
+    .where(and(
+      eq(services.providerId, providerId),
+      eq(services.isActive, true)
+    ))
+    .orderBy(services.name);
+}
+
+export async function getProviderReviewsPublic(providerId: number, limit = 10) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(reviews)
+    .where(and(
+      eq(reviews.providerId, providerId),
+      eq(reviews.isFlagged, false)
+    ))
+    .orderBy(desc(reviews.createdAt))
+    .limit(limit);
+}

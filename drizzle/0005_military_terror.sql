@@ -1,0 +1,2 @@
+ALTER TABLE `service_providers` MODIFY COLUMN `profileSlug` varchar(255);--> statement-breakpoint
+ALTER TABLE `service_providers` MODIFY COLUMN `stripeAccountStatus` enum('not_connected','onboarding','active','restricted','disabled') NOT NULL DEFAULT 'not_connected';

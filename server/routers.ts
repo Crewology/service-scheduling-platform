@@ -6,6 +6,7 @@ import { z } from "zod";
 import * as db from "./db";
 import { TRPCError } from "@trpc/server";
 import { stripeRouter } from "./stripeRouter";
+import { stripeConnectRouter } from "./stripeConnectRouter";
 import { adminRouter } from "./adminRouter";
 
 // ============================================================================
@@ -122,6 +123,49 @@ const providerRouter = router({
     if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
     return await db.getProviderEarnings(provider.id);
   }),
+
+  // Public profile by slug (no auth required)
+  getBySlug: publicProcedure
+    .input(z.object({ slug: z.string() }))
+    .query(async ({ input }) => {
+      const provider = await db.getProviderBySlug(input.slug);
+      if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider not found" });
+      const providerServices = await db.getServicesByProvider(provider.id);
+      const providerReviews = await db.getProviderReviewsPublic(provider.id);
+      return { provider, services: providerServices, reviews: providerReviews };
+    }),
+
+  // Generate a profile slug from business name
+  generateSlug: protectedProcedure.mutation(async ({ ctx }) => {
+    const provider = await db.getProviderByUserId(ctx.user.id);
+    if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+    const baseSlug = provider.businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const slug = `${baseSlug}-${provider.id}`;
+    await db.updateProviderSlug(provider.id, slug);
+    return { slug };
+  }),
+
+  // Update profile slug
+  updateSlug: protectedProcedure
+    .input(z.object({ slug: z.string().min(3).max(100).regex(/^[a-z0-9-]+$/) }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+      // Check slug uniqueness
+      const existing = await db.getProviderBySlug(input.slug);
+      if (existing && existing.id !== provider.id) {
+        throw new TRPCError({ code: "CONFLICT", message: "This URL is already taken" });
+      }
+      await db.updateProviderSlug(provider.id, input.slug);
+      return { slug: input.slug };
+    }),
+
+  // Get public services for a provider by ID (no auth)
+  getPublicServices: publicProcedure
+    .input(z.object({ providerId: z.number() }))
+    .query(async ({ input }) => {
+      return await db.getServicesByProvider(input.providerId);
+    }),
 });
 
 // ============================================================================
@@ -688,6 +732,7 @@ export const appRouter = router({
   notification: notificationRouter,
   availability: availabilityRouter,
   stripe: stripeRouter,
+  stripeConnect: stripeConnectRouter,
   admin: adminRouter,
 });
 

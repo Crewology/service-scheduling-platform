@@ -23,12 +23,352 @@ import {
   XCircle,
   TrendingUp,
   Wallet,
+  CreditCard,
+  Link2,
+  Copy,
+  ExternalLink,
+  AlertCircle,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { formatCurrency } from "@/lib/dateUtils";
 
+// ============================================================================
+// STRIPE CONNECT SECTION
+// ============================================================================
+function StripeConnectSection({ provider }: { provider: any }) {
+  const { data: connectStatus, isLoading } = trpc.stripeConnect.getStatus.useQuery();
+  const { data: balance } = trpc.stripeConnect.getBalance.useQuery(undefined, {
+    enabled: connectStatus?.connected && connectStatus?.chargesEnabled,
+  });
+
+  const startOnboarding = trpc.stripeConnect.startOnboarding.useMutation({
+    onSuccess: (data) => {
+      window.open(data.url, '_blank');
+      toast.success("Stripe onboarding opened in a new tab");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const getDashboardLink = trpc.stripeConnect.getDashboardLink.useMutation({
+    onSuccess: (data) => {
+      window.open(data.url, '_blank');
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const getOnboardingLink = trpc.stripeConnect.getOnboardingLink.useMutation({
+    onSuccess: (data) => {
+      window.open(data.url, '_blank');
+      toast.success("Onboarding resumed in a new tab");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  if (isLoading) {
+    return <div className="animate-pulse text-muted-foreground">Loading payment status...</div>;
+  }
+
+  // Not connected yet
+  if (!connectStatus?.connected) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold">Accept Payments</h2>
+          <p className="text-muted-foreground mt-1">Connect your Stripe account to receive payments directly from clients</p>
+        </div>
+
+        <Card className="border-dashed border-2">
+          <CardContent className="py-12 text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+              <CreditCard className="w-8 h-8 text-primary" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold">Set Up Payments</h3>
+              <p className="text-sm text-muted-foreground max-w-md mx-auto mt-2">
+                Connect with Stripe to accept credit cards, debit cards, and other payment methods.
+                Payments go directly to your bank account — the platform takes a small 15% service fee.
+              </p>
+            </div>
+            <Button
+              size="lg"
+              onClick={() => startOnboarding.mutate({ origin: window.location.origin })}
+              disabled={startOnboarding.isPending}
+            >
+              <CreditCard className="w-4 h-4 mr-2" />
+              {startOnboarding.isPending ? "Setting up..." : "Connect with Stripe"}
+            </Button>
+            <p className="text-xs text-muted-foreground">You'll be redirected to Stripe to complete setup</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">How it works</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <div className="flex gap-3">
+              <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">1</div>
+              <p>Connect your Stripe account (takes about 5 minutes)</p>
+            </div>
+            <div className="flex gap-3">
+              <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">2</div>
+              <p>Clients pay when they book your services</p>
+            </div>
+            <div className="flex gap-3">
+              <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">3</div>
+              <p>Money goes directly to your bank account (minus 15% platform fee)</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Connected but onboarding incomplete
+  if (!connectStatus.detailsSubmitted || connectStatus.status === "onboarding") {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold">Complete Payment Setup</h2>
+          <p className="text-muted-foreground mt-1">Your Stripe account needs additional information</p>
+        </div>
+
+        <Card className="border-yellow-500/30 bg-yellow-500/5">
+          <CardContent className="py-8 text-center space-y-4">
+            <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto" />
+            <div>
+              <h3 className="text-lg font-semibold">Onboarding Incomplete</h3>
+              <p className="text-sm text-muted-foreground max-w-md mx-auto mt-2">
+                Stripe needs more information to activate your account. Click below to continue where you left off.
+              </p>
+            </div>
+            <Button
+              onClick={() => getOnboardingLink.mutate({ origin: window.location.origin })}
+              disabled={getOnboardingLink.isPending}
+            >
+              {getOnboardingLink.isPending ? "Loading..." : "Continue Setup"}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Fully connected
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Payments</h2>
+          <p className="text-muted-foreground mt-1">Your Stripe account is connected and active</p>
+        </div>
+        <Badge variant="default" className="gap-1">
+          <CheckCircle2 className="w-3 h-3" /> Active
+        </Badge>
+      </div>
+
+      <div className="grid md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Available Balance</CardTitle>
+            <Wallet className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(balance?.available || 0)}</div>
+            <p className="text-xs text-muted-foreground">Ready for payout</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending</CardTitle>
+            <Clock className="h-4 w-4 text-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(balance?.pending || 0)}</div>
+            <p className="text-xs text-muted-foreground">Processing</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Payouts</CardTitle>
+            <CreditCard className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{connectStatus.payoutsEnabled ? "Enabled" : "Pending"}</div>
+            <p className="text-xs text-muted-foreground">Direct to your bank</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Manage Your Payments</CardTitle>
+          <CardDescription>View detailed transaction history, manage payouts, and update your bank info on Stripe</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            variant="outline"
+            onClick={() => getDashboardLink.mutate()}
+            disabled={getDashboardLink.isPending}
+          >
+            <ExternalLink className="w-4 h-4 mr-2" />
+            {getDashboardLink.isPending ? "Loading..." : "Open Stripe Dashboard"}
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ============================================================================
+// PUBLIC PROFILE SECTION
+// ============================================================================
+function PublicProfileSection({ provider }: { provider: any }) {
+  const utils = trpc.useUtils();
+  const [editingSlug, setEditingSlug] = useState(false);
+  const [slugInput, setSlugInput] = useState("");
+
+  const generateSlug = trpc.provider.generateSlug.useMutation({
+    onSuccess: (data) => {
+      utils.provider.getMyProfile.invalidate();
+      toast.success(`Profile URL created: /p/${data.slug}`);
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const updateSlug = trpc.provider.updateSlug.useMutation({
+    onSuccess: (data) => {
+      utils.provider.getMyProfile.invalidate();
+      setEditingSlug(false);
+      toast.success(`Profile URL updated to /p/${data.slug}`);
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const profileUrl = provider.profileSlug
+    ? `${window.location.origin}/p/${provider.profileSlug}`
+    : null;
+
+  const copyUrl = () => {
+    if (profileUrl) {
+      navigator.clipboard.writeText(profileUrl);
+      toast.success("Profile link copied to clipboard!");
+    }
+  };
+
+  if (!provider.profileSlug) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold">Your Public Page</h2>
+          <p className="text-muted-foreground mt-1">Create a shareable profile page — your own mini-website</p>
+        </div>
+
+        <Card className="border-dashed border-2">
+          <CardContent className="py-12 text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+              <Link2 className="w-8 h-8 text-primary" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold">Create Your Public Profile</h3>
+              <p className="text-sm text-muted-foreground max-w-md mx-auto mt-2">
+                Get a shareable link that shows your services, reviews, and business info.
+                Share it on social media, business cards, or anywhere you want clients to find you.
+              </p>
+            </div>
+            <Button
+              size="lg"
+              onClick={() => generateSlug.mutate()}
+              disabled={generateSlug.isPending}
+            >
+              <Link2 className="w-4 h-4 mr-2" />
+              {generateSlug.isPending ? "Creating..." : "Create My Page"}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold">Your Public Page</h2>
+        <p className="text-muted-foreground mt-1">Share this link with clients — it's your mini-website</p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Your Profile Link</CardTitle>
+          <CardDescription>Share this URL with clients, on social media, or on your business cards</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-2">
+            <div className="flex-1 bg-muted rounded-md px-3 py-2 text-sm font-mono truncate">
+              {profileUrl}
+            </div>
+            <Button variant="outline" size="icon" onClick={copyUrl} title="Copy link">
+              <Copy className="w-4 h-4" />
+            </Button>
+            <Link href={`/p/${provider.profileSlug}`} target="_blank">
+              <Button variant="outline" size="icon" title="Preview">
+                <ExternalLink className="w-4 h-4" />
+              </Button>
+            </Link>
+          </div>
+
+          {editingSlug ? (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">{window.location.origin}/p/</span>
+              <Input
+                value={slugInput}
+                onChange={(e) => setSlugInput(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+                placeholder="your-custom-url"
+                className="max-w-xs"
+              />
+              <Button
+                size="sm"
+                onClick={() => updateSlug.mutate({ slug: slugInput })}
+                disabled={updateSlug.isPending || slugInput.length < 3}
+              >
+                {updateSlug.isPending ? "Saving..." : "Save"}
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setEditingSlug(false)}>Cancel</Button>
+            </div>
+          ) : (
+            <Button variant="ghost" size="sm" onClick={() => { setSlugInput(provider.profileSlug || ""); setEditingSlug(true); }}>
+              <Pencil className="w-3 h-3 mr-1" /> Customize URL
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">What clients see</CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm text-muted-foreground space-y-2">
+          <p>Your public page includes:</p>
+          <ul className="list-disc list-inside space-y-1">
+            <li>Your business name, description, and verification status</li>
+            <li>All your active services with pricing</li>
+            <li>Customer reviews and ratings</li>
+            <li>Location and service area</li>
+            <li>Direct booking links for each service</li>
+          </ul>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ============================================================================
+// MAIN DASHBOARD
+// ============================================================================
 export default function ProviderDashboard() {
   const { user, isAuthenticated, loading } = useAuth();
   const [, setLocation] = useLocation();
@@ -242,6 +582,8 @@ export default function ProviderDashboard() {
             <TabsTrigger value="availability">Availability</TabsTrigger>
             <TabsTrigger value="reviews">Reviews</TabsTrigger>
             <TabsTrigger value="earnings">Earnings</TabsTrigger>
+            <TabsTrigger value="payments">Payments</TabsTrigger>
+            <TabsTrigger value="public-profile">My Page</TabsTrigger>
           </TabsList>
 
           {/* Bookings Tab */}
@@ -546,6 +888,16 @@ export default function ProviderDashboard() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Payments Tab - Stripe Connect */}
+          <TabsContent value="payments" className="space-y-6">
+            <StripeConnectSection provider={provider} />
+          </TabsContent>
+
+          {/* Public Profile Tab */}
+          <TabsContent value="public-profile" className="space-y-6">
+            <PublicProfileSection provider={provider} />
           </TabsContent>
         </Tabs>
       </div>

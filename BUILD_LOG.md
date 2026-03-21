@@ -11,15 +11,15 @@ This document provides a complete, chronological record of every phase of the Sk
 | **Project Name** | SkillLink (service-scheduling-platform) |
 | **Stack** | React 19 + Tailwind 4 + Express 4 + tRPC 11 + Drizzle ORM + MySQL (TiDB) |
 | **Auth** | Manus OAuth (session cookie) |
-| **Payments** | Stripe Checkout (test mode) |
+| **Payments** | Stripe Connect (destination charges) — providers receive payments directly, platform takes 15% fee |
 | **Notifications** | Email via Manus Forge API, SMS stub ready |
 | **Hosting** | Manus built-in hosting with custom domain support |
 | **Total Source Files** | 131 (excluding node_modules and test files) |
 | **Total Lines of Code** | ~20,386 |
-| **Test Files** | 7 files, 102 tests (all passing) |
+| **Test Files** | 8 files, 114 tests (all passing) |
 | **Database Tables** | 14 |
-| **Frontend Pages** | 17 (including UserProfile) |
-| **tRPC Routers** | 12 (auth, provider, category, service, booking, review, message, notification, availability, stripe, admin, system) |
+| **Frontend Pages** | 18 (including UserProfile and PublicProviderProfile) |
+| **tRPC Routers** | 13 (auth, provider, category, service, booking, review, message, notification, availability, stripe, stripeConnect, admin, system) |
 
 ---
 
@@ -534,6 +534,44 @@ The following items are identified but not yet implemented:
 
 ---
 
+## Phase 9: Provider-First Pivot (Stripe Connect and Public Profiles)
+
+**Objective:** Pivot the platform from a middleman model to a provider-empowerment tool. Providers connect their own Stripe accounts and receive payments directly. The platform acts as their digital storefront and booking system.
+
+**Business Model Change:**
+
+The original model collected all payments centrally. The new model uses Stripe Connect with destination charges: when a customer books a service, the payment goes directly to the provider's connected Stripe account, and the platform automatically deducts a 15% application fee. This means providers own their revenue stream and the platform is a tool, not an employer.
+
+**What was built:**
+
+**Schema additions** — three new fields on the `serviceProviders` table: `profileSlug` (varchar, unique, nullable) for public profile URLs, `stripeAccountStatus` (enum: not_connected, onboarding, active, restricted) to track Connect account state, and `stripeOnboardingComplete` (boolean) to track whether the provider finished Stripe's identity verification.
+
+**Stripe Connect backend** — a new `stripeConnectRouter` with five procedures: `startOnboarding` (creates a Stripe Express account and returns an Account Link URL), `getOnboardingLink` (resumes incomplete onboarding), `getStatus` (checks whether the account is connected, charges enabled, payouts enabled, details submitted), `getDashboardLink` (generates a login link to the Stripe Express Dashboard), and `getBalance` (retrieves available and pending balances from Stripe). The existing `stripeRouter.createCheckoutSession` was updated to use `payment_intent_data.transfer_data.destination` with `application_fee_amount` set to 15% of the total, so payments flow directly to the provider.
+
+**Public provider profiles** — a new page at `/p/:slug` that works without authentication. It displays the provider's business name, description, verification badge, location, average rating, all active services with pricing, and customer reviews. This is the provider's "mini-website" that they can share on social media, business cards, or anywhere they want clients to find them. Three new public procedures were added: `provider.getBySlug`, `provider.getPublicServices`, and `provider.generateSlug` / `provider.updateSlug`.
+
+**Provider Dashboard updates** — two new tabs: "Payments" (Stripe Connect onboarding wizard with step-by-step guide, balance display for connected accounts, and Stripe Dashboard access) and "My Page" (shareable profile link with copy-to-clipboard, slug customization with validation, and preview link).
+
+**Database helpers added:** `getProviderBySlug`, `getPublicServicesByProvider`, `getPublicReviewsByProvider`, `updateProviderStripeAccount`, `updateProviderSlug`, `getProviderSlug`.
+
+**Files created or modified:**
+
+| File | Change |
+|---|---|
+| `drizzle/schema.ts` | Added profileSlug, stripeAccountStatus, stripeOnboardingComplete fields |
+| `server/stripeConnectRouter.ts` | New router: startOnboarding, getOnboardingLink, getStatus, getDashboardLink, getBalance |
+| `server/stripeRouter.ts` | Updated to use destination charges with application fee |
+| `server/routers.ts` | Added stripeConnect router, generateSlug, updateSlug, getBySlug, getPublicServices |
+| `server/db.ts` | Added 6 new helper functions for slugs and public profiles |
+| `client/src/pages/PublicProviderProfile.tsx` | New page: public provider profile at /p/:slug |
+| `client/src/pages/ProviderDashboard.tsx` | Added Payments tab (StripeConnectSection) and My Page tab (PublicProfileSection) |
+| `client/src/App.tsx` | Added /p/:slug route |
+| `server/stripe-connect.test.ts` | 12 new tests covering slug CRUD, public profile access, and Connect status |
+
+**Tests:** 12 new tests in `stripe-connect.test.ts` covering slug generation, slug update, slug validation (invalid characters, too short), public profile access without auth, 404 for non-existent slugs, services included in public profiles, public services by provider ID, Connect status for unconnected providers, zero balance without Stripe account, customer access denied to provider endpoints, and dashboard link requiring Stripe account.
+
+---
+
 ## Checkpoint History
 
 | Version | Description |
@@ -541,4 +579,5 @@ The following items are identified but not yet implemented:
 | `385207ae` | Initial project scaffold |
 | `6c32aea2` | Dev/testing environment: all 63 tests passing, DevTools panel |
 | `c5a74fb0` | Next steps: seed data, unread message indicators, enhanced booking calendar (88 tests) |
-| (pending) | MVP gap fixes, documentation, UserProfile page (102 tests) |
+| `7ebd86c8` | MVP gap fixes, documentation, UserProfile page (102 tests) |
+| (pending) | Provider-first pivot: Stripe Connect, public profiles, slug management (114 tests) |

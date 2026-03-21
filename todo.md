@@ -344,3 +344,43 @@
 - [x] Add profile link to NavHeader
 - [x] Write 14 new MVP gap tests (102 total tests passing)
 - [x] Add provider rejection procedure
+
+## Phase 9: Provider-First Pivot (Stripe Connect & Public Profiles)
+### Schema Changes
+- [x] Add profileSlug field to serviceProviders table
+- [x] Add stripeAccountStatus enum (not_connected, onboarding, active, restricted)
+- [x] Add stripeOnboardingComplete boolean field
+
+### Stripe Connect Backend
+- [x] Create stripeConnectRouter with onboarding, status, dashboard link, balance procedures
+- [x] Update stripeRouter to use destination charges (money goes to provider)
+- [x] Implement 15% platform application fee on bookings
+- [x] Add getOnboardingLink procedure for resuming incomplete onboarding
+
+### Public Provider Profiles
+- [x] Create getProviderBySlug db helper
+- [x] Create getPublicServicesByProvider db helper
+- [x] Create getPublicReviewsByProvider db helper
+- [x] Add generateSlug procedure (auto-generates from business name)
+- [x] Add updateSlug procedure with validation (lowercase, alphanumeric, min 3 chars)
+- [x] Add getBySlug public procedure (no auth required)
+- [x] Add getPublicServices public procedure
+- [x] Build PublicProviderProfile page at /p/:slug route
+
+### Provider Dashboard Updates
+- [x] Add Payments tab with Stripe Connect onboarding flow
+- [x] Add "My Page" tab with shareable profile link management
+- [x] Add slug customization UI
+- [x] Add copy-to-clipboard for profile URL
+- [x] Show Stripe balance (available, pending) when connected
+- [x] Add "Open Stripe Dashboard" button for connected providers
+
+### Testing
+- [x] Write 12 Stripe Connect & public profile tests (114 total passing)
+- [x] Test slug generation and update
+- [x] Test slug validation (invalid chars, too short)
+- [x] Test public profile access without auth
+- [x] Test Stripe Connect status for unconnected providers
+- [x] Test balance returns zero when no Stripe account
+- [x] Test customer cannot access provider-only endpoints
+- [x] Test getDashboardLink requires Stripe account
