@@ -62,7 +62,7 @@ export default function PublicProviderProfile() {
         <div className="container max-w-5xl py-12">
           <Link href="/">
             <Button variant="ghost" size="sm" className="mb-6 text-muted-foreground hover:text-foreground">
-              <ArrowLeft className="w-4 h-4 mr-2" /> Back to SkillLink
+              <ArrowLeft className="w-4 h-4 mr-2" /> Back to OlogyCrew
             </Button>
           </Link>
 
@@ -258,7 +258,7 @@ export default function PublicProviderProfile() {
       {/* Footer */}
       <div className="border-t mt-12">
         <div className="container max-w-5xl py-6 text-center text-sm text-muted-foreground">
-          Powered by <Link href="/"><span className="text-primary hover:underline">SkillLink</span></Link> — Your service, your business, your way.
+          Powered by <Link href="/"><span className="text-primary hover:underline">OlogyCrew</span></Link> — Your service, your business, your way.
         </div>
       </div>
     </div>

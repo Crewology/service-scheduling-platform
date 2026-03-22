@@ -1,6 +1,6 @@
-# SkillLink Platform — Architecture Guide
+# OlogyCrew Platform — Architecture Guide
 
-This document explains the folder structure, data flow, and conventions used in the SkillLink platform. Read this before adding new features or debugging issues.
+This document explains the folder structure, data flow, and conventions used in the OlogyCrew platform. Read this before adding new features or debugging issues.
 
 ---
 

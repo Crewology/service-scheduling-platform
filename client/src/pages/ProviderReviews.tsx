@@ -91,7 +91,7 @@ export default function ProviderReviews() {
             <Button variant="ghost" onClick={() => setLocation("/provider/dashboard")}>
               ← Back to Dashboard
             </Button>
-            <h1 className="text-xl font-bold">SkillLink</h1>
+            <h1 className="text-xl font-bold">OlogyCrew</h1>
             <div className="w-32"></div>
           </div>
         </div>

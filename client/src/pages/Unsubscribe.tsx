@@ -43,7 +43,7 @@ export default function Unsubscribe() {
               notification preferences, please sign in to your account.
             </p>
             <Link href="/">
-              <Button>Go to SkillLink</Button>
+              <Button>Go to OlogyCrew</Button>
             </Link>
           </CardContent>
         </Card>
@@ -59,12 +59,12 @@ export default function Unsubscribe() {
             <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-500" />
             <h2 className="text-xl font-bold mb-2">Unsubscribed Successfully</h2>
             <p className="text-sm text-muted-foreground mb-6">
-              You've been unsubscribed from all SkillLink email notifications.
+              You've been unsubscribed from all OlogyCrew email notifications.
               You can re-enable them at any time from your notification settings.
             </p>
             <div className="flex gap-3 justify-center">
               <Link href="/">
-                <Button variant="outline">Go to SkillLink</Button>
+                <Button variant="outline">Go to OlogyCrew</Button>
               </Link>
               <Link href="/notification-settings">
                 <Button>Manage Preferences</Button>
@@ -85,7 +85,7 @@ export default function Unsubscribe() {
           </div>
           <CardTitle>Unsubscribe from Emails</CardTitle>
           <CardDescription>
-            Click the button below to unsubscribe from all SkillLink email notifications.
+            Click the button below to unsubscribe from all OlogyCrew email notifications.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

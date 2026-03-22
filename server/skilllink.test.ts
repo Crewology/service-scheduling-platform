@@ -1,5 +1,5 @@
 /**
- * SkillLink Platform - Comprehensive Backend Test Suite
+ * OlogyCrew Platform - Comprehensive Backend Test Suite
  *
  * Tests cover:
  *  - Auth (me, logout)

@@ -1,4 +1,4 @@
-# SkillLink Platform TODO
+# OlogyCrew Platform TODO
 
 ## Phase 1: Foundation & Database
 - [x] Implement complete database schema with all tables
@@ -77,7 +77,7 @@
 - [ ] Save checkpoint for deployment
 
 ## Phase 12: Embeddable Provider Profiles & Booking Widgets
-- [ ] Design public provider profile URL structure (e.g., skilllink.com/p/provider-name)
+- [ ] Design public provider profile URL structure (e.g., ologycrew.com/p/provider-name)
 - [ ] Create standalone public provider profile pages
 - [ ] Build embeddable booking widget (iframe-based)
 - [ ] Implement widget customization options (colors, branding, layout)
@@ -506,3 +506,14 @@
 - [x] Write tests for email provider (3 tests)
 - [x] Write tests for mark-all-read (3 tests)
 - [x] 27 new Phase 12 tests (181 total passing across 11 test files)
+
+## Platform Rename: SkillLink → OlogyCrew (COMPLETED)
+
+- [x] Rename all SkillLink references in frontend components (NavHeader, DevToolsPanel, Home, ProviderOnboarding, ProviderReviews, PublicProviderProfile, Unsubscribe, NotificationSettings)
+- [x] Rename in email templates and notification providers (templates.ts, email.ts)
+- [x] Rename in server-side code (products.ts, stripeConnectRouter.ts, subscriptionRouter.ts)
+- [x] Rename in test files (skilllink.test.ts)
+- [x] Rename in documentation (BUILD_LOG.md, ARCHITECTURE.md, ROADMAP.md)
+- [x] Rename in seed data (seed-data.mjs)
+- [x] Update VITE_APP_TITLE secret
+- [x] Verify TypeScript compiles and all tests pass

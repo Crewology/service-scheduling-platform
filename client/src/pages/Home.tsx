@@ -78,7 +78,7 @@ export default function Home() {
       <section className="py-20 bg-white">
         <div className="container">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">Why Choose SkillLink?</h2>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">Why Choose OlogyCrew?</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               The simplest way to book professional services with confidence
             </p>
@@ -167,10 +167,10 @@ export default function Home() {
         <div className="container">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Grow Your Business with SkillLink
+              Grow Your Business with OlogyCrew
             </h2>
             <p className="text-xl mb-8 opacity-90">
-              Join thousands of service providers who trust SkillLink to manage bookings, payments, and customer relationships.
+              Join thousands of service providers who trust OlogyCrew to manage bookings, payments, and customer relationships.
             </p>
             
             <div className="grid md:grid-cols-3 gap-6 mb-10">
@@ -212,7 +212,7 @@ export default function Home() {
         <div className="container">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
-              <h3 className="font-bold text-xl mb-4">SkillLink</h3>
+              <h3 className="font-bold text-xl mb-4">OlogyCrew</h3>
               <p className="text-sm opacity-80">
                 Connecting customers with trusted service professionals.
               </p>
@@ -244,7 +244,7 @@ export default function Home() {
             </div>
           </div>
           <div className="border-t border-background/20 pt-8 text-center text-sm opacity-80">
-            <p>&copy; 2026 SkillLink. All rights reserved.</p>
+            <p>&copy; 2026 OlogyCrew. All rights reserved.</p>
           </div>
         </div>
       </footer>

@@ -239,7 +239,7 @@ export default function ProviderOnboarding() {
       <div className="container max-w-4xl py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold">Welcome to SkillLink</h1>
+          <h1 className="text-3xl font-bold">Welcome to OlogyCrew</h1>
           <p className="text-muted-foreground mt-2">
             Let's get your business set up in a few easy steps
           </p>
@@ -723,7 +723,7 @@ export default function ProviderOnboarding() {
                         <li>1. Click the button below to set up your Stripe account</li>
                         <li>2. Complete the Stripe verification process</li>
                         <li>3. When customers book your services, payments go directly to you</li>
-                        <li>4. SkillLink only takes a 1% platform fee</li>
+                        <li>4. OlogyCrew only takes a 1% platform fee</li>
                       </ul>
                     </div>
 
@@ -815,7 +815,7 @@ export default function ProviderOnboarding() {
                     size="lg"
                     className="px-8"
                     onClick={() => {
-                      toast.success("Welcome to SkillLink! Your profile is live.");
+                      toast.success("Welcome to OlogyCrew! Your profile is live.");
                       setLocation("/provider/dashboard");
                     }}
                   >

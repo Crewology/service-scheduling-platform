@@ -109,13 +109,13 @@ export class EmailProvider implements NotificationProvider {
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(135deg, #2563eb 0%, #f97316 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 28px;">SkillLink</h1>
+    <h1 style="color: white; margin: 0; font-size: 28px;">OlogyCrew</h1>
   </div>
   <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
     <p>${html}</p>
   </div>
   <div style="text-align: center; padding: 20px; color: #6b7280; font-size: 12px;">
-    <p>&copy; ${new Date().getFullYear()} SkillLink. All rights reserved.</p>
+    <p>&copy; ${new Date().getFullYear()} OlogyCrew. All rights reserved.</p>
     <p>
       <a href="${unsubscribeUrl}" style="color: #6b7280; text-decoration: underline;">Unsubscribe from emails</a>
       &nbsp;&middot;&nbsp;

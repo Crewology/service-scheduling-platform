@@ -1,4 +1,4 @@
-# SkillLink Development Roadmap
+# OlogyCrew Development Roadmap
 
 **Last Updated:** February 18, 2026  
 **Current Status:** Foundation Complete (40%)  
@@ -8,7 +8,7 @@
 
 ## Current State
 
-The SkillLink platform has a solid foundation with database schema, authentication, provider onboarding, and service management complete. However, critical customer-facing features and payment processing remain incomplete, preventing production deployment.
+The OlogyCrew platform has a solid foundation with database schema, authentication, provider onboarding, and service management complete. However, critical customer-facing features and payment processing remain incomplete, preventing production deployment.
 
 **What Works:**
 - Provider registration and profile management
@@ -351,7 +351,7 @@ Create user documentation and onboarding flows to reduce support burden.
 Create standalone public profile pages that providers can share.
 
 **Tasks:**
-- Design public profile URL structure (skilllink.com/p/provider-slug)
+- Design public profile URL structure (ologycrew.com/p/provider-slug)
 - Build public profile page (no login required)
 - Add custom slug generation (business-name → business-name-slug)
 - Implement social sharing meta tags (Open Graph, Twitter Cards)

@@ -1,5 +1,5 @@
 /**
- * SkillLink Pricing & Subscription Configuration
+ * OlogyCrew Pricing & Subscription Configuration
  * 
  * Revenue model: Provider subscriptions + 1% transaction fee
  * Providers pay monthly subscriptions for premium features.
@@ -117,7 +117,7 @@ export const SUBSCRIPTION_TIERS: Record<SubscriptionTier, TierConfig> = {
 // ─── Stripe Price IDs ─────────────────────────────────────────────────────────
 // These will be created dynamically on first use via the subscription router
 
-export const STRIPE_PRODUCT_NAME = "SkillLink Provider Subscription";
+export const STRIPE_PRODUCT_NAME = "OlogyCrew Provider Subscription";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

@@ -43,7 +43,7 @@ export const stripeConnectRouter = router({
         metadata: {
           providerId: provider.id.toString(),
           userId: ctx.user.id.toString(),
-          platform: "skilllink",
+          platform: "ologycrew",
         },
       });
 

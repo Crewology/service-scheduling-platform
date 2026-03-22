@@ -24,9 +24,9 @@ Please review and confirm this booking in your dashboard.
 [View Booking](${data.bookingUrl})
 
 Best regards,
-SkillLink Team
+OlogyCrew Team
       `.trim(),
-      smsBody: `New booking request for ${data.serviceName} on ${data.date} at ${data.time}. Check your SkillLink dashboard.`,
+      smsBody: `New booking request for ${data.serviceName} on ${data.date} at ${data.time}. Check your OlogyCrew dashboard.`,
     },
 
     booking_confirmed: {
@@ -47,7 +47,7 @@ Your booking has been confirmed!
 We'll send you a reminder 24 hours before your appointment.
 
 Best regards,
-SkillLink Team
+OlogyCrew Team
       `.trim(),
       smsBody: `Your ${data.serviceName} booking is confirmed for ${data.date} at ${data.time}. See you then!`,
     },
@@ -68,7 +68,7 @@ ${data.refundAmount ? `A refund of ${data.refundAmount} will be processed within
 If you have any questions, please contact support.
 
 Best regards,
-SkillLink Team
+OlogyCrew Team
       `.trim(),
       smsBody: `Your booking for ${data.serviceName} on ${data.date} has been cancelled.`,
     },
@@ -78,7 +78,7 @@ SkillLink Team
       body: `
 Hello ${data.customerName},
 
-Thank you for using SkillLink!
+Thank you for using OlogyCrew!
 
 Your ${data.serviceName} service with ${data.providerName} has been completed.
 
@@ -87,9 +87,9 @@ We'd love to hear about your experience. Please take a moment to leave a review.
 [Leave a Review](${data.reviewUrl})
 
 Best regards,
-SkillLink Team
+OlogyCrew Team
       `.trim(),
-      smsBody: `Thanks for using SkillLink! Please review your ${data.serviceName} experience.`,
+      smsBody: `Thanks for using OlogyCrew! Please review your ${data.serviceName} experience.`,
     },
 
     payment_received: {
@@ -107,7 +107,7 @@ We've received your payment!
 [View Receipt](${data.receiptUrl})
 
 Best regards,
-SkillLink Team
+OlogyCrew Team
       `.trim(),
       smsBody: `Payment of ${data.amount} received for booking #${data.bookingNumber}. Thank you!`,
     },
@@ -127,7 +127,7 @@ Please update your payment method and try again.
 [Update Payment](${data.paymentUrl})
 
 Best regards,
-SkillLink Team
+OlogyCrew Team
       `.trim(),
       smsBody: `Payment failed for booking #${data.bookingNumber}. Please update your payment method.`,
     },
@@ -145,9 +145,9 @@ You have a new message regarding booking #${data.bookingNumber}.
 [Reply to Message](${data.messageUrl})
 
 Best regards,
-SkillLink Team
+OlogyCrew Team
       `.trim(),
-      smsBody: `New message from ${data.senderName} about your booking. Check SkillLink.`,
+      smsBody: `New message from ${data.senderName} about your booking. Check OlogyCrew.`,
     },
 
     review_received: {
@@ -165,7 +165,7 @@ You've received a new review!
 [View Review](${data.reviewUrl})
 
 Best regards,
-SkillLink Team
+OlogyCrew Team
       `.trim(),
       smsBody: `You received a ${data.rating}-star review from ${data.customerName}!`,
     },
@@ -188,7 +188,7 @@ This is a reminder about your upcoming appointment.
 See you tomorrow!
 
 Best regards,
-SkillLink Team
+OlogyCrew Team
       `.trim(),
       smsBody: `Reminder: ${data.serviceName} appointment tomorrow at ${data.time}. See you then!`,
     },
@@ -207,7 +207,7 @@ Your appointment is coming up in 1 hour!
 [View Booking](${data.bookingUrl})
 
 Best regards,
-SkillLink Team
+OlogyCrew Team
       `.trim(),
       smsBody: `Your ${data.serviceName} appointment is in 1 hour at ${data.location}.`,
     },
@@ -217,16 +217,16 @@ SkillLink Team
       body: `
 Hello,
 
-Your SkillLink subscription has been cancelled.
+Your OlogyCrew subscription has been cancelled.
 
 **Business:** ${data.businessName || 'Your Account'}
 
 Your account has been downgraded to the Free tier. You can resubscribe at any time from your provider dashboard.
 
 Best regards,
-SkillLink Team
+OlogyCrew Team
       `.trim(),
-      smsBody: `Your SkillLink subscription has been cancelled. Visit your dashboard to resubscribe.`,
+      smsBody: `Your OlogyCrew subscription has been cancelled. Visit your dashboard to resubscribe.`,
     },
 
     subscription_updated: {
@@ -234,7 +234,7 @@ SkillLink Team
       body: `
 Hello,
 
-Your SkillLink subscription has been updated.
+Your OlogyCrew subscription has been updated.
 
 **New Plan:** ${data.tier || 'Updated'}
 **Business:** ${data.businessName || 'Your Account'}
@@ -242,15 +242,15 @@ Your SkillLink subscription has been updated.
 Enjoy your new features! Visit your dashboard to explore what's available.
 
 Best regards,
-SkillLink Team
+OlogyCrew Team
       `.trim(),
-      smsBody: `Your SkillLink subscription has been updated to ${data.tier}. Enjoy your new features!`,
+      smsBody: `Your OlogyCrew subscription has been updated to ${data.tier}. Enjoy your new features!`,
     },
   };
 
   return templates[type] || {
-    subject: 'Notification from SkillLink',
+    subject: 'Notification from OlogyCrew',
     body: 'You have a new notification.',
-    smsBody: 'You have a new notification from SkillLink.',
+    smsBody: 'You have a new notification from OlogyCrew.',
   };
 }

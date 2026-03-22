@@ -211,7 +211,7 @@ export function NavHeader() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="text-2xl font-bold gradient-text">
-            SkillLink
+            OlogyCrew
           </Link>
 
           {/* Desktop Nav */}

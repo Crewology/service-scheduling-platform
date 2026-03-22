@@ -1,6 +1,6 @@
-# SkillLink Platform — Build Log
+# OlogyCrew Platform — Build Log
 
-This document provides a complete, chronological record of every phase of the SkillLink Service Scheduling Platform build. It is intended as a reference for debugging, onboarding, and future development decisions.
+This document provides a complete, chronological record of every phase of the OlogyCrew Service Scheduling Platform build. It is intended as a reference for debugging, onboarding, and future development decisions.
 
 ---
 
@@ -8,7 +8,7 @@ This document provides a complete, chronological record of every phase of the Sk
 
 | Field | Value |
 |---|---|
-| **Project Name** | SkillLink (service-scheduling-platform) |
+| **Project Name** | OlogyCrew (service-scheduling-platform) |
 | **Stack** | React 19 + Tailwind 4 + Express 4 + tRPC 11 + Drizzle ORM + MySQL (TiDB) |
 | **Auth** | Manus OAuth (session cookie) |
 | **Payments** | Stripe Connect (destination charges) — providers receive payments directly, platform takes 1% fee |
@@ -342,7 +342,7 @@ The `notificationRouter` provides:
 - `notification.markAsRead` — marks a notification as read
 
 **Key decisions:**
-- Email HTML templates include SkillLink branding with gradient header.
+- Email HTML templates include OlogyCrew branding with gradient header.
 - SMS bodies are kept under 160 characters for single-message delivery.
 - The architecture supports adding push notifications or other channels without modifying existing code.
 
@@ -385,7 +385,7 @@ The **Admin Dashboard** page (`/admin`) provides:
 **Test suite** (88 tests across 6 files):
 - `auth.logout.test.ts` — authentication logout flow
 - `platform.test.ts` — categories, providers, services, availability, bookings, auth, DB helpers (15 tests)
-- `skilllink.test.ts` — comprehensive end-to-end tests for all routers (27 tests)
+- `ologycrew.test.ts` — comprehensive end-to-end tests for all routers (27 tests)
 - `review.test.ts` — review creation, provider response, listing (3 tests)
 - `next-steps.test.ts` — unread message count, booking calendar features (16 tests)
 - `timeSlots.test.ts` — time slot generation utility (26 tests)

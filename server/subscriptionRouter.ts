@@ -31,7 +31,7 @@ async function getOrCreateStripePrice(tier: SubscriptionTier, interval: "month" 
   if (!product) {
     product = await stripe.products.create({
       name: STRIPE_PRODUCT_NAME,
-      description: "SkillLink provider subscription for service professionals",
+      description: "OlogyCrew provider subscription for service professionals",
     });
   }
 

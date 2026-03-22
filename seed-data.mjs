@@ -1,5 +1,5 @@
 /**
- * Seed Data Script for SkillLink Platform
+ * Seed Data Script for OlogyCrew Platform
  * 
  * Creates test providers, services, availability schedules, bookings, reviews, and messages.
  * Run with: node seed-data.mjs
@@ -187,7 +187,7 @@ const RESPONSE_TEXTS = [
 // ─── Main Seed Function ──────────────────────────────────────────────────────
 
 async function seed() {
-  console.log("🌱 Starting SkillLink seed data...\n");
+  console.log("🌱 Starting OlogyCrew seed data...\n");
 
   // 1. Create test users
   console.log("👤 Creating test users...");
@@ -358,7 +358,7 @@ async function seed() {
     { from: "customer", text: "Hi! I'm interested in booking your service. Do you have availability this week?" },
     { from: "provider", text: "Hello! Yes, I have openings on Thursday and Friday. What time works best for you?" },
     { from: "customer", text: "Thursday at 2 PM would be perfect. Should I book through the platform?" },
-    { from: "provider", text: "That works great! Yes, please go ahead and book through SkillLink so everything is documented. See you Thursday!" },
+    { from: "provider", text: "That works great! Yes, please go ahead and book through OlogyCrew so everything is documented. See you Thursday!" },
   ];
 
   for (let i = 0; i < 3; i++) {

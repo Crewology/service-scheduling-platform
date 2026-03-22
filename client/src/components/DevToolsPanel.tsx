@@ -1,5 +1,5 @@
 /**
- * DevToolsPanel — Development-only floating panel for testing SkillLink.
+ * DevToolsPanel — Development-only floating panel for testing OlogyCrew.
  *
  * Features:
  *  - Shows current auth state (user, role)
@@ -132,7 +132,7 @@ export function DevToolsPanel() {
           <div className="bg-gray-800 px-4 py-3 flex items-center justify-between border-b border-gray-700">
             <div className="flex items-center gap-2">
               <span className="text-yellow-400 text-base">⚙</span>
-              <span className="font-bold text-sm text-white">SkillLink DevTools</span>
+              <span className="font-bold text-sm text-white">OlogyCrew DevTools</span>
             </div>
             <button
               onClick={() => setIsOpen(false)}
@@ -337,7 +337,7 @@ export function DevToolsPanel() {
                 <div className="space-y-1 text-gray-400">
                   <div className="flex justify-between">
                     <span>Platform</span>
-                    <span className="text-white">SkillLink</span>
+                    <span className="text-white">OlogyCrew</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Categories</span>
@@ -359,7 +359,7 @@ export function DevToolsPanel() {
           {/* Footer */}
           <div className="bg-gray-800 px-4 py-2 border-t border-gray-700 flex items-center justify-between">
             <span className="text-gray-500 text-[10px]">DEV MODE ONLY</span>
-            <span className="text-gray-500 text-[10px]">SkillLink v1.0</span>
+            <span className="text-gray-500 text-[10px]">OlogyCrew v1.0</span>
           </div>
         </div>
       )}

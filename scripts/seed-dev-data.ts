@@ -1,5 +1,5 @@
 /**
- * SkillLink Dev Seed Script
+ * OlogyCrew Dev Seed Script
  * Creates realistic test data for all platform roles and features.
  * Run with: pnpm tsx scripts/seed-dev-data.ts
  *
@@ -95,7 +95,7 @@ console.log("👤  Seeding users...");
 const adminId = await upsertUser({
   openId: "dev-admin-001",
   name: "Admin User",
-  email: "admin@skilllink.dev",
+  email: "admin@ologycrew.dev",
   role: "admin",
   firstName: "Admin",
   lastName: "User",
@@ -104,11 +104,11 @@ const adminId = await upsertUser({
 
 const providerIds: number[] = [];
 const providerData = [
-  { openId: "dev-provider-001", name: "Marcus Johnson", email: "marcus@skilllink.dev", firstName: "Marcus", lastName: "Johnson", phone: "555-100-0001" },
-  { openId: "dev-provider-002", name: "Sofia Rivera", email: "sofia@skilllink.dev", firstName: "Sofia", lastName: "Rivera", phone: "555-100-0002" },
-  { openId: "dev-provider-003", name: "James Williams", email: "james@skilllink.dev", firstName: "James", lastName: "Williams", phone: "555-100-0003" },
-  { openId: "dev-provider-004", name: "Aisha Thompson", email: "aisha@skilllink.dev", firstName: "Aisha", lastName: "Thompson", phone: "555-100-0004" },
-  { openId: "dev-provider-005", name: "Carlos Martinez", email: "carlos@skilllink.dev", firstName: "Carlos", lastName: "Martinez", phone: "555-100-0005" },
+  { openId: "dev-provider-001", name: "Marcus Johnson", email: "marcus@ologycrew.dev", firstName: "Marcus", lastName: "Johnson", phone: "555-100-0001" },
+  { openId: "dev-provider-002", name: "Sofia Rivera", email: "sofia@ologycrew.dev", firstName: "Sofia", lastName: "Rivera", phone: "555-100-0002" },
+  { openId: "dev-provider-003", name: "James Williams", email: "james@ologycrew.dev", firstName: "James", lastName: "Williams", phone: "555-100-0003" },
+  { openId: "dev-provider-004", name: "Aisha Thompson", email: "aisha@ologycrew.dev", firstName: "Aisha", lastName: "Thompson", phone: "555-100-0004" },
+  { openId: "dev-provider-005", name: "Carlos Martinez", email: "carlos@ologycrew.dev", firstName: "Carlos", lastName: "Martinez", phone: "555-100-0005" },
 ];
 for (const p of providerData) {
   const id = await upsertUser({ ...p, role: "provider" });
@@ -117,9 +117,9 @@ for (const p of providerData) {
 
 const customerIds: number[] = [];
 const customerData = [
-  { openId: "dev-customer-001", name: "Emily Chen", email: "emily@skilllink.dev", firstName: "Emily", lastName: "Chen", phone: "555-200-0001" },
-  { openId: "dev-customer-002", name: "David Brown", email: "david@skilllink.dev", firstName: "David", lastName: "Brown", phone: "555-200-0002" },
-  { openId: "dev-customer-003", name: "Jessica Davis", email: "jessica@skilllink.dev", firstName: "Jessica", lastName: "Davis", phone: "555-200-0003" },
+  { openId: "dev-customer-001", name: "Emily Chen", email: "emily@ologycrew.dev", firstName: "Emily", lastName: "Chen", phone: "555-200-0001" },
+  { openId: "dev-customer-002", name: "David Brown", email: "david@ologycrew.dev", firstName: "David", lastName: "Brown", phone: "555-200-0002" },
+  { openId: "dev-customer-003", name: "Jessica Davis", email: "jessica@ologycrew.dev", firstName: "Jessica", lastName: "Davis", phone: "555-200-0003" },
 ];
 for (const c of customerData) {
   const id = await upsertUser({ ...c, role: "customer" });
