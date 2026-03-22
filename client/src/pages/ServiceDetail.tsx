@@ -269,6 +269,7 @@ export default function ServiceDetail() {
       servicePostalCode:
         service.serviceType === "mobile" ? bookingForm.postalCode : undefined,
       customerNotes: bookingForm.notes || undefined,
+      bookingSource: "direct",
     });
   };
 

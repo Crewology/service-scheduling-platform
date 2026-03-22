@@ -935,3 +935,57 @@ Added `notification_preferences` table with 17 columns:
 - Link to full widget generator page
 
 **Total test count:** 197 tests passing across 13 test files.
+
+
+---
+
+## Phase 14: Embedded Analytics, Provider Analytics Dashboard, Automated Refunds
+
+**Date:** March 22, 2026
+
+### Features Implemented
+
+#### 1. Embedded Booking Analytics Tracking
+- Added `bookingSource` column to bookings table with enum values: `direct`, `embed_widget`, `provider_page`, `api`
+- Updated booking creation flow to pass source parameter from all entry points:
+  - `EmbedBooking.tsx` → `embed_widget`
+  - `ServiceDetail.tsx` → `direct`
+  - `PublicProviderProfile.tsx` → `provider_page`
+- Created `getBookingSourceAnalytics(providerId)` for provider-level source breakdown
+- Created `getAdminBookingSourceAnalytics()` for platform-wide source analytics
+- Added `admin.getBookingSourceAnalytics` procedure for admin dashboard
+
+#### 2. Provider Analytics Dashboard
+- Added new "Analytics" tab to ProviderDashboard with comprehensive metrics:
+  - **Booking Trends**: Monthly booking counts, completion rates, cancellation rates, revenue
+  - **Top Services**: Ranked by bookings and revenue with completion rates
+  - **Customer Retention**: Total customers, returning customers, retention rate, avg bookings per customer
+  - **Booking Sources**: Breakdown by direct, embed widget, provider page with revenue per source
+  - **Refund Analytics**: Total refunds, refund amount, refund rate
+- Database helpers: `getBookingTrends()`, `getTopServices()`, `getCustomerRetention()`, `getBookingSourceAnalytics()`, `getRefundAnalytics()`
+- Provider tRPC procedure: `provider.analytics` (protected, provider-only)
+
+#### 3. Automated Cancellation Refunds
+- Cancellation refund tiers already implemented in Phase 9 (48h+=100%, 24-48h=75%, 4-24h=50%, <4h=0%)
+- Enhanced Stripe webhook handler for `charge.refunded` events:
+  - Looks up payment by Stripe PaymentIntent ID
+  - Updates booking status
+  - Sends `refund_processed` notification to customer (email + SMS)
+- Added `refund_processed` notification template with refund amount, booking number, and timeline info
+- Added `getPaymentByStripePaymentIntentId()` database helper
+
+### Files Changed
+- `drizzle/schema.ts` — Added `bookingSource` column to bookings
+- `server/db.ts` — Added 6 new analytics helpers + getPaymentByStripePaymentIntentId
+- `server/routers.ts` — Added `provider.analytics` procedure, updated booking.create input
+- `server/adminRouter.ts` — Added `getBookingSourceAnalytics` procedure
+- `server/stripeWebhook.ts` — Enhanced charge.refunded handler
+- `server/notifications/types.ts` — Added `refund_processed` type
+- `server/notifications/templates.ts` — Added `refund_processed` template
+- `client/src/pages/ProviderDashboard.tsx` — Added Analytics tab with charts/cards
+- `client/src/pages/EmbedBooking.tsx` — Added bookingSource: embed_widget
+- `client/src/pages/ServiceDetail.tsx` — Added bookingSource: direct
+
+### Test Results
+- 20 new tests in `server/phase14.test.ts`
+- **217 total tests passing across 14 test files**

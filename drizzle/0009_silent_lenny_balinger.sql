@@ -1,0 +1,1 @@
+ALTER TABLE `bookings` ADD `bookingSource` enum('direct','embed_widget','provider_page','api') DEFAULT 'direct' NOT NULL;

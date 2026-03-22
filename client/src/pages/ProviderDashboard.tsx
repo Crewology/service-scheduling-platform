@@ -31,6 +31,13 @@ import {
   Image as ImageIcon,
   Crown,
   Code2,
+  BarChart3,
+  Users,
+  RefreshCw,
+  ArrowUpRight,
+  ArrowDownRight,
+  Globe,
+  Smartphone,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
@@ -429,6 +436,10 @@ export default function ProviderDashboard() {
     enabled: !!provider,
   });
 
+  const { data: analytics } = trpc.provider.analytics.useQuery(undefined, {
+    enabled: !!provider,
+  });
+
   const updateBookingStatus = trpc.booking.updateStatus.useMutation({
     onSuccess: () => {
       utils.booking.listForProvider.invalidate();
@@ -616,6 +627,7 @@ export default function ProviderDashboard() {
             <TabsTrigger value="earnings">Earnings</TabsTrigger>
             <TabsTrigger value="payments">Payments</TabsTrigger>
             <TabsTrigger value="public-profile">My Page</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="widgets">Embed Widget</TabsTrigger>
           </TabsList>
 
@@ -959,6 +971,182 @@ export default function ProviderDashboard() {
           {/* Public Profile Tab */}
           <TabsContent value="public-profile" className="space-y-6">
             <PublicProfileSection provider={provider} />
+          </TabsContent>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold">Business Analytics</h2>
+              <p className="text-muted-foreground mt-1">Track your performance, revenue trends, and customer insights</p>
+            </div>
+
+            {/* KPI Summary Cards */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
+                  <Users className="h-4 w-4 text-blue-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{analytics?.customerRetention?.totalCustomers ?? 0}</div>
+                  <p className="text-xs text-muted-foreground">Unique customers</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Returning Customers</CardTitle>
+                  <RefreshCw className="h-4 w-4 text-green-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{analytics?.customerRetention?.returningCustomers ?? 0}</div>
+                  <p className="text-xs text-muted-foreground">{analytics?.customerRetention?.retentionRate ?? 0}% retention rate</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Avg Bookings/Customer</CardTitle>
+                  <BarChart3 className="h-4 w-4 text-purple-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{analytics?.customerRetention?.avgBookingsPerCustomer ?? 0}</div>
+                  <p className="text-xs text-muted-foreground">Per unique customer</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Refund Rate</CardTitle>
+                  <CreditCard className="h-4 w-4 text-red-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{analytics?.refundAnalytics?.refundRate ?? 0}%</div>
+                  <p className="text-xs text-muted-foreground">{analytics?.refundAnalytics?.totalRefunds ?? 0} total refunds</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Booking Source Breakdown */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Booking Sources</CardTitle>
+                <CardDescription>Where your bookings are coming from</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {(!analytics?.bookingSources || analytics.bookingSources.length === 0) ? (
+                  <p className="text-sm text-muted-foreground text-center py-6">No booking data yet</p>
+                ) : (
+                  <div className="space-y-3">
+                    {analytics.bookingSources.map((source: any) => {
+                      const totalBookings = analytics.bookingSources.reduce((sum: number, s: any) => sum + Number(s.count), 0);
+                      const percentage = totalBookings > 0 ? Math.round((Number(source.count) / totalBookings) * 100) : 0;
+                      const sourceLabels: Record<string, { label: string; icon: any; color: string }> = {
+                        direct: { label: "Direct (Website)", icon: Globe, color: "bg-blue-500" },
+                        embed_widget: { label: "Embed Widget", icon: Code2, color: "bg-green-500" },
+                        provider_page: { label: "Provider Page", icon: ExternalLink, color: "bg-purple-500" },
+                        api: { label: "API", icon: Smartphone, color: "bg-orange-500" },
+                      };
+                      const config = sourceLabels[source.source] || { label: source.source, icon: Globe, color: "bg-gray-500" };
+                      const IconComponent = config.icon;
+                      return (
+                        <div key={source.source} className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-lg ${config.color} flex items-center justify-center flex-shrink-0`}>
+                            <IconComponent className="w-4 h-4 text-white" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-sm font-medium">{config.label}</span>
+                              <span className="text-sm text-muted-foreground">{source.count} bookings ({percentage}%)</span>
+                            </div>
+                            <div className="w-full bg-muted rounded-full h-2">
+                              <div className={`${config.color} h-2 rounded-full transition-all`} style={{ width: `${percentage}%` }} />
+                            </div>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <span className="text-sm font-semibold">{formatCurrency(Number(source.revenue))}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Monthly Booking Trends */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Monthly Trends</CardTitle>
+                <CardDescription>Booking volume and revenue over the last 12 months</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {(!analytics?.bookingTrends || analytics.bookingTrends.length === 0) ? (
+                  <p className="text-sm text-muted-foreground text-center py-6">No trend data yet. Bookings will appear here over time.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {analytics.bookingTrends.map((month: any) => {
+                      const maxBookings = Math.max(...analytics.bookingTrends.map((m: any) => Number(m.totalBookings)));
+                      const barWidth = maxBookings > 0 ? Math.round((Number(month.totalBookings) / maxBookings) * 100) : 0;
+                      return (
+                        <div key={month.month} className="flex items-center gap-3">
+                          <span className="text-xs text-muted-foreground w-16 flex-shrink-0">{month.month}</span>
+                          <div className="flex-1">
+                            <div className="w-full bg-muted rounded-full h-6 relative">
+                              <div className="bg-primary h-6 rounded-full transition-all flex items-center" style={{ width: `${Math.max(barWidth, 5)}%` }}>
+                                <span className="text-xs text-primary-foreground font-medium pl-2 whitespace-nowrap">{month.totalBookings}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right flex-shrink-0 w-24">
+                            <span className="text-sm font-medium">{formatCurrency(Number(month.revenue))}</span>
+                          </div>
+                          <div className="flex gap-1 flex-shrink-0">
+                            <Badge variant="outline" className="text-xs">{month.completedBookings} done</Badge>
+                            {Number(month.cancelledBookings) > 0 && (
+                              <Badge variant="destructive" className="text-xs">{month.cancelledBookings} cancelled</Badge>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Top Services */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Top Performing Services</CardTitle>
+                <CardDescription>Your most booked services ranked by volume</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {(!analytics?.topServices || analytics.topServices.length === 0) ? (
+                  <p className="text-sm text-muted-foreground text-center py-6">No service data yet</p>
+                ) : (
+                  <div className="space-y-3">
+                    {analytics.topServices.map((svc: any, idx: number) => (
+                      <div key={svc.serviceId} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <span className="text-sm font-bold text-primary">#{idx + 1}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{svc.serviceName || `Service #${svc.serviceId}`}</p>
+                          <p className="text-xs text-muted-foreground">{svc.totalBookings} bookings ({svc.completedBookings} completed)</p>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-sm font-semibold">{formatCurrency(Number(svc.revenue))}</p>
+                          {Number(svc.avgRating) > 0 && (
+                            <p className="text-xs text-muted-foreground flex items-center justify-end gap-1">
+                              <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                              {Number(svc.avgRating).toFixed(1)} ({svc.reviewCount})
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Embed Widget Tab */}

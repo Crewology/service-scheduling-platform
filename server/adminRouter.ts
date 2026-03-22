@@ -99,6 +99,11 @@ export const adminRouter = router({
     return await db.getSubscriptionAnalytics();
   }),
 
+  // Get booking source analytics (widget vs direct)
+  getBookingSourceAnalytics: adminProcedure.query(async () => {
+    return await db.getAdminBookingSourceAnalytics();
+  }),
+
   // Manually trigger reminder processing
   triggerReminders: adminProcedure.mutation(async () => {
     const { processReminders } = await import("./reminderService");

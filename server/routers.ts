@@ -126,6 +126,19 @@ const providerRouter = router({
     return await db.getProviderEarnings(provider.id);
   }),
 
+  analytics: protectedProcedure.query(async ({ ctx }) => {
+    const provider = await db.getProviderByUserId(ctx.user.id);
+    if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+    const [bookingTrends, topServices, customerRetention, bookingSources, refundAnalytics] = await Promise.all([
+      db.getBookingTrends(provider.id),
+      db.getTopServices(provider.id),
+      db.getCustomerRetention(provider.id),
+      db.getBookingSourceAnalytics(provider.id),
+      db.getRefundAnalytics(provider.id),
+    ]);
+    return { bookingTrends, topServices, customerRetention, bookingSources, refundAnalytics };
+  }),
+
   // Public profile by slug (no auth required)
   getBySlug: publicProcedure
     .input(z.object({ slug: z.string() }))
@@ -436,6 +449,7 @@ const bookingRouter = router({
       serviceState: z.string().optional(),
       servicePostalCode: z.string().optional(),
       customerNotes: z.string().optional(),
+      bookingSource: z.enum(["direct", "embed_widget", "provider_page", "api"]).default("direct"),
       subtotal: z.string().optional(),
       platformFee: z.string().optional(),
       totalAmount: z.string().optional(),
@@ -477,6 +491,7 @@ const bookingRouter = router({
         serviceState: input.serviceState,
         servicePostalCode: input.servicePostalCode,
         customerNotes: input.customerNotes,
+        bookingSource: input.bookingSource,
         subtotal,
         platformFee,
         totalAmount,

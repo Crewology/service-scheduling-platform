@@ -246,6 +246,27 @@ OlogyCrew Team
       `.trim(),
       smsBody: `Your OlogyCrew subscription has been updated to ${data.tier}. Enjoy your new features!`,
     },
+
+    refund_processed: {
+      subject: `Refund Processed - $${data.refundAmount || '0.00'}`,
+      body: `
+Hello,
+
+Your refund has been processed successfully.
+
+**Booking:** #${data.bookingNumber || 'N/A'}
+**Refund Amount:** $${data.refundAmount || '0.00'}
+**Original Amount:** $${data.originalAmount || '0.00'}
+
+The refund will appear on your statement within 5-10 business days, depending on your bank.
+
+If you have any questions, please don't hesitate to contact us.
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `Your refund of $${data.refundAmount || '0.00'} for booking #${data.bookingNumber || 'N/A'} has been processed.`,
+    },
   };
 
   return templates[type] || {

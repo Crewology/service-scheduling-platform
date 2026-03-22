@@ -540,9 +540,45 @@
 - [x] Implement CORS and X-Frame-Options for cross-origin iframe embedding
 - [x] Support 3 embed modes: inline iframe, popup button, direct link
 - [x] Add quick tips for WordPress, Squarespace, Wix, social media
-- [ ] Add analytics tracking for embedded bookings (future)
+- [x] Add analytics tracking for embedded bookings (bookingSource column)
 
 ### Testing
 - [x] Write tests for widget router public endpoints (12 tests)
 - [x] Verify all widget endpoints work without authentication
 - [x] 12 new Phase 13 tests (197 total passing across 13 test files)
+
+## Phase 14: Embedded Analytics, Provider Analytics Dashboard, Automated Refunds
+
+### Embedded Booking Analytics
+- [x] Add bookingSource column to bookings table (direct, embed_widget, provider_page, api)
+- [x] Pass source parameter through embed booking flow (EmbedBooking, ServiceDetail, PublicProviderProfile)
+- [x] Create analytics queries for booking source breakdown (getBookingSourceAnalytics)
+- [x] Add widget ROI metrics to admin dashboard (getAdminBookingSourceAnalytics)
+- [x] Show embed booking stats in provider analytics dashboard
+
+### Provider Analytics Dashboard
+- [x] Create provider analytics tRPC procedures (booking trends, revenue, retention, top services)
+- [x] Build provider analytics tab in ProviderDashboard with cards and charts
+- [x] Show booking trends over time (monthly with completion/cancellation rates)
+- [x] Show revenue breakdown (total, by service, by month)
+- [x] Show customer retention metrics (total, returning, retention rate, avg bookings)
+- [x] Show top-performing services by bookings and revenue
+- [x] Show booking source breakdown (direct, embed, provider page)
+- [x] Show refund analytics (total refunds, refund amount, refund rate)
+
+### Automated Cancellation Refunds
+- [x] Cancellation refund policy already implemented (48h+=100%, 24-48h=75%, 4-24h=50%, <4h=0%)
+- [x] Enhanced Stripe webhook handler for charge.refunded events
+- [x] Refund calculation based on cancellation timing (already in booking.cancel)
+- [x] Auto-process refunds when bookings are cancelled via Stripe
+- [x] Track refund status via Stripe payment intent IDs
+- [x] Send refund_processed notification emails to customers
+- [x] Added getPaymentByStripePaymentIntentId helper for webhook refund tracking
+
+### Testing
+- [x] Write tests for booking source tracking (3 tests)
+- [x] Write tests for provider analytics queries (7 tests)
+- [x] Write tests for database analytics helpers (6 tests)
+- [x] Write tests for refund calculation logic (3 tests)
+- [x] Write tests for admin booking source analytics (1 test)
+- [x] 20 new Phase 14 tests (217 total passing across 14 test files)

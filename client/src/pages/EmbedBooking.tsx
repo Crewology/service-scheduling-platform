@@ -182,6 +182,7 @@ export default function EmbedBooking() {
       endTime,
       locationType: "fixed_location",
       customerNotes: notes || undefined,
+      bookingSource: "embed_widget",
     });
   };
 

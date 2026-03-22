@@ -64,6 +64,13 @@
       "when": 1774190107811,
       "tag": "0008_pale_lady_vermin",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1774193734960,
+      "tag": "0009_silent_lenny_balinger",
+      "breakpoints": true
     }
   ]
 }

@@ -237,6 +237,7 @@ export const bookings = mysqlTable("bookings", {
   confirmedAt: timestamp("confirmedAt"),
   startedAt: timestamp("startedAt"),
   completedAt: timestamp("completedAt"),
+  bookingSource: mysqlEnum("bookingSource", ["direct", "embed_widget", "provider_page", "api"]).default("direct").notNull(),
   reminderSent: boolean("reminderSent").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

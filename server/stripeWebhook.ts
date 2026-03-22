@@ -165,7 +165,6 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
 async function handleRefund(charge: Stripe.Charge) {
   console.log("[Stripe] Refund processed:", charge.id);
   
-  // Find the booking associated with this charge via payment_intent
   const paymentIntentId = typeof charge.payment_intent === "string" 
     ? charge.payment_intent 
     : charge.payment_intent?.id;
@@ -175,9 +174,45 @@ async function handleRefund(charge: Stripe.Charge) {
     return;
   }
 
-  // Find booking by searching payments table
-  // The refund was already processed by the cancel procedure, so just log it
-  console.log(`[Stripe] Refund confirmed for payment_intent: ${paymentIntentId}, amount: ${charge.amount_refunded}`);
+  // Find the payment record by Stripe payment intent ID
+  const payment = await db.getPaymentByStripePaymentIntentId(paymentIntentId);
+  if (!payment) {
+    console.log(`[Stripe] No local payment record for payment_intent: ${paymentIntentId}`);
+    return;
+  }
+
+  const refundAmountDollars = (charge.amount_refunded / 100).toFixed(2);
+
+  // Update payment record if not already marked as refunded
+  if (payment.status !== "refunded") {
+    await db.updatePaymentRefund(payment.id, {
+      status: "refunded",
+      refundAmount: refundAmountDollars,
+      refundReason: "Refund confirmed by Stripe webhook",
+      refundedAt: new Date(),
+    });
+    console.log(`[Stripe] Payment ${payment.id} marked as refunded: $${refundAmountDollars}`);
+  }
+
+  // Send refund confirmation notification to customer
+  const booking = payment.bookingId ? await db.getBookingById(payment.bookingId) : null;
+  if (booking) {
+    const customer = await db.getUserById(booking.customerId);
+    if (customer?.email) {
+      await sendNotification({
+        type: "refund_processed",
+        channel: "email",
+        recipient: { userId: customer.id, email: customer.email, name: customer.name || "Customer" },
+        data: {
+          bookingNumber: booking.bookingNumber,
+          refundAmount: refundAmountDollars,
+          originalAmount: booking.totalAmount || "0",
+        },
+      });
+    }
+  }
+
+  console.log(`[Stripe] Refund confirmed for payment_intent: ${paymentIntentId}, amount: $${refundAmountDollars}`);
 }
 
 async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
