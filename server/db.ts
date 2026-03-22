@@ -22,6 +22,8 @@ import {
   type Message,
   providerSubscriptions,
   type ProviderSubscription,
+  notificationPreferences,
+  type NotificationPreference,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -1269,4 +1271,95 @@ export async function getUpcomingBookingsForUser(userId: number): Promise<any[]>
       )
     )
     .orderBy(asc(bookings.bookingDate), asc(bookings.startTime));
+}
+
+
+// ============================================================================
+// NOTIFICATION PREFERENCES
+// ============================================================================
+
+/**
+ * Get notification preferences for a user.
+ * Returns null if no preferences row exists (meaning all defaults apply).
+ */
+export async function getNotificationPreferences(userId: number): Promise<NotificationPreference | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const rows = await db.select().from(notificationPreferences)
+    .where(eq(notificationPreferences.userId, userId))
+    .limit(1);
+  return rows[0] || null;
+}
+
+/**
+ * Upsert notification preferences for a user.
+ */
+export async function upsertNotificationPreferences(
+  userId: number,
+  prefs: Partial<Omit<NotificationPreference, "id" | "userId" | "createdAt" | "updatedAt">>
+): Promise<NotificationPreference> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const existing = await getNotificationPreferences(userId);
+  if (existing) {
+    await db.update(notificationPreferences)
+      .set(prefs)
+      .where(eq(notificationPreferences.userId, userId));
+  } else {
+    await db.insert(notificationPreferences).values({
+      userId,
+      ...prefs,
+    });
+  }
+  return (await getNotificationPreferences(userId))!;
+}
+
+/**
+ * Get notification preferences by unsubscribe token.
+ */
+export async function getPreferencesByUnsubscribeToken(token: string): Promise<NotificationPreference | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const rows = await db.select().from(notificationPreferences)
+    .where(eq(notificationPreferences.unsubscribeToken, token))
+    .limit(1);
+  return rows[0] || null;
+}
+
+/**
+ * Disable all email notifications for a user (one-click unsubscribe).
+ */
+export async function unsubscribeAllEmail(token: string): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+
+  const pref = await getPreferencesByUnsubscribeToken(token);
+  if (!pref) return false;
+
+  await db.update(notificationPreferences)
+    .set({
+      emailEnabled: false,
+      bookingEmail: false,
+      reminderEmail: false,
+      messageEmail: false,
+      paymentEmail: false,
+      marketingEmail: false,
+    })
+    .where(eq(notificationPreferences.unsubscribeToken, token));
+  return true;
+}
+
+/**
+ * Mark all notifications as read for a user.
+ */
+export async function markAllNotificationsAsRead(userId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(notifications)
+    .set({ isRead: true, readAt: new Date() })
+    .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
 }

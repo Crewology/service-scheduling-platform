@@ -1,18 +1,38 @@
 import { Notification, NotificationProvider } from "../types";
 import { getTemplate } from "../templates";
+import { ENV } from "../../_core/env";
 
 /**
- * SMS notification provider (stub for future implementation)
+ * SMS notification provider using Twilio
  * 
- * To enable SMS notifications:
- * 1. Sign up for Twilio (https://www.twilio.com)
- * 2. Add TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN to environment
- * 3. Add TWILIO_PHONE_NUMBER to environment
- * 4. Uncomment the implementation below
- * 5. Install Twilio SDK: pnpm add twilio
+ * Requires TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE_NUMBER.
+ * If TWILIO_PHONE_NUMBER is not set, SMS sending is gracefully skipped
+ * (logs a warning instead of failing).
  */
 export class SMSProvider implements NotificationProvider {
   name = "sms";
+  private client: any = null;
+  private initialized = false;
+
+  private async getClient() {
+    if (this.initialized) return this.client;
+    this.initialized = true;
+
+    if (!ENV.twilioAccountSid || !ENV.twilioAuthToken) {
+      console.warn("[SMSProvider] Twilio credentials not configured — SMS disabled");
+      return null;
+    }
+
+    try {
+      const twilio = await import("twilio");
+      this.client = twilio.default(ENV.twilioAccountSid, ENV.twilioAuthToken);
+      console.log("[SMSProvider] Twilio client initialized successfully");
+      return this.client;
+    } catch (err) {
+      console.error("[SMSProvider] Failed to initialize Twilio client:", err);
+      return null;
+    }
+  }
 
   supports(channel: string): boolean {
     return channel === "sms";
@@ -24,36 +44,35 @@ export class SMSProvider implements NotificationProvider {
       return false;
     }
 
+    if (!ENV.twilioPhoneNumber) {
+      console.warn("[SMSProvider] TWILIO_PHONE_NUMBER not set — skipping SMS. Add a Twilio phone number to enable SMS.");
+      return false;
+    }
+
+    const client = await this.getClient();
+    if (!client) {
+      console.warn("[SMSProvider] Twilio client not available — skipping SMS");
+      return false;
+    }
+
     const template = getTemplate(notification.type, notification.data);
     const message = template.smsBody || template.body;
 
-    // TODO: Implement when SMS is needed
-    console.log(`[SMSProvider] SMS would be sent to ${notification.recipient.phone}: ${message}`);
-    
-    // Future implementation:
-    /*
-    import twilio from 'twilio';
-    
-    const client = twilio(
-      process.env.TWILIO_ACCOUNT_SID,
-      process.env.TWILIO_AUTH_TOKEN
-    );
+    // Truncate to SMS-friendly length (160 chars for single segment)
+    const truncatedMessage = message.length > 1600 ? message.slice(0, 1597) + "..." : message;
 
     try {
-      await client.messages.create({
-        body: message,
-        from: process.env.TWILIO_PHONE_NUMBER,
+      const result = await client.messages.create({
+        body: truncatedMessage,
+        from: ENV.twilioPhoneNumber,
         to: notification.recipient.phone,
       });
-      
-      console.log(`[SMSProvider] SMS sent to ${notification.recipient.phone}`);
+
+      console.log(`[SMSProvider] SMS sent to ${notification.recipient.phone} (SID: ${result.sid})`);
       return true;
-    } catch (error) {
-      console.error("[SMSProvider] Error sending SMS:", error);
+    } catch (error: any) {
+      console.error(`[SMSProvider] Error sending SMS to ${notification.recipient.phone}:`, error?.message || error);
       return false;
     }
-    */
-
-    return false; // Not implemented yet
   }
 }

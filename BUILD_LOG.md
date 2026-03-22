@@ -761,3 +761,125 @@ All 12 notification types have both email templates (with subject and HTML body)
 - Notification templates (all 12 types verified)
 
 **Total test count:** 154 tests passing across 10 test files.
+
+
+---
+
+## Phase 12: Twilio SMS, Notifications Center UI, Email Unsubscribe
+
+**Objective:** Activate Twilio SMS for text message reminders, build a full Notifications Center UI with dropdown and dedicated page, and implement email unsubscribe links with per-user notification preferences.
+
+### 12.1 Twilio SMS Provider
+
+Replaced the SMS stub with a production-ready Twilio integration:
+
+| Component | Details |
+|---|---|
+| Provider class | `SMSProvider` in `server/notifications/providers/sms.ts` |
+| SDK | `twilio` npm package |
+| Credentials | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER` via `webdev_request_secrets` |
+| Graceful degradation | If `TWILIO_PHONE_NUMBER` is not set, SMS is silently skipped with a warning log |
+| Template integration | Uses the same `getTemplate()` system as email — sends `template.body` as SMS text |
+
+The SMS provider lazy-initializes the Twilio client on first use and validates all three credentials before attempting delivery. When the user purchases a Twilio phone number, SMS will automatically activate.
+
+### 12.2 Notifications Center UI
+
+Built a complete notification experience with two components:
+
+**Notification Dropdown (NavHeader)**
+- Replaces the old static bell icon link with an interactive dropdown
+- Shows up to 8 recent notifications with type-specific emoji icons
+- Displays unread count badge (polls every 15 seconds)
+- "Mark all read" button clears all unread notifications
+- Click-through to notification action URLs
+- Outside-click dismissal
+- "View all notifications" link to full page
+
+**Notifications Page (`/notifications`)**
+- Full-page notification list with all notifications
+- Card-based layout with type badges, timestamps, and read indicators
+- Mark individual or all notifications as read
+- Settings gear icon links to notification preferences
+- Back navigation to home
+- Empty state with helpful messaging
+- Auth-gated with sign-in prompt for unauthenticated users
+
+### 12.3 Email Unsubscribe & Notification Preferences
+
+**Database Schema:**
+Added `notification_preferences` table with 17 columns:
+
+| Column Group | Fields |
+|---|---|
+| Master toggles | `emailEnabled`, `smsEnabled`, `pushEnabled` |
+| Email per-type | `bookingEmail`, `reminderEmail`, `messageEmail`, `paymentEmail`, `marketingEmail` |
+| SMS per-type | `bookingSms`, `reminderSms`, `messageSms`, `paymentSms` |
+| Unsubscribe | `unsubscribeToken` (unique, 64-char hex) |
+
+**Unsubscribe Flow:**
+1. Email provider auto-generates an `unsubscribeToken` for each user on first email send
+2. Every email footer includes an "Unsubscribe from emails" link pointing to `/unsubscribe/:token`
+3. The unsubscribe page shows current email preferences and a one-click "Unsubscribe from All Emails" button
+4. After unsubscribing, user sees confirmation with option to re-manage preferences
+5. Invalid/expired tokens show a clear error message
+
+**Notification Settings Page (`/notification-settings`):**
+- Master channel toggles (Email, SMS) at the top
+- Per-type toggles organized by channel
+- Disabling a master toggle visually dims and disables all sub-toggles
+- Changes save immediately via tRPC mutation with toast feedback
+- Accessible from notifications page (gear icon) and email footer ("Manage preferences" link)
+
+**Preference Enforcement:**
+- The reminder service checks `getNotificationPreferences()` before sending each notification
+- The email provider checks `emailEnabled` before sending
+- Both email and SMS channels respect per-type toggles (e.g., `reminderEmail`, `bookingSms`)
+
+### 12.4 New Routes
+
+| Route | Component | Auth |
+|---|---|---|
+| `/notifications` | `Notifications.tsx` | Protected |
+| `/notification-settings` | `NotificationSettings.tsx` | Protected |
+| `/unsubscribe/:token` | `Unsubscribe.tsx` | Public |
+
+### 12.5 tRPC Endpoints Added/Modified
+
+| Endpoint | Type | Auth | Purpose |
+|---|---|---|---|
+| `notification.markAllRead` | Mutation | Protected | Mark all notifications as read |
+| `notification.getPreferences` | Query | Protected | Get user's notification preferences |
+| `notification.updatePreferences` | Mutation | Protected | Update notification preferences |
+| `notification.unsubscribe` | Mutation | Public | One-click email unsubscribe via token |
+| `notification.getByToken` | Query | Public | Get email preferences by unsubscribe token |
+
+### 12.6 Files Changed
+
+| File | Change |
+|---|---|
+| `drizzle/schema.ts` | Added `notificationPreferences` table |
+| `drizzle/0008_pale_lady_vermin.sql` | Migration for new table |
+| `server/_core/env.ts` | Added `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER` |
+| `server/db.ts` | Added 5 new helpers: `getNotificationPreferences`, `upsertNotificationPreferences`, `getPreferencesByUnsubscribeToken`, `unsubscribeAllEmail`, `markAllNotificationsAsRead` |
+| `server/routers.ts` | Enhanced notification router with 5 new endpoints |
+| `server/notifications/providers/sms.ts` | Rewritten with Twilio SDK integration |
+| `server/notifications/providers/email.ts` | Added unsubscribe token generation and preference checking |
+| `server/reminderService.ts` | Added SMS channel and preference checking |
+| `client/src/App.tsx` | Added 3 new routes |
+| `client/src/components/shared/NavHeader.tsx` | Replaced bell link with NotificationDropdown component |
+| `client/src/pages/Notifications.tsx` | New: full notifications page |
+| `client/src/pages/NotificationSettings.tsx` | New: notification preferences page |
+| `client/src/pages/Unsubscribe.tsx` | New: public unsubscribe page |
+| `server/phase12.test.ts` | New: 27 tests |
+
+**Tests:** 27 new tests in `phase12.test.ts` covering:
+- SMS provider instantiation, channel support, and graceful failures
+- Email provider instantiation and graceful failures
+- Notification preferences CRUD (create, read, update, toggle)
+- Unsubscribe token generation, lookup, and one-click unsubscribe
+- Public tRPC endpoints for unsubscribe flow
+- Mark-all-read functionality (db helper and tRPC)
+- Notification list filtering
+
+**Total test count:** 181 tests passing across 11 test files.

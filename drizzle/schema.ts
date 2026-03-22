@@ -395,3 +395,38 @@ export const providerSubscriptions = mysqlTable("provider_subscriptions", {
 
 export type ProviderSubscription = typeof providerSubscriptions.$inferSelect;
 export type InsertProviderSubscription = typeof providerSubscriptions.$inferInsert;
+
+/**
+ * Notification preferences per user.
+ * Controls which channels and notification types the user opts into.
+ * Defaults are all-enabled (null = enabled).
+ */
+export const notificationPreferences = mysqlTable("notification_preferences", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique().references(() => users.id),
+  // Master channel toggles
+  emailEnabled: boolean("emailEnabled").default(true).notNull(),
+  smsEnabled: boolean("smsEnabled").default(true).notNull(),
+  pushEnabled: boolean("pushEnabled").default(true).notNull(),
+  // Per-type email toggles
+  bookingEmail: boolean("bookingEmail").default(true).notNull(),
+  reminderEmail: boolean("reminderEmail").default(true).notNull(),
+  messageEmail: boolean("messageEmail").default(true).notNull(),
+  paymentEmail: boolean("paymentEmail").default(true).notNull(),
+  marketingEmail: boolean("marketingEmail").default(false).notNull(),
+  // Per-type SMS toggles
+  bookingSms: boolean("bookingSms").default(true).notNull(),
+  reminderSms: boolean("reminderSms").default(true).notNull(),
+  messageSms: boolean("messageSms").default(false).notNull(),
+  paymentSms: boolean("paymentSms").default(false).notNull(),
+  // Unsubscribe token for one-click email opt-out
+  unsubscribeToken: varchar("unsubscribeToken", { length: 64 }).unique(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  userIdx: index("notif_pref_user_idx").on(table.userId),
+  tokenIdx: index("notif_pref_token_idx").on(table.unsubscribeToken),
+}));
+
+export type NotificationPreference = typeof notificationPreferences.$inferSelect;
+export type InsertNotificationPreference = typeof notificationPreferences.$inferInsert;

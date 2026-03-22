@@ -932,10 +932,63 @@ const notificationRouter = router({
       return { success: true };
     }),
 
+  markAllRead: protectedProcedure.mutation(async ({ ctx }) => {
+    await db.markAllNotificationsAsRead(ctx.user.id);
+    return { success: true };
+  }),
+
   unreadCount: protectedProcedure.query(async ({ ctx }) => {
     const notifications = await db.getUserNotifications(ctx.user.id, true);
     return { count: notifications.length };
   }),
+
+  // Notification preferences
+  getPreferences: protectedProcedure.query(async ({ ctx }) => {
+    return await db.getNotificationPreferences(ctx.user.id);
+  }),
+
+  updatePreferences: protectedProcedure
+    .input(z.object({
+      emailEnabled: z.boolean().optional(),
+      smsEnabled: z.boolean().optional(),
+      pushEnabled: z.boolean().optional(),
+      bookingEmail: z.boolean().optional(),
+      reminderEmail: z.boolean().optional(),
+      messageEmail: z.boolean().optional(),
+      paymentEmail: z.boolean().optional(),
+      marketingEmail: z.boolean().optional(),
+      bookingSms: z.boolean().optional(),
+      reminderSms: z.boolean().optional(),
+      messageSms: z.boolean().optional(),
+      paymentSms: z.boolean().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      return await db.upsertNotificationPreferences(ctx.user.id, input);
+    }),
+
+  // Public unsubscribe endpoint (no auth required)
+  unsubscribe: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .mutation(async ({ input }) => {
+      const success = await db.unsubscribeAllEmail(input.token);
+      return { success };
+    }),
+
+  // Get preferences by unsubscribe token (public, for unsubscribe page)
+  getByToken: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .query(async ({ input }) => {
+      const prefs = await db.getPreferencesByUnsubscribeToken(input.token);
+      if (!prefs) return null;
+      return {
+        emailEnabled: prefs.emailEnabled,
+        bookingEmail: prefs.bookingEmail,
+        reminderEmail: prefs.reminderEmail,
+        messageEmail: prefs.messageEmail,
+        paymentEmail: prefs.paymentEmail,
+        marketingEmail: prefs.marketingEmail,
+      };
+    }),
 });
 
 // ============================================================================

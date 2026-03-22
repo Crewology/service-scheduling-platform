@@ -1,9 +1,13 @@
 import { Notification, NotificationProvider } from "../types";
 import { getTemplate } from "../templates";
 import { ENV } from "../../_core/env";
+import * as db from "../../db";
+import crypto from "crypto";
 
 /**
- * Email notification provider using Manus built-in email API
+ * Email notification provider using Manus built-in email API.
+ * Automatically generates unsubscribe tokens and includes
+ * one-click unsubscribe links in every email footer.
  */
 export class EmailProvider implements NotificationProvider {
   name = "email";
@@ -12,16 +16,47 @@ export class EmailProvider implements NotificationProvider {
     return channel === "email";
   }
 
+  /**
+   * Ensure the user has an unsubscribe token.
+   * If none exists, create one and persist it.
+   */
+  private async ensureUnsubscribeToken(userId: number): Promise<string> {
+    try {
+      const prefs = await db.getNotificationPreferences(userId);
+      if (prefs?.unsubscribeToken) return prefs.unsubscribeToken;
+
+      const token = crypto.randomBytes(32).toString("hex");
+      await db.upsertNotificationPreferences(userId, { unsubscribeToken: token });
+      return token;
+    } catch (err) {
+      console.warn("[EmailProvider] Failed to generate unsubscribe token:", err);
+      return "";
+    }
+  }
+
   async send(notification: Notification): Promise<boolean> {
     if (!notification.recipient.email) {
       console.warn("[EmailProvider] No email address provided for recipient");
       return false;
     }
 
+    // Check user preferences before sending
+    try {
+      const prefs = await db.getNotificationPreferences(notification.recipient.userId);
+      if (prefs && !prefs.emailEnabled) {
+        console.log(`[EmailProvider] Email disabled for user ${notification.recipient.userId}, skipping`);
+        return false;
+      }
+    } catch {
+      // If preferences check fails, send anyway (fail-open)
+    }
+
     const template = getTemplate(notification.type, notification.data);
 
+    // Generate unsubscribe token for this user
+    const unsubscribeToken = await this.ensureUnsubscribeToken(notification.recipient.userId);
+
     try {
-      // Use Manus built-in email API (similar to notification API pattern)
       const response = await fetch(`${ENV.forgeApiUrl}/email/send`, {
         method: "POST",
         headers: {
@@ -31,7 +66,10 @@ export class EmailProvider implements NotificationProvider {
         body: JSON.stringify({
           to: notification.recipient.email,
           subject: template.subject,
-          html: this.formatEmailHTML(template.body, notification.data),
+          html: this.formatEmailHTML(template.body, {
+            ...notification.data,
+            unsubscribeToken,
+          }),
           text: template.body,
         }),
       });
@@ -57,6 +95,11 @@ export class EmailProvider implements NotificationProvider {
       .replace(/\n\n/g, '</p><p>')
       .replace(/\n/g, '<br>');
 
+    // Build unsubscribe URL — uses a relative path that works across environments
+    const unsubscribeUrl = data.unsubscribeToken
+      ? `/unsubscribe/${data.unsubscribeToken}`
+      : "#";
+
     return `
 <!DOCTYPE html>
 <html>
@@ -72,10 +115,11 @@ export class EmailProvider implements NotificationProvider {
     <p>${html}</p>
   </div>
   <div style="text-align: center; padding: 20px; color: #6b7280; font-size: 12px;">
-    <p>© ${new Date().getFullYear()} SkillLink. All rights reserved.</p>
+    <p>&copy; ${new Date().getFullYear()} SkillLink. All rights reserved.</p>
     <p>
-      <a href="${data.unsubscribeUrl || '#'}" style="color: #6b7280; text-decoration: underline;">Unsubscribe</a> |
-      <a href="https://skilllink.example.com/help" style="color: #6b7280; text-decoration: underline;">Help</a>
+      <a href="${unsubscribeUrl}" style="color: #6b7280; text-decoration: underline;">Unsubscribe from emails</a>
+      &nbsp;&middot;&nbsp;
+      <a href="/notification-settings" style="color: #6b7280; text-decoration: underline;">Manage preferences</a>
     </p>
   </div>
 </body>

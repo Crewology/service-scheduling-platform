@@ -22,6 +22,9 @@ import UserProfile from "./pages/UserProfile";
 import PublicProviderProfile from "./pages/PublicProviderProfile";
 import SubscriptionManagement from "./pages/SubscriptionManagement";
 import ProviderOnboarding from "./pages/ProviderOnboarding";
+import Notifications from "./pages/Notifications";
+import NotificationSettings from "./pages/NotificationSettings";
+import Unsubscribe from "./pages/Unsubscribe";
 import { DevToolsPanel } from "./components/DevToolsPanel";
 
 function Router() {
@@ -45,6 +48,9 @@ function Router() {
       <Route path="/p/:slug" component={PublicProviderProfile} />
       <Route path="/provider/subscription" component={SubscriptionManagement} />
       <Route path="/provider/onboarding" component={ProviderOnboarding} />
+      <Route path="/notifications" component={Notifications} />
+      <Route path="/notification-settings" component={NotificationSettings} />
+      <Route path="/unsubscribe/:token" component={Unsubscribe} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

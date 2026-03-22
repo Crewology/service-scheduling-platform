@@ -460,7 +460,7 @@
 - [x] Add booking status change notifications (confirmed, cancelled)
 - [x] Create 24-hour reminder system for upcoming appointments
 - [x] Add provider notification for new bookings
-- [ ] Include unsubscribe link in all emails
+- [x] Include unsubscribe link in all emails
 
 ### Testing
 - [x] Write tests for subscription analytics queries
@@ -468,3 +468,41 @@
 - [x] Write tests for notification triggers
 - [x] Write tests for reminder scheduling logic
 - [x] 21 new Phase 11 tests (154 total passing across 10 test files)
+
+## Phase 12: Twilio SMS, Notifications Center UI, Email Unsubscribe
+
+### Twilio SMS Activation
+- [x] Request Twilio credentials (Account SID, Auth Token, Phone Number)
+- [x] Update SMS provider to use Twilio API instead of stub
+- [x] Add SMS sending logic with proper error handling
+- [x] Enable SMS channel in notification service dispatcher
+- [x] Test SMS delivery for booking confirmations and reminders
+
+### Notifications Center UI
+- [x] Build notification dropdown component (bell icon in NavHeader)
+- [x] Show unread count badge on bell icon
+- [x] Create notification dropdown with recent notifications list
+- [x] Add mark-as-read functionality (individual + mark all)
+- [x] Create full Notifications page (/notifications)
+- [x] Add notification type icons and formatting
+- [x] Link notifications to related bookings when applicable
+- [x] Add real-time polling for new notifications (15s interval)
+
+### Email Unsubscribe & Notification Preferences
+- [x] Add notificationPreferences table to database schema
+- [x] Create unsubscribe token generation and validation
+- [x] Add unsubscribe link to all email templates (auto-generated per user)
+- [x] Build /unsubscribe/:token page for one-click email opt-out
+- [x] Create Notification Settings page (/notification-settings)
+- [x] Allow per-channel (email/SMS) and per-type toggle controls
+- [x] Respect preferences in notification service before sending
+- [x] Add re-subscribe option on unsubscribe confirmation page
+
+### Testing
+- [x] Write tests for Twilio SMS provider (4 tests)
+- [x] Write tests for notification preferences CRUD (6 tests)
+- [x] Write tests for unsubscribe token flow (7 tests)
+- [x] Write tests for notification center UI data endpoints (4 tests)
+- [x] Write tests for email provider (3 tests)
+- [x] Write tests for mark-all-read (3 tests)
+- [x] 27 new Phase 12 tests (181 total passing across 11 test files)

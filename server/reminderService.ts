@@ -46,8 +46,12 @@ export async function processReminders(): Promise<{
             : [booking.serviceAddressLine1, booking.serviceCity, booking.serviceState].filter(Boolean).join(", ") || "See booking details",
         };
 
-        // Send reminder to customer
-        if (customer?.email) {
+        // Check notification preferences before sending
+        const customerPrefs = await db.getNotificationPreferences(customer?.id || 0);
+        const providerPrefs = providerUser ? await db.getNotificationPreferences(providerUser.id) : null;
+
+        // Send reminder to customer (email)
+        if (customer?.email && customerPrefs?.emailEnabled !== false && customerPrefs?.reminderEmail !== false) {
           const customerResult = await sendNotification({
             type: "reminder_24h",
             channel: "email",
@@ -61,15 +65,31 @@ export async function processReminders(): Promise<{
           
           if (customerResult) {
             sent++;
-            console.log(`[ReminderService] Sent 24h reminder to customer ${customer.email} for booking ${booking.bookingNumber}`);
+            console.log(`[ReminderService] Sent 24h email reminder to customer ${customer.email} for booking ${booking.bookingNumber}`);
           } else {
             failed++;
-            console.warn(`[ReminderService] Failed to send reminder to customer ${customer.email}`);
+            console.warn(`[ReminderService] Failed to send email reminder to customer ${customer.email}`);
           }
         }
 
-        // Send reminder to provider
-        if (providerUser?.email) {
+        // Send reminder to customer (SMS)
+        if (customer?.phone && customerPrefs?.smsEnabled !== false && customerPrefs?.reminderSms !== false) {
+          const smsResult = await sendNotification({
+            type: "reminder_24h",
+            channel: "sms",
+            recipient: { 
+              userId: customer.id, 
+              phone: customer.phone, 
+              name: customer.name || "Customer" 
+            },
+            data: notificationData,
+          });
+          if (smsResult) sent++;
+          else failed++;
+        }
+
+        // Send reminder to provider (email)
+        if (providerUser?.email && providerPrefs?.emailEnabled !== false && providerPrefs?.reminderEmail !== false) {
           const providerResult = await sendNotification({
             type: "reminder_24h",
             channel: "email",
@@ -80,7 +100,6 @@ export async function processReminders(): Promise<{
             },
             data: {
               ...notificationData,
-              // Swap perspective for provider
               customerName: customer?.name || "Customer",
               providerName: provider?.businessName || providerUser?.name || "Provider",
             },
@@ -91,6 +110,26 @@ export async function processReminders(): Promise<{
           } else {
             failed++;
           }
+        }
+
+        // Send reminder to provider (SMS)
+        if (providerUser?.phone && providerPrefs?.smsEnabled !== false && providerPrefs?.reminderSms !== false) {
+          const smsResult = await sendNotification({
+            type: "reminder_24h",
+            channel: "sms",
+            recipient: { 
+              userId: providerUser.id, 
+              phone: providerUser.phone, 
+              name: providerUser.name || "Provider" 
+            },
+            data: {
+              ...notificationData,
+              customerName: customer?.name || "Customer",
+              providerName: provider?.businessName || providerUser?.name || "Provider",
+            },
+          });
+          if (smsResult) sent++;
+          else failed++;
         }
 
         // Create in-app notifications for both customer and provider
