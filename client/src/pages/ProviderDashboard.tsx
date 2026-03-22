@@ -41,6 +41,10 @@ import {
   CalendarPlus,
   Clipboard,
   Tag,
+  FileCheck,
+  Upload,
+  FileText,
+  Shield,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
@@ -408,6 +412,162 @@ function PublicProfileSection({ provider }: { provider: any }) {
 }
 
 // ============================================================================
+// VERIFICATION DOCUMENTS TAB
+// ============================================================================
+function VerificationDocumentsTab() {
+  const { data: documents, isLoading } = trpc.verification.myDocuments.useQuery();
+  const utils = trpc.useUtils();
+  const [uploading, setUploading] = useState(false);
+  const [selectedType, setSelectedType] = useState<string>("identity");
+
+  const uploadDoc = trpc.verification.upload.useMutation({
+    onSuccess: () => {
+      toast.success("Document uploaded successfully. It will be reviewed by our team.");
+      utils.verification.myDocuments.invalidate();
+      setUploading(false);
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File must be under 10MB");
+      return;
+    }
+    setUploading(true);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = (reader.result as string).split(",")[1];
+      uploadDoc.mutate({
+        documentType: selectedType as any,
+        documentData: base64,
+        contentType: file.type || "application/pdf",
+      });
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const docTypes = [
+    { value: "identity", label: "Government ID", description: "Driver's license, passport, or state ID" },
+    { value: "business_license", label: "Business License", description: "Business registration or license" },
+    { value: "insurance", label: "Insurance Certificate", description: "Liability or professional insurance" },
+    { value: "background_check", label: "Background Check", description: "Background check clearance" },
+  ];
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "approved": return <Badge className="bg-green-100 text-green-800">Approved</Badge>;
+      case "rejected": return <Badge variant="destructive">Rejected</Badge>;
+      default: return <Badge variant="secondary">Pending Review</Badge>;
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold flex items-center gap-2">
+          <Shield className="h-6 w-6 text-blue-600" />
+          Verification Documents
+        </h2>
+        <p className="text-muted-foreground mt-1">
+          Upload documents to verify your identity and business credentials. Verified providers earn a trust badge.
+        </p>
+      </div>
+
+      {/* Upload Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Upload Document</CardTitle>
+          <CardDescription>Select a document type and upload a file (PDF, JPG, PNG — max 10MB)</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {docTypes.map((dt) => (
+              <button
+                key={dt.value}
+                onClick={() => setSelectedType(dt.value)}
+                className={`p-3 rounded-lg border text-left transition-colors ${
+                  selectedType === dt.value
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:border-primary/50"
+                }`}
+              >
+                <FileText className="h-5 w-5 mb-2 text-muted-foreground" />
+                <p className="text-sm font-medium">{dt.label}</p>
+                <p className="text-xs text-muted-foreground mt-1">{dt.description}</p>
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-3">
+            <label className="cursor-pointer">
+              <input
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                className="hidden"
+                onChange={handleFileUpload}
+                disabled={uploading || uploadDoc.isPending}
+              />
+              <div className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
+                <Upload className="h-4 w-4" />
+                {uploading || uploadDoc.isPending ? "Uploading..." : "Choose File & Upload"}
+              </div>
+            </label>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Existing Documents */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Your Documents</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <p className="text-muted-foreground">Loading...</p>
+          ) : !documents || documents.length === 0 ? (
+            <div className="text-center py-8">
+              <FileCheck className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">No documents uploaded yet</p>
+              <p className="text-sm text-muted-foreground mt-1">Upload your first document above to start the verification process</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {documents.map((doc: any) => (
+                <div key={doc.id} className="flex items-center justify-between p-4 rounded-lg border">
+                  <div className="flex items-center gap-3">
+                    <FileText className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium capitalize">{doc.documentType.replace("_", " ")}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Uploaded {new Date(doc.createdAt).toLocaleDateString()}
+                      </p>
+                      {doc.rejectionReason && doc.verificationStatus === "rejected" && (
+                        <p className="text-xs text-red-600 mt-1">Reason: {doc.rejectionReason}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {getStatusBadge(doc.verificationStatus)}
+                    <a href={doc.documentUrl} target="_blank" rel="noopener noreferrer">
+                      <Button variant="ghost" size="sm">
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ============================================================================
 // MAIN DASHBOARD
 // ============================================================================
 export default function ProviderDashboard() {
@@ -634,6 +794,7 @@ export default function ProviderDashboard() {
             <TabsTrigger value="calendar">Calendar Sync</TabsTrigger>
             <TabsTrigger value="widgets">Embed Widget</TabsTrigger>
             <TabsTrigger value="promo-codes">Promo Codes</TabsTrigger>
+            <TabsTrigger value="verification">Verification</TabsTrigger>
           </TabsList>
 
           {/* Bookings Tab */}
@@ -745,7 +906,7 @@ export default function ProviderDashboard() {
                             Mark Complete
                           </Button>
                         )}
-                        <Link href={`/booking/${booking.id}`}>
+                        <Link href={`/booking/${booking.id}/detail`}>
                           <Button size="sm" variant="ghost">
                             <Eye className="h-4 w-4 mr-1" />
                             View Details
@@ -1229,6 +1390,11 @@ export default function ProviderDashboard() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          {/* Verification Documents Tab */}
+          <TabsContent value="verification" className="space-y-6">
+            <VerificationDocumentsTab />
           </TabsContent>
         </Tabs>
       </div>

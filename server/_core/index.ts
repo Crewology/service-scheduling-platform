@@ -7,6 +7,8 @@ import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -31,6 +33,36 @@ async function startServer() {
   const app = express();
   const server = createServer(app);
   
+  // PRIORITY 2: Security headers via helmet
+  app.use(helmet({
+    contentSecurityPolicy: false, // Managed per-route for widgets
+    crossOriginEmbedderPolicy: false, // Allow embedding resources
+  }));
+
+  // Trust proxy for rate limiting behind reverse proxy
+  app.set("trust proxy", 1);
+
+  // PRIORITY 2: Rate limiting
+  const generalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 300, // 300 requests per 15 min per IP
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many requests, please try again later." },
+    validate: { xForwardedForHeader: false },
+  });
+  const sensitiveLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 30, // 30 requests per 15 min for sensitive endpoints
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many attempts, please try again later." },
+    validate: { xForwardedForHeader: false },
+  });
+  app.use("/api/", generalLimiter);
+  app.use("/api/oauth/", sensitiveLimiter);
+  app.use("/api/export/", sensitiveLimiter);
+
   // Stripe webhook MUST be registered BEFORE express.json() middleware
   // to preserve raw body for signature verification
   const { handleStripeWebhook } = await import("../stripeWebhook");

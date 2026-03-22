@@ -11,6 +11,7 @@ import { adminRouter } from "./adminRouter";
 import { subscriptionRouter } from "./subscriptionRouter";
 import { widgetRouter } from "./widgetRouter";
 import { promoRouter } from "./promoRouter";
+import { verificationRouter } from "./verificationRouter";
 
 // ============================================================================
 // AUTHENTICATION & USER MANAGEMENT
@@ -311,10 +312,44 @@ const serviceRouter = router({
       minPrice: z.number().optional(),
       maxPrice: z.number().optional(),
       sortBy: z.enum(["price", "rating", "distance"]).optional(),
+      location: z.string().optional(),
     }))
     .query(async ({ input }) => {
       const searchTerm = input.query || input.keyword || "";
-      return await db.searchServices(searchTerm);
+      let results = await db.searchServices(searchTerm);
+      
+      // Filter by category
+      if (input.categoryId) {
+        results = results.filter(s => s.categoryId === input.categoryId);
+      }
+      // Filter by price range
+      if (input.minPrice !== undefined) {
+        results = results.filter(s => parseFloat(s.basePrice || "0") >= input.minPrice!);
+      }
+      if (input.maxPrice !== undefined) {
+        results = results.filter(s => parseFloat(s.basePrice || "0") <= input.maxPrice!);
+      }
+      // Filter by location (city/state text match)
+      if (input.location && input.location.trim()) {
+        const loc = input.location.toLowerCase().trim();
+        // We need provider info for location - fetch providers for matching services
+        const providerIds = Array.from(new Set(results.map(s => s.providerId)));
+        const providers = await Promise.all(providerIds.map(id => db.getProviderById(id)));
+        const providerMap = new Map(providers.filter(Boolean).map(p => [p!.id, p!]));
+        results = results.filter(s => {
+          const provider = providerMap.get(s.providerId);
+          if (!provider) return false;
+          const city = (provider.city || "").toLowerCase();
+          const state = (provider.state || "").toLowerCase();
+          const zip = ((provider as any).zipCode || "").toLowerCase();
+          return city.includes(loc) || state.includes(loc) || zip.includes(loc) || loc.includes(city) || loc.includes(state);
+        });
+      }
+      // Sort
+      if (input.sortBy === "price") {
+        results.sort((a, b) => parseFloat(a.basePrice || "0") - parseFloat(b.basePrice || "0"));
+      }
+      return results;
     }),
     
   listMine: protectedProcedure.query(async ({ ctx }) => {
@@ -479,7 +514,26 @@ const bookingRouter = router({
     .mutation(async ({ ctx, input }) => {
       const service = await db.getServiceById(input.serviceId);
       if (!service) throw new TRPCError({ code: "NOT_FOUND", message: "Service not found" });
-      
+
+      // PRIORITY 1: Double-booking prevention — check for time-slot conflicts
+      const providerId = input.providerId || service.providerId;
+      const existingBookings = await db.getBookingsByDateRange(
+        providerId,
+        input.bookingDate,
+        input.bookingDate
+      );
+      const hasConflict = existingBookings.some((b: any) => {
+        if (["cancelled", "refunded", "no_show"].includes(b.status)) return false;
+        // Check time overlap: new start < existing end AND new end > existing start
+        return input.startTime < b.endTime && input.endTime > b.startTime;
+      });
+      if (hasConflict) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "This time slot is no longer available. Another booking already exists for this time. Please choose a different time.",
+        });
+      }
+
       const bookingNumber = `SKL-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
       
       let subtotal = input.subtotal || (service.basePrice ? service.basePrice : "0.00");
@@ -504,7 +558,6 @@ const bookingRouter = router({
             : (parseFloat(totalAmount) * (parseFloat(service.depositPercentage || "0") / 100)).toFixed(2))
         : "0.00");
       const remainingAmount = input.remainingAmount || (parseFloat(totalAmount) - parseFloat(depositAmount)).toFixed(2);
-      const providerId = input.providerId || service.providerId;
       
       const bookingId = await db.createBooking({
         bookingNumber,
@@ -597,6 +650,35 @@ const bookingRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
       }
       return booking;
+    }),
+
+  // Enriched booking detail with customer, service, provider, payment, messages
+  getDetail: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const booking = await db.getBookingById(input.id);
+      if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (booking.customerId !== ctx.user.id && booking.providerId !== provider?.id && ctx.user.role !== "admin") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+      }
+      const [customer, service, providerInfo, payment, messages, review] = await Promise.all([
+        db.getUserById(booking.customerId),
+        booking.serviceId ? db.getServiceById(booking.serviceId) : null,
+        db.getProviderById(booking.providerId),
+        db.getPaymentByBookingId(booking.id),
+        db.getMessagesByBooking(booking.id),
+        db.getReviewByBookingId(booking.id),
+      ]);
+      return {
+        booking,
+        customer: customer ? { id: customer.id, name: customer.name, email: customer.email, phone: customer.phone } : null,
+        service: service ? { id: service.id, name: service.name, categoryId: service.categoryId } : null,
+        provider: providerInfo ? { id: providerInfo.id, businessName: providerInfo.businessName } : null,
+        payment: payment || null,
+        messages: messages || [],
+        review: review || null,
+      };
     }),
     
   myBookings: protectedProcedure
@@ -1166,6 +1248,7 @@ export const appRouter = router({
   admin: adminRouter,
   widget: widgetRouter,
   promo: promoRouter,
+  verification: verificationRouter,
 });
 
 export type AppRouter = typeof appRouter;

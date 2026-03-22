@@ -123,4 +123,39 @@ export const adminRouter = router({
       const provider = await db.getProviderById(input.providerId);
       return provider;
     }),
+
+  // Review Moderation
+  listReviews: adminProcedure
+    .input(z.object({ flaggedOnly: z.boolean().default(false) }).optional())
+    .query(async ({ input }) => {
+      return await db.getAllReviewsForAdmin(input?.flaggedOnly ?? false);
+    }),
+
+  flagReview: adminProcedure
+    .input(z.object({ reviewId: z.number(), reason: z.string() }))
+    .mutation(async ({ input }) => {
+      await db.flagReview(input.reviewId, input.reason);
+      return { success: true };
+    }),
+
+  unflagReview: adminProcedure
+    .input(z.object({ reviewId: z.number() }))
+    .mutation(async ({ input }) => {
+      await db.unflagReview(input.reviewId);
+      return { success: true };
+    }),
+
+  hideReview: adminProcedure
+    .input(z.object({ reviewId: z.number() }))
+    .mutation(async ({ input }) => {
+      await db.hideReview(input.reviewId);
+      return { success: true };
+    }),
+
+  deleteReview: adminProcedure
+    .input(z.object({ reviewId: z.number() }))
+    .mutation(async ({ input }) => {
+      await db.deleteReview(input.reviewId);
+      return { success: true };
+    }),
 });

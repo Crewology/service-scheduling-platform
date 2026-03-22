@@ -159,7 +159,56 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
 
 async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
   console.log("[Stripe] Payment failed:", paymentIntent.id);
-  // TODO: Notify customer of payment failure
+
+  // Find the booking associated with this payment intent
+  const payment = await db.getPaymentByStripePaymentIntentId(paymentIntent.id);
+  if (!payment || !payment.bookingId) {
+    console.log(`[Stripe] No booking found for failed payment_intent: ${paymentIntent.id}`);
+    return;
+  }
+
+  const booking = await db.getBookingById(payment.bookingId);
+  if (!booking) return;
+
+  const customer = await db.getUserById(booking.customerId);
+  const service = await db.getServiceById(booking.serviceId);
+  const provider = await db.getProviderById(booking.providerId);
+
+  // Send payment failure notification to customer via email
+  if (customer?.email) {
+    await sendNotification({
+      type: "payment_failed",
+      channel: "email",
+      recipient: {
+        userId: customer.id,
+        email: customer.email,
+        name: customer.name || "Customer",
+      },
+      data: {
+        bookingId: booking.id,
+        bookingNumber: booking.bookingNumber,
+        serviceName: service?.name || "Service",
+        providerName: provider?.businessName || "Provider",
+        customerName: customer.name || "Customer",
+        amount: booking.totalAmount || "0",
+        paymentUrl: `/booking/${booking.id}`,
+      },
+    });
+    console.log(`[Stripe] Payment failure notification sent to customer ${customer.id} for booking ${booking.bookingNumber}`);
+  }
+
+  // Also create an in-app notification
+  try {
+    await db.createNotification({
+      userId: customer!.id,
+      notificationType: "payment",
+      title: "Payment Failed",
+      message: `Your payment for booking #${booking.bookingNumber} could not be processed. Please try again.`,
+      relatedBookingId: booking.id,
+    });
+  } catch (err) {
+    console.error("[Stripe] Failed to create in-app notification for payment failure:", err);
+  }
 }
 
 async function handleRefund(charge: Stripe.Charge) {

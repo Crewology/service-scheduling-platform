@@ -277,7 +277,7 @@ function BookingCard({ booking, setLocation }: { booking: any; setLocation: (pat
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => setLocation(`/booking/${booking.id}`)}
+              onClick={() => setLocation(`/booking/${booking.id}/detail`)}
             >
               View Details
             </Button>

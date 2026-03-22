@@ -16,6 +16,7 @@ export default function Search() {
   const [categoryId, setCategoryId] = useState<number | undefined>();
   const [priceRange, setPriceRange] = useState([0, 500]);
   const [sortBy, setSortBy] = useState<"price" | "rating" | "distance">("rating");
+  const [location, setLocation] = useState("");
 
   const { data: categories } = trpc.category.list.useQuery();
   const { data: services, isLoading } = trpc.service.search.useQuery({
@@ -24,6 +25,7 @@ export default function Search() {
     minPrice: priceRange[0],
     maxPrice: priceRange[1],
     sortBy,
+    location: location || undefined,
   });
 
   const handleSearch = () => {
@@ -101,6 +103,20 @@ export default function Search() {
                     onValueChange={setPriceRange}
                     className="mt-4"
                   />
+                </div>
+
+                {/* Location Filter */}
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Location</label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="City, state, or zip"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
                 </div>
 
                 {/* Sort By */}

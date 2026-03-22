@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, desc, asc, sql, or, like, inArray, count } from "drizzle-orm";
+import { eq, and, gte, lte, desc, asc, sql, or, like, inArray, count, isNotNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, 
@@ -1757,7 +1757,9 @@ export async function validatePromoCode(code: string, userId: number, serviceId?
   if (!promo.isActive) throw new Error("This promo code is no longer active");
   
   const now = new Date();
-  if (promo.validFrom > now) throw new Error("This promo code is not yet valid");
+  // Add 60s grace period for clock skew between app server and database
+  const gracePeriod = new Date(now.getTime() + 60000);
+  if (promo.validFrom > gracePeriod) throw new Error("This promo code is not yet valid");
   if (promo.validUntil && promo.validUntil < now) throw new Error("This promo code has expired");
   
   if (promo.maxRedemptions && promo.currentRedemptions >= promo.maxRedemptions) {
@@ -1849,4 +1851,189 @@ export async function validatePromoCodeById(promoCodeId: number, serviceId: numb
   
   const discountAmount = calculatePromoDiscount(promo, orderAmount);
   return { valid: true, discountAmount, promo };
+}
+
+
+// ============================================================================
+// VERIFICATION DOCUMENT MANAGEMENT
+// ============================================================================
+
+export async function uploadVerificationDocument(data: {
+  providerId: number;
+  documentType: "identity" | "business_license" | "insurance" | "background_check";
+  documentUrl: string;
+  expirationDate?: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Check if a document of this type already exists for this provider
+  const existing = await db.select()
+    .from(verificationDocuments)
+    .where(and(
+      eq(verificationDocuments.providerId, data.providerId),
+      eq(verificationDocuments.documentType, data.documentType)
+    ));
+  
+  if (existing.length > 0) {
+    // Update existing document
+    await db.update(verificationDocuments)
+      .set({
+        documentUrl: data.documentUrl,
+        verificationStatus: "pending",
+        expirationDate: data.expirationDate,
+        verifiedBy: null,
+        verifiedAt: null,
+        rejectionReason: null,
+      })
+      .where(eq(verificationDocuments.id, existing[0].id));
+    return existing[0].id;
+  }
+  
+  const result = await db.insert(verificationDocuments).values(data);
+  return result[0].insertId;
+}
+
+export async function getProviderDocuments(providerId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select()
+    .from(verificationDocuments)
+    .where(eq(verificationDocuments.providerId, providerId))
+    .orderBy(verificationDocuments.createdAt);
+}
+
+export async function getAllPendingDocuments() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select({
+    document: verificationDocuments,
+    providerName: serviceProviders.businessName,
+    providerSlug: serviceProviders.profileSlug,
+  })
+    .from(verificationDocuments)
+    .innerJoin(serviceProviders, eq(verificationDocuments.providerId, serviceProviders.id))
+    .where(eq(verificationDocuments.verificationStatus, "pending"))
+    .orderBy(verificationDocuments.createdAt);
+}
+
+export async function getAllDocumentsForAdmin(status?: string) {
+  const db = await getDb();
+  if (!db) return [];
+  const conditions = status ? eq(verificationDocuments.verificationStatus, status as any) : undefined;
+  return await db.select({
+    document: verificationDocuments,
+    providerName: serviceProviders.businessName,
+    providerSlug: serviceProviders.profileSlug,
+  })
+    .from(verificationDocuments)
+    .innerJoin(serviceProviders, eq(verificationDocuments.providerId, serviceProviders.id))
+    .where(conditions)
+    .orderBy(desc(verificationDocuments.createdAt));
+}
+
+export async function reviewVerificationDocument(
+  documentId: number,
+  status: "approved" | "rejected",
+  adminUserId: number,
+  rejectionReason?: string,
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(verificationDocuments)
+    .set({
+      verificationStatus: status,
+      verifiedBy: adminUserId,
+      verifiedAt: new Date(),
+      rejectionReason: status === "rejected" ? rejectionReason : null,
+    })
+    .where(eq(verificationDocuments.id, documentId));
+}
+
+export async function getDocumentById(documentId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db.select()
+    .from(verificationDocuments)
+    .where(eq(verificationDocuments.id, documentId));
+  return rows[0];
+}
+
+// ============================================================================
+// REVIEW MODERATION
+// ============================================================================
+
+export async function flagReview(reviewId: number, reason: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(reviews)
+    .set({ isFlagged: true, flaggedReason: reason })
+    .where(eq(reviews.id, reviewId));
+}
+
+export async function unflagReview(reviewId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(reviews)
+    .set({ isFlagged: false, flaggedReason: null })
+    .where(eq(reviews.id, reviewId));
+}
+
+export async function hideReview(reviewId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  // We use isFlagged + flaggedReason "HIDDEN_BY_ADMIN" to mark hidden reviews
+  await db.update(reviews)
+    .set({ isFlagged: true, flaggedReason: "HIDDEN_BY_ADMIN" })
+    .where(eq(reviews.id, reviewId));
+}
+
+export async function deleteReview(reviewId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(reviews).where(eq(reviews.id, reviewId));
+}
+
+export async function getAllReviewsForAdmin(flaggedOnly = false) {
+  const db = await getDb();
+  if (!db) return [];
+  const conditions = flaggedOnly ? eq(reviews.isFlagged, true) : undefined;
+  return await db.select({
+    review: reviews,
+    customerName: users.name,
+    providerName: serviceProviders.businessName,
+  })
+    .from(reviews)
+    .innerJoin(users, eq(reviews.customerId, users.id))
+    .innerJoin(serviceProviders, eq(reviews.providerId, serviceProviders.id))
+    .where(conditions)
+    .orderBy(desc(reviews.createdAt));
+}
+
+// ============================================================================
+// LOCATION-BASED SEARCH
+// ============================================================================
+
+export async function searchProvidersByLocation(lat: number, lng: number, radiusMiles: number, categoryId?: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  // Get all active providers with their services
+  const allProviders = await db.select()
+    .from(serviceProviders)
+    .where(and(
+      eq(serviceProviders.isActive, true),
+      isNotNull(serviceProviders.city),
+    ));
+  
+  // For now, return providers filtered by city/state proximity
+  // In a full implementation, we'd use lat/lng columns and Haversine formula
+  return allProviders;
+}
+
+export async function geocodeProviderAddress(providerId: number, lat: number, lng: number) {
+  // Placeholder: would store lat/lng on provider record
+  // Currently the schema doesn't have lat/lng columns - this is a future enhancement
+  // For now, we rely on city/state filtering
+  return { providerId, lat, lng };
 }

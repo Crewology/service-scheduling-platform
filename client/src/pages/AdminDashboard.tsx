@@ -25,7 +25,17 @@ import {
   Percent,
   UserPlus,
   UserMinus,
+  Star,
+  Flag,
+  Eye,
+  EyeOff,
+  Trash2,
+  FileText,
+  Shield,
 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Link } from "wouter";
 import { formatCurrency, formatDate } from "@/lib/dateUtils";
 import { NavHeader } from "@/components/shared/NavHeader";
@@ -354,6 +364,14 @@ export default function AdminDashboard() {
             <TabsTrigger value="users">Users ({users?.length || 0})</TabsTrigger>
             <TabsTrigger value="providers">Providers ({providers?.length || 0})</TabsTrigger>
             <TabsTrigger value="bookings">Bookings ({bookings?.length || 0})</TabsTrigger>
+            <TabsTrigger value="reviews">
+              <Star className="h-3.5 w-3.5 mr-1" />
+              Reviews
+            </TabsTrigger>
+            <TabsTrigger value="documents">
+              <FileText className="h-3.5 w-3.5 mr-1" />
+              Documents
+            </TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -624,8 +642,288 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Reviews Moderation Tab */}
+          <TabsContent value="reviews">
+            <ReviewModerationPanel />
+          </TabsContent>
+
+          {/* Verification Documents Tab */}
+          <TabsContent value="documents">
+            <DocumentReviewPanel />
+          </TabsContent>
         </Tabs>
       </div>
     </div>
+  );
+}
+
+// ============================================================================
+// REVIEW MODERATION PANEL
+// ============================================================================
+function ReviewModerationPanel() {
+  const [flaggedOnly, setFlaggedOnly] = useState(false);
+  const [flagDialogOpen, setFlagDialogOpen] = useState(false);
+  const [selectedReviewId, setSelectedReviewId] = useState<number | null>(null);
+  const [flagReason, setFlagReason] = useState("");
+  const utils = trpc.useUtils();
+
+  const { data: reviews, isLoading } = trpc.admin.listReviews.useQuery({ flaggedOnly });
+
+  const flagReview = trpc.admin.flagReview.useMutation({
+    onSuccess: () => { toast.success("Review flagged"); utils.admin.listReviews.invalidate(); setFlagDialogOpen(false); setFlagReason(""); },
+    onError: (e) => toast.error(e.message),
+  });
+  const unflagReview = trpc.admin.unflagReview.useMutation({
+    onSuccess: () => { toast.success("Review unflagged"); utils.admin.listReviews.invalidate(); },
+    onError: (e) => toast.error(e.message),
+  });
+  const hideReview = trpc.admin.hideReview.useMutation({
+    onSuccess: () => { toast.success("Review hidden"); utils.admin.listReviews.invalidate(); },
+    onError: (e) => toast.error(e.message),
+  });
+  const deleteReview = trpc.admin.deleteReview.useMutation({
+    onSuccess: () => { toast.success("Review deleted"); utils.admin.listReviews.invalidate(); },
+    onError: (e) => toast.error(e.message),
+  });
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Review Moderation</CardTitle>
+            <CardDescription>Manage and moderate user reviews</CardDescription>
+          </div>
+          <Button
+            variant={flaggedOnly ? "default" : "outline"}
+            size="sm"
+            onClick={() => setFlaggedOnly(!flaggedOnly)}
+          >
+            <Flag className="h-4 w-4 mr-1" />
+            {flaggedOnly ? "Showing Flagged" : "Show Flagged Only"}
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <LoadingSpinner message="Loading reviews..." />
+        ) : !reviews || reviews.length === 0 ? (
+          <p className="text-muted-foreground text-center py-8">{flaggedOnly ? "No flagged reviews" : "No reviews yet"}</p>
+        ) : (
+          <div className="space-y-4">
+            {reviews.map((item: any) => (
+              <div key={item.review.id} className={`p-4 rounded-lg border ${item.review.isFlagged ? 'border-red-200 bg-red-50/50' : ''}`}>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-medium">{item.customerName}</span>
+                      <span className="text-muted-foreground">→</span>
+                      <span className="text-sm text-muted-foreground">{item.providerName}</span>
+                      <div className="flex items-center gap-0.5 ml-2">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star key={i} className={`h-3.5 w-3.5 ${i < item.review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
+                        ))}
+                      </div>
+                      {item.review.isFlagged && (
+                        <Badge variant="destructive" className="text-xs">
+                          {item.review.flaggedReason === "HIDDEN_BY_ADMIN" ? "Hidden" : "Flagged"}
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">{item.review.reviewText || "No text"}</p>
+                    {item.review.flaggedReason && item.review.flaggedReason !== "HIDDEN_BY_ADMIN" && (
+                      <p className="text-xs text-red-600 mt-1">Flag reason: {item.review.flaggedReason}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-1">{new Date(item.review.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {!item.review.isFlagged ? (
+                      <Button size="sm" variant="ghost" onClick={() => { setSelectedReviewId(item.review.id); setFlagDialogOpen(true); }}>
+                        <Flag className="h-4 w-4 text-orange-500" />
+                      </Button>
+                    ) : (
+                      <Button size="sm" variant="ghost" onClick={() => unflagReview.mutate({ reviewId: item.review.id })}>
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                      </Button>
+                    )}
+                    <Button size="sm" variant="ghost" onClick={() => hideReview.mutate({ reviewId: item.review.id })}>
+                      <EyeOff className="h-4 w-4" />
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => {
+                      if (confirm("Permanently delete this review?")) deleteReview.mutate({ reviewId: item.review.id });
+                    }}>
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+
+      {/* Flag Dialog */}
+      <Dialog open={flagDialogOpen} onOpenChange={setFlagDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Flag Review</DialogTitle>
+            <DialogDescription>Provide a reason for flagging this review</DialogDescription>
+          </DialogHeader>
+          <Input
+            placeholder="Reason for flagging..."
+            value={flagReason}
+            onChange={(e) => setFlagReason(e.target.value)}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setFlagDialogOpen(false)}>Cancel</Button>
+            <Button
+              onClick={() => selectedReviewId && flagReview.mutate({ reviewId: selectedReviewId, reason: flagReason })}
+              disabled={!flagReason.trim()}
+            >
+              Flag Review
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </Card>
+  );
+}
+
+// ============================================================================
+// DOCUMENT REVIEW PANEL
+// ============================================================================
+function DocumentReviewPanel() {
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [selectedDocId, setSelectedDocId] = useState<number | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+  const utils = trpc.useUtils();
+
+  const { data: documents, isLoading } = trpc.verification.listAll.useQuery(
+    statusFilter !== "all" ? { status: statusFilter } : undefined
+  );
+
+  const reviewDoc = trpc.verification.review.useMutation({
+    onSuccess: (data) => {
+      toast.success(`Document ${data.status}`);
+      utils.verification.listAll.invalidate();
+      setRejectDialogOpen(false);
+      setRejectReason("");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "approved": return <Badge className="bg-green-100 text-green-800">Approved</Badge>;
+      case "rejected": return <Badge variant="destructive">Rejected</Badge>;
+      default: return <Badge variant="secondary">Pending</Badge>;
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Verification Documents</CardTitle>
+            <CardDescription>Review and approve provider verification documents</CardDescription>
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Filter" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="approved">Approved</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <LoadingSpinner message="Loading documents..." />
+        ) : !documents || documents.length === 0 ? (
+          <p className="text-muted-foreground text-center py-8">No documents found</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Provider</TableHead>
+                <TableHead>Document Type</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Uploaded</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {documents.map((item: any) => (
+                <TableRow key={item.document.id}>
+                  <TableCell className="font-medium">{item.providerName}</TableCell>
+                  <TableCell className="capitalize">{item.document.documentType.replace("_", " ")}</TableCell>
+                  <TableCell>{getStatusBadge(item.document.verificationStatus)}</TableCell>
+                  <TableCell>{new Date(item.document.createdAt).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <a href={item.document.documentUrl} target="_blank" rel="noopener noreferrer">
+                        <Button size="sm" variant="ghost"><Eye className="h-4 w-4" /></Button>
+                      </a>
+                      {item.document.verificationStatus === "pending" && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => reviewDoc.mutate({ documentId: item.document.id, status: "approved" })}
+                            disabled={reviewDoc.isPending}
+                          >
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => { setSelectedDocId(item.document.id); setRejectDialogOpen(true); }}
+                            disabled={reviewDoc.isPending}
+                          >
+                            <XCircle className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+
+      {/* Reject Dialog */}
+      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject Document</DialogTitle>
+            <DialogDescription>Provide a reason for rejection</DialogDescription>
+          </DialogHeader>
+          <Input
+            placeholder="Reason for rejection..."
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              onClick={() => selectedDocId && reviewDoc.mutate({ documentId: selectedDocId, status: "rejected", rejectionReason: rejectReason })}
+              disabled={!rejectReason.trim()}
+            >
+              Reject
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </Card>
   );
 }
