@@ -9,6 +9,7 @@ import { stripeRouter } from "./stripeRouter";
 import { stripeConnectRouter } from "./stripeConnectRouter";
 import { adminRouter } from "./adminRouter";
 import { subscriptionRouter } from "./subscriptionRouter";
+import { widgetRouter } from "./widgetRouter";
 
 // ============================================================================
 // AUTHENTICATION & USER MANAGEMENT
@@ -1107,6 +1108,7 @@ export const appRouter = router({
   stripeConnect: stripeConnectRouter,
   subscription: subscriptionRouter,
   admin: adminRouter,
+  widget: widgetRouter,
 });
 
 export type AppRouter = typeof appRouter;

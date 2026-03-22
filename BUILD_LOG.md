@@ -883,3 +883,55 @@ Added `notification_preferences` table with 17 columns:
 - Notification list filtering
 
 **Total test count:** 181 tests passing across 11 test files.
+
+
+---
+
+## Phase 13: Logo, Domain, and Embeddable Booking Widgets
+
+### Platform Rename: SkillLink → OlogyCrew
+- Renamed all references across 20+ files (frontend, server, templates, tests, docs, seed data)
+- Updated VITE_APP_TITLE secret
+
+### OlogyCrew Logo Integration
+- Generated professional logo (icon + wordmark variants)
+- NavHeader displays logo image when VITE_APP_LOGO is set
+- Email templates include logo in header branding
+
+### Embeddable Booking Widget System
+
+**Architecture:**
+
+| Component | Path | Purpose |
+|---|---|---|
+| Widget Router | `server/widgetRouter.ts` | 6 public endpoints (no auth) |
+| Embed Page | `client/src/pages/EmbedBooking.tsx` | Lightweight booking calendar for iframes |
+| Widget Generator | `client/src/pages/WidgetGenerator.tsx` | Customization tool for providers |
+| CORS Middleware | `server/_core/index.ts` | Cross-origin iframe embedding support |
+
+**Widget Router Endpoints (all public, no auth required):**
+- `widget.getProviderInfo` — provider header info
+- `widget.getProviderServices` — active services list
+- `widget.getService` — single service + provider info
+- `widget.getAvailability` — weekly schedule + overrides
+- `widget.getBookedSlots` — existing bookings for conflict checking
+- `widget.getWidgetConfig` — widget configuration metadata
+
+**Embed Routes:**
+- `/embed/book/:serviceId` — direct booking for a specific service
+- `/embed/provider/:providerId` — all services with a service picker
+
+**Widget Generator Features:**
+- 2 widget types: All Services (provider) or Single Service
+- 3 embed modes: Inline iframe, Popup button, Direct link
+- Customization: accent color, width, height, border radius, hide header toggle
+- Live preview with real-time updates
+- One-click copy for all embed codes
+- Quick tips for WordPress, Squarespace, Wix, and social media
+
+**Provider Dashboard Integration:**
+- New "Embed Widget" tab in provider dashboard
+- Quick copy URL for provider widget
+- Link to full widget generator page
+
+**Total test count:** 197 tests passing across 13 test files.

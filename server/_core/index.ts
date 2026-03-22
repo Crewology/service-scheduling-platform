@@ -36,6 +36,20 @@ async function startServer() {
   const { handleStripeWebhook } = await import("../stripeWebhook");
   app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), handleStripeWebhook);
   
+  // Allow embedding in iframes for widget routes
+  app.use((req, res, next) => {
+    // Allow cross-origin framing for embed/widget pages and their API calls
+    if (req.path.startsWith('/embed') || req.path.startsWith('/api/trpc/widget')) {
+      res.setHeader('X-Frame-Options', 'ALLOWALL');
+      res.removeHeader('X-Frame-Options');
+      res.setHeader('Content-Security-Policy', "frame-ancestors *");
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    }
+    next();
+  });
+
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));

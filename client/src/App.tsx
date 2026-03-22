@@ -26,6 +26,8 @@ import Notifications from "./pages/Notifications";
 import NotificationSettings from "./pages/NotificationSettings";
 import Unsubscribe from "./pages/Unsubscribe";
 import { DevToolsPanel } from "./components/DevToolsPanel";
+import EmbedBooking from "./pages/EmbedBooking";
+import WidgetGenerator from "./pages/WidgetGenerator";
 
 function Router() {
   return (
@@ -51,6 +53,9 @@ function Router() {
       <Route path="/notifications" component={Notifications} />
       <Route path="/notification-settings" component={NotificationSettings} />
       <Route path="/unsubscribe/:token" component={Unsubscribe} />
+      <Route path="/embed/book/:serviceId" component={EmbedBooking} />
+      <Route path="/embed/provider/:providerId" component={EmbedBooking} />
+      <Route path="/provider/widgets" component={WidgetGenerator} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

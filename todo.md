@@ -517,3 +517,32 @@
 - [x] Rename in seed data (seed-data.mjs)
 - [x] Update VITE_APP_TITLE secret
 - [x] Verify TypeScript compiles and all tests pass
+
+## Phase 13: Logo, Domain, and Embeddable Booking Widgets
+
+### OlogyCrew Logo
+- [x] Generate professional OlogyCrew logo (icon + wordmark)
+- [x] Upload logo and set as VITE_APP_LOGO (user sets in Settings)
+- [x] Update NavHeader to display logo image when VITE_APP_LOGO is set
+- [x] Update email templates to include logo in header
+
+### Domain Configuration
+- [ ] Guide user to update domain prefix in Settings → Domains
+
+### Embeddable Booking Widgets
+- [x] Design widget architecture (iframe-based embed)
+- [x] Create public widget endpoints (/embed/book/:serviceId, /embed/provider/:providerId)
+- [x] Build lightweight embeddable booking calendar component (EmbedBooking.tsx)
+- [x] Implement widget customization options (accent color, width, height, border radius, hide header)
+- [x] Create widget code generator page (/provider/widgets)
+- [x] Add "Embed Widget" tab to provider dashboard
+- [x] Add live preview functionality in widget generator
+- [x] Implement CORS and X-Frame-Options for cross-origin iframe embedding
+- [x] Support 3 embed modes: inline iframe, popup button, direct link
+- [x] Add quick tips for WordPress, Squarespace, Wix, social media
+- [ ] Add analytics tracking for embedded bookings (future)
+
+### Testing
+- [x] Write tests for widget router public endpoints (12 tests)
+- [x] Verify all widget endpoints work without authentication
+- [x] 12 new Phase 13 tests (197 total passing across 13 test files)

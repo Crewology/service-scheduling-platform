@@ -210,8 +210,16 @@ export function NavHeader() {
       <div className="container">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="text-2xl font-bold gradient-text">
-            OlogyCrew
+          <Link href="/" className="flex items-center gap-2">
+            {import.meta.env.VITE_APP_LOGO ? (
+              <img
+                src={import.meta.env.VITE_APP_LOGO}
+                alt="OlogyCrew"
+                className="h-10 object-contain"
+              />
+            ) : (
+              <span className="text-2xl font-bold gradient-text">OlogyCrew</span>
+            )}
           </Link>
 
           {/* Desktop Nav */}

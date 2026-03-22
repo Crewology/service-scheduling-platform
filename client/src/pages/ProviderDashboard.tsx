@@ -30,6 +30,7 @@ import {
   AlertCircle,
   Image as ImageIcon,
   Crown,
+  Code2,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
@@ -615,6 +616,7 @@ export default function ProviderDashboard() {
             <TabsTrigger value="earnings">Earnings</TabsTrigger>
             <TabsTrigger value="payments">Payments</TabsTrigger>
             <TabsTrigger value="public-profile">My Page</TabsTrigger>
+            <TabsTrigger value="widgets">Embed Widget</TabsTrigger>
           </TabsList>
 
           {/* Bookings Tab */}
@@ -957,6 +959,54 @@ export default function ProviderDashboard() {
           {/* Public Profile Tab */}
           <TabsContent value="public-profile" className="space-y-6">
             <PublicProfileSection provider={provider} />
+          </TabsContent>
+
+          {/* Embed Widget Tab */}
+          <TabsContent value="widgets" className="space-y-6">
+            <div className="space-y-4">
+              <div>
+                <h2 className="text-2xl font-bold">Embed Booking Widget</h2>
+                <p className="text-muted-foreground mt-1">Add a booking calendar to your website so clients can book directly</p>
+              </div>
+              <Card>
+                <CardContent className="py-8 text-center space-y-4">
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                    <Code2 className="w-8 h-8 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold">Get Your Embed Code</h3>
+                    <p className="text-sm text-muted-foreground max-w-md mx-auto mt-2">
+                      Generate a customizable booking widget you can embed on your website, share on social media, or add to your email signature.
+                    </p>
+                  </div>
+                  <Link href="/provider/widgets">
+                    <Button size="lg">
+                      <Code2 className="w-4 h-4 mr-2" />
+                      Open Widget Generator
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Quick Links</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                    <div>
+                      <p className="text-sm font-medium">All Services Widget</p>
+                      <p className="text-xs text-muted-foreground">Shows all your services with a picker</p>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/embed/provider/${provider.id}`);
+                      toast.success("Widget URL copied!");
+                    }}>
+                      <Copy className="w-3 h-3 mr-1" /> Copy URL
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
