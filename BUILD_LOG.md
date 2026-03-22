@@ -12,14 +12,14 @@ This document provides a complete, chronological record of every phase of the Ol
 | **Stack** | React 19 + Tailwind 4 + Express 4 + tRPC 11 + Drizzle ORM + MySQL (TiDB) |
 | **Auth** | Manus OAuth (session cookie) |
 | **Payments** | Stripe Connect (destination charges) — providers receive payments directly, platform takes 1% fee |
-| **Notifications** | Email via Manus Forge API, SMS stub ready |
+| **Notifications** | Email via Resend, SMS via Twilio (+18446513794), In-app notifications |
 | **Hosting** | Manus built-in hosting with custom domain support |
 | **Total Source Files** | 131 (excluding node_modules and test files) |
 | **Total Lines of Code** | ~20,386 |
-| **Test Files** | 10 files, 154 tests (all passing) |
-| **Database Tables** | 15 (including providerSubscriptions) |
+| **Test Files** | 15 files, 241 tests (all passing) |
+| **Database Tables** | 17 (including providerSubscriptions, promoCodes, promoRedemptions) |
 | **Frontend Pages** | 21 (added ProviderOnboarding, SubscriptionAnalytics panel) |
-| **tRPC Routers** | 14 (auth, provider, category, service, booking, review, message, notification, availability, stripe, stripeConnect, subscription, admin, system) |
+| **tRPC Routers** | 15 (auth, provider, category, service, booking, review, message, notification, availability, stripe, stripeConnect, subscription, admin, system, promo) |
 | **Background Services** | 1 (Reminder Service — runs every 15 minutes) |
 
 ---
@@ -989,3 +989,82 @@ Added `notification_preferences` table with 17 columns:
 ### Test Results
 - 20 new tests in `server/phase14.test.ts`
 - **217 total tests passing across 14 test files**
+
+---
+
+## Phase 15: Booking Export, Calendar Sync, Promo Code System
+
+**Objective:** Complete the customer acquisition toolkit by adding booking history exports (CSV/PDF), provider calendar sync (iCal feeds), and a full promo code system with customer-facing integration.
+
+### Customer Booking History Export
+
+- Created Express REST endpoints for CSV and PDF export of customer booking history
+- CSV export includes booking number, date, service name, provider, amount, status
+- PDF export generates a formatted document with booking details
+- Both endpoints support date range filtering
+- Export buttons added to the My Bookings page
+
+### Provider Calendar Sync (iCal Feed)
+
+- Created RFC 5545 compliant iCal feed generation for providers
+- Each provider gets a unique calendar feed URL accessible without authentication
+- Compatible with Google Calendar, Apple Calendar, and Outlook
+- Calendar events include booking details, customer info, and service information
+- Events auto-update when booking status changes
+
+### Promo Code System — Complete Implementation
+
+#### Database Schema
+- `promo_codes` table: code, description, discountType (percentage/fixed), discountValue, minOrderAmount, maxDiscountAmount, maxRedemptions, currentRedemptions, maxRedemptionsPerUser, validFrom, validUntil, isActive, appliesToAllServices, serviceIds (JSON), codeType (promo/referral), providerId
+- `promo_redemptions` table: promoCodeId, userId, bookingId, discountAmount, redeemedAt
+
+#### Provider Management (CRUD)
+- `promo.create` — Create promo codes with validation (duplicate check, percentage cap at 100%)
+- `promo.list` — List all promo codes for the authenticated provider
+- `promo.update` — Update description, limits, expiration, active status
+- `promo.delete` — Delete a promo code
+- `promo.getRedemptions` — View redemption history for a specific code
+- Provider Dashboard "Promo Codes" tab with full CRUD UI
+
+#### Customer-Facing Integration
+- `promo.validate` — Real-time promo code validation with discount calculation
+- Promo code input field added to ServiceDetail.tsx booking flow (Step 4: Confirm & Pay)
+- Uppercase auto-conversion for code input
+- Enter key support for quick validation
+- Applied promo code displays with green success badge showing savings
+- Remove button to clear applied promo code
+- Pricing summary dynamically updates to show:
+  - Original service price
+  - Promo discount line (green, with tag icon)
+  - Updated total after discount
+  - "You save $X.XX!" message
+
+#### Discount Engine
+- Percentage discounts (e.g., 15% off)
+- Fixed amount discounts (e.g., $10 off)
+- Minimum order amount threshold
+- Maximum discount amount cap
+- Discount capped at order amount (never negative)
+- Service-specific restrictions (optional)
+
+#### Booking Integration
+- `booking.create` accepts optional `promoCodeId` parameter
+- Server-side re-validation of promo code during booking creation
+- Discount applied to subtotal before platform fee calculation
+- Promo redemption recorded in `promo_redemptions` table
+- Usage counter incremented on the promo code
+- Stripe checkout session uses discounted `totalAmount` from booking record
+
+### Files Changed
+- `server/db.ts` — Fixed TypeScript errors (database → db variable), added redeemPromoCode, validatePromoCodeById, calculatePromoDiscount, and other promo helpers
+- `server/promoRouter.ts` — Full promo code router with create, list, update, delete, validate, redeem procedures
+- `server/routers.ts` — Updated booking.create to accept promoCodeId and apply discounts
+- `client/src/pages/ServiceDetail.tsx` — Added promo code input UI, validation, discount display in confirm step
+- `client/src/pages/provider/PromoCodes.tsx` — Provider promo code management UI
+- `drizzle/schema.ts` — promoCodes and promoRedemptions tables
+- `server/express-routes.ts` — CSV/PDF export endpoints, iCal feed endpoint
+
+### Test Results
+- 24 new tests in `server/phase15.test.ts`
+- Tests cover: CRUD operations (8), validation (4), discount calculation (6), booking integration (2), service-specific codes (3), deletion (1)
+- **241 total tests passing across 15 test files**

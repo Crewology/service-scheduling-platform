@@ -582,3 +582,42 @@
 - [x] Write tests for refund calculation logic (3 tests)
 - [x] Write tests for admin booking source analytics (1 test)
 - [x] 20 new Phase 14 tests (217 total passing across 14 test files)
+
+## Phase 15: Booking Export, Google Calendar Sync, Promo Codes
+
+### Customer Booking History Export
+- [x] Create server endpoint to generate CSV export of booking history
+- [x] Create server endpoint to generate PDF export of booking history
+- [x] Add export buttons (CSV/PDF) to My Bookings page
+- [x] Include booking number, date, service, provider, amount, status in exports
+- [x] Add date range filter for exports
+
+### Provider Google Calendar Sync
+- [x] Create iCal feed URL for providers to subscribe in any calendar app
+- [x] iCal feed compatible with Google Calendar, Apple Calendar, Outlook
+- [x] Auto-update calendar events when booking status changes
+- [ ] Create Google Calendar direct API integration (future enhancement)
+- [ ] Add calendar sync toggle in provider dashboard settings
+
+### Referral/Promo Code System
+- [x] Add promoCodes and promoRedemptions tables to database schema
+- [x] Create promo code CRUD procedures for providers (create, list, update, delete)
+- [x] Build promo code management UI in provider dashboard
+- [x] Add promo code input field to booking flow (ServiceDetail.tsx confirm step)
+- [x] Real-time promo code validation with discount preview
+- [x] Display applied discount in booking summary before payment
+- [x] Validate and apply discount during checkout (Stripe amount reflects discount)
+- [x] Track promo code usage and analytics (redemptions table, usage counter)
+- [x] Support percentage and fixed amount discount types
+- [x] Add usage limits (max redemptions, per-user limits) and expiration dates
+- [x] Service-specific promo codes (restrict to specific services)
+- [x] Min order amount and max discount amount caps
+
+### Testing
+- [x] Write tests for promo code CRUD (create, list, update, delete, duplicate rejection) - 8 tests
+- [x] Write tests for promo code validation (valid, invalid, expired codes) - 4 tests
+- [x] Write tests for discount calculation logic (percentage, fixed, caps, min order) - 6 tests
+- [x] Write tests for promo code booking integration (with/without promo) - 2 tests
+- [x] Write tests for service-specific promo codes - 3 tests
+- [x] Write tests for promo code deletion - 1 test
+- [x] 24 new Phase 15 tests (241 total passing across 15 test files)

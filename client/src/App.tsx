@@ -28,6 +28,7 @@ import Unsubscribe from "./pages/Unsubscribe";
 import { DevToolsPanel } from "./components/DevToolsPanel";
 import EmbedBooking from "./pages/EmbedBooking";
 import WidgetGenerator from "./pages/WidgetGenerator";
+import PromoCodes from "./pages/PromoCodes";
 
 function Router() {
   return (
@@ -56,6 +57,7 @@ function Router() {
       <Route path="/embed/book/:serviceId" component={EmbedBooking} />
       <Route path="/embed/provider/:providerId" component={EmbedBooking} />
       <Route path="/provider/widgets" component={WidgetGenerator} />
+      <Route path="/provider/promo-codes" component={PromoCodes} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

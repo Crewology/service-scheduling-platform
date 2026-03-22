@@ -10,6 +10,7 @@ import { stripeConnectRouter } from "./stripeConnectRouter";
 import { adminRouter } from "./adminRouter";
 import { subscriptionRouter } from "./subscriptionRouter";
 import { widgetRouter } from "./widgetRouter";
+import { promoRouter } from "./promoRouter";
 
 // ============================================================================
 // AUTHENTICATION & USER MANAGEMENT
@@ -185,6 +186,23 @@ const providerRouter = router({
     .input(z.object({ providerId: z.number() }))
     .query(async ({ input }) => {
       return await db.getServicesByProvider(input.providerId);
+    }),
+
+  // Calendar sync
+  getCalendarFeedUrl: protectedProcedure
+    .query(async ({ ctx }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+      const { generateCalendarToken } = await import("./calendarFeed");
+      const token = generateCalendarToken(provider.id);
+      const origin = ctx.req.headers.origin || ctx.req.headers.host || "";
+      const protocol = ctx.req.headers["x-forwarded-proto"] || "https";
+      const baseUrl = origin.startsWith("http") ? origin : `${protocol}://${origin}`;
+      return {
+        feedUrl: `${baseUrl}/api/calendar/${token}/feed.ics`,
+        googleCalUrl: `https://calendar.google.com/calendar/r?cid=webcal://${(origin.startsWith("http") ? origin.replace(/^https?:\/\//, "") : origin)}/api/calendar/${token}/feed.ics`,
+        token,
+      };
     }),
 });
 
@@ -427,6 +445,7 @@ const serviceRouter = router({
       await db.setServicePrimaryPhoto(input.serviceId, input.photoId);
       return { success: true };
     }),
+
 });
 
 // ============================================================================
@@ -450,6 +469,7 @@ const bookingRouter = router({
       servicePostalCode: z.string().optional(),
       customerNotes: z.string().optional(),
       bookingSource: z.enum(["direct", "embed_widget", "provider_page", "api"]).default("direct"),
+      promoCodeId: z.number().optional(),
       subtotal: z.string().optional(),
       platformFee: z.string().optional(),
       totalAmount: z.string().optional(),
@@ -462,8 +482,20 @@ const bookingRouter = router({
       
       const bookingNumber = `SKL-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
       
-      const subtotal = input.subtotal || (service.basePrice ? service.basePrice : "0.00");
-      const subtotalNum = parseFloat(subtotal);
+      let subtotal = input.subtotal || (service.basePrice ? service.basePrice : "0.00");
+      let subtotalNum = parseFloat(subtotal);
+
+      // Apply promo code discount if provided
+      let promoDiscount = 0;
+      if (input.promoCodeId) {
+        const promoResult = await db.validatePromoCodeById(input.promoCodeId, input.serviceId, subtotalNum);
+        if (promoResult && promoResult.valid) {
+          promoDiscount = promoResult.discountAmount;
+          subtotalNum = Math.max(0, subtotalNum - promoDiscount);
+          subtotal = subtotalNum.toFixed(2);
+        }
+      }
+
       const platformFee = input.platformFee || (subtotalNum * 0.01).toFixed(2);
       const totalAmount = input.totalAmount || (subtotalNum + parseFloat(platformFee)).toFixed(2);
       const depositAmount = input.depositAmount || (service.depositRequired 
@@ -501,6 +533,15 @@ const bookingRouter = router({
       
       const booking = await db.getBookingById(bookingId);
       if (!booking) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to retrieve created booking" });
+
+      // Record promo code redemption
+      if (input.promoCodeId && promoDiscount > 0) {
+        try {
+          await db.redeemPromoCode(input.promoCodeId, ctx.user.id, bookingId, promoDiscount);
+        } catch (e) {
+          console.error("[Booking] Failed to record promo redemption:", e);
+        }
+      }
 
       // Send booking created notification to provider
       try {
@@ -1124,6 +1165,7 @@ export const appRouter = router({
   subscription: subscriptionRouter,
   admin: adminRouter,
   widget: widgetRouter,
+  promo: promoRouter,
 });
 
 export type AppRouter = typeof appRouter;

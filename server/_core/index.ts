@@ -53,6 +53,17 @@ async function startServer() {
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
+  // Booking export routes (CSV/PDF)
+  const cookieParser = await import("cookie-parser");
+  app.use(cookieParser.default());
+  const { handleCSVExport, handlePDFExport } = await import("../bookingExport");
+  app.get("/api/export/bookings/csv", handleCSVExport);
+  app.get("/api/export/bookings/pdf", handlePDFExport);
+
+  // Calendar feed route (iCal)
+  const { handleCalendarFeed } = await import("../calendarFeed");
+  app.get("/api/calendar/:token/feed.ics", handleCalendarFeed);
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
   // tRPC API

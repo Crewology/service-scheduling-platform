@@ -12,7 +12,7 @@ import { useLocation, useParams, Link } from "wouter";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
 import { Calendar } from "@/components/ui/calendar";
-import { MapPin, Clock, DollarSign, Star, ChevronRight, CheckCircle2, ArrowLeft, Info, Image as ImageIcon } from "lucide-react";
+import { MapPin, Clock, DollarSign, Star, ChevronRight, CheckCircle2, ArrowLeft, Info, Image as ImageIcon, Tag, X, Loader2 } from "lucide-react";
 import { generateTimeSlots, formatTimeForDisplay, type TimeSlot } from "@shared/timeSlots";
 import { ReviewList } from "@/components/shared/ReviewList";
 import { NavHeader } from "@/components/shared/NavHeader";
@@ -202,6 +202,8 @@ export default function ServiceDetail() {
     }
   }, [selectedDate]);
   
+  const utils = trpc.useUtils();
+
   const createBooking = trpc.booking.create.useMutation({
     onSuccess: (data) => {
       toast.success("Booking created successfully!");
@@ -240,6 +242,61 @@ export default function ServiceDetail() {
     notes: "",
   });
 
+  // Promo code state
+  const [promoCode, setPromoCode] = useState("");
+  const [promoApplied, setPromoApplied] = useState<{
+    valid: boolean;
+    promoCodeId: number | null;
+    code: string;
+    discountAmount: number;
+    finalAmount: number;
+    description: string | null;
+  } | null>(null);
+
+  const getNumericPrice = () => {
+    if (!service) return 0;
+    if (service.pricingModel === "fixed" && service.basePrice) return parseFloat(service.basePrice);
+    if (service.pricingModel === "hourly" && service.hourlyRate) return parseFloat(service.hourlyRate);
+    return 0;
+  };
+
+  const [promoValidating, setPromoValidating] = useState(false);
+
+  const handleApplyPromo = async () => {
+    if (!promoCode.trim()) {
+      toast.error("Please enter a promo code");
+      return;
+    }
+    if (!service) return;
+    setPromoValidating(true);
+    try {
+      const result = await utils.promo.validate.fetch({
+        code: promoCode.trim().toUpperCase(),
+        serviceId: service.id,
+        orderAmount: getNumericPrice(),
+      });
+      if (result) {
+        setPromoApplied(result as any);
+        if (result.valid) {
+          toast.success(`Promo code applied! You save $${result.discountAmount.toFixed(2)}`);
+        } else {
+          toast.error((result as any).error || "Invalid promo code");
+          setPromoApplied(null);
+        }
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to validate promo code");
+      setPromoApplied(null);
+    } finally {
+      setPromoValidating(false);
+    }
+  };
+
+  const handleRemovePromo = () => {
+    setPromoCode("");
+    setPromoApplied(null);
+  };
+
   const handleBooking = () => {
     if (!isAuthenticated) {
       window.location.href = getLoginUrl();
@@ -270,6 +327,7 @@ export default function ServiceDetail() {
         service.serviceType === "mobile" ? bookingForm.postalCode : undefined,
       customerNotes: bookingForm.notes || undefined,
       bookingSource: "direct",
+      promoCodeId: promoApplied?.valid ? promoApplied.promoCodeId ?? undefined : undefined,
     });
   };
 
@@ -802,12 +860,76 @@ export default function ServiceDetail() {
                         )}
                       </div>
 
+                      {/* Promo Code Input */}
+                      <div className="border rounded-lg p-4 space-y-3">
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                          <Tag className="h-4 w-4 text-primary" />
+                          <span>Have a promo code?</span>
+                        </div>
+                        {promoApplied?.valid ? (
+                          <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-3">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle2 className="h-4 w-4 text-green-600" />
+                              <div>
+                                <p className="text-sm font-medium text-green-800">
+                                  {promoApplied.code}
+                                </p>
+                                <p className="text-xs text-green-600">
+                                  {promoApplied.description || `You save $${promoApplied.discountAmount.toFixed(2)}`}
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleRemovePromo}
+                              className="h-7 w-7 p-0 text-green-700 hover:text-red-600 hover:bg-red-50"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="Enter code"
+                              value={promoCode}
+                              onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                              onKeyDown={(e) => e.key === "Enter" && handleApplyPromo()}
+                              className="flex-1 uppercase text-sm h-9"
+                              disabled={promoValidating}
+                            />
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleApplyPromo}
+                              disabled={promoValidating || !promoCode.trim()}
+                              className="h-9 px-4"
+                            >
+                              {promoValidating ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                "Apply"
+                              )}
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+
                       {/* Pricing */}
                       <div className="border rounded-lg p-4 space-y-2">
                         <div className="flex justify-between text-sm">
                           <span>Service Price</span>
                           <span className="font-medium">{getPrice()}</span>
                         </div>
+                        {promoApplied?.valid && promoApplied.discountAmount > 0 && (
+                          <div className="flex justify-between text-sm text-green-700">
+                            <span className="flex items-center gap-1">
+                              <Tag className="h-3 w-3" />
+                              Promo Discount
+                            </span>
+                            <span className="font-medium">-${promoApplied.discountAmount.toFixed(2)}</span>
+                          </div>
+                        )}
                         {service.depositRequired && (
                           <div className="flex justify-between text-sm text-amber-700">
                             <span>Deposit Due Now</span>
@@ -821,8 +943,17 @@ export default function ServiceDetail() {
                         <Separator />
                         <div className="flex justify-between font-semibold">
                           <span>Total</span>
-                          <span>{getPrice()}</span>
+                          <span>
+                            {promoApplied?.valid && promoApplied.discountAmount > 0
+                              ? `$${promoApplied.finalAmount.toFixed(2)}`
+                              : getPrice()}
+                          </span>
                         </div>
+                        {promoApplied?.valid && promoApplied.discountAmount > 0 && (
+                          <p className="text-xs text-green-600 text-right">
+                            You save ${promoApplied.discountAmount.toFixed(2)}!
+                          </p>
+                        )}
                       </div>
                     </div>
 

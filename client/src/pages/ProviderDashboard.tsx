@@ -38,6 +38,9 @@ import {
   ArrowDownRight,
   Globe,
   Smartphone,
+  CalendarPlus,
+  Clipboard,
+  Tag,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
@@ -628,7 +631,9 @@ export default function ProviderDashboard() {
             <TabsTrigger value="payments">Payments</TabsTrigger>
             <TabsTrigger value="public-profile">My Page</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="calendar">Calendar Sync</TabsTrigger>
             <TabsTrigger value="widgets">Embed Widget</TabsTrigger>
+            <TabsTrigger value="promo-codes">Promo Codes</TabsTrigger>
           </TabsList>
 
           {/* Bookings Tab */}
@@ -1149,6 +1154,11 @@ export default function ProviderDashboard() {
             </Card>
           </TabsContent>
 
+          {/* Calendar Sync Tab */}
+          <TabsContent value="calendar" className="space-y-6">
+            <CalendarSyncSection />
+          </TabsContent>
+
           {/* Embed Widget Tab */}
           <TabsContent value="widgets" className="space-y-6">
             <div className="space-y-4">
@@ -1192,6 +1202,30 @@ export default function ProviderDashboard() {
                       <Copy className="w-3 h-3 mr-1" /> Copy URL
                     </Button>
                   </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Promo Codes Tab */}
+          <TabsContent value="promo-codes" className="space-y-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold">Promo & Referral Codes</h2>
+                  <p className="text-muted-foreground mt-1">Create discount codes to attract new customers and reward loyal clients</p>
+                </div>
+                <Link href="/provider/promo-codes">
+                  <Button>
+                    <Tag className="h-4 w-4 mr-2" />
+                    Manage Promo Codes
+                  </Button>
+                </Link>
+              </div>
+              <Card>
+                <CardContent className="py-6 text-center">
+                  <Tag className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-muted-foreground">Create and manage promo codes from the dedicated page</p>
                 </CardContent>
               </Card>
             </div>
@@ -1340,6 +1374,162 @@ export default function ProviderDashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+
+// ============================================================================
+// CALENDAR SYNC SECTION
+// ============================================================================
+
+function CalendarSyncSection() {
+  const { data: calendarData, isLoading } = trpc.provider.getCalendarFeedUrl.useQuery();
+  const [copied, setCopied] = useState(false);
+
+  const copyFeedUrl = () => {
+    if (calendarData?.feedUrl) {
+      navigator.clipboard.writeText(calendarData.feedUrl);
+      setCopied(true);
+      toast.success("Calendar feed URL copied!");
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <p className="text-muted-foreground">Loading calendar settings...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold">Calendar Sync</h2>
+        <p className="text-muted-foreground mt-1">
+          Sync your OlogyCrew bookings with Google Calendar, Apple Calendar, or Outlook to avoid double-bookings
+        </p>
+      </div>
+
+      {/* Feed URL Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CalendarPlus className="h-5 w-5 text-primary" />
+            Your Calendar Feed URL
+          </CardTitle>
+          <CardDescription>
+            Subscribe to this URL in any calendar app to automatically sync your bookings
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Input
+              readOnly
+              value={calendarData?.feedUrl || ""}
+              className="font-mono text-xs"
+            />
+            <Button variant="outline" size="icon" onClick={copyFeedUrl}>
+              <Clipboard className={`h-4 w-4 ${copied ? "text-green-500" : ""}`} />
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            This URL is private — only share it with calendar apps you trust. It includes all your confirmed, pending, and completed bookings.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Setup Instructions */}
+      <div className="grid md:grid-cols-3 gap-4">
+        {/* Google Calendar */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                <Calendar className="h-4 w-4 text-blue-600" />
+              </div>
+              Google Calendar
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
+              <li>Open Google Calendar</li>
+              <li>Click "+" next to "Other calendars"</li>
+              <li>Select "From URL"</li>
+              <li>Paste your feed URL</li>
+              <li>Click "Add calendar"</li>
+            </ol>
+            {calendarData?.googleCalUrl && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => window.open(calendarData.googleCalUrl, "_blank")}
+              >
+                <ExternalLink className="h-3 w-3 mr-2" />
+                Add to Google Calendar
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Apple Calendar */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <Calendar className="h-4 w-4 text-gray-600" />
+              </div>
+              Apple Calendar
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
+              <li>Open Calendar app</li>
+              <li>Go to File → New Calendar Subscription</li>
+              <li>Paste your feed URL</li>
+              <li>Set auto-refresh to "Every 15 minutes"</li>
+              <li>Click "Subscribe"</li>
+            </ol>
+          </CardContent>
+        </Card>
+
+        {/* Outlook */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
+                <Calendar className="h-4 w-4 text-indigo-600" />
+              </div>
+              Outlook
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
+              <li>Open Outlook Calendar</li>
+              <li>Click "Add calendar"</li>
+              <li>Select "Subscribe from web"</li>
+              <li>Paste your feed URL</li>
+              <li>Click "Import"</li>
+            </ol>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Info Card */}
+      <Card className="bg-muted/50 border-dashed">
+        <CardContent className="py-4">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-muted-foreground mt-0.5 shrink-0" />
+            <div className="text-sm text-muted-foreground space-y-1">
+              <p><strong>How it works:</strong> Your calendar app will periodically check this URL for updates (usually every 15-60 minutes depending on the app).</p>
+              <p>New bookings, cancellations, and status changes will automatically appear in your synced calendar. Each booking includes the service name, customer name, location, and amount.</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

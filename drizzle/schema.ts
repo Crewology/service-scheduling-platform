@@ -431,3 +431,57 @@ export const notificationPreferences = mysqlTable("notification_preferences", {
 
 export type NotificationPreference = typeof notificationPreferences.$inferSelect;
 export type InsertNotificationPreference = typeof notificationPreferences.$inferInsert;
+
+
+// ============================================================================
+// PROMO / REFERRAL CODES
+// ============================================================================
+
+export const promoCodes = mysqlTable("promo_codes", {
+  id: int("id").primaryKey().autoincrement(),
+  providerId: int("providerId").notNull(),
+  code: varchar("code", { length: 50 }).notNull(),
+  description: text("description"),
+  discountType: mysqlEnum("discountType", ["percentage", "fixed"]).notNull(),
+  discountValue: decimal("discountValue", { precision: 10, scale: 2 }).notNull(),
+  // Constraints
+  minOrderAmount: decimal("minOrderAmount", { precision: 10, scale: 2 }),
+  maxDiscountAmount: decimal("maxDiscountAmount", { precision: 10, scale: 2 }),
+  maxRedemptions: int("maxRedemptions"),
+  currentRedemptions: int("currentRedemptions").default(0).notNull(),
+  maxRedemptionsPerUser: int("maxRedemptionsPerUser").default(1).notNull(),
+  // Validity
+  validFrom: timestamp("validFrom").defaultNow().notNull(),
+  validUntil: timestamp("validUntil"),
+  isActive: boolean("isActive").default(true).notNull(),
+  // Scope
+  appliesToAllServices: boolean("appliesToAllServices").default(true).notNull(),
+  serviceIds: text("serviceIds"), // JSON array of service IDs if not all
+  // Type: promo or referral
+  codeType: mysqlEnum("codeType", ["promo", "referral"]).default("promo").notNull(),
+  // Timestamps
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  providerIdx: index("promo_provider_idx").on(table.providerId),
+  codeIdx: index("promo_code_idx").on(table.code),
+}));
+
+export type PromoCode = typeof promoCodes.$inferSelect;
+export type InsertPromoCode = typeof promoCodes.$inferInsert;
+
+export const promoRedemptions = mysqlTable("promo_redemptions", {
+  id: int("id").primaryKey().autoincrement(),
+  promoCodeId: int("promoCodeId").notNull(),
+  userId: int("userId").notNull(),
+  bookingId: int("bookingId"),
+  discountAmount: decimal("discountAmount", { precision: 10, scale: 2 }).notNull(),
+  redeemedAt: timestamp("redeemedAt").defaultNow().notNull(),
+}, (table) => ({
+  promoIdx: index("redemption_promo_idx").on(table.promoCodeId),
+  userIdx: index("redemption_user_idx").on(table.userId),
+  bookingIdx: index("redemption_booking_idx").on(table.bookingId),
+}));
+
+export type PromoRedemption = typeof promoRedemptions.$inferSelect;
+export type InsertPromoRedemption = typeof promoRedemptions.$inferInsert;
