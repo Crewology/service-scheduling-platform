@@ -485,3 +485,48 @@ export const promoRedemptions = mysqlTable("promo_redemptions", {
 
 export type PromoRedemption = typeof promoRedemptions.$inferSelect;
 export type InsertPromoRedemption = typeof promoRedemptions.$inferInsert;
+
+
+/**
+ * Customer referral codes — each customer gets a unique referral code.
+ * When a new customer uses the code, both the referrer and referee get a discount.
+ */
+export const referralCodes = mysqlTable("referral_codes", {
+  id: int("id").primaryKey().autoincrement(),
+  userId: int("userId").notNull().references(() => users.id),
+  code: varchar("code", { length: 20 }).notNull().unique(),
+  referrerDiscountPercent: int("referrerDiscountPercent").notNull().default(10),
+  refereeDiscountPercent: int("refereeDiscountPercent").notNull().default(10),
+  maxReferrals: int("maxReferrals"),
+  isActive: boolean("isActive").notNull().default(true),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  userIdx: index("referral_user_idx").on(table.userId),
+  codeIdx: index("referral_code_idx").on(table.code),
+}));
+export type ReferralCode = typeof referralCodes.$inferSelect;
+export type InsertReferralCode = typeof referralCodes.$inferInsert;
+
+/**
+ * Referral tracking — records each successful referral.
+ */
+export const referrals = mysqlTable("referrals", {
+  id: int("id").primaryKey().autoincrement(),
+  referralCodeId: int("referralCodeId").notNull().references(() => referralCodes.id),
+  referrerId: int("referrerId").notNull().references(() => users.id),
+  refereeId: int("refereeId").notNull().references(() => users.id),
+  refereeBookingId: int("refereeBookingId"),
+  referrerRewardBookingId: int("referrerRewardBookingId"),
+  referrerDiscountAmount: decimal("referrerDiscountAmount", { precision: 10, scale: 2 }),
+  refereeDiscountAmount: decimal("refereeDiscountAmount", { precision: 10, scale: 2 }),
+  status: mysqlEnum("status", ["pending", "completed", "expired"]).notNull().default("pending"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  completedAt: timestamp("completedAt"),
+}, (table) => ({
+  referrerIdx: index("referral_referrer_idx").on(table.referrerId),
+  refereeIdx: index("referral_referee_idx").on(table.refereeId),
+  codeIdx: index("referral_code_ref_idx").on(table.referralCodeId),
+}));
+export type Referral = typeof referrals.$inferSelect;
+export type InsertReferral = typeof referrals.$inferInsert;

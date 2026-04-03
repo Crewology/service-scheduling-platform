@@ -29,6 +29,7 @@ import EmbedBooking from "./pages/EmbedBooking";
 import WidgetGenerator from "./pages/WidgetGenerator";
 import PromoCodes from "./pages/PromoCodes";
 import BookingDetail from "./pages/BookingDetail";
+import Referrals from "./pages/Referrals";
 
 function Router() {
   return (
@@ -59,6 +60,7 @@ function Router() {
       <Route path="/provider/widgets" component={WidgetGenerator} />
       <Route path="/provider/promo-codes" component={PromoCodes} />
       <Route path="/booking/:id/detail" component={BookingDetail} />
+      <Route path="/referrals" component={Referrals} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

@@ -1,10 +1,10 @@
 /**
- * Barrel re-export from domain-specific database helpers.
+ * Barrel export for all database helpers.
  *
- * All existing `import * as db from "./db"` statements continue to work.
- * For targeted imports, use `import { fn } from "./db/domain"` directly.
+ * Consumers can continue to import from "./db" (which resolves to this index)
+ * or import from individual domain files for tree-shaking.
  *
- * Domain files under server/db/:
+ * Domain files:
  *   connection.ts   – shared getDb() + schema re-exports
  *   users.ts        – user CRUD, profile, suspension
  *   providers.ts    – provider profile, earnings, Stripe connect, public profile
@@ -20,21 +20,17 @@
  *   messages.ts     – messaging between users
  */
 
-// Re-export the legacy monolith for backward compatibility.
-// All functions are still available from the original file.
-// New code should import from ./db/<domain> directly.
-export * from "./db-legacy";
-
-// New modules not in the legacy file
-export {
-  getOrCreateReferralCode,
-  getReferralCodeByCode,
-  getReferralCodeByUserId,
-  validateReferralCode,
-  createReferral,
-  completeReferral,
-  getReferralStats,
-  getReferralHistory,
-  getPendingReferralForReferee,
-  updateReferralCode,
-} from "./db/referrals";
+export * from "./connection";
+export * from "./users";
+export * from "./providers";
+export * from "./services";
+export * from "./bookings";
+export * from "./availability";
+export * from "./reviews";
+export * from "./payments";
+export * from "./notifications";
+export * from "./analytics";
+export * from "./promo";
+export * from "./verification";
+export * from "./messages";
+export * from "./referrals";

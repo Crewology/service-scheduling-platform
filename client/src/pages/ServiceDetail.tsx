@@ -12,7 +12,7 @@ import { useLocation, useParams, Link } from "wouter";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
 import { Calendar } from "@/components/ui/calendar";
-import { MapPin, Clock, DollarSign, Star, ChevronRight, CheckCircle2, ArrowLeft, Info, Image as ImageIcon, Tag, X, Loader2 } from "lucide-react";
+import { MapPin, Clock, DollarSign, Star, ChevronRight, CheckCircle2, ArrowLeft, Info, Image as ImageIcon, Tag, X, Loader2, Gift } from "lucide-react";
 import { generateTimeSlots, formatTimeForDisplay, type TimeSlot } from "@shared/timeSlots";
 import { ReviewList } from "@/components/shared/ReviewList";
 import { NavHeader } from "@/components/shared/NavHeader";
@@ -207,6 +207,15 @@ export default function ServiceDetail() {
   const createBooking = trpc.booking.create.useMutation({
     onSuccess: (data) => {
       toast.success("Booking created successfully!");
+      // Record referral if a referral code was applied
+      if (referralApplied?.valid) {
+        applyReferral.mutate({
+          referralCodeId: referralApplied.referralCodeId,
+          referrerId: referralApplied.referrerId,
+          bookingId: data.id,
+          discountAmount: (getNumericPrice() * referralApplied.refereeDiscountPercent / 100).toFixed(2),
+        });
+      }
       if (service?.depositRequired || service?.pricingModel !== "custom_quote") {
         handlePayment(data.id);
       } else {
@@ -244,6 +253,18 @@ export default function ServiceDetail() {
 
   // Promo code state
   const [promoCode, setPromoCode] = useState("");
+
+  // Referral code state
+  const [referralCode, setReferralCode] = useState("");
+  const [referralValidating, setReferralValidating] = useState(false);
+  const [referralApplied, setReferralApplied] = useState<{
+    valid: boolean;
+    referralCodeId: number;
+    referrerId: number;
+    refereeDiscountPercent: number;
+  } | null>(null);
+  const validateReferral = trpc.referral.validate.useMutation();
+  const applyReferral = trpc.referral.applyCode.useMutation();
   const [promoApplied, setPromoApplied] = useState<{
     valid: boolean;
     promoCodeId: number | null;
@@ -328,6 +349,7 @@ export default function ServiceDetail() {
       customerNotes: bookingForm.notes || undefined,
       bookingSource: "direct",
       promoCodeId: promoApplied?.valid ? promoApplied.promoCodeId ?? undefined : undefined,
+      referralCodeId: referralApplied?.valid ? referralApplied.referralCodeId : undefined,
     });
   };
 
@@ -860,6 +882,109 @@ export default function ServiceDetail() {
                         )}
                       </div>
 
+                      {/* Referral Code Input */}
+                      <div className="border rounded-lg p-4 space-y-3">
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                          <Gift className="h-4 w-4 text-purple-500" />
+                          <span>Have a referral code?</span>
+                        </div>
+                        {referralApplied?.valid ? (
+                          <div className="flex items-center justify-between bg-purple-50 border border-purple-200 rounded-lg p-3">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle2 className="h-4 w-4 text-purple-600" />
+                              <div>
+                                <p className="text-sm font-medium text-purple-800">
+                                  {referralCode}
+                                </p>
+                                <p className="text-xs text-purple-600">
+                                  {referralApplied.refereeDiscountPercent}% off your booking!
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setReferralCode("");
+                                setReferralApplied(null);
+                              }}
+                              className="h-7 w-7 p-0 text-purple-700 hover:text-red-600 hover:bg-red-50"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="Enter referral code (e.g. REF-XXXXX)"
+                              value={referralCode}
+                              onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" && referralCode.trim()) {
+                                  setReferralValidating(true);
+                                  validateReferral.mutate(
+                                    { code: referralCode.trim() },
+                                    {
+                                      onSuccess: (result) => {
+                                        if (result.valid) {
+                                          setReferralApplied(result as any);
+                                          toast.success(`Referral code applied! ${result.refereeDiscountPercent}% off!`);
+                                        } else {
+                                          toast.error(result.error || "Invalid referral code");
+                                          setReferralApplied(null);
+                                        }
+                                      },
+                                      onError: (err) => {
+                                        toast.error(err.message || "Failed to validate");
+                                        setReferralApplied(null);
+                                      },
+                                      onSettled: () => setReferralValidating(false),
+                                    }
+                                  );
+                                }
+                              }}
+                              className="flex-1 uppercase text-sm h-9"
+                              disabled={referralValidating}
+                            />
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                if (!referralCode.trim()) return;
+                                setReferralValidating(true);
+                                validateReferral.mutate(
+                                  { code: referralCode.trim() },
+                                  {
+                                    onSuccess: (result) => {
+                                      if (result.valid) {
+                                        setReferralApplied(result as any);
+                                        toast.success(`Referral code applied! ${result.refereeDiscountPercent}% off!`);
+                                      } else {
+                                        toast.error(result.error || "Invalid referral code");
+                                        setReferralApplied(null);
+                                      }
+                                    },
+                                    onError: (err) => {
+                                      toast.error(err.message || "Failed to validate");
+                                      setReferralApplied(null);
+                                    },
+                                    onSettled: () => setReferralValidating(false),
+                                  }
+                                );
+                              }}
+                              disabled={referralValidating || !referralCode.trim()}
+                              className="h-9 px-4"
+                            >
+                              {referralValidating ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                "Apply"
+                              )}
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+
                       {/* Promo Code Input */}
                       <div className="border rounded-lg p-4 space-y-3">
                         <div className="flex items-center gap-2 text-sm font-medium">
@@ -921,6 +1046,17 @@ export default function ServiceDetail() {
                           <span>Service Price</span>
                           <span className="font-medium">{getPrice()}</span>
                         </div>
+                        {referralApplied?.valid && (
+                          <div className="flex justify-between text-sm text-purple-700">
+                            <span className="flex items-center gap-1">
+                              <Gift className="h-3 w-3" />
+                              Referral Discount ({referralApplied.refereeDiscountPercent}%)
+                            </span>
+                            <span className="font-medium">
+                              -${(getNumericPrice() * referralApplied.refereeDiscountPercent / 100).toFixed(2)}
+                            </span>
+                          </div>
+                        )}
                         {promoApplied?.valid && promoApplied.discountAmount > 0 && (
                           <div className="flex justify-between text-sm text-green-700">
                             <span className="flex items-center gap-1">

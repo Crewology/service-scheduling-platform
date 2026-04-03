@@ -55,6 +55,83 @@ function formatIcalDateTime(dateStr: string, timeStr: string): string {
 }
 
 /**
+ * Generate a single booking .ics file for download.
+ * GET /api/calendar/booking/:bookingId/download.ics
+ */
+export async function handleBookingIcsDownload(req: Request, res: Response) {
+  try {
+    const bookingId = parseInt(req.params.bookingId, 10);
+    if (isNaN(bookingId)) {
+      return res.status(400).send("Invalid booking ID");
+    }
+
+    const booking = await db.getBookingById(bookingId);
+    if (!booking) {
+      return res.status(404).send("Booking not found");
+    }
+
+    const provider = await db.getProviderById(booking.providerId);
+    const service = booking.serviceId ? await db.getServiceById(booking.serviceId) : null;
+
+    const uid = `booking-${booking.id}@ologycrew.com`;
+    const dtStart = formatIcalDateTime(booking.bookingDate, booking.startTime);
+    const dtEnd = formatIcalDateTime(booking.bookingDate, booking.endTime);
+    const summary = `${service?.name || "Service"} - OlogyCrew`;
+
+    let description = `Booking #${booking.bookingNumber}\\nStatus: ${booking.status}`;
+    if (booking.customerNotes) {
+      description += `\\nNotes: ${escapeIcal(booking.customerNotes)}`;
+    }
+    if (booking.totalAmount) {
+      description += `\\nTotal: $${booking.totalAmount}`;
+    }
+
+    let location = "";
+    if (booking.locationType === "mobile" && booking.serviceAddressLine1) {
+      location = [booking.serviceAddressLine1, booking.serviceCity, booking.serviceState, booking.servicePostalCode].filter(Boolean).join(", ");
+    } else if (booking.locationType === "virtual") {
+      location = "Virtual / Online";
+    } else if (provider) {
+      location = [provider.addressLine1, provider.city, provider.state, provider.postalCode].filter(Boolean).join(", ");
+    }
+
+    const now = new Date();
+    const dtstamp = formatIcalDateTime(now.toISOString().split("T")[0], now.toISOString().split("T")[1]?.substring(0, 8) || "000000");
+
+    const lines = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//OlogyCrew//Booking//EN",
+      "METHOD:PUBLISH",
+      "BEGIN:VEVENT",
+      `UID:${uid}`,
+      `DTSTART:${dtStart}`,
+      `DTEND:${dtEnd}`,
+      `SUMMARY:${escapeIcal(summary)}`,
+      `DESCRIPTION:${description}`,
+      location ? `LOCATION:${escapeIcal(location)}` : "",
+      `STATUS:${booking.status === "cancelled" ? "CANCELLED" : "CONFIRMED"}`,
+      `DTSTAMP:${dtstamp}`,
+      "BEGIN:VALARM",
+      "TRIGGER:-PT30M",
+      "ACTION:DISPLAY",
+      `DESCRIPTION:Upcoming: ${escapeIcal(summary)}`,
+      "END:VALARM",
+      "END:VEVENT",
+      "END:VCALENDAR",
+    ].filter(Boolean);
+
+    const icalContent = lines.join("\r\n");
+    res.setHeader("Content-Type", "text/calendar; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="booking-${booking.bookingNumber}.ics"`);
+    res.send(icalContent);
+  } catch (error) {
+    console.error("[Calendar] Booking ICS download error:", error);
+    res.status(500).send("Failed to generate calendar event");
+  }
+}
+
+/**
  * Generate iCal feed for a provider's bookings.
  * GET /api/calendar/:token/feed.ics
  */
@@ -89,6 +166,8 @@ export async function handleCalendarFeed(req: Request, res: Response) {
       "X-WR-TIMEZONE:America/New_York",
       "CALSCALE:GREGORIAN",
       "METHOD:PUBLISH",
+      "REFRESH-INTERVAL;VALUE=DURATION:PT15M",
+      "X-PUBLISHED-TTL:PT15M",
     ];
 
     for (const booking of bookings) {

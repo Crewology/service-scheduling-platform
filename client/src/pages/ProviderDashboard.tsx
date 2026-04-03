@@ -1587,7 +1587,7 @@ function CalendarSyncSection() {
             Your Calendar Feed URL
           </CardTitle>
           <CardDescription>
-            Subscribe to this URL in any calendar app to automatically sync your bookings
+            Subscribe to this URL in any calendar app to automatically sync your bookings. Updates every 15 minutes.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -1600,6 +1600,33 @@ function CalendarSyncSection() {
             <Button variant="outline" size="icon" onClick={copyFeedUrl}>
               <Clipboard className={`h-4 w-4 ${copied ? "text-green-500" : ""}`} />
             </Button>
+          </div>
+          {/* One-click subscribe buttons */}
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => {
+                if (calendarData?.feedUrl) {
+                  const webcalUrl = calendarData.feedUrl.replace(/^https?:\/\//, "webcal://");
+                  window.location.href = webcalUrl;
+                  toast.success("Opening calendar app...");
+                }
+              }}
+            >
+              <CalendarPlus className="h-4 w-4 mr-2" />
+              Subscribe with Calendar App
+            </Button>
+            {calendarData?.googleCalUrl && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.open(calendarData.googleCalUrl, "_blank")}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Add to Google Calendar
+              </Button>
+            )}
           </div>
           <p className="text-xs text-muted-foreground">
             This URL is private — only share it with calendar apps you trust. It includes all your confirmed, pending, and completed bookings.

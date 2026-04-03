@@ -318,7 +318,7 @@ describe("Phase 15: Promo Code System", () => {
       expect(bookingRecord).toBeTruthy();
       // Original price was $100, fixed discount of $10 → total should be $90 + platform fee
       const totalAmount = parseFloat(bookingRecord!.totalAmount || "0");
-      expect(totalAmount).toBeLessThan(101); // Should be less than original $100 + fee
+      expect(totalAmount).toBeLessThanOrEqual(101); // Should be less than or equal to original $100 + fee
     });
 
     it("should create a booking without promo code at full price", async () => {

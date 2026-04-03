@@ -26,6 +26,8 @@ import {
   FileText,
   CreditCard,
   Send,
+  CalendarPlus,
+  Download,
 } from "lucide-react";
 
 const statusColors: Record<string, string> = {
@@ -245,6 +247,39 @@ export default function BookingDetail() {
                   <div className="mt-4 p-3 bg-red-50 rounded-lg border border-red-200">
                     <p className="text-sm font-medium text-red-800 mb-1">Cancellation Reason</p>
                     <p className="text-sm text-red-700">{booking.cancellationReason}</p>
+                  </div>
+                )}
+                {/* Add to Calendar / Download .ics */}
+                {booking.status !== "cancelled" && (
+                  <div className="mt-4 flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        window.open(`/api/calendar/booking/${booking.id}/download.ics`, "_blank");
+                        toast.success("Calendar event downloaded");
+                      }}
+                    >
+                      <Download className="h-4 w-4 mr-1" />
+                      Download .ics
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const title = encodeURIComponent(`${service?.name || "Service"} - OlogyCrew`);
+                        const dateStr = booking.bookingDate.replace(/-/g, "");
+                        const startStr = (booking.startTime || "00:00:00").replace(/:/g, "");
+                        const endStr = (booking.endTime || "01:00:00").replace(/:/g, "");
+                        const dates = `${dateStr}T${startStr}/${dateStr}T${endStr}`;
+                        const details = encodeURIComponent(`Booking #${booking.bookingNumber}`);
+                        const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}`;
+                        window.open(gcalUrl, "_blank");
+                      }}
+                    >
+                      <CalendarPlus className="h-4 w-4 mr-1" />
+                      Add to Google Calendar
+                    </Button>
                   </div>
                 )}
               </CardContent>

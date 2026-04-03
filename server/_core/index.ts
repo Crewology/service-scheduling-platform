@@ -94,8 +94,9 @@ async function startServer() {
   app.get("/api/export/bookings/pdf", handlePDFExport);
 
   // Calendar feed route (iCal)
-  const { handleCalendarFeed } = await import("../calendarFeed");
+  const { handleCalendarFeed, handleBookingIcsDownload } = await import("../calendarFeed");
   app.get("/api/calendar/:token/feed.ics", handleCalendarFeed);
+  app.get("/api/calendar/booking/:bookingId/download.ics", handleBookingIcsDownload);
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
   // tRPC API
