@@ -18,15 +18,27 @@ export const providerRouter = router({
       acceptsMobile: z.boolean().default(false),
       acceptsFixedLocation: z.boolean().default(true),
       acceptsVirtual: z.boolean().default(false),
+      categoryIds: z.array(z.number()).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const existing = await db.getProviderByUserId(ctx.user.id);
       if (existing) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Provider profile already exists" });
       }
-      await db.createServiceProvider({ userId: ctx.user.id, ...input });
+      const { categoryIds, ...providerData } = input;
+      await db.createServiceProvider({ userId: ctx.user.id, ...providerData });
       const provider = await db.getProviderByUserId(ctx.user.id);
       if (!provider) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create provider" });
+      
+      // Auto-generate slug
+      const baseSlug = provider.businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const slug = `${baseSlug}-${provider.id}`;
+      await db.updateProviderSlug(provider.id, slug);
+
+      // Add categories if provided
+      if (categoryIds && categoryIds.length > 0) {
+        await db.setProviderCategories(provider.id, categoryIds);
+      }
       return provider;
     }),
     
@@ -80,6 +92,76 @@ export const providerRouter = router({
       return updated!;
     }),
 
+  // ============================================================================
+  // PROFILE PHOTO
+  // ============================================================================
+
+  uploadProfilePhoto: protectedProcedure
+    .input(z.object({
+      photoData: z.string(), // base64
+      contentType: z.string().default("image/jpeg"),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const { storagePut } = await import("../storage");
+      const buffer = Buffer.from(input.photoData, "base64");
+      const ext = input.contentType.split("/")[1] || "jpg";
+      const suffix = Math.random().toString(36).substring(2, 10);
+      const fileKey = `profile-photos/${ctx.user.id}/${Date.now()}-${suffix}.${ext}`;
+      const { url } = await storagePut(fileKey, buffer, input.contentType);
+      
+      // Update user profile photo
+      await db.updateUserProfile(ctx.user.id, { profilePhotoUrl: url });
+      return { url };
+    }),
+
+  // ============================================================================
+  // MULTI-CATEGORY MANAGEMENT
+  // ============================================================================
+
+  getMyCategories: protectedProcedure.query(async ({ ctx }) => {
+    const provider = await db.getProviderByUserId(ctx.user.id);
+    if (!provider) return [];
+    const providerCats = await db.getProviderCategories(provider.id);
+    // Enrich with category details
+    const allCategories = await db.getAllCategories();
+    const categoryMap = new Map(allCategories.map(c => [c.id, c]));
+    return providerCats.map(pc => ({
+      ...pc,
+      category: categoryMap.get(pc.categoryId),
+    }));
+  }),
+
+  setMyCategories: protectedProcedure
+    .input(z.object({ categoryIds: z.array(z.number()).min(1, "Select at least one category") }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+      await db.setProviderCategories(provider.id, input.categoryIds);
+      return { success: true, count: input.categoryIds.length };
+    }),
+
+  addCategory: protectedProcedure
+    .input(z.object({ categoryId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+      await db.addProviderCategory(provider.id, input.categoryId);
+      return { success: true };
+    }),
+
+  removeCategory: protectedProcedure
+    .input(z.object({ categoryId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+      await db.removeProviderCategory(provider.id, input.categoryId);
+      return { success: true };
+    }),
+
+  // ============================================================================
+  // EARNINGS & ANALYTICS
+  // ============================================================================
+
   earnings: protectedProcedure.query(async ({ ctx }) => {
     const provider = await db.getProviderByUserId(ctx.user.id);
     if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
@@ -99,14 +181,35 @@ export const providerRouter = router({
     return { bookingTrends, topServices, customerRetention, bookingSources, refundAnalytics };
   }),
 
+  // ============================================================================
+  // PUBLIC PROFILE
+  // ============================================================================
+
   getBySlug: publicProcedure
     .input(z.object({ slug: z.string() }))
     .query(async ({ input }) => {
       const provider = await db.getProviderBySlug(input.slug);
       if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider not found" });
-      const providerServices = await db.getServicesByProvider(provider.id);
-      const providerReviews = await db.getProviderReviewsPublic(provider.id);
-      return { provider, services: providerServices, reviews: providerReviews };
+      const [providerServices, providerReviews, providerCats] = await Promise.all([
+        db.getServicesByProvider(provider.id),
+        db.getProviderReviewsPublic(provider.id),
+        db.getProviderCategories(provider.id),
+      ]);
+      // Enrich categories
+      const allCategories = await db.getAllCategories();
+      const categoryMap = new Map(allCategories.map(c => [c.id, c]));
+      const categories = providerCats.map(pc => categoryMap.get(pc.categoryId)).filter(Boolean);
+      
+      // Get user info for profile photo
+      const user = await db.getUserById(provider.userId);
+      
+      return { 
+        provider, 
+        services: providerServices, 
+        reviews: providerReviews, 
+        categories,
+        profilePhoto: user?.profilePhotoUrl || null,
+      };
     }),
 
   generateSlug: protectedProcedure.mutation(async ({ ctx }) => {
@@ -155,5 +258,25 @@ export const providerRouter = router({
         googleCalUrl: `https://calendar.google.com/calendar/r?cid=webcal://${(origin.startsWith("http") ? origin.replace(/^https?:\/\//, "") : origin)}/api/calendar/${token}/feed.ics`,
         token,
       };
+    }),
+
+  listByCategory: publicProcedure
+    .input(z.object({ categoryId: z.number() }))
+    .query(async ({ input }) => {
+      // Get all providers who have this category in their provider_categories
+      const providerCats = await db.getProvidersByCategory(input.categoryId);
+      const providerIds = providerCats.map((pc: any) => pc.providerId);
+      if (providerIds.length === 0) return [];
+      // Fetch full provider details
+      const providers = await Promise.all(
+        providerIds.map(async (id: number) => {
+          const provider = await db.getProviderById(id);
+          if (!provider || !provider.isActive) return null;
+          // Get profile photo
+          const user = await db.getUserById(provider.userId);
+          return { ...provider, profilePhotoUrl: user?.profilePhotoUrl || null };
+        })
+      );
+      return providers.filter(Boolean);
     }),
 });

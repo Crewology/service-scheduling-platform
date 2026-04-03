@@ -108,6 +108,26 @@ export type ServiceCategory = typeof serviceCategories.$inferSelect;
 export type InsertServiceCategory = typeof serviceCategories.$inferInsert;
 
 /**
+ * Provider-category many-to-many relationship.
+ * Allows providers to offer services across multiple categories
+ * (e.g., a provider who does Audio Visual, DJ, and Barber services).
+ */
+export const providerCategories = mysqlTable("provider_categories", {
+  id: int("id").autoincrement().primaryKey(),
+  providerId: int("providerId").notNull().references(() => serviceProviders.id),
+  categoryId: int("categoryId").notNull().references(() => serviceCategories.id),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  providerCategoryIdx: index("provider_category_idx").on(table.providerId, table.categoryId),
+  categoryProviderIdx: index("category_provider_idx").on(table.categoryId, table.providerId),
+  providerCategoryUnique: unique("provider_category_unique").on(table.providerId, table.categoryId),
+}));
+
+export type ProviderCategory = typeof providerCategories.$inferSelect;
+export type InsertProviderCategory = typeof providerCategories.$inferInsert;
+
+/**
  * Services offered by providers
  */
 export const services = mysqlTable("services", {

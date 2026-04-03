@@ -38,3 +38,13 @@ export {
   getPendingReferralForReferee,
   updateReferralCode,
 } from "./db/referrals";
+
+// Provider category management (multi-category support)
+export {
+  getProviderCategories,
+  addProviderCategory,
+  addProviderCategories,
+  removeProviderCategory,
+  setProviderCategories,
+  getProvidersByCategory,
+} from "./db/services";

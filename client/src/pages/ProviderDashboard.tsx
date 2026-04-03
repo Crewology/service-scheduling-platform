@@ -45,12 +45,15 @@ import {
   Upload,
   FileText,
   Shield,
+  Grid3X3,
+  Plus,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { formatCurrency } from "@/lib/dateUtils";
 import { PhotoUpload } from "@/components/PhotoUpload";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // ============================================================================
 // SERVICE PHOTOS MANAGER
@@ -590,6 +593,12 @@ export default function ProviderDashboard() {
   const { data: services } = trpc.service.listMine.useQuery(undefined, {
     enabled: !!provider,
   });
+
+  const { data: myCategories } = trpc.provider.getMyCategories.useQuery(undefined, {
+    enabled: !!provider,
+  });
+
+  const { data: allCategories } = trpc.category.list.useQuery();
   
   const { data: bookings } = trpc.booking.listForProvider.useQuery(undefined, {
     enabled: !!provider,
@@ -925,74 +934,152 @@ export default function ProviderDashboard() {
             )}
           </TabsContent>
 
-          {/* Services Tab */}
-          <TabsContent value="services" className="space-y-4">
+          {/* Services Tab — grouped by category */}
+          <TabsContent value="services" className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">My Services</h2>
-              <Link href="/provider/services/new">
-                <Button>Add Service</Button>
-              </Link>
+              <div>
+                <h2 className="text-2xl font-bold">My Categories & Services</h2>
+                <p className="text-sm text-muted-foreground mt-1">Manage the categories you serve and the services you offer in each</p>
+              </div>
+              <div className="flex gap-2">
+                <Link href="/provider/onboarding">
+                  <Button variant="outline" size="sm">
+                    <Grid3X3 className="h-4 w-4 mr-1" /> Manage Categories
+                  </Button>
+                </Link>
+                <Link href="/provider/services/new">
+                  <Button size="sm">
+                    <Plus className="h-4 w-4 mr-1" /> Add Service
+                  </Button>
+                </Link>
+              </div>
             </div>
 
-            {!services || services.length === 0 ? (
+            {/* Active Categories with their services */}
+            {myCategories && myCategories.length > 0 ? (
+              myCategories.map((pc: any) => {
+                const cat = pc.category;
+                if (!cat) return null;
+                const catServices = services?.filter((s: any) => s.categoryId === cat.id) || [];
+                const displayName = cat.name.split(" ").map((w: string) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
+                const CATEGORY_ICONS: Record<number, string> = {
+                  15: "🎬", 170: "💈", 7: "✂️", 126: "🔒", 195: "💃", 202: "🔨",
+                  23: "🦷", 20: "🎵", 22: "🚛", 177: "🎉", 196: "👁️", 178: "💰",
+                  109: "🏋️", 197: "📋", 9: "🔧", 193: "🧘", 188: "🧹", 200: "⚡",
+                  179: "🏠", 171: "💇", 174: "🚗", 176: "🔩", 111: "🔗", 10: "💆",
+                  168: "🚙", 169: "🛠️", 199: "🎪", 158: "🎯", 73: "🍽️", 12: "💪",
+                  11: "🐾", 17: "📸", 148: "💦", 26: "📅", 8: "💅", 194: "☀️",
+                  198: "💻", 19: "🎥", 155: "📱", 201: "🖥️", 205: "🌐",
+                };
+                return (
+                  <Card key={cat.id}>
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          <span className="text-xl">{CATEGORY_ICONS[cat.id] || "📦"}</span>
+                          {displayName}
+                          <Badge variant="outline" className="text-xs ml-1">
+                            {catServices.length} service{catServices.length !== 1 ? "s" : ""}
+                          </Badge>
+                        </CardTitle>
+                        <Link href="/provider/services/new">
+                          <Button size="sm" variant="outline">
+                            <Plus className="h-3.5 w-3.5 mr-1" /> Add
+                          </Button>
+                        </Link>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      {catServices.length === 0 ? (
+                        <div className="text-center py-6 text-muted-foreground text-sm border rounded-lg bg-muted/30 border-dashed">
+                          No services in this category yet
+                        </div>
+                      ) : (
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {catServices.map((service: any) => (
+                            <div key={service.id} className="p-3 rounded-lg border bg-card">
+                              <div className="flex items-start justify-between">
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-medium text-sm truncate">{service.name}</p>
+                                  {service.description && (
+                                    <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{service.description}</p>
+                                  )}
+                                </div>
+                                <div className="text-right ml-2 flex-shrink-0">
+                                  <span className="font-semibold text-sm text-primary">
+                                    {service.pricingModel === "fixed" && service.basePrice && formatCurrency(parseFloat(service.basePrice))}
+                                    {service.pricingModel === "hourly" && service.hourlyRate && `${formatCurrency(parseFloat(service.hourlyRate))}/hr`}
+                                    {service.pricingModel === "package" && service.basePrice && formatCurrency(parseFloat(service.basePrice))}
+                                    {service.pricingModel === "custom_quote" && "Quote"}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                                <span className="capitalize">{service.serviceType.replace('_', ' ')}</span>
+                                {service.durationMinutes && <span>· {service.durationMinutes} min</span>}
+                              </div>
+                              <div className="flex gap-1 mt-2 pt-2 border-t">
+                                <Button size="sm" variant="ghost" className="h-7 text-xs flex-1" onClick={() => openEditService(service)}>
+                                  <Pencil className="h-3 w-3 mr-1" /> Edit
+                                </Button>
+                                <Button size="sm" variant="ghost" className="h-7 text-xs flex-1" onClick={() => setManagingPhotosServiceId(service.id)}>
+                                  <ImageIcon className="h-3 w-3 mr-1" /> Photos
+                                </Button>
+                                <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive" onClick={() => setDeletingServiceId(service.id)}>
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })
+            ) : (
               <Card>
                 <CardContent className="py-12 text-center">
                   <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground mb-4">No services yet</p>
-                  <Link href="/provider/services/new">
-                    <Button>Create Your First Service</Button>
+                  <h3 className="text-lg font-semibold mb-2">No categories selected</h3>
+                  <p className="text-muted-foreground mb-4">Select the service categories you offer to start adding services</p>
+                  <Link href="/provider/onboarding">
+                    <Button>Select Your Categories</Button>
                   </Link>
                 </CardContent>
               </Card>
-            ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {services.map((service: any) => (
-                  <Card key={service.id}>
-                    <CardHeader>
-                      <CardTitle className="text-lg">{service.name}</CardTitle>
-                      <CardDescription className="line-clamp-2">
-                        {service.description}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2 text-sm">
-                        {service.pricingModel === "fixed" && service.basePrice && (
-                          <p className="font-semibold text-primary">{formatCurrency(parseFloat(service.basePrice))}</p>
-                        )}
-                        {service.pricingModel === "hourly" && service.hourlyRate && (
-                          <p className="font-semibold text-primary">{formatCurrency(parseFloat(service.hourlyRate))}/hour</p>
-                        )}
-                        <p className="text-muted-foreground capitalize">{service.serviceType.replace('_', ' ')}</p>
-                        {service.durationMinutes && (
-                          <p className="text-muted-foreground">{service.durationMinutes} min</p>
-                        )}
-                      </div>
-                      <div className="mt-4 flex gap-2">
-                        <Button size="sm" variant="outline" className="flex-1" onClick={() => openEditService(service)}>
-                          <Pencil className="h-3.5 w-3.5 mr-1" />
-                          Edit
-                        </Button>
-                        <Link href={`/service/${service.id}`} className="flex-1">
-                          <Button size="sm" variant="ghost" className="w-full">
-                            <Eye className="h-3.5 w-3.5 mr-1" />
-                            View
-                          </Button>
-                        </Link>
-                        <Button size="sm" variant="ghost" className="text-destructive" onClick={() => setDeletingServiceId(service.id)}>
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                      <div className="mt-3 pt-3 border-t">
-                        <Button size="sm" variant="ghost" className="w-full text-xs" onClick={() => setManagingPhotosServiceId(service.id)}>
-                          <ImageIcon className="h-3.5 w-3.5 mr-1" />
-                          Manage Photos
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
             )}
+
+            {/* Services without a matching category */}
+            {services && services.length > 0 && myCategories && (() => {
+              const myCatIds = new Set(myCategories.map((pc: any) => pc.categoryId));
+              const uncategorized = services.filter((s: any) => !myCatIds.has(s.categoryId));
+              if (uncategorized.length === 0) return null;
+              return (
+                <Card className="border-dashed">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg text-muted-foreground">Other Services</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {uncategorized.map((service: any) => (
+                        <div key={service.id} className="p-3 rounded-lg border bg-card">
+                          <p className="font-medium text-sm">{service.name}</p>
+                          <div className="flex gap-1 mt-2 pt-2 border-t">
+                            <Button size="sm" variant="ghost" className="h-7 text-xs flex-1" onClick={() => openEditService(service)}>
+                              <Pencil className="h-3 w-3 mr-1" /> Edit
+                            </Button>
+                            <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive" onClick={() => setDeletingServiceId(service.id)}>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })()}
           </TabsContent>
 
           {/* Availability Tab */}

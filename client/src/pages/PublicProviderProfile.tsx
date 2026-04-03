@@ -1,26 +1,48 @@
+import { useState, useMemo } from "react";
 import { useParams, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Star, MapPin, Clock, ArrowLeft, CheckCircle, Shield } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Star,
+  MapPin,
+  Clock,
+  ArrowLeft,
+  CheckCircle,
+  Shield,
+  ExternalLink,
+  Calendar,
+  ChevronRight,
+  Globe,
+  Smartphone,
+  Home,
+  User,
+} from "lucide-react";
 
 function formatCurrency(value: string | number | null | undefined): string {
   const num = typeof value === "string" ? parseFloat(value) : (value ?? 0);
   return `$${num.toFixed(2)}`;
 }
 
+const CATEGORY_ICONS: Record<number, string> = {
+  15: "\ud83c\udfac", 170: "\ud83d\udc88", 7: "\u2702\ufe0f", 126: "\ud83d\udd12", 195: "\ud83d\udc83", 202: "\ud83d\udd28",
+  23: "\ud83e\uddb7", 20: "\ud83c\udfb5", 22: "\ud83d\ude9b", 177: "\ud83c\udf89", 196: "\ud83d\udc41\ufe0f", 178: "\ud83d\udcb0",
+  109: "\ud83c\udfcb\ufe0f", 197: "\ud83d\udccb", 9: "\ud83d\udd27", 193: "\ud83e\uddd8", 188: "\ud83e\uddf9", 200: "\u26a1",
+  179: "\ud83c\udfe0", 171: "\ud83d\udc87", 174: "\ud83d\ude97", 176: "\ud83d\udd29", 111: "\ud83d\udd17", 10: "\ud83d\udc86",
+  168: "\ud83d\ude99", 169: "\ud83d\udee0\ufe0f", 199: "\ud83c\udfaa", 158: "\ud83c\udfaf", 73: "\ud83c\udf7d\ufe0f", 12: "\ud83d\udcaa",
+  11: "\ud83d\udc3e", 17: "\ud83d\udcf8", 148: "\ud83d\udca6", 26: "\ud83d\udcc5", 8: "\ud83d\udc85", 194: "\u2600\ufe0f",
+  198: "\ud83d\udcbb", 19: "\ud83c\udfa5", 155: "\ud83d\udcf1", 201: "\ud83d\udda5\ufe0f", 205: "\ud83c\udf10",
+};
+
 function ServiceCardPhoto({ serviceId }: { serviceId: number }) {
   const { data: photos } = trpc.service.getPhotos.useQuery({ serviceId });
   if (!photos || photos.length === 0) return null;
   return (
-    <div className="aspect-[3/1] bg-muted overflow-hidden">
-      <img
-        src={photos[0].photoUrl}
-        alt="Service"
-        className="w-full h-full object-cover"
-      />
+    <div className="aspect-[16/9] bg-muted overflow-hidden rounded-t-lg">
+      <img src={photos[0].photoUrl} alt="Service" className="w-full h-full object-cover" />
     </div>
   );
 }
@@ -31,6 +53,29 @@ export default function PublicProviderProfile() {
     { slug: params.slug || "" },
     { enabled: !!params.slug }
   );
+
+  const [activeCategory, setActiveCategory] = useState<string>("all");
+
+  // Group services by category
+  const servicesByCategory = useMemo(() => {
+    if (!data?.services || !data?.categories) return new Map();
+    const map = new Map<number, { category: any; services: any[] }>();
+    for (const service of data.services) {
+      if (!map.has(service.categoryId)) {
+        const cat = data.categories.find((c: any) => c.id === service.categoryId);
+        map.set(service.categoryId, { category: cat, services: [] });
+      }
+      map.get(service.categoryId)!.services.push(service);
+    }
+    return map;
+  }, [data]);
+
+  const filteredServices = useMemo(() => {
+    if (!data?.services) return [];
+    if (activeCategory === "all") return data.services;
+    const catId = parseInt(activeCategory);
+    return data.services.filter((s: any) => s.categoryId === catId);
+  }, [data, activeCategory]);
 
   if (isLoading) {
     return (
@@ -52,14 +97,23 @@ export default function PublicProviderProfile() {
     );
   }
 
-  const { provider, services, reviews } = data;
+  const { provider, services, reviews, categories, profilePhoto } = data;
   const avgRating = parseFloat(provider.averageRating || "0");
+  const displayName = (name: string) =>
+    name.split(" ").map((w: string) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border-b">
-        <div className="container max-w-5xl py-12">
+      {/* ================================================================ */}
+      {/* HERO — Profile Photo + Name + Bio + Stats                        */}
+      {/* ================================================================ */}
+      <div className="relative bg-gradient-to-br from-primary/15 via-primary/5 to-background border-b overflow-hidden">
+        {/* Subtle pattern overlay */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        }} />
+
+        <div className="container max-w-5xl py-10 relative">
           <Link href="/">
             <Button variant="ghost" size="sm" className="mb-6 text-muted-foreground hover:text-foreground">
               <ArrowLeft className="w-4 h-4 mr-2" /> Back to OlogyCrew
@@ -67,108 +121,188 @@ export default function PublicProviderProfile() {
           </Link>
 
           <div className="flex flex-col md:flex-row gap-6 items-start">
-            <div className="w-24 h-24 rounded-2xl bg-primary/10 flex items-center justify-center text-3xl font-bold text-primary shrink-0">
-              {provider.businessName.charAt(0)}
+            {/* Profile Photo */}
+            <div className="w-28 h-28 md:w-32 md:h-32 rounded-2xl bg-muted border-2 border-background shadow-lg overflow-hidden shrink-0">
+              {profilePhoto ? (
+                <img src={profilePhoto} alt={provider.businessName} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-primary/10 flex items-center justify-center">
+                  <span className="text-4xl font-bold text-primary">{provider.businessName.charAt(0)}</span>
+                </div>
+              )}
             </div>
 
             <div className="flex-1">
               <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-3xl font-bold text-foreground">{provider.businessName}</h1>
+                <h1 className="text-3xl md:text-4xl font-bold text-foreground">{provider.businessName}</h1>
                 {provider.verificationStatus === "verified" && (
-                  <Badge variant="secondary" className="gap-1">
+                  <Badge className="gap-1 bg-blue-500 hover:bg-blue-600 text-white">
                     <CheckCircle className="w-3 h-3" /> Verified
                   </Badge>
                 )}
               </div>
 
               {provider.description && (
-                <p className="text-muted-foreground mt-2 max-w-2xl">{provider.description}</p>
+                <p className="text-muted-foreground mt-3 max-w-2xl leading-relaxed">{provider.description}</p>
               )}
 
-              <div className="flex items-center gap-4 mt-4 flex-wrap text-sm text-muted-foreground">
+              {/* Stats Row */}
+              <div className="flex items-center gap-5 mt-4 flex-wrap">
                 {(provider.city || provider.state) && (
-                  <span className="flex items-center gap-1">
+                  <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <MapPin className="w-4 h-4" />
                     {[provider.city, provider.state].filter(Boolean).join(", ")}
                   </span>
                 )}
                 {avgRating > 0 && (
-                  <span className="flex items-center gap-1">
+                  <span className="flex items-center gap-1 text-sm">
                     <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                    {avgRating.toFixed(1)} ({provider.totalReviews} reviews)
+                    <span className="font-semibold">{avgRating.toFixed(1)}</span>
+                    <span className="text-muted-foreground">({provider.totalReviews} reviews)</span>
                   </span>
                 )}
                 {provider.totalBookings > 0 && (
-                  <span className="flex items-center gap-1">
-                    <Shield className="w-4 h-4" />
-                    {provider.totalBookings} bookings completed
+                  <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <Calendar className="w-4 h-4" />
+                    {provider.totalBookings} bookings
                   </span>
                 )}
               </div>
 
+              {/* Service Mode Badges */}
               <div className="flex gap-2 mt-3 flex-wrap">
-                {provider.acceptsMobile && <Badge variant="outline">Mobile Service</Badge>}
-                {provider.acceptsFixedLocation && <Badge variant="outline">In-Shop</Badge>}
-                {provider.acceptsVirtual && <Badge variant="outline">Virtual</Badge>}
+                {provider.acceptsMobile && (
+                  <Badge variant="outline" className="gap-1 text-xs">
+                    <Smartphone className="w-3 h-3" /> Mobile
+                  </Badge>
+                )}
+                {provider.acceptsFixedLocation && (
+                  <Badge variant="outline" className="gap-1 text-xs">
+                    <Home className="w-3 h-3" /> In-Person
+                  </Badge>
+                )}
+                {provider.acceptsVirtual && (
+                  <Badge variant="outline" className="gap-1 text-xs">
+                    <Globe className="w-3 h-3" /> Virtual
+                  </Badge>
+                )}
               </div>
+
+              {/* Category Tags */}
+              {categories && categories.length > 0 && (
+                <div className="flex gap-2 mt-4 flex-wrap">
+                  {categories.map((cat: any) => (
+                    <Badge key={cat.id} variant="secondary" className="gap-1 text-xs py-1">
+                      <span>{CATEGORY_ICONS[cat.id] || "\ud83d\udce6"}</span>
+                      {displayName(cat.name)}
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
 
+      {/* ================================================================ */}
+      {/* MAIN CONTENT                                                     */}
+      {/* ================================================================ */}
       <div className="container max-w-5xl py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Services Column */}
-          <div className="lg:col-span-2 space-y-6">
+          {/* Left Column — Services & Reviews */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Category Filter Tabs */}
+            {categories && categories.length > 1 && (
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={() => setActiveCategory("all")}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                    activeCategory === "all"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  }`}
+                >
+                  All Services ({services.length})
+                </button>
+                {categories.map((cat: any) => {
+                  const count = services.filter((s: any) => s.categoryId === cat.id).length;
+                  if (count === 0) return null;
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => setActiveCategory(cat.id.toString())}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                        activeCategory === cat.id.toString()
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      }`}
+                    >
+                      {CATEGORY_ICONS[cat.id] || "\ud83d\udce6"} {displayName(cat.name)} ({count})
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Services Grid */}
             <div>
-              <h2 className="text-xl font-semibold text-foreground mb-4">Services</h2>
-              {services.length === 0 ? (
+              <h2 className="text-xl font-semibold text-foreground mb-4">
+                {activeCategory === "all"
+                  ? "All Services"
+                  : (() => {
+                      const cat = categories?.find((c: any) => c.id === parseInt(activeCategory));
+                      return cat ? `${CATEGORY_ICONS[cat.id] || ""} ${displayName(cat.name)}` : "Services";
+                    })()}
+              </h2>
+
+              {filteredServices.length === 0 ? (
                 <Card>
                   <CardContent className="py-8 text-center text-muted-foreground">
                     No services listed yet.
                   </CardContent>
                 </Card>
               ) : (
-                <div className="space-y-3">
-                  {services.map((service) => (
-                    <Link key={service.id} href={`/service/${service.id}`}>
-                      <Card className="hover:border-primary/30 transition-colors cursor-pointer overflow-hidden">
-                        <ServiceCardPhoto serviceId={service.id} />
-                        <CardContent className="p-5">
-                          <div className="flex justify-between items-start gap-4">
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-foreground">{service.name}</h3>
-                              {service.description && (
-                                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{service.description}</p>
-                              )}
-                              <div className="flex items-center gap-3 mt-2 text-sm text-muted-foreground">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {filteredServices.map((service: any) => {
+                    const cat = categories?.find((c: any) => c.id === service.categoryId);
+                    return (
+                      <Link key={service.id} href={`/service/${service.id}`}>
+                        <Card className="hover:border-primary/30 hover:shadow-md transition-all cursor-pointer overflow-hidden h-full">
+                          <ServiceCardPhoto serviceId={service.id} />
+                          <CardContent className="p-4">
+                            {/* Category tag */}
+                            {cat && activeCategory === "all" && (
+                              <Badge variant="secondary" className="text-xs mb-2 gap-1">
+                                {CATEGORY_ICONS[cat.id] || "\ud83d\udce6"} {displayName(cat.name)}
+                              </Badge>
+                            )}
+                            <h3 className="font-semibold text-foreground">{service.name}</h3>
+                            {service.description && (
+                              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{service.description}</p>
+                            )}
+                            <div className="flex items-center justify-between mt-3">
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                 {service.durationMinutes && (
                                   <span className="flex items-center gap-1">
-                                    <Clock className="w-3.5 h-3.5" />
-                                    {service.durationMinutes} min
+                                    <Clock className="w-3 h-3" /> {service.durationMinutes} min
                                   </span>
                                 )}
-                                <Badge variant="outline" className="text-xs">
+                                <Badge variant="outline" className="text-xs capitalize">
                                   {service.serviceType.replace("_", " ")}
                                 </Badge>
                               </div>
-                            </div>
-                            <div className="text-right shrink-0">
-                              <div className="font-semibold text-foreground">
+                              <div className="font-bold text-primary">
                                 {service.pricingModel === "fixed" && formatCurrency(service.basePrice)}
                                 {service.pricingModel === "hourly" && `${formatCurrency(service.hourlyRate)}/hr`}
                                 {service.pricingModel === "package" && formatCurrency(service.basePrice)}
                                 {service.pricingModel === "custom_quote" && "Get Quote"}
                               </div>
-                              {service.depositRequired && (
-                                <div className="text-xs text-muted-foreground mt-1">Deposit required</div>
-                              )}
                             </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -176,27 +310,49 @@ export default function PublicProviderProfile() {
             {/* Reviews Section */}
             {reviews.length > 0 && (
               <div>
-                <h2 className="text-xl font-semibold text-foreground mb-4">Reviews</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold text-foreground">
+                    Reviews ({reviews.length})
+                  </h2>
+                  {avgRating > 0 && (
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-4 h-4 ${i < Math.round(avgRating) ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`}
+                        />
+                      ))}
+                      <span className="text-sm font-semibold ml-1">{avgRating.toFixed(1)}</span>
+                    </div>
+                  )}
+                </div>
                 <div className="space-y-3">
-                  {reviews.map((review) => (
+                  {reviews.map((review: any) => (
                     <Card key={review.id}>
-                      <CardContent className="p-5">
-                        <div className="flex items-center gap-1 mb-2">
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-4 h-4 ${i < review.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`}
-                            />
-                          ))}
-                          <span className="text-sm text-muted-foreground ml-2">
-                            {new Date(review.createdAt).toLocaleDateString()}
-                          </span>
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                            <User className="w-4 h-4 text-muted-foreground" />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-1">
+                              {Array.from({ length: 5 }).map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-3.5 h-3.5 ${i < review.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(review.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                            </span>
+                          </div>
                         </div>
                         {review.reviewText && (
-                          <p className="text-sm text-foreground">{review.reviewText}</p>
+                          <p className="text-sm text-foreground leading-relaxed">{review.reviewText}</p>
                         )}
                         {review.responseText && (
-                          <div className="mt-3 pl-4 border-l-2 border-primary/20">
+                          <div className="mt-3 pl-4 border-l-2 border-primary/20 bg-muted/30 rounded-r-lg p-3">
                             <p className="text-xs font-medium text-primary mb-1">Provider Response</p>
                             <p className="text-sm text-muted-foreground">{review.responseText}</p>
                           </div>
@@ -209,48 +365,121 @@ export default function PublicProviderProfile() {
             )}
           </div>
 
-          {/* Sidebar */}
+          {/* ============================================================ */}
+          {/* RIGHT SIDEBAR — Quick Book + Business Info                    */}
+          {/* ============================================================ */}
           <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Contact & Book</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Link href="/browse">
-                  <Button className="w-full">Browse & Book Services</Button>
-                </Link>
-                <Separator />
-                <div className="text-sm text-muted-foreground space-y-2">
-                  {provider.yearsInBusiness && (
-                    <p>{provider.yearsInBusiness}+ years in business</p>
-                  )}
-                  {provider.serviceRadiusMiles && (
-                    <p>Service area: {provider.serviceRadiusMiles} mile radius</p>
-                  )}
-                  {provider.insuranceVerified && (
-                    <p className="flex items-center gap-1 text-green-600">
-                      <CheckCircle className="w-3.5 h-3.5" /> Insurance verified
+            {/* Quick Book Card */}
+            <Card className="sticky top-4">
+              <CardContent className="p-5 space-y-4">
+                <h3 className="font-semibold text-lg">Book a Service</h3>
+                {services.length > 0 ? (
+                  <>
+                    <p className="text-sm text-muted-foreground">
+                      Choose from {services.length} service{services.length !== 1 ? "s" : ""} across {categories?.length || 1} categor{(categories?.length || 1) !== 1 ? "ies" : "y"}
                     </p>
-                  )}
-                  {provider.backgroundCheckVerified && (
-                    <p className="flex items-center gap-1 text-green-600">
-                      <CheckCircle className="w-3.5 h-3.5" /> Background check verified
-                    </p>
-                  )}
-                </div>
+                    <div className="space-y-2">
+                      {services.slice(0, 3).map((service: any) => (
+                        <Link key={service.id} href={`/service/${service.id}`}>
+                          <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer">
+                            <span className="text-sm font-medium truncate flex-1">{service.name}</span>
+                            <span className="text-sm font-semibold text-primary ml-2">
+                              {service.pricingModel === "fixed" && formatCurrency(service.basePrice)}
+                              {service.pricingModel === "hourly" && `${formatCurrency(service.hourlyRate)}/hr`}
+                              {service.pricingModel === "package" && formatCurrency(service.basePrice)}
+                              {service.pricingModel === "custom_quote" && "Quote"}
+                            </span>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                    {services.length > 3 && (
+                      <p className="text-xs text-muted-foreground text-center">
+                        + {services.length - 3} more service{services.length - 3 !== 1 ? "s" : ""}
+                      </p>
+                    )}
+                    <Separator />
+                    <Link href="/browse">
+                      <Button className="w-full">
+                        <Calendar className="w-4 h-4 mr-2" /> Browse & Book
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No services available yet.</p>
+                )}
               </CardContent>
             </Card>
 
+            {/* Business Details */}
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Business Details</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground space-y-2">
-                <p>Business type: {provider.businessType.replace("_", " ")}</p>
-                {provider.licenseNumber && <p>License: {provider.licenseNumber}</p>}
-                <p>Member since {new Date(provider.createdAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}</p>
+              <CardContent className="p-5 space-y-3">
+                <h3 className="font-semibold">Business Details</h3>
+                <div className="text-sm text-muted-foreground space-y-2">
+                  <p className="capitalize">Type: {provider.businessType.replace("_", " ")}</p>
+                  {provider.serviceRadiusMiles && (
+                    <p>Service area: {provider.serviceRadiusMiles} mile radius</p>
+                  )}
+                  {provider.yearsInBusiness && (
+                    <p>{provider.yearsInBusiness}+ years experience</p>
+                  )}
+                  <p>Member since {new Date(provider.createdAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}</p>
+                </div>
+
+                {/* Trust Badges */}
+                {(provider.insuranceVerified || provider.backgroundCheckVerified || provider.verificationStatus === "verified") && (
+                  <>
+                    <Separator />
+                    <div className="space-y-2">
+                      {provider.verificationStatus === "verified" && (
+                        <p className="flex items-center gap-1.5 text-sm text-blue-600">
+                          <CheckCircle className="w-4 h-4" /> Identity Verified
+                        </p>
+                      )}
+                      {provider.insuranceVerified && (
+                        <p className="flex items-center gap-1.5 text-sm text-green-600">
+                          <Shield className="w-4 h-4" /> Insurance Verified
+                        </p>
+                      )}
+                      {provider.backgroundCheckVerified && (
+                        <p className="flex items-center gap-1.5 text-sm text-green-600">
+                          <Shield className="w-4 h-4" /> Background Check
+                        </p>
+                      )}
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
+
+            {/* Categories Served */}
+            {categories && categories.length > 0 && (
+              <Card>
+                <CardContent className="p-5 space-y-3">
+                  <h3 className="font-semibold">Categories Served</h3>
+                  <div className="space-y-2">
+                    {categories.map((cat: any) => {
+                      const count = services.filter((s: any) => s.categoryId === cat.id).length;
+                      return (
+                        <button
+                          key={cat.id}
+                          onClick={() => setActiveCategory(cat.id.toString())}
+                          className="flex items-center justify-between w-full p-2 rounded-lg hover:bg-muted transition-colors text-left"
+                        >
+                          <span className="flex items-center gap-2 text-sm">
+                            <span>{CATEGORY_ICONS[cat.id] || "\ud83d\udce6"}</span>
+                            <span className="font-medium">{displayName(cat.name)}</span>
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {count} service{count !== 1 ? "s" : ""}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>

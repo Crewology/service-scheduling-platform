@@ -85,7 +85,7 @@
 
 ### Documentation & Testing
 - [x] BUILD_LOG.md, ARCHITECTURE.md, ROADMAP.md
-- [x] 296 tests passing across 17 test files (0 failures)
+- [x] 304 tests passing across 18 test files (0 failures)
 
 ---
 
@@ -99,3 +99,20 @@
 - [ ] Upgrade prompts when subscription limits are reached
 - [ ] Service editing flow improvements
 - [ ] Email unsubscribe granularity per notification type
+
+## Hotfix: Provider Role & Onboarding Testing
+- [x] Fix owner account role to provider so provider dashboard is accessible
+- [ ] Verify provider onboarding/profile building flow works end-to-end on dev preview
+
+## Phase 18: Multi-Category Provider Redesign
+
+- [x] Provider profile photo upload (during onboarding and in dashboard)
+- [x] Multi-category selection system (providers choose from 42 categories)
+- [x] Per-category service creation with individual pricing
+- [x] Provider Stripe Connect payment setup integrated into onboarding
+- [x] Redesigned provider onboarding wizard (photo → categories → services → pricing → Stripe)
+- [x] Provider dashboard: manage multiple categories and their services
+- [x] Provider mini-website public profile (showcases all categories & services)
+- [x] Customer search/browse works with multi-category providers
+- [x] Database schema updates for provider-category relationships
+- [x] Tests for multi-category provider flow (304 tests passing)

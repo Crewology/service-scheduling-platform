@@ -3,7 +3,9 @@ import {
   serviceCategories,
   services,
   servicePhotos,
+  providerCategories,
   type Service,
+  type ProviderCategory,
 } from "../../drizzle/schema";
 import { getDb } from "./connection";
 
@@ -31,6 +33,69 @@ export async function getCategoryBySlug(slug: string) {
   if (!db) return undefined;
   const result = await db.select().from(serviceCategories).where(eq(serviceCategories.slug, slug)).limit(1);
   return result.length > 0 ? result[0] : undefined;
+}
+
+// ============================================================================
+// PROVIDER-CATEGORY MANAGEMENT (multi-category support)
+// ============================================================================
+
+export async function getProviderCategories(providerId: number): Promise<ProviderCategory[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(providerCategories)
+    .where(and(eq(providerCategories.providerId, providerId), eq(providerCategories.isActive, true)))
+    .orderBy(providerCategories.createdAt);
+}
+
+export async function addProviderCategory(providerId: number, categoryId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  // Use INSERT IGNORE to handle duplicates gracefully
+  try {
+    await db.insert(providerCategories).values({ providerId, categoryId });
+  } catch (err: any) {
+    // If duplicate, just ignore
+    if (err?.code === 'ER_DUP_ENTRY' || err?.message?.includes('Duplicate')) return;
+    throw err;
+  }
+}
+
+export async function addProviderCategories(providerId: number, categoryIds: number[]): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  if (categoryIds.length === 0) return;
+  for (const categoryId of categoryIds) {
+    await addProviderCategory(providerId, categoryId);
+  }
+}
+
+export async function removeProviderCategory(providerId: number, categoryId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(providerCategories)
+    .where(and(eq(providerCategories.providerId, providerId), eq(providerCategories.categoryId, categoryId)));
+}
+
+export async function setProviderCategories(providerId: number, categoryIds: number[]): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  // Remove all existing
+  await db.delete(providerCategories).where(eq(providerCategories.providerId, providerId));
+  // Add new ones
+  if (categoryIds.length > 0) {
+    await db.insert(providerCategories).values(
+      categoryIds.map(categoryId => ({ providerId, categoryId }))
+    );
+  }
+}
+
+export async function getProvidersByCategory(categoryId: number): Promise<number[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db.select({ providerId: providerCategories.providerId })
+    .from(providerCategories)
+    .where(and(eq(providerCategories.categoryId, categoryId), eq(providerCategories.isActive, true)));
+  return rows.map(r => r.providerId);
 }
 
 // ============================================================================
