@@ -92,6 +92,11 @@ export {
   getQuoteCountByProvider,
 } from "./db/quotes";
 
+// Verification document deletion
+export {
+  deleteVerificationDocument,
+} from "./db/verification";
+
 // Service packages
 export {
   createPackage,

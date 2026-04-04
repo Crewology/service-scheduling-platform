@@ -213,3 +213,7 @@
 ## Bug Fix: PublicProviderProfile Hooks Error
 - [x] Fix "Rendered more hooks than during the previous render" error on /p/:slug page
 - [x] Ensure all hooks are called unconditionally (no hooks after early returns)
+
+## UX Fix: Profile Photo & Verification Documents
+- [x] Add profile photo upload to the "My Profile" page (hover-to-upload with camera icon)
+- [x] Add delete button for uploaded verification documents (with confirm/cancel)

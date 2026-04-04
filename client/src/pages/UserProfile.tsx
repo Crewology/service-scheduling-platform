@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { User, Mail, Phone, Shield, Calendar } from "lucide-react";
+import { User, Mail, Phone, Shield, Camera, Loader2 } from "lucide-react";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { getLoginUrl } from "@/const";
 import { formatDate } from "@/lib/dateUtils";
@@ -22,6 +22,7 @@ export default function UserProfile() {
     phone: "",
     email: "",
   });
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (user) {
@@ -42,6 +43,37 @@ export default function UserProfile() {
     },
     onError: (err) => toast.error(err.message),
   });
+
+  const uploadPhoto = trpc.provider.uploadProfilePhoto.useMutation({
+    onSuccess: (result) => {
+      utils.auth.me.invalidate();
+      toast.success("Profile photo updated!");
+    },
+    onError: (err) => toast.error(err.message || "Failed to upload photo"),
+  });
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Photo must be under 5MB");
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = (reader.result as string).split(",")[1];
+      uploadPhoto.mutate({
+        photoData: base64,
+        contentType: file.type,
+      });
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
 
   if (loading) {
     return (
@@ -67,8 +99,38 @@ export default function UserProfile() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                  <User className="h-8 w-8 text-primary" />
+                {/* Profile Photo with Upload */}
+                <div className="relative group">
+                  <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+                    {user?.profilePhotoUrl ? (
+                      <img
+                        src={user.profilePhotoUrl}
+                        alt="Profile"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <User className="h-8 w-8 text-primary" />
+                    )}
+                  </div>
+                  {/* Camera overlay on hover */}
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadPhoto.isPending}
+                    className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                  >
+                    {uploadPhoto.isPending ? (
+                      <Loader2 className="h-5 w-5 text-white animate-spin" />
+                    ) : (
+                      <Camera className="h-5 w-5 text-white" />
+                    )}
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handlePhotoUpload}
+                  />
                 </div>
                 <div>
                   <CardTitle>{user?.name || "User"}</CardTitle>
@@ -76,6 +138,9 @@ export default function UserProfile() {
                     <Badge variant="secondary" className="capitalize">{user?.role}</Badge>
                     <span className="text-xs">Member since {user?.createdAt ? formatDate(user.createdAt) : "N/A"}</span>
                   </CardDescription>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Hover over photo to change it
+                  </p>
                 </div>
               </div>
               {!editing && (

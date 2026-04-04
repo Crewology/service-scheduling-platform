@@ -48,6 +48,23 @@ export const verificationRouter = router({
     return await db.getProviderDocuments(provider.id);
   }),
 
+  // Provider: Delete a verification document
+  deleteDocument: protectedProcedure
+    .input(z.object({ documentId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+
+      const doc = await db.getDocumentById(input.documentId);
+      if (!doc) throw new TRPCError({ code: "NOT_FOUND", message: "Document not found" });
+      if (doc.providerId !== provider.id) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "You can only delete your own documents" });
+      }
+
+      await db.deleteVerificationDocument(input.documentId);
+      return { success: true };
+    }),
+
   // Admin: List all documents (optionally filtered by status)
   listAll: adminProcedure
     .input(z.object({ status: z.string().optional() }).optional())

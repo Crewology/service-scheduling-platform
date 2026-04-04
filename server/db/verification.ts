@@ -94,6 +94,12 @@ export async function reviewVerificationDocument(
     .where(eq(verificationDocuments.id, documentId));
 }
 
+export async function deleteVerificationDocument(documentId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(verificationDocuments).where(eq(verificationDocuments.id, documentId));
+}
+
 export async function getDocumentById(documentId: number) {
   const db = await getDb();
   if (!db) return undefined;

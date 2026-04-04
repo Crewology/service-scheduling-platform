@@ -428,6 +428,16 @@ function VerificationDocumentsTab() {
   const utils = trpc.useUtils();
   const [uploading, setUploading] = useState(false);
   const [selectedType, setSelectedType] = useState<string>("identity");
+  const [deletingDocId, setDeletingDocId] = useState<number | null>(null);
+
+  const deleteDoc = trpc.verification.deleteDocument.useMutation({
+    onSuccess: () => {
+      toast.success("Document deleted successfully");
+      utils.verification.myDocuments.invalidate();
+      setDeletingDocId(null);
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
   const uploadDoc = trpc.verification.upload.useMutation({
     onSuccess: () => {
@@ -565,6 +575,34 @@ function VerificationDocumentsTab() {
                         <Eye className="h-4 w-4" />
                       </Button>
                     </a>
+                    {deletingDocId === doc.id ? (
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => deleteDoc.mutate({ documentId: doc.id })}
+                          disabled={deleteDoc.isPending}
+                        >
+                          {deleteDoc.isPending ? "Deleting..." : "Confirm"}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setDeletingDocId(null)}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-muted-foreground hover:text-destructive"
+                        onClick={() => setDeletingDocId(doc.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
