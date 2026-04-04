@@ -64,3 +64,21 @@ export {
   deletePortfolioItem,
   getPortfolioItemCount,
 } from "./db/portfolio";
+
+// Customer favorites
+export {
+  addFavorite,
+  removeFavorite,
+  isFavorited,
+  getUserFavorites,
+  getFavoriteCount,
+} from "./db/favorites";
+
+// Service packages
+export {
+  createPackage,
+  updatePackage,
+  deletePackage,
+  getPackagesByProvider,
+  getPublicPackagesByProvider,
+} from "./db/packages";

@@ -575,3 +575,60 @@ export const portfolioItems = mysqlTable("portfolio_items", {
 
 export type PortfolioItem = typeof portfolioItems.$inferSelect;
 export type InsertPortfolioItem = typeof portfolioItems.$inferInsert;
+
+
+/**
+ * Customer favorites — saved providers for quick access.
+ */
+export const customerFavorites = mysqlTable("customer_favorites", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id),
+  providerId: int("providerId").notNull().references(() => serviceProviders.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  userProviderIdx: index("fav_user_provider_idx").on(table.userId, table.providerId),
+  userProviderUnique: unique("fav_user_provider_unique").on(table.userId, table.providerId),
+  providerIdx: index("fav_provider_idx").on(table.providerId),
+}));
+
+export type CustomerFavorite = typeof customerFavorites.$inferSelect;
+export type InsertCustomerFavorite = typeof customerFavorites.$inferInsert;
+
+/**
+ * Service packages — bundled services with combined discount pricing.
+ * Providers can group multiple services into a single bookable package.
+ */
+export const servicePackages = mysqlTable("service_packages", {
+  id: int("id").autoincrement().primaryKey(),
+  providerId: int("providerId").notNull().references(() => serviceProviders.id),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  packagePrice: decimal("packagePrice", { precision: 10, scale: 2 }).notNull(),
+  originalPrice: decimal("originalPrice", { precision: 10, scale: 2 }).notNull(),
+  durationMinutes: int("durationMinutes"),
+  imageUrl: varchar("imageUrl", { length: 500 }),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  providerActiveIdx: index("pkg_provider_active_idx").on(table.providerId, table.isActive),
+}));
+
+export type ServicePackage = typeof servicePackages.$inferSelect;
+export type InsertServicePackage = typeof servicePackages.$inferInsert;
+
+/**
+ * Package items — individual services included in a package.
+ */
+export const packageItems = mysqlTable("package_items", {
+  id: int("id").autoincrement().primaryKey(),
+  packageId: int("packageId").notNull().references(() => servicePackages.id),
+  serviceId: int("serviceId").notNull().references(() => services.id),
+  sortOrder: int("sortOrder").default(0).notNull(),
+}, (table) => ({
+  packageServiceIdx: index("pkg_item_package_idx").on(table.packageId, table.serviceId),
+  packageServiceUnique: unique("pkg_item_unique").on(table.packageId, table.serviceId),
+}));
+
+export type PackageItem = typeof packageItems.$inferSelect;
+export type InsertPackageItem = typeof packageItems.$inferInsert;

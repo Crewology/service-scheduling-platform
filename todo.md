@@ -163,3 +163,25 @@
 
 ## Testing
 - [x] 328 tests passing across 20 test files (0 failures)
+
+## Feature: Customer Favorites/Saved Providers
+- [x] Database schema for customer_favorites table
+- [x] Server endpoints for add/remove/list/check favorites
+- [x] Heart icon on public provider profile to toggle favorite
+- [x] Saved Providers page accessible from customer navigation
+- [x] "Saved" link added to desktop and mobile nav
+
+## Feature: Provider Service Package Builder
+- [x] Database schema for service_packages and package_items tables
+- [x] Server endpoints for CRUD packages with bundled pricing
+- [x] Package builder UI in provider dashboard (Services tab)
+- [x] Package display on public provider profile with savings badge
+
+## Feature: Provider Response Time Tracking
+- [x] Track message response times from conversation history
+- [x] Compute average response time per provider via API endpoint
+- [x] Display response time badge on public provider profile
+- [x] Display response time badge on category browse provider cards
+
+## Testing
+- [x] 341 tests passing across 21 test files (0 failures)

@@ -431,4 +431,163 @@ export const providerRouter = router({
 
       return { slots, hasAvailability: slots.length > 0 };
     }),
+
+  // ========================================================================
+  // FAVORITES
+  // ========================================================================
+  toggleFavorite: protectedProcedure
+    .input(z.object({ providerId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const already = await db.isFavorited(ctx.user.id, input.providerId);
+      if (already) {
+        await db.removeFavorite(ctx.user.id, input.providerId);
+        return { favorited: false };
+      } else {
+        await db.addFavorite(ctx.user.id, input.providerId);
+        return { favorited: true };
+      }
+    }),
+
+  checkFavorite: protectedProcedure
+    .input(z.object({ providerId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      return { favorited: await db.isFavorited(ctx.user.id, input.providerId) };
+    }),
+
+  myFavorites: protectedProcedure
+    .query(async ({ ctx }) => {
+      return db.getUserFavorites(ctx.user.id);
+    }),
+
+  // ========================================================================
+  // SERVICE PACKAGES
+  // ========================================================================
+  createPackage: protectedProcedure
+    .input(z.object({
+      name: z.string().min(1),
+      description: z.string().optional(),
+      packagePrice: z.string(),
+      originalPrice: z.string(),
+      durationMinutes: z.number().optional(),
+      imageUrl: z.string().optional(),
+      serviceIds: z.array(z.number()).min(2, "A package must include at least 2 services"),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider not found" });
+      return db.createPackage({ providerId: provider.id, ...input });
+    }),
+
+  updatePackage: protectedProcedure
+    .input(z.object({
+      packageId: z.number(),
+      name: z.string().optional(),
+      description: z.string().optional(),
+      packagePrice: z.string().optional(),
+      originalPrice: z.string().optional(),
+      durationMinutes: z.number().optional(),
+      imageUrl: z.string().optional(),
+      serviceIds: z.array(z.number()).optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider not found" });
+      const { packageId, ...data } = input;
+      return db.updatePackage(packageId, provider.id, data);
+    }),
+
+  deletePackage: protectedProcedure
+    .input(z.object({ packageId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider not found" });
+      await db.deletePackage(input.packageId, provider.id);
+      return { success: true };
+    }),
+
+  myPackages: protectedProcedure
+    .query(async ({ ctx }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) return [];
+      return db.getPackagesByProvider(provider.id);
+    }),
+
+  getPublicPackages: publicProcedure
+    .input(z.object({ providerId: z.number() }))
+    .query(async ({ input }) => {
+      return db.getPublicPackagesByProvider(input.providerId);
+    }),
+
+  // ========================================================================
+  // RESPONSE TIME
+  // ========================================================================
+  getResponseTime: publicProcedure
+    .input(z.object({ providerId: z.number() }))
+    .query(async ({ input }) => {
+      // Compute average response time from messages where provider is the recipient
+      const provider = await db.getProviderById(input.providerId);
+      if (!provider) return { avgMinutes: null, label: "Unknown" };
+      
+      const { getDb } = await import("../db/connection");
+      const dbConn = await getDb();
+      if (!dbConn) return { avgMinutes: null, label: "Unknown" };
+      
+      const { messages } = await import("../../drizzle/schema");
+      const { eq, and, isNotNull, sql } = await import("drizzle-orm");
+      
+      // Get conversations where provider received messages and responded
+      // We look at pairs: customer message → provider reply in same conversation
+      const providerUserId = provider.userId;
+      
+      const received = await dbConn
+        .select({
+          conversationId: messages.conversationId,
+          receivedAt: messages.createdAt,
+        })
+        .from(messages)
+        .where(and(
+          eq(messages.recipientId, providerUserId),
+        ))
+        .orderBy(messages.createdAt)
+        .limit(100);
+      
+      const sent = await dbConn
+        .select({
+          conversationId: messages.conversationId,
+          sentAt: messages.createdAt,
+        })
+        .from(messages)
+        .where(eq(messages.senderId, providerUserId))
+        .orderBy(messages.createdAt)
+        .limit(100);
+      
+      // For each received message, find the next sent message in the same conversation
+      const responseTimes: number[] = [];
+      for (const recv of received) {
+        const reply = sent.find(
+          (s: any) => s.conversationId === recv.conversationId && s.sentAt > recv.receivedAt
+        );
+        if (reply) {
+          const diffMs = new Date(reply.sentAt).getTime() - new Date(recv.receivedAt).getTime();
+          const diffMin = diffMs / 60000;
+          if (diffMin > 0 && diffMin < 1440) { // Only count responses within 24h
+            responseTimes.push(diffMin);
+          }
+        }
+      }
+      
+      if (responseTimes.length === 0) {
+        return { avgMinutes: null, label: "New provider" };
+      }
+      
+      const avg = responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length;
+      let label = "";
+      if (avg < 15) label = "Responds within 15 min";
+      else if (avg < 60) label = `Responds within ${Math.round(avg)} min`;
+      else if (avg < 120) label = "Responds within 1 hour";
+      else if (avg < 240) label = "Responds within a few hours";
+      else label = "Responds within a day";
+      
+      return { avgMinutes: Math.round(avg), label };
+    }),
 });

@@ -31,6 +31,16 @@ function formatTime12(time: string): string {
   return `${h12}:${m} ${ampm}`;
 }
 
+function ResponseTimeBadge({ providerId }: { providerId: number }) {
+  const { data } = trpc.provider.getResponseTime.useQuery({ providerId });
+  if (!data || data.avgMinutes === null) return null;
+  return (
+    <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-blue-50 border-blue-200 text-blue-700">
+      Responds in ~{data.label}
+    </Badge>
+  );
+}
+
 function AvailabilityQuickView({ providerId }: { providerId: number }) {
   const { data } = trpc.provider.getNextAvailable.useQuery({ providerId, days: 7 });
   if (!data || !data.hasAvailability) return null;
@@ -327,6 +337,9 @@ export default function CategoryDetail() {
                         <Button variant="outline" size="sm">View Profile</Button>
                       </div>
                     </Link>
+                    <div className="flex items-center gap-2 mt-2 px-4">
+                      <ResponseTimeBadge providerId={providerId} />
+                    </div>
                     <AvailabilityQuickView providerId={providerId} />
                   </CardHeader>
 

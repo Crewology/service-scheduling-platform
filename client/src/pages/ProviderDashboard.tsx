@@ -598,6 +598,11 @@ export default function ProviderDashboard() {
   const [portfolioBeforeUrl, setPortfolioBeforeUrl] = useState("");
   const [portfolioAfterUrl, setPortfolioAfterUrl] = useState("");
   const [activeTab, setActiveTab] = useState("bookings");
+  const [showPackageDialog, setShowPackageDialog] = useState(false);
+  const [packageName, setPackageName] = useState("");
+  const [packageDescription, setPackageDescription] = useState("");
+  const [packagePrice, setPackagePrice] = useState("");
+  const [packageServiceIds, setPackageServiceIds] = useState<number[]>([]);
   
   const { data: provider } = trpc.provider.getMyProfile.useQuery(undefined, {
     enabled: isAuthenticated,
@@ -677,6 +682,19 @@ export default function ProviderDashboard() {
       toast.success("Portfolio item removed");
     },
     onError: (err) => toast.error(err.message),
+  });
+
+  const createPackage = trpc.provider.createPackage.useMutation({
+    onSuccess: () => {
+      trpc.useUtils().provider.myPackages.invalidate();
+      setShowPackageDialog(false);
+      setPackageName("");
+      setPackageDescription("");
+      setPackagePrice("");
+      setPackageServiceIds([]);
+      toast.success("Package created!");
+    },
+    onError: (err: any) => toast.error(err.message),
   });
 
   const updateProvider = trpc.provider.update.useMutation({
@@ -1135,6 +1153,20 @@ export default function ProviderDashboard() {
                 </Button>
               </div>
               <PortfolioGallery categories={myCategories} />
+            </div>
+
+            {/* Service Packages Section */}
+            <div className="border-t pt-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold flex items-center gap-2"><Package className="h-5 w-5" /> Service Packages</h3>
+                  <p className="text-sm text-muted-foreground mt-1">Bundle multiple services together with a discount</p>
+                </div>
+                <Button size="sm" onClick={() => setShowPackageDialog(true)}>
+                  <Plus className="h-4 w-4 mr-1" /> Create Package
+                </Button>
+              </div>
+              <PackagesList />
             </div>
 
             {/* Services without a matching category */}
@@ -1906,6 +1938,111 @@ export default function ProviderDashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Package Creation Dialog */}
+      <Dialog open={showPackageDialog} onOpenChange={(open) => {
+        if (!open) {
+          setShowPackageDialog(false);
+          setPackageName("");
+          setPackageDescription("");
+          setPackagePrice("");
+          setPackageServiceIds([]);
+        }
+      }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Create Service Package</DialogTitle>
+            <DialogDescription>Bundle multiple services together with a combined price</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Package Name</Label>
+              <Input
+                placeholder="e.g., Full Event Package"
+                value={packageName}
+                onChange={(e) => setPackageName(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Description (optional)</Label>
+              <Input
+                placeholder="e.g., DJ + Photography + AV Setup for your event"
+                value={packageDescription}
+                onChange={(e) => setPackageDescription(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Package Price ($)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="99.99"
+                value={packagePrice}
+                onChange={(e) => setPackagePrice(e.target.value)}
+              />
+              {services && packageServiceIds.length > 0 && (() => {
+                const total = services
+                  .filter((s: any) => packageServiceIds.includes(s.id))
+                  .reduce((sum: number, s: any) => sum + Number(s.price || 0), 0);
+                const savings = total - Number(packagePrice || 0);
+                return total > 0 ? (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Individual total: ${total.toFixed(2)}
+                    {savings > 0 && <span className="text-green-600 ml-1">(Customer saves ${savings.toFixed(2)})</span>}
+                  </p>
+                ) : null;
+              })()}
+            </div>
+            <div>
+              <Label>Select Services to Bundle</Label>
+              <div className="mt-2 max-h-48 overflow-y-auto space-y-2 border rounded-lg p-3">
+                {services && services.length > 0 ? services.map((service: any) => (
+                  <label key={service.id} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-1.5 rounded">
+                    <input
+                      type="checkbox"
+                      checked={packageServiceIds.includes(service.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setPackageServiceIds([...packageServiceIds, service.id]);
+                        } else {
+                          setPackageServiceIds(packageServiceIds.filter(id => id !== service.id));
+                        }
+                      }}
+                      className="rounded"
+                    />
+                    <span className="text-sm flex-1">{service.name}</span>
+                    <span className="text-xs text-muted-foreground">${Number(service.price || 0).toFixed(2)}</span>
+                  </label>
+                )) : (
+                  <p className="text-sm text-muted-foreground text-center py-2">No services available. Add services first.</p>
+                )}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPackageDialog(false)}>Cancel</Button>
+            <Button
+              disabled={!packageName || !packagePrice || packageServiceIds.length < 2}
+              onClick={() => {
+                const originalPrice = services
+                  ? services
+                      .filter((s: any) => packageServiceIds.includes(s.id))
+                      .reduce((sum: number, s: any) => sum + Number(s.price || 0), 0)
+                  : 0;
+                createPackage.mutate({
+                  name: packageName,
+                  description: packageDescription || undefined,
+                  packagePrice: packagePrice,
+                  originalPrice: originalPrice.toString(),
+                  serviceIds: packageServiceIds,
+                });
+              }}
+            >
+              Create Package
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -2184,6 +2321,82 @@ function PortfolioGallery({ categories }: { categories: any[] | undefined }) {
               ))}
             </div>
           </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function PackagesList() {
+  const { data: packages, isLoading } = trpc.provider.myPackages.useQuery();
+  const utils = trpc.useUtils();
+  const deletePackage = trpc.provider.deletePackage.useMutation({
+    onSuccess: () => {
+      utils.provider.myPackages.invalidate();
+      toast.success("Package deleted");
+    },
+  });
+
+  if (isLoading) {
+    return <div className="text-sm text-muted-foreground">Loading packages...</div>;
+  }
+
+  if (!packages || packages.length === 0) {
+    return (
+      <Card className="border-dashed">
+        <CardContent className="py-8 text-center">
+          <Package className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground">No packages yet. Bundle your services to offer discounts!</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {packages.map((pkg: any) => {
+        const discount = pkg.originalPrice && pkg.price
+          ? Math.round((1 - Number(pkg.price) / Number(pkg.originalPrice)) * 100)
+          : 0;
+        return (
+          <Card key={pkg.id} className="relative">
+            {discount > 0 && (
+              <Badge className="absolute top-3 right-3 bg-green-500 text-white">
+                {discount}% off
+              </Badge>
+            )}
+            <CardContent className="p-4">
+              <h4 className="font-semibold">{pkg.name}</h4>
+              {pkg.description && <p className="text-sm text-muted-foreground mt-1">{pkg.description}</p>}
+              <div className="flex items-baseline gap-2 mt-2">
+                <span className="text-lg font-bold text-primary">${Number(pkg.price).toFixed(2)}</span>
+                {pkg.originalPrice && Number(pkg.originalPrice) > Number(pkg.price) && (
+                  <span className="text-sm text-muted-foreground line-through">${Number(pkg.originalPrice).toFixed(2)}</span>
+                )}
+              </div>
+              {pkg.services && pkg.services.length > 0 && (
+                <div className="mt-2 space-y-1">
+                  {pkg.services.map((svc: any, i: number) => (
+                    <div key={i} className="text-xs text-muted-foreground flex items-center gap-1">
+                      <CheckCircle2 className="h-3 w-3 text-green-500" />
+                      {svc.serviceName}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="mt-3 pt-2 border-t">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-xs text-destructive"
+                  onClick={() => deletePackage.mutate({ packageId: pkg.id })}
+                  disabled={deletePackage.isPending}
+                >
+                  <Trash2 className="h-3 w-3 mr-1" /> Delete
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         );
       })}
     </div>

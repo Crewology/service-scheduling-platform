@@ -20,7 +20,12 @@ import {
   Smartphone,
   Home,
   User,
+  Heart,
+  Zap,
+  Package,
 } from "lucide-react";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { toast } from "sonner";
 
 function formatCurrency(value: string | number | null | undefined): string {
   const num = typeof value === "string" ? parseFloat(value) : (value ?? 0);
@@ -83,6 +88,35 @@ function ServiceCardPhoto({ serviceId }: { serviceId: number }) {
   );
 }
 
+function FavoriteButton({ providerId }: { providerId: number }) {
+  const { user } = useAuth();
+  const utils = trpc.useUtils();
+  const { data: favData } = trpc.provider.checkFavorite.useQuery(
+    { providerId },
+    { enabled: !!user }
+  );
+  const toggle = trpc.provider.toggleFavorite.useMutation({
+    onSuccess: (result) => {
+      utils.provider.checkFavorite.invalidate({ providerId });
+      utils.provider.myFavorites.invalidate();
+      toast.success(result.favorited ? "Added to saved providers" : "Removed from saved providers");
+    },
+  });
+  if (!user) return null;
+  const isFav = favData?.favorited ?? false;
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      className={`h-9 w-9 rounded-full ${isFav ? "text-red-500 hover:text-red-600" : "text-muted-foreground hover:text-red-500"}`}
+      onClick={() => toggle.mutate({ providerId })}
+      disabled={toggle.isPending}
+    >
+      <Heart className={`h-5 w-5 ${isFav ? "fill-current" : ""}`} />
+    </Button>
+  );
+}
+
 export default function PublicProviderProfile() {
   const params = useParams<{ slug: string }>();
   const { data, isLoading, error } = trpc.provider.getBySlug.useQuery(
@@ -139,6 +173,14 @@ export default function PublicProviderProfile() {
     { providerId: provider.id },
     { enabled: !!provider.id }
   );
+  const { data: responseTime } = trpc.provider.getResponseTime.useQuery(
+    { providerId: provider.id },
+    { enabled: !!provider.id }
+  );
+  const { data: packages } = trpc.provider.getPublicPackages.useQuery(
+    { providerId: provider.id },
+    { enabled: !!provider.id }
+  );
   const avgRating = parseFloat(provider.averageRating || "0");
   const displayName = (name: string) =>
     name.split(" ").map((w: string) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
@@ -181,10 +223,20 @@ export default function PublicProviderProfile() {
                     <CheckCircle className="w-3 h-3" /> Verified
                   </Badge>
                 )}
+                {/* Favorite Button */}
+                <FavoriteButton providerId={provider.id} />
               </div>
 
               {provider.description && (
                 <p className="text-muted-foreground mt-3 max-w-2xl leading-relaxed">{provider.description}</p>
+              )}
+
+              {/* Response Time Badge */}
+              {responseTime?.label && responseTime.avgMinutes !== null && (
+                <div className="flex items-center gap-1.5 mt-2">
+                  <Zap className="w-4 h-4 text-green-500" />
+                  <span className="text-sm text-green-600 font-medium">{responseTime.label}</span>
+                </div>
               )}
 
               {/* Stats Row */}
@@ -374,6 +426,56 @@ export default function PublicProviderProfile() {
                       </div>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* Service Packages Section */}
+            {packages && packages.length > 0 && (
+              <div>
+                <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <Package className="w-5 h-5" /> Service Packages
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {packages.map((pkg: any) => {
+                    const discount = pkg.originalPrice && pkg.price
+                      ? Math.round((1 - Number(pkg.price) / Number(pkg.originalPrice)) * 100)
+                      : 0;
+                    return (
+                      <Card key={pkg.id} className="relative overflow-hidden border-2 hover:border-primary/30 transition-colors">
+                        {discount > 0 && (
+                          <div className="absolute top-3 right-3">
+                            <Badge className="bg-green-500 hover:bg-green-600 text-white">
+                              Save {discount}%
+                            </Badge>
+                          </div>
+                        )}
+                        <CardContent className="p-5">
+                          <h3 className="text-lg font-bold mb-1">{pkg.name}</h3>
+                          {pkg.description && (
+                            <p className="text-sm text-muted-foreground mb-3">{pkg.description}</p>
+                          )}
+                          <div className="flex items-baseline gap-2 mb-3">
+                            <span className="text-2xl font-bold text-primary">{formatCurrency(pkg.price)}</span>
+                            {pkg.originalPrice && Number(pkg.originalPrice) > Number(pkg.price) && (
+                              <span className="text-sm text-muted-foreground line-through">{formatCurrency(pkg.originalPrice)}</span>
+                            )}
+                          </div>
+                          {pkg.services && pkg.services.length > 0 && (
+                            <div className="space-y-1.5">
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Includes:</p>
+                              {pkg.services.map((svc: any, idx: number) => (
+                                <div key={idx} className="flex items-center gap-2 text-sm">
+                                  <CheckCircle className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                                  <span>{svc.serviceName}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               </div>
             )}

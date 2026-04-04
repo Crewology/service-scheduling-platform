@@ -13,6 +13,7 @@ import {
   User,
   CheckCheck,
   ExternalLink,
+  Heart,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
@@ -254,6 +255,14 @@ export function NavHeader() {
                   </Button>
                 </Link>
 
+                {/* Saved Providers */}
+                <Link href="/saved-providers">
+                  <Button variant="ghost" size="sm" className="relative">
+                    <Heart className="h-4 w-4 mr-1" />
+                    Saved
+                  </Button>
+                </Link>
+
                 {/* Messages with unread badge */}
                 <Link href="/my-bookings">
                   <Button variant="ghost" size="sm" className="relative">
@@ -337,6 +346,12 @@ export function NavHeader() {
                   <Button variant="ghost" className="w-full justify-start relative">
                     <Calendar className="h-4 w-4 mr-2" />
                     My Bookings
+                  </Button>
+                </Link>
+                <Link href="/saved-providers" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start">
+                    <Heart className="h-4 w-4 mr-2" />
+                    Saved Providers
                   </Button>
                 </Link>
                 <Link href="/my-bookings" onClick={() => setMobileMenuOpen(false)}>

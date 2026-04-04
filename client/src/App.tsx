@@ -30,6 +30,7 @@ import WidgetGenerator from "./pages/WidgetGenerator";
 import PromoCodes from "./pages/PromoCodes";
 import BookingDetail from "./pages/BookingDetail";
 import Referrals from "./pages/Referrals";
+import SavedProviders from "./pages/SavedProviders";
 
 function Router() {
   return (
@@ -61,6 +62,7 @@ function Router() {
       <Route path="/provider/promo-codes" component={PromoCodes} />
       <Route path="/booking/:id/detail" component={BookingDetail} />
       <Route path="/referrals" component={Referrals} />
+      <Route path="/saved-providers" component={SavedProviders} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
