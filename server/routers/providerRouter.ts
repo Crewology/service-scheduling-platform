@@ -590,4 +590,124 @@ export const providerRouter = router({
       
       return { avgMinutes: Math.round(avg), label };
     }),
+
+  // ============================================================================
+  // QUOTE REQUESTS
+  // ============================================================================
+
+  requestQuote: protectedProcedure
+    .input(z.object({
+      providerId: z.number(),
+      serviceId: z.number().optional(),
+      categoryId: z.number().optional(),
+      title: z.string().min(5, "Title must be at least 5 characters"),
+      description: z.string().min(20, "Please describe your needs in at least 20 characters"),
+      preferredDate: z.string().optional(),
+      preferredTime: z.string().optional(),
+      locationType: z.enum(["mobile", "fixed_location", "virtual"]).optional(),
+      location: z.string().optional(),
+      attachmentUrls: z.array(z.string()).optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const result = await db.createQuoteRequest({
+        customerId: ctx.user.id,
+        providerId: input.providerId,
+        serviceId: input.serviceId,
+        categoryId: input.categoryId,
+        title: input.title,
+        description: input.description,
+        preferredDate: input.preferredDate,
+        preferredTime: input.preferredTime,
+        locationType: input.locationType,
+        location: input.location,
+        attachmentUrls: input.attachmentUrls ? JSON.stringify(input.attachmentUrls) : undefined,
+      });
+      return result;
+    }),
+
+  myQuotes: protectedProcedure
+    .query(async ({ ctx }) => {
+      return db.getQuotesByCustomer(ctx.user.id);
+    }),
+
+  providerQuotes: protectedProcedure
+    .query(async ({ ctx }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider not found" });
+      const quotes = await db.getQuotesByProvider(provider.id);
+      // Enrich with customer and service names
+      const enriched = await Promise.all(quotes.map(async (q) => {
+        const customer = await db.getUserById(q.customerId);
+        return {
+          ...q,
+          customerName: customer?.name || customer?.firstName || "Customer",
+          customerEmail: customer?.email,
+        };
+      }));
+      return enriched;
+    }),
+
+  respondToQuote: protectedProcedure
+    .input(z.object({
+      quoteId: z.number(),
+      quotedAmount: z.string(),
+      quotedDurationMinutes: z.number().min(15),
+      providerNotes: z.string().optional(),
+      validDays: z.number().default(7),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const quote = await db.getQuoteById(input.quoteId);
+      if (!quote) throw new TRPCError({ code: "NOT_FOUND", message: "Quote not found" });
+      
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider || quote.providerId !== provider.id) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+      }
+      if (quote.status !== "pending") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Quote has already been responded to" });
+      }
+
+      await db.respondToQuote(input.quoteId, {
+        quotedAmount: input.quotedAmount,
+        quotedDurationMinutes: input.quotedDurationMinutes,
+        providerNotes: input.providerNotes,
+        validUntil: new Date(Date.now() + input.validDays * 24 * 60 * 60 * 1000),
+      });
+      return { success: true };
+    }),
+
+  updateQuoteStatus: protectedProcedure
+    .input(z.object({
+      quoteId: z.number(),
+      status: z.enum(["accepted", "declined"]),
+      reason: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const quote = await db.getQuoteById(input.quoteId);
+      if (!quote) throw new TRPCError({ code: "NOT_FOUND", message: "Quote not found" });
+      
+      // Customer can accept/decline a quoted price
+      // Provider can decline a pending request
+      const isCustomer = quote.customerId === ctx.user.id;
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      const isProvider = provider && quote.providerId === provider.id;
+      
+      if (!isCustomer && !isProvider) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+      }
+
+      if (isCustomer && input.status === "accepted" && quote.status !== "quoted") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Can only accept a quoted price" });
+      }
+
+      await db.updateQuoteStatus(input.quoteId, input.status, input.reason);
+      return { success: true };
+    }),
+
+  quoteCount: protectedProcedure
+    .query(async ({ ctx }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) return { pending: 0, quoted: 0, total: 0 };
+      return db.getQuoteCountByProvider(provider.id);
+    }),
 });

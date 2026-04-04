@@ -185,3 +185,27 @@
 
 ## Testing
 - [x] 341 tests passing across 21 test files (0 failures)
+
+## Feature: Provider Schedule Conflict Detector
+- [x] Server-side conflict detection when accepting/confirming bookings
+- [x] Check for overlapping time slots across all provider bookings (all categories)
+- [x] Warning UI in provider dashboard when confirming a booking that conflicts
+- [x] Conflict indicator on booking cards showing overlapping bookings
+- [x] Allow provider to override and accept anyway with acknowledgment
+
+## Feature: Request a Quote Flow
+- [x] Database schema for quote_requests table
+- [x] Server endpoints for creating, listing, responding to quote requests
+- [x] Customer UI: "Request a Quote" button on provider profile page
+- [x] Customer quote request form (title, description, preferred date/time, location type, address)
+- [x] Provider UI: Quote requests section in Bookings tab of dashboard
+- [x] Provider quote response dialog (price, duration, notes, validity period)
+- [x] Customer "My Quotes" page with accept/decline actions
+- [x] "Quotes" link added to NavHeader (desktop + mobile)
+- [x] Provider can decline quote requests
+- [x] Customer can decline quoted prices with optional reason
+- [x] Quote count badge on provider dashboard
+
+## Testing
+- [x] 356 tests passing across 22 test files (0 failures)
+- [x] 15 new quote flow tests (request, respond, accept, decline, authorization)

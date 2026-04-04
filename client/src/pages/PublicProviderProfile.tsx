@@ -6,6 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Star,
   MapPin,
@@ -23,8 +28,13 @@ import {
   Heart,
   Zap,
   Package,
+  FileText,
+  DollarSign,
+  MessageSquare,
+  Send,
 } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { getLoginUrl } from "@/const";
 import { toast } from "sonner";
 
 function formatCurrency(value: string | number | null | undefined): string {
@@ -125,6 +135,57 @@ export default function PublicProviderProfile() {
   );
 
   const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [showQuoteDialog, setShowQuoteDialog] = useState(false);
+  const [quoteTitle, setQuoteTitle] = useState("");
+  const [quoteDescription, setQuoteDescription] = useState("");
+  const [quoteDate, setQuoteDate] = useState("");
+  const [quoteTime, setQuoteTime] = useState("");
+  const [quoteLocation, setQuoteLocation] = useState("");
+  const [quoteLocationType, setQuoteLocationType] = useState<"mobile" | "fixed_location" | "virtual">("mobile");
+  const [quoteCategory, setQuoteCategory] = useState<number | undefined>(undefined);
+  const [quoteSubmitting, setQuoteSubmitting] = useState(false);
+
+  const { user } = useAuth();
+  const requestQuote = trpc.provider.requestQuote.useMutation({
+    onSuccess: () => {
+      toast.success("Quote request sent! The provider will respond shortly.");
+      setShowQuoteDialog(false);
+      setQuoteTitle("");
+      setQuoteDescription("");
+      setQuoteDate("");
+      setQuoteTime("");
+      setQuoteLocation("");
+      setQuoteLocationType("mobile");
+      setQuoteCategory(undefined);
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const handleQuoteSubmit = () => {
+    if (!data?.provider) return;
+    if (!user) {
+      window.location.href = getLoginUrl();
+      return;
+    }
+    if (quoteTitle.length < 5) {
+      toast.error("Title must be at least 5 characters");
+      return;
+    }
+    if (quoteDescription.length < 20) {
+      toast.error("Please describe your needs in at least 20 characters");
+      return;
+    }
+    requestQuote.mutate({
+      providerId: data.provider.id,
+      categoryId: quoteCategory,
+      title: quoteTitle,
+      description: quoteDescription,
+      preferredDate: quoteDate || undefined,
+      preferredTime: quoteTime || undefined,
+      locationType: quoteLocationType,
+      location: quoteLocation || undefined,
+    });
+  };
 
   // Group services by category
   const servicesByCategory = useMemo(() => {
@@ -577,6 +638,13 @@ export default function PublicProviderProfile() {
                         <Calendar className="w-4 h-4 mr-2" /> Browse & Book
                       </Button>
                     </Link>
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => setShowQuoteDialog(true)}
+                    >
+                      <FileText className="w-4 h-4 mr-2" /> Request a Quote
+                    </Button>
                   </>
                 ) : (
                   <p className="text-sm text-muted-foreground">No services available yet.</p>
@@ -663,6 +731,150 @@ export default function PublicProviderProfile() {
           Powered by <Link href="/"><span className="text-primary hover:underline">OlogyCrew</span></Link> — Your service, your business, your way.
         </div>
       </div>
+
+      {/* ================================================================ */}
+      {/* REQUEST A QUOTE DIALOG                                           */}
+      {/* ================================================================ */}
+      <Dialog open={showQuoteDialog} onOpenChange={setShowQuoteDialog}>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
+              Request a Custom Quote
+            </DialogTitle>
+            <DialogDescription>
+              Describe what you need and {provider.businessName || "this provider"} will send you a personalized quote.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            {/* Category Selection */}
+            {categories && categories.length > 1 && (
+              <div className="space-y-2">
+                <Label htmlFor="quote-category">Service Category</Label>
+                <Select
+                  value={quoteCategory?.toString() || ""}
+                  onValueChange={(val) => setQuoteCategory(val ? parseInt(val) : undefined)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a category (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat: any) => (
+                      <SelectItem key={cat.id} value={cat.id.toString()}>
+                        {CATEGORY_ICONS[cat.id] || "\ud83d\udce6"} {displayName(cat.name)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Title */}
+            <div className="space-y-2">
+              <Label htmlFor="quote-title">What do you need? *</Label>
+              <Input
+                id="quote-title"
+                placeholder="e.g., Wedding DJ for 200 guests"
+                value={quoteTitle}
+                onChange={(e) => setQuoteTitle(e.target.value)}
+                maxLength={200}
+              />
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2">
+              <Label htmlFor="quote-desc">Describe your requirements *</Label>
+              <Textarea
+                id="quote-desc"
+                placeholder="Include details like event type, duration, special requirements, number of people, etc."
+                value={quoteDescription}
+                onChange={(e) => setQuoteDescription(e.target.value)}
+                rows={4}
+              />
+              <p className="text-xs text-muted-foreground">
+                {quoteDescription.length < 20 ? `${20 - quoteDescription.length} more characters needed` : "\u2713 Looks good"}
+              </p>
+            </div>
+
+            {/* Date & Time */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="quote-date">Preferred Date</Label>
+                <Input
+                  id="quote-date"
+                  type="date"
+                  value={quoteDate}
+                  onChange={(e) => setQuoteDate(e.target.value)}
+                  min={new Date().toISOString().split("T")[0]}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="quote-time">Preferred Time</Label>
+                <Input
+                  id="quote-time"
+                  type="time"
+                  value={quoteTime}
+                  onChange={(e) => setQuoteTime(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Location Type */}
+            <div className="space-y-2">
+              <Label>Service Location</Label>
+              <Select
+                value={quoteLocationType}
+                onValueChange={(val) => setQuoteLocationType(val as "mobile" | "fixed_location" | "virtual")}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mobile">\ud83d\ude97 Mobile (provider comes to you)</SelectItem>
+                  <SelectItem value="fixed_location">\ud83c\udfe2 At provider's location</SelectItem>
+                  <SelectItem value="virtual">\ud83d\udcbb Virtual / Remote</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Location Address */}
+            {quoteLocationType === "mobile" && (
+              <div className="space-y-2">
+                <Label htmlFor="quote-location">Your Address / Location</Label>
+                <Input
+                  id="quote-location"
+                  placeholder="Enter your address or area"
+                  value={quoteLocation}
+                  onChange={(e) => setQuoteLocation(e.target.value)}
+                />
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="flex gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setShowQuoteDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleQuoteSubmit}
+              disabled={requestQuote.isPending || quoteTitle.length < 5 || quoteDescription.length < 20}
+            >
+              {requestQuote.isPending ? (
+                <span className="flex items-center gap-2">
+                  <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Sending...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Send className="h-4 w-4" />
+                  Send Quote Request
+                </span>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

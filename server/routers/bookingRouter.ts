@@ -432,4 +432,68 @@ export const bookingRouter = router({
         stripeRefundId,
       };
     }),
+
+  // Check for schedule conflicts before confirming a booking
+  checkConflicts: protectedProcedure
+    .input(z.object({ bookingId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const booking = await db.getBookingById(input.bookingId);
+      if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
+
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider || booking.providerId !== provider.id) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+      }
+
+      const conflicts = await db.checkProviderConflicts(
+        booking.providerId,
+        booking.bookingDate,
+        booking.startTime,
+        booking.endTime,
+        booking.id
+      );
+
+      return {
+        hasConflicts: conflicts.length > 0,
+        conflicts: conflicts.map((c: any) => ({
+          id: c.id,
+          bookingNumber: c.bookingNumber,
+          bookingDate: c.bookingDate,
+          startTime: c.startTime,
+          endTime: c.endTime,
+          status: c.status,
+          serviceName: c.serviceName || "Unknown Service",
+        })),
+      };
+    }),
+
+  // Check conflicts for a specific date/time range (used before booking creation)
+  checkTimeConflicts: protectedProcedure
+    .input(z.object({
+      providerId: z.number(),
+      bookingDate: z.string(),
+      startTime: z.string(),
+      endTime: z.string(),
+    }))
+    .query(async ({ input }) => {
+      const conflicts = await db.checkProviderConflicts(
+        input.providerId,
+        input.bookingDate,
+        input.startTime,
+        input.endTime
+      );
+
+      return {
+        hasConflicts: conflicts.length > 0,
+        conflictCount: conflicts.length,
+        conflicts: conflicts.map((c: any) => ({
+          id: c.id,
+          bookingNumber: c.bookingNumber,
+          startTime: c.startTime,
+          endTime: c.endTime,
+          status: c.status,
+          serviceName: c.serviceName || "Unknown Service",
+        })),
+      };
+    }),
 });

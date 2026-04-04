@@ -632,3 +632,55 @@ export const packageItems = mysqlTable("package_items", {
 
 export type PackageItem = typeof packageItems.$inferSelect;
 export type InsertPackageItem = typeof packageItems.$inferInsert;
+
+
+// ============================================================================
+// QUOTE REQUESTS
+// ============================================================================
+
+export const quoteRequests = mysqlTable("quote_requests", {
+  id: int("id").autoincrement().primaryKey(),
+  customerId: int("customerId").notNull(),
+  providerId: int("providerId").notNull(),
+  serviceId: int("serviceId"),
+  categoryId: int("categoryId"),
+  
+  // Customer's description of what they need
+  title: varchar("title", { length: 200 }).notNull(),
+  description: text("description").notNull(),
+  
+  // Optional details
+  preferredDate: date("preferredDate"),
+  preferredTime: varchar("preferredTime", { length: 20 }),
+  locationType: mysqlEnum("quoteLocationType", ["mobile", "fixed_location", "virtual"]),
+  location: text("location"),
+  attachmentUrls: text("attachmentUrls"), // JSON array of image URLs
+  
+  // Provider's quote response
+  quotedAmount: decimal("quotedAmount", { precision: 10, scale: 2 }),
+  quotedDurationMinutes: int("quotedDurationMinutes"),
+  providerNotes: text("providerNotes"),
+  validUntil: timestamp("validUntil"),
+  
+  // Status flow: pending -> quoted -> accepted -> booked | declined | expired
+  status: mysqlEnum("quoteStatus", [
+    "pending",     // Customer submitted, waiting for provider
+    "quoted",      // Provider sent a quote
+    "accepted",    // Customer accepted the quote
+    "declined",    // Customer or provider declined
+    "expired",     // Quote expired (validUntil passed)
+    "booked",      // Converted to a booking
+  ]).default("pending").notNull(),
+  
+  declineReason: text("declineReason"),
+  bookingId: int("bookingId"), // Link to booking if converted
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => [
+  index("quote_customer_idx").on(table.customerId),
+  index("quote_provider_idx").on(table.providerId),
+  index("quote_status_idx").on(table.status),
+]);
+
+export type QuoteRequest = typeof quoteRequests.$inferSelect;

@@ -31,6 +31,7 @@ import PromoCodes from "./pages/PromoCodes";
 import BookingDetail from "./pages/BookingDetail";
 import Referrals from "./pages/Referrals";
 import SavedProviders from "./pages/SavedProviders";
+import MyQuotes from "./pages/MyQuotes";
 
 function Router() {
   return (
@@ -63,6 +64,7 @@ function Router() {
       <Route path="/booking/:id/detail" component={BookingDetail} />
       <Route path="/referrals" component={Referrals} />
       <Route path="/saved-providers" component={SavedProviders} />
+      <Route path="/my-quotes" component={MyQuotes} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

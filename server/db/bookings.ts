@@ -212,3 +212,80 @@ export async function getProviderCalendarBookings(providerId: number) {
     ))
     .orderBy(desc(bookings.bookingDate));
 }
+
+
+// ============================================================================
+// SCHEDULE CONFLICT DETECTION
+// ============================================================================
+
+/**
+ * Check for overlapping bookings for a provider on a given date/time range.
+ * Looks across ALL categories/services for the provider.
+ * Returns conflicting bookings (excludes the booking being checked if provided).
+ */
+export async function checkProviderConflicts(
+  providerId: number,
+  bookingDate: string,
+  startTime: string,
+  endTime: string,
+  excludeBookingId?: number
+): Promise<Array<Booking & { serviceName?: string }>> {
+  const db = await getDb();
+  if (!db) return [];
+
+  const conditions = [
+    eq(bookings.providerId, providerId),
+    eq(bookings.bookingDate, bookingDate),
+    inArray(bookings.status, ["pending", "confirmed", "in_progress"] as any),
+    // Time overlap: existing.start < new.end AND existing.end > new.start
+    sql`${bookings.startTime} < ${endTime}`,
+    sql`${bookings.endTime} > ${startTime}`,
+  ];
+
+  const results = await db
+    .select({
+      id: bookings.id,
+      bookingNumber: bookings.bookingNumber,
+      customerId: bookings.customerId,
+      providerId: bookings.providerId,
+      serviceId: bookings.serviceId,
+      bookingDate: bookings.bookingDate,
+      startTime: bookings.startTime,
+      endTime: bookings.endTime,
+      durationMinutes: bookings.durationMinutes,
+      status: bookings.status,
+      locationType: bookings.locationType,
+      serviceAddressLine1: bookings.serviceAddressLine1,
+      serviceAddressLine2: bookings.serviceAddressLine2,
+      serviceCity: bookings.serviceCity,
+      serviceState: bookings.serviceState,
+      servicePostalCode: bookings.servicePostalCode,
+      customerNotes: bookings.customerNotes,
+      providerNotes: bookings.providerNotes,
+      subtotal: bookings.subtotal,
+      travelFee: bookings.travelFee,
+      platformFee: bookings.platformFee,
+      totalAmount: bookings.totalAmount,
+      depositAmount: bookings.depositAmount,
+      remainingAmount: bookings.remainingAmount,
+      cancellationReason: bookings.cancellationReason,
+      cancelledBy: bookings.cancelledBy,
+      cancelledAt: bookings.cancelledAt,
+      confirmedAt: bookings.confirmedAt,
+      startedAt: bookings.startedAt,
+      completedAt: bookings.completedAt,
+      createdAt: bookings.createdAt,
+      updatedAt: bookings.updatedAt,
+      serviceName: services.name,
+    })
+    .from(bookings)
+    .leftJoin(services, eq(bookings.serviceId, services.id))
+    .where(and(...conditions))
+    .orderBy(bookings.startTime);
+
+  // Filter out the booking being checked (if updating an existing booking)
+  if (excludeBookingId) {
+    return results.filter((b) => b.id !== excludeBookingId) as any;
+  }
+  return results as any;
+}

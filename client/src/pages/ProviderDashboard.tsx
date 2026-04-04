@@ -52,6 +52,7 @@ import {
   ChevronDown,
   ChevronRight,
   X,
+  AlertTriangle,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
@@ -599,10 +600,18 @@ export default function ProviderDashboard() {
   const [portfolioAfterUrl, setPortfolioAfterUrl] = useState("");
   const [activeTab, setActiveTab] = useState("bookings");
   const [showPackageDialog, setShowPackageDialog] = useState(false);
+  const [conflictBookingId, setConflictBookingId] = useState<number | null>(null);
+  const [showConflictWarning, setShowConflictWarning] = useState(false);
+  const [conflictData, setConflictData] = useState<any[]>([]);
   const [packageName, setPackageName] = useState("");
   const [packageDescription, setPackageDescription] = useState("");
   const [packagePrice, setPackagePrice] = useState("");
   const [packageServiceIds, setPackageServiceIds] = useState<number[]>([]);
+  const [respondingQuoteId, setRespondingQuoteId] = useState<number | null>(null);
+  const [quoteAmount, setQuoteAmount] = useState("");
+  const [quoteDuration, setQuoteDuration] = useState("");
+  const [quoteNotes, setQuoteNotes] = useState("");
+  const [quoteValidDays, setQuoteValidDays] = useState("7");
   
   const { data: provider } = trpc.provider.getMyProfile.useQuery(undefined, {
     enabled: isAuthenticated,
@@ -628,6 +637,36 @@ export default function ProviderDashboard() {
 
   const { data: analytics } = trpc.provider.analytics.useQuery(undefined, {
     enabled: !!provider,
+  });
+
+  const { data: providerQuotes } = trpc.provider.providerQuotes.useQuery(undefined, {
+    enabled: !!provider,
+  });
+  const { data: quoteCount } = trpc.provider.quoteCount.useQuery(undefined, {
+    enabled: !!provider,
+  });
+
+  const respondToQuote = trpc.provider.respondToQuote.useMutation({
+    onSuccess: () => {
+      utils.provider.providerQuotes.invalidate();
+      utils.provider.quoteCount.invalidate();
+      setRespondingQuoteId(null);
+      setQuoteAmount("");
+      setQuoteDuration("");
+      setQuoteNotes("");
+      setQuoteValidDays("7");
+      toast.success("Quote sent to customer!");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const declineQuoteRequest = trpc.provider.updateQuoteStatus.useMutation({
+    onSuccess: () => {
+      utils.provider.providerQuotes.invalidate();
+      utils.provider.quoteCount.invalidate();
+      toast.success("Quote request declined");
+    },
+    onError: (err) => toast.error(err.message),
   });
 
   const updateBookingStatus = trpc.booking.updateStatus.useMutation({
@@ -959,14 +998,27 @@ export default function ProviderDashboard() {
                       <div className="flex gap-2">
                         {booking.status === "pending" && (
                           <>
-                            <Button 
-                              size="sm" 
-                              onClick={() => updateBookingStatus.mutate({ id: booking.id, status: "confirmed" })}
-                              disabled={updateBookingStatus.isPending}
-                            >
-                              <CheckCircle2 className="h-4 w-4 mr-1" />
-                              Accept
-                            </Button>
+            <Button 
+              size="sm" 
+              onClick={async () => {
+                try {
+                  const result = await utils.booking.checkConflicts.fetch({ bookingId: booking.id });
+                  if (result.hasConflicts) {
+                    setConflictBookingId(booking.id);
+                    setConflictData(result.conflicts);
+                    setShowConflictWarning(true);
+                  } else {
+                    updateBookingStatus.mutate({ id: booking.id, status: "confirmed" });
+                  }
+                } catch {
+                  updateBookingStatus.mutate({ id: booking.id, status: "confirmed" });
+                }
+              }}
+              disabled={updateBookingStatus.isPending}
+            >
+              <CheckCircle2 className="h-4 w-4 mr-1" />
+              Accept
+            </Button>
                             <Button 
                               size="sm" 
                               variant="outline"
@@ -1023,6 +1075,138 @@ export default function ProviderDashboard() {
                 ))}
               </div>
             )}
+
+            {/* ============================================================ */}
+            {/* QUOTE REQUESTS SECTION                                       */}
+            {/* ============================================================ */}
+            <div className="border-t pt-6 mt-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-2xl font-bold">Quote Requests</h2>
+                  {(quoteCount?.pending || 0) > 0 && (
+                    <Badge variant="destructive" className="text-xs">
+                      {quoteCount?.pending} pending
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              {!providerQuotes || providerQuotes.length === 0 ? (
+                <Card>
+                  <CardContent className="py-8 text-center">
+                    <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                    <p className="text-muted-foreground mb-2">No quote requests yet</p>
+                    <p className="text-sm text-muted-foreground">
+                      When customers request custom quotes, they'll appear here
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  {providerQuotes.map((quote: any) => (
+                    <Card key={quote.id} className={quote.status === "pending" ? "border-amber-300 bg-amber-50/30" : ""}>
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <CardTitle className="text-lg">{quote.title}</CardTitle>
+                            <CardDescription className="mt-1">
+                              From: {quote.customerName || "Customer"}
+                              {quote.customerEmail && ` (${quote.customerEmail})`}
+                            </CardDescription>
+                          </div>
+                          <Badge variant={
+                            quote.status === "pending" ? "secondary" :
+                            quote.status === "quoted" ? "default" :
+                            quote.status === "accepted" ? "outline" :
+                            quote.status === "booked" ? "default" :
+                            "destructive"
+                          }>
+                            {quote.status === "pending" ? "Awaiting Your Quote" :
+                             quote.status === "quoted" ? "Quote Sent" :
+                             quote.status === "accepted" ? "Accepted" :
+                             quote.status === "booked" ? "Booked" :
+                             quote.status === "declined" ? "Declined" :
+                             quote.status}
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground mb-3">{quote.description}</p>
+                        
+                        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
+                          {quote.preferredDate && (
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-3.5 w-3.5" />
+                              {new Date(quote.preferredDate).toLocaleDateString()}
+                              {quote.preferredTime && ` at ${quote.preferredTime}`}
+                            </span>
+                          )}
+                          {quote.location && (
+                            <span className="flex items-center gap-1">
+                              <Globe className="h-3.5 w-3.5" />
+                              {quote.location}
+                            </span>
+                          )}
+                          {quote.locationType && (
+                            <span className="flex items-center gap-1">
+                              {quote.locationType === "mobile" ? "\ud83d\ude97 Mobile" :
+                               quote.locationType === "fixed_location" ? "\ud83c\udfe2 At Location" :
+                               "\ud83d\udcbb Virtual"}
+                            </span>
+                          )}
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3.5 w-3.5" />
+                            {new Date(quote.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+
+                        {/* Show quoted amount if already responded */}
+                        {quote.status === "quoted" && quote.quotedAmount && (
+                          <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800 mb-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium text-blue-800 dark:text-blue-300">Your Quote</span>
+                              <span className="text-lg font-bold text-blue-900 dark:text-blue-200">
+                                ${parseFloat(quote.quotedAmount).toFixed(2)}
+                              </span>
+                            </div>
+                            {quote.quotedDurationMinutes && (
+                              <p className="text-xs text-blue-700 dark:text-blue-400 mt-1">
+                                Est. duration: {quote.quotedDurationMinutes} min
+                              </p>
+                            )}
+                            {quote.providerNotes && (
+                              <p className="text-xs text-blue-700 dark:text-blue-400 mt-1">{quote.providerNotes}</p>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Action buttons */}
+                        {quote.status === "pending" && (
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => setRespondingQuoteId(quote.id)}
+                            >
+                              <DollarSign className="h-4 w-4 mr-1" />
+                              Send Quote
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => declineQuoteRequest.mutate({ quoteId: quote.id, status: "declined", reason: "Unable to fulfill this request" })}
+                              disabled={declineQuoteRequest.isPending}
+                            >
+                              <XCircle className="h-4 w-4 mr-1" />
+                              Decline
+                            </Button>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
           </TabsContent>
 
           {/* Services Tab — grouped by category */}
@@ -2039,6 +2223,142 @@ export default function ProviderDashboard() {
               }}
             >
               Create Package
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Schedule Conflict Warning Dialog */}
+      <Dialog open={showConflictWarning} onOpenChange={setShowConflictWarning}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-amber-600">
+              <AlertTriangle className="h-5 w-5" />
+              Schedule Conflict Detected
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              This booking overlaps with {conflictData.length} existing booking{conflictData.length > 1 ? "s" : ""}:
+            </p>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {conflictData.map((conflict, i) => (
+                <div key={i} className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
+                  <p className="font-medium text-sm">{conflict.serviceName}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {conflict.bookingDate} &middot; {conflict.startTime} - {conflict.endTime}
+                  </p>
+                  <span className="text-xs px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300">
+                    {conflict.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p className="text-sm font-medium">
+              Do you still want to accept this booking?
+            </p>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowConflictWarning(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (conflictBookingId) {
+                  updateBookingStatus.mutate({ id: conflictBookingId, status: "confirmed" });
+                }
+                setShowConflictWarning(false);
+                setConflictBookingId(null);
+                setConflictData([]);
+              }}
+            >
+              Accept Anyway
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Respond to Quote Dialog */}
+      <Dialog open={respondingQuoteId !== null} onOpenChange={() => setRespondingQuoteId(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-primary" />
+              Send Your Quote
+            </DialogTitle>
+            <DialogDescription>
+              Provide your pricing and estimated duration for this service request.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="quote-amount">Your Price ($) *</Label>
+              <Input
+                id="quote-amount"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="e.g., 150.00"
+                value={quoteAmount}
+                onChange={(e) => setQuoteAmount(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="quote-duration">Estimated Duration (minutes) *</Label>
+              <Input
+                id="quote-duration"
+                type="number"
+                min="15"
+                step="15"
+                placeholder="e.g., 60"
+                value={quoteDuration}
+                onChange={(e) => setQuoteDuration(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="quote-notes">Notes for Customer</Label>
+              <Textarea
+                id="quote-notes"
+                placeholder="Any additional details about your quote..."
+                value={quoteNotes}
+                onChange={(e) => setQuoteNotes(e.target.value)}
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="quote-valid">Quote Valid For (days)</Label>
+              <Input
+                id="quote-valid"
+                type="number"
+                min="1"
+                max="30"
+                value={quoteValidDays}
+                onChange={(e) => setQuoteValidDays(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRespondingQuoteId(null)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (!respondingQuoteId || !quoteAmount || !quoteDuration) {
+                  toast.error("Please fill in price and duration");
+                  return;
+                }
+                respondToQuote.mutate({
+                  quoteId: respondingQuoteId,
+                  quotedAmount: quoteAmount,
+                  quotedDurationMinutes: parseInt(quoteDuration),
+                  providerNotes: quoteNotes || undefined,
+                  validDays: parseInt(quoteValidDays) || 7,
+                });
+              }}
+              disabled={respondToQuote.isPending || !quoteAmount || !quoteDuration}
+            >
+              {respondToQuote.isPending ? "Sending..." : "Send Quote"}
             </Button>
           </DialogFooter>
         </DialogContent>

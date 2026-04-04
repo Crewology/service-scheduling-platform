@@ -74,6 +74,24 @@ export {
   getFavoriteCount,
 } from "./db/favorites";
 
+// Schedule conflict detection
+export {
+  checkProviderConflicts,
+} from "./db/bookings";
+
+// Quote requests
+export {
+  createQuoteRequest,
+  getQuoteById,
+  getQuotesByCustomer,
+  getQuotesByProvider,
+  getPendingQuotesByProvider,
+  respondToQuote,
+  updateQuoteStatus,
+  linkQuoteToBooking,
+  getQuoteCountByProvider,
+} from "./db/quotes";
+
 // Service packages
 export {
   createPackage,
