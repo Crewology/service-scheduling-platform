@@ -209,3 +209,7 @@
 ## Testing
 - [x] 356 tests passing across 22 test files (0 failures)
 - [x] 15 new quote flow tests (request, respond, accept, decline, authorization)
+
+## Bug Fix: PublicProviderProfile Hooks Error
+- [x] Fix "Rendered more hooks than during the previous render" error on /p/:slug page
+- [x] Ensure all hooks are called unconditionally (no hooks after early returns)

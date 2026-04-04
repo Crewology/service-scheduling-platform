@@ -208,6 +208,21 @@ export default function PublicProviderProfile() {
     return data.services.filter((s: any) => s.categoryId === catId);
   }, [data, activeCategory]);
 
+  // These hooks MUST be called before any early returns to satisfy Rules of Hooks
+  const providerId = data?.provider?.id;
+  const { data: portfolio } = trpc.provider.getPublicPortfolio.useQuery(
+    { providerId: providerId! },
+    { enabled: !!providerId }
+  );
+  const { data: responseTime } = trpc.provider.getResponseTime.useQuery(
+    { providerId: providerId! },
+    { enabled: !!providerId }
+  );
+  const { data: packages } = trpc.provider.getPublicPackages.useQuery(
+    { providerId: providerId! },
+    { enabled: !!providerId }
+  );
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -229,19 +244,6 @@ export default function PublicProviderProfile() {
   }
 
   const { provider, services, reviews, categories, profilePhoto } = data;
-
-  const { data: portfolio } = trpc.provider.getPublicPortfolio.useQuery(
-    { providerId: provider.id },
-    { enabled: !!provider.id }
-  );
-  const { data: responseTime } = trpc.provider.getResponseTime.useQuery(
-    { providerId: provider.id },
-    { enabled: !!provider.id }
-  );
-  const { data: packages } = trpc.provider.getPublicPackages.useQuery(
-    { providerId: provider.id },
-    { enabled: !!provider.id }
-  );
   const avgRating = parseFloat(provider.averageRating || "0");
   const displayName = (name: string) =>
     name.split(" ").map((w: string) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
