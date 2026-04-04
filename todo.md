@@ -217,3 +217,9 @@
 ## UX Fix: Profile Photo & Verification Documents
 - [x] Add profile photo upload to the "My Profile" page (hover-to-upload with camera icon)
 - [x] Add delete button for uploaded verification documents (with confirm/cancel)
+
+## Bug Fix: Complete Your Profile Checklist
+- [x] Profile photo check not reflecting uploaded photo — getMyProfile now enriches with user's profilePhotoUrl
+- [x] "Write Bio" step now opens the Edit Business Profile dialog directly with Bio/Description field
+- [x] "Add Photo" step now opens a file picker directly from the checklist
+- [x] Bio check fixed to use `description` field (provider table has no `bio` column)

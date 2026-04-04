@@ -43,7 +43,13 @@ export const providerRouter = router({
     }),
     
   getMyProfile: protectedProcedure.query(async ({ ctx }) => {
-    return await db.getProviderByUserId(ctx.user.id);
+    const provider = await db.getProviderByUserId(ctx.user.id);
+    if (!provider) return null;
+    const user = await db.getUserById(ctx.user.id);
+    return {
+      ...provider,
+      profilePhotoUrl: user?.profilePhotoUrl || null,
+    };
   }),
   
   getById: publicProcedure

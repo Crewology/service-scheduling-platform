@@ -650,7 +650,37 @@ export default function ProviderDashboard() {
   const [quoteDuration, setQuoteDuration] = useState("");
   const [quoteNotes, setQuoteNotes] = useState("");
   const [quoteValidDays, setQuoteValidDays] = useState("7");
+  const profilePhotoInputRef = useRef<HTMLInputElement>(null);
   
+  const uploadProfilePhoto = trpc.provider.uploadProfilePhoto.useMutation({
+    onSuccess: () => {
+      utils.provider.getMyProfile.invalidate();
+      utils.auth.me.invalidate();
+      toast.success("Profile photo updated!");
+    },
+    onError: (err) => toast.error(err.message || "Failed to upload photo"),
+  });
+
+  const handleProfilePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Photo must be under 5MB");
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = (reader.result as string).split(",")[1];
+      uploadProfilePhoto.mutate({ photoData: base64, contentType: file.type });
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
   const { data: provider } = trpc.provider.getMyProfile.useQuery(undefined, {
     enabled: isAuthenticated,
   });
@@ -931,6 +961,30 @@ export default function ProviderDashboard() {
           myCategories={myCategories}
           portfolio={portfolio}
           connectStatus={undefined}
+          onEditProfile={() => {
+            setProfileForm({
+              businessName: provider.businessName || "",
+              description: provider.description || "",
+              city: provider.city || "",
+              state: provider.state || "",
+              addressLine1: provider.addressLine1 || "",
+              postalCode: provider.postalCode || "",
+              serviceRadiusMiles: provider.serviceRadiusMiles || 0,
+              acceptsMobile: provider.acceptsMobile || false,
+              acceptsFixedLocation: provider.acceptsFixedLocation || false,
+              acceptsVirtual: provider.acceptsVirtual || false,
+            });
+            setEditingProfile(true);
+          }}
+          onUploadPhoto={() => profilePhotoInputRef.current?.click()}
+        />
+        {/* Hidden file input for profile photo upload from checklist */}
+        <input
+          ref={profilePhotoInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleProfilePhotoUpload}
         />
 
         {/* Main Content Tabs - Consolidated from 12 to 6 */}
@@ -1839,8 +1893,8 @@ export default function ProviderDashboard() {
               <Input value={profileForm.businessName || ""} onChange={e => setProfileForm({ ...profileForm, businessName: e.target.value })} />
             </div>
             <div>
-              <Label>Description</Label>
-              <Textarea value={profileForm.description || ""} onChange={e => setProfileForm({ ...profileForm, description: e.target.value })} rows={3} />
+              <Label>Bio / Description</Label>
+              <Textarea value={profileForm.description || ""} onChange={e => setProfileForm({ ...profileForm, description: e.target.value })} rows={4} placeholder="Tell customers about your experience, skills, and what makes your services unique..." />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -2419,12 +2473,16 @@ function OnboardingChecklist({
   myCategories,
   portfolio,
   connectStatus,
+  onEditProfile,
+  onUploadPhoto,
 }: {
   provider: any;
   services: any[] | undefined;
   myCategories: any[] | undefined;
   portfolio: any[] | undefined;
   connectStatus: any;
+  onEditProfile?: () => void;
+  onUploadPhoto?: () => void;
 }) {
   const { data: stripeStatus } = trpc.stripeConnect.getStatus.useQuery();
   const [, setLocation] = useLocation();
@@ -2432,7 +2490,7 @@ function OnboardingChecklist({
 
   const steps = useMemo(() => {
     const hasPhoto = !!provider.profilePhotoUrl;
-    const hasBio = !!provider.bio && provider.bio.length > 10;
+    const hasBio = !!provider.description && provider.description.length > 10;
     const hasCategories = (myCategories?.length || 0) > 0;
     const hasServices = (services?.length || 0) > 0;
     const hasPortfolio = (portfolio?.length || 0) > 0;
@@ -2445,15 +2503,15 @@ function OnboardingChecklist({
         label: "Add a profile photo",
         description: "Help customers recognize you",
         done: hasPhoto,
-        action: () => setLocation("/provider/onboarding"),
+        action: () => onUploadPhoto ? onUploadPhoto() : setLocation("/profile"),
         actionLabel: "Add Photo",
       },
       {
         id: "bio",
-        label: "Write your bio",
+        label: "Write your bio / description",
         description: "Tell customers about your experience",
         done: hasBio,
-        action: () => setLocation("/provider/onboarding"),
+        action: () => onEditProfile ? onEditProfile() : setLocation("/provider/onboarding"),
         actionLabel: "Write Bio",
       },
       {
@@ -2489,7 +2547,7 @@ function OnboardingChecklist({
         actionLabel: "Connect Stripe",
       },
     ];
-  }, [provider, services, myCategories, portfolio, stripeStatus, setLocation]);
+  }, [provider, services, myCategories, portfolio, stripeStatus, setLocation, onEditProfile, onUploadPhoto]);
 
   const completedCount = steps.filter((s: any) => s.done).length;
   const totalSteps = steps.length;
