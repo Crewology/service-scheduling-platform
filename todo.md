@@ -102,7 +102,7 @@
 
 ## Hotfix: Provider Role & Onboarding Testing
 - [x] Fix owner account role to provider so provider dashboard is accessible
-- [ ] Verify provider onboarding/profile building flow works end-to-end on dev preview
+- [x] Verify provider onboarding/profile building flow works end-to-end on dev preview
 
 ## Phase 18: Multi-Category Provider Redesign
 
@@ -119,3 +119,8 @@
 
 ## Bug Fix: Mobile Dashboard Tab Overflow
 - [x] Fix provider dashboard tab buttons running off the page on mobile
+
+## Follow-up: Dashboard UX Improvements
+- [x] Consolidate 12 dashboard tabs into 6 logical groups (Bookings, Services, Schedule, Finances, My Page, More)
+- [x] Add mobile bottom navigation bar for dashboard (6 icons fixed to bottom on mobile)
+- [x] Test provider onboarding flow end-to-end — all 4 steps verified working

@@ -47,6 +47,9 @@ import {
   Shield,
   Grid3X3,
   Plus,
+  Settings,
+  MoreHorizontal,
+  ChevronDown,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
@@ -585,6 +588,7 @@ export default function ProviderDashboard() {
   const [serviceForm, setServiceForm] = useState<any>({});
   const [deletingServiceId, setDeletingServiceId] = useState<number | null>(null);
   const [managingPhotosServiceId, setManagingPhotosServiceId] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState("bookings");
   
   const { data: provider } = trpc.provider.getMyProfile.useQuery(undefined, {
     enabled: isAuthenticated,
@@ -789,27 +793,49 @@ export default function ProviderDashboard() {
           </Card>
         </div>
 
-        {/* Main Content Tabs */}
-        <Tabs defaultValue="bookings" className="space-y-6">
-          <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-            <TabsList className="inline-flex h-auto flex-wrap gap-1 w-full p-1">
-              <TabsTrigger value="bookings" className="flex-none text-xs px-2.5 py-1.5"><Calendar className="h-3.5 w-3.5 mr-1" />Bookings</TabsTrigger>
-              <TabsTrigger value="services" className="flex-none text-xs px-2.5 py-1.5"><Package className="h-3.5 w-3.5 mr-1" />Services</TabsTrigger>
-              <TabsTrigger value="availability" className="flex-none text-xs px-2.5 py-1.5"><Clock className="h-3.5 w-3.5 mr-1" />Availability</TabsTrigger>
-              <TabsTrigger value="reviews" className="flex-none text-xs px-2.5 py-1.5"><Star className="h-3.5 w-3.5 mr-1" />Reviews</TabsTrigger>
-              <TabsTrigger value="earnings" className="flex-none text-xs px-2.5 py-1.5"><DollarSign className="h-3.5 w-3.5 mr-1" />Earnings</TabsTrigger>
-              <TabsTrigger value="payments" className="flex-none text-xs px-2.5 py-1.5"><CreditCard className="h-3.5 w-3.5 mr-1" />Payments</TabsTrigger>
-              <TabsTrigger value="public-profile" className="flex-none text-xs px-2.5 py-1.5"><Globe className="h-3.5 w-3.5 mr-1" />My Page</TabsTrigger>
-              <TabsTrigger value="analytics" className="flex-none text-xs px-2.5 py-1.5"><BarChart3 className="h-3.5 w-3.5 mr-1" />Analytics</TabsTrigger>
-              <TabsTrigger value="calendar" className="flex-none text-xs px-2.5 py-1.5"><CalendarPlus className="h-3.5 w-3.5 mr-1" />Calendar</TabsTrigger>
-              <TabsTrigger value="widgets" className="flex-none text-xs px-2.5 py-1.5"><Code2 className="h-3.5 w-3.5 mr-1" />Widget</TabsTrigger>
-              <TabsTrigger value="promo-codes" className="flex-none text-xs px-2.5 py-1.5"><Tag className="h-3.5 w-3.5 mr-1" />Promos</TabsTrigger>
-              <TabsTrigger value="verification" className="flex-none text-xs px-2.5 py-1.5"><Shield className="h-3.5 w-3.5 mr-1" />Verify</TabsTrigger>
+        {/* Main Content Tabs - Consolidated from 12 to 6 */}
+        <Tabs defaultValue="bookings" className="space-y-6" value={activeTab} onValueChange={setActiveTab}>
+          {/* Desktop Tab Bar */}
+          <div className="hidden md:block">
+            <TabsList className="inline-flex h-auto gap-1 w-full p-1">
+              <TabsTrigger value="bookings" className="flex-1 text-sm px-3 py-2"><Calendar className="h-4 w-4 mr-1.5" />Bookings</TabsTrigger>
+              <TabsTrigger value="services" className="flex-1 text-sm px-3 py-2"><Package className="h-4 w-4 mr-1.5" />Services</TabsTrigger>
+              <TabsTrigger value="schedule" className="flex-1 text-sm px-3 py-2"><Clock className="h-4 w-4 mr-1.5" />Schedule</TabsTrigger>
+              <TabsTrigger value="finances" className="flex-1 text-sm px-3 py-2"><DollarSign className="h-4 w-4 mr-1.5" />Finances</TabsTrigger>
+              <TabsTrigger value="my-page" className="flex-1 text-sm px-3 py-2"><Globe className="h-4 w-4 mr-1.5" />My Page</TabsTrigger>
+              <TabsTrigger value="settings" className="flex-1 text-sm px-3 py-2"><Settings className="h-4 w-4 mr-1.5" />More</TabsTrigger>
             </TabsList>
           </div>
 
+          {/* Mobile Bottom Navigation Bar */}
+          <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border shadow-lg">
+            <div className="grid grid-cols-6 h-16">
+              {[
+                { value: "bookings", icon: Calendar, label: "Bookings" },
+                { value: "services", icon: Package, label: "Services" },
+                { value: "schedule", icon: Clock, label: "Schedule" },
+                { value: "finances", icon: DollarSign, label: "Finances" },
+                { value: "my-page", icon: Globe, label: "My Page" },
+                { value: "settings", icon: Settings, label: "More" },
+              ].map(({ value, icon: Icon, label }) => (
+                <button
+                  key={value}
+                  onClick={() => setActiveTab(value)}
+                  className={`flex flex-col items-center justify-center gap-0.5 text-[10px] transition-colors ${
+                    activeTab === value
+                      ? "text-primary font-semibold"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <Icon className={`h-5 w-5 ${activeTab === value ? "text-primary" : ""}`} />
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Bookings Tab */}
-          <TabsContent value="bookings" className="space-y-4">
+          <TabsContent value="bookings" className="space-y-4 pb-20 md:pb-0">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold">Bookings</h2>
             </div>
@@ -937,7 +963,7 @@ export default function ProviderDashboard() {
           </TabsContent>
 
           {/* Services Tab — grouped by category */}
-          <TabsContent value="services" className="space-y-6">
+          <TabsContent value="services" className="space-y-6 pb-20 md:pb-0">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold">My Categories & Services</h2>
@@ -1084,8 +1110,8 @@ export default function ProviderDashboard() {
             })()}
           </TabsContent>
 
-          {/* Availability Tab */}
-          <TabsContent value="availability" className="space-y-4">
+          {/* === SCHEDULE TAB (Availability + Calendar Sync) === */}
+          <TabsContent value="schedule" className="space-y-6 pb-20 md:pb-0">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold">Manage Availability</h2>
             </div>
@@ -1101,29 +1127,15 @@ export default function ProviderDashboard() {
                 </Button>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          {/* Reviews Tab */}
-          <TabsContent value="reviews" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">Customer Reviews</h2>
+          
+            {/* Calendar Sync sub-section */}
+            <div className="border-t pt-6">
+              <CalendarSyncSection />
             </div>
-            <Card>
-              <CardContent className="py-12 text-center">
-                <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground mb-4">Manage customer reviews</p>
-                <p className="text-sm text-muted-foreground mb-4">
-                  View and respond to customer feedback
-                </p>
-                <Button onClick={() => setLocation("/provider/reviews")}>
-                  View Reviews
-                </Button>
-              </CardContent>
-            </Card>
           </TabsContent>
 
-          {/* Earnings Tab */}
-          <TabsContent value="earnings" className="space-y-4">
+          {/* === FINANCES TAB (Earnings + Payments) === */}
+          <TabsContent value="finances" className="space-y-6 pb-20 md:pb-0">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold">Earnings</h2>
             </div>
@@ -1194,12 +1206,12 @@ export default function ProviderDashboard() {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
+          
+            {/* Stripe Connect & Payments sub-section */}
+            <div className="border-t pt-6">
+              <StripeConnectSection provider={provider} />
+            </div>
 
-          {/* Payments Tab - Stripe Connect */}
-          <TabsContent value="payments" className="space-y-6">
-            <StripeConnectSection provider={provider} />
-            
             {/* Subscription Plan */}
             <Card>
               <CardHeader>
@@ -1223,13 +1235,11 @@ export default function ProviderDashboard() {
             </Card>
           </TabsContent>
 
-          {/* Public Profile Tab */}
-          <TabsContent value="public-profile" className="space-y-6">
+          {/* === MY PAGE TAB (Public Profile + Analytics + Embed Widget) === */}
+          <TabsContent value="my-page" className="space-y-6 pb-20 md:pb-0">
             <PublicProfileSection provider={provider} />
-          </TabsContent>
 
-          {/* Analytics Tab */}
-          <TabsContent value="analytics" className="space-y-6">
+          {/* Analytics sub-section inside My Page */}
             <div>
               <h2 className="text-2xl font-bold">Business Analytics</h2>
               <p className="text-muted-foreground mt-1">Track your performance, revenue trends, and customer insights</p>
@@ -1402,15 +1412,8 @@ export default function ProviderDashboard() {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
-
-          {/* Calendar Sync Tab */}
-          <TabsContent value="calendar" className="space-y-6">
-            <CalendarSyncSection />
-          </TabsContent>
-
-          {/* Embed Widget Tab */}
-          <TabsContent value="widgets" className="space-y-6">
+          
+          {/* Embed Widget sub-section inside My Page */}
             <div className="space-y-4">
               <div>
                 <h2 className="text-2xl font-bold">Embed Booking Widget</h2>
@@ -1457,8 +1460,29 @@ export default function ProviderDashboard() {
             </div>
           </TabsContent>
 
-          {/* Promo Codes Tab */}
-          <TabsContent value="promo-codes" className="space-y-6">
+          {/* === SETTINGS/MORE TAB (Reviews + Promo Codes + Verification) === */}
+          <TabsContent value="settings" className="space-y-6 pb-20 md:pb-0">
+            {/* Reviews sub-section */}
+            <div>
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold">Customer Reviews</h2>
+              </div>
+              <Card className="mt-4">
+                <CardContent className="py-12 text-center">
+                  <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground mb-4">Manage customer reviews</p>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    View and respond to customer feedback
+                  </p>
+                  <Button onClick={() => setLocation("/provider/reviews")}>
+                    View Reviews
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Promo Codes sub-section */}
+            <div className="border-t pt-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -1479,11 +1503,12 @@ export default function ProviderDashboard() {
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
+            </div>
 
-          {/* Verification Documents Tab */}
-          <TabsContent value="verification" className="space-y-6">
-            <VerificationDocumentsTab />
+            {/* Verification Documents sub-section */}
+            <div className="border-t pt-6">
+              <VerificationDocumentsTab />
+            </div>
           </TabsContent>
         </Tabs>
       </div>
