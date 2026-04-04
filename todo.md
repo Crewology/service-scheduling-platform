@@ -223,3 +223,8 @@
 - [x] "Write Bio" step now opens the Edit Business Profile dialog directly with Bio/Description field
 - [x] "Add Photo" step now opens a file picker directly from the checklist
 - [x] Bio check fixed to use `description` field (provider table has no `bio` column)
+
+## Bug Fix: Checklist Action Navigation
+- [x] "Upload work samples" now switches to Portfolio tab and opens the upload dialog
+- [x] "Connect payment account" now navigates to /provider/onboarding?step=4 (directly to Get Paid step)
+- [x] Added query param support to ProviderOnboarding for deep-linking to specific steps

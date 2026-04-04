@@ -223,7 +223,11 @@ function AddServiceDialog({
 export default function ProviderOnboarding() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const step = parseInt(params.get("step") || "1", 10);
+    return step >= 1 && step <= 4 ? step : 1;
+  });
   const utils = trpc.useUtils();
   const fileInputRef = useRef<HTMLInputElement>(null);
 

@@ -977,6 +977,10 @@ export default function ProviderDashboard() {
             setEditingProfile(true);
           }}
           onUploadPhoto={() => profilePhotoInputRef.current?.click()}
+          onUploadPortfolio={() => {
+            setActiveTab("portfolio");
+            setTimeout(() => setShowPortfolioUpload(true), 100);
+          }}
         />
         {/* Hidden file input for profile photo upload from checklist */}
         <input
@@ -2475,6 +2479,7 @@ function OnboardingChecklist({
   connectStatus,
   onEditProfile,
   onUploadPhoto,
+  onUploadPortfolio,
 }: {
   provider: any;
   services: any[] | undefined;
@@ -2483,6 +2488,7 @@ function OnboardingChecklist({
   connectStatus: any;
   onEditProfile?: () => void;
   onUploadPhoto?: () => void;
+  onUploadPortfolio?: () => void;
 }) {
   const { data: stripeStatus } = trpc.stripeConnect.getStatus.useQuery();
   const [, setLocation] = useLocation();
@@ -2535,7 +2541,7 @@ function OnboardingChecklist({
         label: "Upload work samples",
         description: "Showcase your best work to attract customers",
         done: hasPortfolio,
-        action: () => {}, // handled inline
+        action: () => onUploadPortfolio ? onUploadPortfolio() : setLocation("/provider/onboarding"),
         actionLabel: "Upload",
       },
       {
@@ -2543,11 +2549,11 @@ function OnboardingChecklist({
         label: "Connect payment account",
         description: "Set up Stripe to receive payments",
         done: !!hasStripe,
-        action: () => setLocation("/provider/onboarding"),
+        action: () => setLocation("/provider/onboarding?step=4"),
         actionLabel: "Connect Stripe",
       },
     ];
-  }, [provider, services, myCategories, portfolio, stripeStatus, setLocation, onEditProfile, onUploadPhoto]);
+  }, [provider, services, myCategories, portfolio, stripeStatus, setLocation, onEditProfile, onUploadPhoto, onUploadPortfolio]);
 
   const completedCount = steps.filter((s: any) => s.done).length;
   const totalSteps = steps.length;
