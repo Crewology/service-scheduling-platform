@@ -791,20 +791,22 @@ export default function ProviderDashboard() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="bookings" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="bookings">Bookings</TabsTrigger>
-            <TabsTrigger value="services">My Services</TabsTrigger>
-            <TabsTrigger value="availability">Availability</TabsTrigger>
-            <TabsTrigger value="reviews">Reviews</TabsTrigger>
-            <TabsTrigger value="earnings">Earnings</TabsTrigger>
-            <TabsTrigger value="payments">Payments</TabsTrigger>
-            <TabsTrigger value="public-profile">My Page</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="calendar">Calendar Sync</TabsTrigger>
-            <TabsTrigger value="widgets">Embed Widget</TabsTrigger>
-            <TabsTrigger value="promo-codes">Promo Codes</TabsTrigger>
-            <TabsTrigger value="verification">Verification</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+            <TabsList className="inline-flex h-auto flex-wrap gap-1 w-full p-1">
+              <TabsTrigger value="bookings" className="flex-none text-xs px-2.5 py-1.5"><Calendar className="h-3.5 w-3.5 mr-1" />Bookings</TabsTrigger>
+              <TabsTrigger value="services" className="flex-none text-xs px-2.5 py-1.5"><Package className="h-3.5 w-3.5 mr-1" />Services</TabsTrigger>
+              <TabsTrigger value="availability" className="flex-none text-xs px-2.5 py-1.5"><Clock className="h-3.5 w-3.5 mr-1" />Availability</TabsTrigger>
+              <TabsTrigger value="reviews" className="flex-none text-xs px-2.5 py-1.5"><Star className="h-3.5 w-3.5 mr-1" />Reviews</TabsTrigger>
+              <TabsTrigger value="earnings" className="flex-none text-xs px-2.5 py-1.5"><DollarSign className="h-3.5 w-3.5 mr-1" />Earnings</TabsTrigger>
+              <TabsTrigger value="payments" className="flex-none text-xs px-2.5 py-1.5"><CreditCard className="h-3.5 w-3.5 mr-1" />Payments</TabsTrigger>
+              <TabsTrigger value="public-profile" className="flex-none text-xs px-2.5 py-1.5"><Globe className="h-3.5 w-3.5 mr-1" />My Page</TabsTrigger>
+              <TabsTrigger value="analytics" className="flex-none text-xs px-2.5 py-1.5"><BarChart3 className="h-3.5 w-3.5 mr-1" />Analytics</TabsTrigger>
+              <TabsTrigger value="calendar" className="flex-none text-xs px-2.5 py-1.5"><CalendarPlus className="h-3.5 w-3.5 mr-1" />Calendar</TabsTrigger>
+              <TabsTrigger value="widgets" className="flex-none text-xs px-2.5 py-1.5"><Code2 className="h-3.5 w-3.5 mr-1" />Widget</TabsTrigger>
+              <TabsTrigger value="promo-codes" className="flex-none text-xs px-2.5 py-1.5"><Tag className="h-3.5 w-3.5 mr-1" />Promos</TabsTrigger>
+              <TabsTrigger value="verification" className="flex-none text-xs px-2.5 py-1.5"><Shield className="h-3.5 w-3.5 mr-1" />Verify</TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Bookings Tab */}
           <TabsContent value="bookings" className="space-y-4">

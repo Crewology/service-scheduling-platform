@@ -116,3 +116,6 @@
 - [x] Customer search/browse works with multi-category providers
 - [x] Database schema updates for provider-category relationships
 - [x] Tests for multi-category provider flow (304 tests passing)
+
+## Bug Fix: Mobile Dashboard Tab Overflow
+- [x] Fix provider dashboard tab buttons running off the page on mobile
