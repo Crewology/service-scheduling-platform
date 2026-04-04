@@ -550,3 +550,28 @@ export const referrals = mysqlTable("referrals", {
 }));
 export type Referral = typeof referrals.$inferSelect;
 export type InsertReferral = typeof referrals.$inferInsert;
+
+
+/**
+ * Provider portfolio items — work samples, before/after photos, etc.
+ * Organized by category so providers can showcase work per skill area.
+ */
+export const portfolioItems = mysqlTable("portfolio_items", {
+  id: int("id").autoincrement().primaryKey(),
+  providerId: int("providerId").notNull().references(() => serviceProviders.id),
+  categoryId: int("categoryId").references(() => serviceCategories.id),
+  title: varchar("title", { length: 255 }),
+  description: text("description"),
+  imageUrl: varchar("imageUrl", { length: 500 }).notNull(),
+  mediaType: mysqlEnum("mediaType", ["image", "before_after"]).default("image").notNull(),
+  beforeImageUrl: varchar("beforeImageUrl", { length: 500 }),
+  sortOrder: int("sortOrder").default(0).notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  providerCategoryIdx: index("portfolio_provider_cat_idx").on(table.providerId, table.categoryId),
+  providerActiveIdx: index("portfolio_provider_active_idx").on(table.providerId, table.isActive),
+}));
+
+export type PortfolioItem = typeof portfolioItems.$inferSelect;
+export type InsertPortfolioItem = typeof portfolioItems.$inferInsert;

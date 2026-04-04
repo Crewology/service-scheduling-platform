@@ -260,6 +260,83 @@ export const providerRouter = router({
       };
     }),
 
+  // ============================================================================
+  // PORTFOLIO MANAGEMENT
+  // ============================================================================
+
+  getPortfolio: protectedProcedure
+    .query(async ({ ctx }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider not found" });
+      return await db.getPortfolioByProvider(provider.id);
+    }),
+
+  getPublicPortfolio: publicProcedure
+    .input(z.object({ providerId: z.number() }))
+    .query(async ({ input }) => {
+      return await db.getPortfolioByProvider(input.providerId);
+    }),
+
+  addPortfolioItem: protectedProcedure
+    .input(z.object({
+      categoryId: z.number().optional(),
+      title: z.string().optional(),
+      description: z.string().optional(),
+      imageUrl: z.string(),
+      mediaType: z.enum(["image", "before_after"]).default("image"),
+      beforeImageUrl: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider not found" });
+      const count = await db.getPortfolioItemCount(provider.id);
+      if (count >= 50) throw new TRPCError({ code: "BAD_REQUEST", message: "Maximum 50 portfolio items allowed" });
+      await db.createPortfolioItem({ providerId: provider.id, ...input });
+      return { success: true };
+    }),
+
+  updatePortfolioItem: protectedProcedure
+    .input(z.object({
+      id: z.number(),
+      title: z.string().optional(),
+      description: z.string().optional(),
+      categoryId: z.number().optional(),
+      sortOrder: z.number().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider not found" });
+      const { id, ...data } = input;
+      await db.updatePortfolioItem(id, provider.id, data);
+      return { success: true };
+    }),
+
+  deletePortfolioItem: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider not found" });
+      await db.deletePortfolioItem(input.id, provider.id);
+      return { success: true };
+    }),
+
+  uploadPortfolioPhoto: protectedProcedure
+    .input(z.object({
+      base64: z.string(),
+      mimeType: z.string(),
+      fileName: z.string(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider not found" });
+      const { storagePut } = await import("../storage");
+      const buffer = Buffer.from(input.base64, "base64");
+      const suffix = Math.random().toString(36).slice(2, 10);
+      const key = `portfolio/${provider.id}/${suffix}-${input.fileName}`;
+      const { url } = await storagePut(key, buffer, input.mimeType);
+      return { url };
+    }),
+
   listByCategory: publicProcedure
     .input(z.object({ categoryId: z.number() }))
     .query(async ({ input }) => {

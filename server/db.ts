@@ -48,3 +48,13 @@ export {
   setProviderCategories,
   getProvidersByCategory,
 } from "./db/services";
+
+// Portfolio management
+export {
+  getPortfolioByProvider,
+  getPortfolioByProviderAndCategory,
+  createPortfolioItem,
+  updatePortfolioItem,
+  deletePortfolioItem,
+  getPortfolioItemCount,
+} from "./db/portfolio";

@@ -124,3 +124,23 @@
 - [x] Consolidate 12 dashboard tabs into 6 logical groups (Bookings, Services, Schedule, Finances, My Page, More)
 - [x] Add mobile bottom navigation bar for dashboard (6 icons fixed to bottom on mobile)
 - [x] Test provider onboarding flow end-to-end — all 4 steps verified working
+
+## Feature: Provider Portfolio/Gallery
+- [x] Database schema for portfolio items (photos/work samples per category)
+- [x] Server endpoints for CRUD portfolio items with S3 upload
+- [x] Portfolio upload UI in provider dashboard (Services tab)
+- [x] Portfolio gallery display on public provider profile mini-website
+
+## Feature: Location-Based Search Filters
+- [x] Add price range, rating, and location filters to category browse page
+- [x] Service type filter (in-person, mobile, virtual, hybrid)
+- [x] Filter UI with sticky filter bar + expandable panel on mobile
+
+## Feature: Provider Onboarding Checklist Widget
+- [x] Dashboard checklist card showing incomplete setup steps (6 steps)
+- [x] Progress bar showing completion percentage
+- [x] Clickable steps linking to relevant setup pages
+- [x] Auto-hides when all steps complete, dismissible by provider
+
+## Testing
+- [x] 319 tests passing across 19 test files (0 failures)

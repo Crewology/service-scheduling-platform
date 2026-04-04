@@ -92,6 +92,13 @@
       "when": 1775236569424,
       "tag": "0012_tricky_chronomancer",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "5",
+      "when": 1775266397036,
+      "tag": "0013_yielding_jack_murdock",
+      "breakpoints": true
     }
   ]
 }

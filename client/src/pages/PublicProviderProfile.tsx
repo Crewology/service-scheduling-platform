@@ -98,6 +98,11 @@ export default function PublicProviderProfile() {
   }
 
   const { provider, services, reviews, categories, profilePhoto } = data;
+
+  const { data: portfolio } = trpc.provider.getPublicPortfolio.useQuery(
+    { providerId: provider.id },
+    { enabled: !!provider.id }
+  );
   const avgRating = parseFloat(provider.averageRating || "0");
   const displayName = (name: string) =>
     name.split(" ").map((w: string) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
@@ -306,6 +311,29 @@ export default function PublicProviderProfile() {
                 </div>
               )}
             </div>
+
+            {/* Portfolio Section */}
+            {portfolio && portfolio.length > 0 && (
+              <div>
+                <h2 className="text-xl font-semibold text-foreground mb-4">Portfolio & Work Samples</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {portfolio.map((item: any) => (
+                    <div key={item.id} className="group relative rounded-lg overflow-hidden border bg-card aspect-square cursor-pointer">
+                      <img src={item.imageUrl} alt={item.title || "Work sample"} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
+                        {item.title && <p className="text-white text-sm font-medium">{item.title}</p>}
+                        {item.description && <p className="text-white/70 text-xs line-clamp-2">{item.description}</p>}
+                        {item.categoryId && (
+                          <span className="text-white/50 text-[10px] mt-1">
+                            {CATEGORY_ICONS[item.categoryId] || ""} {categories?.find((c: any) => c.id === item.categoryId)?.name?.split(" ").map((w: string) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ") || ""}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Reviews Section */}
             {reviews.length > 0 && (

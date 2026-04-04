@@ -1,9 +1,10 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
-import { MapPin, Star, Clock, DollarSign, ArrowLeft, User } from "lucide-react";
+import { MapPin, Star, Clock, DollarSign, ArrowLeft, User, SlidersHorizontal, X, Search } from "lucide-react";
 import { Link, useParams } from "wouter";
 import { NavHeader } from "@/components/shared/NavHeader";
 
@@ -29,25 +30,65 @@ export default function CategoryDetail() {
     { categoryId: category?.id! },
     { enabled: !!category?.id }
   );
-  // Fetch providers who serve this category
   const { data: providers } = trpc.provider.listByCategory.useQuery(
     { categoryId: category?.id! },
     { enabled: !!category?.id }
   );
 
-  // Group services by provider
+  // Filter state
+  const [showFilters, setShowFilters] = useState(false);
+  const [locationFilter, setLocationFilter] = useState("");
+  const [minRating, setMinRating] = useState(0);
+  const [maxPrice, setMaxPrice] = useState<number | null>(null);
+  const [serviceTypeFilter, setServiceTypeFilter] = useState<string>("all");
+
+  const hasActiveFilters = locationFilter || minRating > 0 || maxPrice !== null || serviceTypeFilter !== "all";
+
+  const clearFilters = () => {
+    setLocationFilter("");
+    setMinRating(0);
+    setMaxPrice(null);
+    setServiceTypeFilter("all");
+  };
+
+  // Group services by provider, then filter
   const servicesByProvider = useMemo(() => {
     if (!services || !providers) return new Map();
     const map = new Map<number, { provider: any; services: any[] }>();
     for (const service of services) {
+      // Price filter
+      if (maxPrice !== null) {
+        const price = parseFloat(service.basePrice || service.hourlyRate || "0");
+        if (price > maxPrice && price > 0) continue;
+      }
+      // Service type filter
+      if (serviceTypeFilter !== "all" && service.serviceType !== serviceTypeFilter) continue;
+
       if (!map.has(service.providerId)) {
         const prov = providers.find((p: any) => p.id === service.providerId);
         if (prov) map.set(service.providerId, { provider: prov, services: [] });
       }
       map.get(service.providerId)?.services.push(service);
     }
-    return map;
-  }, [services, providers]);
+
+    // Now filter by provider-level criteria
+    const filtered = new Map<number, { provider: any; services: any[] }>();
+    for (const [id, entry] of Array.from(map.entries())) {
+      const prov = entry.provider;
+      // Location filter
+      if (locationFilter) {
+        const loc = [prov.city, prov.state, prov.zipCode].filter(Boolean).join(" ").toLowerCase();
+        if (!loc.includes(locationFilter.toLowerCase())) continue;
+      }
+      // Rating filter
+      if (minRating > 0) {
+        const rating = parseFloat(prov.averageRating || "0");
+        if (rating < minRating) continue;
+      }
+      filtered.set(id, entry);
+    }
+    return filtered;
+  }, [services, providers, locationFilter, minRating, maxPrice, serviceTypeFilter]);
 
   if (!category) {
     return (
@@ -97,9 +138,130 @@ export default function CategoryDetail() {
         </div>
       </section>
 
+      {/* Filter Bar */}
+      <section className="py-4 border-b bg-card/50 sticky top-0 z-10 backdrop-blur-sm">
+        <div className="container">
+          <div className="flex items-center gap-3 flex-wrap">
+            <Button
+              variant={showFilters ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="gap-1.5"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              Filters
+              {hasActiveFilters && (
+                <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-[10px] rounded-full">
+                  !
+                </Badge>
+              )}
+            </Button>
+
+            {/* Quick filter chips */}
+            <div className="flex items-center gap-2 flex-wrap flex-1">
+              <div className="relative flex-1 max-w-xs">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                <Input
+                  placeholder="Filter by city, state, or zip..."
+                  value={locationFilter}
+                  onChange={(e) => setLocationFilter(e.target.value)}
+                  className="h-8 pl-8 text-sm"
+                />
+              </div>
+
+              {/* Rating quick filters */}
+              {[3, 4, 4.5].map((r) => (
+                <Button
+                  key={r}
+                  variant={minRating === r ? "default" : "outline"}
+                  size="sm"
+                  className="h-8 text-xs gap-1"
+                  onClick={() => setMinRating(minRating === r ? 0 : r)}
+                >
+                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {r}+
+                </Button>
+              ))}
+            </div>
+
+            {hasActiveFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 text-xs gap-1 text-muted-foreground">
+                <X className="w-3.5 h-3.5" /> Clear
+              </Button>
+            )}
+          </div>
+
+          {/* Expanded filter panel */}
+          {showFilters && (
+            <div className="mt-3 pt-3 border-t grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Max Price</label>
+                <div className="flex items-center gap-2">
+                  <DollarSign className="w-3.5 h-3.5 text-muted-foreground" />
+                  <Input
+                    type="number"
+                    placeholder="Any"
+                    value={maxPrice ?? ""}
+                    onChange={(e) => setMaxPrice(e.target.value ? Number(e.target.value) : null)}
+                    className="h-8 text-sm"
+                    min={0}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Service Type</label>
+                <select
+                  className="w-full h-8 rounded-md border border-input bg-background px-2 text-sm"
+                  value={serviceTypeFilter}
+                  onChange={(e) => setServiceTypeFilter(e.target.value)}
+                >
+                  <option value="all">All Types</option>
+                  <option value="in_person">In Person</option>
+                  <option value="mobile">Mobile</option>
+                  <option value="virtual">Virtual</option>
+                  <option value="hybrid">Hybrid</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Min Rating</label>
+                <select
+                  className="w-full h-8 rounded-md border border-input bg-background px-2 text-sm"
+                  value={minRating}
+                  onChange={(e) => setMinRating(Number(e.target.value))}
+                >
+                  <option value={0}>Any Rating</option>
+                  <option value={3}>3+ Stars</option>
+                  <option value={3.5}>3.5+ Stars</option>
+                  <option value={4}>4+ Stars</option>
+                  <option value={4.5}>4.5+ Stars</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Location</label>
+                <Input
+                  placeholder="City, state, or zip"
+                  value={locationFilter}
+                  onChange={(e) => setLocationFilter(e.target.value)}
+                  className="h-8 text-sm"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* Providers & Services */}
       <section className="py-12">
         <div className="container">
+          {/* Active filter summary */}
+          {hasActiveFilters && (
+            <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
+              <span>Showing {servicesByProvider.size} provider{servicesByProvider.size !== 1 ? "s" : ""}</span>
+              {locationFilter && <Badge variant="secondary" className="text-xs">Near \"{locationFilter}\"</Badge>}
+              {minRating > 0 && <Badge variant="secondary" className="text-xs"><Star className="w-3 h-3 mr-0.5 fill-amber-400 text-amber-400" /> {minRating}+</Badge>}
+              {maxPrice !== null && <Badge variant="secondary" className="text-xs">Under ${maxPrice}</Badge>}
+              {serviceTypeFilter !== "all" && <Badge variant="secondary" className="text-xs capitalize">{serviceTypeFilter.replace("_", " ")}</Badge>}
+            </div>
+          )}
           {servicesByProvider.size > 0 ? (
             <div className="space-y-8">
               {Array.from(servicesByProvider.entries()).map(([providerId, { provider, services: provServices }]) => (

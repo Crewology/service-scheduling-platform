@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,6 +50,8 @@ import {
   Settings,
   MoreHorizontal,
   ChevronDown,
+  ChevronRight,
+  X,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
@@ -588,6 +590,10 @@ export default function ProviderDashboard() {
   const [serviceForm, setServiceForm] = useState<any>({});
   const [deletingServiceId, setDeletingServiceId] = useState<number | null>(null);
   const [managingPhotosServiceId, setManagingPhotosServiceId] = useState<number | null>(null);
+  const [showPortfolioUpload, setShowPortfolioUpload] = useState(false);
+  const [portfolioUploadCategory, setPortfolioUploadCategory] = useState<number | undefined>(undefined);
+  const [portfolioTitle, setPortfolioTitle] = useState("");
+  const [portfolioDescription, setPortfolioDescription] = useState("");
   const [activeTab, setActiveTab] = useState("bookings");
   
   const { data: provider } = trpc.provider.getMyProfile.useQuery(undefined, {
@@ -639,6 +645,30 @@ export default function ProviderDashboard() {
       utils.service.listMine.invalidate();
       setDeletingServiceId(null);
       toast.success("Service deleted");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const { data: portfolio } = trpc.provider.getPortfolio.useQuery(undefined, {
+    enabled: !!provider,
+  });
+
+  const uploadPortfolioPhoto = trpc.provider.uploadPortfolioPhoto.useMutation();
+  const addPortfolioItem = trpc.provider.addPortfolioItem.useMutation({
+    onSuccess: () => {
+      utils.provider.getPortfolio.invalidate();
+      setShowPortfolioUpload(false);
+      setPortfolioTitle("");
+      setPortfolioDescription("");
+      setPortfolioUploadCategory(undefined);
+      toast.success("Work sample added to your portfolio!");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+  const deletePortfolioItem = trpc.provider.deletePortfolioItem.useMutation({
+    onSuccess: () => {
+      utils.provider.getPortfolio.invalidate();
+      toast.success("Portfolio item removed");
     },
     onError: (err) => toast.error(err.message),
   });
@@ -792,6 +822,15 @@ export default function ProviderDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Onboarding Checklist Widget */}
+        <OnboardingChecklist
+          provider={provider}
+          services={services}
+          myCategories={myCategories}
+          portfolio={portfolio}
+          connectStatus={undefined}
+        />
 
         {/* Main Content Tabs - Consolidated from 12 to 6 */}
         <Tabs defaultValue="bookings" className="space-y-6" value={activeTab} onValueChange={setActiveTab}>
@@ -1077,6 +1116,20 @@ export default function ProviderDashboard() {
                 </CardContent>
               </Card>
             )}
+
+            {/* ── PORTFOLIO / WORK SAMPLES ── */}
+            <div className="border-t pt-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-xl font-bold flex items-center gap-2"><ImageIcon className="h-5 w-5" /> Portfolio & Work Samples</h3>
+                  <p className="text-sm text-muted-foreground mt-1">Showcase your best work to attract more customers</p>
+                </div>
+                <Button size="sm" onClick={() => setShowPortfolioUpload(true)}>
+                  <Upload className="h-4 w-4 mr-1" /> Add Work
+                </Button>
+              </div>
+              <PortfolioGallery categories={myCategories} />
+            </div>
 
             {/* Services without a matching category */}
             {services && services.length > 0 && myCategories && (() => {
@@ -1637,6 +1690,80 @@ export default function ProviderDashboard() {
         </DialogContent>
       </Dialog>
 
+      {/* Portfolio Upload Dialog */}
+      <Dialog open={showPortfolioUpload} onOpenChange={setShowPortfolioUpload}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Work Sample</DialogTitle>
+            <DialogDescription>Upload a photo showcasing your work</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Category (optional)</Label>
+              <select
+                className="w-full mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={portfolioUploadCategory || ""}
+                onChange={(e) => setPortfolioUploadCategory(e.target.value ? Number(e.target.value) : undefined)}
+              >
+                <option value="">General</option>
+                {myCategories?.map((pc: any) => (
+                  <option key={pc.categoryId} value={pc.categoryId}>
+                    {pc.category?.name?.split(" ").map((w: string) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ")}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label>Title (optional)</Label>
+              <Input value={portfolioTitle} onChange={(e) => setPortfolioTitle(e.target.value)} placeholder="e.g., Kitchen Renovation" />
+            </div>
+            <div>
+              <Label>Description (optional)</Label>
+              <Textarea value={portfolioDescription} onChange={(e) => setPortfolioDescription(e.target.value)} placeholder="Brief description of this work" rows={2} />
+            </div>
+            <div>
+              <Label>Photo</Label>
+              <input
+                type="file"
+                accept="image/*"
+                className="mt-1 w-full text-sm"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  if (file.size > 10 * 1024 * 1024) {
+                    toast.error("File must be under 10MB");
+                    return;
+                  }
+                  const reader = new FileReader();
+                  reader.onload = async () => {
+                    const base64 = (reader.result as string).split(",")[1];
+                    try {
+                      const { url } = await uploadPortfolioPhoto.mutateAsync({
+                        base64,
+                        mimeType: file.type,
+                        fileName: file.name,
+                      });
+                      await addPortfolioItem.mutateAsync({
+                        imageUrl: url,
+                        categoryId: portfolioUploadCategory,
+                        title: portfolioTitle || undefined,
+                        description: portfolioDescription || undefined,
+                      });
+                    } catch (err: any) {
+                      toast.error(err.message || "Upload failed");
+                    }
+                  };
+                  reader.readAsDataURL(file);
+                }}
+              />
+              {(uploadPortfolioPhoto.isPending || addPortfolioItem.isPending) && (
+                <p className="text-sm text-muted-foreground mt-2">Uploading...</p>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Delete Service Confirmation */}
       <Dialog open={!!deletingServiceId} onOpenChange={() => setDeletingServiceId(null)}>
         <DialogContent>
@@ -1662,6 +1789,234 @@ export default function ProviderDashboard() {
 // ============================================================================
 // CALENDAR SYNC SECTION
 // ============================================================================
+
+// ============================================================================
+// ONBOARDING CHECKLIST WIDGET
+// ============================================================================
+function OnboardingChecklist({
+  provider,
+  services,
+  myCategories,
+  portfolio,
+  connectStatus,
+}: {
+  provider: any;
+  services: any[] | undefined;
+  myCategories: any[] | undefined;
+  portfolio: any[] | undefined;
+  connectStatus: any;
+}) {
+  const { data: stripeStatus } = trpc.stripeConnect.getStatus.useQuery();
+  const [, setLocation] = useLocation();
+  const [dismissed, setDismissed] = useState(false);
+
+  const steps = useMemo(() => {
+    const hasPhoto = !!provider.profilePhotoUrl;
+    const hasBio = !!provider.bio && provider.bio.length > 10;
+    const hasCategories = (myCategories?.length || 0) > 0;
+    const hasServices = (services?.length || 0) > 0;
+    const hasPortfolio = (portfolio?.length || 0) > 0;
+    const hasStripe = stripeStatus?.connected && stripeStatus?.chargesEnabled;
+    const hasAvailability = true; // We can't easily check this without another query
+
+    return [
+      {
+        id: "photo",
+        label: "Add a profile photo",
+        description: "Help customers recognize you",
+        done: hasPhoto,
+        action: () => setLocation("/provider/onboarding"),
+        actionLabel: "Add Photo",
+      },
+      {
+        id: "bio",
+        label: "Write your bio",
+        description: "Tell customers about your experience",
+        done: hasBio,
+        action: () => setLocation("/provider/onboarding"),
+        actionLabel: "Write Bio",
+      },
+      {
+        id: "categories",
+        label: "Select service categories",
+        description: "Choose the types of services you offer",
+        done: hasCategories,
+        action: () => setLocation("/provider/onboarding"),
+        actionLabel: "Select Categories",
+      },
+      {
+        id: "services",
+        label: "Add at least one service",
+        description: "Create a service with pricing so customers can book",
+        done: hasServices,
+        action: () => setLocation("/provider/services/new"),
+        actionLabel: "Add Service",
+      },
+      {
+        id: "portfolio",
+        label: "Upload work samples",
+        description: "Showcase your best work to attract customers",
+        done: hasPortfolio,
+        action: () => {}, // handled inline
+        actionLabel: "Upload",
+      },
+      {
+        id: "stripe",
+        label: "Connect payment account",
+        description: "Set up Stripe to receive payments",
+        done: !!hasStripe,
+        action: () => setLocation("/provider/onboarding"),
+        actionLabel: "Connect Stripe",
+      },
+    ];
+  }, [provider, services, myCategories, portfolio, stripeStatus, setLocation]);
+
+  const completedCount = steps.filter((s: any) => s.done).length;
+  const totalSteps = steps.length;
+  const allDone = completedCount === totalSteps;
+  const progress = Math.round((completedCount / totalSteps) * 100);
+
+  if (allDone || dismissed) return null;
+
+  return (
+    <Card className="mb-8 border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-primary" />
+              Complete Your Profile
+            </CardTitle>
+            <CardDescription className="mt-1">
+              {completedCount} of {totalSteps} steps complete — finish setup to start getting bookings
+            </CardDescription>
+          </div>
+          <Button variant="ghost" size="sm" onClick={() => setDismissed(true)} className="text-muted-foreground">
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+        {/* Progress bar */}
+        <div className="mt-3 h-2 rounded-full bg-muted overflow-hidden">
+          <div
+            className="h-full rounded-full bg-primary transition-all duration-500"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
+          {steps.map((step: any) => (
+            <div
+              key={step.id}
+              className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
+                step.done
+                  ? "bg-muted/30 border-transparent"
+                  : "bg-background border-border hover:border-primary/30 cursor-pointer"
+              }`}
+              onClick={() => !step.done && step.action()}
+            >
+              <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
+                step.done ? "bg-green-500/20 text-green-600" : "bg-muted text-muted-foreground"
+              }`}>
+                {step.done ? (
+                  <CheckCircle2 className="w-4 h-4" />
+                ) : (
+                  <span className="text-xs font-medium">{steps.indexOf(step) + 1}</span>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm font-medium ${step.done ? "line-through text-muted-foreground" : "text-foreground"}`}>
+                  {step.label}
+                </p>
+                <p className="text-[11px] text-muted-foreground truncate">{step.description}</p>
+              </div>
+              {!step.done && (
+                <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+              )}
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ============================================================================
+// PORTFOLIO GALLERY (inside dashboard)
+// ============================================================================
+function PortfolioGallery({ categories }: { categories: any[] | undefined }) {
+  const { data: portfolio } = trpc.provider.getPortfolio.useQuery();
+  const utils = trpc.useUtils();
+  const deleteItem = trpc.provider.deletePortfolioItem.useMutation({
+    onSuccess: () => {
+      utils.provider.getPortfolio.invalidate();
+      toast.success("Removed");
+    },
+  });
+
+  if (!portfolio || portfolio.length === 0) {
+    return (
+      <Card className="border-dashed">
+        <CardContent className="py-8 text-center">
+          <ImageIcon className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+          <p className="text-muted-foreground text-sm">No portfolio items yet</p>
+          <p className="text-xs text-muted-foreground mt-1">Upload photos of your work to attract more customers</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Group by category
+  const grouped = new Map<number | null, any[]>();
+  for (const item of portfolio) {
+    const key = item.categoryId;
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key)!.push(item);
+  }
+
+  const CATEGORY_ICONS: Record<number, string> = {
+    15: "\uD83C\uDFAC", 170: "\uD83D\uDC88", 7: "\u2702\uFE0F", 126: "\uD83D\uDD12", 195: "\uD83D\uDC83", 202: "\uD83D\uDD28",
+    23: "\uD83E\uDDB7", 20: "\uD83C\uDFB5", 22: "\uD83D\uDE9B", 177: "\uD83C\uDF89", 196: "\uD83D\uDC41\uFE0F", 178: "\uD83D\uDCB0",
+    109: "\uD83C\uDFCB\uFE0F", 197: "\uD83D\uDCCB", 9: "\uD83D\uDD27", 193: "\uD83E\uDDD8", 188: "\uD83E\uDDF9", 200: "\u26A1",
+    179: "\uD83C\uDFE0", 171: "\uD83D\uDC87", 174: "\uD83D\uDE97", 176: "\uD83D\uDD29", 111: "\uD83D\uDD17", 10: "\uD83D\uDC86",
+    168: "\uD83D\uDE99", 169: "\uD83D\uDEE0\uFE0F", 199: "\uD83C\uDFAA", 158: "\uD83C\uDFAF", 73: "\uD83C\uDF7D\uFE0F", 12: "\uD83D\uDCAA",
+    11: "\uD83D\uDC3E", 17: "\uD83D\uDCF8", 148: "\uD83D\uDCA6", 26: "\uD83D\uDCC5", 8: "\uD83D\uDC85", 194: "\u2600\uFE0F",
+    198: "\uD83D\uDCBB", 19: "\uD83C\uDFA5", 155: "\uD83D\uDCF1", 201: "\uD83D\uDDA5\uFE0F", 205: "\uD83C\uDF10",
+  };
+
+  return (
+    <div className="space-y-4">
+      {Array.from(grouped.entries()).map(([catId, items]) => {
+        const cat = categories?.find((c: any) => c.categoryId === catId)?.category;
+        const catName = cat ? cat.name.split(" ").map((w: string) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ") : "General";
+        return (
+          <div key={catId ?? "general"}>
+            <p className="text-sm font-medium mb-2 flex items-center gap-1">
+              <span>{catId ? CATEGORY_ICONS[catId] || "\uD83D\uDCE6" : "\uD83D\uDDBC\uFE0F"}</span> {catName}
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {items.map((item: any) => (
+                <div key={item.id} className="group relative rounded-lg overflow-hidden border bg-card aspect-square">
+                  <img src={item.imageUrl} alt={item.title || "Portfolio"} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2">
+                    {item.title && <p className="text-white text-xs font-medium truncate">{item.title}</p>}
+                    {item.description && <p className="text-white/70 text-[10px] truncate">{item.description}</p>}
+                    <button
+                      className="absolute top-1 right-1 bg-red-500/80 hover:bg-red-600 text-white rounded-full p-1"
+                      onClick={() => deleteItem.mutate({ id: item.id })}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 function CalendarSyncSection() {
   const { data: calendarData, isLoading } = trpc.provider.getCalendarFeedUrl.useQuery();
