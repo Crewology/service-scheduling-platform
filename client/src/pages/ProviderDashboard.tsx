@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -594,6 +594,9 @@ export default function ProviderDashboard() {
   const [portfolioUploadCategory, setPortfolioUploadCategory] = useState<number | undefined>(undefined);
   const [portfolioTitle, setPortfolioTitle] = useState("");
   const [portfolioDescription, setPortfolioDescription] = useState("");
+  const [portfolioMediaType, setPortfolioMediaType] = useState<"image" | "before_after">("image");
+  const [portfolioBeforeUrl, setPortfolioBeforeUrl] = useState("");
+  const [portfolioAfterUrl, setPortfolioAfterUrl] = useState("");
   const [activeTab, setActiveTab] = useState("bookings");
   
   const { data: provider } = trpc.provider.getMyProfile.useQuery(undefined, {
@@ -661,6 +664,9 @@ export default function ProviderDashboard() {
       setPortfolioTitle("");
       setPortfolioDescription("");
       setPortfolioUploadCategory(undefined);
+      setPortfolioMediaType("image");
+      setPortfolioBeforeUrl("");
+      setPortfolioAfterUrl("");
       toast.success("Work sample added to your portfolio!");
     },
     onError: (err) => toast.error(err.message),
@@ -1691,13 +1697,43 @@ export default function ProviderDashboard() {
       </Dialog>
 
       {/* Portfolio Upload Dialog */}
-      <Dialog open={showPortfolioUpload} onOpenChange={setShowPortfolioUpload}>
-        <DialogContent>
+      <Dialog open={showPortfolioUpload} onOpenChange={(open) => {
+        setShowPortfolioUpload(open);
+        if (!open) {
+          setPortfolioMediaType("image");
+          setPortfolioBeforeUrl("");
+          setPortfolioAfterUrl("");
+        }
+      }}>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Add Work Sample</DialogTitle>
-            <DialogDescription>Upload a photo showcasing your work</DialogDescription>
+            <DialogDescription>Upload photos showcasing your work</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            {/* Type Toggle */}
+            <div>
+              <Label>Type</Label>
+              <div className="flex gap-2 mt-1">
+                <Button
+                  type="button"
+                  variant={portfolioMediaType === "image" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setPortfolioMediaType("image")}
+                >
+                  Single Photo
+                </Button>
+                <Button
+                  type="button"
+                  variant={portfolioMediaType === "before_after" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setPortfolioMediaType("before_after")}
+                >
+                  Before & After
+                </Button>
+              </div>
+            </div>
+
             <div>
               <Label>Category (optional)</Label>
               <select
@@ -1721,45 +1757,134 @@ export default function ProviderDashboard() {
               <Label>Description (optional)</Label>
               <Textarea value={portfolioDescription} onChange={(e) => setPortfolioDescription(e.target.value)} placeholder="Brief description of this work" rows={2} />
             </div>
-            <div>
-              <Label>Photo</Label>
-              <input
-                type="file"
-                accept="image/*"
-                className="mt-1 w-full text-sm"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  if (file.size > 10 * 1024 * 1024) {
-                    toast.error("File must be under 10MB");
-                    return;
-                  }
-                  const reader = new FileReader();
-                  reader.onload = async () => {
-                    const base64 = (reader.result as string).split(",")[1];
-                    try {
-                      const { url } = await uploadPortfolioPhoto.mutateAsync({
-                        base64,
-                        mimeType: file.type,
-                        fileName: file.name,
-                      });
-                      await addPortfolioItem.mutateAsync({
-                        imageUrl: url,
-                        categoryId: portfolioUploadCategory,
-                        title: portfolioTitle || undefined,
-                        description: portfolioDescription || undefined,
-                      });
-                    } catch (err: any) {
-                      toast.error(err.message || "Upload failed");
-                    }
-                  };
-                  reader.readAsDataURL(file);
-                }}
-              />
-              {(uploadPortfolioPhoto.isPending || addPortfolioItem.isPending) && (
-                <p className="text-sm text-muted-foreground mt-2">Uploading...</p>
-              )}
-            </div>
+
+            {portfolioMediaType === "image" ? (
+              /* Single Photo Upload */
+              <div>
+                <Label>Photo</Label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="mt-1 w-full text-sm"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    if (file.size > 10 * 1024 * 1024) { toast.error("File must be under 10MB"); return; }
+                    const reader = new FileReader();
+                    reader.onload = async () => {
+                      const base64 = (reader.result as string).split(",")[1];
+                      try {
+                        const { url } = await uploadPortfolioPhoto.mutateAsync({ base64, mimeType: file.type, fileName: file.name });
+                        await addPortfolioItem.mutateAsync({
+                          imageUrl: url,
+                          categoryId: portfolioUploadCategory,
+                          title: portfolioTitle || undefined,
+                          description: portfolioDescription || undefined,
+                          mediaType: "image",
+                        });
+                      } catch (err: any) { toast.error(err.message || "Upload failed"); }
+                    };
+                    reader.readAsDataURL(file);
+                  }}
+                />
+              </div>
+            ) : (
+              /* Before & After Upload */
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Before Photo */}
+                  <div>
+                    <Label className="text-sm">Before Photo</Label>
+                    {portfolioBeforeUrl ? (
+                      <div className="relative mt-1">
+                        <img src={portfolioBeforeUrl} alt="Before" className="w-full h-32 object-cover rounded-md border" />
+                        <button
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                          onClick={() => setPortfolioBeforeUrl("")}
+                        >&times;</button>
+                      </div>
+                    ) : (
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="mt-1 w-full text-xs"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          if (file.size > 10 * 1024 * 1024) { toast.error("File must be under 10MB"); return; }
+                          const reader = new FileReader();
+                          reader.onload = async () => {
+                            const base64 = (reader.result as string).split(",")[1];
+                            try {
+                              const { url } = await uploadPortfolioPhoto.mutateAsync({ base64, mimeType: file.type, fileName: file.name });
+                              setPortfolioBeforeUrl(url);
+                            } catch (err: any) { toast.error(err.message || "Upload failed"); }
+                          };
+                          reader.readAsDataURL(file);
+                        }}
+                      />
+                    )}
+                  </div>
+                  {/* After Photo */}
+                  <div>
+                    <Label className="text-sm">After Photo</Label>
+                    {portfolioAfterUrl ? (
+                      <div className="relative mt-1">
+                        <img src={portfolioAfterUrl} alt="After" className="w-full h-32 object-cover rounded-md border" />
+                        <button
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                          onClick={() => setPortfolioAfterUrl("")}
+                        >&times;</button>
+                      </div>
+                    ) : (
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="mt-1 w-full text-xs"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          if (file.size > 10 * 1024 * 1024) { toast.error("File must be under 10MB"); return; }
+                          const reader = new FileReader();
+                          reader.onload = async () => {
+                            const base64 = (reader.result as string).split(",")[1];
+                            try {
+                              const { url } = await uploadPortfolioPhoto.mutateAsync({ base64, mimeType: file.type, fileName: file.name });
+                              setPortfolioAfterUrl(url);
+                            } catch (err: any) { toast.error(err.message || "Upload failed"); }
+                          };
+                          reader.readAsDataURL(file);
+                        }}
+                      />
+                    )}
+                  </div>
+                </div>
+                {portfolioBeforeUrl && portfolioAfterUrl && (
+                  <Button
+                    className="w-full"
+                    onClick={async () => {
+                      try {
+                        await addPortfolioItem.mutateAsync({
+                          imageUrl: portfolioAfterUrl,
+                          beforeImageUrl: portfolioBeforeUrl,
+                          categoryId: portfolioUploadCategory,
+                          title: portfolioTitle || undefined,
+                          description: portfolioDescription || undefined,
+                          mediaType: "before_after",
+                        });
+                      } catch (err: any) { toast.error(err.message || "Save failed"); }
+                    }}
+                    disabled={addPortfolioItem.isPending}
+                  >
+                    {addPortfolioItem.isPending ? "Saving..." : "Save Before & After"}
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {(uploadPortfolioPhoto.isPending || addPortfolioItem.isPending) && (
+              <p className="text-sm text-muted-foreground">Uploading...</p>
+            )}
           </div>
         </DialogContent>
       </Dialog>
@@ -1942,6 +2067,46 @@ function OnboardingChecklist({
 }
 
 // ============================================================================
+// BEFORE/AFTER COMPARISON CARD
+// ============================================================================
+function BeforeAfterCard({ beforeUrl, afterUrl }: { beforeUrl: string; afterUrl: string }) {
+  const [sliderPos, setSliderPos] = useState(50);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleMove = (clientX: number) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(clientX - rect.left, rect.width));
+    setSliderPos((x / rect.width) * 100);
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative w-full h-full cursor-col-resize select-none overflow-hidden"
+      onMouseMove={(e) => { if (e.buttons === 1) handleMove(e.clientX); }}
+      onTouchMove={(e) => handleMove(e.touches[0].clientX)}
+    >
+      {/* After image (full) */}
+      <img src={afterUrl} alt="After" className="absolute inset-0 w-full h-full object-cover" />
+      {/* Before image (clipped) */}
+      <div className="absolute inset-0 overflow-hidden" style={{ width: `${sliderPos}%` }}>
+        <img src={beforeUrl} alt="Before" className="absolute inset-0 w-full h-full object-cover" style={{ minWidth: containerRef.current?.offsetWidth || '100%' }} />
+      </div>
+      {/* Slider line */}
+      <div className="absolute top-0 bottom-0 w-0.5 bg-white shadow-lg" style={{ left: `${sliderPos}%` }}>
+        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-white shadow-md flex items-center justify-center">
+          <span className="text-[10px] text-gray-500">↔</span>
+        </div>
+      </div>
+      {/* Labels */}
+      <span className="absolute top-1 left-1 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded">Before</span>
+      <span className="absolute top-1 right-1 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded">After</span>
+    </div>
+  );
+}
+
+// ============================================================================
 // PORTFOLIO GALLERY (inside dashboard)
 // ============================================================================
 function PortfolioGallery({ categories }: { categories: any[] | undefined }) {
@@ -1997,8 +2162,15 @@ function PortfolioGallery({ categories }: { categories: any[] | undefined }) {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {items.map((item: any) => (
                 <div key={item.id} className="group relative rounded-lg overflow-hidden border bg-card aspect-square">
-                  <img src={item.imageUrl} alt={item.title || "Portfolio"} className="w-full h-full object-cover" />
+                  {item.mediaType === "before_after" && item.beforeImageUrl ? (
+                    <BeforeAfterCard beforeUrl={item.beforeImageUrl} afterUrl={item.imageUrl} />
+                  ) : (
+                    <img src={item.imageUrl} alt={item.title || "Portfolio"} className="w-full h-full object-cover" />
+                  )}
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2">
+                    {item.mediaType === "before_after" && (
+                      <Badge className="absolute top-1 left-1 text-[9px] bg-blue-500">Before & After</Badge>
+                    )}
                     {item.title && <p className="text-white text-xs font-medium truncate">{item.title}</p>}
                     {item.description && <p className="text-white/70 text-[10px] truncate">{item.description}</p>}
                     <button

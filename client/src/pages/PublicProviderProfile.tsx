@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useParams, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,6 +25,42 @@ import {
 function formatCurrency(value: string | number | null | undefined): string {
   const num = typeof value === "string" ? parseFloat(value) : (value ?? 0);
   return `$${num.toFixed(2)}`;
+}
+
+// ============================================================================
+// BEFORE/AFTER COMPARISON CARD (public profile)
+// ============================================================================
+function BeforeAfterCard({ beforeUrl, afterUrl }: { beforeUrl: string; afterUrl: string }) {
+  const [sliderPos, setSliderPos] = useState(50);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleMove = (clientX: number) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(clientX - rect.left, rect.width));
+    setSliderPos((x / rect.width) * 100);
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative w-full h-full cursor-col-resize select-none overflow-hidden"
+      onMouseMove={(e) => { if (e.buttons === 1) handleMove(e.clientX); }}
+      onTouchMove={(e) => handleMove(e.touches[0].clientX)}
+    >
+      <img src={afterUrl} alt="After" className="absolute inset-0 w-full h-full object-cover" />
+      <div className="absolute inset-0 overflow-hidden" style={{ width: `${sliderPos}%` }}>
+        <img src={beforeUrl} alt="Before" className="absolute inset-0 w-full h-full object-cover" style={{ minWidth: containerRef.current?.offsetWidth || '100%' }} />
+      </div>
+      <div className="absolute top-0 bottom-0 w-0.5 bg-white shadow-lg" style={{ left: `${sliderPos}%` }}>
+        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center">
+          <span className="text-xs text-gray-500">↔</span>
+        </div>
+      </div>
+      <span className="absolute top-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded">Before</span>
+      <span className="absolute top-2 right-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded">After</span>
+    </div>
+  );
 }
 
 const CATEGORY_ICONS: Record<number, string> = {
@@ -319,8 +355,15 @@ export default function PublicProviderProfile() {
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {portfolio.map((item: any) => (
                     <div key={item.id} className="group relative rounded-lg overflow-hidden border bg-card aspect-square cursor-pointer">
-                      <img src={item.imageUrl} alt={item.title || "Work sample"} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                      {item.mediaType === "before_after" && item.beforeImageUrl ? (
+                        <BeforeAfterCard beforeUrl={item.beforeImageUrl} afterUrl={item.imageUrl} />
+                      ) : (
+                        <img src={item.imageUrl} alt={item.title || "Work sample"} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                      )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
+                        {item.mediaType === "before_after" && (
+                          <Badge className="absolute top-2 left-2 text-[10px] bg-blue-500">Before & After</Badge>
+                        )}
                         {item.title && <p className="text-white text-sm font-medium">{item.title}</p>}
                         {item.description && <p className="text-white/70 text-xs line-clamp-2">{item.description}</p>}
                         {item.categoryId && (

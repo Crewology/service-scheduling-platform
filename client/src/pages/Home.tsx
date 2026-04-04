@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
-import { Search, Calendar, Shield, Star, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Search, Calendar, Shield, Star, ArrowRight, CheckCircle2, MapPin, User } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import { NavHeader } from "@/components/shared/NavHeader";
@@ -13,6 +14,7 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
   const [, setLocation] = useLocation();
   const { data: categories } = trpc.category.list.useQuery();
+  const { data: featuredProviders } = trpc.provider.listFeatured.useQuery();
 
   const featuredCategories = categories?.slice(0, 8) || [];
 
@@ -161,6 +163,94 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Featured Providers Section */}
+      {featuredProviders && featuredProviders.length > 0 && (
+        <section className="py-20 bg-white">
+          <div className="container">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-bold mb-4">Featured Providers</h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Top-rated professionals ready to serve you
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {featuredProviders.map((provider: any) => (
+                <Link key={provider.id} href={`/p/${provider.slug}`}>
+                  <Card className="hover:shadow-medium transition-all cursor-pointer group h-full">
+                    <CardContent className="p-6">
+                      {/* Provider Avatar */}
+                      <div className="flex items-center gap-3 mb-4">
+                        {provider.profilePhotoUrl ? (
+                          <img
+                            src={provider.profilePhotoUrl}
+                            alt={provider.businessName}
+                            className="w-14 h-14 rounded-full object-cover border-2 border-primary/20"
+                          />
+                        ) : (
+                          <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+                            <User className="w-7 h-7 text-primary" />
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <h3 className="font-semibold text-base group-hover:text-primary transition-colors truncate">
+                            {provider.businessName}
+                          </h3>
+                          {provider.city && (
+                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              {provider.city}{provider.state ? `, ${provider.state}` : ""}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Rating */}
+                      {parseFloat(provider.averageRating || "0") > 0 && (
+                        <div className="flex items-center gap-1.5 mb-3">
+                          <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                          <span className="font-medium text-sm">
+                            {parseFloat(provider.averageRating).toFixed(1)}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            ({provider.totalReviews} review{provider.totalReviews !== 1 ? "s" : ""})
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Categories */}
+                      {provider.categories && provider.categories.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {provider.categories.slice(0, 3).map((cat: any) => (
+                            <Badge key={cat.id} variant="secondary" className="text-[10px] px-2 py-0.5">
+                              {cat.name}
+                            </Badge>
+                          ))}
+                          {provider.categories.length > 3 && (
+                            <Badge variant="outline" className="text-[10px] px-2 py-0.5">
+                              +{provider.categories.length - 3} more
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+
+            <div className="text-center">
+              <Link href="/browse">
+                <Button size="lg" variant="outline">
+                  View All Providers
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* CTA Section for Providers */}
       <section className="py-20 gradient-primary text-white">

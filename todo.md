@@ -142,5 +142,24 @@
 - [x] Clickable steps linking to relevant setup pages
 - [x] Auto-hides when all steps complete, dismissible by provider
 
-## Testing
+## Testing (previous)
 - [x] 319 tests passing across 19 test files (0 failures)
+
+## Feature: Featured Providers on Homepage
+- [x] Enhanced listFeatured endpoint with categories, profile photos, and ratings
+- [x] Featured Providers section on homepage with provider cards
+- [x] Provider cards with photo, name, categories, rating, and "View Profile" CTA
+
+## Feature: Availability Quick-View on Category Browse
+- [x] getNextAvailable endpoint returning next available slots (7-day window)
+- [x] AvailabilityQuickView component on category browse provider cards
+- [x] Green badges showing next available day/time per provider
+
+## Feature: Before/After Photo Pairs in Portfolio
+- [x] Portfolio schema already supports before/after (mediaType + beforeImageUrl fields)
+- [x] Before/after upload UI with dual photo pickers in portfolio dialog
+- [x] Interactive comparison slider (BeforeAfterCard) on dashboard and public profile
+- [x] "Before & After" badge on portfolio items
+
+## Testing
+- [x] 328 tests passing across 20 test files (0 failures)

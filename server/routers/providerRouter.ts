@@ -67,7 +67,32 @@ export const providerRouter = router({
     }),
 
   listFeatured: publicProcedure.query(async () => {
-    return await db.getAllProviders({ isActive: true });
+    const providers = await db.getAllProviders({ isActive: true });
+    // Get top 8 providers by rating, with their categories and profile photos
+    const sorted = providers
+      .filter((p: any) => parseFloat(p.averageRating || "0") > 0 || p.totalReviews > 0)
+      .sort((a: any, b: any) => parseFloat(b.averageRating || "0") - parseFloat(a.averageRating || "0"))
+      .slice(0, 8);
+    // If fewer than 8 rated providers, fill with recently created active providers
+    if (sorted.length < 8) {
+      const remaining = providers
+        .filter((p: any) => !sorted.find((s: any) => s.id === p.id))
+        .slice(0, 8 - sorted.length);
+      sorted.push(...remaining);
+    }
+    // Enrich with categories and profile photo
+    const enriched = await Promise.all(
+      sorted.slice(0, 8).map(async (provider: any) => {
+        const categories = await db.getProviderCategories(provider.id);
+        const user = await db.getUserById(provider.userId);
+        return {
+          ...provider,
+          profilePhotoUrl: user?.profilePhotoUrl || null,
+          categories: categories.map((c: any) => ({ id: c.categoryId, name: c.categoryName })),
+        };
+      })
+    );
+    return enriched;
   }),
 
   update: protectedProcedure
@@ -355,5 +380,55 @@ export const providerRouter = router({
         })
       );
       return providers.filter(Boolean);
+    }),
+
+  getNextAvailable: publicProcedure
+    .input(z.object({ providerId: z.number(), days: z.number().default(7) }))
+    .query(async ({ input }) => {
+      const schedule = await db.getAvailabilityByProvider(input.providerId);
+      if (!schedule || schedule.length === 0) return { slots: [], hasAvailability: false };
+
+      // Get overrides for the next N days
+      const today = new Date();
+      const endDate = new Date(today);
+      endDate.setDate(endDate.getDate() + input.days);
+      const todayStr = today.toISOString().split("T")[0];
+      const endStr = endDate.toISOString().split("T")[0];
+      const overrides = await db.getAvailabilityOverrides(input.providerId, todayStr, endStr);
+
+      // Build a map of overrides by date
+      const overrideMap = new Map<string, any>();
+      for (const o of overrides) {
+        overrideMap.set(o.overrideDate, o);
+      }
+
+      // Compute next available slots
+      const slots: { date: string; dayName: string; startTime: string; endTime: string }[] = [];
+      const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+      for (let d = 0; d < input.days && slots.length < 3; d++) {
+        const date = new Date(today);
+        date.setDate(date.getDate() + d);
+        const dateStr = date.toISOString().split("T")[0];
+        const dayOfWeek = date.getDay();
+
+        // Check override first
+        const override = overrideMap.get(dateStr);
+        if (override && !override.isAvailable) continue;
+
+        // Find schedule for this day
+        const daySchedules = schedule.filter((s: any) => s.dayOfWeek === dayOfWeek && s.isAvailable);
+        for (const s of daySchedules) {
+          if (slots.length >= 3) break;
+          slots.push({
+            date: dateStr,
+            dayName: dayNames[dayOfWeek],
+            startTime: s.startTime,
+            endTime: s.endTime,
+          });
+        }
+      }
+
+      return { slots, hasAvailability: slots.length > 0 };
     }),
 });

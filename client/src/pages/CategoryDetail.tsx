@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
-import { MapPin, Star, Clock, DollarSign, ArrowLeft, User, SlidersHorizontal, X, Search } from "lucide-react";
+import { MapPin, Star, Clock, DollarSign, ArrowLeft, User, SlidersHorizontal, X, Search, CalendarDays } from "lucide-react";
 import { Link, useParams } from "wouter";
 import { NavHeader } from "@/components/shared/NavHeader";
 
@@ -21,6 +21,34 @@ const CATEGORY_ICONS: Record<number, string> = {
 function formatCurrency(value: string | number | null | undefined): string {
   const num = typeof value === "string" ? parseFloat(value) : (value ?? 0);
   return `$${num.toFixed(2)}`;
+}
+
+function formatTime12(time: string): string {
+  const [h, m] = time.split(":");
+  const hour = parseInt(h);
+  const ampm = hour >= 12 ? "PM" : "AM";
+  const h12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  return `${h12}:${m} ${ampm}`;
+}
+
+function AvailabilityQuickView({ providerId }: { providerId: number }) {
+  const { data } = trpc.provider.getNextAvailable.useQuery({ providerId, days: 7 });
+  if (!data || !data.hasAvailability) return null;
+
+  return (
+    <div className="mt-3 pt-3 border-t">
+      <p className="text-xs font-medium text-muted-foreground flex items-center gap-1 mb-2">
+        <CalendarDays className="w-3.5 h-3.5" /> Next Available
+      </p>
+      <div className="flex flex-wrap gap-1.5">
+        {data.slots.map((slot, i) => (
+          <Badge key={i} variant="outline" className="text-[11px] px-2 py-0.5 bg-green-50 border-green-200 text-green-700">
+            {slot.dayName.slice(0, 3)} {formatTime12(slot.startTime)}
+          </Badge>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function CategoryDetail() {
@@ -299,6 +327,7 @@ export default function CategoryDetail() {
                         <Button variant="outline" size="sm">View Profile</Button>
                       </div>
                     </Link>
+                    <AvailabilityQuickView providerId={providerId} />
                   </CardHeader>
 
                   {/* Provider's Services in this category */}

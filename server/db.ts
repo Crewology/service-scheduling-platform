@@ -49,6 +49,12 @@ export {
   getProvidersByCategory,
 } from "./db/services";
 
+// Availability management
+export {
+  getAvailabilityByProvider,
+  getAvailabilityOverrides,
+} from "./db/availability";
+
 // Portfolio management
 export {
   getPortfolioByProvider,
