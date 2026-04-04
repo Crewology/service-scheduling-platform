@@ -31,6 +31,14 @@ describe("Twilio Credentials Validation", () => {
     console.log(`[TwilioValidation] Auth token configured (length: ${token!.length})`);
   });
 
+  it("should have TWILIO_MESSAGING_SERVICE_SID set", () => {
+    const msid = ENV.twilioMessagingServiceSid;
+    expect(msid).toBeDefined();
+    expect(msid).toBeTruthy();
+    expect(msid!.startsWith("MG")).toBe(true);
+    console.log(`[TwilioValidation] Messaging Service SID configured: ${msid!.slice(0, 6)}****`);
+  });
+
   it("should authenticate with Twilio API", async () => {
     const sid = ENV.twilioAccountSid;
     const token = ENV.twilioAuthToken;

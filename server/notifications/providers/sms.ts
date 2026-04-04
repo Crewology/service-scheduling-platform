@@ -5,9 +5,9 @@ import { ENV } from "../../_core/env";
 /**
  * SMS notification provider using Twilio
  * 
- * Requires TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE_NUMBER.
- * If TWILIO_PHONE_NUMBER is not set, SMS sending is gracefully skipped
- * (logs a warning instead of failing).
+ * Prefers TWILIO_MESSAGING_SERVICE_SID for A2P 10DLC compliant routing.
+ * Falls back to TWILIO_PHONE_NUMBER if no Messaging Service is configured.
+ * Requires TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN for authentication.
  */
 export class SMSProvider implements NotificationProvider {
   name = "sms";
@@ -26,7 +26,8 @@ export class SMSProvider implements NotificationProvider {
     try {
       const twilio = await import("twilio");
       this.client = twilio.default(ENV.twilioAccountSid, ENV.twilioAuthToken);
-      console.log("[SMSProvider] Twilio client initialized successfully");
+      const mode = ENV.twilioMessagingServiceSid ? "Messaging Service" : "Phone Number";
+      console.log(`[SMSProvider] Twilio client initialized successfully (using ${mode})`);
       return this.client;
     } catch (err) {
       console.error("[SMSProvider] Failed to initialize Twilio client:", err);
@@ -44,8 +45,8 @@ export class SMSProvider implements NotificationProvider {
       return false;
     }
 
-    if (!ENV.twilioPhoneNumber) {
-      console.warn("[SMSProvider] TWILIO_PHONE_NUMBER not set — skipping SMS. Add a Twilio phone number to enable SMS.");
+    if (!ENV.twilioMessagingServiceSid && !ENV.twilioPhoneNumber) {
+      console.warn("[SMSProvider] Neither TWILIO_MESSAGING_SERVICE_SID nor TWILIO_PHONE_NUMBER is set — skipping SMS.");
       return false;
     }
 
@@ -62,11 +63,19 @@ export class SMSProvider implements NotificationProvider {
     const truncatedMessage = message.length > 1600 ? message.slice(0, 1597) + "..." : message;
 
     try {
-      const result = await client.messages.create({
+      // Prefer Messaging Service SID for A2P 10DLC compliance
+      const messageParams: any = {
         body: truncatedMessage,
-        from: ENV.twilioPhoneNumber,
         to: notification.recipient.phone,
-      });
+      };
+
+      if (ENV.twilioMessagingServiceSid) {
+        messageParams.messagingServiceSid = ENV.twilioMessagingServiceSid;
+      } else {
+        messageParams.from = ENV.twilioPhoneNumber;
+      }
+
+      const result = await client.messages.create(messageParams);
 
       console.log(`[SMSProvider] SMS sent to ${notification.recipient.phone} (SID: ${result.sid})`);
       return true;
