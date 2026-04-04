@@ -228,3 +228,19 @@
 - [x] "Upload work samples" now switches to Portfolio tab and opens the upload dialog
 - [x] "Connect payment account" now navigates to /provider/onboarding?step=4 (directly to Get Paid step)
 - [x] Added query param support to ProviderOnboarding for deep-linking to specific steps
+
+## Feature: Privacy Policy & Terms of Service Pages
+- [x] Create Privacy Policy page at /privacy (with SMS section, data practices, user rights)
+- [x] Create Terms of Service page at /terms (with SMS program details, STOP/START/HELP info)
+- [x] Add routes in App.tsx
+- [x] Update footer links to point to /terms and /privacy (were pointing to /browse)
+
+## Feature: SMS Opt-Out/Opt-In Webhook
+- [x] Create Twilio incoming SMS webhook endpoint at /api/twilio/sms
+- [x] Handle STOP/UNSUBSCRIBE/CANCEL/END/QUIT keywords to opt user out
+- [x] Handle START/SUBSCRIBE/YES/UNSTOP keywords to opt user back in
+- [x] Handle HELP/INFO keywords with program info reply
+- [x] Send confirmation TwiML reply messages
+- [x] Update user notification preferences in database (all SMS toggles)
+- [x] Phone number normalization to match various DB formats
+- [x] 10 tests for webhook handling (all passing, 367 total)

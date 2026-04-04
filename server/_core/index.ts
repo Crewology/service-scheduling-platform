@@ -68,6 +68,10 @@ async function startServer() {
   const { handleStripeWebhook } = await import("../stripeWebhook");
   app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), handleStripeWebhook);
   
+  // Twilio incoming SMS webhook for STOP/START opt-out handling
+  const { handleTwilioSmsWebhook } = await import("../twilioSmsWebhook");
+  app.post("/api/twilio/sms", express.urlencoded({ extended: false }), handleTwilioSmsWebhook);
+
   // Allow embedding in iframes for widget routes
   app.use((req, res, next) => {
     // Allow cross-origin framing for embed/widget pages and their API calls
