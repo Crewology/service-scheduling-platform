@@ -237,6 +237,16 @@ export const bookings = mysqlTable("bookings", {
   endTime: time("endTime").notNull(),
   durationMinutes: int("durationMinutes").notNull(),
   status: mysqlEnum("status", ["pending", "confirmed", "in_progress", "completed", "cancelled", "no_show", "refunded"]).notNull(),
+  // Multi-day & recurring booking fields
+  bookingType: mysqlEnum("bookingType", ["single", "multi_day", "recurring"]).default("single").notNull(),
+  endDate: varchar("endDate", { length: 10 }), // For multi-day: last day of range
+  totalDays: int("totalDays").default(1), // Number of days for multi-day bookings
+  // Recurring booking fields
+  recurrenceFrequency: mysqlEnum("recurrenceFrequency", ["weekly", "biweekly"]),
+  recurrenceDaysOfWeek: varchar("recurrenceDaysOfWeek", { length: 50 }), // JSON array of day numbers [0-6]
+  recurrenceTotalWeeks: int("recurrenceTotalWeeks"), // How many weeks the recurrence runs
+  recurrenceTotalSessions: int("recurrenceTotalSessions"), // Total number of sessions generated
+  parentBookingId: int("parentBookingId"), // Self-reference for recurring child sessions
   locationType: mysqlEnum("locationType", ["mobile", "fixed_location", "virtual"]).notNull(),
   serviceAddressLine1: varchar("serviceAddressLine1", { length: 255 }),
   serviceAddressLine2: varchar("serviceAddressLine2", { length: 255 }),
@@ -269,6 +279,31 @@ export const bookings = mysqlTable("bookings", {
 
 export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = typeof bookings.$inferInsert;
+
+/**
+ * Booking Sessions - Individual day entries for multi-day and recurring bookings.
+ * Each session represents one specific day within a parent booking.
+ */
+export const bookingSessions = mysqlTable("booking_sessions", {
+  id: int("id").autoincrement().primaryKey(),
+  bookingId: int("bookingId").notNull().references(() => bookings.id),
+  sessionDate: varchar("sessionDate", { length: 10 }).notNull(), // YYYY-MM-DD
+  startTime: time("startTime").notNull(),
+  endTime: time("endTime").notNull(),
+  sessionNumber: int("sessionNumber").notNull(), // 1-indexed session order
+  status: mysqlEnum("status", ["scheduled", "completed", "cancelled", "no_show"]).default("scheduled").notNull(),
+  providerNotes: text("providerNotes"),
+  completedAt: timestamp("completedAt"),
+  cancelledAt: timestamp("cancelledAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ([
+  index("session_booking_idx").on(table.bookingId),
+  index("session_date_idx").on(table.sessionDate),
+  index("session_status_idx").on(table.status),
+]));
+
+export type BookingSession = typeof bookingSessions.$inferSelect;
+export type InsertBookingSession = typeof bookingSessions.$inferInsert;
 
 /**
  * Payments

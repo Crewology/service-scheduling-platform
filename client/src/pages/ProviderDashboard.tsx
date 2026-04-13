@@ -1057,8 +1057,17 @@ export default function ProviderDashboard() {
                         <div>
                           <CardTitle className="text-lg">{booking.bookingNumber}</CardTitle>
                           <CardDescription>
-                            {new Date(booking.bookingDate).toLocaleDateString()} at {booking.startTime}
+                            {booking.bookingType === "multi_day" && booking.endDate
+                              ? `${new Date(booking.bookingDate).toLocaleDateString()} — ${new Date(booking.endDate).toLocaleDateString()}`
+                              : new Date(booking.bookingDate).toLocaleDateString()} at {booking.startTime}
                           </CardDescription>
+                          {booking.bookingType && booking.bookingType !== "single" && (
+                            <Badge variant="outline" className="mt-1 w-fit text-xs">
+                              {booking.bookingType === "multi_day"
+                                ? `Multi-Day (${booking.totalDays || "—"} days)`
+                                : `Recurring (${booking.recurrenceTotalSessions || "—"} sessions • ${booking.recurrenceFrequency || "weekly"})`}
+                            </Badge>
+                          )}
                         </div>
                         <Badge variant={
                           booking.status === "pending" ? "secondary" :
@@ -1077,7 +1086,7 @@ export default function ProviderDashboard() {
                           <p className="text-sm text-muted-foreground capitalize">{booking.locationType?.replace('_', ' ')}</p>
                         </div>
                         <div>
-                          <p className="text-sm font-medium mb-1">Duration</p>
+                          <p className="text-sm font-medium mb-1">{booking.bookingType === "multi_day" ? "Duration / Day" : booking.bookingType === "recurring" ? "Duration / Session" : "Duration"}</p>
                           <p className="text-sm text-muted-foreground">{booking.durationMinutes} minutes</p>
                         </div>
                         <div>

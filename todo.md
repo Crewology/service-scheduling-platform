@@ -244,3 +244,28 @@
 - [x] Update user notification preferences in database (all SMS toggles)
 - [x] Phone number normalization to match various DB formats
 - [x] 10 tests for webhook handling (all passing, 367 total)
+
+## Feature: Multi-Day Range Booking
+- [x] Extend bookings schema with bookingType (single/multi_day/recurring), endDate, totalDays fields
+- [x] Add booking_sessions table for individual day entries within multi-day/recurring bookings
+- [x] Backend: createMultiDay procedure with availability check across all days
+- [x] Backend: conflict detection for multi-day bookings (checks each day)
+- [x] Frontend: end date picker on service detail page for multi-day eligible categories
+- [x] Frontend: multi-day price calculation display (per-day rate × number of days)
+- [x] Provider dashboard: display multi-day bookings with date range and day count badge
+- [x] Customer My Bookings: show multi-day bookings with date range
+- [x] Category-based auto-detection: AV Crew, TV/Film, Event Planning, Day Labor, Home Renovation
+
+## Feature: Recurring Booking
+- [x] Extend schema with recurrence fields (frequency, daysOfWeek, totalSessions)
+- [x] Backend: createRecurring procedure that generates individual sessions
+- [x] Backend: availability check for all recurring session dates
+- [x] Frontend: day-of-week toggle buttons, weekly/biweekly frequency selector, weeks stepper (1-52)
+- [x] Frontend: recurring price calculation display (per-session rate × total sessions)
+- [x] Provider dashboard: display recurring bookings with session count and frequency badge
+- [x] Customer My Bookings: show recurring bookings with session count
+- [x] Category-based auto-detection: Fitness, Personal Trainer, Dance, Cleaning, Massage, Pet Care
+
+## Testing
+- [x] 22 new multi-day/recurring tests (date range, session generation, pricing, validation, categories)
+- [x] All 389 tests passing across 24 test files

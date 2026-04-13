@@ -249,8 +249,21 @@ function BookingCard({ booking, setLocation }: { booking: any; setLocation: (pat
           <div className="grid md:grid-cols-2 gap-4">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm">{formatDate(booking.bookingDate)}</span>
+              <span className="text-sm">
+                {booking.bookingType === "multi_day" && booking.endDate
+                  ? `${formatDate(booking.bookingDate)} — ${formatDate(booking.endDate)}`
+                  : formatDate(booking.bookingDate)}
+              </span>
             </div>
+            {booking.bookingType && booking.bookingType !== "single" && (
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold">
+                  {booking.bookingType === "multi_day"
+                    ? `Multi-Day • ${booking.totalDays || "—"} days`
+                    : `Recurring • ${booking.recurrenceTotalSessions || "—"} sessions`}
+                </span>
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm">

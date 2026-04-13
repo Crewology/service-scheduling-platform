@@ -496,4 +496,330 @@ export const bookingRouter = router({
         })),
       };
     }),
+
+  // ============================================================================
+  // MULTI-DAY RANGE BOOKING
+  // ============================================================================
+  createMultiDay: protectedProcedure
+    .input(z.object({
+      serviceId: z.number(),
+      providerId: z.number().optional(),
+      startDate: z.string(), // YYYY-MM-DD
+      endDate: z.string(),   // YYYY-MM-DD
+      startTime: z.string(), // HH:MM
+      endTime: z.string(),   // HH:MM
+      durationMinutes: z.number().optional(),
+      locationType: z.enum(["mobile", "fixed_location", "virtual"]),
+      serviceAddressLine1: z.string().optional(),
+      serviceAddressLine2: z.string().optional(),
+      serviceCity: z.string().optional(),
+      serviceState: z.string().optional(),
+      servicePostalCode: z.string().optional(),
+      customerNotes: z.string().optional(),
+      bookingSource: z.enum(["direct", "embed_widget", "provider_page", "api"]).default("direct"),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const service = await db.getServiceById(input.serviceId);
+      if (!service) throw new TRPCError({ code: "NOT_FOUND", message: "Service not found" });
+
+      const providerId = input.providerId || service.providerId;
+
+      // Calculate all dates in the range
+      const dates: string[] = [];
+      const start = new Date(input.startDate + "T12:00:00");
+      const end = new Date(input.endDate + "T12:00:00");
+      if (end < start) throw new TRPCError({ code: "BAD_REQUEST", message: "End date must be after start date" });
+      
+      const current = new Date(start);
+      while (current <= end) {
+        dates.push(current.toISOString().split("T")[0]);
+        current.setDate(current.getDate() + 1);
+      }
+      const totalDays = dates.length;
+      if (totalDays > 30) throw new TRPCError({ code: "BAD_REQUEST", message: "Multi-day bookings cannot exceed 30 days" });
+
+      // Check conflicts for all dates
+      const conflicts = await db.checkSessionConflicts(providerId, dates, input.startTime, input.endTime);
+      if (conflicts.length > 0) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: `Scheduling conflicts found on ${conflicts.length} date(s): ${conflicts.map(c => c.date).join(", ")}. Please choose different dates or times.`,
+        });
+      }
+
+      // Calculate pricing
+      const perDayPrice = parseFloat(service.basePrice || service.hourlyRate || "0");
+      const subtotal = (perDayPrice * totalDays).toFixed(2);
+      const platformFee = (parseFloat(subtotal) * 0.01).toFixed(2);
+      const totalAmount = (parseFloat(subtotal) + parseFloat(platformFee)).toFixed(2);
+      const depositAmount = service.depositRequired
+        ? (service.depositType === "fixed"
+            ? (service.depositAmount || "0.00")
+            : (parseFloat(totalAmount) * (parseFloat(service.depositPercentage || "0") / 100)).toFixed(2))
+        : "0.00";
+      const remainingAmount = (parseFloat(totalAmount) - parseFloat(depositAmount)).toFixed(2);
+
+      const bookingNumber = `SKL-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+
+      const bookingId = await db.createBooking({
+        bookingNumber,
+        customerId: ctx.user.id,
+        providerId,
+        serviceId: input.serviceId,
+        bookingDate: input.startDate,
+        startTime: input.startTime,
+        endTime: input.endTime,
+        durationMinutes: input.durationMinutes || service.durationMinutes || 60,
+        status: "pending",
+        bookingType: "multi_day",
+        endDate: input.endDate,
+        totalDays,
+        locationType: input.locationType,
+        serviceAddressLine1: input.serviceAddressLine1,
+        serviceAddressLine2: input.serviceAddressLine2,
+        serviceCity: input.serviceCity,
+        serviceState: input.serviceState,
+        servicePostalCode: input.servicePostalCode,
+        customerNotes: input.customerNotes,
+        bookingSource: input.bookingSource,
+        subtotal,
+        platformFee,
+        totalAmount,
+        depositAmount,
+        remainingAmount,
+      });
+
+      // Create individual sessions for each day
+      const sessions = dates.map((date, idx) => ({
+        bookingId,
+        sessionDate: date,
+        startTime: input.startTime,
+        endTime: input.endTime,
+        sessionNumber: idx + 1,
+        status: "scheduled" as const,
+      }));
+      await db.createBookingSessions(sessions);
+
+      const booking = await db.getBookingById(bookingId);
+
+      // Send notification
+      try {
+        const { sendNotification } = await import("../notifications");
+        const providerData = await db.getProviderById(providerId);
+        const providerUser = providerData ? await db.getUserById(providerData.userId) : null;
+        if (providerUser?.email) {
+          await sendNotification({
+            type: "booking_created",
+            channel: "email",
+            recipient: { userId: providerUser.id, email: providerUser.email, name: providerUser.name || "Provider" },
+            data: {
+              bookingNumber,
+              serviceName: service.name,
+              customerName: ctx.user.name || "Customer",
+              date: `${input.startDate} to ${input.endDate} (${totalDays} days)`,
+              time: input.startTime,
+              providerName: providerData?.businessName || providerUser.name || "Provider",
+            },
+          });
+        }
+      } catch (err) {
+        console.error("[Booking] Multi-day notification failed (non-blocking):", err);
+      }
+
+      return booking;
+    }),
+
+  // ============================================================================
+  // RECURRING BOOKING
+  // ============================================================================
+  createRecurring: protectedProcedure
+    .input(z.object({
+      serviceId: z.number(),
+      providerId: z.number().optional(),
+      startDate: z.string(), // First session date YYYY-MM-DD
+      startTime: z.string(),
+      endTime: z.string(),
+      durationMinutes: z.number().optional(),
+      frequency: z.enum(["weekly", "biweekly"]),
+      daysOfWeek: z.array(z.number().min(0).max(6)), // 0=Sun, 1=Mon, ..., 6=Sat
+      totalWeeks: z.number().min(1).max(52),
+      locationType: z.enum(["mobile", "fixed_location", "virtual"]),
+      serviceAddressLine1: z.string().optional(),
+      serviceAddressLine2: z.string().optional(),
+      serviceCity: z.string().optional(),
+      serviceState: z.string().optional(),
+      servicePostalCode: z.string().optional(),
+      customerNotes: z.string().optional(),
+      bookingSource: z.enum(["direct", "embed_widget", "provider_page", "api"]).default("direct"),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const service = await db.getServiceById(input.serviceId);
+      if (!service) throw new TRPCError({ code: "NOT_FOUND", message: "Service not found" });
+
+      if (input.daysOfWeek.length === 0) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Please select at least one day of the week" });
+      }
+
+      const providerId = input.providerId || service.providerId;
+
+      // Generate all session dates
+      const sessionDates: string[] = [];
+      const startDate = new Date(input.startDate + "T12:00:00");
+      const weekIncrement = input.frequency === "biweekly" ? 2 : 1;
+      
+      for (let week = 0; week < input.totalWeeks; week++) {
+        for (const dayOfWeek of input.daysOfWeek) {
+          const sessionDate = new Date(startDate);
+          // Move to the correct week
+          sessionDate.setDate(sessionDate.getDate() + (week * weekIncrement * 7));
+          // Move to the correct day of the week
+          const currentDay = sessionDate.getDay();
+          const diff = dayOfWeek - currentDay;
+          sessionDate.setDate(sessionDate.getDate() + diff);
+          // Only include dates on or after the start date
+          if (sessionDate >= startDate) {
+            sessionDates.push(sessionDate.toISOString().split("T")[0]);
+          }
+        }
+      }
+
+      // Remove duplicates and sort
+      const uniqueDates = Array.from(new Set(sessionDates)).sort();
+      if (uniqueDates.length === 0) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "No valid session dates could be generated with the selected options" });
+      }
+      if (uniqueDates.length > 200) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Too many sessions. Please reduce the number of weeks or days per week." });
+      }
+
+      // Check conflicts for all session dates
+      const conflicts = await db.checkSessionConflicts(providerId, uniqueDates, input.startTime, input.endTime);
+      if (conflicts.length > 0) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: `Scheduling conflicts found on ${conflicts.length} date(s): ${conflicts.slice(0, 5).map(c => c.date).join(", ")}${conflicts.length > 5 ? " and more" : ""}. Please adjust your schedule.`,
+        });
+      }
+
+      // Calculate pricing
+      const perSessionPrice = parseFloat(service.basePrice || service.hourlyRate || "0");
+      const totalSessions = uniqueDates.length;
+      const subtotal = (perSessionPrice * totalSessions).toFixed(2);
+      const platformFee = (parseFloat(subtotal) * 0.01).toFixed(2);
+      const totalAmount = (parseFloat(subtotal) + parseFloat(platformFee)).toFixed(2);
+      const depositAmount = service.depositRequired
+        ? (service.depositType === "fixed"
+            ? (service.depositAmount || "0.00")
+            : (parseFloat(totalAmount) * (parseFloat(service.depositPercentage || "0") / 100)).toFixed(2))
+        : "0.00";
+      const remainingAmount = (parseFloat(totalAmount) - parseFloat(depositAmount)).toFixed(2);
+
+      const bookingNumber = `SKL-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+      const lastDate = uniqueDates[uniqueDates.length - 1];
+
+      const bookingId = await db.createBooking({
+        bookingNumber,
+        customerId: ctx.user.id,
+        providerId,
+        serviceId: input.serviceId,
+        bookingDate: uniqueDates[0],
+        startTime: input.startTime,
+        endTime: input.endTime,
+        durationMinutes: input.durationMinutes || service.durationMinutes || 60,
+        status: "pending",
+        bookingType: "recurring",
+        endDate: lastDate,
+        totalDays: totalSessions,
+        recurrenceFrequency: input.frequency,
+        recurrenceDaysOfWeek: JSON.stringify(input.daysOfWeek),
+        recurrenceTotalWeeks: input.totalWeeks,
+        recurrenceTotalSessions: totalSessions,
+        locationType: input.locationType,
+        serviceAddressLine1: input.serviceAddressLine1,
+        serviceAddressLine2: input.serviceAddressLine2,
+        serviceCity: input.serviceCity,
+        serviceState: input.serviceState,
+        servicePostalCode: input.servicePostalCode,
+        customerNotes: input.customerNotes,
+        bookingSource: input.bookingSource,
+        subtotal,
+        platformFee,
+        totalAmount,
+        depositAmount,
+        remainingAmount,
+      });
+
+      // Create individual sessions
+      const sessions = uniqueDates.map((date, idx) => ({
+        bookingId,
+        sessionDate: date,
+        startTime: input.startTime,
+        endTime: input.endTime,
+        sessionNumber: idx + 1,
+        status: "scheduled" as const,
+      }));
+      await db.createBookingSessions(sessions);
+
+      const booking = await db.getBookingById(bookingId);
+
+      // Send notification
+      try {
+        const { sendNotification } = await import("../notifications");
+        const providerData = await db.getProviderById(providerId);
+        const providerUser = providerData ? await db.getUserById(providerData.userId) : null;
+        const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const daysStr = input.daysOfWeek.map(d => dayNames[d]).join(", ");
+        if (providerUser?.email) {
+          await sendNotification({
+            type: "booking_created",
+            channel: "email",
+            recipient: { userId: providerUser.id, email: providerUser.email, name: providerUser.name || "Provider" },
+            data: {
+              bookingNumber,
+              serviceName: service.name,
+              customerName: ctx.user.name || "Customer",
+              date: `Recurring ${input.frequency}: ${daysStr} for ${input.totalWeeks} weeks (${totalSessions} sessions)`,
+              time: input.startTime,
+              providerName: providerData?.businessName || providerUser.name || "Provider",
+            },
+          });
+        }
+      } catch (err) {
+        console.error("[Booking] Recurring notification failed (non-blocking):", err);
+      }
+
+      return booking;
+    }),
+
+  // Get sessions for a booking
+  getSessions: protectedProcedure
+    .input(z.object({ bookingId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const booking = await db.getBookingById(input.bookingId);
+      if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (booking.customerId !== ctx.user.id && booking.providerId !== provider?.id && ctx.user.role !== "admin") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+      }
+      return await db.getSessionsByBookingId(input.bookingId);
+    }),
+
+  // Update a single session status
+  updateSessionStatus: protectedProcedure
+    .input(z.object({
+      sessionId: z.number(),
+      bookingId: z.number(),
+      status: z.enum(["scheduled", "completed", "cancelled", "no_show"]),
+      notes: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const booking = await db.getBookingById(input.bookingId);
+      if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (booking.providerId !== provider?.id && ctx.user.role !== "admin") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Only the provider can update session status" });
+      }
+      await db.updateSessionStatus(input.sessionId, input.status, input.notes);
+      return { success: true };
+    }),
 });

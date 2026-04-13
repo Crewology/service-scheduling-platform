@@ -12,12 +12,41 @@ import { useLocation, useParams, Link } from "wouter";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
 import { Calendar } from "@/components/ui/calendar";
-import { MapPin, Clock, DollarSign, Star, ChevronRight, CheckCircle2, ArrowLeft, Info, Image as ImageIcon, Tag, X, Loader2, Gift } from "lucide-react";
+import { MapPin, Clock, DollarSign, Star, ChevronRight, CheckCircle2, ArrowLeft, Info, Image as ImageIcon, Tag, X, Loader2, Gift, CalendarRange, Repeat, CalendarDays } from "lucide-react";
 import { generateTimeSlots, formatTimeForDisplay, type TimeSlot } from "@shared/timeSlots";
 import { ReviewList } from "@/components/shared/ReviewList";
 import { NavHeader } from "@/components/shared/NavHeader";
 
 type BookingStep = "date" | "time" | "details" | "confirm";
+type BookingType = "single" | "multi_day" | "recurring";
+
+// Category IDs that support multi-day bookings
+const MULTI_DAY_CATEGORIES = new Set([
+  15, // AUDIO VISUAL CREW
+  19, // TV/FILM CREW
+  177, // EVENT PLANNING & MANAGEMENT
+  202, // DAY LABOR
+  179, // HOME RENOVATION and REMODELING
+  199, // PARTY & EVENT RENTALS
+  148, // POWER WASHING & EXTERIOR CLEANING
+  200, // HOME ENERGY SOLUTIONS
+]);
+
+// Category IDs that support recurring bookings
+const RECURRING_CATEGORIES = new Set([
+  109, // FITNESS CLASSES & TRAINERS
+  12, // PERSONAL TRAINER
+  195, // DANCE LESSONS & INSTRUCTORS
+  188, // HOME CLEANING
+  10, // MASSAGE THERAPIST
+  11, // PET CARE and GROOMING
+  158, // PERSONAL and PROFESSIONAL COACHING
+  193, // HEALTH and WELLNESS SERVICES
+  155, // VIRTUAL ASSISTANT
+]);
+
+const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DAY_NAMES_FULL = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 function ServicePhotoGallery({ serviceId }: { serviceId: number }) {
   const [selectedPhoto, setSelectedPhoto] = useState(0);
@@ -67,6 +96,13 @@ export default function ServiceDetail() {
   const [selectedTime, setSelectedTime] = useState("");
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [bookingStep, setBookingStep] = useState<BookingStep>("date");
+  
+  // Multi-day & recurring booking state
+  const [bookingType, setBookingType] = useState<BookingType>("single");
+  const [endDate, setEndDate] = useState<Date>();
+  const [recurringDays, setRecurringDays] = useState<number[]>([]);
+  const [recurringFrequency, setRecurringFrequency] = useState<"weekly" | "biweekly">("weekly");
+  const [recurringWeeks, setRecurringWeeks] = useState(4);
   
   const { data: service } = trpc.service.getById.useQuery({ id: parseInt(id!) });
   const { data: provider } = trpc.provider.getById.useQuery(
@@ -194,13 +230,13 @@ export default function ServiceDetail() {
     setAvailableSlots(slots);
   }, [selectedDate, service, weeklySchedule, allOverrides, existingBookings]);
 
-  // Auto-advance to time step when date is selected
+  // Auto-advance to time step when date is selected (single-day only)
   useEffect(() => {
-    if (selectedDate && bookingStep === "date") {
+    if (selectedDate && bookingStep === "date" && bookingType === "single") {
       setBookingStep("time");
       setSelectedTime("");
     }
-  }, [selectedDate]);
+  }, [selectedDate, bookingType]);
   
   const utils = trpc.useUtils();
 
@@ -227,6 +263,38 @@ export default function ServiceDetail() {
     },
   });
   
+  // Multi-day booking mutation
+  const createMultiDay = trpc.booking.createMultiDay.useMutation({
+    onSuccess: (data) => {
+      toast.success("Multi-day booking created successfully!");
+      if (!data) return;
+      if (service?.depositRequired || service?.pricingModel !== "custom_quote") {
+        handlePayment(data.id);
+      } else {
+        setLocation(`/booking/${data.id}`);
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to create multi-day booking");
+    },
+  });
+
+  // Recurring booking mutation
+  const createRecurring = trpc.booking.createRecurring.useMutation({
+    onSuccess: (data) => {
+      toast.success("Recurring booking created successfully!");
+      if (!data) return;
+      if (service?.depositRequired || service?.pricingModel !== "custom_quote") {
+        handlePayment(data.id);
+      } else {
+        setLocation(`/booking/${data.id}`);
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to create recurring booking");
+    },
+  });
+
   const createCheckout = trpc.stripe.createCheckoutSession.useMutation({
     onSuccess: (data) => {
       if (data.url) {
@@ -318,18 +386,101 @@ export default function ServiceDetail() {
     setPromoApplied(null);
   };
 
+  // Determine available booking types based on service category
+  const supportsMultiDay = service ? MULTI_DAY_CATEGORIES.has(service.categoryId) : false;
+  const supportsRecurring = service ? RECURRING_CATEGORIES.has(service.categoryId) : false;
+  const hasMultipleTypes = supportsMultiDay || supportsRecurring;
+
+  // Compute multi-day total days
+  const multiDayCount = useMemo(() => {
+    if (!selectedDate || !endDate) return 0;
+    const diff = endDate.getTime() - selectedDate.getTime();
+    return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)) + 1);
+  }, [selectedDate, endDate]);
+
+  // Compute recurring session count
+  const recurringSessionCount = useMemo(() => {
+    if (recurringDays.length === 0 || recurringWeeks === 0) return 0;
+    const weekIncrement = recurringFrequency === "biweekly" ? 2 : 1;
+    // Approximate: days per week * total cycles
+    const totalCycles = Math.ceil(recurringWeeks / weekIncrement);
+    return recurringDays.length * totalCycles;
+  }, [recurringDays, recurringFrequency, recurringWeeks]);
+
+  // Compute total price based on booking type
+  const getMultiDayPrice = () => {
+    const perDay = getNumericPrice();
+    return perDay * multiDayCount;
+  };
+
+  const getRecurringPrice = () => {
+    const perSession = getNumericPrice();
+    return perSession * recurringSessionCount;
+  };
+
   const handleBooking = () => {
     if (!isAuthenticated) {
       window.location.href = getLoginUrl();
       return;
     }
+    if (!service) return;
 
+    if (bookingType === "multi_day") {
+      if (!selectedDate || !endDate || !selectedTime) {
+        toast.error("Please select start date, end date, and time");
+        return;
+      }
+      const startDateStr = selectedDate.toISOString().split("T")[0];
+      const endDateStr = endDate.toISOString().split("T")[0];
+      const endTime = calculateEndTime(selectedTime, service.durationMinutes || 60);
+      createMultiDay.mutate({
+        serviceId: service.id,
+        startDate: startDateStr,
+        endDate: endDateStr,
+        startTime: selectedTime,
+        endTime,
+        locationType: service.serviceType as "mobile" | "fixed_location" | "virtual",
+        serviceAddressLine1: service.serviceType === "mobile" ? bookingForm.addressLine1 : undefined,
+        serviceCity: service.serviceType === "mobile" ? bookingForm.city : undefined,
+        serviceState: service.serviceType === "mobile" ? bookingForm.state : undefined,
+        servicePostalCode: service.serviceType === "mobile" ? bookingForm.postalCode : undefined,
+        customerNotes: bookingForm.notes || undefined,
+        bookingSource: "direct",
+      });
+      return;
+    }
+
+    if (bookingType === "recurring") {
+      if (!selectedDate || !selectedTime || recurringDays.length === 0) {
+        toast.error("Please select a start date, time, and at least one day of the week");
+        return;
+      }
+      const startDateStr = selectedDate.toISOString().split("T")[0];
+      const endTime = calculateEndTime(selectedTime, service.durationMinutes || 60);
+      createRecurring.mutate({
+        serviceId: service.id,
+        startDate: startDateStr,
+        startTime: selectedTime,
+        endTime,
+        frequency: recurringFrequency,
+        daysOfWeek: recurringDays,
+        totalWeeks: recurringWeeks,
+        locationType: service.serviceType as "mobile" | "fixed_location" | "virtual",
+        serviceAddressLine1: service.serviceType === "mobile" ? bookingForm.addressLine1 : undefined,
+        serviceCity: service.serviceType === "mobile" ? bookingForm.city : undefined,
+        serviceState: service.serviceType === "mobile" ? bookingForm.state : undefined,
+        servicePostalCode: service.serviceType === "mobile" ? bookingForm.postalCode : undefined,
+        customerNotes: bookingForm.notes || undefined,
+        bookingSource: "direct",
+      });
+      return;
+    }
+
+    // Single day booking (original flow)
     if (!selectedDate || !selectedTime) {
       toast.error("Please select a date and time");
       return;
     }
-
-    if (!service) return;
 
     const dateStr = selectedDate.toISOString().split("T")[0];
     const endTime = calculateEndTime(selectedTime, service.durationMinutes || 60);
@@ -352,6 +503,8 @@ export default function ServiceDetail() {
       referralCodeId: referralApplied?.valid ? referralApplied.referralCodeId : undefined,
     });
   };
+
+  const isBookingPending = createBooking.isPending || createMultiDay.isPending || createRecurring.isPending;
 
   const calculateEndTime = (startTime: string, durationMinutes: number): string => {
     const [hours, minutes] = startTime.split(":").map(Number);
@@ -567,11 +720,66 @@ export default function ServiceDetail() {
               </CardHeader>
 
               <CardContent className="space-y-4">
+                {/* Booking Type Selector */}
+                {hasMultipleTypes && bookingStep === "date" && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold">Booking Type</Label>
+                    <div className="grid grid-cols-1 gap-2">
+                      <button
+                        onClick={() => { setBookingType("single"); setEndDate(undefined); setRecurringDays([]); }}
+                        className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all text-left ${
+                          bookingType === "single"
+                            ? "border-primary bg-primary/5"
+                            : "border-muted hover:border-muted-foreground/30"
+                        }`}
+                      >
+                        <CalendarDays className={`h-5 w-5 flex-shrink-0 ${bookingType === "single" ? "text-primary" : "text-muted-foreground"}`} />
+                        <div>
+                          <p className="text-sm font-medium">Single Day</p>
+                          <p className="text-xs text-muted-foreground">Book for one date</p>
+                        </div>
+                      </button>
+                      {supportsMultiDay && (
+                        <button
+                          onClick={() => { setBookingType("multi_day"); setRecurringDays([]); }}
+                          className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all text-left ${
+                            bookingType === "multi_day"
+                              ? "border-primary bg-primary/5"
+                              : "border-muted hover:border-muted-foreground/30"
+                          }`}
+                        >
+                          <CalendarRange className={`h-5 w-5 flex-shrink-0 ${bookingType === "multi_day" ? "text-primary" : "text-muted-foreground"}`} />
+                          <div>
+                            <p className="text-sm font-medium">Multi-Day</p>
+                            <p className="text-xs text-muted-foreground">Consecutive days (e.g., 3-day event)</p>
+                          </div>
+                        </button>
+                      )}
+                      {supportsRecurring && (
+                        <button
+                          onClick={() => { setBookingType("recurring"); setEndDate(undefined); }}
+                          className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all text-left ${
+                            bookingType === "recurring"
+                              ? "border-primary bg-primary/5"
+                              : "border-muted hover:border-muted-foreground/30"
+                          }`}
+                        >
+                          <Repeat className={`h-5 w-5 flex-shrink-0 ${bookingType === "recurring" ? "text-primary" : "text-muted-foreground"}`} />
+                          <div>
+                            <p className="text-sm font-medium">Recurring</p>
+                            <p className="text-xs text-muted-foreground">Weekly or biweekly schedule</p>
+                          </div>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* Step 1: Date Selection */}
                 {bookingStep === "date" && (
                   <div>
                     <Label className="mb-2 block text-sm font-semibold">
-                      Step 1: Select a Date
+                      {bookingType === "multi_day" ? "Step 1: Select Start Date" : bookingType === "recurring" ? "Step 1: Select Start Date" : "Step 1: Select a Date"}
                     </Label>
                     {weeklySchedule && weeklySchedule.length > 0 && (
                       <div className="mb-3 flex items-center gap-4 text-xs text-muted-foreground">
@@ -606,6 +814,155 @@ export default function ServiceDetail() {
                         This provider hasn't set their availability yet.
                       </p>
                     ) : null}
+
+                    {/* Multi-Day: End Date Picker */}
+                    {bookingType === "multi_day" && selectedDate && (
+                      <div className="mt-4">
+                        <Label className="mb-2 block text-sm font-semibold">Select End Date</Label>
+                        <Calendar
+                          mode="single"
+                          selected={endDate}
+                          onSelect={(date) => setEndDate(date)}
+                          disabled={(date) => {
+                            if (!selectedDate) return true;
+                            return date < selectedDate || date < new Date(new Date().setHours(0,0,0,0));
+                          }}
+                          className="rounded-md border"
+                        />
+                        {selectedDate && endDate && (
+                          <div className="mt-3 bg-primary/5 border border-primary/20 rounded-lg p-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium">Total Days</span>
+                              <Badge variant="secondary" className="text-sm">{multiDayCount} day{multiDayCount !== 1 ? "s" : ""}</Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {selectedDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })} — {endDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                            </p>
+                            {getNumericPrice() > 0 && (
+                              <p className="text-sm font-semibold text-primary mt-1">
+                                Estimated Total: ${getMultiDayPrice().toFixed(2)}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Recurring: Day of Week & Frequency */}
+                    {bookingType === "recurring" && selectedDate && (
+                      <div className="mt-4 space-y-4">
+                        <div>
+                          <Label className="mb-2 block text-sm font-semibold">Days of the Week</Label>
+                          <div className="flex flex-wrap gap-2">
+                            {DAY_NAMES.map((day, idx) => (
+                              <button
+                                key={idx}
+                                onClick={() => {
+                                  setRecurringDays(prev =>
+                                    prev.includes(idx) ? prev.filter(d => d !== idx) : [...prev, idx].sort()
+                                  );
+                                }}
+                                className={`w-10 h-10 rounded-full text-xs font-medium transition-all ${
+                                  recurringDays.includes(idx)
+                                    ? "bg-primary text-primary-foreground shadow-sm"
+                                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                                }`}
+                              >
+                                {day}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <Label className="mb-2 block text-sm font-semibold">Frequency</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              onClick={() => setRecurringFrequency("weekly")}
+                              className={`p-2.5 rounded-lg border-2 text-sm font-medium transition-all ${
+                                recurringFrequency === "weekly"
+                                  ? "border-primary bg-primary/5 text-primary"
+                                  : "border-muted text-muted-foreground hover:border-muted-foreground/30"
+                              }`}
+                            >
+                              Weekly
+                            </button>
+                            <button
+                              onClick={() => setRecurringFrequency("biweekly")}
+                              className={`p-2.5 rounded-lg border-2 text-sm font-medium transition-all ${
+                                recurringFrequency === "biweekly"
+                                  ? "border-primary bg-primary/5 text-primary"
+                                  : "border-muted text-muted-foreground hover:border-muted-foreground/30"
+                              }`}
+                            >
+                              Biweekly
+                            </button>
+                          </div>
+                        </div>
+
+                        <div>
+                          <Label className="mb-2 block text-sm font-semibold">Duration (weeks)</Label>
+                          <div className="flex items-center gap-3">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setRecurringWeeks(Math.max(1, recurringWeeks - 1))}
+                              className="h-9 w-9 p-0"
+                            >
+                              -
+                            </Button>
+                            <span className="text-lg font-semibold w-12 text-center">{recurringWeeks}</span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setRecurringWeeks(Math.min(52, recurringWeeks + 1))}
+                              className="h-9 w-9 p-0"
+                            >
+                              +
+                            </Button>
+                            <span className="text-sm text-muted-foreground">weeks</span>
+                          </div>
+                        </div>
+
+                        {recurringDays.length > 0 && (
+                          <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium">Total Sessions</span>
+                              <Badge variant="secondary" className="text-sm">{recurringSessionCount}</Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {recurringDays.map(d => DAY_NAMES_FULL[d]).join(", ")} • {recurringFrequency === "weekly" ? "Every week" : "Every 2 weeks"} • {recurringWeeks} weeks
+                            </p>
+                            {getNumericPrice() > 0 && (
+                              <p className="text-sm font-semibold text-primary mt-1">
+                                Estimated Total: ${getRecurringPrice().toFixed(2)}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Next button for multi-day and recurring */}
+                    {(bookingType === "multi_day" || bookingType === "recurring") && selectedDate && (
+                      <Button
+                        className="w-full mt-4"
+                        onClick={() => {
+                          if (bookingType === "multi_day" && !endDate) {
+                            toast.error("Please select an end date");
+                            return;
+                          }
+                          if (bookingType === "recurring" && recurringDays.length === 0) {
+                            toast.error("Please select at least one day of the week");
+                            return;
+                          }
+                          setBookingStep("time");
+                          setSelectedTime("");
+                        }}
+                      >
+                        Next: Choose a Time
+                      </Button>
+                    )}
                   </div>
                 )}
 
@@ -840,36 +1197,92 @@ export default function ServiceDetail() {
                           with {provider?.businessName}
                         </p>
                         <Separator />
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div>
-                            <p className="text-muted-foreground text-xs">Date</p>
-                            <p className="font-medium">
-                              {selectedDate.toLocaleDateString("en-US", {
-                                weekday: "short",
-                                month: "short",
-                                day: "numeric",
-                              })}
-                            </p>
+                        {bookingType === "multi_day" && endDate ? (
+                          <div className="space-y-2 text-sm">
+                            <div className="flex items-center gap-2">
+                              <CalendarRange className="h-4 w-4 text-primary" />
+                              <span className="font-medium">Multi-Day Booking</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <p className="text-muted-foreground text-xs">Start Date</p>
+                                <p className="font-medium">{selectedDate.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground text-xs">End Date</p>
+                                <p className="font-medium">{endDate.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground text-xs">Total Days</p>
+                                <p className="font-medium">{multiDayCount} day{multiDayCount !== 1 ? "s" : ""}</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground text-xs">Daily Time</p>
+                                <p className="font-medium">{formatTimeForDisplay(selectedTime)}</p>
+                              </div>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-muted-foreground text-xs">Time</p>
-                            <p className="font-medium">
-                              {formatTimeForDisplay(selectedTime)}
-                            </p>
+                        ) : bookingType === "recurring" ? (
+                          <div className="space-y-2 text-sm">
+                            <div className="flex items-center gap-2">
+                              <Repeat className="h-4 w-4 text-primary" />
+                              <span className="font-medium">Recurring Booking</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <p className="text-muted-foreground text-xs">Starts</p>
+                                <p className="font-medium">{selectedDate.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground text-xs">Time</p>
+                                <p className="font-medium">{formatTimeForDisplay(selectedTime)}</p>
+                              </div>
+                              <div className="col-span-2">
+                                <p className="text-muted-foreground text-xs">Schedule</p>
+                                <p className="font-medium">{recurringDays.map(d => DAY_NAMES_FULL[d]).join(", ")}</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground text-xs">Frequency</p>
+                                <p className="font-medium capitalize">{recurringFrequency}</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground text-xs">Sessions</p>
+                                <p className="font-medium">{recurringSessionCount} sessions over {recurringWeeks} weeks</p>
+                              </div>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-muted-foreground text-xs">Duration</p>
-                            <p className="font-medium">
-                              {service.durationMinutes} min
-                            </p>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            <div>
+                              <p className="text-muted-foreground text-xs">Date</p>
+                              <p className="font-medium">
+                                {selectedDate.toLocaleDateString("en-US", {
+                                  weekday: "short",
+                                  month: "short",
+                                  day: "numeric",
+                                })}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground text-xs">Time</p>
+                              <p className="font-medium">
+                                {formatTimeForDisplay(selectedTime)}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground text-xs">Duration</p>
+                              <p className="font-medium">
+                                {service.durationMinutes} min
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground text-xs">Type</p>
+                              <p className="font-medium capitalize">
+                                {service.serviceType.replace("_", " ")}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-muted-foreground text-xs">Type</p>
-                            <p className="font-medium capitalize">
-                              {service.serviceType.replace("_", " ")}
-                            </p>
-                          </div>
-                        </div>
+                        )}
 
                         {bookingForm.notes && (
                           <>
@@ -1043,9 +1456,21 @@ export default function ServiceDetail() {
                       {/* Pricing */}
                       <div className="border rounded-lg p-4 space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span>Service Price</span>
+                          <span>{bookingType === "multi_day" ? `Price per Day` : bookingType === "recurring" ? `Price per Session` : `Service Price`}</span>
                           <span className="font-medium">{getPrice()}</span>
                         </div>
+                        {bookingType === "multi_day" && (
+                          <div className="flex justify-between text-sm text-muted-foreground">
+                            <span>× {multiDayCount} days</span>
+                            <span className="font-medium">${getMultiDayPrice().toFixed(2)}</span>
+                          </div>
+                        )}
+                        {bookingType === "recurring" && (
+                          <div className="flex justify-between text-sm text-muted-foreground">
+                            <span>× {recurringSessionCount} sessions</span>
+                            <span className="font-medium">${getRecurringPrice().toFixed(2)}</span>
+                          </div>
+                        )}
                         {referralApplied?.valid && (
                           <div className="flex justify-between text-sm text-purple-700">
                             <span className="flex items-center gap-1">
@@ -1082,6 +1507,10 @@ export default function ServiceDetail() {
                           <span>
                             {promoApplied?.valid && promoApplied.discountAmount > 0
                               ? `$${promoApplied.finalAmount.toFixed(2)}`
+                              : bookingType === "multi_day"
+                              ? `$${getMultiDayPrice().toFixed(2)}`
+                              : bookingType === "recurring"
+                              ? `$${getRecurringPrice().toFixed(2)}`
                               : getPrice()}
                           </span>
                         </div>
@@ -1095,14 +1524,18 @@ export default function ServiceDetail() {
 
                     <Button
                       onClick={handleBooking}
-                      disabled={createBooking.isPending}
+                      disabled={isBookingPending}
                       className="w-full"
                       size="lg"
                     >
-                      {createBooking.isPending
+                      {isBookingPending
                         ? "Processing..."
                         : service.depositRequired
                         ? "Pay Deposit & Book"
+                        : bookingType === "multi_day"
+                        ? `Confirm ${multiDayCount}-Day Booking`
+                        : bookingType === "recurring"
+                        ? `Confirm ${recurringSessionCount} Sessions`
                         : "Confirm Booking"}
                     </Button>
 

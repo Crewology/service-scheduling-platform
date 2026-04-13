@@ -97,6 +97,16 @@ export {
   deleteVerificationDocument,
 } from "./db/verification";
 
+// Booking sessions (multi-day & recurring)
+export {
+  createBookingSessions,
+  getSessionsByBookingId,
+  getSessionsByDateRange,
+  updateSessionStatus,
+  cancelAllSessionsForBooking,
+  checkSessionConflicts,
+} from "./db/bookingSessions";
+
 // Service packages
 export {
   createPackage,
