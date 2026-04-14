@@ -638,6 +638,34 @@ export const providerRouter = router({
         location: input.location,
         attachmentUrls: input.attachmentUrls ? JSON.stringify(input.attachmentUrls) : undefined,
       });
+
+      // Send notification to provider about new quote request
+      try {
+        const { sendMultiChannelNotification } = await import("../notifications");
+        const providerData = await db.getProviderById(input.providerId);
+        const providerUser = providerData ? await db.getUserById(providerData.userId) : null;
+        if (providerUser) {
+          await sendMultiChannelNotification(
+            {
+              type: "quote_request_new",
+              recipient: { userId: providerUser.id, email: providerUser.email || undefined, phone: providerUser.phone || undefined, name: providerUser.name || "Provider" },
+              data: {
+                quoteTitle: input.title,
+                quoteDescription: input.description.slice(0, 200),
+                customerName: ctx.user.name || "Customer",
+                providerName: providerData?.businessName || providerUser.name || "Provider",
+                preferredDate: input.preferredDate,
+                preferredTime: input.preferredTime,
+                location: input.location,
+              },
+            },
+            ["email", "sms"],
+          );
+        }
+      } catch (err) {
+        console.error("[QuoteRequest] Notification failed (non-blocking):", err);
+      }
+
       return result;
     }),
 
@@ -689,6 +717,33 @@ export const providerRouter = router({
         providerNotes: input.providerNotes,
         validUntil: new Date(Date.now() + input.validDays * 24 * 60 * 60 * 1000),
       });
+
+      // Send notification to customer about quote response
+      try {
+        const { sendMultiChannelNotification } = await import("../notifications");
+        const customer = await db.getUserById(quote.customerId);
+        if (customer) {
+          await sendMultiChannelNotification(
+            {
+              type: "quote_response_received",
+              recipient: { userId: customer.id, email: customer.email || undefined, phone: customer.phone || undefined, name: customer.name || "Customer" },
+              data: {
+                quoteTitle: quote.title,
+                quotedAmount: input.quotedAmount,
+                quotedDuration: `${input.quotedDurationMinutes} minutes`,
+                providerNotes: input.providerNotes,
+                providerName: provider.businessName || "Provider",
+                customerName: customer.name || "Customer",
+                validUntil: new Date(Date.now() + input.validDays * 24 * 60 * 60 * 1000).toLocaleDateString(),
+              },
+            },
+            ["email", "sms"],
+          );
+        }
+      } catch (err) {
+        console.error("[QuoteRespond] Notification failed (non-blocking):", err);
+      }
+
       return { success: true };
     }),
 
@@ -717,7 +772,101 @@ export const providerRouter = router({
       }
 
       await db.updateQuoteStatus(input.quoteId, input.status, input.reason);
-      return { success: true };
+
+      // If accepted, auto-create a booking from the quote
+      let bookingId: number | null = null;
+      if (isCustomer && input.status === "accepted" && quote.quotedAmount && quote.quotedDurationMinutes) {
+        try {
+          const service = quote.serviceId ? await db.getServiceById(quote.serviceId) : null;
+          const providerData = await db.getProviderById(quote.providerId);
+
+          const bookingNumber = `SKL-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+          const subtotal = parseFloat(quote.quotedAmount).toFixed(2);
+          const platformFee = (parseFloat(subtotal) * 0.01).toFixed(2);
+          const totalAmount = (parseFloat(subtotal) + parseFloat(platformFee)).toFixed(2);
+          const bookingDate = quote.preferredDate
+            ? new Date(quote.preferredDate).toISOString().split("T")[0]
+            : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+          const startTime = quote.preferredTime || "09:00";
+          const durationMinutes = quote.quotedDurationMinutes;
+          const [hours, minutes] = startTime.split(":").map(Number);
+          const endDate = new Date(2000, 0, 1, hours, minutes + durationMinutes);
+          const endTime = `${String(endDate.getHours()).padStart(2, "0")}:${String(endDate.getMinutes()).padStart(2, "0")}`;
+
+          bookingId = await db.createBooking({
+            bookingNumber,
+            customerId: ctx.user.id,
+            providerId: quote.providerId,
+            serviceId: quote.serviceId || (service?.id ?? 0),
+            bookingDate,
+            startTime,
+            endTime,
+            durationMinutes,
+            status: "pending",
+            locationType: quote.locationType || "fixed_location",
+            serviceAddressLine1: typeof quote.location === "string" ? quote.location : undefined,
+            customerNotes: `Converted from quote: ${quote.title}`,
+            bookingSource: "quote",
+            quoteRequestId: quote.id,
+            subtotal,
+            platformFee,
+            totalAmount,
+            depositAmount: "0.00",
+            remainingAmount: totalAmount,
+          });
+
+          // Link quote to booking
+          await db.linkQuoteToBooking(quote.id, bookingId);
+          console.log(`[Quote] Auto-created booking #${bookingNumber} from quote #${quote.id}`);
+        } catch (err) {
+          console.error("[Quote] Failed to auto-create booking from accepted quote:", err);
+        }
+      }
+
+      // Send notifications for accept/decline
+      try {
+        const { sendMultiChannelNotification } = await import("../notifications");
+        const providerData = await db.getProviderById(quote.providerId);
+        const providerUser = providerData ? await db.getUserById(providerData.userId) : null;
+        const customer = await db.getUserById(quote.customerId);
+
+        if (input.status === "accepted" && providerUser) {
+          await sendMultiChannelNotification(
+            {
+              type: "quote_accepted",
+              recipient: { userId: providerUser.id, email: providerUser.email || undefined, phone: providerUser.phone || undefined, name: providerUser.name || "Provider" },
+              data: {
+                quoteTitle: quote.title,
+                quotedAmount: quote.quotedAmount || "0.00",
+                customerName: customer?.name || "Customer",
+                providerName: providerData?.businessName || "Provider",
+              },
+            },
+            ["email", "sms"],
+          );
+        }
+
+        if (input.status === "declined" && providerUser) {
+          await sendMultiChannelNotification(
+            {
+              type: "quote_declined",
+              recipient: { userId: providerUser.id, email: providerUser.email || undefined, phone: providerUser.phone || undefined, name: providerUser.name || "Provider" },
+              data: {
+                quoteTitle: quote.title,
+                quotedAmount: quote.quotedAmount || "0.00",
+                customerName: customer?.name || "Customer",
+                providerName: providerData?.businessName || "Provider",
+                declineReason: input.reason,
+              },
+            },
+            ["email", "sms"],
+          );
+        }
+      } catch (err) {
+        console.error("[QuoteStatus] Notification failed (non-blocking):", err);
+      }
+
+      return { success: true, bookingId };
     }),
 
   quoteCount: protectedProcedure

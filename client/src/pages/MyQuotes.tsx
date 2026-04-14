@@ -17,9 +17,10 @@ import {
   MapPin,
   MessageSquare,
   ArrowRight,
+  ExternalLink,
 } from "lucide-react";
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
 
 const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
@@ -41,10 +42,22 @@ export default function MyQuotes() {
     enabled: !!user,
   });
 
+  const [, setLocation] = useLocation();
+
   const updateStatus = trpc.provider.updateQuoteStatus.useMutation({
-    onSuccess: () => {
-      toast.success("Quote updated");
+    onSuccess: (data) => {
       utils.provider.myQuotes.invalidate();
+      if (data.bookingId) {
+        toast.success("Quote accepted! A booking has been created.", {
+          action: {
+            label: "View Booking",
+            onClick: () => setLocation(`/bookings/${data.bookingId}`),
+          },
+          duration: 8000,
+        });
+      } else {
+        toast.success("Quote updated");
+      }
     },
     onError: (err) => toast.error(err.message),
   });
@@ -188,6 +201,31 @@ export default function MyQuotes() {
                             <XCircle className="h-4 w-4 mr-1" />
                             Decline
                           </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Accepted quote - show booking link */}
+                    {(quote.status === "accepted" || quote.status === "booked") && quote.quotedAmount && (
+                      <div className="mt-4 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-semibold text-green-800 dark:text-green-300">
+                              {quote.status === "booked" ? "Booking Created" : "Quote Accepted"}
+                            </p>
+                            <p className="text-sm text-green-700 dark:text-green-400 mt-1">
+                              Amount: ${parseFloat(quote.quotedAmount).toFixed(2)}
+                              {quote.quotedDurationMinutes && ` • ${quote.quotedDurationMinutes} min`}
+                            </p>
+                          </div>
+                          {(quote as any).bookingId && (
+                            <Link href={`/bookings/${(quote as any).bookingId}`}>
+                              <Button size="sm" variant="outline" className="border-green-300 text-green-700 hover:bg-green-100">
+                                <ExternalLink className="h-4 w-4 mr-1" />
+                                View Booking
+                              </Button>
+                            </Link>
+                          )}
                         </div>
                       </div>
                     )}

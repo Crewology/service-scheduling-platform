@@ -49,9 +49,41 @@ export async function getSessionsByDateRange(
     .orderBy(bookingSessions.sessionDate, bookingSessions.startTime);
 }
 
+export async function getSessionById(sessionId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const results = await db.select().from(bookingSessions)
+    .where(eq(bookingSessions.id, sessionId));
+  return results[0] || null;
+}
+
+export async function createSingleSession(
+  data: typeof bookingSessions.$inferInsert
+): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(bookingSessions).values(data);
+  return result[0].insertId;
+}
+
+export async function rescheduleSession(
+  sessionId: number,
+  newSessionId: number,
+  originalDate: string
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(bookingSessions).set({
+    status: "rescheduled" as any,
+    rescheduledToSessionId: newSessionId,
+    rescheduledFromDate: originalDate,
+    rescheduledAt: new Date(),
+  }).where(eq(bookingSessions.id, sessionId));
+}
+
 export async function updateSessionStatus(
   sessionId: number,
-  status: "scheduled" | "completed" | "cancelled" | "no_show",
+  status: "scheduled" | "completed" | "cancelled" | "rescheduled" | "no_show",
   notes?: string
 ) {
   const db = await getDb();

@@ -819,7 +819,128 @@ export const bookingRouter = router({
       if (booking.providerId !== provider?.id && ctx.user.role !== "admin") {
         throw new TRPCError({ code: "FORBIDDEN", message: "Only the provider can update session status" });
       }
+      const session = await db.getSessionById(input.sessionId);
+      if (!session) throw new TRPCError({ code: "NOT_FOUND", message: "Session not found" });
       await db.updateSessionStatus(input.sessionId, input.status, input.notes);
+
+      // Send notification to customer about session status change
+      try {
+        const { sendNotification } = await import("../notifications");
+        const customer = await db.getUserById(booking.customerId);
+        const service = booking.serviceId ? await db.getServiceById(booking.serviceId) : null;
+        const providerData = await db.getProviderById(booking.providerId);
+        if (customer?.email && (input.status === "completed" || input.status === "cancelled")) {
+          await sendNotification({
+            type: input.status === "completed" ? "session_completed" : "session_cancelled",
+            channel: "email",
+            recipient: { userId: customer.id, email: customer.email, name: customer.name || "Customer" },
+            data: {
+              bookingNumber: booking.bookingNumber,
+              sessionDate: session.sessionDate,
+              sessionNumber: session.sessionNumber,
+              serviceName: service?.name || "Service",
+              providerName: providerData?.businessName || "Provider",
+              customerName: customer.name || "Customer",
+              notes: input.notes,
+            },
+          });
+        }
+      } catch (err) {
+        console.error("[SessionStatus] Notification failed (non-blocking):", err);
+      }
+
       return { success: true };
+    }),
+
+  // Reschedule a specific session within a recurring/multi-day booking
+  rescheduleSession: protectedProcedure
+    .input(z.object({
+      sessionId: z.number(),
+      bookingId: z.number(),
+      newDate: z.string(),
+      newStartTime: z.string(),
+      newEndTime: z.string(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const booking = await db.getBookingById(input.bookingId);
+      if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
+
+      // Both customer and provider can reschedule
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      const isCustomer = booking.customerId === ctx.user.id;
+      const isProvider = provider && booking.providerId === provider.id;
+      if (!isCustomer && !isProvider && ctx.user.role !== "admin") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+      }
+
+      const session = await db.getSessionById(input.sessionId);
+      if (!session) throw new TRPCError({ code: "NOT_FOUND", message: "Session not found" });
+      if (session.bookingId !== input.bookingId) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Session does not belong to this booking" });
+      }
+      if (session.status !== "scheduled") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Only scheduled sessions can be rescheduled" });
+      }
+
+      // Check for conflicts on the new date/time
+      const conflicts = await db.checkSessionConflicts(
+        booking.providerId,
+        [input.newDate],
+        input.newStartTime,
+        input.newEndTime,
+        booking.id
+      );
+      if (conflicts.length > 0) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "The new time slot conflicts with an existing booking or session.",
+        });
+      }
+
+      // Create a new session with the rescheduled date/time
+      const newSessionId = await db.createSingleSession({
+        bookingId: input.bookingId,
+        sessionDate: input.newDate,
+        startTime: input.newStartTime,
+        endTime: input.newEndTime,
+        sessionNumber: session.sessionNumber,
+        status: "scheduled",
+      });
+
+      // Mark the old session as rescheduled
+      await db.rescheduleSession(input.sessionId, newSessionId, session.sessionDate);
+
+      // Send notification
+      try {
+        const { sendNotification } = await import("../notifications");
+        const customer = await db.getUserById(booking.customerId);
+        const service = booking.serviceId ? await db.getServiceById(booking.serviceId) : null;
+        const providerData = await db.getProviderById(booking.providerId);
+        const providerUser = providerData ? await db.getUserById(providerData.userId) : null;
+        const notifyTarget = isCustomer ? providerUser : customer;
+        if (notifyTarget?.email) {
+          await sendNotification({
+            type: "session_rescheduled",
+            channel: "email",
+            recipient: { userId: notifyTarget.id, email: notifyTarget.email, name: notifyTarget.name || "User" },
+            data: {
+              bookingNumber: booking.bookingNumber,
+              sessionNumber: session.sessionNumber,
+              originalDate: session.sessionDate,
+              newDate: input.newDate,
+              newStartTime: input.newStartTime,
+              newEndTime: input.newEndTime,
+              serviceName: service?.name || "Service",
+              providerName: providerData?.businessName || "Provider",
+              customerName: customer?.name || "Customer",
+              rescheduledBy: isCustomer ? "customer" : "provider",
+            },
+          });
+        }
+      } catch (err) {
+        console.error("[SessionReschedule] Notification failed (non-blocking):", err);
+      }
+
+      return { success: true, newSessionId };
     }),
 });

@@ -18,7 +18,14 @@ export type NotificationType =
   | 'reminder_1h'
   | 'subscription_cancelled'
   | 'subscription_updated'
-  | 'refund_processed';
+  | 'refund_processed'
+  | 'quote_request_new'
+  | 'quote_response_received'
+  | 'quote_accepted'
+  | 'quote_declined'
+  | 'session_completed'
+  | 'session_cancelled'
+  | 'session_rescheduled';
 
 export interface NotificationRecipient {
   userId: number;

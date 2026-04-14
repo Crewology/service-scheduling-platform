@@ -267,6 +267,152 @@ OlogyCrew Team
       `.trim(),
       smsBody: `Your refund of $${data.refundAmount || '0.00'} for booking #${data.bookingNumber || 'N/A'} has been processed.`,
     },
+
+    // ============================================================================
+    // QUOTE NOTIFICATIONS
+    // ============================================================================
+
+    quote_request_new: {
+      subject: `New Quote Request: ${data.quoteTitle || 'Service Inquiry'}`,
+      body: `
+Hello ${data.providerName},
+
+You have a new quote request from ${data.customerName}!
+
+**Request:** ${data.quoteTitle || 'Service Inquiry'}
+**Description:** ${data.quoteDescription || 'No details provided'}
+${data.preferredDate ? `**Preferred Date:** ${data.preferredDate}` : ''}
+${data.preferredTime ? `**Preferred Time:** ${data.preferredTime}` : ''}
+${data.location ? `**Location:** ${data.location}` : ''}
+
+Please respond with your pricing in your provider dashboard.
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `New quote request from ${data.customerName}: "${(data.quoteTitle || '').slice(0, 50)}". Check your OlogyCrew dashboard to respond.`,
+    },
+
+    quote_response_received: {
+      subject: `Quote Received: $${data.quotedAmount || '0.00'} for ${data.quoteTitle || 'Your Request'}`,
+      body: `
+Hello ${data.customerName},
+
+${data.providerName} has responded to your quote request!
+
+**Request:** ${data.quoteTitle || 'Your Request'}
+**Quoted Price:** $${data.quotedAmount || '0.00'}
+**Estimated Duration:** ${data.quotedDuration || 'Not specified'}
+${data.providerNotes ? `**Provider Notes:** ${data.providerNotes}` : ''}
+${data.validUntil ? `**Valid Until:** ${data.validUntil}` : ''}
+
+Visit your Quotes page to accept or decline this offer.
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `${data.providerName} quoted $${data.quotedAmount || '0'} for "${(data.quoteTitle || '').slice(0, 40)}". View on OlogyCrew to accept/decline.`,
+    },
+
+    quote_accepted: {
+      subject: `Quote Accepted by ${data.customerName} - ${data.quoteTitle || 'Service Request'}`,
+      body: `
+Hello ${data.providerName},
+
+Great news! ${data.customerName} has accepted your quote.
+
+**Request:** ${data.quoteTitle || 'Service Request'}
+**Accepted Price:** $${data.quotedAmount || '0.00'}
+
+The customer can now book this service directly. Check your dashboard for updates.
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `${data.customerName} accepted your $${data.quotedAmount || '0'} quote for "${(data.quoteTitle || '').slice(0, 40)}". Check OlogyCrew.`,
+    },
+
+    quote_declined: {
+      subject: `Quote Declined - ${data.quoteTitle || 'Service Request'}`,
+      body: `
+Hello ${data.providerName},
+
+${data.customerName} has declined your quote.
+
+**Request:** ${data.quoteTitle || 'Service Request'}
+**Quoted Price:** $${data.quotedAmount || '0.00'}
+${data.declineReason ? `**Reason:** ${data.declineReason}` : ''}
+
+Don't be discouraged — keep providing great service!
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `${data.customerName} declined your quote for "${(data.quoteTitle || '').slice(0, 40)}".`,
+    },
+
+    // ============================================================================
+    // SESSION NOTIFICATIONS
+    // ============================================================================
+
+    session_completed: {
+      subject: `Session Completed - ${data.serviceName || 'Your Booking'}`,
+      body: `
+Hello ${data.customerName},
+
+Your session has been marked as completed.
+
+**Service:** ${data.serviceName || 'Your Booking'}
+**Date:** ${data.sessionDate || 'N/A'}
+**Session:** ${data.sessionNumber || ''} of ${data.totalSessions || ''}
+
+Thank you for using OlogyCrew!
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `Session ${data.sessionNumber || ''} of ${data.totalSessions || ''} for ${data.serviceName || 'your booking'} is complete.`,
+    },
+
+    session_cancelled: {
+      subject: `Session Cancelled - ${data.serviceName || 'Your Booking'}`,
+      body: `
+Hello ${data.customerName},
+
+A session has been cancelled.
+
+**Service:** ${data.serviceName || 'Your Booking'}
+**Date:** ${data.sessionDate || 'N/A'}
+**Session:** ${data.sessionNumber || ''} of ${data.totalSessions || ''}
+${data.providerNotes ? `**Notes:** ${data.providerNotes}` : ''}
+
+Please contact your provider if you have questions.
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `Session on ${data.sessionDate || 'N/A'} for ${data.serviceName || 'your booking'} has been cancelled.`,
+    },
+
+    session_rescheduled: {
+      subject: `Session Rescheduled - ${data.serviceName || 'Your Booking'}`,
+      body: `
+Hello ${data.customerName},
+
+A session has been rescheduled.
+
+**Service:** ${data.serviceName || 'Your Booking'}
+**Original Date:** ${data.originalDate || 'N/A'}
+**New Date:** ${data.newDate || 'N/A'}
+**New Time:** ${data.newTime || 'N/A'}
+
+Please update your calendar accordingly.
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `Session rescheduled from ${data.originalDate || 'N/A'} to ${data.newDate || 'N/A'} at ${data.newTime || 'N/A'} for ${data.serviceName || 'your booking'}.`,
+    },
   };
 
   return templates[type] || {

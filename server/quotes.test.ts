@@ -330,7 +330,7 @@ describe("Quote Request Flow", () => {
         status: "accepted",
       });
 
-      expect(result).toEqual({ success: true });
+      expect(result.success).toBe(true);
     });
 
     it("rejects customer accepting a non-quoted request", async () => {
@@ -376,7 +376,8 @@ describe("Quote Request Flow", () => {
         reason: "Too expensive",
       });
 
-      expect(result).toEqual({ success: true });
+      expect(result.success).toBe(true);
+      expect(result.bookingId).toBeNull();
     });
 
     it("rejects unauthorized user from updating quote", async () => {

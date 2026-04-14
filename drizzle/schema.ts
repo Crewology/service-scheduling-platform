@@ -268,7 +268,8 @@ export const bookings = mysqlTable("bookings", {
   confirmedAt: timestamp("confirmedAt"),
   startedAt: timestamp("startedAt"),
   completedAt: timestamp("completedAt"),
-  bookingSource: mysqlEnum("bookingSource", ["direct", "embed_widget", "provider_page", "api"]).default("direct").notNull(),
+  bookingSource: mysqlEnum("bookingSource", ["direct", "embed_widget", "provider_page", "api", "quote"]).default("direct").notNull(),
+  quoteRequestId: int("quoteRequestId"), // Link to quote_request if converted from a quote
   reminderSent: boolean("reminderSent").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -292,10 +293,13 @@ export const bookingSessions = mysqlTable("booking_sessions", {
   startTime: time("startTime").notNull(),
   endTime: time("endTime").notNull(),
   sessionNumber: int("sessionNumber").notNull(), // 1-indexed session order
-  status: mysqlEnum("status", ["scheduled", "completed", "cancelled", "no_show"]).default("scheduled").notNull(),
+  status: mysqlEnum("status", ["scheduled", "completed", "cancelled", "rescheduled", "no_show"]).default("scheduled").notNull(),
+  rescheduledToSessionId: int("rescheduledToSessionId"), // Points to the new session if rescheduled
+  rescheduledFromDate: varchar("rescheduledFromDate", { length: 10 }), // Original date before reschedule
   providerNotes: text("providerNotes"),
   completedAt: timestamp("completedAt"),
   cancelledAt: timestamp("cancelledAt"),
+  rescheduledAt: timestamp("rescheduledAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (table) => ([
   index("session_booking_idx").on(table.bookingId),

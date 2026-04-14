@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useLocation, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { toast } from "sonner";
@@ -28,6 +29,9 @@ import {
   Send,
   CalendarPlus,
   Download,
+  RefreshCw,
+  RotateCcw,
+  ListChecks,
 } from "lucide-react";
 
 const statusColors: Record<string, string> = {
@@ -40,11 +44,24 @@ const statusColors: Record<string, string> = {
   refunded: "bg-orange-100 text-orange-800",
 };
 
+const sessionStatusColors: Record<string, string> = {
+  scheduled: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+  completed: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+  cancelled: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+  rescheduled: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
+  no_show: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300",
+};
+
 export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const [messageText, setMessageText] = useState("");
+  const [rescheduleSessionId, setRescheduleSessionId] = useState<number | null>(null);
+  const [rescheduleDate, setRescheduleDate] = useState("");
+  const [rescheduleStartTime, setRescheduleStartTime] = useState("");
+  const [rescheduleEndTime, setRescheduleEndTime] = useState("");
+  const [sessionNotes, setSessionNotes] = useState("");
   const utils = trpc.useUtils();
 
   const bookingId = parseInt(id || "0");
@@ -53,9 +70,38 @@ export default function BookingDetail() {
     { enabled: bookingId > 0 }
   );
 
+  // Fetch sessions for multi-day/recurring bookings
+  const isMultiSession = data?.booking?.bookingType && data.booking.bookingType !== "single";
+  const { data: sessions } = trpc.booking.getSessions.useQuery(
+    { bookingId },
+    { enabled: bookingId > 0 && !!isMultiSession }
+  );
+
   const updateStatus = trpc.booking.updateStatus.useMutation({
     onSuccess: () => {
       toast.success("Booking status updated");
+      utils.booking.getDetail.invalidate({ id: bookingId });
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const updateSessionStatus = trpc.booking.updateSessionStatus.useMutation({
+    onSuccess: () => {
+      toast.success("Session status updated");
+      utils.booking.getSessions.invalidate({ bookingId });
+      utils.booking.getDetail.invalidate({ id: bookingId });
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const rescheduleSession = trpc.booking.rescheduleSession.useMutation({
+    onSuccess: () => {
+      toast.success("Session rescheduled successfully");
+      setRescheduleSessionId(null);
+      setRescheduleDate("");
+      setRescheduleStartTime("");
+      setRescheduleEndTime("");
+      utils.booking.getSessions.invalidate({ bookingId });
       utils.booking.getDetail.invalidate({ id: bookingId });
     },
     onError: (e) => toast.error(e.message),
@@ -69,6 +115,17 @@ export default function BookingDetail() {
     },
     onError: (e) => toast.error(e.message),
   });
+
+  // Session summary stats
+  const sessionStats = useMemo(() => {
+    if (!sessions || sessions.length === 0) return null;
+    const total = sessions.length;
+    const completed = sessions.filter((s: any) => s.status === "completed").length;
+    const cancelled = sessions.filter((s: any) => s.status === "cancelled").length;
+    const rescheduled = sessions.filter((s: any) => s.status === "rescheduled").length;
+    const scheduled = sessions.filter((s: any) => s.status === "scheduled").length;
+    return { total, completed, cancelled, rescheduled, scheduled };
+  }, [sessions]);
 
   if (isLoading) {
     return (
@@ -96,6 +153,9 @@ export default function BookingDetail() {
   }
 
   const { booking, customer, service, payment, messages, review } = data;
+  const provider = data.provider;
+  const isProvider = user && provider && user.id !== booking.customerId;
+  const isCustomer = user && booking.customerId === user.id;
 
   const handleSendMessage = () => {
     if (!messageText.trim() || !customer) return;
@@ -103,6 +163,20 @@ export default function BookingDetail() {
       recipientId: customer.id,
       messageText: messageText.trim(),
       bookingId: booking.id,
+    });
+  };
+
+  const handleReschedule = (sessionId: number) => {
+    if (!rescheduleDate || !rescheduleStartTime || !rescheduleEndTime) {
+      toast.error("Please fill in all reschedule fields");
+      return;
+    }
+    rescheduleSession.mutate({
+      sessionId,
+      bookingId,
+      newDate: rescheduleDate,
+      newStartTime: rescheduleStartTime,
+      newEndTime: rescheduleEndTime,
     });
   };
 
@@ -122,6 +196,16 @@ export default function BookingDetail() {
               <Badge className={statusColors[booking.status] || "bg-gray-100"}>
                 {booking.status.replace("_", " ")}
               </Badge>
+              {booking.bookingSource === "quote" && (
+                <Badge variant="outline" className="text-xs border-sky-300 text-sky-700 dark:text-sky-300">
+                  From Quote
+                </Badge>
+              )}
+              {booking.bookingType && booking.bookingType !== "single" && (
+                <Badge variant="outline" className="text-xs">
+                  {booking.bookingType === "multi_day" ? "Multi-Day" : "Recurring"}
+                </Badge>
+              )}
             </div>
             <p className="text-sm text-muted-foreground mt-1">
               Created {formatDate(booking.createdAt)}
@@ -182,7 +266,7 @@ export default function BookingDetail() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {/* Left column: Booking + Payment */}
+          {/* Left column: Booking + Sessions + Payment */}
           <div className="md:col-span-2 space-y-6">
             {/* Booking Details */}
             <Card>
@@ -284,6 +368,185 @@ export default function BookingDetail() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Session Management for multi-day/recurring bookings */}
+            {isMultiSession && sessions && sessions.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <ListChecks className="h-5 w-5 text-primary" />
+                    Sessions ({sessions.length})
+                  </CardTitle>
+                  {sessionStats && (
+                    <CardDescription className="flex gap-3 mt-1">
+                      <span className="text-green-600">{sessionStats.completed} completed</span>
+                      <span className="text-blue-600">{sessionStats.scheduled} scheduled</span>
+                      {sessionStats.rescheduled > 0 && <span className="text-amber-600">{sessionStats.rescheduled} rescheduled</span>}
+                      {sessionStats.cancelled > 0 && <span className="text-red-600">{sessionStats.cancelled} cancelled</span>}
+                    </CardDescription>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {sessions.map((session: any) => (
+                      <div
+                        key={session.id}
+                        className={`p-4 rounded-lg border ${
+                          session.status === "rescheduled" ? "opacity-60 bg-muted/30" : "bg-card"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="text-center min-w-[48px]">
+                              <p className="text-xs text-muted-foreground">Session</p>
+                              <p className="text-lg font-bold">#{session.sessionNumber}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium">
+                                {new Date(session.sessionDate).toLocaleDateString("en-US", {
+                                  weekday: "short",
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                })}
+                              </p>
+                              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {session.startTime} - {session.endTime}
+                              </p>
+                              {session.rescheduledFromDate && (
+                                <p className="text-xs text-amber-600 mt-0.5">
+                                  Rescheduled from {new Date(session.rescheduledFromDate).toLocaleDateString()}
+                                </p>
+                              )}
+                              {session.providerNotes && (
+                                <p className="text-xs text-muted-foreground mt-0.5 italic">
+                                  Note: {session.providerNotes}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge className={sessionStatusColors[session.status] || "bg-gray-100"}>
+                              {session.status}
+                            </Badge>
+                            {/* Action buttons for scheduled sessions */}
+                            {session.status === "scheduled" && (
+                              <div className="flex gap-1">
+                                {isProvider && (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-8 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                      onClick={() => updateSessionStatus.mutate({
+                                        sessionId: session.id,
+                                        bookingId,
+                                        status: "completed",
+                                      })}
+                                      disabled={updateSessionStatus.isPending}
+                                      title="Mark completed"
+                                    >
+                                      <CheckCircle2 className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                      onClick={() => updateSessionStatus.mutate({
+                                        sessionId: session.id,
+                                        bookingId,
+                                        status: "cancelled",
+                                      })}
+                                      disabled={updateSessionStatus.isPending}
+                                      title="Cancel session"
+                                    >
+                                      <XCircle className="h-4 w-4" />
+                                    </Button>
+                                  </>
+                                )}
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-8 px-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                                  onClick={() => {
+                                    setRescheduleSessionId(session.id);
+                                    setRescheduleDate("");
+                                    setRescheduleStartTime(session.startTime);
+                                    setRescheduleEndTime(session.endTime);
+                                  }}
+                                  title="Reschedule session"
+                                >
+                                  <RotateCcw className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Reschedule form */}
+                        {rescheduleSessionId === session.id && (
+                          <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                            <p className="text-sm font-medium text-amber-800 dark:text-amber-200 mb-2 flex items-center gap-1">
+                              <RefreshCw className="h-4 w-4" />
+                              Reschedule Session #{session.sessionNumber}
+                            </p>
+                            <div className="grid grid-cols-3 gap-2">
+                              <div>
+                                <label className="text-xs text-muted-foreground">New Date</label>
+                                <Input
+                                  type="date"
+                                  value={rescheduleDate}
+                                  onChange={(e) => setRescheduleDate(e.target.value)}
+                                  min={new Date().toISOString().split("T")[0]}
+                                  className="h-8 text-sm"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-muted-foreground">Start Time</label>
+                                <Input
+                                  type="time"
+                                  value={rescheduleStartTime}
+                                  onChange={(e) => setRescheduleStartTime(e.target.value)}
+                                  className="h-8 text-sm"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-muted-foreground">End Time</label>
+                                <Input
+                                  type="time"
+                                  value={rescheduleEndTime}
+                                  onChange={(e) => setRescheduleEndTime(e.target.value)}
+                                  className="h-8 text-sm"
+                                />
+                              </div>
+                            </div>
+                            <div className="flex gap-2 mt-2">
+                              <Button
+                                size="sm"
+                                onClick={() => handleReschedule(session.id)}
+                                disabled={rescheduleSession.isPending}
+                                className="h-7 text-xs"
+                              >
+                                {rescheduleSession.isPending ? "Rescheduling..." : "Confirm Reschedule"}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setRescheduleSessionId(null)}
+                                className="h-7 text-xs"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Payment Info */}
             <Card>

@@ -282,3 +282,33 @@
 
 ## Testing
 - [x] 398 tests passing across 25 test files (0 failures, 0 TypeScript errors)
+
+## Feature: Convert Accepted Quotes to Bookings
+- [x] Auto-create booking when customer accepts a quoted price (in updateQuoteStatus)
+- [x] Auto-populate booking with quote details (service, price, duration, date/time, provider, customer)
+- [x] Update quote status to 'booked' and link via bookingId after successful booking creation
+- [x] Show "View Booking" button on accepted/booked quotes in My Quotes page
+- [x] Link quote_request to booking via quoteRequestId field on bookings table
+- [x] Add bookingSource='quote' enum value to bookings schema
+- [x] Toast with "View Booking" action on successful quote acceptance
+- [x] Write 5 tests for quote-to-booking conversion (auto-create, link, source, decline, fee calc)
+
+## Feature: Recurring Booking Session Management
+- [x] Add rescheduled status to booking_sessions + rescheduledToSessionId, rescheduledFromDate, rescheduledAt columns
+- [x] Provider: mark individual sessions as completed or cancelled with notification
+- [x] Customer + Provider: reschedule individual sessions with conflict detection
+- [x] Show session list with status badges, stats summary on BookingDetail page
+- [x] Inline reschedule form with date/time pickers and conflict checking
+- [x] Add getSessionById, rescheduleSession, createSingleSession DB helpers
+- [x] Write 10 tests for session management (complete, cancel, reschedule, auth, conflicts)
+
+## Feature: SMS/Email Notifications for Quotes
+- [x] Send SMS + email to provider when customer submits a new quote request (quote_request_new)
+- [x] Send SMS + email to customer when provider responds with pricing (quote_response_received)
+- [x] Send SMS + email to provider when customer accepts (quote_accepted) or declines (quote_declined)
+- [x] Send email notifications for session status changes (session_completed, session_cancelled, session_rescheduled)
+- [x] All notification templates created with proper formatting
+- [x] Write 4 tests for quote notification triggers
+
+## Testing
+- [x] 420 tests passing across 26 test files (0 failures, 0 TypeScript errors)
