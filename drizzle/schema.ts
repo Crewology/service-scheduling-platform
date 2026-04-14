@@ -71,6 +71,7 @@ export const serviceProviders = mysqlTable("service_providers", {
   payoutEnabled: boolean("payoutEnabled").default(false).notNull(),
   commissionRate: decimal("commissionRate", { precision: 5, scale: 2 }).default("15.00"),
   isFeatured: boolean("isFeatured").default(false).notNull(),
+  isOfficial: boolean("isOfficial").default(false).notNull(),
   isActive: boolean("isActive").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

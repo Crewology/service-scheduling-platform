@@ -74,18 +74,23 @@ export const providerRouter = router({
 
   listFeatured: publicProcedure.query(async () => {
     const providers = await db.getAllProviders({ isActive: true });
-    // Get top 8 providers by rating, with their categories and profile photos
-    const sorted = providers
+    // Separate official provider(s) to ensure they always appear first
+    const officialProviders = providers.filter((p: any) => p.isOfficial);
+    const regularProviders = providers.filter((p: any) => !p.isOfficial);
+    // Get top providers by rating
+    const sorted = regularProviders
       .filter((p: any) => parseFloat(p.averageRating || "0") > 0 || p.totalReviews > 0)
       .sort((a: any, b: any) => parseFloat(b.averageRating || "0") - parseFloat(a.averageRating || "0"))
-      .slice(0, 8);
-    // If fewer than 8 rated providers, fill with recently created active providers
-    if (sorted.length < 8) {
-      const remaining = providers
+      .slice(0, 8 - officialProviders.length);
+    // If fewer than needed, fill with recently created active providers
+    if (sorted.length < 8 - officialProviders.length) {
+      const remaining = regularProviders
         .filter((p: any) => !sorted.find((s: any) => s.id === p.id))
-        .slice(0, 8 - sorted.length);
+        .slice(0, 8 - officialProviders.length - sorted.length);
       sorted.push(...remaining);
     }
+    // Official first, then rated providers
+    sorted.unshift(...officialProviders);
     // Enrich with categories and profile photo
     const enriched = await Promise.all(
       sorted.slice(0, 8).map(async (provider: any) => {
@@ -385,7 +390,12 @@ export const providerRouter = router({
           return { ...provider, profilePhotoUrl: user?.profilePhotoUrl || null };
         })
       );
-      return providers.filter(Boolean);
+      // Sort: official provider first, then by rating
+      return providers.filter(Boolean).sort((a: any, b: any) => {
+        if (a.isOfficial && !b.isOfficial) return -1;
+        if (!a.isOfficial && b.isOfficial) return 1;
+        return parseFloat(b.averageRating || '0') - parseFloat(a.averageRating || '0');
+      });
     }),
 
   getNextAvailable: publicProcedure

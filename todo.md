@@ -269,3 +269,16 @@
 ## Testing
 - [x] 22 new multi-day/recurring tests (date range, session generation, pricing, validation, categories)
 - [x] All 389 tests passing across 24 test files
+
+## Feature: OlogyCrew Official Provider (Hybrid "Tom" Approach)
+- [x] Add isOfficial flag to serviceProviders schema
+- [x] Create seed script for OlogyCrew Official account with 69 services across 41 categories
+- [x] Add official/verified badge (OfficialBadge component) to provider cards in browse and search results
+- [x] Add official badge to public provider profile page
+- [x] Ensure official provider appears first in every category browse (listByCategory + listFeatured)
+- [x] Official provider profile showcases best practices (complete profile, availability, services)
+- [x] Write tests for official provider functionality (9 tests: schema, data, sorting)
+- [x] Fix price sort regression (official-first grouping now skipped when sortBy=price)
+
+## Testing
+- [x] 398 tests passing across 25 test files (0 failures, 0 TypeScript errors)

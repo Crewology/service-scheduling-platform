@@ -7,6 +7,7 @@ import { trpc } from "@/lib/trpc";
 import { MapPin, Star, Clock, DollarSign, ArrowLeft, User, SlidersHorizontal, X, Search, CalendarDays } from "lucide-react";
 import { Link, useParams } from "wouter";
 import { NavHeader } from "@/components/shared/NavHeader";
+import { OfficialBadge } from "@/components/OfficialBadge";
 
 const CATEGORY_ICONS: Record<number, string> = {
   15: "\ud83c\udfac", 170: "\ud83d\udc88", 7: "\u2702\ufe0f", 126: "\ud83d\udd12", 195: "\ud83d\udc83", 202: "\ud83d\udd28",
@@ -316,9 +317,12 @@ export default function CategoryDetail() {
                           )}
                         </div>
                         <div className="flex-1">
-                          <CardTitle className="text-lg hover:text-primary transition-colors">
-                            {provider.businessName}
-                          </CardTitle>
+                          <div className="flex items-center gap-2">
+                            <CardTitle className="text-lg hover:text-primary transition-colors">
+                              {provider.businessName}
+                            </CardTitle>
+                            {provider.isOfficial && <OfficialBadge size="sm" />}
+                          </div>
                           <div className="flex items-center gap-3 text-sm text-muted-foreground mt-0.5">
                             {(provider.city || provider.state) && (
                               <span className="flex items-center gap-1">

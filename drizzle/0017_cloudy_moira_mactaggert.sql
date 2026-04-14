@@ -1,0 +1,1 @@
+ALTER TABLE `service_providers` ADD `isOfficial` boolean DEFAULT false NOT NULL;

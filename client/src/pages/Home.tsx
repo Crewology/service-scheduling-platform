@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import { NavHeader } from "@/components/shared/NavHeader";
+import { OfficialBadge } from "@/components/OfficialBadge";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
@@ -194,9 +195,12 @@ export default function Home() {
                           </div>
                         )}
                         <div className="min-w-0">
-                          <h3 className="font-semibold text-base group-hover:text-primary transition-colors truncate">
-                            {provider.businessName}
-                          </h3>
+                          <div className="flex items-center gap-1.5">
+                            <h3 className="font-semibold text-base group-hover:text-primary transition-colors truncate">
+                              {provider.businessName}
+                            </h3>
+                            {provider.isOfficial && <OfficialBadge size="sm" showLabel={false} />}
+                          </div>
                           {provider.city && (
                             <p className="text-xs text-muted-foreground flex items-center gap-1">
                               <MapPin className="w-3 h-3" />

@@ -113,6 +113,18 @@ export const serviceRouter = router({
       if (input.sortBy === "price") {
         results.sort((a, b) => parseFloat(a.basePrice || "0") - parseFloat(b.basePrice || "0"));
       }
+      // Prioritize official provider services first (only when not explicitly sorting by price)
+      if (input.sortBy !== "price") {
+        const providerIds = Array.from(new Set(results.map(s => s.providerId)));
+        const officialCheck = await Promise.all(providerIds.map(async id => {
+          const p = await db.getProviderById(id);
+          return { id, isOfficial: p?.isOfficial || false };
+        }));
+        const officialSet = new Set(officialCheck.filter(p => p.isOfficial).map(p => p.id));
+        const officialResults = results.filter(s => officialSet.has(s.providerId));
+        const regularResults = results.filter(s => !officialSet.has(s.providerId));
+        results = [...officialResults, ...regularResults];
+      }
       return results;
     }),
     
