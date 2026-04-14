@@ -15,6 +15,9 @@ import {
   ExternalLink,
   Heart,
   FileText,
+  LogOut,
+  Settings,
+  ChevronDown,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
@@ -191,6 +194,90 @@ function NotificationDropdown() {
   );
 }
 
+function UserMenuDropdown({ user }: { user: any }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const { logout } = useAuth();
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    if (open) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  return (
+    <div className="relative" ref={ref}>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="gap-1"
+        onClick={() => setOpen(!open)}
+      >
+        <User className="h-4 w-4" />
+        <span className="max-w-[120px] truncate">{user?.name || user?.email}</span>
+        <ChevronDown className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`} />
+      </Button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-xl border z-[100] overflow-hidden py-1">
+          <Link
+            href="/profile"
+            className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors"
+            onClick={() => setOpen(false)}
+          >
+            <User className="h-4 w-4 text-muted-foreground" />
+            My Profile
+          </Link>
+          <Link
+            href="/notification-settings"
+            className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors"
+            onClick={() => setOpen(false)}
+          >
+            <Settings className="h-4 w-4 text-muted-foreground" />
+            Settings
+          </Link>
+          <div className="border-t my-1" />
+          <button
+            className="flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors w-full text-left"
+            onClick={async () => {
+              setOpen(false);
+              await logout();
+              window.location.href = "/";
+            }}
+          >
+            <LogOut className="h-4 w-4" />
+            Log Out
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MobileLogoutButton({ onClose }: { onClose: () => void }) {
+  const { logout } = useAuth();
+  return (
+    <div className="border-t pt-2 mt-2">
+      <Button
+        variant="ghost"
+        className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+        onClick={async () => {
+          onClose();
+          await logout();
+          window.location.href = "/";
+        }}
+      >
+        <LogOut className="h-4 w-4 mr-2" />
+        Log Out
+      </Button>
+    </div>
+  );
+}
+
 export function NavHeader() {
   const { user, isAuthenticated } = useAuth();
   const [location] = useLocation();
@@ -309,13 +396,8 @@ export function NavHeader() {
                   </Link>
                 )}
 
-                {/* User profile */}
-                <Link href="/profile">
-                  <Button variant="ghost" size="sm" className="gap-1">
-                    <User className="h-4 w-4" />
-                    {user?.name || user?.email}
-                  </Button>
-                </Link>
+                {/* User menu dropdown */}
+                <UserMenuDropdown user={user} />
               </>
             ) : (
               <>
@@ -402,6 +484,7 @@ export function NavHeader() {
                     My Profile
                   </Button>
                 </Link>
+                <MobileLogoutButton onClose={() => setMobileMenuOpen(false)} />
               </>
             ) : (
               <a href={getLoginUrl()}>

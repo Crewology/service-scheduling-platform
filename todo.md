@@ -335,3 +335,7 @@
 
 ## Testing
 - [x] 432 tests passing across 27 test files (0 failures, 0 TypeScript errors)
+
+## Bug Fix: Logout Not Visible
+- [x] Add visible logout option to user navigation (UserMenuDropdown with Profile, Settings, Log Out)
+- [x] Add logout to mobile menu (MobileLogoutButton with red styling)
