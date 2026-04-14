@@ -32,6 +32,7 @@ import BookingDetail from "./pages/BookingDetail";
 import Referrals from "./pages/Referrals";
 import SavedProviders from "./pages/SavedProviders";
 import MyQuotes from "./pages/MyQuotes";
+import ProviderCalendar from "./pages/ProviderCalendar";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 
@@ -45,6 +46,7 @@ function Router() {
       <Route path="/provider/dashboard" component={ProviderDashboard} />
       <Route path="/provider/services/new" component={CreateService} />
       <Route path="/provider/availability" component={ManageAvailability} />
+      <Route path="/provider/calendar" component={ProviderCalendar} />
       <Route path="/service/:id" component={ServiceDetail} />
       <Route path="/booking/:id" component={BookingConfirmation} />
       <Route path="/my-bookings" component={MyBookings} />

@@ -312,3 +312,26 @@
 
 ## Testing
 - [x] 420 tests passing across 26 test files (0 failures, 0 TypeScript errors)
+
+## Feature: Customer Review Reminders
+- [x] Add reviewReminderSent flag to bookings schema to prevent duplicate reminders
+- [x] Create review_reminder notification type and email/SMS templates
+- [x] Build reviewReminderService with 30-min interval checking completed bookings 24h+ ago
+- [x] Send personalized email/SMS with direct link to leave a review (/booking/:id/review)
+- [x] Add triggerReviewReminders admin endpoint for manual triggering
+- [x] Include unsubscribe link in reminder emails
+- [x] Write 12 tests for review reminder logic (service, templates, schema, admin trigger)
+
+## Feature: Provider Calendar View
+- [x] Create calendarEvents tRPC endpoint fetching provider bookings + sessions
+- [x] Build ProviderCalendar page with month and week views
+- [x] Show booking details (service, customer, time, status) on calendar events
+- [x] Color-code events by status (7 statuses: pending, confirmed, in_progress, completed, cancelled, scheduled, rescheduled)
+- [x] Add Calendar View button to provider dashboard bookings tab + /provider/calendar route
+- [x] Click-through from calendar event to booking detail via modal + "View Booking Details" link
+- [x] Breadcrumb navigation back to dashboard
+- [x] Stats summary cards (total, pending, confirmed, completed)
+- [x] Today highlight, status legend, responsive design
+
+## Testing
+- [x] 432 tests passing across 27 test files (0 failures, 0 TypeScript errors)

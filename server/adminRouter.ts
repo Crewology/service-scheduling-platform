@@ -111,6 +111,13 @@ export const adminRouter = router({
     return result;
   }),
 
+  // Manually trigger review reminder processing
+  triggerReviewReminders: adminProcedure.mutation(async () => {
+    const { processReviewReminders } = await import("./reviewReminderService");
+    const result = await processReviewReminders();
+    return result;
+  }),
+
   // Update provider verification status (flexible)
   updateProviderVerification: adminProcedure
     .input(z.object({

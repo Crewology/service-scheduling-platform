@@ -413,6 +413,33 @@ OlogyCrew Team
       `.trim(),
       smsBody: `Session rescheduled from ${data.originalDate || 'N/A'} to ${data.newDate || 'N/A'} at ${data.newTime || 'N/A'} for ${data.serviceName || 'your booking'}.`,
     },
+
+    // ============================================================================
+    // REVIEW REMINDER
+    // ============================================================================
+
+    review_reminder: {
+      subject: `How was your ${data.serviceName || 'service'}? Leave a review!`,
+      body: `
+Hello ${data.customerName},
+
+We hope you enjoyed your recent ${data.serviceName || 'service'} with ${data.providerName}!
+
+Your feedback helps other customers find great service providers and helps ${data.providerName} improve.
+
+It only takes a minute to share your experience.
+
+[Leave a Review](${data.reviewUrl})
+
+If you've already left a review, thank you! You can ignore this message.
+
+[Unsubscribe](${data.unsubscribeUrl})
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `How was your ${data.serviceName || 'service'} with ${data.providerName}? Leave a review on OlogyCrew!`,
+    },
   };
 
   return templates[type] || {

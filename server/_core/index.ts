@@ -134,6 +134,13 @@ async function startServer() {
     }).catch(err => {
       console.error("Failed to start reminder service:", err);
     });
+
+    // Start the review reminder service (checks every 30 minutes for completed bookings needing reviews)
+    import("../reviewReminderService").then(({ startReviewReminderService }) => {
+      startReviewReminderService();
+    }).catch(err => {
+      console.error("Failed to start review reminder service:", err);
+    });
   });
 }
 

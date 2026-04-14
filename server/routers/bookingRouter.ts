@@ -943,4 +943,40 @@ export const bookingRouter = router({
 
       return { success: true, newSessionId };
     }),
+
+  // ============================================================================
+  // PROVIDER CALENDAR VIEW
+  // ============================================================================
+
+  calendarEvents: protectedProcedure
+    .input(z.object({
+      month: z.number().min(1).max(12).optional(),
+      year: z.number().optional(),
+    }).optional())
+    .query(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+
+      // Get all bookings for this provider with service/customer details
+      const calendarBookings = await db.getProviderCalendarBookings(provider.id);
+
+      // Also get sessions for recurring/multi-day bookings
+      const bookingIds = calendarBookings.map((b: any) => b.id);
+      const allSessions: any[] = [];
+      for (const bookingId of bookingIds) {
+        const sessions = await db.getSessionsByBookingId(bookingId);
+        if (sessions.length > 0) {
+          allSessions.push(...sessions.map((s: any) => ({
+            ...s,
+            bookingId,
+            parentBooking: calendarBookings.find((b: any) => b.id === bookingId),
+          })));
+        }
+      }
+
+      return {
+        bookings: calendarBookings,
+        sessions: allSessions,
+      };
+    }),
 });

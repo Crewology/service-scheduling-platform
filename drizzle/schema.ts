@@ -271,6 +271,7 @@ export const bookings = mysqlTable("bookings", {
   bookingSource: mysqlEnum("bookingSource", ["direct", "embed_widget", "provider_page", "api", "quote"]).default("direct").notNull(),
   quoteRequestId: int("quoteRequestId"), // Link to quote_request if converted from a quote
   reminderSent: boolean("reminderSent").default(false).notNull(),
+  reviewReminderSent: boolean("reviewReminderSent").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({

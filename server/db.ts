@@ -74,9 +74,10 @@ export {
   getFavoriteCount,
 } from "./db/favorites";
 
-// Schedule conflict detection
+// Schedule conflict detection & calendar
 export {
   checkProviderConflicts,
+  getProviderCalendarBookings,
 } from "./db/bookings";
 
 // Quote requests

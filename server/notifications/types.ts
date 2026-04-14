@@ -25,7 +25,8 @@ export type NotificationType =
   | 'quote_declined'
   | 'session_completed'
   | 'session_cancelled'
-  | 'session_rescheduled';
+  | 'session_rescheduled'
+  | 'review_reminder';
 
 export interface NotificationRecipient {
   userId: number;

@@ -1036,6 +1036,12 @@ export default function ProviderDashboard() {
           <TabsContent value="bookings" className="space-y-4 pb-20 md:pb-0">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold">Bookings</h2>
+              <Link href="/provider/calendar">
+                <Button variant="outline" size="sm" className="gap-1.5">
+                  <Calendar className="h-4 w-4" />
+                  Calendar View
+                </Button>
+              </Link>
             </div>
 
             {!bookings || bookings.length === 0 ? (
