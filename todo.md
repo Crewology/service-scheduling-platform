@@ -483,3 +483,16 @@
 - [x] Browse by Topic navigation cards
 - [x] Search bar filtering across all articles and FAQ
 - [x] Write 21 tests for help content structure, FAQ filtering, contact info, tier accuracy
+## Feature: Help Center Contact Form
+- [x] Build tRPC endpoint for contact form submissions (public procedure — no login required)
+- [x] Send owner notification via notifyOwner() on every submission
+- [x] Send confirmation email to submitter with reference number
+- [x] Store contact submissions in database (contactSubmissions table with status tracking)
+- [x] Replace static contact info with interactive ContactForm component in Help Center
+- [x] Include name, email, subject, category (6 options), and message fields
+- [x] Add form validation (required fields, email format, 10-5000 char message), success/error states
+- [x] Success state with reference number, "Send Another Message" button
+- [x] Admin endpoints: list submissions, update status (new/in_progress/resolved/closed)
+- [x] Character counter on message field (X/5000)
+- [x] Direct contact info (email + phone) preserved below form
+- [x] Write 23 tests for contact form (validation, categories, notification content, form behavior)

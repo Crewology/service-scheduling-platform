@@ -770,3 +770,25 @@ export const quoteRequests = mysqlTable("quote_requests", {
 ]);
 
 export type QuoteRequest = typeof quoteRequests.$inferSelect;
+
+
+/**
+ * Contact form submissions from the Help Center.
+ */
+export const contactSubmissions = mysqlTable("contact_submissions", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 200 }).notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  subject: varchar("subject", { length: 500 }).notNull(),
+  category: mysqlEnum("category", ["general", "booking", "payment", "provider", "technical", "other"]).default("general").notNull(),
+  message: text("message").notNull(),
+  userId: int("userId"),
+  status: mysqlEnum("status", ["new", "in_progress", "resolved", "closed"]).default("new").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  resolvedAt: timestamp("resolvedAt"),
+}, (table) => [
+  index("contact_status_idx").on(table.status),
+  index("contact_email_idx").on(table.email),
+]);
+
+export type ContactSubmission = typeof contactSubmissions.$inferSelect;

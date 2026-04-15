@@ -35,6 +35,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
+import { Loader2, Send } from "lucide-react";
 
 // ─── Help Content Data ────────────────────────────────────────────────────────
 
@@ -462,6 +468,189 @@ const quickLinks = [
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
+// ─── Contact Form Component ──────────────────────────────────────────────────
+
+function ContactForm() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [subject, setSubject] = useState("");
+  const [category, setCategory] = useState<string>("general");
+  const [message, setMessage] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [refId, setRefId] = useState<number | null>(null);
+
+  const submitMutation = trpc.contact.submit.useMutation({
+    onSuccess: (data) => {
+      setSubmitted(true);
+      setRefId(data.id);
+      toast.success("Message sent! We'll get back to you soon.");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to send message. Please try again.");
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || !email.trim() || !subject.trim() || !message.trim()) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+    submitMutation.mutate({
+      name: name.trim(),
+      email: email.trim(),
+      subject: subject.trim(),
+      category: category as "general" | "booking" | "payment" | "provider" | "technical" | "other",
+      message: message.trim(),
+    });
+  };
+
+  const handleReset = () => {
+    setName("");
+    setEmail("");
+    setSubject("");
+    setCategory("general");
+    setMessage("");
+    setSubmitted(false);
+    setRefId(null);
+  };
+
+  if (submitted) {
+    return (
+      <Card className="border-green-200 bg-green-50/50">
+        <CardContent className="py-8 text-center">
+          <div className="mx-auto w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
+            <CheckCircle2 className="h-8 w-8 text-green-600" />
+          </div>
+          <h3 className="text-xl font-semibold text-green-800 mb-2">Message Sent Successfully!</h3>
+          <p className="text-green-700 mb-1">
+            Thank you for reaching out. We've received your message and will respond within 24-48 hours.
+          </p>
+          {refId && (
+            <p className="text-sm text-green-600 mb-4">Reference #: {refId}</p>
+          )}
+          <p className="text-sm text-muted-foreground mb-6">
+            A confirmation email has been sent to your inbox.
+          </p>
+          <Button variant="outline" onClick={handleReset} className="gap-2">
+            <Send className="h-4 w-4" />
+            Send Another Message
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Send className="h-5 w-5 text-primary" />
+          Send Us a Message
+        </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Fill out the form below and we'll get back to you as soon as possible. All fields marked with * are required.
+        </p>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="contact-name">Your Name *</Label>
+              <Input
+                id="contact-name"
+                placeholder="John Doe"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                maxLength={200}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="contact-email">Email Address *</Label>
+              <Input
+                id="contact-email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                maxLength={320}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="contact-subject">Subject *</Label>
+              <Input
+                id="contact-subject"
+                placeholder="How can we help?"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                required
+                maxLength={500}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="contact-category">Category</Label>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger id="contact-category">
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="general">General Inquiry</SelectItem>
+                  <SelectItem value="booking">Booking Issue</SelectItem>
+                  <SelectItem value="payment">Payment & Billing</SelectItem>
+                  <SelectItem value="provider">Provider Support</SelectItem>
+                  <SelectItem value="technical">Technical Issue</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="contact-message">Message *</Label>
+            <Textarea
+              id="contact-message"
+              placeholder="Please describe your issue or question in detail. Include any relevant booking numbers, dates, or screenshots if applicable."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              required
+              minLength={10}
+              maxLength={5000}
+              rows={5}
+              className="resize-y"
+            />
+            <p className="text-xs text-muted-foreground text-right">
+              {message.length}/5000 characters
+            </p>
+          </div>
+
+          <Button
+            type="submit"
+            disabled={submitMutation.isPending}
+            className="w-full sm:w-auto gap-2"
+          >
+            {submitMutation.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Sending...
+              </>
+            ) : (
+              <>
+                <Send className="h-4 w-4" />
+                Send Message
+              </>
+            )}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function HelpCenter() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("all");
@@ -648,7 +837,12 @@ export default function HelpCenter() {
         {/* Contact & Support Section */}
         <div id="contact">
           <h2 className="text-2xl font-bold mb-6">Still Need Help?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          {/* Contact Form */}
+          <ContactForm />
+
+          {/* Direct Contact Info */}
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card className="border-primary/20">
               <CardContent className="py-6">
                 <div className="flex items-start gap-4">
@@ -658,7 +852,7 @@ export default function HelpCenter() {
                   <div>
                     <h3 className="font-semibold text-lg mb-1">Email Support</h3>
                     <p className="text-sm text-muted-foreground mb-3">
-                      Send us an email and we'll get back to you as soon as possible. Include your booking number if applicable.
+                      Prefer email? Reach us directly.
                     </p>
                     <a
                       href="mailto:garychisolm30@gmail.com"
@@ -681,7 +875,7 @@ export default function HelpCenter() {
                   <div>
                     <h3 className="font-semibold text-lg mb-1">Phone Support</h3>
                     <p className="text-sm text-muted-foreground mb-3">
-                      Call us during business hours for immediate assistance with urgent matters.
+                      Call us during business hours for urgent matters.
                     </p>
                     <a
                       href="tel:+16785250891"

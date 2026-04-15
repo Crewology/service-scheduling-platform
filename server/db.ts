@@ -154,3 +154,10 @@ export {
   moveToFolder,
   bulkMoveToFolder,
 } from "./db/folders";
+
+// Contact form submissions
+export {
+  createContactSubmission,
+  getContactSubmissions,
+  updateContactSubmissionStatus,
+} from "./db/contactSubmissions";

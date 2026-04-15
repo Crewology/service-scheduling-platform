@@ -28,6 +28,7 @@ import { verificationRouter } from "./verificationRouter";
 import { referralRouter } from "./referralRouter";
 import { customerSubscriptionRouter } from "./customerSubscriptionRouter";
 import { foldersRouter } from "./foldersRouter";
+import { contactRouter } from "./contactRouter";
 
 export const appRouter = router({
   system: systemRouter,
@@ -50,6 +51,7 @@ export const appRouter = router({
   referral: referralRouter,
   customerSubscription: customerSubscriptionRouter,
   folders: foldersRouter,
+  contact: contactRouter,
 });
 
 export type AppRouter = typeof appRouter;
