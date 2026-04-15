@@ -1061,9 +1061,9 @@ export default function ProviderDashboard() {
                 {bookings.map((booking: any) => (
                   <Card key={booking.id}>
                     <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle className="text-lg">{booking.bookingNumber}</CardTitle>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <CardTitle className="text-lg truncate">{booking.bookingNumber}</CardTitle>
                           <CardDescription>
                             {booking.bookingType === "multi_day" && booking.endDate
                               ? `${new Date(booking.bookingDate).toLocaleDateString()} — ${new Date(booking.endDate).toLocaleDateString()}`
@@ -1108,7 +1108,7 @@ export default function ProviderDashboard() {
                           <p className="text-sm text-muted-foreground">{booking.customerNotes}</p>
                         </div>
                       )}
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         {booking.status === "pending" && (
                           <>
             <Button 
@@ -1295,7 +1295,7 @@ export default function ProviderDashboard() {
 
                         {/* Action buttons */}
                         {quote.status === "pending" && (
-                          <div className="flex gap-2">
+                          <div className="flex flex-wrap gap-2">
                             <Button
                               size="sm"
                               onClick={() => setRespondingQuoteId(quote.id)}
@@ -1329,7 +1329,7 @@ export default function ProviderDashboard() {
                 <h2 className="text-2xl font-bold">My Categories & Services</h2>
                 <p className="text-sm text-muted-foreground mt-1">Manage the categories you serve and the services you offer in each</p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Link href="/provider/onboarding">
                   <Button variant="outline" size="sm">
                     <Grid3X3 className="h-4 w-4 mr-1" /> Manage Categories
@@ -2043,7 +2043,7 @@ export default function ProviderDashboard() {
             {/* Type Toggle */}
             <div>
               <Label>Type</Label>
-              <div className="flex gap-2 mt-1">
+              <div className="flex flex-wrap gap-2 mt-1">
                 <Button
                   type="button"
                   variant={portfolioMediaType === "image" ? "default" : "outline"}

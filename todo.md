@@ -461,3 +461,9 @@
 - [x] Handle SSE reconnection with exponential backoff (1s to 30s max)
 - [x] Write 34 tests for SSE manager, event format, notification types, auth, integration
 - [x] Verified: 0 TypeScript errors, SSE endpoint returns 401 for unauthenticated requests
+
+## Bug Fix: Provider Dashboard Booking Cards Mobile Overflow
+- [x] Fix "Message Customer" button and booking card content running off screen on mobile
+- [x] Added flex-wrap to all button containers in booking cards, quote cards, and services section
+- [x] Added min-w-0 and truncate to booking number in card header
+- [x] Added overflow-hidden to base Card component to prevent all card content spillover
