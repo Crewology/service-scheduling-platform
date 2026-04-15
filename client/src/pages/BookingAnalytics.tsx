@@ -152,6 +152,7 @@ function ExportControls() {
   const [endDate, setEndDate] = useState("");
   const [exportFormat, setExportFormat] = useState<"csv" | "json">("csv");
   const [isExporting, setIsExporting] = useState(false);
+  const [isPdfExporting, setIsPdfExporting] = useState(false);
 
   const exportQuery = trpc.customerSubscription.exportBookings.useQuery(
     { startDate: startDate || undefined, endDate: endDate || undefined, format: exportFormat },
@@ -186,6 +187,43 @@ function ExportControls() {
       }
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handlePdfExport = async () => {
+    setIsPdfExporting(true);
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.set("startDate", startDate);
+      if (endDate) params.set("endDate", endDate);
+      const queryStr = params.toString() ? `?${params.toString()}` : "";
+      const response = await fetch(`/api/export/analytics/pdf${queryStr}`, {
+        credentials: "include",
+      });
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: "Export failed" }));
+        throw new Error(err.error || "Failed to generate PDF");
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const dateRange = startDate && endDate
+        ? `_${startDate}_to_${endDate}`
+        : startDate
+        ? `_from_${startDate}`
+        : endDate
+        ? `_to_${endDate}`
+        : "";
+      a.href = url;
+      a.download = `ologycrew-analytics-report${dateRange}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("PDF export error:", error);
+    } finally {
+      setIsPdfExporting(false);
     }
   };
 
@@ -237,7 +275,7 @@ function ExportControls() {
               size="sm"
               className="gap-1.5"
               onClick={() => handleExport("csv")}
-              disabled={isExporting}
+              disabled={isExporting || isPdfExporting}
             >
               {isExporting && exportFormat === "csv" ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -251,7 +289,7 @@ function ExportControls() {
               size="sm"
               className="gap-1.5"
               onClick={() => handleExport("json")}
-              disabled={isExporting}
+              disabled={isExporting || isPdfExporting}
             >
               {isExporting && exportFormat === "json" ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -259,6 +297,19 @@ function ExportControls() {
                 <FileText className="h-3.5 w-3.5" />
               )}
               JSON
+            </Button>
+            <Button
+              size="sm"
+              className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
+              onClick={handlePdfExport}
+              disabled={isExporting || isPdfExporting}
+            >
+              {isPdfExporting ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <BarChart3 className="h-3.5 w-3.5" />
+              )}
+              PDF Report
             </Button>
           </div>
         </div>

@@ -412,3 +412,17 @@
 
 ## Testing
 - [x] 510 tests passing across 30 test files (0 TypeScript errors, 5 pre-existing timeouts)
+
+## Feature: PDF Export for Booking History (Business Perk)
+- [x] pdfkit already installed — used for comprehensive analytics report
+- [x] Create server-side PDF generation endpoint (/api/export/analytics/pdf) with OlogyCrew branding
+- [x] Include summary section (total bookings, completed, cancelled, total spent, avg booking, platform fees)
+- [x] Include visual spending chart (bar chart of monthly spending with Y-axis gridlines)
+- [x] Include category breakdown chart (stacked horizontal bar with legend)
+- [x] Include top providers section (ranked list with horizontal bar chart)
+- [x] Include detailed booking history table (50-row limit with status color coding)
+- [x] Add "PDF Report" button to BookingAnalytics ExportControls (blue accent, BarChart3 icon)
+- [x] Gate behind Business subscription tier (403 for non-Business)
+- [x] Write 23 tests for PDF export (module, tier gating, date handling, content, colors, filenames)
+- [x] Page numbers, branded header bar, footer, PDF metadata (title, author, creator)
+- [x] Date range filtering via query params (?startDate=&endDate=)

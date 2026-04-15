@@ -97,6 +97,10 @@ async function startServer() {
   app.get("/api/export/bookings/csv", handleCSVExport);
   app.get("/api/export/bookings/pdf", handlePDFExport);
 
+  // Analytics PDF report (Business tier)
+  const { handleAnalyticsPDFExport } = await import("../analyticsExport");
+  app.get("/api/export/analytics/pdf", handleAnalyticsPDFExport);
+
   // Calendar feed route (iCal)
   const { handleCalendarFeed, handleBookingIcsDownload } = await import("../calendarFeed");
   app.get("/api/calendar/:token/feed.ics", handleCalendarFeed);
