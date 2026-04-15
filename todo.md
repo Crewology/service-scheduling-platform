@@ -339,3 +339,18 @@
 ## Bug Fix: Logout Not Visible
 - [x] Add visible logout option to user navigation (UserMenuDropdown with Profile, Settings, Log Out)
 - [x] Add logout to mobile menu (MobileLogoutButton with red styling)
+
+## Feature: Tiered Subscription System (Saved Provider Limits)
+- [x] Add customer_subscriptions schema (tier, status, stripeSubscriptionId, stripeCustomerId, periods)
+- [x] Define Stripe products/prices for Pro ($9.99/mo, $7.99/mo yearly) and Business ($24.99/mo, $19.99/mo yearly)
+- [x] Create customerSubscriptionRouter with getSubscription, getTiers, createCheckout, createPortalSession, canSaveMore
+- [x] Enforce saved provider limits in toggleFavorite: Free=10, Pro=50, Business=unlimited
+- [x] Build UpgradeModal component with tier comparison, shown when limit reached
+- [x] Build /pricing page with plan cards, feature comparison table, billing toggle, FAQ
+- [x] Updated SavedProviders page with usage bar, tier badge, upgrade prompt, near-limit warnings
+- [x] Handle Stripe webhooks for customer subscriptions (created, updated, cancelled) via metadata.type
+- [x] Subscription badge on SavedProviders page (Free/Pro/Business with icons)
+- [x] Write 25 tests for subscription tiers, limits, DB helpers, router, webhooks, schema
+
+## Testing
+- [x] 452 tests passing across 28 test files (0 TypeScript errors)

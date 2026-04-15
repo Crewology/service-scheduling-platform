@@ -459,6 +459,30 @@ export type ProviderSubscription = typeof providerSubscriptions.$inferSelect;
 export type InsertProviderSubscription = typeof providerSubscriptions.$inferInsert;
 
 /**
+ * Customer subscription tiers (Free / Pro / Business)
+ * Controls saved provider limits and premium perks for customers/bookers.
+ */
+export const customerSubscriptions = mysqlTable("customer_subscriptions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique().references(() => users.id),
+  tier: mysqlEnum("tier", ["free", "pro", "business"]).default("free").notNull(),
+  status: mysqlEnum("status", ["active", "trialing", "past_due", "cancelled", "incomplete"]).default("active").notNull(),
+  stripeSubscriptionId: varchar("stripeSubscriptionId", { length: 255 }),
+  stripeCustomerId: varchar("stripeCustomerId", { length: 255 }),
+  currentPeriodStart: timestamp("currentPeriodStart"),
+  currentPeriodEnd: timestamp("currentPeriodEnd"),
+  trialEndsAt: timestamp("trialEndsAt"),
+  cancelAtPeriodEnd: boolean("cancelAtPeriodEnd").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  userIdx: index("cust_sub_user_idx").on(table.userId),
+  tierStatusIdx: index("cust_sub_tier_status_idx").on(table.tier, table.status),
+}));
+export type CustomerSubscription = typeof customerSubscriptions.$inferSelect;
+export type InsertCustomerSubscription = typeof customerSubscriptions.$inferInsert;
+
+/**
  * Notification preferences per user.
  * Controls which channels and notification types the user opts into.
  * Defaults are all-enabled (null = enabled).

@@ -265,6 +265,37 @@ async function handleRefund(charge: Stripe.Charge) {
 }
 
 async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
+  const subscriptionType = subscription.metadata?.type;
+  const stripeStatus = subscription.status === "active" ? "active"
+    : subscription.status === "trialing" ? "trialing"
+    : subscription.status === "past_due" ? "past_due"
+    : "incomplete";
+  const stripeCustomerId = typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id || "";
+
+  // Handle customer subscriptions
+  if (subscriptionType === "customer_subscription") {
+    const userId = subscription.metadata?.userId;
+    const tier = subscription.metadata?.tier as "pro" | "business" | undefined;
+    if (!userId || !tier) {
+      console.error("[Stripe] Missing userId or tier in customer subscription metadata");
+      return;
+    }
+    await db.upsertCustomerSubscription({
+      userId: parseInt(userId),
+      tier,
+      stripeSubscriptionId: subscription.id,
+      stripeCustomerId,
+      status: stripeStatus,
+      currentPeriodStart: new Date(subscription.start_date * 1000),
+      currentPeriodEnd: subscription.ended_at ? new Date(subscription.ended_at * 1000) : undefined,
+      trialEndsAt: subscription.trial_end ? new Date(subscription.trial_end * 1000) : undefined,
+      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+    });
+    console.log(`[Stripe] Customer subscription ${subscription.id} updated for user ${userId}: ${tier} (${stripeStatus})`);
+    return;
+  }
+
+  // Handle provider subscriptions (existing logic)
   const providerId = subscription.metadata?.providerId;
   const tier = subscription.metadata?.tier as "basic" | "premium" | undefined;
   
@@ -273,27 +304,41 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
     return;
   }
 
-  const status = subscription.status === "active" ? "active" 
-    : subscription.status === "trialing" ? "trialing"
-    : subscription.status === "past_due" ? "past_due"
-    : "incomplete";
-
   await db.upsertProviderSubscription({
     providerId: parseInt(providerId),
     tier,
     stripeSubscriptionId: subscription.id,
-    stripeCustomerId: typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id || "",
-    status,
+    stripeCustomerId,
+    status: stripeStatus,
     currentPeriodStart: new Date(subscription.start_date * 1000),
     currentPeriodEnd: subscription.ended_at ? new Date(subscription.ended_at * 1000) : undefined,
     trialEndsAt: subscription.trial_end ? new Date(subscription.trial_end * 1000) : undefined,
     cancelAtPeriodEnd: subscription.cancel_at_period_end,
   });
 
-  console.log(`[Stripe] Subscription ${subscription.id} updated for provider ${providerId}: ${tier} (${status})`);
+  console.log(`[Stripe] Subscription ${subscription.id} updated for provider ${providerId}: ${tier} (${stripeStatus})`);
 }
 
 async function handleSubscriptionCancelled(subscription: Stripe.Subscription) {
+  const subscriptionType = subscription.metadata?.type;
+  const stripeCustomerId = typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id || "";
+
+  // Handle customer subscription cancellation
+  if (subscriptionType === "customer_subscription") {
+    const userId = subscription.metadata?.userId;
+    if (!userId) return;
+    await db.upsertCustomerSubscription({
+      userId: parseInt(userId),
+      tier: "free",
+      stripeSubscriptionId: subscription.id,
+      stripeCustomerId,
+      status: "cancelled",
+    });
+    console.log(`[Stripe] Customer subscription cancelled for user ${userId}`);
+    return;
+  }
+
+  // Handle provider subscription cancellation (existing logic)
   const providerId = subscription.metadata?.providerId;
   if (!providerId) return;
 
@@ -301,7 +346,7 @@ async function handleSubscriptionCancelled(subscription: Stripe.Subscription) {
     providerId: parseInt(providerId),
     tier: "free",
     stripeSubscriptionId: subscription.id,
-    stripeCustomerId: typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id || "",
+    stripeCustomerId,
     status: "cancelled",
   });
 

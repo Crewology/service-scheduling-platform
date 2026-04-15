@@ -111,6 +111,15 @@ export {
   checkSessionConflicts,
 } from "./db/bookingSessions";
 
+// Customer subscriptions
+export {
+  getCustomerSubscription,
+  getCustomerTier,
+  getUserFavoriteCount,
+  upsertCustomerSubscription,
+  getCustomerSubscriptionAnalytics,
+} from "./db/customerSubscriptions";
+
 // Service packages
 export {
   createPackage,

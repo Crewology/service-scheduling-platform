@@ -26,6 +26,7 @@ import { widgetRouter } from "./widgetRouter";
 import { promoRouter } from "./promoRouter";
 import { verificationRouter } from "./verificationRouter";
 import { referralRouter } from "./referralRouter";
+import { customerSubscriptionRouter } from "./customerSubscriptionRouter";
 
 export const appRouter = router({
   system: systemRouter,
@@ -46,6 +47,7 @@ export const appRouter = router({
   promo: promoRouter,
   verification: verificationRouter,
   referral: referralRouter,
+  customerSubscription: customerSubscriptionRouter,
 });
 
 export type AppRouter = typeof appRouter;

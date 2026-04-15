@@ -2,6 +2,7 @@ import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { z } from "zod";
 import * as db from "../db";
 import { TRPCError } from "@trpc/server";
+import { canCustomerSaveMore, CUSTOMER_TIERS } from "../customerSubscription";
 
 export const providerRouter = router({
   create: protectedProcedure
@@ -457,10 +458,28 @@ export const providerRouter = router({
       const already = await db.isFavorited(ctx.user.id, input.providerId);
       if (already) {
         await db.removeFavorite(ctx.user.id, input.providerId);
-        return { favorited: false };
+        return { favorited: false, limitReached: false };
       } else {
+        // Check saved provider limit based on customer subscription tier
+        const tier = await db.getCustomerTier(ctx.user.id);
+        const currentCount = await db.getUserFavoriteCount(ctx.user.id);
+        if (!canCustomerSaveMore(tier, currentCount)) {
+          const config = CUSTOMER_TIERS[tier];
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: `You've reached the limit of ${config.savedProviderLimit} saved providers on the ${config.name} plan. Upgrade to save more!`,
+          });
+        }
         await db.addFavorite(ctx.user.id, input.providerId);
-        return { favorited: true };
+        const newCount = currentCount + 1;
+        const limit = CUSTOMER_TIERS[tier].savedProviderLimit;
+        return {
+          favorited: true,
+          limitReached: limit !== -1 && newCount >= limit,
+          currentCount: newCount,
+          limit,
+          tier,
+        };
       }
     }),
 

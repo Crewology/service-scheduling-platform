@@ -34,6 +34,7 @@ import SavedProviders from "./pages/SavedProviders";
 import MyQuotes from "./pages/MyQuotes";
 import ProviderCalendar from "./pages/ProviderCalendar";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import CustomerPricing from "./pages/CustomerPricing";
 import TermsOfService from "./pages/TermsOfService";
 
 function Router() {
@@ -69,6 +70,7 @@ function Router() {
       <Route path="/referrals" component={Referrals} />
       <Route path="/saved-providers" component={SavedProviders} />
       <Route path="/my-quotes" component={MyQuotes} />
+      <Route path="/pricing" component={CustomerPricing} />
       <Route path="/privacy" component={PrivacyPolicy} />
       <Route path="/terms" component={TermsOfService} />
       <Route path="/404" component={NotFound} />

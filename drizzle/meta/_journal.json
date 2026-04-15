@@ -141,6 +141,13 @@
       "when": 1776128324471,
       "tag": "0019_cloudy_titanium_man",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "5",
+      "when": 1776263276637,
+      "tag": "0020_volatile_shooting_star",
+      "breakpoints": true
     }
   ]
 }
