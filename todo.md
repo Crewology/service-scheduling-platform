@@ -505,3 +505,6 @@
 - [x] Canned auto-reply templates - CRUD management for common inquiry categories
 - [x] Template quick-select in reply UI for fast responses
 - [x] Tests for admin contact management and auto-reply template endpoints
+
+## Feature: Seed Starter Reply Templates
+- [x] Pre-populate 6 canned reply templates for common support categories (general, booking, payment, provider, technical, other)
