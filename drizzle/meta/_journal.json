@@ -148,6 +148,13 @@
       "when": 1776263276637,
       "tag": "0020_volatile_shooting_star",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "5",
+      "when": 1776265445362,
+      "tag": "0021_lame_naoko",
+      "breakpoints": true
     }
   ]
 }

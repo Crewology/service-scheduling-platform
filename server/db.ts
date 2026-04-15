@@ -128,3 +128,22 @@ export {
   getPackagesByProvider,
   getPublicPackagesByProvider,
 } from "./db/packages";
+
+// Customer booking analytics
+export {
+  getCustomerSpendingSummary,
+  getCustomerMonthlySpending,
+  getCustomerTopProviders,
+  getCustomerCategoryBreakdown,
+  getCustomerRecentBookings,
+} from "./db/customerAnalytics";
+
+// Saved provider folders
+export {
+  createFolder,
+  getUserFolders,
+  updateFolder,
+  deleteFolder,
+  moveToFolder,
+  bulkMoveToFolder,
+} from "./db/folders";

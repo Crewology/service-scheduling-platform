@@ -354,3 +354,32 @@
 
 ## Testing
 - [x] 452 tests passing across 28 test files (0 TypeScript errors)
+
+## Feature: Provider Availability Exceptions (Block Dates)
+- [x] Leveraged existing availability_overrides schema (overrideDate, isAvailable, reason, startTime, endTime)
+- [x] Override checking integrated into single, multi-day, and recurring booking creation flows
+- [x] Blocked dates shown on provider calendar view via calendarEvents endpoint
+- [x] Enhanced ManageAvailability UI with quick-block presets (Next Week, Next 2 Weeks, Custom Range)
+- [x] Delete buttons on each override with confirmation
+- [x] Write 8 tests for override checking, multi-day, recurring, and calendar integration
+
+## Feature: Saved Provider Folders (Pro/Business Perk)
+- [x] Add saved_provider_folders schema (userId, name, color, icon, sortOrder)
+- [x] Add folderId to customer_favorites table to assign providers to folders
+- [x] Create foldersRouter with create, update, delete, list, moveToFolder, removeFromFolder
+- [x] Build folder sidebar UI on SavedProviders with color picker, create/edit/delete modals
+- [x] Move-to-folder dropdown on each provider card
+- [x] Filter by folder with count badges
+- [x] Folder deletion moves providers to uncategorized
+- [x] Write 10 tests for folder CRUD, assignment, deletion, and tier gating
+
+## Feature: Booking Analytics Dashboard (Business Perk)
+- [x] Create customerAnalytics DB helpers: getCustomerSpendingSummary, getMonthlySpending, getTopProviders, getCategoryBreakdown, getRecentBookings
+- [x] Build /analytics page with summary cards, monthly bar chart, top providers, category breakdown, recent bookings table
+- [x] Date range: last 12 months of data
+- [x] Gate analytics page behind Business subscription tier with upgrade prompt
+- [x] Add analytics button to SavedProviders page for Business subscribers
+- [x] Write 15 tests for analytics calculations, tier gating, and data formatting
+
+## Testing
+- [x] 485 tests passing across 29 test files (0 TypeScript errors, 5 pre-existing timeouts)

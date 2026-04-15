@@ -159,6 +159,28 @@ export const customerSubscriptionRouter = router({
     return { url: session.url };
   }),
 
+  // Booking analytics (Business tier only)
+  bookingAnalytics: protectedProcedure.query(async ({ ctx }) => {
+    const tier = await db.getCustomerTier(ctx.user.id);
+    const tierConfig = CUSTOMER_TIERS[tier];
+    if (!tierConfig.perks.bookingAnalytics) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Booking analytics is available for Business subscribers. Upgrade to access spending insights.",
+      });
+    }
+
+    const [summary, monthlySpending, topProviders, categoryBreakdown, recentBookings] = await Promise.all([
+      db.getCustomerSpendingSummary(ctx.user.id),
+      db.getCustomerMonthlySpending(ctx.user.id, 12),
+      db.getCustomerTopProviders(ctx.user.id, 10),
+      db.getCustomerCategoryBreakdown(ctx.user.id),
+      db.getCustomerRecentBookings(ctx.user.id, 20),
+    ]);
+
+    return { summary, monthlySpending, topProviders, categoryBreakdown, recentBookings };
+  }),
+
   // Check if user can save more providers (used before toggling favorite)
   canSaveMore: protectedProcedure.query(async ({ ctx }) => {
     const tier = await db.getCustomerTier(ctx.user.id);

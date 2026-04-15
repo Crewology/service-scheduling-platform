@@ -68,12 +68,37 @@ export default function ManageAvailability() {
     sunday: { enabled: false, startTime: "09:00", endTime: "17:00" },
   });
 
+  const deleteOverride = trpc.availability.deleteOverride.useMutation({
+    onSuccess: () => {
+      toast.success("Override removed!");
+      refetchOverrides();
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to remove override");
+    },
+  });
+
   const [overrideForm, setOverrideForm] = useState({
     isAvailable: false,
     startTime: "09:00",
     endTime: "17:00",
     reason: "",
   });
+
+  const handleQuickBlock = (reason: string, days: number) => {
+    if (!provider) return;
+    const today = new Date();
+    for (let i = 0; i < days; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() + i);
+      const dateStr = d.toISOString().split('T')[0];
+      setOverride.mutate({
+        overrideDate: dateStr,
+        isAvailable: false,
+        reason,
+      });
+    }
+  };
 
   const handleSaveWeeklySchedule = () => {
     if (!provider) return;
@@ -349,31 +374,68 @@ export default function ManageAvailability() {
               </CardContent>
             </Card>
 
+            {/* Quick Block Presets */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Block</CardTitle>
+                <CardDescription>Quickly block off time for common scenarios</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button variant="outline" size="sm" onClick={() => handleQuickBlock("Day Off", 1)} className="justify-start">
+                    Today Off
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => {
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    const dateStr = tomorrow.toISOString().split('T')[0];
+                    setOverride.mutate({ overrideDate: dateStr, isAvailable: false, reason: "Day Off" });
+                  }} className="justify-start">
+                    Tomorrow Off
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleQuickBlock("Vacation", 7)} className="justify-start">
+                    Week Off (7 days)
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleQuickBlock("Extended Leave", 14)} className="justify-start">
+                    2 Weeks Off
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Current Overrides */}
             {overrides && overrides.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Upcoming Overrides</CardTitle>
+                  <CardTitle>Upcoming Overrides ({overrides.length})</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     {overrides.map((override: any) => (
-                      <div key={override.id} className="flex justify-between items-start text-sm border-b pb-2">
+                      <div key={override.id} className="flex justify-between items-center text-sm border-b pb-2">
                         <div>
                           <p className="font-medium">
-                            {new Date(override.overrideDate).toLocaleDateString()}
+                            {new Date(override.overrideDate + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
                           </p>
                           {override.isAvailable ? (
                             <p className="text-muted-foreground">
-                              {override.startTime} - {override.endTime}
+                              Custom hours: {override.startTime} - {override.endTime}
                             </p>
                           ) : (
-                            <p className="text-destructive">Unavailable</p>
+                            <p className="text-destructive font-medium">Blocked - Unavailable</p>
                           )}
                           {override.reason && (
                             <p className="text-xs text-muted-foreground">{override.reason}</p>
                           )}
                         </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => deleteOverride.mutate({ overrideId: override.id })}
+                        >
+                          Remove
+                        </Button>
                       </div>
                     ))}
                   </div>

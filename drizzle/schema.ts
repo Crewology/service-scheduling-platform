@@ -649,6 +649,7 @@ export const customerFavorites = mysqlTable("customer_favorites", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull().references(() => users.id),
   providerId: int("providerId").notNull().references(() => serviceProviders.id),
+  folderId: int("folderId"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (table) => ({
   userProviderIdx: index("fav_user_provider_idx").on(table.userId, table.providerId),
@@ -658,6 +659,25 @@ export const customerFavorites = mysqlTable("customer_favorites", {
 
 export type CustomerFavorite = typeof customerFavorites.$inferSelect;
 export type InsertCustomerFavorite = typeof customerFavorites.$inferInsert;
+
+/**
+ * Saved provider folders — organize favorites into named folders (Pro/Business perk).
+ */
+export const savedProviderFolders = mysqlTable("saved_provider_folders", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id),
+  name: varchar("name", { length: 100 }).notNull(),
+  color: varchar("color", { length: 20 }).default("#3b82f6"),
+  icon: varchar("icon", { length: 50 }).default("folder"),
+  sortOrder: int("sortOrder").default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull().$onUpdate(() => new Date()),
+}, (table) => ({
+  userIdx: index("folder_user_idx").on(table.userId),
+  userNameUnique: unique("folder_user_name_unique").on(table.userId, table.name),
+}));
+export type SavedProviderFolder = typeof savedProviderFolders.$inferSelect;
+export type InsertSavedProviderFolder = typeof savedProviderFolders.$inferInsert;
 
 /**
  * Service packages — bundled services with combined discount pricing.

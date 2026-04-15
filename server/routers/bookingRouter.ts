@@ -32,8 +32,27 @@ export const bookingRouter = router({
       const service = await db.getServiceById(input.serviceId);
       if (!service) throw new TRPCError({ code: "NOT_FOUND", message: "Service not found" });
 
-      // PRIORITY 1: Double-booking prevention
+      // PRIORITY 0: Check availability overrides (blocked dates)
       const providerId = input.providerId || service.providerId;
+      const overrides = await db.getAvailabilityOverrides(providerId, input.bookingDate, input.bookingDate);
+      const dateOverride = overrides.find((o: any) => o.overrideDate === input.bookingDate);
+      if (dateOverride && !dateOverride.isAvailable) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `This provider is unavailable on ${input.bookingDate}${dateOverride.reason ? ` (${dateOverride.reason})` : ""}. Please choose a different date.`,
+        });
+      }
+      // If override has custom hours, check if booking falls within those hours
+      if (dateOverride && dateOverride.isAvailable && dateOverride.startTime && dateOverride.endTime) {
+        if (input.startTime < dateOverride.startTime || input.endTime > dateOverride.endTime) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `This provider has modified hours on ${input.bookingDate} (${dateOverride.startTime} - ${dateOverride.endTime}). Please adjust your booking time.`,
+          });
+        }
+      }
+
+      // PRIORITY 1: Double-booking prevention
       const existingBookings = await db.getBookingsByDateRange(
         providerId,
         input.bookingDate,
@@ -538,6 +557,19 @@ export const bookingRouter = router({
       const totalDays = dates.length;
       if (totalDays > 30) throw new TRPCError({ code: "BAD_REQUEST", message: "Multi-day bookings cannot exceed 30 days" });
 
+      // Check availability overrides (blocked dates)
+      const overrides = await db.getAvailabilityOverrides(providerId, dates[0], dates[dates.length - 1]);
+      const blockedDates = overrides.filter((o: any) => !o.isAvailable).map((o: any) => o.overrideDate);
+      if (blockedDates.length > 0) {
+        const blockedInRange = dates.filter(d => blockedDates.includes(d));
+        if (blockedInRange.length > 0) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Provider is unavailable on ${blockedInRange.length} date(s): ${blockedInRange.slice(0, 5).join(", ")}${blockedInRange.length > 5 ? " and more" : ""}. Please adjust your dates.`,
+          });
+        }
+      }
+
       // Check conflicts for all dates
       const conflicts = await db.checkSessionConflicts(providerId, dates, input.startTime, input.endTime);
       if (conflicts.length > 0) {
@@ -690,6 +722,17 @@ export const bookingRouter = router({
       }
       if (uniqueDates.length > 200) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Too many sessions. Please reduce the number of weeks or days per week." });
+      }
+
+      // Check availability overrides (blocked dates)
+      const overrides = await db.getAvailabilityOverrides(providerId, uniqueDates[0], uniqueDates[uniqueDates.length - 1]);
+      const blockedDates = overrides.filter((o: any) => !o.isAvailable).map((o: any) => o.overrideDate);
+      const blockedInRange = uniqueDates.filter(d => blockedDates.includes(d));
+      if (blockedInRange.length > 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Provider is unavailable on ${blockedInRange.length} date(s): ${blockedInRange.slice(0, 5).join(", ")}${blockedInRange.length > 5 ? " and more" : ""}. Please adjust your schedule or remove those dates.`,
+        });
       }
 
       // Check conflicts for all session dates
@@ -974,9 +1017,18 @@ export const bookingRouter = router({
         }
       }
 
+      // Get availability overrides for the next 90 days
+      const today = new Date();
+      const endDate = new Date(today);
+      endDate.setDate(endDate.getDate() + 90);
+      const todayStr = today.toISOString().split("T")[0];
+      const endStr = endDate.toISOString().split("T")[0];
+      const overrides = await db.getAvailabilityOverrides(provider.id, todayStr, endStr);
+
       return {
         bookings: calendarBookings,
         sessions: allSessions,
+        overrides: overrides || [],
       };
     }),
 });
