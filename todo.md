@@ -447,3 +447,17 @@
 - [x] Fix BulkQuoteModal date/time grid for mobile
 - [x] Fix CategoryDetail heading and icon sizing for mobile
 - [x] Verify all fixes — 0 TypeScript errors, 533 tests passing (5 pre-existing timeouts)
+
+## Feature: Real-Time Notification System (SSE)
+- [x] Review current notification schema, endpoints, and dropdown UI
+- [x] Build server-side SSE endpoint (/api/sse/notifications) with JWT cookie auth
+- [x] Create SSEManager singleton (server/sseManager.ts) with heartbeat, multi-tab support
+- [x] Integrate SSE triggers into booking creation (provider + customer notifications)
+- [x] Integrate SSE triggers into booking status changes (confirmed, completed, cancelled, in-progress)
+- [x] Integrate SSE triggers into messaging flow (new message notifications + pushMessageNotification)
+- [x] Hook createNotification (both db-legacy and db/notifications) to auto-push SSE events
+- [x] Update NotificationDropdown to use SSE via useSSE hook (slower polling fallback when connected)
+- [x] Add toast notifications for real-time events (booking + message toasts via sonner)
+- [x] Handle SSE reconnection with exponential backoff (1s to 30s max)
+- [x] Write 34 tests for SSE manager, event format, notification types, auth, integration
+- [x] Verified: 0 TypeScript errors, SSE endpoint returns 401 for unauthenticated requests

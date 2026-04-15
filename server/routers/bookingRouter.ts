@@ -170,10 +170,28 @@ export const bookingRouter = router({
             },
           });
         }
+         // Create in-app notifications (triggers SSE push automatically)
+        if (providerUser) {
+          await db.createNotification({
+            userId: providerUser.id,
+            notificationType: "booking_created",
+            title: "New Booking Request",
+            message: `${ctx.user.name || "A customer"} booked ${service.name} for ${input.bookingDate} at ${input.startTime}`,
+            actionUrl: `/provider/bookings`,
+            relatedBookingId: bookingId,
+          });
+        }
+        await db.createNotification({
+          userId: ctx.user.id,
+          notificationType: "booking_confirmed",
+          title: "Booking Confirmed",
+          message: `Your booking for ${service.name} on ${input.bookingDate} at ${input.startTime} has been submitted`,
+          actionUrl: `/bookings/${bookingId}`,
+          relatedBookingId: bookingId,
+        });
       } catch (err) {
         console.error("[Booking] Notification send failed (non-blocking):", err);
       }
-
       return booking;
     }),
     
@@ -315,6 +333,51 @@ export const bookingRouter = router({
             },
           });
         }
+        // Create in-app notifications for status changes (triggers SSE push automatically)
+        const statusMessages: Record<string, { title: string; message: string; type: string }> = {
+          confirmed: {
+            title: "Booking Confirmed",
+            message: `Your booking ${booking.bookingNumber} for ${service?.name || "Service"} has been confirmed`,
+            type: "booking_confirmed",
+          },
+          completed: {
+            title: "Booking Completed",
+            message: `Your booking ${booking.bookingNumber} for ${service?.name || "Service"} has been marked as completed`,
+            type: "booking_completed",
+          },
+          cancelled: {
+            title: "Booking Cancelled",
+            message: `Booking ${booking.bookingNumber} for ${service?.name || "Service"} has been cancelled`,
+            type: "booking_cancelled",
+          },
+          in_progress: {
+            title: "Booking In Progress",
+            message: `Your booking ${booking.bookingNumber} for ${service?.name || "Service"} is now in progress`,
+            type: "booking_in_progress",
+          },
+        };
+        const statusMsg = statusMessages[input.status];
+        if (statusMsg && customer) {
+          await db.createNotification({
+            userId: customer.id,
+            notificationType: statusMsg.type,
+            title: statusMsg.title,
+            message: statusMsg.message,
+            actionUrl: `/bookings/${booking.id}`,
+            relatedBookingId: booking.id,
+          });
+        }
+        // Notify provider about customer-initiated status changes
+        if (statusMsg && providerUser && booking.customerId === ctx.user.id) {
+          await db.createNotification({
+            userId: providerUser.id,
+            notificationType: statusMsg.type,
+            title: statusMsg.title,
+            message: `Booking ${booking.bookingNumber} status changed to ${input.status}`,
+            actionUrl: `/provider/bookings`,
+            relatedBookingId: booking.id,
+          });
+        }
       } catch (err) {
         console.error("[BookingStatus] Notification send failed (non-blocking):", err);
       }
@@ -440,6 +503,32 @@ export const bookingRouter = router({
             reason: input.reason,
           },
         });
+      }
+
+      // Create in-app notifications for cancellation (triggers SSE push automatically)
+      try {
+        if (customer) {
+          await db.createNotification({
+            userId: customer.id,
+            notificationType: "booking_cancelled",
+            title: "Booking Cancelled",
+            message: `Booking ${booking.bookingNumber} for ${service?.name || "Service"} has been cancelled. ${parseFloat(refundAmount) > 0 ? `Refund: $${refundAmount}` : "No refund applicable."}`,
+            actionUrl: `/bookings/${booking.id}`,
+            relatedBookingId: booking.id,
+          });
+        }
+        if (providerUser && cancelledBy === "customer") {
+          await db.createNotification({
+            userId: providerUser.id,
+            notificationType: "booking_cancelled",
+            title: "Booking Cancelled by Customer",
+            message: `${customer?.name || "Customer"} cancelled booking ${booking.bookingNumber} for ${service?.name || "Service"}`,
+            actionUrl: `/provider/bookings`,
+            relatedBookingId: booking.id,
+          });
+        }
+      } catch (err) {
+        console.error("[Cancellation] In-app notification failed (non-blocking):", err);
       }
 
       const updated = await db.getBookingById(input.bookingId);

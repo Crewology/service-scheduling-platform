@@ -615,6 +615,26 @@ export async function createNotification(data: typeof notifications.$inferInsert
   if (!db) throw new Error("Database not available");
 
   const result = await db.insert(notifications).values(data);
+
+  // Push real-time SSE notification to connected clients
+  try {
+    const { sseManager } = await import("./sseManager");
+    sseManager.pushNotification(data.userId, {
+      notificationType: data.notificationType,
+      title: data.title,
+      message: data.message,
+      actionUrl: data.actionUrl ?? null,
+      relatedBookingId: data.relatedBookingId ?? null,
+      createdAt: new Date(),
+    });
+    // Push updated unread count
+    const unreadRows = await db.select().from(notifications)
+      .where(and(eq(notifications.userId, data.userId), eq(notifications.isRead, false)));
+    sseManager.pushUnreadCount(data.userId, unreadRows.length);
+  } catch (err) {
+    console.error("[SSE] Failed to push notification:", err);
+  }
+
   return result;
 }
 

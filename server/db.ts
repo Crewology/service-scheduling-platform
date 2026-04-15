@@ -140,6 +140,11 @@ export {
   getCustomerBookingsForExport,
 } from "./db/customerAnalytics";
 
+// Notification helpers
+export {
+  getUnreadCount,
+} from "./db/notifications";
+
 // Saved provider folders
 export {
   createFolder,

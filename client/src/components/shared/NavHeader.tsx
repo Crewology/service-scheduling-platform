@@ -19,19 +19,60 @@ import {
   Settings,
   ChevronDown,
 } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { useSSE } from "@/hooks/useSSE";
+import { toast } from "sonner";
 
 function NotificationDropdown() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const utils = trpc.useUtils();
+  const [sseConnected, setSseConnected] = useState(false);
 
+  // Fetch initial data (polling as fallback, but SSE will push updates)
   const { data: notifData } = trpc.notification.list.useQuery(
     { unreadOnly: false },
-    { refetchInterval: 15000 }
+    { refetchInterval: sseConnected ? 60000 : 15000 } // Slower polling when SSE is active
   );
   const { data: countData } = trpc.notification.unreadCount.useQuery(undefined, {
-    refetchInterval: 15000,
+    refetchInterval: sseConnected ? 60000 : 15000,
+  });
+
+  // Real-time SSE connection
+  const handleSSENotification = useCallback((data: any) => {
+    // Invalidate queries to refresh the list
+    utils.notification.list.invalidate();
+    utils.notification.unreadCount.invalidate();
+
+    // Show toast for new notification
+    toast(data.title || "New Notification", {
+      description: data.message?.slice(0, 100) || "",
+      duration: 5000,
+    });
+  }, [utils]);
+
+  const handleSSEUnreadCount = useCallback((_data: any) => {
+    utils.notification.unreadCount.invalidate();
+  }, [utils]);
+
+  const handleSSENewMessage = useCallback((data: any) => {
+    // Invalidate message-related queries
+    utils.notification.list.invalidate();
+    utils.notification.unreadCount.invalidate();
+
+    toast(`Message from ${data.senderName || "Someone"}`, {
+      description: data.messagePreview?.slice(0, 80) || "New message received",
+      duration: 4000,
+    });
+  }, [utils]);
+
+  useSSE({
+    enabled: true,
+    onNotification: handleSSENotification,
+    onUnreadCount: handleSSEUnreadCount,
+    onNewMessage: handleSSENewMessage,
+    onConnected: () => setSseConnected(true),
+    onDisconnected: () => setSseConnected(false),
   });
 
   const markRead = trpc.notification.markAsRead.useMutation({

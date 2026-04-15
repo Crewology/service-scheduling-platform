@@ -9,6 +9,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import { sdk } from "./sdk";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -100,6 +101,23 @@ async function startServer() {
   // Analytics PDF report (Business tier)
   const { handleAnalyticsPDFExport } = await import("../analyticsExport");
   app.get("/api/export/analytics/pdf", handleAnalyticsPDFExport);
+
+  // Real-time SSE notifications endpoint
+  const { sseManager } = await import("../sseManager");
+  app.get("/api/sse/notifications", async (req, res) => {
+    try {
+      const user = await sdk.authenticateRequest(req as any);
+      if (!user) {
+        res.status(401).json({ error: "Unauthorized" });
+        return;
+      }
+      // Disable request timeout for SSE
+      req.setTimeout(0);
+      sseManager.addClient(user.id, res);
+    } catch {
+      res.status(401).json({ error: "Unauthorized" });
+    }
+  });
 
   // Calendar feed route (iCal)
   const { handleCalendarFeed, handleBookingIcsDownload } = await import("../calendarFeed");

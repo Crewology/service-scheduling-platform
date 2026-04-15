@@ -14,7 +14,35 @@ export async function createNotification(data: typeof notifications.$inferInsert
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const result = await db.insert(notifications).values(data);
+
+  // Push real-time SSE notification to connected clients
+  try {
+    const { sseManager } = await import("../sseManager");
+    sseManager.pushNotification(data.userId, {
+      notificationType: data.notificationType,
+      title: data.title,
+      message: data.message,
+      actionUrl: data.actionUrl ?? null,
+      relatedBookingId: data.relatedBookingId ?? null,
+      createdAt: new Date(),
+    });
+    // Also push updated unread count
+    const unread = await getUnreadCount(data.userId);
+    sseManager.pushUnreadCount(data.userId, unread);
+  } catch (err) {
+    // SSE push is non-blocking; log and continue
+    console.error("[SSE] Failed to push notification:", err);
+  }
+
   return result;
+}
+
+export async function getUnreadCount(userId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const rows = await db.select().from(notifications)
+    .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+  return rows.length;
 }
 
 export async function getNotificationsByUser(userId: number, limit = 50) {

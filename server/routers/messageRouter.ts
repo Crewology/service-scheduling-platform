@@ -23,7 +23,33 @@ export const messageRouter = router({
       });
       
       const msgs = await db.getConversationMessages(conversationId);
-      return msgs[msgs.length - 1]!;
+      const newMsg = msgs[msgs.length - 1]!;
+
+      // Create in-app notification for the recipient (triggers SSE push automatically)
+      try {
+        const preview = input.messageText.length > 100 ? input.messageText.slice(0, 100) + "..." : input.messageText;
+        await db.createNotification({
+          userId: input.recipientId,
+          notificationType: "message_received",
+          title: "New Message",
+          message: `${ctx.user.name || "Someone"}: ${preview}`,
+          actionUrl: `/messages?conversation=${conversationId}`,
+        });
+
+        // Also push a dedicated newMessage event for instant chat updates
+        const { sseManager } = await import("../sseManager");
+        sseManager.pushMessageNotification(input.recipientId, {
+          conversationId,
+          senderId: ctx.user.id,
+          senderName: ctx.user.name || "Someone",
+          messagePreview: preview,
+          bookingId: input.bookingId,
+        });
+      } catch (err) {
+        console.error("[Message] Notification failed (non-blocking):", err);
+      }
+
+      return newMsg;
     }),
     
   getConversation: protectedProcedure
