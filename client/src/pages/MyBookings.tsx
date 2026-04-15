@@ -49,9 +49,9 @@ export default function MyBookings() {
       <NavHeader />
 
       <div className="container py-8 max-w-5xl">
-        <div className="mb-8 flex items-start justify-between">
+        <div className="mb-8 flex flex-col sm:flex-row items-start justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold mb-2">My Bookings</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">My Bookings</h1>
             <p className="text-muted-foreground">
               Manage and track all your service bookings
             </p>

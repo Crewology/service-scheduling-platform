@@ -581,7 +581,7 @@ export default function ServiceDetail() {
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div>
-                    <CardTitle className="text-3xl mb-2">{service.name}</CardTitle>
+                    <CardTitle className="text-xl sm:text-2xl md:text-3xl mb-2">{service.name}</CardTitle>
                     <CardDescription className="text-base">
                       by{" "}
                       <span className="font-medium text-foreground">
@@ -1024,7 +1024,7 @@ export default function ServiceDetail() {
                         </Button>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-3 gap-2 max-h-56 overflow-y-auto pr-1">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-56 overflow-y-auto pr-1">
                         {availableSlots.map((slot) => (
                           <Button
                             key={slot.time}

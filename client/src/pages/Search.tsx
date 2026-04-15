@@ -38,7 +38,7 @@ export default function Search() {
       {/* Page Title */}
       <div className="bg-white border-b">
         <div className="container py-8">
-          <h1 className="text-3xl font-bold mb-2">Search Services</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Search Services</h1>
           <p className="text-muted-foreground">
             Find the perfect service provider for your needs
           </p>

@@ -154,10 +154,10 @@ export default function CategoryDetail() {
           </Link>
           
           <div className="flex items-center gap-3 mb-4">
-            <span className="text-4xl">{icon}</span>
-            <h1 className="text-4xl md:text-5xl font-bold">{category.name}</h1>
+            <span className="text-2xl sm:text-4xl">{icon}</span>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold">{category.name}</h1>
           </div>
-          <p className="text-xl text-muted-foreground mb-6">
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6">
             {category.description}
           </p>
           

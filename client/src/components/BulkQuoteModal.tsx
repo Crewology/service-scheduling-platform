@@ -231,7 +231,7 @@ export default function BulkQuoteModal({ open, onOpenChange, providers, folderNa
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label htmlFor="date" className="flex items-center gap-1">
                     <Calendar className="h-3.5 w-3.5" />

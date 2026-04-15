@@ -116,7 +116,7 @@ function NotificationDropdown() {
       </Button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-[380px] bg-white rounded-lg shadow-xl border z-[100] overflow-hidden">
+        <div className="absolute right-0 top-full mt-2 w-[380px] max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-xl border z-[100] overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
             <h3 className="font-semibold text-sm">Notifications</h3>

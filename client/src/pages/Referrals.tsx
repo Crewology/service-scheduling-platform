@@ -60,7 +60,7 @@ export default function Referrals() {
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-orange-50">
         <div className="container max-w-2xl py-20 text-center">
           <Gift className="h-16 w-16 text-primary mx-auto mb-6" />
-          <h1 className="text-3xl font-bold mb-4">Referral Program</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-4">Referral Program</h1>
           <p className="text-muted-foreground text-lg mb-8">
             Sign in to get your unique referral code and start earning rewards when friends book services.
           </p>
@@ -156,7 +156,7 @@ export default function Referrals() {
                 {/* Code Display */}
                 <div className="flex items-center gap-3">
                   <div className="flex-1 bg-white border-2 border-dashed border-primary/30 rounded-lg px-6 py-4 text-center">
-                    <span className="text-3xl font-mono font-bold tracking-wider text-primary">
+                    <span className="text-xl sm:text-3xl font-mono font-bold tracking-wider text-primary">
                       {myCode.code}
                     </span>
                   </div>
@@ -275,7 +275,7 @@ export default function Referrals() {
               <>
                 <div className="bg-muted/50 rounded-lg p-4 mb-4 space-y-4">
                   <h4 className="font-semibold text-sm">Referral Settings</h4>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <Label className="text-xs">Referrer Discount (%)</Label>
                       <Input

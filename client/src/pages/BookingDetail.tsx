@@ -185,14 +185,14 @@ export default function BookingDetail() {
       <NavHeader />
       <div className="container py-8 max-w-5xl mx-auto px-4">
         {/* Back button + header */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-2 sm:gap-4 mb-6 flex-wrap">
           <Button variant="ghost" size="sm" onClick={() => window.history.back()}>
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back
           </Button>
           <div className="flex-1">
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold">{booking.bookingNumber}</h1>
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+              <h1 className="text-xl sm:text-2xl font-bold">{booking.bookingNumber}</h1>
               <Badge className={statusColors[booking.status] || "bg-gray-100"}>
                 {booking.status.replace("_", " ")}
               </Badge>
@@ -212,7 +212,7 @@ export default function BookingDetail() {
             </p>
           </div>
           {/* Status action buttons */}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {booking.status === "pending" && (
               <>
                 <Button
@@ -277,7 +277,7 @@ export default function BookingDetail() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Service</p>
                     <p className="font-medium">{service?.name || "N/A"}</p>
@@ -491,7 +491,7 @@ export default function BookingDetail() {
                               <RefreshCw className="h-4 w-4" />
                               Reschedule Session #{session.sessionNumber}
                             </p>
-                            <div className="grid grid-cols-3 gap-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                               <div>
                                 <label className="text-xs text-muted-foreground">New Date</label>
                                 <Input
@@ -558,7 +558,7 @@ export default function BookingDetail() {
               </CardHeader>
               <CardContent>
                 {payment ? (
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Payment Status</p>
                       <Badge className={payment.status === "captured" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}>

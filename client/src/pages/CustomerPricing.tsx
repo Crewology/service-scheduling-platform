@@ -126,7 +126,7 @@ export default function CustomerPricing() {
               <Shield className="h-6 w-6 text-primary" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold mb-3">Choose Your Plan</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-3">Choose Your Plan</h1>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">
             Save more providers, get priority bookings, and unlock powerful tools to manage your service needs.
           </p>

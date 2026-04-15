@@ -127,7 +127,7 @@ export default function Messages() {
         </Card>
 
         {/* Messages */}
-        <Card className="h-[600px] flex flex-col">
+        <Card className="h-[calc(100vh-16rem)] sm:h-[600px] flex flex-col">
           <ScrollArea className="flex-1 p-4" ref={scrollRef}>
             <div className="space-y-4">
               {!messages || messages.length === 0 ? (

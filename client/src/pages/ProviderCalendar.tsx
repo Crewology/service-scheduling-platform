@@ -213,14 +213,14 @@ export default function ProviderCalendar() {
         <div className="grid grid-cols-7">
           {cells.map((day, idx) => {
             if (day === null) {
-              return <div key={`empty-${idx}`} className="min-h-[100px] border-b border-r bg-muted/20" />;
+              return <div key={`empty-${idx}`} className="min-h-[60px] sm:min-h-[100px] border-b border-r bg-muted/20" />;
             }
             const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
             const dayEvents = eventsMap.get(dateKey) || [];
             const isToday = dateKey === todayKey;
 
             return (
-              <div key={dateKey} className={`min-h-[100px] border-b border-r p-1 ${isToday ? "bg-primary/5" : "bg-background"}`}>
+              <div key={dateKey} className={`min-h-[60px] sm:min-h-[100px] border-b border-r p-1 ${isToday ? "bg-primary/5" : "bg-background"}`}>
                 <div className={`text-xs font-medium mb-1 ${isToday ? "text-primary font-bold" : "text-muted-foreground"}`}>
                   {isToday ? (
                     <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs">

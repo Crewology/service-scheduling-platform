@@ -462,6 +462,7 @@ export default function AdminDashboard() {
                 {usersLoading ? (
                   <LoadingSpinner />
                 ) : (
+                  <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -512,6 +513,7 @@ export default function AdminDashboard() {
                       ))}
                     </TableBody>
                   </Table>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -528,6 +530,7 @@ export default function AdminDashboard() {
                 {providersLoading ? (
                   <LoadingSpinner />
                 ) : (
+                  <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -587,6 +590,7 @@ export default function AdminDashboard() {
                       ))}
                     </TableBody>
                   </Table>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -603,6 +607,7 @@ export default function AdminDashboard() {
                 {bookingsLoading ? (
                   <LoadingSpinner />
                 ) : (
+                  <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -638,6 +643,7 @@ export default function AdminDashboard() {
                       ))}
                     </TableBody>
                   </Table>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -849,6 +855,7 @@ function DocumentReviewPanel() {
         ) : !documents || documents.length === 0 ? (
           <p className="text-muted-foreground text-center py-8">No documents found</p>
         ) : (
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -896,10 +903,10 @@ function DocumentReviewPanel() {
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
+           </Table>
+          </div>
         )}
       </CardContent>
-
       {/* Reject Dialog */}
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
         <DialogContent>

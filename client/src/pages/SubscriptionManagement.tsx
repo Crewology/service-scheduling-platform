@@ -147,7 +147,7 @@ export default function SubscriptionManagement() {
       <div className="min-h-screen bg-background">
         <NavHeader />
         <div className="container py-16 text-center">
-          <h1 className="text-3xl font-bold mb-4">Provider Plans</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-4">Provider Plans</h1>
           <p className="text-muted-foreground mb-8">Sign in to manage your subscription</p>
         </div>
       </div>
@@ -167,7 +167,7 @@ export default function SubscriptionManagement() {
               Back to Dashboard
             </Button>
           </Link>
-          <h1 className="text-3xl font-bold mb-2">Choose Your Plan</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Choose Your Plan</h1>
           <p className="text-muted-foreground text-lg">
             Unlock more features to grow your business. All plans include a low 1% transaction fee.
           </p>

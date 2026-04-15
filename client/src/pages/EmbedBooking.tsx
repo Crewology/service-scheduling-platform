@@ -335,7 +335,7 @@ export default function EmbedBooking() {
               No available time slots for this date. Please select another date.
             </p>
           ) : (
-            <div className="grid grid-cols-3 gap-2 max-h-[50vh] overflow-y-auto">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[50vh] overflow-y-auto">
               {availableSlots
                 .filter((slot) => slot.available)
                 .map((slot) => (

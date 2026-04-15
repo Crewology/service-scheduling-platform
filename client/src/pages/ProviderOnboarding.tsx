@@ -133,7 +133,7 @@ function AddServiceDialog({
               rows={2}
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Service Type</Label>
               <Select value={serviceType} onValueChange={setServiceType}>
@@ -164,7 +164,7 @@ function AddServiceDialog({
               </Select>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Pricing</Label>
               <Select value={pricingModel} onValueChange={setPricingModel}>
@@ -431,7 +431,7 @@ export default function ProviderOnboarding() {
       <div className="container max-w-4xl py-8">
         {/* Header with overall progress */}
         <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold">Set Up Your Provider Profile</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Set Up Your Provider Profile</h1>
           <p className="text-muted-foreground mt-2">
             Show the world everything you can do — add all your skills and services
           </p>
@@ -453,7 +453,7 @@ export default function ProviderOnboarding() {
         </div>
 
         {/* Progress Steps */}
-        <div className="flex items-center justify-between mb-10 px-4">
+        <div className="flex items-center justify-between mb-8 sm:mb-10 px-0 sm:px-4 overflow-x-auto">
           {STEPS.map((step, index) => {
             const isComplete = stepComplete[step.id as keyof typeof stepComplete];
             const isCurrent = currentStep === step.id;
@@ -465,7 +465,7 @@ export default function ProviderOnboarding() {
                   className={`flex flex-col items-center gap-1.5 transition-all ${isCurrent ? "scale-110" : ""}`}
                 >
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shrink-0 ${
                       isComplete
                         ? "bg-green-500 text-white"
                         : isCurrent
@@ -483,7 +483,7 @@ export default function ProviderOnboarding() {
                   </span>
                 </button>
                 {index < STEPS.length - 1 && (
-                  <div className={`w-8 md:w-16 h-0.5 mx-1 ${isComplete ? "bg-green-500" : "bg-muted"}`} />
+                  <div className={`w-4 sm:w-8 md:w-16 h-0.5 mx-0.5 sm:mx-1 shrink-0 ${isComplete ? "bg-green-500" : "bg-muted"}`} />
                 )}
               </div>
             );

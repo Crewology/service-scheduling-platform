@@ -23,8 +23,8 @@ export default function Browse() {
       {/* Page Header */}
       <section className="py-12 bg-gradient-to-br from-primary/5 to-accent/5">
         <div className="container">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Browse All Services</h1>
-          <p className="text-xl text-muted-foreground mb-8">
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4">Browse All Services</h1>
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 md:mb-8">
             Explore 42+ professional service categories
           </p>
           

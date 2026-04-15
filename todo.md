@@ -426,3 +426,24 @@
 - [x] Write 23 tests for PDF export (module, tier gating, date handling, content, colors, filenames)
 - [x] Page numbers, branded header bar, footer, PDF metadata (title, author, creator)
 - [x] Date range filtering via query params (?startDate=&endDate=)
+
+## Feature: Mobile Responsiveness Audit & Fix
+- [x] Audit all key pages on mobile viewport (375px) and document issues
+- [x] Fix navigation/header overlapping on mobile (notification dropdown max-width)
+- [x] Fix homepage layout and text sizing on mobile (hero, sections, CTA, footer grid)
+- [x] Fix browse/search pages for mobile (heading text sizing)
+- [x] Fix booking detail/flow pages for mobile (action buttons wrap, time slot grids)
+- [x] Fix customer dashboard for mobile (BookingAnalytics stat cards, header)
+- [x] Fix provider dashboard for mobile (stat cards, header, form grids, tab bar)
+- [x] Fix analytics/export page for mobile (header text sizing)
+- [x] Fix quotes/messages pages for mobile (MyQuotes header, Messages chat height)
+- [x] Fix profile and settings pages for mobile (PublicProviderProfile, SubscriptionManagement, CustomerPricing, Referrals)
+- [x] Fix onboarding wizard for mobile (step tracker, form grids, heading)
+- [x] Fix saved providers page for mobile (header button wrapping)
+- [x] Fix AdminDashboard tables with overflow-x-auto wrappers (4 tables)
+- [x] Fix ProviderCalendar cells min-height for mobile
+- [x] Fix EmbedBooking time slots grid for mobile
+- [x] Fix PromoCodes form grid for mobile
+- [x] Fix BulkQuoteModal date/time grid for mobile
+- [x] Fix CategoryDetail heading and icon sizing for mobile
+- [x] Verify all fixes — 0 TypeScript errors, 533 tests passing (5 pre-existing timeouts)

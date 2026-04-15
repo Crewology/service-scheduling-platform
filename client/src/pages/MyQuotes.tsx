@@ -99,7 +99,7 @@ export default function MyQuotes() {
       <div className="container max-w-4xl py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold">My Quote Requests</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">My Quote Requests</h1>
             <p className="text-muted-foreground mt-1">Track and manage your custom service quotes</p>
           </div>
         </div>
@@ -125,10 +125,10 @@ export default function MyQuotes() {
               return (
                 <Card key={quote.id} className="overflow-hidden">
                   <CardContent className="p-6">
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-semibold text-lg truncate">{quote.title}</h3>
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+                          <h3 className="font-semibold text-base sm:text-lg truncate">{quote.title}</h3>
                           <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${status.color}`}>
                             <StatusIcon className="h-3 w-3" />
                             {status.label}
@@ -161,9 +161,9 @@ export default function MyQuotes() {
                     {/* Provider's Quote Response */}
                     {quote.status === "quoted" && quote.quotedAmount && (
                       <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                        <div className="flex items-center justify-between mb-2">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-2">
                           <span className="font-semibold text-blue-800 dark:text-blue-300">Provider's Quote</span>
-                          <span className="text-2xl font-bold text-blue-900 dark:text-blue-200">
+                          <span className="text-xl sm:text-2xl font-bold text-blue-900 dark:text-blue-200">
                             ${parseFloat(quote.quotedAmount).toFixed(2)}
                           </span>
                         </div>

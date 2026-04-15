@@ -281,7 +281,7 @@ export default function PublicProviderProfile() {
 
             <div className="flex-1">
               <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-3xl md:text-4xl font-bold text-foreground">{provider.businessName}</h1>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">{provider.businessName}</h1>
                 {provider.isOfficial && <OfficialBadge size="lg" />}
                 {provider.verificationStatus === "verified" && !provider.isOfficial && (
                   <Badge className="gap-1 bg-blue-500 hover:bg-blue-600 text-white">

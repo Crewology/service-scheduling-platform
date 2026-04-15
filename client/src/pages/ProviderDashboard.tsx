@@ -887,9 +887,9 @@ export default function ProviderDashboard() {
 
       <div className="container py-8">
         {/* Welcome Section */}
-        <div className="mb-8 flex items-start justify-between">
+        <div className="mb-8 flex flex-col sm:flex-row items-start justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Welcome back, {provider.businessName}!</h1>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2">Welcome back, {provider.businessName}!</h1>
             <p className="text-muted-foreground">Manage your services, bookings, and availability</p>
             <div className="flex items-center gap-2 mt-2">
               <Badge variant={provider.verificationStatus === "verified" ? "default" : "secondary"}>
@@ -910,7 +910,7 @@ export default function ProviderDashboard() {
         </div>
 
         {/* Stats Overview */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pending Bookings</CardTitle>
@@ -1917,7 +1917,7 @@ export default function ProviderDashboard() {
               <Label>Bio / Description</Label>
               <Textarea value={profileForm.description || ""} onChange={e => setProfileForm({ ...profileForm, description: e.target.value })} rows={4} placeholder="Tell customers about your experience, skills, and what makes your services unique..." />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label>City</Label>
                 <Input value={profileForm.city || ""} onChange={e => setProfileForm({ ...profileForm, city: e.target.value })} />
@@ -1927,7 +1927,7 @@ export default function ProviderDashboard() {
                 <Input value={profileForm.state || ""} onChange={e => setProfileForm({ ...profileForm, state: e.target.value })} />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label>Address</Label>
                 <Input value={profileForm.addressLine1 || ""} onChange={e => setProfileForm({ ...profileForm, addressLine1: e.target.value })} />
@@ -1981,7 +1981,7 @@ export default function ProviderDashboard() {
               <Label>Description</Label>
               <Textarea value={serviceForm.description || ""} onChange={e => setServiceForm({ ...serviceForm, description: e.target.value })} rows={3} />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label>Base Price ($)</Label>
                 <Input type="number" step="0.01" value={serviceForm.basePrice || ""} onChange={e => setServiceForm({ ...serviceForm, basePrice: e.target.value })} />
@@ -2120,7 +2120,7 @@ export default function ProviderDashboard() {
             ) : (
               /* Before & After Upload */
               <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Before Photo */}
                   <div>
                     <Label className="text-sm">Before Photo</Label>
