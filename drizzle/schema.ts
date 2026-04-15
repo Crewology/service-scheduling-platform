@@ -759,6 +759,7 @@ export const quoteRequests = mysqlTable("quote_requests", {
   
   declineReason: text("declineReason"),
   bookingId: int("bookingId"), // Link to booking if converted
+  batchId: varchar("batchId", { length: 36 }), // UUID for bulk quote grouping
   
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

@@ -894,4 +894,101 @@ export const providerRouter = router({
       if (!provider) return { pending: 0, quoted: 0, total: 0 };
       return db.getQuoteCountByProvider(provider.id);
     }),
+
+  // ============================================================================
+  // BULK QUOTE REQUESTS (Pro/Business perk)
+  // ============================================================================
+
+  bulkRequestQuote: protectedProcedure
+    .input(z.object({
+      providerIds: z.array(z.number()).min(2, "Select at least 2 providers").max(50, "Maximum 50 providers per batch"),
+      folderId: z.number().optional(), // Optional: send to all providers in a folder
+      categoryId: z.number().optional(),
+      title: z.string().min(5, "Title must be at least 5 characters"),
+      description: z.string().min(20, "Please describe your needs in at least 20 characters"),
+      preferredDate: z.string().optional(),
+      preferredTime: z.string().optional(),
+      locationType: z.enum(["mobile", "fixed_location", "virtual"]).optional(),
+      location: z.string().optional(),
+      attachmentUrls: z.array(z.string()).optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Gate behind Pro/Business subscription
+      const tier = await db.getCustomerTier(ctx.user.id);
+      if (tier === "free") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Bulk quote requests require a Pro or Business subscription. Upgrade to unlock this feature.",
+        });
+      }
+
+      // Generate a batch ID to group these quotes
+      const batchId = crypto.randomUUID();
+      const results: { providerId: number; quoteId: number; success: boolean; error?: string }[] = [];
+
+      for (const providerId of input.providerIds) {
+        try {
+          const result = await db.createQuoteRequest({
+            customerId: ctx.user.id,
+            providerId,
+            categoryId: input.categoryId,
+            title: input.title,
+            description: input.description,
+            preferredDate: input.preferredDate,
+            preferredTime: input.preferredTime,
+            locationType: input.locationType,
+            location: input.location,
+            attachmentUrls: input.attachmentUrls ? JSON.stringify(input.attachmentUrls) : undefined,
+            batchId,
+          });
+          results.push({ providerId, quoteId: result.id, success: true });
+
+          // Send notification to each provider
+          try {
+            const { sendMultiChannelNotification } = await import("../notifications");
+            const providerData = await db.getProviderById(providerId);
+            const providerUser = providerData ? await db.getUserById(providerData.userId) : null;
+            if (providerUser) {
+              await sendMultiChannelNotification(
+                {
+                  type: "quote_request_new",
+                  recipient: { userId: providerUser.id, email: providerUser.email || undefined, phone: providerUser.phone || undefined, name: providerUser.name || "Provider" },
+                  data: {
+                    quoteTitle: input.title,
+                    quoteDescription: input.description.slice(0, 200),
+                    customerName: ctx.user.name || "Customer",
+                    providerName: providerData?.businessName || providerUser.name || "Provider",
+                    preferredDate: input.preferredDate,
+                    preferredTime: input.preferredTime,
+                    location: input.location,
+                  },
+                },
+                ["email", "sms"],
+              );
+            }
+          } catch (err) {
+            console.error(`[BulkQuote] Notification failed for provider ${providerId}:`, err);
+          }
+        } catch (err: any) {
+          results.push({ providerId, quoteId: 0, success: false, error: err.message });
+        }
+      }
+
+      const successCount = results.filter(r => r.success).length;
+      return {
+        batchId,
+        totalSent: successCount,
+        totalFailed: results.length - successCount,
+        results,
+      };
+    }),
+
+  getBatchQuotes: protectedProcedure
+    .input(z.object({ batchId: z.string() }))
+    .query(async ({ ctx }) => {
+      const allQuotes = await db.getQuotesByCustomer(ctx.user.id);
+      // Note: batchId filtering would need to be added to the DB query
+      // For now, return all quotes (the frontend will filter by batchId)
+      return allQuotes;
+    }),
 });

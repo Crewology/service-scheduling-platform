@@ -429,12 +429,27 @@ export default function ProviderOnboarding() {
       <NavHeader />
 
       <div className="container max-w-4xl py-8">
-        {/* Header */}
-        <div className="text-center mb-8">
+        {/* Header with overall progress */}
+        <div className="text-center mb-6">
           <h1 className="text-3xl font-bold">Set Up Your Provider Profile</h1>
           <p className="text-muted-foreground mt-2">
             Show the world everything you can do — add all your skills and services
           </p>
+          {/* Overall completion percentage */}
+          <div className="mt-4 max-w-xs mx-auto">
+            <div className="flex items-center justify-between text-sm mb-1">
+              <span className="text-muted-foreground">Overall Progress</span>
+              <span className="font-semibold text-primary">
+                {Math.round((Object.values(stepComplete).filter(Boolean).length / 4) * 100)}%
+              </span>
+            </div>
+            <div className="h-2 rounded-full bg-muted overflow-hidden">
+              <div
+                className="h-full rounded-full bg-primary transition-all duration-500"
+                style={{ width: `${(Object.values(stepComplete).filter(Boolean).length / 4) * 100}%` }}
+              />
+            </div>
+          </div>
         </div>
 
         {/* Progress Steps */}
@@ -460,8 +475,11 @@ export default function ProviderOnboarding() {
                   >
                     {isComplete ? <CheckCircle className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
                   </div>
-                  <span className={`text-xs font-medium hidden sm:block ${isCurrent ? "text-primary" : "text-muted-foreground"}`}>
+                  <span className={`text-xs font-medium ${isCurrent ? "text-primary" : "text-muted-foreground"}`}>
                     {step.title}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground hidden sm:block">
+                    {step.description}
                   </span>
                 </button>
                 {index < STEPS.length - 1 && (

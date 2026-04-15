@@ -114,6 +114,48 @@ export async function getCustomerCategoryBreakdown(customerId: number) {
   return result;
 }
 
+export async function getCustomerBookingsForExport(
+  customerId: number,
+  startDate?: string,
+  endDate?: string
+) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const conditions: any[] = [eq(bookings.customerId, customerId)];
+  if (startDate) conditions.push(gte(bookings.bookingDate, startDate));
+  if (endDate) conditions.push(lte(bookings.bookingDate, endDate));
+
+  const result = await db
+    .select({
+      bookingNumber: bookings.bookingNumber,
+      bookingDate: bookings.bookingDate,
+      startTime: bookings.startTime,
+      endTime: bookings.endTime,
+      durationMinutes: bookings.durationMinutes,
+      status: bookings.status,
+      bookingType: bookings.bookingType,
+      locationType: bookings.locationType,
+      subtotal: bookings.subtotal,
+      travelFee: bookings.travelFee,
+      platformFee: bookings.platformFee,
+      totalAmount: bookings.totalAmount,
+      serviceName: services.name,
+      businessName: serviceProviders.businessName,
+      categoryName: serviceCategories.name,
+      customerNotes: bookings.customerNotes,
+      createdAt: bookings.createdAt,
+    })
+    .from(bookings)
+    .innerJoin(services, eq(bookings.serviceId, services.id))
+    .innerJoin(serviceProviders, eq(bookings.providerId, serviceProviders.id))
+    .innerJoin(serviceCategories, eq(services.categoryId, serviceCategories.id))
+    .where(and(...conditions))
+    .orderBy(desc(bookings.bookingDate));
+
+  return result;
+}
+
 export async function getCustomerRecentBookings(customerId: number, limit: number = 20) {
   const db = await getDb();
   if (!db) return [];

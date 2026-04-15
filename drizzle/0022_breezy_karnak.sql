@@ -1,0 +1,1 @@
+ALTER TABLE `quote_requests` ADD `batchId` varchar(36);

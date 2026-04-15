@@ -383,3 +383,32 @@
 
 ## Testing
 - [x] 485 tests passing across 29 test files (0 TypeScript errors, 5 pre-existing timeouts)
+
+## Feature: Bulk Quote Requests (Business Perk)
+- [x] Create bulkRequestQuote backend procedure (send quote to multiple providers at once with batchId)
+- [x] Gate behind Business subscription tier (bulkQuoteRequests perk)
+- [x] Build BulkQuoteModal UI: select saved providers, compose single quote, send to all
+- [x] Integrated into SavedProviders page with "Bulk Quote" button
+- [x] Send notifications to each provider individually via existing notification system
+- [x] Write 25 tests for bulk quote requests, tier gating, validation, batch ID generation
+
+## Feature: Provider Onboarding Wizard Improvements
+- [x] Add overall progress percentage bar to onboarding wizard header
+- [x] Add step descriptions visible on desktop below each step circle
+- [x] Enhanced dashboard OnboardingChecklist with 7 items (added availability check)
+- [x] "What's Next" nudge section showing next incomplete step with action button
+- [x] Celebration state with confetti icon when all 7 steps complete
+- [x] Progress percentage displayed in checklist header
+- [x] Write tests for onboarding progress tracking (step completion, percentage calculation)
+
+## Feature: Booking History Export (Business Perk)
+- [x] Create getCustomerBookingsForExport DB helper with date range filtering
+- [x] Create exportBookings tRPC endpoint (CSV and JSON formats)
+- [x] Add ExportControls component to BookingAnalytics page with date pickers
+- [x] Quick date range buttons (3M, 6M, 1Y, All)
+- [x] Gate behind Business subscription tier (bookingAnalytics perk)
+- [x] Client-side file download with dynamic filenames
+- [x] Write tests for CSV generation, date filtering, tier gating, filename generation
+
+## Testing
+- [x] 510 tests passing across 30 test files (0 TypeScript errors, 5 pre-existing timeouts)

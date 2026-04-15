@@ -72,6 +72,7 @@ export {
   isFavorited,
   getUserFavorites,
   getFavoriteCount,
+  getFavoriteProviderIdsByFolder,
 } from "./db/favorites";
 
 // Schedule conflict detection & calendar
@@ -136,6 +137,7 @@ export {
   getCustomerTopProviders,
   getCustomerCategoryBreakdown,
   getCustomerRecentBookings,
+  getCustomerBookingsForExport,
 } from "./db/customerAnalytics";
 
 // Saved provider folders

@@ -53,6 +53,8 @@ import {
   ChevronRight,
   X,
   AlertTriangle,
+  Sparkles,
+  ArrowRight,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
@@ -2506,8 +2508,10 @@ function OnboardingChecklist({
   onUploadPortfolio?: () => void;
 }) {
   const { data: stripeStatus } = trpc.stripeConnect.getStatus.useQuery();
+  const { data: mySchedule } = trpc.availability.getMySchedule.useQuery();
   const [, setLocation] = useLocation();
   const [dismissed, setDismissed] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   const steps = useMemo(() => {
     const hasPhoto = !!provider.profilePhotoUrl;
@@ -2516,7 +2520,7 @@ function OnboardingChecklist({
     const hasServices = (services?.length || 0) > 0;
     const hasPortfolio = (portfolio?.length || 0) > 0;
     const hasStripe = stripeStatus?.connected && stripeStatus?.chargesEnabled;
-    const hasAvailability = true; // We can't easily check this without another query
+    const hasAvailability = (mySchedule?.length || 0) > 0;
 
     return [
       {
@@ -2526,6 +2530,7 @@ function OnboardingChecklist({
         done: hasPhoto,
         action: () => onUploadPhoto ? onUploadPhoto() : setLocation("/profile"),
         actionLabel: "Add Photo",
+        priority: 1,
       },
       {
         id: "bio",
@@ -2534,6 +2539,7 @@ function OnboardingChecklist({
         done: hasBio,
         action: () => onEditProfile ? onEditProfile() : setLocation("/provider/onboarding"),
         actionLabel: "Write Bio",
+        priority: 2,
       },
       {
         id: "categories",
@@ -2542,6 +2548,7 @@ function OnboardingChecklist({
         done: hasCategories,
         action: () => setLocation("/provider/onboarding"),
         actionLabel: "Select Categories",
+        priority: 3,
       },
       {
         id: "services",
@@ -2550,6 +2557,16 @@ function OnboardingChecklist({
         done: hasServices,
         action: () => setLocation("/provider/services/new"),
         actionLabel: "Add Service",
+        priority: 4,
+      },
+      {
+        id: "availability",
+        label: "Set your availability",
+        description: "Let customers know when you're available",
+        done: hasAvailability,
+        action: () => setLocation("/provider/availability"),
+        actionLabel: "Set Schedule",
+        priority: 5,
       },
       {
         id: "portfolio",
@@ -2558,6 +2575,7 @@ function OnboardingChecklist({
         done: hasPortfolio,
         action: () => onUploadPortfolio ? onUploadPortfolio() : setLocation("/provider/onboarding"),
         actionLabel: "Upload",
+        priority: 6,
       },
       {
         id: "stripe",
@@ -2566,35 +2584,95 @@ function OnboardingChecklist({
         done: !!hasStripe,
         action: () => setLocation("/provider/onboarding?step=4"),
         actionLabel: "Connect Stripe",
+        priority: 7,
       },
     ];
-  }, [provider, services, myCategories, portfolio, stripeStatus, setLocation, onEditProfile, onUploadPhoto, onUploadPortfolio]);
+  }, [provider, services, myCategories, portfolio, stripeStatus, mySchedule, setLocation, onEditProfile, onUploadPhoto, onUploadPortfolio]);
 
   const completedCount = steps.filter((s: any) => s.done).length;
   const totalSteps = steps.length;
   const allDone = completedCount === totalSteps;
   const progress = Math.round((completedCount / totalSteps) * 100);
 
-  if (allDone || dismissed) return null;
+  // Find the next incomplete step for the "What's Next" nudge
+  const nextStep = useMemo(() => {
+    return steps.find(s => !s.done);
+  }, [steps]);
+
+  // Show celebration when all done
+  useMemo(() => {
+    if (allDone && !dismissed) {
+      setShowCelebration(true);
+    }
+  }, [allDone]);
+
+  if (dismissed && !showCelebration) return null;
+
+  // Celebration state when all steps complete
+  if (allDone && showCelebration) {
+    return (
+      <Card className="mb-8 border-green-500/30 bg-gradient-to-r from-green-500/5 via-emerald-500/5 to-teal-500/5">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-4">
+            <div className="flex-shrink-0 w-14 h-14 rounded-full bg-green-500/10 flex items-center justify-center">
+              <Sparkles className="h-7 w-7 text-green-500" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-green-700 dark:text-green-400">Profile Complete!</h3>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Your profile is fully set up and ready to receive bookings. Customers can now find and book your services.
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => { setShowCelebration(false); setDismissed(true); }}
+              className="text-muted-foreground"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (dismissed) return null;
 
   return (
     <Card className="mb-8 border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-primary" />
-              Complete Your Profile
-            </CardTitle>
-            <CardDescription className="mt-1">
-              {completedCount} of {totalSteps} steps complete — finish setup to start getting bookings
-            </CardDescription>
+          <div className="flex items-center gap-3">
+            {/* Circular progress indicator */}
+            <div className="relative flex-shrink-0">
+              <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
+                <circle cx="18" cy="18" r="15.5" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-muted" />
+                <circle
+                  cx="18" cy="18" r="15.5" fill="none" stroke="currentColor" strokeWidth="2.5"
+                  className="text-primary transition-all duration-700"
+                  strokeDasharray={`${progress * 0.974} 100`}
+                  strokeLinecap="round"
+                />
+              </svg>
+              <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-primary">
+                {progress}%
+              </span>
+            </div>
+            <div>
+              <CardTitle className="text-lg">
+                Complete Your Profile
+              </CardTitle>
+              <CardDescription className="mt-0.5">
+                {completedCount} of {totalSteps} steps done
+              </CardDescription>
+            </div>
           </div>
           <Button variant="ghost" size="sm" onClick={() => setDismissed(true)} className="text-muted-foreground">
             <X className="h-4 w-4" />
           </Button>
         </div>
-        {/* Progress bar */}
+        {/* Linear progress bar */}
         <div className="mt-3 h-2 rounded-full bg-muted overflow-hidden">
           <div
             className="h-full rounded-full bg-primary transition-all duration-500"
@@ -2602,14 +2680,36 @@ function OnboardingChecklist({
           />
         </div>
       </CardHeader>
-      <CardContent className="pt-0">
+      <CardContent className="pt-0 space-y-4">
+        {/* "What's Next" nudge for the next incomplete step */}
+        {nextStep && (
+          <div
+            className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/20 cursor-pointer hover:bg-primary/10 transition-colors"
+            onClick={() => nextStep.action()}
+          >
+            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <ArrowRight className="w-4 h-4 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-primary">Next: {nextStep.label}</p>
+              <p className="text-xs text-muted-foreground">{nextStep.description}</p>
+            </div>
+            <Button size="sm" className="h-7 text-xs shrink-0">
+              {nextStep.actionLabel}
+            </Button>
+          </div>
+        )}
+
+        {/* All steps grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
-          {steps.map((step: any) => (
+          {steps.map((step: any, idx: number) => (
             <div
               key={step.id}
               className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
                 step.done
                   ? "bg-muted/30 border-transparent"
+                  : step === nextStep
+                  ? "bg-primary/5 border-primary/20 cursor-pointer hover:border-primary/40"
                   : "bg-background border-border hover:border-primary/30 cursor-pointer"
               }`}
               onClick={() => !step.done && step.action()}
@@ -2620,7 +2720,7 @@ function OnboardingChecklist({
                 {step.done ? (
                   <CheckCircle2 className="w-4 h-4" />
                 ) : (
-                  <span className="text-xs font-medium">{steps.indexOf(step) + 1}</span>
+                  <span className="text-xs font-medium">{idx + 1}</span>
                 )}
               </div>
               <div className="flex-1 min-w-0">

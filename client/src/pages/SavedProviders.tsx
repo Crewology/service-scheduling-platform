@@ -9,11 +9,12 @@ import { Input } from "@/components/ui/input";
 import {
   Heart, Star, MapPin, ArrowLeft, Loader2, Crown, Zap, Sparkles, BarChart3,
   FolderPlus, Folder, FolderOpen, MoreVertical, Pencil, Trash2,
-  MoveRight, X, Check, ChevronRight,
+  MoveRight, X, Check, ChevronRight, Send,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import UpgradeModal from "@/components/UpgradeModal";
+import BulkQuoteModal from "@/components/BulkQuoteModal";
 
 export default function SavedProviders() {
   const { user, loading: authLoading } = useAuth();
@@ -27,6 +28,7 @@ export default function SavedProviders() {
   const [editingFolderName, setEditingFolderName] = useState("");
   const [movingProviderId, setMovingProviderId] = useState<number | null>(null);
   const [menuOpenId, setMenuOpenId] = useState<number | null>(null);
+  const [bulkQuoteOpen, setBulkQuoteOpen] = useState(false);
 
   const { data: favorites, isLoading } = trpc.provider.myFavorites.useQuery(undefined, {
     enabled: !!user,
@@ -167,6 +169,12 @@ export default function SavedProviders() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {(tier === "pro" || tier === "business") && filteredFavorites.length >= 2 && (
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setBulkQuoteOpen(true)}>
+                <Send className="h-3.5 w-3.5" />
+                Bulk Quote
+              </Button>
+            )}
             {tier === "business" && (
               <Button variant="outline" size="sm" className="gap-1.5" onClick={() => navigate("/analytics")}>
                 <BarChart3 className="h-3.5 w-3.5" />
@@ -669,6 +677,21 @@ export default function SavedProviders() {
           </Card>
         )}
       </div>
+
+      <BulkQuoteModal
+        open={bulkQuoteOpen}
+        onOpenChange={setBulkQuoteOpen}
+        providers={filteredFavorites.map((f: any) => ({
+          providerId: f.providerId,
+          businessName: f.businessName,
+          profilePhotoUrl: f.profilePhotoUrl,
+          categories: f.categories,
+        }))}
+        folderName={activeFolder !== null && activeFolder !== -1
+          ? folders.find((f: any) => f.id === activeFolder)?.name
+          : undefined
+        }
+      />
 
       <UpgradeModal
         open={upgradeOpen}

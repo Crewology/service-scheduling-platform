@@ -41,6 +41,7 @@ export async function getUserFavorites(userId: number) {
   const favorites = await db
     .select({
       favoriteId: customerFavorites.id,
+      folderId: customerFavorites.folderId,
       favoritedAt: customerFavorites.createdAt,
       providerId: serviceProviders.id,
       businessName: serviceProviders.businessName,
@@ -94,4 +95,18 @@ export async function getFavoriteCount(providerId: number): Promise<number> {
     .from(customerFavorites)
     .where(eq(customerFavorites.providerId, providerId));
   return result.length;
+}
+
+export async function getFavoriteProviderIdsByFolder(userId: number, folderId: number | null): Promise<number[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const conditions = [eq(customerFavorites.userId, userId)];
+  if (folderId !== null) {
+    conditions.push(eq(customerFavorites.folderId, folderId));
+  }
+  const results = await db
+    .select({ providerId: customerFavorites.providerId })
+    .from(customerFavorites)
+    .where(and(...conditions));
+  return results.map((r: any) => r.providerId);
 }

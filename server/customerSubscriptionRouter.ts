@@ -181,6 +181,61 @@ export const customerSubscriptionRouter = router({
     return { summary, monthlySpending, topProviders, categoryBreakdown, recentBookings };
   }),
 
+  // Export booking history (Business tier only)
+  exportBookings: protectedProcedure
+    .input(z.object({
+      startDate: z.string().optional(),
+      endDate: z.string().optional(),
+      format: z.enum(["csv", "json"]).default("csv"),
+    }))
+    .query(async ({ ctx, input }) => {
+      const tier = await db.getCustomerTier(ctx.user.id);
+      const tierConfig = CUSTOMER_TIERS[tier];
+      if (!tierConfig.perks.bookingAnalytics) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Booking export is available for Business subscribers.",
+        });
+      }
+
+      const bookings = await db.getCustomerBookingsForExport(
+        ctx.user.id,
+        input.startDate,
+        input.endDate,
+      );
+
+      if (input.format === "csv") {
+        const headers = [
+          "Booking #", "Date", "Start Time", "End Time", "Duration (min)",
+          "Status", "Type", "Location Type", "Service", "Provider",
+          "Category", "Subtotal", "Travel Fee", "Platform Fee", "Total", "Notes",
+        ];
+        const rows = bookings.map(b => [
+          b.bookingNumber,
+          b.bookingDate,
+          b.startTime,
+          b.endTime,
+          b.durationMinutes,
+          b.status,
+          b.bookingType,
+          b.locationType,
+          `"${(b.serviceName || "").replace(/"/g, '""')}"`,
+          `"${(b.businessName || "").replace(/"/g, '""')}"`,
+          `"${(b.categoryName || "").replace(/"/g, '""')}"`,
+          b.subtotal,
+          b.travelFee,
+          b.platformFee,
+          b.totalAmount,
+          `"${(b.customerNotes || "").replace(/"/g, '""')}"`,
+        ]);
+
+        const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+        return { data: csv, count: bookings.length, format: "csv" as const };
+      }
+
+      return { data: JSON.stringify(bookings, null, 2), count: bookings.length, format: "json" as const };
+    }),
+
   // Check if user can save more providers (used before toggling favorite)
   canSaveMore: protectedProcedure.query(async ({ ctx }) => {
     const tier = await db.getCustomerTier(ctx.user.id);

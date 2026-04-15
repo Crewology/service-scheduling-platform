@@ -29,6 +29,10 @@ import {
   Clock,
   Star,
   PieChart,
+  Download,
+  FileSpreadsheet,
+  FileText,
+  Loader2,
 } from "lucide-react";
 
 function formatCurrency(amount: string | number): string {
@@ -143,6 +147,126 @@ function CategoryChart({ data }: { data: Array<{ categoryName: string | null; to
   );
 }
 
+function ExportControls() {
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [exportFormat, setExportFormat] = useState<"csv" | "json">("csv");
+  const [isExporting, setIsExporting] = useState(false);
+
+  const exportQuery = trpc.customerSubscription.exportBookings.useQuery(
+    { startDate: startDate || undefined, endDate: endDate || undefined, format: exportFormat },
+    { enabled: false }
+  );
+
+  const handleExport = async (format: "csv" | "json") => {
+    setExportFormat(format);
+    setIsExporting(true);
+    try {
+      const result = await exportQuery.refetch();
+      if (result.data) {
+        const blob = new Blob(
+          [result.data.data],
+          { type: format === "csv" ? "text/csv;charset=utf-8;" : "application/json" }
+        );
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        const dateRange = startDate && endDate
+          ? `_${startDate}_to_${endDate}`
+          : startDate
+          ? `_from_${startDate}`
+          : endDate
+          ? `_to_${endDate}`
+          : "";
+        a.href = url;
+        a.download = `booking-history${dateRange}.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const setQuickRange = (months: number) => {
+    const end = new Date();
+    const start = new Date();
+    start.setMonth(start.getMonth() - months);
+    setStartDate(start.toISOString().slice(0, 10));
+    setEndDate(end.toISOString().slice(0, 10));
+  };
+
+  return (
+    <Card>
+      <CardContent className="pt-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4">
+          <div className="flex items-center gap-2">
+            <Download className="h-5 w-5 text-muted-foreground" />
+            <span className="font-medium">Export Booking History</span>
+          </div>
+          <div className="flex flex-wrap items-end gap-3 flex-1">
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">From</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="h-9 px-3 rounded-md border border-input bg-background text-sm"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">To</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="h-9 px-3 rounded-md border border-input bg-background text-sm"
+              />
+            </div>
+            <div className="flex gap-1">
+              <Button variant="ghost" size="sm" className="h-9 text-xs" onClick={() => setQuickRange(3)}>3M</Button>
+              <Button variant="ghost" size="sm" className="h-9 text-xs" onClick={() => setQuickRange(6)}>6M</Button>
+              <Button variant="ghost" size="sm" className="h-9 text-xs" onClick={() => setQuickRange(12)}>1Y</Button>
+              <Button variant="ghost" size="sm" className="h-9 text-xs" onClick={() => { setStartDate(""); setEndDate(""); }}>All</Button>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => handleExport("csv")}
+              disabled={isExporting}
+            >
+              {isExporting && exportFormat === "csv" ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <FileSpreadsheet className="h-3.5 w-3.5" />
+              )}
+              CSV
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => handleExport("json")}
+              disabled={isExporting}
+            >
+              {isExporting && exportFormat === "json" ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <FileText className="h-3.5 w-3.5" />
+              )}
+              JSON
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function LockedOverlay() {
   return (
     <div className="min-h-[60vh] flex items-center justify-center">
@@ -228,7 +352,7 @@ export default function BookingAnalytics() {
       </div>
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-3">
             <BarChart3 className="h-8 w-8 text-blue-600" />
@@ -238,13 +362,18 @@ export default function BookingAnalytics() {
             Track your spending, top providers, and booking trends
           </p>
         </div>
-        {sub && (
-          <Badge variant="outline" className="gap-1 px-3 py-1.5 text-sm bg-amber-50 border-amber-200 text-amber-700">
-            <Crown className="h-4 w-4" />
-            {sub.tierConfig.name}
-          </Badge>
-        )}
+        <div className="flex items-center gap-2">
+          {sub && (
+            <Badge variant="outline" className="gap-1 px-3 py-1.5 text-sm bg-amber-50 border-amber-200 text-amber-700">
+              <Crown className="h-4 w-4" />
+              {sub.tierConfig.name}
+            </Badge>
+          )}
+        </div>
       </div>
+
+      {/* Export Controls */}
+      {data && <ExportControls />}
 
       {analyticsQuery.isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

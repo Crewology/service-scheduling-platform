@@ -18,6 +18,7 @@ export async function createQuoteRequest(data: {
   locationType?: "mobile" | "fixed_location" | "virtual";
   location?: string;
   attachmentUrls?: string;
+  batchId?: string;
 }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
