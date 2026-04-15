@@ -467,3 +467,19 @@
 - [x] Added flex-wrap to all button containers in booking cards, quote cards, and services section
 - [x] Added min-w-0 and truncate to booking number in card header
 - [x] Added overflow-hidden to base Card component to prevent all card content spillover
+
+## Feature: Comprehensive Help Center
+- [x] Build Help Center page (/help) with searchable content
+- [x] Getting Started section (4 articles: account, browsing, first booking, platform overview)
+- [x] For Customers section (7 articles: bookings, messaging, quotes, saved providers, reviews, cancellations, analytics)
+- [x] For Providers section (8 articles: onboarding, services, availability, bookings, quotes, portfolio, profile, promos/widgets)
+- [x] Payments & Billing section (6 articles: how payments work, fees, provider tiers, customer tiers, refunds, promo codes)
+- [x] Account & Settings section (4 articles: profile, notifications, referrals, privacy)
+- [x] FAQ section with 15 searchable items, accordion UI, and 4 category filters
+- [x] Contact/Support section with email (garychisolm30@gmail.com) and phone ((678) 525-0891)
+- [x] Add Help link to navigation header (desktop + mobile)
+- [x] Add Help Center and Contact Support links to footer
+- [x] Quick Links grid (6 links to key pages)
+- [x] Browse by Topic navigation cards
+- [x] Search bar filtering across all articles and FAQ
+- [x] Write 21 tests for help content structure, FAQ filtering, contact info, tier accuracy

@@ -370,6 +370,14 @@ export function NavHeader() {
             >
               Search
             </Link>
+            <Link
+              href="/help"
+              className={`text-sm font-medium transition-colors ${
+                location === "/help" ? "text-primary" : "hover:text-primary"
+              }`}
+            >
+              Help
+            </Link>
           </nav>
 
           {/* Right side actions */}
@@ -471,6 +479,9 @@ export function NavHeader() {
             </Link>
             <Link href="/search" onClick={() => setMobileMenuOpen(false)}>
               <Button variant="ghost" className="w-full justify-start">Search</Button>
+            </Link>
+            <Link href="/help" onClick={() => setMobileMenuOpen(false)}>
+              <Button variant="ghost" className="w-full justify-start">Help</Button>
             </Link>
             {isAuthenticated ? (
               <>

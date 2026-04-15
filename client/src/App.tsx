@@ -37,6 +37,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import CustomerPricing from "./pages/CustomerPricing";
 import BookingAnalytics from "./pages/BookingAnalytics";
 import TermsOfService from "./pages/TermsOfService";
+import HelpCenter from "./pages/HelpCenter";
 
 function Router() {
   return (
@@ -75,6 +76,7 @@ function Router() {
       <Route path="/analytics" component={BookingAnalytics} />
       <Route path="/privacy" component={PrivacyPolicy} />
       <Route path="/terms" component={TermsOfService} />
+      <Route path="/help" component={HelpCenter} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
