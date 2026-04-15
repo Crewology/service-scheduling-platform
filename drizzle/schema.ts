@@ -792,3 +792,45 @@ export const contactSubmissions = mysqlTable("contact_submissions", {
 ]);
 
 export type ContactSubmission = typeof contactSubmissions.$inferSelect;
+export type InsertContactSubmission = typeof contactSubmissions.$inferInsert;
+
+/**
+ * Admin replies to contact form submissions.
+ * Each submission can have multiple replies forming a thread.
+ */
+export const contactReplies = mysqlTable("contact_replies", {
+  id: int("id").autoincrement().primaryKey(),
+  submissionId: int("submissionId").notNull().references(() => contactSubmissions.id),
+  adminUserId: int("adminUserId").notNull().references(() => users.id),
+  message: text("message").notNull(),
+  templateId: int("templateId"),
+  emailSent: boolean("emailSent").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => [
+  index("reply_submission_idx").on(table.submissionId),
+]);
+
+export type ContactReply = typeof contactReplies.$inferSelect;
+export type InsertContactReply = typeof contactReplies.$inferInsert;
+
+/**
+ * Canned reply templates for quick admin responses to common inquiries.
+ */
+export const replyTemplates = mysqlTable("reply_templates", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 200 }).notNull(),
+  category: mysqlEnum("category", ["general", "booking", "payment", "provider", "technical", "other"]).default("general").notNull(),
+  subject: varchar("subject", { length: 500 }).notNull(),
+  body: text("body").notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  usageCount: int("usageCount").default(0).notNull(),
+  createdBy: int("createdBy").references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => [
+  index("template_category_idx").on(table.category),
+  index("template_active_idx").on(table.isActive),
+]);
+
+export type ReplyTemplate = typeof replyTemplates.$inferSelect;
+export type InsertReplyTemplate = typeof replyTemplates.$inferInsert;

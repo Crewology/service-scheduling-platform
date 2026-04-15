@@ -496,3 +496,12 @@
 - [x] Character counter on message field (X/5000)
 - [x] Direct contact info (email + phone) preserved below form
 - [x] Write 23 tests for contact form (validation, categories, notification content, form behavior)
+
+## Feature: Admin Contact Submissions Panel
+- [x] Admin Contact Submissions Panel - view, filter, and manage contact form submissions
+- [x] Contact submission status tracking (new/in-progress/resolved/closed) with admin updates
+- [x] Admin reply to contact submissions with email delivery to submitter
+- [x] Reply history stored in database (contact_replies table)
+- [x] Canned auto-reply templates - CRUD management for common inquiry categories
+- [x] Template quick-select in reply UI for fast responses
+- [x] Tests for admin contact management and auto-reply template endpoints

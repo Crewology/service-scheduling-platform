@@ -32,10 +32,24 @@ import {
   Trash2,
   FileText,
   Shield,
+  MessageSquare,
+  Send,
+  Clock,
+  Mail,
+  MailCheck,
+  Plus,
+  Pencil,
+  Copy,
+  Inbox,
+  AlertCircle,
+  CheckCircle2,
+  Archive,
+  Zap,
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Link } from "wouter";
 import { formatCurrency, formatDate } from "@/lib/dateUtils";
 import { NavHeader } from "@/components/shared/NavHeader";
@@ -372,6 +386,10 @@ export default function AdminDashboard() {
               <FileText className="h-3.5 w-3.5 mr-1" />
               Documents
             </TabsTrigger>
+            <TabsTrigger value="support">
+              <MessageSquare className="h-3.5 w-3.5 mr-1" />
+              Support
+            </TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -658,6 +676,11 @@ export default function AdminDashboard() {
           <TabsContent value="documents">
             <DocumentReviewPanel />
           </TabsContent>
+
+          {/* Support / Contact Submissions Tab */}
+          <TabsContent value="support">
+            <ContactSubmissionsPanel />
+          </TabsContent>
         </Tabs>
       </div>
     </div>
@@ -932,5 +955,644 @@ function DocumentReviewPanel() {
         </DialogContent>
       </Dialog>
     </Card>
+  );
+}
+
+// ============================================================================
+// CONTACT SUBMISSIONS PANEL
+// ============================================================================
+function ContactSubmissionsPanel() {
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [selectedSubmission, setSelectedSubmission] = useState<any | null>(null);
+  const [replyDialogOpen, setReplyDialogOpen] = useState(false);
+  const [replyMessage, setReplyMessage] = useState("");
+  const [selectedTemplateId, setSelectedTemplateId] = useState<number | undefined>();
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  const [templateMode, setTemplateMode] = useState<"create" | "edit">("create");
+  const [editingTemplate, setEditingTemplate] = useState<any | null>(null);
+  const [templateForm, setTemplateForm] = useState({ name: "", category: "general", subject: "", body: "" });
+  const [detailOpen, setDetailOpen] = useState(false);
+
+  const utils = trpc.useUtils();
+
+  // Queries
+  const { data: submissions, isLoading } = trpc.contact.list.useQuery(
+    {
+      limit: 100,
+      ...(statusFilter !== "all" ? { status: statusFilter as any } : {}),
+      ...(categoryFilter !== "all" ? { category: categoryFilter as any } : {}),
+    }
+  );
+
+  const { data: stats } = trpc.contact.getStats.useQuery();
+  const { data: templates } = trpc.contact.listTemplates.useQuery();
+  const { data: replies } = trpc.contact.getReplies.useQuery(
+    { submissionId: selectedSubmission?.id ?? 0 },
+    { enabled: !!selectedSubmission }
+  );
+
+  // Mutations
+  const updateStatus = trpc.contact.updateStatus.useMutation({
+    onSuccess: () => {
+      toast.success("Status updated");
+      utils.contact.list.invalidate();
+      utils.contact.getStats.invalidate();
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const sendReply = trpc.contact.reply.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.emailSent ? "Reply sent via email" : "Reply saved (email delivery pending)");
+      setReplyDialogOpen(false);
+      setReplyMessage("");
+      setSelectedTemplateId(undefined);
+      utils.contact.getReplies.invalidate();
+      utils.contact.list.invalidate();
+      utils.contact.getStats.invalidate();
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const createTemplate = trpc.contact.createTemplate.useMutation({
+    onSuccess: () => {
+      toast.success("Template created");
+      setTemplateDialogOpen(false);
+      resetTemplateForm();
+      utils.contact.listTemplates.invalidate();
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const updateTemplate = trpc.contact.updateTemplate.useMutation({
+    onSuccess: () => {
+      toast.success("Template updated");
+      setTemplateDialogOpen(false);
+      resetTemplateForm();
+      utils.contact.listTemplates.invalidate();
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const deleteTemplate = trpc.contact.deleteTemplate.useMutation({
+    onSuccess: () => {
+      toast.success("Template deleted");
+      utils.contact.listTemplates.invalidate();
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  function resetTemplateForm() {
+    setTemplateForm({ name: "", category: "general", subject: "", body: "" });
+    setEditingTemplate(null);
+    setTemplateMode("create");
+  }
+
+  function openEditTemplate(template: any) {
+    setTemplateMode("edit");
+    setEditingTemplate(template);
+    setTemplateForm({
+      name: template.name,
+      category: template.category,
+      subject: template.subject,
+      body: template.body,
+    });
+    setTemplateDialogOpen(true);
+  }
+
+  function applyTemplate(template: any) {
+    setReplyMessage(template.body);
+    setSelectedTemplateId(template.id);
+    toast.success(`Template "${template.name}" applied`);
+  }
+
+  function openReplyDialog(submission: any) {
+    setSelectedSubmission(submission);
+    setReplyMessage("");
+    setSelectedTemplateId(undefined);
+    setReplyDialogOpen(true);
+  }
+
+  function openDetailDialog(submission: any) {
+    setSelectedSubmission(submission);
+    setDetailOpen(true);
+  }
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "new": return <Badge className="bg-blue-100 text-blue-800 border-blue-200"><Inbox className="h-3 w-3 mr-1" />New</Badge>;
+      case "in_progress": return <Badge className="bg-amber-100 text-amber-800 border-amber-200"><Clock className="h-3 w-3 mr-1" />In Progress</Badge>;
+      case "resolved": return <Badge className="bg-green-100 text-green-800 border-green-200"><CheckCircle2 className="h-3 w-3 mr-1" />Resolved</Badge>;
+      case "closed": return <Badge className="bg-gray-100 text-gray-800 border-gray-200"><Archive className="h-3 w-3 mr-1" />Closed</Badge>;
+      default: return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
+
+  const getCategoryBadge = (category: string) => {
+    const colors: Record<string, string> = {
+      general: "bg-slate-100 text-slate-700",
+      booking: "bg-indigo-100 text-indigo-700",
+      payment: "bg-emerald-100 text-emerald-700",
+      provider: "bg-purple-100 text-purple-700",
+      technical: "bg-red-100 text-red-700",
+      other: "bg-gray-100 text-gray-700",
+    };
+    return <Badge className={colors[category] || colors.other}>{category}</Badge>;
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Stats Cards */}
+      {stats && (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <Card className="border-l-4 border-l-blue-500">
+            <CardContent className="pt-4 pb-3">
+              <div className="text-xs text-muted-foreground">New</div>
+              <div className="text-2xl font-bold text-blue-600">{stats.new}</div>
+            </CardContent>
+          </Card>
+          <Card className="border-l-4 border-l-amber-500">
+            <CardContent className="pt-4 pb-3">
+              <div className="text-xs text-muted-foreground">In Progress</div>
+              <div className="text-2xl font-bold text-amber-600">{stats.in_progress}</div>
+            </CardContent>
+          </Card>
+          <Card className="border-l-4 border-l-green-500">
+            <CardContent className="pt-4 pb-3">
+              <div className="text-xs text-muted-foreground">Resolved</div>
+              <div className="text-2xl font-bold text-green-600">{stats.resolved}</div>
+            </CardContent>
+          </Card>
+          <Card className="border-l-4 border-l-gray-400">
+            <CardContent className="pt-4 pb-3">
+              <div className="text-xs text-muted-foreground">Closed</div>
+              <div className="text-2xl font-bold text-gray-600">{stats.closed}</div>
+            </CardContent>
+          </Card>
+          <Card className="border-l-4 border-l-purple-500">
+            <CardContent className="pt-4 pb-3">
+              <div className="text-xs text-muted-foreground">Total</div>
+              <div className="text-2xl font-bold">{stats.total}</div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Filters + Template Manager Button */}
+      <div className="flex flex-wrap items-center gap-3">
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[150px]">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="new">New</SelectItem>
+            <SelectItem value="in_progress">In Progress</SelectItem>
+            <SelectItem value="resolved">Resolved</SelectItem>
+            <SelectItem value="closed">Closed</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <SelectTrigger className="w-[150px]">
+            <SelectValue placeholder="Category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="general">General</SelectItem>
+            <SelectItem value="booking">Booking</SelectItem>
+            <SelectItem value="payment">Payment</SelectItem>
+            <SelectItem value="provider">Provider</SelectItem>
+            <SelectItem value="technical">Technical</SelectItem>
+            <SelectItem value="other">Other</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <div className="ml-auto">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => { resetTemplateForm(); setTemplateDialogOpen(true); }}
+          >
+            <Zap className="h-4 w-4 mr-1" />
+            Manage Templates ({templates?.length || 0})
+          </Button>
+        </div>
+      </div>
+
+      {/* Submissions Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Contact Submissions
+          </CardTitle>
+          <CardDescription>View and respond to customer inquiries from the Help Center</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <LoadingSpinner message="Loading submissions..." />
+          ) : !submissions || submissions.length === 0 ? (
+            <div className="text-center py-12">
+              <Inbox className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground">No submissions found</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {statusFilter !== "all" || categoryFilter !== "all" ? "Try adjusting your filters" : "Contact form submissions will appear here"}
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[60px]">ID</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Subject</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {submissions.map((sub: any) => (
+                    <TableRow key={sub.id} className={sub.status === "new" ? "bg-blue-50/30" : ""}>
+                      <TableCell className="text-muted-foreground font-mono text-xs">#{sub.id}</TableCell>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium text-sm">{sub.name}</p>
+                          <p className="text-xs text-muted-foreground">{sub.email}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell className="max-w-[200px]">
+                        <p className="text-sm truncate">{sub.subject}</p>
+                      </TableCell>
+                      <TableCell>{getCategoryBadge(sub.category)}</TableCell>
+                      <TableCell>{getStatusBadge(sub.status)}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                        {formatDate(sub.createdAt)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button size="sm" variant="ghost" onClick={() => openDetailDialog(sub)} title="View details">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => openReplyDialog(sub)} title="Reply">
+                            <Send className="h-4 w-4 text-blue-500" />
+                          </Button>
+                          <Select
+                            value={sub.status}
+                            onValueChange={(val) => updateStatus.mutate({ id: sub.id, status: val as any })}
+                          >
+                            <SelectTrigger className="h-8 w-[120px] text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="new">New</SelectItem>
+                              <SelectItem value="in_progress">In Progress</SelectItem>
+                              <SelectItem value="resolved">Resolved</SelectItem>
+                              <SelectItem value="closed">Closed</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Detail Dialog */}
+      <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5" />
+              Submission #{selectedSubmission?.id}
+            </DialogTitle>
+            <DialogDescription>Contact form submission details</DialogDescription>
+          </DialogHeader>
+          {selectedSubmission && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-muted-foreground">Name</p>
+                  <p className="font-medium">{selectedSubmission.name}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Email</p>
+                  <a href={`mailto:${selectedSubmission.email}`} className="font-medium text-blue-600 hover:underline">
+                    {selectedSubmission.email}
+                  </a>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Category</p>
+                  {getCategoryBadge(selectedSubmission.category)}
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Status</p>
+                  {getStatusBadge(selectedSubmission.status)}
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Submitted</p>
+                  <p className="text-sm">{formatDate(selectedSubmission.createdAt)}</p>
+                </div>
+                {selectedSubmission.resolvedAt && (
+                  <div>
+                    <p className="text-xs text-muted-foreground">Resolved</p>
+                    <p className="text-sm">{formatDate(selectedSubmission.resolvedAt)}</p>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Subject</p>
+                <p className="font-medium">{selectedSubmission.subject}</p>
+              </div>
+
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Message</p>
+                <div className="p-3 bg-muted/50 rounded-lg text-sm whitespace-pre-wrap">
+                  {selectedSubmission.message}
+                </div>
+              </div>
+
+              {/* Reply History */}
+              {replies && replies.length > 0 && (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+                    <Mail className="h-3 w-3" />
+                    Reply History ({replies.length})
+                  </p>
+                  <div className="space-y-3">
+                    {replies.map((r: any) => (
+                      <div key={r.reply.id} className="p-3 bg-blue-50/50 rounded-lg border border-blue-100">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-medium text-blue-700">
+                            {r.adminName || "Admin"}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            {r.reply.emailSent ? (
+                              <span className="text-xs text-green-600 flex items-center gap-1">
+                                <MailCheck className="h-3 w-3" /> Email sent
+                              </span>
+                            ) : (
+                              <span className="text-xs text-amber-600 flex items-center gap-1">
+                                <AlertCircle className="h-3 w-3" /> Email pending
+                              </span>
+                            )}
+                            <span className="text-xs text-muted-foreground">
+                              {formatDate(r.reply.createdAt)}
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-sm whitespace-pre-wrap">{r.reply.message}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <DialogFooter className="flex-wrap gap-2">
+                <Button variant="outline" onClick={() => setDetailOpen(false)}>Close</Button>
+                <Button onClick={() => { setDetailOpen(false); openReplyDialog(selectedSubmission); }}>
+                  <Send className="h-4 w-4 mr-1" />
+                  Reply
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Reply Dialog */}
+      <Dialog open={replyDialogOpen} onOpenChange={setReplyDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Send className="h-5 w-5" />
+              Reply to {selectedSubmission?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Re: {selectedSubmission?.subject} (#{selectedSubmission?.id})
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Original message preview */}
+            <div className="p-3 bg-muted/50 rounded-lg">
+              <p className="text-xs text-muted-foreground mb-1">Original message:</p>
+              <p className="text-sm line-clamp-3">{selectedSubmission?.message}</p>
+            </div>
+
+            {/* Template Quick-Select */}
+            {templates && templates.length > 0 && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+                  <Zap className="h-3 w-3" />
+                  Quick Templates
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {templates
+                    .filter((t: any) => t.category === selectedSubmission?.category || t.category === "general")
+                    .slice(0, 6)
+                    .map((t: any) => (
+                      <Button
+                        key={t.id}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs h-7"
+                        onClick={() => applyTemplate(t)}
+                      >
+                        <Copy className="h-3 w-3 mr-1" />
+                        {t.name}
+                      </Button>
+                    ))}
+                </div>
+              </div>
+            )}
+
+            {/* Reply message */}
+            <div>
+              <Textarea
+                placeholder="Type your reply..."
+                value={replyMessage}
+                onChange={(e) => setReplyMessage(e.target.value)}
+                rows={8}
+                className="resize-y"
+              />
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-xs text-muted-foreground">
+                  {replyMessage.length}/10,000 characters
+                </p>
+                {selectedTemplateId && (
+                  <p className="text-xs text-blue-600">Using template</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReplyDialogOpen(false)}>Cancel</Button>
+            <Button
+              onClick={() => selectedSubmission && sendReply.mutate({
+                submissionId: selectedSubmission.id,
+                message: replyMessage,
+                templateId: selectedTemplateId,
+              })}
+              disabled={!replyMessage.trim() || sendReply.isPending}
+            >
+              {sendReply.isPending ? (
+                <>Sending...</>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-1" />
+                  Send Reply
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Template Management Dialog */}
+      <Dialog open={templateDialogOpen} onOpenChange={(open) => { if (!open) resetTemplateForm(); setTemplateDialogOpen(open); }}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5" />
+              {templateMode === "edit" ? "Edit Template" : "Reply Templates"}
+            </DialogTitle>
+            <DialogDescription>
+              {templateMode === "edit" ? "Update the template details" : "Create and manage canned reply templates for quick responses"}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {/* Template Form */}
+            <div className="p-4 border rounded-lg space-y-3">
+              <p className="text-sm font-medium">{templateMode === "edit" ? "Edit Template" : "New Template"}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Input
+                  placeholder="Template name (e.g., Booking Confirmation)"
+                  value={templateForm.name}
+                  onChange={(e) => setTemplateForm(f => ({ ...f, name: e.target.value }))}
+                />
+                <Select
+                  value={templateForm.category}
+                  onValueChange={(val) => setTemplateForm(f => ({ ...f, category: val }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="general">General</SelectItem>
+                    <SelectItem value="booking">Booking</SelectItem>
+                    <SelectItem value="payment">Payment</SelectItem>
+                    <SelectItem value="provider">Provider</SelectItem>
+                    <SelectItem value="technical">Technical</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Input
+                placeholder="Subject line"
+                value={templateForm.subject}
+                onChange={(e) => setTemplateForm(f => ({ ...f, subject: e.target.value }))}
+              />
+              <Textarea
+                placeholder="Template body text..."
+                value={templateForm.body}
+                onChange={(e) => setTemplateForm(f => ({ ...f, body: e.target.value }))}
+                rows={5}
+                className="resize-y"
+              />
+              <div className="flex gap-2">
+                {templateMode === "edit" ? (
+                  <>
+                    <Button
+                      size="sm"
+                      onClick={() => editingTemplate && updateTemplate.mutate({
+                        id: editingTemplate.id,
+                        ...templateForm,
+                        category: templateForm.category as any,
+                      })}
+                      disabled={!templateForm.name.trim() || !templateForm.body.trim() || updateTemplate.isPending}
+                    >
+                      Save Changes
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={resetTemplateForm}>Cancel</Button>
+                  </>
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={() => createTemplate.mutate({
+                      ...templateForm,
+                      category: templateForm.category as any,
+                    })}
+                    disabled={!templateForm.name.trim() || !templateForm.body.trim() || !templateForm.subject.trim() || createTemplate.isPending}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Create Template
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* Existing Templates List */}
+            {templates && templates.length > 0 && templateMode !== "edit" && (
+              <div>
+                <p className="text-sm font-medium mb-3">Existing Templates ({templates.length})</p>
+                <div className="space-y-2">
+                  {templates.map((t: any) => (
+                    <div key={t.id} className="p-3 border rounded-lg flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-medium text-sm">{t.name}</p>
+                          {getCategoryBadge(t.category)}
+                          {t.usageCount > 0 && (
+                            <span className="text-xs text-muted-foreground">Used {t.usageCount}x</span>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">{t.subject}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{t.body}</p>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button size="sm" variant="ghost" onClick={() => openEditTemplate(t)}>
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            if (confirm(`Delete template "${t.name}"?`)) {
+                              deleteTemplate.mutate({ id: t.id });
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {templates && templates.length === 0 && templateMode !== "edit" && (
+              <div className="text-center py-6">
+                <Zap className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No templates yet</p>
+                <p className="text-xs text-muted-foreground">Create your first template above to speed up replies</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }

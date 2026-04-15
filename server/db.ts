@@ -155,9 +155,19 @@ export {
   bulkMoveToFolder,
 } from "./db/folders";
 
-// Contact form submissions
+// Contact form submissions, replies, and templates
 export {
   createContactSubmission,
   getContactSubmissions,
+  getContactSubmissionsFiltered,
+  getContactSubmissionById,
   updateContactSubmissionStatus,
+  getContactSubmissionStats,
+  createContactReply,
+  getContactReplies,
+  createReplyTemplate,
+  getReplyTemplates,
+  updateReplyTemplate,
+  deleteReplyTemplate,
+  incrementTemplateUsage,
 } from "./db/contactSubmissions";
