@@ -698,3 +698,10 @@
 - [x] Canonical link and document title management with cleanup on unmount
 - [x] "Referral Program" link in site footer (Company column, before Help Center)
 - [x] 32 tests for all three enhancements
+
+## Feature: Referral Program OG Image
+- [x] Generate branded 1200x630 social sharing image (navy gradient, gift box, tier badges, OlogyCrew branding)
+- [x] Auto-uploaded to CDN (d2xsxph8kpxj0f.cloudfront.net)
+- [x] Wire og:image + og:image:width/height + twitter:image into client-side useMetaTags hook
+- [x] Wire og:image + twitter:image into server-side vite.ts injection (dev + production)
+- [x] 40 tests passing (8 new OG image tests added to existing suite)

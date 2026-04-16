@@ -22,11 +22,13 @@ import { Link } from "wouter";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { toast } from "sonner";
 
+const OG_IMAGE_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-TyhsS9wgk3tRcpBxQ9VQM9.png";
+
 const META_TAGS = {
   title: "OlogyCrew Referral Program — Share & Earn Rewards",
   description: "Refer friends to OlogyCrew and earn credits toward your next booking. Unlock Bronze, Silver, Gold, and Platinum tiers with escalating rewards up to 25%.",
   url: "/referral-program",
-  image: "/og-referral.png",
+  image: OG_IMAGE_URL,
 };
 
 function useMetaTags() {
@@ -39,8 +41,12 @@ function useMetaTags() {
       "og:type": "website",
       "og:site_name": "OlogyCrew",
       "twitter:card": "summary_large_image",
+      "og:image": META_TAGS.image,
+      "og:image:width": "1200",
+      "og:image:height": "630",
       "twitter:title": META_TAGS.title,
       "twitter:description": META_TAGS.description,
+      "twitter:image": META_TAGS.image,
     };
 
     // Set document title

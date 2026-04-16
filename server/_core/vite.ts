@@ -51,6 +51,10 @@ export async function setupVite(app: Express, server: Server) {
           `<meta name="twitter:card" content="summary_large_image" />`,
           `<meta name="twitter:title" content="OlogyCrew Referral Program — Share & Earn Rewards" />`,
           `<meta name="twitter:description" content="Refer friends to OlogyCrew and earn credits toward your next booking. Unlock Bronze, Silver, Gold, and Platinum tiers with escalating rewards up to 25%." />`,
+          `<meta property="og:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-TyhsS9wgk3tRcpBxQ9VQM9.png" />`,
+          `<meta property="og:image:width" content="1200" />`,
+          `<meta property="og:image:height" content="630" />`,
+          `<meta name="twitter:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-TyhsS9wgk3tRcpBxQ9VQM9.png" />`,
         ].join("\n    ");
         template = template.replace("</head>", `    ${ogTags}\n  </head>`);
       }
@@ -95,6 +99,10 @@ export function serveStatic(app: Express) {
         `<meta name="twitter:card" content="summary_large_image" />`,
         `<meta name="twitter:title" content="OlogyCrew Referral Program \u2014 Share & Earn Rewards" />`,
         `<meta name="twitter:description" content="Refer friends to OlogyCrew and earn credits toward your next booking. Unlock Bronze, Silver, Gold, and Platinum tiers with escalating rewards up to 25%." />`,
+        `<meta property="og:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-TyhsS9wgk3tRcpBxQ9VQM9.png" />`,
+        `<meta property="og:image:width" content="1200" />`,
+        `<meta property="og:image:height" content="630" />`,
+        `<meta name="twitter:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-TyhsS9wgk3tRcpBxQ9VQM9.png" />`,
       ].join("\n    ");
       html = html.replace("</head>", `    ${ogTags}\n  </head>`);
       return res.status(200).set({ "Content-Type": "text/html" }).end(html);

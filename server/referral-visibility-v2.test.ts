@@ -158,6 +158,57 @@ describe("OG and Twitter Card Meta Tags", () => {
       const prodSection = content.split("serveStatic")[1];
       expect(prodSection).toContain('url.startsWith("/referral-program")');
     });
+
+    it("should inject og:image with CDN URL in server-side HTML", () => {
+      expect(content).toContain('og:image');
+      expect(content).toContain("d2xsxph8kpxj0f.cloudfront.net");
+      expect(content).toContain("ologycrew-referral-og");
+    });
+
+    it("should inject og:image:width and og:image:height", () => {
+      expect(content).toContain('og:image:width');
+      expect(content).toContain('"1200"');
+      expect(content).toContain('og:image:height');
+      expect(content).toContain('"630"');
+    });
+
+    it("should inject twitter:image with CDN URL", () => {
+      expect(content).toContain('twitter:image');
+      // Count occurrences of the CDN URL (should appear in both dev and prod sections)
+      const cdnMatches = content.match(/ologycrew-referral-og/g);
+      expect(cdnMatches!.length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  describe("Client-side OG image (ReferralProgram.tsx)", () => {
+    const filePath = path.resolve(
+      __dirname,
+      "../client/src/pages/ReferralProgram.tsx"
+    );
+    const content = fs.readFileSync(filePath, "utf-8");
+
+    it("should define OG_IMAGE_URL constant with CDN URL", () => {
+      expect(content).toContain("const OG_IMAGE_URL");
+      expect(content).toContain("d2xsxph8kpxj0f.cloudfront.net");
+      expect(content).toContain("ologycrew-referral-og");
+    });
+
+    it("should set og:image meta tag in useMetaTags", () => {
+      expect(content).toContain('"og:image": META_TAGS.image');
+    });
+
+    it("should set og:image:width and og:image:height", () => {
+      expect(content).toContain('"og:image:width": "1200"');
+      expect(content).toContain('"og:image:height": "630"');
+    });
+
+    it("should set twitter:image meta tag", () => {
+      expect(content).toContain('"twitter:image": META_TAGS.image');
+    });
+
+    it("should use OG_IMAGE_URL in META_TAGS.image", () => {
+      expect(content).toContain("image: OG_IMAGE_URL");
+    });
   });
 });
 
