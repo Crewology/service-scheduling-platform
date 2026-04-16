@@ -340,17 +340,17 @@ export function NavHeader() {
       <div className="container">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2 shrink-0">
             <img
               src="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png"
               alt="OlogyCrew"
-              className="h-10 w-10 object-contain rounded-lg"
+              className="h-8 w-8 object-contain rounded-lg"
             />
-            <span className="text-xl font-bold gradient-text hidden sm:inline">OlogyCrew</span>
+            <span className="text-lg font-bold gradient-text hidden lg:inline whitespace-nowrap">OlogyCrew</span>
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="hidden lg:flex items-center gap-4 ml-6">
             <Link
               href="/browse"
               className={`text-sm font-medium transition-colors ${
@@ -378,42 +378,38 @@ export function NavHeader() {
           </nav>
 
           {/* Right side actions */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-1">
             {isAuthenticated ? (
               <>
                 {/* My Bookings */}
                 <Link href="/my-bookings">
-                  <Button variant="ghost" size="sm" className="relative">
-                    <Calendar className="h-4 w-4 mr-1" />
-                    My Bookings
+                  <Button variant="ghost" size="icon" className="relative h-9 w-9" title="My Bookings">
+                    <Calendar className="h-4 w-4" />
                   </Button>
                 </Link>
 
                 {/* Saved Providers */}
                 <Link href="/saved-providers">
-                  <Button variant="ghost" size="sm" className="relative">
-                    <Heart className="h-4 w-4 mr-1" />
-                    Saved
+                  <Button variant="ghost" size="icon" className="relative h-9 w-9" title="Saved">
+                    <Heart className="h-4 w-4" />
                   </Button>
                 </Link>
 
                 {/* My Quotes */}
                 <Link href="/my-quotes">
-                  <Button variant="ghost" size="sm" className="relative">
-                    <FileText className="h-4 w-4 mr-1" />
-                    Quotes
+                  <Button variant="ghost" size="icon" className="relative h-9 w-9" title="Quotes">
+                    <FileText className="h-4 w-4" />
                   </Button>
                 </Link>
 
                 {/* Messages with unread badge */}
                 <Link href="/my-bookings">
-                  <Button variant="ghost" size="sm" className="relative">
-                    <MessageSquare className="h-4 w-4 mr-1" />
-                    Messages
+                  <Button variant="ghost" size="icon" className="relative h-9 w-9" title="Messages">
+                    <MessageSquare className="h-4 w-4" />
                     {unreadMessages > 0 && (
                       <Badge
                         variant="destructive"
-                        className="absolute -top-1 -right-1 h-5 min-w-[20px] flex items-center justify-center p-0 text-[10px]"
+                        className="absolute -top-1 -right-1 h-4 min-w-[16px] flex items-center justify-center p-0 text-[9px]"
                       >
                         {unreadMessages > 99 ? "99+" : unreadMessages}
                       </Badge>
@@ -427,7 +423,7 @@ export function NavHeader() {
                 {/* Provider Dashboard */}
                 {isProvider && (
                   <Link href="/provider/dashboard">
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" className="text-xs px-2.5">
                       Dashboard
                     </Button>
                   </Link>
@@ -436,7 +432,7 @@ export function NavHeader() {
                 {/* Admin */}
                 {isAdmin && (
                   <Link href="/admin">
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" className="text-xs px-2.5">
                       Admin
                     </Button>
                   </Link>
@@ -461,7 +457,7 @@ export function NavHeader() {
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className="lg:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -470,7 +466,7 @@ export function NavHeader() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t py-4 space-y-2">
+          <div className="lg:hidden border-t py-4 space-y-2">
             <Link href="/browse" onClick={() => setMobileMenuOpen(false)}>
               <Button variant="ghost" className="w-full justify-start">Browse Services</Button>
             </Link>

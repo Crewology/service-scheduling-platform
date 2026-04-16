@@ -513,3 +513,6 @@
 - [x] Process OlogyCrew clock icon into favicon (ICO + PNG sizes)
 - [x] Upload logo to CDN and set as VITE_APP_LOGO
 - [x] Set favicon in client/index.html
+
+## Bug: Navbar Logo Overlapping
+- [x] Fix logo + "OlogyCrew" text overlapping with "Browse Services" nav link on desktop
