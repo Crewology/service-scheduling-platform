@@ -516,3 +516,10 @@
 
 ## Bug: Navbar Logo Overlapping
 - [x] Fix logo + "OlogyCrew" text overlapping with "Browse Services" nav link on desktop
+
+## Feature: Progressive Web App (PWA)
+- [x] Create web app manifest (manifest.json) with app name, icons, theme colors
+- [x] Create service worker for offline caching
+- [x] Register service worker in the app
+- [x] Add install prompt UI for users to install the app
+- [x] Link manifest in index.html with proper meta tags

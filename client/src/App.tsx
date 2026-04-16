@@ -4,6 +4,7 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { PWAInstallBanner } from "./components/PWAInstallBanner";
 import Home from "./pages/Home";
 import Browse from "./pages/Browse";
 import CategoryDetail from "./pages/CategoryDetail";
@@ -90,6 +91,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
+          <PWAInstallBanner />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
