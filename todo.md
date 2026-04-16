@@ -508,3 +508,8 @@
 
 ## Feature: Seed Starter Reply Templates
 - [x] Pre-populate 6 canned reply templates for common support categories (general, booking, payment, provider, technical, other)
+
+## Feature: Favicon & Logo Setup
+- [x] Process OlogyCrew clock icon into favicon (ICO + PNG sizes)
+- [x] Upload logo to CDN and set as VITE_APP_LOGO
+- [x] Set favicon in client/index.html
