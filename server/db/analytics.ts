@@ -4,6 +4,8 @@ import {
   services,
   reviews,
   payments,
+  pushSubscriptions,
+  users,
 } from "../../drizzle/schema";
 import { getDb } from "./connection";
 
@@ -130,4 +132,46 @@ export async function getAdminBookingSourceAnalytics() {
     count: sql<number>`COUNT(*)`,
     revenue: sql<number>`COALESCE(SUM(CAST(${bookings.totalAmount} AS DECIMAL(10,2))), 0)`,
   }).from(bookings).groupBy(bookings.bookingSource);
+}
+
+// ============================================================================
+// PUSH NOTIFICATION ANALYTICS
+// ============================================================================
+
+export async function getPushAnalytics(): Promise<{
+  totalSubscriptions: number;
+  activeSubscriptions: number;
+  inactiveSubscriptions: number;
+  uniqueUsers: number;
+  recentSubscriptions: number;
+}> {
+  const db = await getDb();
+  if (!db) return {
+    totalSubscriptions: 0,
+    activeSubscriptions: 0,
+    inactiveSubscriptions: 0,
+    uniqueUsers: 0,
+    recentSubscriptions: 0,
+  };
+
+  const [totals] = await db.select({
+    totalSubscriptions: sql<number>`COUNT(*)`,
+    activeSubscriptions: sql<number>`SUM(CASE WHEN ${pushSubscriptions.isActive} = true THEN 1 ELSE 0 END)`,
+    inactiveSubscriptions: sql<number>`SUM(CASE WHEN ${pushSubscriptions.isActive} = false THEN 1 ELSE 0 END)`,
+    uniqueUsers: sql<number>`COUNT(DISTINCT ${pushSubscriptions.userId})`,
+  }).from(pushSubscriptions);
+
+  // Subscriptions in the last 7 days
+  const [recent] = await db.select({
+    count: sql<number>`COUNT(*)`,
+  }).from(pushSubscriptions)
+    .where(gte(pushSubscriptions.createdAt, new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)));
+
+  return {
+    totalSubscriptions: totals?.totalSubscriptions ?? 0,
+    activeSubscriptions: totals?.activeSubscriptions ?? 0,
+    inactiveSubscriptions: totals?.inactiveSubscriptions ?? 0,
+    uniqueUsers: totals?.uniqueUsers ?? 0,
+    recentSubscriptions: recent?.count ?? 0,
+  };
 }

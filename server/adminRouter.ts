@@ -165,4 +165,9 @@ export const adminRouter = router({
       await db.deleteReview(input.reviewId);
       return { success: true };
     }),
+
+  // Push Notification Analytics
+  getPushAnalytics: adminProcedure.query(async () => {
+    return await db.getPushAnalytics();
+  }),
 });

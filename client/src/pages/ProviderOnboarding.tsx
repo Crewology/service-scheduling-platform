@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useProtectedPage } from "@/hooks/useProtectedPage";
 import { trpc } from "@/lib/trpc";
@@ -512,6 +512,57 @@ function WhyBecomeProvider({ onGetStarted }: { onGetStarted: () => void }) {
         </div>
       </section>
 
+      {/* Refer a Provider */}
+      <section className="py-16 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20">
+        <div className="container max-w-4xl">
+          <div className="text-center mb-8">
+            <Badge variant="secondary" className="mb-3 px-3 py-1 text-sm">
+              <Users className="h-3.5 w-3.5 mr-1.5" />
+              Referral Program
+            </Badge>
+            <h2 className="text-2xl sm:text-3xl font-bold">Know a Great Provider? Refer Them!</h2>
+            <p className="text-muted-foreground mt-2 max-w-xl mx-auto">
+              Earn credits when you refer other service professionals to OlogyCrew. The more providers you bring, the more you earn.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+            <Card className="border-0 shadow-sm text-center">
+              <CardContent className="pt-6">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-3">
+                  <Users className="h-6 w-6 text-emerald-600" />
+                </div>
+                <h3 className="font-semibold mb-1">Share Your Link</h3>
+                <p className="text-sm text-muted-foreground">Get your unique referral link from your dashboard and share it with fellow professionals.</p>
+              </CardContent>
+            </Card>
+            <Card className="border-0 shadow-sm text-center">
+              <CardContent className="pt-6">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-3">
+                  <CheckCircle className="h-6 w-6 text-emerald-600" />
+                </div>
+                <h3 className="font-semibold mb-1">They Sign Up</h3>
+                <p className="text-sm text-muted-foreground">When your referral creates their provider profile and completes their first booking, you both earn rewards.</p>
+              </CardContent>
+            </Card>
+            <Card className="border-0 shadow-sm text-center">
+              <CardContent className="pt-6">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-3">
+                  <DollarSign className="h-6 w-6 text-emerald-600" />
+                </div>
+                <h3 className="font-semibold mb-1">Earn Credits</h3>
+                <p className="text-sm text-muted-foreground">Get discount credits on your next bookings. No limit on how many providers you can refer!</p>
+              </CardContent>
+            </Card>
+          </div>
+          <div className="text-center">
+            <Button variant="outline" size="lg" className="text-base" onClick={onGetStarted}>
+              Join & Start Referring
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+      </section>
+
       {/* Final CTA */}
       <section className="py-16">
         <div className="container max-w-3xl text-center">
@@ -544,6 +595,21 @@ export default function ProviderOnboarding() {
   });
   const utils = trpc.useUtils();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Capture referral code from URL and store in localStorage
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const refCode = params.get("ref");
+    if (refCode) {
+      localStorage.setItem("provider_referral_code", refCode.toUpperCase().trim());
+      // Clean the URL without losing other params
+      params.delete("ref");
+      const newUrl = params.toString()
+        ? `${window.location.pathname}?${params.toString()}`
+        : window.location.pathname;
+      window.history.replaceState({}, "", newUrl);
+    }
+  }, []);
 
   useProtectedPage();
 
@@ -604,6 +670,13 @@ export default function ProviderOnboarding() {
       setCurrentStep(3);
     },
     onError: (err) => toast.error(err.message),
+  });
+
+  const validateReferralMutation = trpc.referral.validate.useMutation();
+  const applyReferralMutation = trpc.referral.applyCode.useMutation({
+    onSuccess: () => {
+      toast.success("Referral code applied! You and your referrer will both earn credits.");
+    },
   });
 
   const startOnboarding = trpc.stripeConnect.startOnboarding.useMutation({
@@ -699,6 +772,24 @@ export default function ProviderOnboarding() {
       const base64 = photoPreview.split(",")[1];
       const contentType = photoPreview.split(";")[0].split(":")[1];
       uploadProfilePhoto.mutate({ photoData: base64, contentType });
+    }
+
+    // Track provider referral if one was captured
+    const refCode = localStorage.getItem("provider_referral_code");
+    if (refCode) {
+      try {
+        const validation = await validateReferralMutation.mutateAsync({ code: refCode });
+        if (validation.valid && validation.referralCodeId && validation.referrerId) {
+          await applyReferralMutation.mutateAsync({
+            referralCodeId: validation.referralCodeId,
+            referrerId: validation.referrerId,
+          });
+        }
+        localStorage.removeItem("provider_referral_code");
+      } catch {
+        // Referral tracking is best-effort, don't block onboarding
+        localStorage.removeItem("provider_referral_code");
+      }
     }
 
     setCurrentStep(2);

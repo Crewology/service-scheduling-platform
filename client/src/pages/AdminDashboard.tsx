@@ -45,6 +45,13 @@ import {
   CheckCircle2,
   Archive,
   Zap,
+  Search,
+  Download,
+  Bell,
+  Smartphone,
+  Wifi,
+  WifiOff,
+  Activity,
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -390,6 +397,10 @@ export default function AdminDashboard() {
               <MessageSquare className="h-3.5 w-3.5 mr-1" />
               Support
             </TabsTrigger>
+            <TabsTrigger value="push">
+              <Bell className="h-3.5 w-3.5 mr-1" />
+              Push
+            </TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -681,6 +692,10 @@ export default function AdminDashboard() {
           <TabsContent value="support">
             <ContactSubmissionsPanel />
           </TabsContent>
+
+          <TabsContent value="push">
+            <PushAnalyticsPanel />
+          </TabsContent>
         </Tabs>
       </div>
     </div>
@@ -964,6 +979,8 @@ function DocumentReviewPanel() {
 function ContactSubmissionsPanel() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [selectedSubmission, setSelectedSubmission] = useState<any | null>(null);
   const [replyDialogOpen, setReplyDialogOpen] = useState(false);
   const [replyMessage, setReplyMessage] = useState("");
@@ -1079,6 +1096,88 @@ function ContactSubmissionsPanel() {
     setDetailOpen(true);
   }
 
+  // Filter submissions by search query
+  const filteredSubmissions = submissions?.filter((sub: any) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      sub.name?.toLowerCase().includes(q) ||
+      sub.email?.toLowerCase().includes(q) ||
+      sub.subject?.toLowerCase().includes(q) ||
+      sub.message?.toLowerCase().includes(q) ||
+      String(sub.id).includes(q)
+    );
+  });
+
+  // Bulk status update
+  function bulkUpdateStatus(newStatus: string) {
+    if (selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    let completed = 0;
+    ids.forEach((id) => {
+      updateStatus.mutate(
+        { id, status: newStatus as any },
+        {
+          onSuccess: () => {
+            completed++;
+            if (completed === ids.length) {
+              setSelectedIds(new Set());
+              toast.success(`Updated ${ids.length} submissions to ${newStatus.replace("_", " ")}`);
+            }
+          },
+        }
+      );
+    });
+  }
+
+  // Toggle selection
+  function toggleSelect(id: number) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    if (!filteredSubmissions) return;
+    if (selectedIds.size === filteredSubmissions.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredSubmissions.map((s: any) => s.id)));
+    }
+  }
+
+  // CSV Export
+  function exportCSV() {
+    const data = filteredSubmissions || submissions;
+    if (!data || data.length === 0) {
+      toast.error("No submissions to export");
+      return;
+    }
+    const headers = ["ID", "Name", "Email", "Subject", "Category", "Status", "Message", "Date"];
+    const rows = data.map((sub: any) => [
+      sub.id,
+      `"${(sub.name || "").replace(/"/g, '""')}"`,
+      `"${(sub.email || "").replace(/"/g, '""')}"`,
+      `"${(sub.subject || "").replace(/"/g, '""')}"`,
+      sub.category,
+      sub.status,
+      `"${(sub.message || "").replace(/"/g, '""').replace(/\n/g, " ")}"`,
+      new Date(sub.createdAt).toISOString(),
+    ]);
+    const csv = [headers.join(","), ...rows.map((r: any[]) => r.join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `contact-submissions-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`Exported ${data.length} submissions to CSV`);
+  }
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "new": return <Badge className="bg-blue-100 text-blue-800 border-blue-200"><Inbox className="h-3 w-3 mr-1" />New</Badge>;
@@ -1139,7 +1238,26 @@ function ContactSubmissionsPanel() {
         </div>
       )}
 
-      {/* Filters + Template Manager Button */}
+      {/* Search Bar */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Search submissions by name, email, subject, or message..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-10"
+        />
+        {searchQuery && (
+          <button
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            onClick={() => setSearchQuery("")}
+          >
+            <XCircle className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+
+      {/* Filters + Bulk Actions + Export + Template Manager */}
       <div className="flex flex-wrap items-center gap-3">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[150px]">
@@ -1169,14 +1287,47 @@ function ContactSubmissionsPanel() {
           </SelectContent>
         </Select>
 
-        <div className="ml-auto">
+        {/* Bulk Actions */}
+        {selectedIds.size > 0 && (
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-lg border border-blue-200">
+            <span className="text-xs font-medium text-blue-700">{selectedIds.size} selected</span>
+            <Select onValueChange={(val) => bulkUpdateStatus(val)}>
+              <SelectTrigger className="h-7 w-[130px] text-xs">
+                <SelectValue placeholder="Set status..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="new">Mark as New</SelectItem>
+                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="resolved">Resolved</SelectItem>
+                <SelectItem value="closed">Closed</SelectItem>
+              </SelectContent>
+            </Select>
+            <button
+              className="text-xs text-blue-600 hover:text-blue-800 underline"
+              onClick={() => setSelectedIds(new Set())}
+            >
+              Clear
+            </button>
+          </div>
+        )}
+
+        <div className="ml-auto flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportCSV}
+            title="Export to CSV"
+          >
+            <Download className="h-4 w-4 mr-1" />
+            Export CSV
+          </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={() => { resetTemplateForm(); setTemplateDialogOpen(true); }}
           >
             <Zap className="h-4 w-4 mr-1" />
-            Manage Templates ({templates?.length || 0})
+            Templates ({templates?.length || 0})
           </Button>
         </div>
       </div>
@@ -1193,19 +1344,32 @@ function ContactSubmissionsPanel() {
         <CardContent>
           {isLoading ? (
             <LoadingSpinner message="Loading submissions..." />
-          ) : !submissions || submissions.length === 0 ? (
+          ) : !filteredSubmissions || filteredSubmissions.length === 0 ? (
             <div className="text-center py-12">
               <Inbox className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
               <p className="text-muted-foreground">No submissions found</p>
               <p className="text-xs text-muted-foreground mt-1">
-                {statusFilter !== "all" || categoryFilter !== "all" ? "Try adjusting your filters" : "Contact form submissions will appear here"}
+                {searchQuery ? "Try a different search term" : statusFilter !== "all" || categoryFilter !== "all" ? "Try adjusting your filters" : "Contact form submissions will appear here"}
               </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
+              {searchQuery && (
+                <p className="text-xs text-muted-foreground mb-2">
+                  Showing {filteredSubmissions.length} of {submissions?.length || 0} submissions
+                </p>
+              )}
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-[40px]">
+                      <input
+                        type="checkbox"
+                        checked={filteredSubmissions.length > 0 && selectedIds.size === filteredSubmissions.length}
+                        onChange={toggleSelectAll}
+                        className="rounded border-gray-300"
+                      />
+                    </TableHead>
                     <TableHead className="w-[60px]">ID</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Subject</TableHead>
@@ -1216,8 +1380,16 @@ function ContactSubmissionsPanel() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {submissions.map((sub: any) => (
-                    <TableRow key={sub.id} className={sub.status === "new" ? "bg-blue-50/30" : ""}>
+                  {filteredSubmissions.map((sub: any) => (
+                    <TableRow key={sub.id} className={`${sub.status === "new" ? "bg-blue-50/30" : ""} ${selectedIds.has(sub.id) ? "bg-blue-50/50" : ""}`}>
+                      <TableCell>
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(sub.id)}
+                          onChange={() => toggleSelect(sub.id)}
+                          className="rounded border-gray-300"
+                        />
+                      </TableCell>
                       <TableCell className="text-muted-foreground font-mono text-xs">#{sub.id}</TableCell>
                       <TableCell>
                         <div>
@@ -1593,6 +1765,127 @@ function ContactSubmissionsPanel() {
           </div>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+
+// ============================================================================
+// PUSH NOTIFICATION ANALYTICS PANEL
+// ============================================================================
+function PushAnalyticsPanel() {
+  const { data: pushStats, isLoading } = trpc.admin.getPushAnalytics.useQuery();
+
+  if (isLoading) return <LoadingSpinner message="Loading push analytics..." />;
+  if (!pushStats) return null;
+
+  const adoptionRate = pushStats.totalSubscriptions > 0
+    ? Math.round((pushStats.activeSubscriptions / pushStats.totalSubscriptions) * 100)
+    : 0;
+
+  return (
+    <div className="space-y-6">
+      {/* Push Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <Card className="border-l-4 border-l-blue-500">
+          <CardContent className="pt-4 pb-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Bell className="h-4 w-4 text-blue-500" />
+              <div className="text-xs text-muted-foreground">Total Subscriptions</div>
+            </div>
+            <div className="text-2xl font-bold text-blue-600">{pushStats.totalSubscriptions}</div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-green-500">
+          <CardContent className="pt-4 pb-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Wifi className="h-4 w-4 text-green-500" />
+              <div className="text-xs text-muted-foreground">Active</div>
+            </div>
+            <div className="text-2xl font-bold text-green-600">{pushStats.activeSubscriptions}</div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-red-400">
+          <CardContent className="pt-4 pb-3">
+            <div className="flex items-center gap-2 mb-1">
+              <WifiOff className="h-4 w-4 text-red-400" />
+              <div className="text-xs text-muted-foreground">Inactive</div>
+            </div>
+            <div className="text-2xl font-bold text-red-500">{pushStats.inactiveSubscriptions}</div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-purple-500">
+          <CardContent className="pt-4 pb-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Users className="h-4 w-4 text-purple-500" />
+              <div className="text-xs text-muted-foreground">Unique Users</div>
+            </div>
+            <div className="text-2xl font-bold text-purple-600">{pushStats.uniqueUsers}</div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-amber-500">
+          <CardContent className="pt-4 pb-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Activity className="h-4 w-4 text-amber-500" />
+              <div className="text-xs text-muted-foreground">Last 7 Days</div>
+            </div>
+            <div className="text-2xl font-bold text-amber-600">{pushStats.recentSubscriptions}</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Adoption Rate */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Smartphone className="h-5 w-5" />
+            Push Notification Adoption
+          </CardTitle>
+          <CardDescription>
+            Overview of browser push notification subscriptions across the platform
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Adoption Rate Bar */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Adoption Rate</span>
+                <span className="text-sm font-bold text-primary">{adoptionRate}%</span>
+              </div>
+              <div className="h-3 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all"
+                  style={{ width: `${adoptionRate}%` }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {pushStats.activeSubscriptions} of {pushStats.totalSubscriptions} subscriptions are active
+              </p>
+            </div>
+
+            {/* Key Insights */}
+            <div className="grid md:grid-cols-2 gap-4 pt-4 border-t">
+              <div className="p-4 bg-muted/50 rounded-lg">
+                <p className="text-sm font-medium mb-1">Avg Devices per User</p>
+                <p className="text-2xl font-bold">
+                  {pushStats.uniqueUsers > 0
+                    ? (pushStats.activeSubscriptions / pushStats.uniqueUsers).toFixed(1)
+                    : "0"}
+                </p>
+                <p className="text-xs text-muted-foreground">Active subscriptions per unique user</p>
+              </div>
+              <div className="p-4 bg-muted/50 rounded-lg">
+                <p className="text-sm font-medium mb-1">Recent Growth</p>
+                <p className="text-2xl font-bold text-emerald-600">
+                  +{pushStats.recentSubscriptions}
+                </p>
+                <p className="text-xs text-muted-foreground">New subscriptions in the last 7 days</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -423,6 +423,140 @@ function PublicProfileSection({ provider }: { provider: any }) {
 }
 
 // ============================================================================
+// REFER A PROVIDER CARD
+// ============================================================================
+function ReferProviderCard() {
+  const { data: myCode, isLoading } = trpc.referral.getMyCode.useQuery();
+  const { data: stats } = trpc.referral.getStats.useQuery();
+  const [copied, setCopied] = useState(false);
+
+  const referralLink = myCode
+    ? `${window.location.origin}/provider/onboarding?ref=${myCode.code}`
+    : "";
+
+  const copyLink = () => {
+    if (!referralLink) return;
+    navigator.clipboard.writeText(referralLink);
+    setCopied(true);
+    toast.success("Referral link copied!");
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const shareLink = () => {
+    if (!referralLink) return;
+    if (navigator.share) {
+      navigator.share({
+        title: "Join OlogyCrew as a Provider",
+        text: "I've been using OlogyCrew to manage my service bookings and it's great! Sign up with my referral link and we both earn credits.",
+        url: referralLink,
+      }).catch(() => {});
+    } else {
+      copyLink();
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Refer a Provider</h2>
+          <p className="text-muted-foreground mt-1">
+            Share your referral link with fellow service professionals and earn credits when they join
+          </p>
+        </div>
+        <Link href="/referrals">
+          <Button variant="outline">
+            <BarChart3 className="h-4 w-4 mr-2" />
+            View All Referrals
+          </Button>
+        </Link>
+      </div>
+
+      {/* Stats Cards */}
+      {stats && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <Card>
+            <CardContent className="py-4 text-center">
+              <div className="text-2xl font-bold text-primary">{stats.totalReferrals}</div>
+              <div className="text-xs text-muted-foreground">Total Referrals</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="py-4 text-center">
+              <div className="text-2xl font-bold text-emerald-600">{stats.completedReferrals}</div>
+              <div className="text-xs text-muted-foreground">Completed</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="py-4 text-center">
+              <div className="text-2xl font-bold text-amber-600">{stats.pendingReferrals}</div>
+              <div className="text-xs text-muted-foreground">Pending</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="py-4 text-center">
+              <div className="text-2xl font-bold text-emerald-600">${stats.totalEarnings}</div>
+              <div className="text-xs text-muted-foreground">Credits Earned</div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Referral Link Card */}
+      <Card className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20 border-emerald-200 dark:border-emerald-800">
+        <CardContent className="py-5">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="flex-1 w-full">
+              <Label className="text-xs font-medium text-emerald-700 dark:text-emerald-400 mb-1 block">
+                Your Provider Referral Link
+              </Label>
+              {isLoading ? (
+                <div className="h-10 bg-white/50 rounded-md animate-pulse" />
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    readOnly
+                    value={referralLink}
+                    className="bg-white dark:bg-background text-sm font-mono"
+                    onClick={(e) => (e.target as HTMLInputElement).select()}
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={copyLink}
+                    className="shrink-0"
+                  >
+                    {copied ? (
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                  <Button
+                    size="icon"
+                    onClick={shareLink}
+                    className="shrink-0 bg-emerald-600 hover:bg-emerald-700"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+          {myCode && (
+            <p className="text-xs text-muted-foreground mt-3">
+              Referral code: <span className="font-mono font-semibold">{myCode.code}</span>
+              {" "}&middot;{" "}
+              You earn {myCode.referrerDiscountPercent}% credit &middot; They get {myCode.refereeDiscountPercent}% off their first booking
+            </p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ============================================================================
 // VERIFICATION DOCUMENTS TAB
 // ============================================================================
 function VerificationDocumentsTab() {
@@ -1891,6 +2025,11 @@ export default function ProviderDashboard() {
                 </CardContent>
               </Card>
             </div>
+            </div>
+
+            {/* Refer a Provider sub-section */}
+            <div className="border-t pt-6">
+              <ReferProviderCard />
             </div>
 
             {/* Verification Documents sub-section */}

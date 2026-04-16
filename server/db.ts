@@ -171,3 +171,8 @@ export {
   deleteReplyTemplate,
   incrementTemplateUsage,
 } from "./db/contactSubmissions";
+
+// Push notification analytics
+export {
+  getPushAnalytics,
+} from "./db/analytics";

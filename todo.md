@@ -606,3 +606,24 @@
 
 ## Feature: Provider FAQ Accordion
 - [x] Add collapsible FAQ accordion to provider landing page (7 questions: cost, payouts, cancellation, categories, scheduling, mobile/location, verification)
+
+## Feature: Provider Referral Program
+- [x] Reuse existing referral_codes + referrals tables (no separate provider_referrals needed)
+- [x] Unique referral code generation per user (works for both customer and provider referrals)
+- [x] Referral link handling on provider onboarding page (?ref=CODE) with localStorage capture
+- [x] Credit tracking when referred provider completes onboarding (applyCode mutation)
+- [x] tRPC endpoints: getMyCode, validate, applyCode, getStats, getHistory, updateSettings, lookup
+- [x] "Refer a Provider" section on provider dashboard (ReferProviderCard in More tab)
+- [x] Dual-tab Referrals page with Customer Referrals and Provider Referrals tabs
+- [x] Copy-to-clipboard referral link sharing (customer + provider links)
+- [x] Share via Web Share API with fallback to clipboard
+- [x] Tests for referral program endpoints (19 provider referral tests)
+
+## Feature: Admin Dashboard Enhancements
+- [x] Search within contact submissions (real-time text filter)
+- [x] Bulk status actions for contact submissions (select all, bulk status update)
+- [x] CSV export for contact submissions (download filtered results)
+- [x] Push Notification Analytics tab (total/active/inactive subscriptions, unique users, 7-day growth)
+- [x] Push adoption rate visualization with progress bar
+- [x] Avg devices per user and recent growth metrics
+- [x] Tests for admin enhancements (13 tests: push analytics, contact submissions, referral system, admin router)
