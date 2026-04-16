@@ -689,3 +689,12 @@
 - [x] Link referral program page from homepage section
 - [x] Handle object balance return type correctly in CreditBadge and ReferralProgram
 - [x] 29 tests for referral visibility features
+
+## Feature: Referral Visibility Enhancements (Round 2)
+- [x] Post-booking "Share & Earn" card on BookingConfirmation page (3-step flow, copy/share, amber theme)
+- [x] ShareReferralLink component with clipboard + Web Share API support
+- [x] OG and Twitter Card meta tags on /referral-program (client-side useMetaTags hook)
+- [x] Server-side OG meta tag injection in vite.ts (dev + production modes) for social media crawlers
+- [x] Canonical link and document title management with cleanup on unmount
+- [x] "Referral Program" link in site footer (Company column, before Help Center)
+- [x] 32 tests for all three enhancements

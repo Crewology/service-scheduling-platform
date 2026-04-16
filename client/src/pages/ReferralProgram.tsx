@@ -1,4 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
@@ -21,7 +22,65 @@ import { Link } from "wouter";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { toast } from "sonner";
 
+const META_TAGS = {
+  title: "OlogyCrew Referral Program — Share & Earn Rewards",
+  description: "Refer friends to OlogyCrew and earn credits toward your next booking. Unlock Bronze, Silver, Gold, and Platinum tiers with escalating rewards up to 25%.",
+  url: "/referral-program",
+  image: "/og-referral.png",
+};
+
+function useMetaTags() {
+  useEffect(() => {
+    const origin = window.location.origin;
+    const tags: Record<string, string> = {
+      "og:title": META_TAGS.title,
+      "og:description": META_TAGS.description,
+      "og:url": `${origin}${META_TAGS.url}`,
+      "og:type": "website",
+      "og:site_name": "OlogyCrew",
+      "twitter:card": "summary_large_image",
+      "twitter:title": META_TAGS.title,
+      "twitter:description": META_TAGS.description,
+    };
+
+    // Set document title
+    const prevTitle = document.title;
+    document.title = META_TAGS.title;
+
+    // Set/update meta tags
+    const createdElements: HTMLMetaElement[] = [];
+    Object.entries(tags).forEach(([property, content]) => {
+      const attr = property.startsWith("twitter:") ? "name" : "property";
+      let el = document.querySelector(`meta[${attr}="${property}"]`) as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement("meta");
+        el.setAttribute(attr, property);
+        document.head.appendChild(el);
+        createdElements.push(el);
+      }
+      el.setAttribute("content", content);
+    });
+
+    // Set canonical link
+    let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    const createdCanonical = !canonical;
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.setAttribute("rel", "canonical");
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute("href", `${origin}${META_TAGS.url}`);
+
+    return () => {
+      document.title = prevTitle;
+      createdElements.forEach((el) => el.remove());
+      if (createdCanonical && canonical) canonical.remove();
+    };
+  }, []);
+}
+
 export default function ReferralProgram() {
+  useMetaTags();
   const { user, isAuthenticated } = useAuth();
 
   const { data: myCode } = trpc.referral.getMyCode.useQuery(undefined, {

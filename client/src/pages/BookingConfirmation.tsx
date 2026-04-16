@@ -4,13 +4,72 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { CheckCircle, Calendar, Clock, MapPin, DollarSign, Gift, Loader2 } from "lucide-react";
-import { useLocation, useParams } from "wouter";
+import { CheckCircle, Calendar, Clock, MapPin, DollarSign, Gift, Loader2, Share2, Copy, Users } from "lucide-react";
+import { useLocation, useParams, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { formatTimeForDisplay } from "@shared/timeSlots";
 import { toast } from "sonner";
 import { NavHeader } from "@/components/shared/NavHeader";
+
+function ShareReferralLink() {
+  const { data: myCode } = trpc.referral.getMyCode.useQuery();
+  const [copied, setCopied] = useState(false);
+
+  const referralLink = myCode ? `${window.location.origin}/?ref=${myCode.code}` : "";
+
+  const handleCopy = () => {
+    if (referralLink) {
+      navigator.clipboard.writeText(referralLink);
+      setCopied(true);
+      toast.success("Referral link copied!");
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleShare = async () => {
+    if (navigator.share && referralLink) {
+      try {
+        await navigator.share({
+          title: "Join OlogyCrew",
+          text: "Book trusted service professionals and get a discount with my referral link!",
+          url: referralLink,
+        });
+      } catch {
+        handleCopy();
+      }
+    } else {
+      handleCopy();
+    }
+  };
+
+  if (!myCode) return null;
+
+  return (
+    <div className="flex gap-2">
+      <div className="flex-1 bg-white rounded-lg border border-amber-200 px-3 py-2 text-sm text-amber-800 truncate font-mono">
+        {referralLink}
+      </div>
+      <Button
+        size="sm"
+        variant="outline"
+        className="border-amber-300 text-amber-700 hover:bg-amber-100"
+        onClick={handleCopy}
+      >
+        <Copy className="h-4 w-4" />
+        {copied ? "Copied!" : "Copy"}
+      </Button>
+      <Button
+        size="sm"
+        className="bg-amber-600 hover:bg-amber-700 text-white"
+        onClick={handleShare}
+      >
+        <Share2 className="h-4 w-4" />
+        Share
+      </Button>
+    </div>
+  );
+}
 
 export default function BookingConfirmation() {
   const { id } = useParams<{ id: string }>();
@@ -364,6 +423,47 @@ export default function BookingConfirmation() {
                   Show up at the scheduled time and enjoy your service!
                 </p>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Share & Earn Referral Card */}
+        <Card className="mb-6 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-amber-800">
+              <Gift className="h-5 w-5" />
+              Share & Earn Rewards
+            </CardTitle>
+            <CardDescription className="text-amber-700">
+              Love your experience? Share OlogyCrew with friends and earn credits toward your next booking!
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div className="bg-white/70 rounded-lg p-3">
+                <Share2 className="h-5 w-5 mx-auto mb-1 text-amber-600" />
+                <p className="text-xs font-medium text-amber-800">Share Link</p>
+              </div>
+              <div className="bg-white/70 rounded-lg p-3">
+                <Users className="h-5 w-5 mx-auto mb-1 text-amber-600" />
+                <p className="text-xs font-medium text-amber-800">They Book</p>
+              </div>
+              <div className="bg-white/70 rounded-lg p-3">
+                <DollarSign className="h-5 w-5 mx-auto mb-1 text-amber-600" />
+                <p className="text-xs font-medium text-amber-800">You Earn</p>
+              </div>
+            </div>
+
+            {user && (
+              <ShareReferralLink />
+            )}
+
+            <div className="text-center">
+              <Link href="/referral-program">
+                <Button variant="link" className="text-amber-700 hover:text-amber-900 text-sm p-0">
+                  Learn more about our Referral Program →
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
