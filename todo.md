@@ -566,3 +566,23 @@
 - [x] PendingActionsIndicator component for navbar
 - [x] Fallback to online event replay when Background Sync API unavailable
 - [x] 34 tests passing for all three features
+
+## Feature: Push Notification Grouping
+- [x] Group push notifications by type (booking, message, payment, quote, reminder)
+- [x] Show summary notification (e.g., "3 new messages") when multiple arrive
+- [x] Replace individual notifications with grouped summary after threshold (GROUP_THRESHOLD=2)
+- [x] Clicking grouped notification opens relevant page
+- [x] Close individual notifications when showing grouped summary
+- [x] Include View All action on grouped notifications
+- [x] Update badge count to account for grouped notifications
+- [x] Add notification type to push payload for grouping support
+
+## Feature: Offline Bookings Viewer
+- [x] Wire useOfflineBookings hook into My Bookings page
+- [x] Cache upcoming bookings to localStorage on each successful fetch
+- [x] Show cached bookings with offline indicator when user is offline
+- [x] Display "last synced" timestamp when viewing cached data
+- [x] Offline banner with refresh button when online but showing cache
+- [x] Disable destructive actions (cancel, message, export) when offline
+- [x] Disable service/provider detail queries when offline
+- [x] 35 tests passing for both features

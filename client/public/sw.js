@@ -110,7 +110,62 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// ─── Push Notification Handler ───────────────────────────────────
+// ─── Notification Grouping Config ───────────────────────────────
+// Maps notification types to groups for collapsing multiple alerts
+const NOTIFICATION_GROUPS = {
+  message: {
+    types: ['message_received'],
+    tag: 'ologycrew-group-messages',
+    label: 'messages',
+    icon: '💬',
+    url: '/messages',
+  },
+  booking: {
+    types: ['booking_created', 'booking_confirmed', 'booking_cancelled', 'booking_completed'],
+    tag: 'ologycrew-group-bookings',
+    label: 'booking updates',
+    icon: '📅',
+    url: '/my-bookings',
+  },
+  payment: {
+    types: ['payment_received', 'payment_failed'],
+    tag: 'ologycrew-group-payments',
+    label: 'payment updates',
+    icon: '💳',
+    url: '/my-bookings',
+  },
+  quote: {
+    types: ['quote_request_new', 'quote_response_received', 'quote_accepted', 'quote_declined'],
+    tag: 'ologycrew-group-quotes',
+    label: 'quote updates',
+    icon: '📋',
+    url: '/my-quotes',
+  },
+  reminder: {
+    types: ['reminder_24h', 'reminder_1h'],
+    tag: 'ologycrew-group-reminders',
+    label: 'reminders',
+    icon: '⏰',
+    url: '/my-bookings',
+  },
+};
+
+// Threshold: group after this many notifications of the same type exist
+const GROUP_THRESHOLD = 2;
+
+/**
+ * Determine which group a notification type belongs to.
+ * Returns null if it doesn't match any group (show individually).
+ */
+function getNotificationGroup(type) {
+  if (!type) return null;
+  for (const [key, group] of Object.entries(NOTIFICATION_GROUPS)) {
+    if (group.types.includes(type)) return { key, ...group };
+  }
+  return null;
+}
+
+// ─── Push Notification Handler (with Grouping) ──────────────────
 self.addEventListener('push', (event) => {
   let data = { title: 'OlogyCrew', body: 'You have a new notification' };
 
@@ -122,33 +177,87 @@ self.addEventListener('push', (event) => {
     }
   }
 
-  const options = {
-    body: data.body || 'You have a new notification',
-    icon: data.icon || 'https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/android-chrome-192x192_3e2c5d17.png',
-    badge: 'https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/favicon-32x32_9b666460.png',
-    vibrate: [100, 50, 100],
-    data: {
-      url: data.url || '/',
-      dateOfArrival: Date.now(),
-      primaryKey: data.id || Date.now(),
-    },
-    actions: data.actions || [],
-    tag: data.tag || 'ologycrew-notification',
-    renotify: !!data.tag,
-  };
+  const ICON_URL = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/android-chrome-192x192_3e2c5d17.png';
+  const BADGE_URL = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/favicon-32x32_9b666460.png';
 
   event.waitUntil(
-    self.registration.showNotification(data.title || 'OlogyCrew', options)
-      .then(() => {
-        // Update app badge count
-        if (self.navigator && self.navigator.setAppBadge) {
-          // Increment badge - get current count from all visible notifications
-          self.registration.getNotifications().then((notifications) => {
-            const count = notifications.length + 1;
-            self.navigator.setAppBadge(count).catch(() => {});
-          });
+    self.registration.getNotifications().then((existingNotifications) => {
+      const group = getNotificationGroup(data.tag?.split('-')[0] || data.type);
+
+      if (group) {
+        // Count existing notifications in this group
+        const sameGroupNotifications = existingNotifications.filter(
+          (n) => n.tag === group.tag || 
+                 (n.data?.groupKey === group.key)
+        );
+
+        const totalCount = sameGroupNotifications.length + 1;
+
+        if (totalCount >= GROUP_THRESHOLD) {
+          // Close individual notifications in this group
+          sameGroupNotifications.forEach((n) => n.close());
+
+          // Show grouped summary notification
+          return self.registration.showNotification(
+            `${totalCount} new ${group.label}`,
+            {
+              body: `You have ${totalCount} new ${group.label}. Tap to view.`,
+              icon: data.icon || ICON_URL,
+              badge: BADGE_URL,
+              vibrate: [100, 50, 100],
+              tag: group.tag,
+              renotify: true,
+              data: {
+                url: group.url,
+                groupKey: group.key,
+                isGrouped: true,
+                count: totalCount,
+                dateOfArrival: Date.now(),
+              },
+              actions: [
+                { action: 'view', title: 'View All' },
+                { action: 'dismiss', title: 'Dismiss' },
+              ],
+            }
+          );
         }
-      })
+      }
+
+      // Show individual notification (below threshold or ungrouped type)
+      const options = {
+        body: data.body || 'You have a new notification',
+        icon: data.icon || ICON_URL,
+        badge: BADGE_URL,
+        vibrate: [100, 50, 100],
+        data: {
+          url: data.url || '/',
+          groupKey: group ? group.key : null,
+          dateOfArrival: Date.now(),
+          primaryKey: data.id || Date.now(),
+        },
+        actions: data.actions || [],
+        tag: data.tag || 'ologycrew-notification',
+        renotify: !!data.tag,
+      };
+
+      return self.registration.showNotification(data.title || 'OlogyCrew', options);
+    }).then(() => {
+      // Update app badge count
+      if (self.navigator && self.navigator.setAppBadge) {
+        self.registration.getNotifications().then((notifications) => {
+          // For grouped notifications, use the count stored in data
+          let totalCount = 0;
+          notifications.forEach((n) => {
+            if (n.data?.isGrouped && n.data?.count) {
+              totalCount += n.data.count;
+            } else {
+              totalCount += 1;
+            }
+          });
+          self.navigator.setAppBadge(Math.max(totalCount, 1)).catch(() => {});
+        });
+      }
+    })
   );
 });
 
@@ -165,6 +274,10 @@ self.addEventListener('notificationclick', (event) => {
   }
 
   if (event.action === 'dismiss') {
+    // Clear badge when user dismisses
+    if (self.navigator && self.navigator.clearAppBadge) {
+      self.navigator.clearAppBadge().catch(() => {});
+    }
     return;
   }
 
@@ -190,28 +303,10 @@ self.addEventListener('notificationclick', (event) => {
 });
 
 // ─── Background Sync ────────────────────────────────────────────
-const QUEUE_KEY = 'ologycrew-offline-queue';
-
-function getQueueFromStorage() {
-  // Service workers don't have localStorage, so we use IndexedDB via a simple wrapper
-  // However, for simplicity we communicate with the client to replay
-  return [];
-}
-
 self.addEventListener('sync', (event) => {
-  if (event.tag === 'ologycrew-sync-actions') {
+  if (event.tag === 'ologycrew-sync-actions' || event.tag === 'sync-bookings') {
     event.waitUntil(
       // Notify all clients to replay their offline queue
-      self.clients.matchAll({ type: 'window' }).then((windowClients) => {
-        windowClients.forEach((client) => {
-          client.postMessage({ type: 'REPLAY_OFFLINE_QUEUE' });
-        });
-      })
-    );
-  }
-
-  if (event.tag === 'sync-bookings') {
-    event.waitUntil(
       self.clients.matchAll({ type: 'window' }).then((windowClients) => {
         windowClients.forEach((client) => {
           client.postMessage({ type: 'REPLAY_OFFLINE_QUEUE' });

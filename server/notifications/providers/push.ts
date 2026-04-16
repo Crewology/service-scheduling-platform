@@ -90,6 +90,7 @@ function formatPushPayload(notification: Notification) {
     body: data.message || bodyMap[type] || "You have a new notification.",
     url: urlMap[type] || "/",
     tag: `${type}-${data.bookingId || data.bookingNumber || Date.now()}`,
+    type, // Include type so service worker can group notifications
     actions: [
       { action: "view", title: "View" },
       { action: "dismiss", title: "Dismiss" },

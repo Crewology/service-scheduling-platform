@@ -6,21 +6,28 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { trpc } from "@/lib/trpc";
-import { Calendar, Clock, MapPin, DollarSign, MessageSquare, XCircle, AlertTriangle, Loader2, Download, FileText, FileSpreadsheet } from "lucide-react";
+import { Calendar, Clock, MapPin, DollarSign, MessageSquare, XCircle, AlertTriangle, Loader2, Download, FileText, FileSpreadsheet, WifiOff, RefreshCw } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
 import { formatTimeForDisplay } from "@shared/timeSlots";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { toast } from "sonner";
+import { useOfflineBookings } from "@/hooks/useOfflineBookings";
 
 export default function MyBookings() {
   const { user, isAuthenticated, loading } = useAuth();
   const [, setLocation] = useLocation();
 
-  const { data: bookings, isLoading } = trpc.booking.listMine.useQuery(undefined, {
+  const { data: onlineBookings, isLoading, refetch } = trpc.booking.listMine.useQuery(undefined, {
     enabled: isAuthenticated,
   });
+
+  // Wire in offline bookings support
+  const { bookings, isOffline, isUsingCache, cachedAt, cacheAge } = useOfflineBookings(
+    onlineBookings,
+    isLoading
+  );
 
   if (loading) {
     return (
@@ -44,11 +51,56 @@ export default function MyBookings() {
   const upcomingBookings = filterBookings(["pending", "confirmed"]);
   const pastBookings = filterBookings(["completed", "cancelled", "no_show", "refunded"]);
 
+  const formatCacheAge = (ms: number | null) => {
+    if (!ms) return "";
+    const minutes = Math.floor(ms / 60000);
+    if (minutes < 1) return "just now";
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    return `${Math.floor(hours / 24)}d ago`;
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <NavHeader />
 
       <div className="container py-8 max-w-5xl">
+        {/* Offline / Cached Data Banner */}
+        {(isOffline || isUsingCache) && (
+          <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <WifiOff className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
+                    {isOffline ? "You're offline" : "Showing cached data"}
+                  </p>
+                  <p className="text-xs text-amber-600 dark:text-amber-400">
+                    {isUsingCache && cachedAt
+                      ? `Last synced ${formatCacheAge(cacheAge)}`
+                      : "Your bookings will refresh when you're back online."}
+                  </p>
+                </div>
+              </div>
+              {!isOffline && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0 border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-300 dark:hover:bg-amber-900/30"
+                  onClick={() => {
+                    refetch();
+                    toast.info("Refreshing bookings...");
+                  }}
+                >
+                  <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                  Refresh
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="mb-8 flex flex-col sm:flex-row items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold mb-2">My Bookings</h1>
@@ -58,7 +110,7 @@ export default function MyBookings() {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button variant="outline" size="sm" className="gap-2" disabled={isOffline}>
                 <Download className="h-4 w-4" />
                 Export
               </Button>
@@ -100,27 +152,27 @@ export default function MyBookings() {
           </TabsList>
 
           <TabsContent value="upcoming" className="space-y-4">
-            {isLoading ? (
+            {isLoading && !isUsingCache ? (
               <p className="text-center text-muted-foreground py-12">Loading bookings...</p>
             ) : upcomingBookings.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
                   <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground mb-4">No upcoming bookings</p>
-                  <Button onClick={() => setLocation("/browse")}>
+                  <Button onClick={() => setLocation("/browse")} disabled={isOffline}>
                     Browse Services
                   </Button>
                 </CardContent>
               </Card>
             ) : (
               upcomingBookings.map((booking: any) => (
-                <BookingCard key={booking.id} booking={booking} setLocation={setLocation} />
+                <BookingCard key={booking.id} booking={booking} setLocation={setLocation} isOffline={isOffline} />
               ))
             )}
           </TabsContent>
 
           <TabsContent value="past" className="space-y-4">
-            {isLoading ? (
+            {isLoading && !isUsingCache ? (
               <p className="text-center text-muted-foreground py-12">Loading bookings...</p>
             ) : pastBookings.length === 0 ? (
               <Card>
@@ -130,27 +182,27 @@ export default function MyBookings() {
               </Card>
             ) : (
               pastBookings.map((booking: any) => (
-                <BookingCard key={booking.id} booking={booking} setLocation={setLocation} />
+                <BookingCard key={booking.id} booking={booking} setLocation={setLocation} isOffline={isOffline} />
               ))
             )}
           </TabsContent>
 
           <TabsContent value="all" className="space-y-4">
-            {isLoading ? (
+            {isLoading && !isUsingCache ? (
               <p className="text-center text-muted-foreground py-12">Loading bookings...</p>
             ) : !bookings || bookings.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
                   <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground mb-4">No bookings yet</p>
-                  <Button onClick={() => setLocation("/browse")}>
+                  <Button onClick={() => setLocation("/browse")} disabled={isOffline}>
                     Browse Services
                   </Button>
                 </CardContent>
               </Card>
             ) : (
               bookings.map((booking: any) => (
-                <BookingCard key={booking.id} booking={booking} setLocation={setLocation} />
+                <BookingCard key={booking.id} booking={booking} setLocation={setLocation} isOffline={isOffline} />
               ))
             )}
           </TabsContent>
@@ -160,13 +212,17 @@ export default function MyBookings() {
   );
 }
 
-function BookingCard({ booking, setLocation }: { booking: any; setLocation: (path: string) => void }) {
+function BookingCard({ booking, setLocation, isOffline }: { booking: any; setLocation: (path: string) => void; isOffline: boolean }) {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const utils = trpc.useUtils();
 
-  const { data: service } = trpc.service.getById.useQuery({ id: booking.serviceId });
-  const { data: provider } = trpc.provider.getById.useQuery({ id: booking.providerId });
+  const { data: service } = trpc.service.getById.useQuery({ id: booking.serviceId }, {
+    enabled: !isOffline,
+  });
+  const { data: provider } = trpc.provider.getById.useQuery({ id: booking.providerId }, {
+    enabled: !isOffline,
+  });
 
   const cancelBooking = trpc.booking.cancel.useMutation({
     onSuccess: (data: any) => {
@@ -226,17 +282,21 @@ function BookingCard({ booking, setLocation }: { booking: any; setLocation: (pat
   };
 
   const refundInfo = getRefundInfo();
-  const canCancel = booking.status === "pending" || booking.status === "confirmed";
+  const canCancel = !isOffline && (booking.status === "pending" || booking.status === "confirmed");
+
+  // Use cached service/provider names from the booking object when offline
+  const serviceName = service?.name || booking.serviceName || "Service";
+  const providerName = provider?.businessName || booking.providerName || "Provider";
 
   return (
     <>
-      <Card>
+      <Card className={isOffline ? "opacity-90" : ""}>
         <CardHeader>
           <div className="flex items-start justify-between">
             <div>
-              <CardTitle className="text-xl">{service?.name || "Loading..."}</CardTitle>
+              <CardTitle className="text-xl">{serviceName}</CardTitle>
               <CardDescription>
-                by {provider?.businessName || "Loading..."}
+                by {providerName}
               </CardDescription>
               <p className="text-xs text-muted-foreground mt-1">
                 Booking #{booking.bookingNumber}
@@ -272,7 +332,7 @@ function BookingCard({ booking, setLocation }: { booking: any; setLocation: (pat
             </div>
             {booking.locationType === "mobile" && booking.serviceAddressLine1 && (
               <div className="flex items-center gap-2 md:col-span-2">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span className="text-sm">
                   {booking.serviceAddressLine1}, {booking.serviceCity}, {booking.serviceState}
                 </span>
@@ -291,6 +351,7 @@ function BookingCard({ booking, setLocation }: { booking: any; setLocation: (pat
               variant="outline" 
               size="sm"
               onClick={() => setLocation(`/booking/${booking.id}/detail`)}
+              disabled={isOffline}
             >
               View Details
             </Button>
@@ -315,7 +376,7 @@ function BookingCard({ booking, setLocation }: { booking: any; setLocation: (pat
                 Cancel Booking
               </Button>
             )}
-            {booking.status === "completed" && !booking.reviewId && (
+            {!isOffline && booking.status === "completed" && !booking.reviewId && (
               <Button 
                 variant="default" 
                 size="sm"
@@ -344,7 +405,7 @@ function BookingCard({ booking, setLocation }: { booking: any; setLocation: (pat
           <div className="space-y-4">
             {/* Service info */}
             <div className="p-3 rounded-lg bg-muted/50">
-              <p className="font-medium">{service?.name}</p>
+              <p className="font-medium">{serviceName}</p>
               <p className="text-sm text-muted-foreground">
                 {formatDate(booking.bookingDate)} at {formatTimeForDisplay(booking.startTime)}
               </p>
