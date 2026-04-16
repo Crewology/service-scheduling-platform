@@ -1,6 +1,7 @@
 import { Notification, NotificationChannel, NotificationProvider } from "./types";
 import { EmailProvider } from "./providers/email";
 import { SMSProvider } from "./providers/sms";
+import { PushProvider } from "./providers/push";
 
 /**
  * Unified Notification Service
@@ -24,6 +25,7 @@ class NotificationService {
     // Register all available providers
     this.registerProvider(new EmailProvider());
     this.registerProvider(new SMSProvider());
+    this.registerProvider(new PushProvider());
   }
 
   registerProvider(provider: NotificationProvider) {

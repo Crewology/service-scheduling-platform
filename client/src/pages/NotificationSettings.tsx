@@ -11,6 +11,7 @@ import { ArrowLeft, Bell, Mail, MessageSquare, Loader2 } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
+import { PushNotificationSettings } from "@/components/PushNotificationSettings";
 
 interface Prefs {
   emailEnabled: boolean;
@@ -140,6 +141,9 @@ export default function NotificationSettings() {
           </div>
         ) : (
           <div className="space-y-6">
+            {/* Push Notifications */}
+            <PushNotificationSettings />
+
             {/* Master Channel Toggles */}
             <Card>
               <CardHeader>

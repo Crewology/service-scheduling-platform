@@ -176,6 +176,13 @@
       "when": 1776295163257,
       "tag": "0024_worried_nitro",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "5",
+      "when": 1776330139795,
+      "tag": "0025_cute_bucky",
+      "breakpoints": true
     }
   ]
 }

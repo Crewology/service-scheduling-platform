@@ -523,3 +523,21 @@
 - [x] Register service worker in the app
 - [x] Add install prompt UI for users to install the app
 - [x] Link manifest in index.html with proper meta tags
+
+## Feature: PWA Splash Screen
+- [x] Generate splash screen images for various device sizes
+- [x] Update manifest with splash screen configuration
+- [x] Add apple-touch-startup-image meta tags for iOS
+
+## Feature: Offline Booking Page
+- [x] Cache user's upcoming bookings data in IndexedDB/localStorage
+- [x] Update service worker to serve offline booking page
+- [x] Create offline-aware booking list UI with sync indicator
+
+## Feature: Web Push Notifications
+- [x] Generate VAPID keys for push notification server
+- [x] Add push subscription endpoint on backend
+- [x] Implement push notification sending from backend (booking alerts)
+- [x] Add notification permission prompt UI for PWA users
+- [x] Handle push events in service worker
+- [x] 13 tests passing for push notification system

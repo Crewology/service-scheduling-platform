@@ -834,3 +834,30 @@ export const replyTemplates = mysqlTable("reply_templates", {
 
 export type ReplyTemplate = typeof replyTemplates.$inferSelect;
 export type InsertReplyTemplate = typeof replyTemplates.$inferInsert;
+
+
+// ============================================================================
+// PUSH NOTIFICATION SUBSCRIPTIONS
+// ============================================================================
+
+/**
+ * Web Push notification subscriptions.
+ * Stores the browser push subscription data for each user/device.
+ */
+export const pushSubscriptions = mysqlTable("push_subscriptions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id),
+  endpoint: text("endpoint").notNull(),
+  p256dh: text("p256dh").notNull(),       // Public key for encryption
+  auth: text("auth").notNull(),            // Auth secret for encryption
+  userAgent: varchar("userAgent", { length: 500 }),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  lastUsedAt: timestamp("lastUsedAt"),
+}, (table) => [
+  index("push_sub_user_idx").on(table.userId),
+  index("push_sub_active_idx").on(table.userId, table.isActive),
+]);
+
+export type PushSubscription = typeof pushSubscriptions.$inferSelect;
+export type InsertPushSubscription = typeof pushSubscriptions.$inferInsert;
