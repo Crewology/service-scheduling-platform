@@ -765,6 +765,7 @@ export async function updateUserProfile(userId: number, data: {
   email?: string;
   name?: string;
   role?: "admin" | "customer" | "provider";
+  hasSelectedRole?: boolean;
 }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -777,6 +778,7 @@ export async function updateUserProfile(userId: number, data: {
   if (data.email !== undefined) updateData.email = data.email;
   if (data.name !== undefined) updateData.name = data.name;
   if (data.role !== undefined) updateData.role = data.role;
+  if (data.hasSelectedRole !== undefined) updateData.hasSelectedRole = data.hasSelectedRole;
 
   if (Object.keys(updateData).length === 0) return;
 

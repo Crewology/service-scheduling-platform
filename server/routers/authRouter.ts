@@ -6,7 +6,19 @@ import { COOKIE_NAME } from "@shared/const";
 
 export const authRouter = router({
   me: publicProcedure.query(opts => opts.ctx.user),
-  
+
+  selectRole: protectedProcedure
+    .input(z.object({
+      role: z.enum(["customer", "provider"]),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      await db.updateUserProfile(ctx.user.id, {
+        role: input.role,
+        hasSelectedRole: true,
+      });
+      return { success: true, role: input.role };
+    }),
+
   logout: publicProcedure.mutation(({ ctx }) => {
     const cookieOptions = getSessionCookieOptions(ctx.req);
     ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });

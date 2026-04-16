@@ -204,6 +204,13 @@
       "when": 1776338464564,
       "tag": "0028_spooky_maria_hill",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "5",
+      "when": 1776377945107,
+      "tag": "0029_lovely_paladin",
+      "breakpoints": true
     }
   ]
 }

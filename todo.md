@@ -717,3 +717,22 @@
 - [x] Fix: ProviderOnboarding invalidates `auth.me` after profile creation so NavHeader updates immediately
 - [x] Data fix: Updated 142 existing users with provider records but 'customer' role to 'provider'
 - [x] 7 new tests in provider-role.test.ts (role update, slug generation, getMyProfile, duplicate prevention, categories, updateUserProfile role field)
+
+## CRITICAL Feature: Post-Signup Role Selection Screen
+- [x] Added `hasSelectedRole` boolean field to users table (default false for new signups)
+- [x] Created `selectRole` mutation in authRouter (sets role + hasSelectedRole)
+- [x] Created RoleSelection page — clean two-card UI ("Find & Book Services" vs "Offer My Services")
+- [x] Created RoleGuard component — redirects authenticated users with hasSelectedRole=false to /select-role
+- [x] Wired route in App.tsx and wrapped Router in RoleGuard
+- [x] Provider.create also sets hasSelectedRole=true as fallback
+- [x] Updated hasSelectedRole support in updateUserProfile (db-legacy.ts)
+- [x] Data migration: set all existing users to hasSelectedRole=true, reset riquis95 to false
+- [x] 5 tests in role-selection.test.ts (customer select, provider select, invalid role, default false, role change)
+
+## Feature: OG Meta Tags for Provider Profile Pages
+- [x] Created server/ogTags.ts helper — builds OG meta tags from provider data
+- [x] Injects og:title, og:description, og:url, og:type, og:image, twitter:card for /p/:slug routes
+- [x] Integrated into vite.ts for both dev (setupVite) and production (serveStatic) modes
+- [x] HTML escaping for special characters in business names
+- [x] Falls back to user profile photo or OlogyCrew logo for og:image
+- [x] 4 tests in og-tags.test.ts (non-existent slug, existing provider, no description fallback, HTML escaping)

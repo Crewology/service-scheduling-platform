@@ -41,10 +41,13 @@ import BookingAnalytics from "./pages/BookingAnalytics";
 import TermsOfService from "./pages/TermsOfService";
 import HelpCenter from "./pages/HelpCenter";
 import ReferralProgram from "./pages/ReferralProgram";
+import RoleSelection from "./pages/RoleSelection";
+import { RoleGuard } from "./components/RoleGuard";
 
 function Router() {
   return (
     <Switch>
+      <Route path="/select-role" component={RoleSelection} />
       <Route path="/" component={Home} />
       <Route path="/browse" component={Browse} />
       <Route path="/search" component={Search} />
@@ -94,7 +97,9 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <OfflineBanner />
-          <Router />
+          <RoleGuard>
+            <Router />
+          </RoleGuard>
           <PWAInstallBanner />
         </TooltipProvider>
       </ThemeProvider>

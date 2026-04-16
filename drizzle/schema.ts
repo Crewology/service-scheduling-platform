@@ -28,6 +28,7 @@ export const users = mysqlTable("users", {
   phone: varchar("phone", { length: 20 }),
   profilePhotoUrl: varchar("profilePhotoUrl", { length: 500 }),
   emailVerified: boolean("emailVerified").default(false).notNull(),
+  hasSelectedRole: boolean("hasSelectedRole").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
