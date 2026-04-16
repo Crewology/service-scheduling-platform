@@ -342,9 +342,9 @@ export function NavHeader() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
             <img
-              src={import.meta.env.VITE_APP_LOGO || "https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png"}
+              src="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png"
               alt="OlogyCrew"
-              className="h-10 object-contain"
+              className="h-10 w-10 object-contain rounded-lg"
             />
             <span className="text-xl font-bold gradient-text hidden sm:inline">OlogyCrew</span>
           </Link>
