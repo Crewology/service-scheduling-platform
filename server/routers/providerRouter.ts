@@ -92,13 +92,22 @@ export const providerRouter = router({
     }
     // Official first, then rated providers
     sorted.unshift(...officialProviders);
-    // Enrich with categories and profile photo
+    // Enrich with categories, profile photo, and ensure slug exists
     const enriched = await Promise.all(
       sorted.slice(0, 8).map(async (provider: any) => {
         const categories = await db.getProviderCategories(provider.id);
         const user = await db.getUserById(provider.userId);
+        // Auto-generate slug if missing
+        let slug = provider.profileSlug;
+        if (!slug) {
+          const baseSlug = provider.businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+          slug = `${baseSlug}-${provider.id}`;
+          await db.updateProviderSlug(provider.id, slug);
+        }
         return {
           ...provider,
+          slug,
+          profileSlug: slug,
           profilePhotoUrl: user?.profilePhotoUrl || null,
           categories: categories.map((c: any) => ({ id: c.categoryId, name: c.categoryName })),
         };

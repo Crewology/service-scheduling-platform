@@ -705,3 +705,6 @@
 - [x] Wire og:image + og:image:width/height + twitter:image into client-side useMetaTags hook
 - [x] Wire og:image + twitter:image into server-side vite.ts injection (dev + production)
 - [x] 40 tests passing (8 new OG image tests added to existing suite)
+
+## Bug: Featured Providers "Provider Not Found"
+- [x] Fixed: Homepage used `provider.slug` but data has `profileSlug`; updated link + auto-generate slug for providers missing one

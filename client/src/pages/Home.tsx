@@ -181,7 +181,7 @@ export default function Home() {
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               {featuredProviders.map((provider: any) => (
-                <Link key={provider.id} href={`/p/${provider.slug}`}>
+                <Link key={provider.id} href={`/p/${provider.slug || provider.profileSlug}`}>
                   <Card className="hover:shadow-medium transition-all cursor-pointer group h-full">
                     <CardContent className="p-6">
                       {/* Provider Avatar */}
