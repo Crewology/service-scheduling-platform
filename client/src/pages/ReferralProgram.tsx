@@ -22,7 +22,7 @@ import { Link } from "wouter";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { toast } from "sonner";
 
-const OG_IMAGE_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-TyhsS9wgk3tRcpBxQ9VQM9.png";
+const OG_IMAGE_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-compressed_d69712f3.jpg";
 
 const META_TAGS = {
   title: "OlogyCrew Referral Program — Share & Earn Rewards",
