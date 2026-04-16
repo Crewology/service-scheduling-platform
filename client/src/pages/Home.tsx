@@ -291,7 +291,7 @@ export default function Home() {
               </div>
             </div>
             
-            <Link href="/browse">
+            <Link href="/provider/onboarding">
               <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90">
                 Become a Provider
                 <ArrowRight className="ml-2 h-5 w-5" />

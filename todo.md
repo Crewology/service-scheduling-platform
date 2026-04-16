@@ -586,3 +586,6 @@
 - [x] Disable destructive actions (cancel, message, export) when offline
 - [x] Disable service/provider detail queries when offline
 - [x] 35 tests passing for both features
+
+## Bug: "Become a Provider" Link Goes to Browse
+- [x] Fix "Become a Provider" button on homepage to navigate to provider registration instead of browse page
