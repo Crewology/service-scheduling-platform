@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import {
   Gift,
@@ -25,6 +26,9 @@ import {
   Loader2,
   Briefcase,
   UserPlus,
+  Award,
+  AlertTriangle,
+  Zap,
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -58,6 +62,18 @@ export default function Referrals() {
     { enabled: !!user }
   );
   const { data: creditHistory } = trpc.referral.getCreditHistory.useQuery(
+    undefined,
+    { enabled: !!user }
+  );
+
+  // Tier info
+  const { data: tierInfo } = trpc.referral.getMyTier.useQuery(
+    undefined,
+    { enabled: !!user }
+  );
+
+  // Next credit expiration
+  const { data: nextExpiration } = trpc.referral.getNextExpiration.useQuery(
     undefined,
     { enabled: !!user }
   );
@@ -132,6 +148,17 @@ export default function Referrals() {
     }
   };
 
+  // Tier progress calculation
+  const tierProgress = tierInfo && tierInfo.nextTier
+    ? ((tierInfo.completedCount - tierInfo.currentTier.minReferrals) /
+       (tierInfo.nextTier.minReferrals - tierInfo.currentTier.minReferrals)) * 100
+    : 100;
+
+  // Days until next credit expires
+  const daysUntilExpiry = nextExpiration?.expiresAt
+    ? Math.max(0, Math.ceil((new Date(nextExpiration.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : null;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-orange-50">
       {/* Header */}
@@ -157,6 +184,112 @@ export default function Referrals() {
       </div>
 
       <div className="container max-w-5xl py-8 space-y-6">
+        {/* Tier Progress Card */}
+        {tierInfo && (
+          <Card className="border-2 overflow-hidden" style={{ borderColor: tierInfo.currentTier.color + "40" }}>
+            <div className="h-1.5" style={{ background: `linear-gradient(to right, ${tierInfo.currentTier.color}, ${tierInfo.nextTier?.color || tierInfo.currentTier.color})` }} />
+            <CardContent className="py-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-full" style={{ backgroundColor: tierInfo.currentTier.color + "20" }}>
+                    <Award className="h-6 w-6" style={{ color: tierInfo.currentTier.color }} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-lg">{tierInfo.currentTier.name} Tier</h3>
+                      <Badge variant="outline" style={{ borderColor: tierInfo.currentTier.color, color: tierInfo.currentTier.color }}>
+                        {tierInfo.currentTier.rewardPercent}% rewards
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {tierInfo.completedCount} completed referral{tierInfo.completedCount !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+                </div>
+                {tierInfo.nextTier && (
+                  <div className="flex-1 max-w-xs">
+                    <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                      <span>{tierInfo.currentTier.name}</span>
+                      <span>{tierInfo.nextTier.name} ({tierInfo.nextTier.rewardPercent}%)</span>
+                    </div>
+                    <Progress value={tierProgress} className="h-2" />
+                    <p className="text-xs text-muted-foreground mt-1 text-right">
+                      {tierInfo.referralsToNextTier} more referral{tierInfo.referralsToNextTier !== 1 ? "s" : ""} to unlock
+                    </p>
+                  </div>
+                )}
+                {!tierInfo.nextTier && (
+                  <Badge className="bg-gradient-to-r from-purple-600 to-orange-500 text-white border-0">
+                    <Zap className="h-3 w-3 mr-1" /> Max Tier Reached
+                  </Badge>
+                )}
+              </div>
+
+              {/* All tiers preview */}
+              <div className="mt-4 pt-4 border-t">
+                <p className="text-xs font-medium text-muted-foreground mb-2">Reward Tiers</p>
+                <div className="grid grid-cols-4 gap-2">
+                  {(tierInfo.allTiers as readonly { name: string; minReferrals: number; maxReferrals: number; rewardPercent: number; color: string }[]).map((tier) => (
+                    <div
+                      key={tier.name}
+                      className={`text-center p-2 rounded-lg border ${
+                        tier.name === tierInfo.currentTier.name
+                          ? "ring-2 ring-offset-1 bg-white"
+                          : "bg-muted/30"
+                      }`}
+                      style={{
+                        borderColor: tier.name === tierInfo.currentTier.name ? tier.color : undefined,
+                      }}
+                    >
+                      <p className="text-xs font-semibold" style={{ color: tier.color }}>{tier.name}</p>
+                      <p className="text-lg font-bold">{tier.rewardPercent}%</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {tier.minReferrals === 0 ? "0" : tier.minReferrals}
+                        {tier.maxReferrals === Infinity ? "+" : `–${tier.maxReferrals}`} referrals
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Credit Balance + Expiration Warning */}
+        {creditBalance && parseFloat(creditBalance.balance) > 0 && (
+          <Card className="border-2 border-emerald-200 bg-gradient-to-r from-emerald-50 to-green-50">
+            <CardContent className="py-4">
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-full bg-emerald-100">
+                    <DollarSign className="h-6 w-6 text-emerald-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-emerald-700">Available Credit Balance</p>
+                    <p className="text-2xl font-bold text-emerald-600">${parseFloat(creditBalance.balance).toFixed(2)}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-emerald-600/70">Auto-applied at checkout</p>
+                  {daysUntilExpiry !== null && daysUntilExpiry <= 14 && (
+                    <div className="flex items-center gap-1 mt-1 text-amber-600">
+                      <AlertTriangle className="h-3 w-3" />
+                      <p className="text-xs font-medium">
+                        ${nextExpiration?.amount} expires in {daysUntilExpiry} day{daysUntilExpiry !== 1 ? "s" : ""}
+                      </p>
+                    </div>
+                  )}
+                  {daysUntilExpiry !== null && daysUntilExpiry > 14 && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Next expiry: {new Date(nextExpiration!.expiresAt).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Tabs: Customer vs Provider Referrals */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2 max-w-md">
@@ -184,7 +317,7 @@ export default function Referrals() {
                 <CardDescription>
                   Share this code with friends. They get{" "}
                   <strong>{myCode?.refereeDiscountPercent || 10}% off</strong> their first booking,
-                  and you earn <strong>{myCode?.referrerDiscountPercent || 10}% credit</strong> when they complete it.
+                  and you earn <strong>{tierInfo?.currentTier.rewardPercent || 10}% credit</strong> when they complete it.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -228,26 +361,6 @@ export default function Referrals() {
                 )}
               </CardContent>
             </Card>
-
-            {/* Credit Balance Banner */}
-            {creditBalance && parseFloat(creditBalance.balance) > 0 && (
-              <Card className="border-2 border-emerald-200 bg-gradient-to-r from-emerald-50 to-green-50">
-                <CardContent className="py-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-full bg-emerald-100">
-                        <DollarSign className="h-6 w-6 text-emerald-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-emerald-700">Available Credit Balance</p>
-                        <p className="text-2xl font-bold text-emerald-600">${parseFloat(creditBalance.balance).toFixed(2)}</p>
-                      </div>
-                    </div>
-                    <p className="text-xs text-emerald-600/70">Auto-applied at checkout</p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
 
             {/* Stats Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -309,12 +422,58 @@ export default function Referrals() {
                     <div className="w-10 h-10 rounded-full bg-green-100 text-green-600 font-bold flex items-center justify-center mx-auto">3</div>
                     <h3 className="font-semibold">You Earn Rewards</h3>
                     <p className="text-sm text-muted-foreground">
-                      Once their booking completes, you earn {myCode?.referrerDiscountPercent || 10}% credit on your next booking.
+                      Once their booking completes, you earn {tierInfo?.currentTier.rewardPercent || 10}% credit. Credits expire after 90 days.
                     </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
+
+            {/* Credit History */}
+            {creditHistory && creditHistory.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <DollarSign className="h-5 w-5" />
+                    Credit History
+                  </CardTitle>
+                  <CardDescription>Your earned, spent, and expired credits</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {creditHistory.map((credit: any) => (
+                      <div key={credit.id} className="flex items-center justify-between p-2.5 rounded-lg border bg-white">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${
+                            credit.type === "earned" ? "bg-emerald-500" :
+                            credit.type === "spent" ? "bg-blue-500" : "bg-red-500"
+                          }`} />
+                          <div>
+                            <p className="text-sm font-medium">{credit.description || credit.type}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(credit.createdAt).toLocaleDateString()}
+                              </p>
+                              {credit.type === "earned" && credit.expiresAt && (
+                                <p className="text-xs text-amber-600">
+                                  Expires {new Date(credit.expiresAt).toLocaleDateString()}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <span className={`text-sm font-semibold ${
+                          credit.type === "earned" ? "text-emerald-600" :
+                          credit.type === "spent" ? "text-blue-600" : "text-red-500"
+                        }`}>
+                          {credit.type === "earned" ? "+" : "-"}${credit.amount}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Referral History */}
             <Card>
@@ -501,7 +660,7 @@ export default function Referrals() {
                     <p className="text-xs text-muted-foreground">
                       Referral code: <span className="font-mono font-semibold">{myCode.code}</span>
                       {" "}&middot;{" "}
-                      You earn {myCode.referrerDiscountPercent}% credit &middot; They get {myCode.refereeDiscountPercent}% off their first booking
+                      You earn {tierInfo?.currentTier.rewardPercent || 10}% credit &middot; They get {myCode.refereeDiscountPercent}% off their first booking
                     </p>
                   </div>
                 ) : (
@@ -570,7 +729,7 @@ export default function Referrals() {
                     <div className="w-10 h-10 rounded-full bg-green-100 text-green-600 font-bold flex items-center justify-center mx-auto">3</div>
                     <h3 className="font-semibold">You Both Earn Credits</h3>
                     <p className="text-sm text-muted-foreground">
-                      When they complete their first booking, you earn {myCode?.referrerDiscountPercent || 10}% credit and they get {myCode?.refereeDiscountPercent || 10}% off.
+                      When they complete their first booking, you earn {tierInfo?.currentTier.rewardPercent || 10}% credit. Credits are valid for 90 days.
                     </p>
                   </div>
                 </div>

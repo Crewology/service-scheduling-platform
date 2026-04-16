@@ -225,8 +225,12 @@ export async function updateReferralCode(codeId: number, data: {
 // REFERRAL CREDITS
 // ============================================================================
 
+/** Default credit expiration: 90 days from earning */
+const CREDIT_EXPIRATION_DAYS = 90;
+
 /**
  * Add a credit entry (earned, spent, or expired).
+ * Earned credits automatically get a 90-day expiration date.
  */
 export async function addReferralCredit(data: {
   userId: number;
@@ -235,14 +239,27 @@ export async function addReferralCredit(data: {
   referralId?: number;
   bookingId?: number;
   description?: string;
+  expiresAt?: Date;
 }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.insert(referralCredits).values(data);
+
+  // Auto-set expiration for earned credits
+  let expiresAt = data.expiresAt;
+  if (data.type === "earned" && !expiresAt) {
+    expiresAt = new Date(Date.now() + CREDIT_EXPIRATION_DAYS * 24 * 60 * 60 * 1000);
+  }
+
+  await db.insert(referralCredits).values({
+    ...data,
+    expiresAt: expiresAt || null,
+  });
 }
 
 /**
- * Get the current credit balance for a user (earned - spent - expired).
+ * Get the current credit balance for a user.
+ * Excludes earned credits that have passed their expiresAt date.
+ * Balance = (non-expired earned) - spent - expired_entries
  */
 export async function getReferralCreditBalance(userId: number): Promise<string> {
   const db = await getDb();
@@ -250,7 +267,7 @@ export async function getReferralCreditBalance(userId: number): Promise<string> 
 
   const result = await db
     .select({
-      earned: sql<string>`COALESCE(SUM(CASE WHEN ${referralCredits.type} = 'earned' THEN ${referralCredits.amount} ELSE 0 END), 0)`,
+      earned: sql<string>`COALESCE(SUM(CASE WHEN ${referralCredits.type} = 'earned' AND (${referralCredits.expiresAt} IS NULL OR ${referralCredits.expiresAt} > NOW()) THEN ${referralCredits.amount} ELSE 0 END), 0)`,
       spent: sql<string>`COALESCE(SUM(CASE WHEN ${referralCredits.type} = 'spent' THEN ${referralCredits.amount} ELSE 0 END), 0)`,
       expired: sql<string>`COALESCE(SUM(CASE WHEN ${referralCredits.type} = 'expired' THEN ${referralCredits.amount} ELSE 0 END), 0)`,
     })
@@ -261,6 +278,100 @@ export async function getReferralCreditBalance(userId: number): Promise<string> 
   const spent = parseFloat(result[0]?.spent || "0");
   const expired = parseFloat(result[0]?.expired || "0");
   return Math.max(0, earned - spent - expired).toFixed(2);
+}
+
+/**
+ * Get the next expiring credit date for a user (for UI display).
+ */
+export async function getNextCreditExpiration(userId: number): Promise<{ amount: string; expiresAt: Date } | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db
+    .select({
+      amount: referralCredits.amount,
+      expiresAt: referralCredits.expiresAt,
+    })
+    .from(referralCredits)
+    .where(and(
+      eq(referralCredits.userId, userId),
+      eq(referralCredits.type, "earned"),
+      sql`${referralCredits.expiresAt} IS NOT NULL AND ${referralCredits.expiresAt} > NOW()`,
+    ))
+    .orderBy(referralCredits.expiresAt)
+    .limit(1);
+
+  if (!result[0] || !result[0].expiresAt) return null;
+  return { amount: result[0].amount, expiresAt: result[0].expiresAt };
+}
+
+/**
+ * Expire all earned credits that have passed their expiresAt date.
+ * Creates matching "expired" entries and returns the count of expired credits.
+ */
+export async function expireOldCredits(): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+
+  // Find earned credits that have expired but don't have a matching "expired" entry yet
+  const expiredCredits = await db
+    .select()
+    .from(referralCredits)
+    .where(and(
+      eq(referralCredits.type, "earned"),
+      sql`${referralCredits.expiresAt} IS NOT NULL AND ${referralCredits.expiresAt} <= NOW()`,
+    ));
+
+  // For each expired earned credit, check if we already created an "expired" entry
+  let count = 0;
+  for (const credit of expiredCredits) {
+    // Check if an expired entry already exists for this credit
+    const existing = await db
+      .select({ id: referralCredits.id })
+      .from(referralCredits)
+      .where(and(
+        eq(referralCredits.userId, credit.userId),
+        eq(referralCredits.type, "expired"),
+        eq(referralCredits.referralId, credit.referralId!),
+        sql`${referralCredits.description} LIKE '%auto-expired%'`,
+      ))
+      .limit(1);
+
+    if (existing.length === 0) {
+      await addReferralCredit({
+        userId: credit.userId,
+        amount: credit.amount,
+        type: "expired",
+        referralId: credit.referralId || undefined,
+        description: `Credit auto-expired after ${CREDIT_EXPIRATION_DAYS} days`,
+      });
+      count++;
+    }
+  }
+
+  return count;
+}
+
+/**
+ * Get credits expiring within the next N days (for warning notifications).
+ */
+export async function getCreditsExpiringSoon(daysAhead: number = 7): Promise<Array<{ userId: number; amount: string; expiresAt: Date }>> {
+  const db = await getDb();
+  if (!db) return [];
+
+  const results = await db
+    .select({
+      userId: referralCredits.userId,
+      amount: referralCredits.amount,
+      expiresAt: referralCredits.expiresAt,
+    })
+    .from(referralCredits)
+    .where(and(
+      eq(referralCredits.type, "earned"),
+      sql`${referralCredits.expiresAt} IS NOT NULL AND ${referralCredits.expiresAt} > NOW() AND ${referralCredits.expiresAt} <= DATE_ADD(NOW(), INTERVAL ${daysAhead} DAY)`,
+    ));
+
+  return results.filter(r => r.expiresAt !== null) as Array<{ userId: number; amount: string; expiresAt: Date }>;
 }
 
 /**
@@ -298,8 +409,63 @@ export async function spendReferralCredits(userId: number, bookingId: number, ma
   return amountToSpend.toFixed(2);
 }
 
+// ============================================================================
+// REFERRAL TIER REWARDS
+// ============================================================================
+
+/**
+ * Tier definitions: escalating reward percentages based on completed referral count.
+ */
+export const REFERRAL_TIERS = [
+  { name: "Bronze", minReferrals: 0, maxReferrals: 5, rewardPercent: 10, color: "#CD7F32" },
+  { name: "Silver", minReferrals: 6, maxReferrals: 10, rewardPercent: 15, color: "#C0C0C0" },
+  { name: "Gold", minReferrals: 11, maxReferrals: 25, rewardPercent: 20, color: "#FFD700" },
+  { name: "Platinum", minReferrals: 26, maxReferrals: Infinity, rewardPercent: 25, color: "#E5E4E2" },
+] as const;
+
+/**
+ * Get the current tier for a user based on their completed referral count.
+ */
+export async function getUserReferralTier(userId: number) {
+  const db = await getDb();
+  if (!db) return { tier: REFERRAL_TIERS[0], completedCount: 0, nextTier: REFERRAL_TIERS[1] || null, referralsToNextTier: REFERRAL_TIERS[1]?.minReferrals || 0 };
+
+  const result = await db
+    .select({ count: sql<number>`COUNT(*)` })
+    .from(referrals)
+    .where(and(
+      eq(referrals.referrerId, userId),
+      eq(referrals.status, "completed"),
+    ));
+
+  const completedCount = Number(result[0]?.count || 0);
+  let currentTier: typeof REFERRAL_TIERS[number] = REFERRAL_TIERS[0];
+  let nextTier: typeof REFERRAL_TIERS[number] | null = null;
+
+  for (let i = REFERRAL_TIERS.length - 1; i >= 0; i--) {
+    if (completedCount >= REFERRAL_TIERS[i].minReferrals) {
+      currentTier = REFERRAL_TIERS[i];
+      nextTier = i < REFERRAL_TIERS.length - 1 ? REFERRAL_TIERS[i + 1] : null;
+      break;
+    }
+  }
+
+  const referralsToNextTier = nextTier ? nextTier.minReferrals - completedCount : 0;
+
+  return { tier: currentTier, completedCount, nextTier, referralsToNextTier };
+}
+
+/**
+ * Get the dynamic reward percentage for a referrer based on their tier.
+ */
+export async function getReferrerRewardPercent(userId: number): Promise<number> {
+  const { tier } = await getUserReferralTier(userId);
+  return tier.rewardPercent;
+}
+
 /**
  * Complete a referral and credit the referrer when the referee's booking completes.
+ * Uses tier-based dynamic reward percentage.
  * Returns true if a referral was found and completed.
  */
 export async function fulfillReferralOnBookingComplete(bookingId: number, customerId: number, totalAmount: string): Promise<boolean> {
@@ -310,7 +476,7 @@ export async function fulfillReferralOnBookingComplete(bookingId: number, custom
   const pendingRef = await getPendingReferralForReferee(customerId);
   if (!pendingRef) return false;
 
-  // Get the referral code to determine discount percentages
+  // Get the referral code to determine base discount percentages
   const refCode = await db
     .select()
     .from(referralCodes)
@@ -318,7 +484,9 @@ export async function fulfillReferralOnBookingComplete(bookingId: number, custom
     .limit(1);
   if (!refCode[0]) return false;
 
-  const referrerCreditAmount = (parseFloat(totalAmount) * refCode[0].referrerDiscountPercent / 100).toFixed(2);
+  // Use tier-based reward percentage instead of static code percentage
+  const tierRewardPercent = await getReferrerRewardPercent(pendingRef.referrerId);
+  const referrerCreditAmount = (parseFloat(totalAmount) * tierRewardPercent / 100).toFixed(2);
 
   // Complete the referral
   await completeReferral(pendingRef.id, undefined, referrerCreditAmount);
@@ -330,7 +498,7 @@ export async function fulfillReferralOnBookingComplete(bookingId: number, custom
     type: "earned",
     referralId: pendingRef.id,
     bookingId,
-    description: `Referral reward — referred user completed booking`,
+    description: `Referral reward (${tierRewardPercent}% tier bonus) — referred user completed booking`,
   });
 
   return true;

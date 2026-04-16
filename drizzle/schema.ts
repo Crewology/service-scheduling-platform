@@ -629,10 +629,12 @@ export const referralCredits = mysqlTable("referral_credits", {
   referralId: int("referralId").references(() => referrals.id),
   bookingId: int("bookingId"),
   description: varchar("description", { length: 500 }),
+  expiresAt: timestamp("expiresAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (table) => ({
   userIdx: index("referral_credit_user_idx").on(table.userId),
   typeIdx: index("referral_credit_type_idx").on(table.type),
+  expiresIdx: index("referral_credit_expires_idx").on(table.expiresAt),
 }));
 export type ReferralCredit = typeof referralCredits.$inferSelect;
 export type InsertReferralCredit = typeof referralCredits.$inferInsert;

@@ -13,6 +13,9 @@ import {
   getReferralCreditBalance,
   getReferralCreditHistory,
   spendReferralCredits,
+  getUserReferralTier,
+  getNextCreditExpiration,
+  REFERRAL_TIERS,
 } from "./db/referrals";
 
 export const referralRouter = router({
@@ -170,6 +173,27 @@ export const referralRouter = router({
       const spent = await spendReferralCredits(ctx.user.id, input.bookingId, input.maxAmount);
       return { spent };
     }),
+
+  /**
+   * Get the current user's referral tier info.
+   */
+  getMyTier: protectedProcedure.query(async ({ ctx }) => {
+    const tierInfo = await getUserReferralTier(ctx.user.id);
+    return {
+      currentTier: tierInfo.tier,
+      completedCount: tierInfo.completedCount,
+      nextTier: tierInfo.nextTier,
+      referralsToNextTier: tierInfo.referralsToNextTier,
+      allTiers: REFERRAL_TIERS,
+    };
+  }),
+
+  /**
+   * Get the next credit expiration date for the current user.
+   */
+  getNextExpiration: protectedProcedure.query(async ({ ctx }) => {
+    return getNextCreditExpiration(ctx.user.id);
+  }),
 
   /**
    * Public: look up referral code info (for sharing links).

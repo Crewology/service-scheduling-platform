@@ -163,6 +163,13 @@ async function startServer() {
     }).catch(err => {
       console.error("Failed to start review reminder service:", err);
     });
+
+    // Start the credit expiration scheduler (runs every 24 hours)
+    import("../jobs/creditExpiration").then(({ startCreditExpirationScheduler }) => {
+      startCreditExpirationScheduler();
+    }).catch(err => {
+      console.error("Failed to start credit expiration scheduler:", err);
+    });
   });
 }
 

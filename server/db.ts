@@ -43,6 +43,12 @@ export {
   spendReferralCredits,
   fulfillReferralOnBookingComplete,
   getReferralAnalytics,
+  getNextCreditExpiration,
+  expireOldCredits,
+  getCreditsExpiringSoon,
+  getUserReferralTier,
+  getReferrerRewardPercent,
+  REFERRAL_TIERS,
 } from "./db/referrals";
 
 // Provider category management (multi-category support)

@@ -650,3 +650,32 @@
 - [x] Wire referral_completed into booking completion flow (referralFulfillment module)
 - [x] In-app notification for referrer when referral completes
 - [x] Unsubscribe links included via existing notification service infrastructure
+
+## Feature: Apply Credits at Checkout
+- [x] Wire spendCredits into Stripe Checkout session creation (useCredits param)
+- [x] previewCreditDiscount query endpoint for real-time discount preview
+- [x] Show credit balance and toggle + discount preview in BookingConfirmation page
+- [x] Reduce Stripe line item amount by credit amount before creating session
+- [x] Record credit spend on successful payment (spendReferralCredits called before Stripe)
+- [x] Handle edge cases: full credit payment (skip Stripe), partial credit, below $0.50 minimum
+- [x] In-app notification for credit-paid bookings
+
+## Feature: Credit Expiration Policy
+- [x] Add expiresAt column to referral_credits table (90-day default for earned credits)
+- [x] Scheduled job (creditExpiration.ts) runs every 24 hours to expire old credits
+- [x] expireOldCredits DB helper marks expired earned credits as 'expired' type
+- [x] getCreditsExpiringSoon DB helper for 7-day warning
+- [x] Exclude expired credits from balance calculation (getReferralCreditBalance)
+- [x] Show expiration date on credit history entries in Referrals page
+- [x] Expiration warning banner when credits expire within 14 days
+- [x] Scheduler wired into server startup (_core/index.ts)
+
+## Feature: Referral Tier Rewards
+- [x] Define 4-tier structure: Bronze (0-5, 10%), Silver (6-10, 15%), Gold (11-25, 20%), Platinum (26+, 25%)
+- [x] REFERRAL_TIERS constant with name, minReferrals, maxReferrals, rewardPercent, color
+- [x] getUserReferralTier DB helper calculates tier from completed referral count
+- [x] getReferrerRewardPercent returns dynamic percentage for fulfillment
+- [x] getMyTier and getNextExpiration tRPC endpoints in referral router
+- [x] Tier progress card on Referrals page with all 4 tiers, progress bar, and next-tier indicator
+- [x] Dynamic reward percentages shown throughout referral UI
+- [x] 39 tests for all three features (credits at checkout, expiration, tiers)
