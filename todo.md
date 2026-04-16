@@ -589,3 +589,11 @@
 
 ## Bug: "Become a Provider" Link Goes to Browse
 - [x] Fix "Become a Provider" button on homepage to navigate to provider registration instead of browse page
+
+## Feature: Provider Onboarding Landing Copy
+- [x] Add "Why become a provider?" hero section before onboarding form
+- [x] Include key benefits (earnings, flexibility, tools, reach) — 6 benefit cards
+- [x] Add platform stats/social proof section (42+ categories, 0% upfront, 1% fee, verified reviews)
+- [x] Add "How it works" 4-step overview
+- [x] Add "Get Started Free" CTA that reveals the onboarding form
+- [x] Existing providers skip landing and go straight to onboarding form

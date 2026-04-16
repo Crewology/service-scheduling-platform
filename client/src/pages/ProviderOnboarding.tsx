@@ -29,6 +29,13 @@ import {
   DollarSign,
   Clock,
   Rocket,
+  TrendingUp,
+  Calendar,
+  Shield,
+  Star,
+  Users,
+  Zap,
+  ArrowRight,
 } from "lucide-react";
 import { NavHeader } from "@/components/shared/NavHeader";
 
@@ -220,9 +227,188 @@ function AddServiceDialog({
 // ============================================================================
 // MAIN ONBOARDING COMPONENT
 // ============================================================================
+// ============================================================================
+// WHY BECOME A PROVIDER — LANDING SECTION
+// ============================================================================
+function WhyBecomeProvider({ onGetStarted }: { onGetStarted: () => void }) {
+  const benefits = [
+    {
+      icon: DollarSign,
+      title: "Earn on Your Terms",
+      description: "Set your own prices, choose your services, and get paid securely through Stripe. No hidden fees — just a simple 1% platform fee.",
+    },
+    {
+      icon: Calendar,
+      title: "Manage Your Schedule",
+      description: "Full control over your availability with weekly schedules, date overrides, and automatic double-booking prevention.",
+    },
+    {
+      icon: Users,
+      title: "Reach New Customers",
+      description: "Get discovered by customers searching across 42+ service categories. Your public profile showcases your work and reviews.",
+    },
+    {
+      icon: Zap,
+      title: "Instant Booking Tools",
+      description: "Embeddable booking widgets, shareable links, and a mini-website — let customers book you from anywhere on the web.",
+    },
+    {
+      icon: TrendingUp,
+      title: "Grow with Analytics",
+      description: "Track booking trends, revenue, customer retention, and top services with built-in analytics on your dashboard.",
+    },
+    {
+      icon: Shield,
+      title: "Built-In Trust & Safety",
+      description: "Verified provider badges, customer reviews, secure payments, and automated refund policies protect you and your customers.",
+    },
+  ];
+
+  const steps = [
+    { number: "1", title: "Create Your Profile", desc: "Add your photo, business name, and location in under 2 minutes." },
+    { number: "2", title: "Choose Your Categories", desc: "Select from 42+ service categories that match your skills." },
+    { number: "3", title: "Add Your Services", desc: "List your services with pricing, duration, and descriptions." },
+    { number: "4", title: "Start Getting Booked", desc: "Connect Stripe, go live, and start accepting bookings today." },
+  ];
+
+  return (
+    <div className="min-h-screen bg-background">
+      <NavHeader />
+
+      {/* Hero Section */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-primary/10 to-transparent" />
+        <div className="container max-w-5xl py-16 sm:py-24 relative">
+          <div className="text-center max-w-3xl mx-auto">
+            <Badge variant="secondary" className="mb-4 px-4 py-1.5 text-sm font-medium">
+              <Rocket className="h-3.5 w-3.5 mr-1.5" />
+              Join OlogyCrew as a Provider
+            </Badge>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight">
+              Turn Your Skills Into a
+              <span className="text-primary block sm:inline"> Thriving Business</span>
+            </h1>
+            <p className="text-lg sm:text-xl text-muted-foreground mt-4 max-w-2xl mx-auto leading-relaxed">
+              OlogyCrew gives you everything you need to offer your services, manage bookings, 
+              and get paid — all in one place. No upfront costs, no commitments.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
+              <Button size="lg" className="text-base px-8" onClick={onGetStarted}>
+                Get Started Free
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+              <p className="text-sm text-muted-foreground">
+                Setup takes less than 5 minutes
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Benefits Grid */}
+      <section className="py-16 bg-muted/30">
+        <div className="container max-w-5xl">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold">Why Providers Choose OlogyCrew</h2>
+            <p className="text-muted-foreground mt-2 max-w-xl mx-auto">
+              Everything you need to run your service business, built into one platform.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {benefits.map((benefit) => {
+              const Icon = benefit.icon;
+              return (
+                <Card key={benefit.title} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                  <CardContent className="pt-6">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                      <Icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <h3 className="font-semibold text-lg mb-2">{benefit.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{benefit.description}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section className="py-16">
+        <div className="container max-w-4xl">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold">Get Started in 4 Simple Steps</h2>
+            <p className="text-muted-foreground mt-2">
+              From sign-up to your first booking — it's that easy.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {steps.map((step, i) => (
+              <div key={step.number} className="flex gap-4 p-5 rounded-xl bg-card border hover:border-primary/30 transition-colors">
+                <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-lg shrink-0">
+                  {step.number}
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-1">{step.title}</h3>
+                  <p className="text-sm text-muted-foreground">{step.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Social Proof / Stats */}
+      <section className="py-12 bg-primary text-primary-foreground">
+        <div className="container max-w-4xl">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 text-center">
+            <div>
+              <div className="text-3xl sm:text-4xl font-bold">42+</div>
+              <div className="text-sm opacity-80 mt-1">Service Categories</div>
+            </div>
+            <div>
+              <div className="text-3xl sm:text-4xl font-bold">0%</div>
+              <div className="text-sm opacity-80 mt-1">Upfront Cost</div>
+            </div>
+            <div>
+              <div className="text-3xl sm:text-4xl font-bold">1%</div>
+              <div className="text-sm opacity-80 mt-1">Platform Fee</div>
+            </div>
+            <div>
+              <div className="text-3xl sm:text-4xl font-bold">
+                <Star className="h-8 w-8 sm:h-10 sm:w-10 inline" />
+              </div>
+              <div className="text-sm opacity-80 mt-1">Verified Reviews</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="py-16">
+        <div className="container max-w-3xl text-center">
+          <h2 className="text-2xl sm:text-3xl font-bold">Ready to Grow Your Business?</h2>
+          <p className="text-muted-foreground mt-3 max-w-xl mx-auto">
+            Join OlogyCrew today and start reaching new customers. 
+            No contracts, no monthly fees — just a simple 1% per transaction.
+          </p>
+          <Button size="lg" className="mt-6 text-base px-8" onClick={onGetStarted}>
+            Create Your Provider Profile
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+// ============================================================================
+// MAIN ONBOARDING COMPONENT
+// ============================================================================
 export default function ProviderOnboarding() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [currentStep, setCurrentStep] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     const step = parseInt(params.get("step") || "1", 10);
@@ -422,6 +608,11 @@ export default function ProviderOnboarding() {
         </div>
       </div>
     );
+  }
+
+  // Show landing page for new users who haven't started onboarding yet
+  if (!existingProvider && !showOnboarding) {
+    return <WhyBecomeProvider onGetStarted={() => setShowOnboarding(true)} />;
   }
 
   return (
