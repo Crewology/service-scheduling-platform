@@ -139,6 +139,16 @@ self.addEventListener('push', (event) => {
 
   event.waitUntil(
     self.registration.showNotification(data.title || 'OlogyCrew', options)
+      .then(() => {
+        // Update app badge count
+        if (self.navigator && self.navigator.setAppBadge) {
+          // Increment badge - get current count from all visible notifications
+          self.registration.getNotifications().then((notifications) => {
+            const count = notifications.length + 1;
+            self.navigator.setAppBadge(count).catch(() => {});
+          });
+        }
+      })
   );
 });
 
@@ -158,6 +168,11 @@ self.addEventListener('notificationclick', (event) => {
     return;
   }
 
+  // Clear badge when user interacts with notification
+  if (self.navigator && self.navigator.clearAppBadge) {
+    self.navigator.clearAppBadge().catch(() => {});
+  }
+
   // Default: open/focus the app
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
@@ -174,12 +189,34 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// ─── Background Sync (future use) ───────────────────────────────
+// ─── Background Sync ────────────────────────────────────────────
+const QUEUE_KEY = 'ologycrew-offline-queue';
+
+function getQueueFromStorage() {
+  // Service workers don't have localStorage, so we use IndexedDB via a simple wrapper
+  // However, for simplicity we communicate with the client to replay
+  return [];
+}
+
 self.addEventListener('sync', (event) => {
+  if (event.tag === 'ologycrew-sync-actions') {
+    event.waitUntil(
+      // Notify all clients to replay their offline queue
+      self.clients.matchAll({ type: 'window' }).then((windowClients) => {
+        windowClients.forEach((client) => {
+          client.postMessage({ type: 'REPLAY_OFFLINE_QUEUE' });
+        });
+      })
+    );
+  }
+
   if (event.tag === 'sync-bookings') {
     event.waitUntil(
-      // Placeholder for future offline booking sync
-      Promise.resolve()
+      self.clients.matchAll({ type: 'window' }).then((windowClients) => {
+        windowClients.forEach((client) => {
+          client.postMessage({ type: 'REPLAY_OFFLINE_QUEUE' });
+        });
+      })
     );
   }
 });

@@ -661,6 +661,7 @@ export const providerRouter = router({
       // Send notification to provider about new quote request
       try {
         const { sendMultiChannelNotification } = await import("../notifications");
+        const { sendPushNotification } = await import("../notifications/pushHelper");
         const providerData = await db.getProviderById(input.providerId);
         const providerUser = providerData ? await db.getUserById(providerData.userId) : null;
         if (providerUser) {
@@ -680,6 +681,11 @@ export const providerRouter = router({
             },
             ["email", "sms"],
           );
+          // Push notification for new quote request
+          sendPushNotification("quote_request_new", { userId: providerUser.id, name: providerUser.name || "Provider" }, {
+            customerName: ctx.user.name || "Customer",
+            quoteTitle: input.title,
+          });
         }
       } catch (err) {
         console.error("[QuoteRequest] Notification failed (non-blocking):", err);
@@ -740,6 +746,7 @@ export const providerRouter = router({
       // Send notification to customer about quote response
       try {
         const { sendMultiChannelNotification } = await import("../notifications");
+        const { sendPushNotification } = await import("../notifications/pushHelper");
         const customer = await db.getUserById(quote.customerId);
         if (customer) {
           await sendMultiChannelNotification(
@@ -758,6 +765,11 @@ export const providerRouter = router({
             },
             ["email", "sms"],
           );
+          // Push notification for quote response
+          sendPushNotification("quote_response_received", { userId: customer.id, name: customer.name || "Customer" }, {
+            providerName: provider.businessName || "Provider",
+            quotedAmount: input.quotedAmount,
+          });
         }
       } catch (err) {
         console.error("[QuoteRespond] Notification failed (non-blocking):", err);
@@ -845,6 +857,7 @@ export const providerRouter = router({
       // Send notifications for accept/decline
       try {
         const { sendMultiChannelNotification } = await import("../notifications");
+        const { sendPushNotification } = await import("../notifications/pushHelper");
         const providerData = await db.getProviderById(quote.providerId);
         const providerUser = providerData ? await db.getUserById(providerData.userId) : null;
         const customer = await db.getUserById(quote.customerId);
@@ -863,6 +876,12 @@ export const providerRouter = router({
             },
             ["email", "sms"],
           );
+          // Push to provider
+          sendPushNotification("quote_accepted", { userId: providerUser.id, name: providerUser.name || "Provider" }, {
+            customerName: customer?.name || "Customer",
+            quoteTitle: quote.title,
+            quotedAmount: quote.quotedAmount || "0.00",
+          });
         }
 
         if (input.status === "declined" && providerUser) {
@@ -880,6 +899,11 @@ export const providerRouter = router({
             },
             ["email", "sms"],
           );
+          // Push to provider
+          sendPushNotification("quote_declined", { userId: providerUser.id, name: providerUser.name || "Provider" }, {
+            customerName: customer?.name || "Customer",
+            quoteTitle: quote.title,
+          });
         }
       } catch (err) {
         console.error("[QuoteStatus] Notification failed (non-blocking):", err);
@@ -946,6 +970,7 @@ export const providerRouter = router({
           // Send notification to each provider
           try {
             const { sendMultiChannelNotification } = await import("../notifications");
+            const { sendPushNotification } = await import("../notifications/pushHelper");
             const providerData = await db.getProviderById(providerId);
             const providerUser = providerData ? await db.getUserById(providerData.userId) : null;
             if (providerUser) {
@@ -965,6 +990,11 @@ export const providerRouter = router({
                 },
                 ["email", "sms"],
               );
+              // Push to provider
+              sendPushNotification("quote_request_new", { userId: providerUser.id, name: providerUser.name || "Provider" }, {
+                customerName: ctx.user.name || "Customer",
+                quoteTitle: input.title,
+              });
             }
           } catch (err) {
             console.error(`[BulkQuote] Notification failed for provider ${providerId}:`, err);

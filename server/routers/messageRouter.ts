@@ -45,6 +45,14 @@ export const messageRouter = router({
           messagePreview: preview,
           bookingId: input.bookingId,
         });
+
+        // Send web push notification for messages
+        const { sendPushNotification } = await import("../notifications/pushHelper");
+        sendPushNotification("message_received", { userId: input.recipientId }, {
+          customerName: ctx.user.name || "Someone",
+          providerName: ctx.user.name || "Someone",
+          message: preview,
+        });
       } catch (err) {
         console.error("[Message] Notification failed (non-blocking):", err);
       }

@@ -1,5 +1,6 @@
 import * as db from "./db";
 import { sendNotification } from "./notifications";
+import { sendPushNotification } from "./notifications/pushHelper";
 
 /**
  * Reminder Service
@@ -130,6 +131,17 @@ export async function processReminders(): Promise<{
           });
           if (smsResult) sent++;
           else failed++;
+        }
+
+        // Send push notifications for reminders
+        if (customer) {
+          sendPushNotification("reminder_24h", { userId: customer.id, name: customer.name || "Customer" }, notificationData);
+        }
+        if (providerUser) {
+          sendPushNotification("reminder_24h", { userId: providerUser.id, name: providerUser.name || "Provider" }, {
+            ...notificationData,
+            customerName: customer?.name || "Customer",
+          });
         }
 
         // Create in-app notifications for both customer and provider

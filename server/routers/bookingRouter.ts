@@ -134,9 +134,10 @@ export const bookingRouter = router({
       // Note: Referral recording is handled by the frontend calling referral.applyCode
       // after booking creation, since the referralRouter has the full referrer info.
 
-      // Send booking created notification to provider
+      // Send booking created notification to provider (email + push)
       try {
         const { sendNotification } = await import("../notifications");
+        const { sendPushNotification } = await import("../notifications/pushHelper");
         const providerData = await db.getProviderById(providerId);
         const providerUser = providerData ? await db.getUserById(providerData.userId) : null;
         if (providerUser?.email) {
@@ -152,6 +153,13 @@ export const bookingRouter = router({
               time: input.startTime,
               providerName: providerData?.businessName || providerUser.name || "Provider",
             },
+          });
+        }
+        // Push to provider
+        if (providerUser) {
+          sendPushNotification("booking_created", { userId: providerUser.id, name: providerUser.name || "Provider" }, {
+            bookingNumber, serviceName: service.name, customerName: ctx.user.name || "Customer",
+            date: input.bookingDate, time: input.startTime,
           });
         }
         if (ctx.user.email) {
@@ -170,6 +178,11 @@ export const bookingRouter = router({
             },
           });
         }
+        // Push to customer
+        sendPushNotification("booking_confirmed", { userId: ctx.user.id, name: ctx.user.name || "Customer" }, {
+          bookingNumber, serviceName: service.name, providerName: providerData?.businessName || "Provider",
+          date: input.bookingDate, time: input.startTime, amount: totalAmount,
+        });
          // Create in-app notifications (triggers SSE push automatically)
         if (providerUser) {
           await db.createNotification({
@@ -298,26 +311,32 @@ export const bookingRouter = router({
 
       try {
         const { sendNotification } = await import("../notifications");
+        const { sendPushNotification } = await import("../notifications/pushHelper");
         const service = await db.getServiceById(booking.serviceId);
         const customer = await db.getUserById(booking.customerId);
         const providerData = await db.getProviderById(booking.providerId);
         const providerUser = providerData ? await db.getUserById(providerData.userId) : null;
+
+        const notifData = {
+          bookingNumber: booking.bookingNumber,
+          serviceName: service?.name || "Service",
+          providerName: providerData?.businessName || providerUser?.name || "Provider",
+          customerName: customer?.name || "Customer",
+          date: booking.bookingDate,
+          time: booking.startTime,
+          amount: booking.totalAmount || "0.00",
+        };
 
         if (input.status === "confirmed" && customer?.email) {
           await sendNotification({
             type: "booking_confirmed",
             channel: "email",
             recipient: { userId: customer.id, email: customer.email, name: customer.name || "Customer" },
-            data: {
-              bookingNumber: booking.bookingNumber,
-              serviceName: service?.name || "Service",
-              providerName: providerData?.businessName || providerUser?.name || "Provider",
-              customerName: customer.name || "Customer",
-              date: booking.bookingDate,
-              time: booking.startTime,
-              amount: booking.totalAmount || "0.00",
-            },
+            data: notifData,
           });
+        }
+        if (input.status === "confirmed" && customer) {
+          sendPushNotification("booking_confirmed", { userId: customer.id, name: customer.name || "Customer" }, notifData);
         }
 
         if (input.status === "completed" && customer?.email) {
@@ -325,13 +344,11 @@ export const bookingRouter = router({
             type: "booking_completed",
             channel: "email",
             recipient: { userId: customer.id, email: customer.email, name: customer.name || "Customer" },
-            data: {
-              bookingNumber: booking.bookingNumber,
-              serviceName: service?.name || "Service",
-              providerName: providerData?.businessName || providerUser?.name || "Provider",
-              customerName: customer.name || "Customer",
-            },
+            data: notifData,
           });
+        }
+        if (input.status === "completed" && customer) {
+          sendPushNotification("booking_completed", { userId: customer.id, name: customer.name || "Customer" }, notifData);
         }
         // Create in-app notifications for status changes (triggers SSE push automatically)
         const statusMessages: Record<string, { title: string; message: string; type: string }> = {
@@ -471,24 +488,31 @@ export const bookingRouter = router({
       });
 
       const { sendNotification } = await import("../notifications");
+      const { sendPushNotification } = await import("../notifications/pushHelper");
       const customer = await db.getUserById(booking.customerId);
       const providerData = await db.getProviderById(booking.providerId);
       const providerUser = providerData ? await db.getUserById(providerData.userId) : null;
+
+      const cancelData = {
+        bookingNumber: booking.bookingNumber,
+        serviceName: service?.name || "Service",
+        cancelledBy,
+        refundAmount,
+        refundPercentage: refundPercentage.toString(),
+        reason: input.reason,
+      };
 
       if (customer?.email) {
         await sendNotification({
           type: "booking_cancelled",
           channel: "email",
           recipient: { userId: customer.id, email: customer.email, name: customer.name || "Customer" },
-          data: {
-            bookingNumber: booking.bookingNumber,
-            serviceName: service?.name || "Service",
-            cancelledBy,
-            refundAmount,
-            refundPercentage: refundPercentage.toString(),
-            reason: input.reason,
-          },
+          data: cancelData,
         });
+      }
+      // Push to customer
+      if (customer) {
+        sendPushNotification("booking_cancelled", { userId: customer.id, name: customer.name || "Customer" }, cancelData);
       }
 
       if (providerUser?.email && cancelledBy === "customer") {
@@ -496,13 +520,12 @@ export const bookingRouter = router({
           type: "booking_cancelled",
           channel: "email",
           recipient: { userId: providerUser.id, email: providerUser.email, name: providerUser.name || "Provider" },
-          data: {
-            bookingNumber: booking.bookingNumber,
-            serviceName: service?.name || "Service",
-            cancelledBy,
-            reason: input.reason,
-          },
+          data: cancelData,
         });
+      }
+      // Push to provider on customer cancellation
+      if (providerUser && cancelledBy === "customer") {
+        sendPushNotification("booking_cancelled", { userId: providerUser.id, name: providerUser.name || "Provider" }, cancelData);
       }
 
       // Create in-app notifications for cancellation (triggers SSE push automatically)
@@ -958,24 +981,34 @@ export const bookingRouter = router({
       // Send notification to customer about session status change
       try {
         const { sendNotification } = await import("../notifications");
+        const { sendPushNotification } = await import("../notifications/pushHelper");
         const customer = await db.getUserById(booking.customerId);
         const service = booking.serviceId ? await db.getServiceById(booking.serviceId) : null;
         const providerData = await db.getProviderById(booking.providerId);
+        const sessionData = {
+          bookingNumber: booking.bookingNumber,
+          sessionDate: session.sessionDate,
+          sessionNumber: session.sessionNumber,
+          serviceName: service?.name || "Service",
+          providerName: providerData?.businessName || "Provider",
+          customerName: customer?.name || "Customer",
+          notes: input.notes,
+        };
         if (customer?.email && (input.status === "completed" || input.status === "cancelled")) {
           await sendNotification({
             type: input.status === "completed" ? "session_completed" : "session_cancelled",
             channel: "email",
             recipient: { userId: customer.id, email: customer.email, name: customer.name || "Customer" },
-            data: {
-              bookingNumber: booking.bookingNumber,
-              sessionDate: session.sessionDate,
-              sessionNumber: session.sessionNumber,
-              serviceName: service?.name || "Service",
-              providerName: providerData?.businessName || "Provider",
-              customerName: customer.name || "Customer",
-              notes: input.notes,
-            },
+            data: sessionData,
           });
+        }
+        // Push notification for session status
+        if (customer && (input.status === "completed" || input.status === "cancelled")) {
+          sendPushNotification(
+            input.status === "completed" ? "session_completed" : "session_cancelled",
+            { userId: customer.id, name: customer.name || "Customer" },
+            sessionData
+          );
         }
       } catch (err) {
         console.error("[SessionStatus] Notification failed (non-blocking):", err);
@@ -1045,29 +1078,35 @@ export const bookingRouter = router({
       // Send notification
       try {
         const { sendNotification } = await import("../notifications");
+        const { sendPushNotification } = await import("../notifications/pushHelper");
         const customer = await db.getUserById(booking.customerId);
         const service = booking.serviceId ? await db.getServiceById(booking.serviceId) : null;
         const providerData = await db.getProviderById(booking.providerId);
         const providerUser = providerData ? await db.getUserById(providerData.userId) : null;
         const notifyTarget = isCustomer ? providerUser : customer;
+        const rescheduleData = {
+          bookingNumber: booking.bookingNumber,
+          sessionNumber: session.sessionNumber,
+          originalDate: session.sessionDate,
+          newDate: input.newDate,
+          newStartTime: input.newStartTime,
+          newEndTime: input.newEndTime,
+          serviceName: service?.name || "Service",
+          providerName: providerData?.businessName || "Provider",
+          customerName: customer?.name || "Customer",
+          rescheduledBy: isCustomer ? "customer" : "provider",
+        };
         if (notifyTarget?.email) {
           await sendNotification({
             type: "session_rescheduled",
             channel: "email",
             recipient: { userId: notifyTarget.id, email: notifyTarget.email, name: notifyTarget.name || "User" },
-            data: {
-              bookingNumber: booking.bookingNumber,
-              sessionNumber: session.sessionNumber,
-              originalDate: session.sessionDate,
-              newDate: input.newDate,
-              newStartTime: input.newStartTime,
-              newEndTime: input.newEndTime,
-              serviceName: service?.name || "Service",
-              providerName: providerData?.businessName || "Provider",
-              customerName: customer?.name || "Customer",
-              rescheduledBy: isCustomer ? "customer" : "provider",
-            },
+            data: rescheduleData,
           });
+        }
+        // Push to the other party
+        if (notifyTarget) {
+          sendPushNotification("session_rescheduled", { userId: notifyTarget.id, name: notifyTarget.name || "User" }, rescheduleData);
         }
       } catch (err) {
         console.error("[SessionReschedule] Notification failed (non-blocking):", err);

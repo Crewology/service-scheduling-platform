@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { ENV } from "./_core/env";
 import * as db from "./db";
 import { sendNotification } from "./notifications";
+import { sendPushNotification } from "./notifications/pushHelper";
 
 const stripe = new Stripe(ENV.stripeSecretKey, {
   apiVersion: "2026-01-28.clover",
@@ -150,6 +151,21 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       },
     });
   }
+  // Push notification for payment success
+  if (customer) {
+    sendPushNotification(
+      paymentType === "deposit" ? "payment_received" : "booking_confirmed",
+      { userId: customer.id, name: customer.name || "Customer" },
+      {
+        bookingNumber: booking.bookingNumber,
+        serviceName: service?.name || "Service",
+        providerName: provider?.businessName || "Provider",
+        amount: paymentType === "deposit" ? booking.depositAmount || "0" : booking.totalAmount || "0",
+        date: booking.bookingDate,
+        time: booking.startTime,
+      }
+    );
+  }
 }
 
 async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
@@ -195,6 +211,14 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
       },
     });
     console.log(`[Stripe] Payment failure notification sent to customer ${customer.id} for booking ${booking.bookingNumber}`);
+  }
+  // Push notification for payment failure
+  if (customer) {
+    sendPushNotification("payment_failed", { userId: customer.id, name: customer.name || "Customer" }, {
+      bookingNumber: booking.bookingNumber,
+      serviceName: service?.name || "Service",
+      amount: booking.totalAmount || "0",
+    });
   }
 
   // Also create an in-app notification

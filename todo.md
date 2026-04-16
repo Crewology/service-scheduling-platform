@@ -541,3 +541,28 @@
 - [x] Add notification permission prompt UI for PWA users
 - [x] Handle push events in service worker
 - [x] 13 tests passing for push notification system
+
+## Feature: Auto-Trigger Push on Booking Events
+- [x] Wire push notifications into booking confirmation flow (provider + customer)
+- [x] Wire push into booking status updates (confirmed/completed/cancelled)
+- [x] Wire push into booking reminder service (24hr reminders)
+- [x] Wire push into new message notifications
+- [x] Wire push into payment success/failure notifications (Stripe webhook)
+- [x] Wire push into quote request/response/accept/decline notifications
+- [x] Wire push into session reschedule flow
+- [x] Created pushHelper.ts for easy push sending from any notification point
+
+## Feature: PWA Badge Count
+- [x] Add navigator.setAppBadge() hook (useBadgeCount)
+- [x] BadgeManager component in main.tsx (inside tRPC provider)
+- [x] Update badge on push event in service worker
+- [x] Clear badge on notification click
+- [x] Sync badge on visibility change (tab focus)
+
+## Feature: Background Sync for Offline Actions
+- [x] Create offlineQueue.ts module (enqueue/dequeue/replay with max 3 retries)
+- [x] Create useOfflineActions hook for offline-aware mutations
+- [x] Update service worker with Background Sync handler (ologycrew-sync-actions)
+- [x] PendingActionsIndicator component for navbar
+- [x] Fallback to online event replay when Background Sync API unavailable
+- [x] 34 tests passing for all three features
