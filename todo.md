@@ -736,3 +736,10 @@
 - [x] HTML escaping for special characters in business names
 - [x] Falls back to user profile photo or OlogyCrew logo for og:image
 - [x] 4 tests in og-tags.test.ts (non-existent slug, existing provider, no description fallback, HTML escaping)
+
+## Bug: Profile Page Mobile Layout Issues
+- [x] Overlapping text on mobile profile page — moved Edit Profile button to its own row, added min-w-0 and truncate to name, flex-wrap on badge row
+- [x] Edit profile button not looking clean on mobile — full-width on mobile (w-full sm:w-auto), on its own row below profile info
+- [x] Form grid stacks to single column on mobile (grid-cols-1 sm:grid-cols-2)
+- [x] Changed "Hover over photo" to "Tap photo" for mobile-friendly text
+- [x] Added active:opacity-100 to camera overlay for touch devices

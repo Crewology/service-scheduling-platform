@@ -93,67 +93,67 @@ export default function UserProfile() {
       <NavHeader />
 
       <div className="container max-w-2xl py-8">
-        <h1 className="text-3xl font-bold mb-8">My Profile</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">My Profile</h1>
 
         <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                {/* Profile Photo with Upload */}
-                <div className="relative group">
-                  <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
-                    {user?.profilePhotoUrl ? (
-                      <img
-                        src={user.profilePhotoUrl}
-                        alt="Profile"
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <User className="h-8 w-8 text-primary" />
-                    )}
-                  </div>
-                  {/* Camera overlay on hover */}
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploadPhoto.isPending}
-                    className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                  >
-                    {uploadPhoto.isPending ? (
-                      <Loader2 className="h-5 w-5 text-white animate-spin" />
-                    ) : (
-                      <Camera className="h-5 w-5 text-white" />
-                    )}
-                  </button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handlePhotoUpload}
-                  />
+          <CardHeader className="space-y-4">
+            {/* Profile info row */}
+            <div className="flex items-center gap-4">
+              {/* Profile Photo with Upload */}
+              <div className="relative group shrink-0">
+                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+                  {user?.profilePhotoUrl ? (
+                    <img
+                      src={user.profilePhotoUrl}
+                      alt="Profile"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <User className="h-8 w-8 text-primary" />
+                  )}
                 </div>
-                <div>
-                  <CardTitle>{user?.name || "User"}</CardTitle>
-                  <CardDescription className="flex items-center gap-2 mt-1">
-                    <Badge variant="secondary" className="capitalize">{user?.role}</Badge>
-                    <span className="text-xs">Member since {user?.createdAt ? formatDate(user.createdAt) : "N/A"}</span>
-                  </CardDescription>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Hover over photo to change it
-                  </p>
-                </div>
+                {/* Camera overlay on hover/tap */}
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadPhoto.isPending}
+                  className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 active:opacity-100 transition-opacity cursor-pointer"
+                >
+                  {uploadPhoto.isPending ? (
+                    <Loader2 className="h-5 w-5 text-white animate-spin" />
+                  ) : (
+                    <Camera className="h-5 w-5 text-white" />
+                  )}
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handlePhotoUpload}
+                />
               </div>
-              {!editing && (
-                <Button variant="outline" onClick={() => setEditing(true)}>
-                  Edit Profile
-                </Button>
-              )}
+              <div className="min-w-0">
+                <CardTitle className="truncate">{user?.name || "User"}</CardTitle>
+                <CardDescription className="flex flex-wrap items-center gap-2 mt-1">
+                  <Badge variant="secondary" className="capitalize shrink-0">{user?.role}</Badge>
+                  <span className="text-xs">Member since {user?.createdAt ? formatDate(user.createdAt) : "N/A"}</span>
+                </CardDescription>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Tap photo to change it
+                </p>
+              </div>
             </div>
+            {/* Edit button on its own row for clean mobile layout */}
+            {!editing && (
+              <Button variant="outline" className="w-full sm:w-auto" onClick={() => setEditing(true)}>
+                Edit Profile
+              </Button>
+            )}
           </CardHeader>
           <CardContent>
             {editing ? (
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label>First Name</Label>
                     <Input 
