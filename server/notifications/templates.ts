@@ -440,6 +440,67 @@ OlogyCrew Team
       `.trim(),
       smsBody: `How was your ${data.serviceName || 'service'} with ${data.providerName}? Leave a review on OlogyCrew!`,
     },
+
+    // ============================================================================
+    // REFERRAL NOTIFICATIONS
+    // ============================================================================
+
+    referral_signup: {
+      subject: `Someone joined OlogyCrew using your referral!`,
+      body: `
+Hello ${data.referrerName},
+
+Great news! **${data.refereeName}** has signed up on OlogyCrew using your referral link.
+
+Your referral is now **pending**. Once they complete their first booking, you'll earn referral credits that can be applied to your future bookings.
+
+Keep sharing your referral link to earn more rewards!
+
+[View Your Referrals](/referrals)
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `${data.refereeName} signed up using your OlogyCrew referral! You'll earn credits when they complete their first booking.`,
+    },
+
+    referral_completed: {
+      subject: `You earned $${data.creditAmount || '0.00'} in referral credits!`,
+      body: `
+Hello ${data.referrerName},
+
+Congratulations! Your referral **${data.refereeName}** has completed a booking for **${data.serviceName}**.
+
+You've earned **$${data.creditAmount || '0.00'}** in referral credits! These credits will be automatically applied to your next booking.
+
+[View Your Credit Balance](/referrals)
+
+Thank you for helping grow the OlogyCrew community!
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `You earned $${data.creditAmount || '0.00'} in referral credits! ${data.refereeName} completed a booking. Use credits on your next booking.`,
+    },
+
+    referral_welcome: {
+      subject: `Welcome to OlogyCrew — You've been referred!`,
+      body: `
+Hello ${data.refereeName},
+
+Welcome to OlogyCrew! You were referred by **${data.referrerName}**.
+
+${data.discountPercent ? `As a referred member, you'll receive a **${data.discountPercent}% discount** on your first booking!` : 'As a referred member, you may be eligible for special discounts on your first booking.'}
+
+Browse our 42+ service categories and book your first appointment today.
+
+[Browse Services](/services)
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `Welcome to OlogyCrew! You were referred by ${data.referrerName}. Browse services and book your first appointment today.`,
+    },
   };
 
   return templates[type] || {

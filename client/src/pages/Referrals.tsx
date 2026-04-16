@@ -52,6 +52,16 @@ export default function Referrals() {
     enabled: !!user,
   });
 
+  // Credit balance
+  const { data: creditBalance } = trpc.referral.getCreditBalance.useQuery(
+    undefined,
+    { enabled: !!user }
+  );
+  const { data: creditHistory } = trpc.referral.getCreditHistory.useQuery(
+    undefined,
+    { enabled: !!user }
+  );
+
   const utils = trpc.useUtils();
   const updateSettings = trpc.referral.updateSettings.useMutation({
     onSuccess: () => {
@@ -219,6 +229,26 @@ export default function Referrals() {
               </CardContent>
             </Card>
 
+            {/* Credit Balance Banner */}
+            {creditBalance && parseFloat(creditBalance.balance) > 0 && (
+              <Card className="border-2 border-emerald-200 bg-gradient-to-r from-emerald-50 to-green-50">
+                <CardContent className="py-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-full bg-emerald-100">
+                        <DollarSign className="h-6 w-6 text-emerald-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-emerald-700">Available Credit Balance</p>
+                        <p className="text-2xl font-bold text-emerald-600">${parseFloat(creditBalance.balance).toFixed(2)}</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-emerald-600/70">Auto-applied at checkout</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Stats Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Card>
@@ -245,8 +275,8 @@ export default function Referrals() {
               <Card>
                 <CardContent className="pt-6 text-center">
                   <DollarSign className="h-8 w-8 text-emerald-500 mx-auto mb-2" />
-                  <p className="text-2xl font-bold">${stats?.totalEarnings || "0.00"}</p>
-                  <p className="text-sm text-muted-foreground">Total Earned</p>
+                  <p className="text-2xl font-bold">${parseFloat(creditBalance?.balance || "0").toFixed(2)}</p>
+                  <p className="text-sm text-muted-foreground">Credit Balance</p>
                 </CardContent>
               </Card>
             </div>

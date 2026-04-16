@@ -616,6 +616,27 @@ export const referrals = mysqlTable("referrals", {
 export type Referral = typeof referrals.$inferSelect;
 export type InsertReferral = typeof referrals.$inferInsert;
 
+/**
+ * Referral credits — tracks earned and spent credits from referrals.
+ * Credits are earned when a referred user completes their first booking.
+ * Credits can be applied as discounts on future bookings.
+ */
+export const referralCredits = mysqlTable("referral_credits", {
+  id: int("id").primaryKey().autoincrement(),
+  userId: int("userId").notNull().references(() => users.id),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  type: mysqlEnum("type", ["earned", "spent", "expired"]).notNull(),
+  referralId: int("referralId").references(() => referrals.id),
+  bookingId: int("bookingId"),
+  description: varchar("description", { length: 500 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index("referral_credit_user_idx").on(table.userId),
+  typeIdx: index("referral_credit_type_idx").on(table.type),
+}));
+export type ReferralCredit = typeof referralCredits.$inferSelect;
+export type InsertReferralCredit = typeof referralCredits.$inferInsert;
+
 
 /**
  * Provider portfolio items — work samples, before/after photos, etc.

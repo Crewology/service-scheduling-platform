@@ -395,6 +395,15 @@ export const bookingRouter = router({
             relatedBookingId: booking.id,
           });
         }
+        // Referral reward fulfillment: when booking completes, check if customer was referred
+        if (input.status === "completed" && customer) {
+          try {
+            const { fulfillReferralAndNotify } = await import("../referralFulfillment");
+            await fulfillReferralAndNotify(booking.id, customer, service?.name || "Service");
+          } catch (refErr) {
+            console.error("[Referral] Fulfillment failed (non-blocking):", refErr);
+          }
+        }
       } catch (err) {
         console.error("[BookingStatus] Notification send failed (non-blocking):", err);
       }

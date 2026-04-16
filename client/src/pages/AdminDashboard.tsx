@@ -397,6 +397,10 @@ export default function AdminDashboard() {
               <MessageSquare className="h-3.5 w-3.5 mr-1" />
               Support
             </TabsTrigger>
+            <TabsTrigger value="referrals">
+              <UserPlus className="h-3.5 w-3.5 mr-1" />
+              Referrals
+            </TabsTrigger>
             <TabsTrigger value="push">
               <Bell className="h-3.5 w-3.5 mr-1" />
               Push
@@ -691,6 +695,10 @@ export default function AdminDashboard() {
           {/* Support / Contact Submissions Tab */}
           <TabsContent value="support">
             <ContactSubmissionsPanel />
+          </TabsContent>
+
+          <TabsContent value="referrals">
+            <ReferralAnalyticsPanel />
           </TabsContent>
 
           <TabsContent value="push">
@@ -1769,6 +1777,183 @@ function ContactSubmissionsPanel() {
   );
 }
 
+
+// ============================================================================
+// REFERRAL ANALYTICS PANEL
+// ============================================================================
+function ReferralAnalyticsPanel() {
+  const { data: refStats, isLoading } = trpc.admin.getReferralAnalytics.useQuery();
+
+  if (isLoading) return <LoadingSpinner message="Loading referral analytics..." />;
+  if (!refStats) return null;
+
+  return (
+    <div className="space-y-6">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="border-l-4 border-l-blue-500">
+          <CardContent className="pt-4 pb-3">
+            <div className="flex items-center gap-2 mb-1">
+              <UserPlus className="h-4 w-4 text-blue-500" />
+              <div className="text-xs text-muted-foreground">Total Referrals</div>
+            </div>
+            <div className="text-2xl font-bold text-blue-600">{refStats.totalReferrals}</div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-green-500">
+          <CardContent className="pt-4 pb-3">
+            <div className="flex items-center gap-2 mb-1">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <div className="text-xs text-muted-foreground">Completed</div>
+            </div>
+            <div className="text-2xl font-bold text-green-600">{refStats.completedReferrals}</div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-amber-500">
+          <CardContent className="pt-4 pb-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Clock className="h-4 w-4 text-amber-500" />
+              <div className="text-xs text-muted-foreground">Pending</div>
+            </div>
+            <div className="text-2xl font-bold text-amber-600">{refStats.pendingReferrals}</div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-purple-500">
+          <CardContent className="pt-4 pb-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Percent className="h-4 w-4 text-purple-500" />
+              <div className="text-xs text-muted-foreground">Conversion Rate</div>
+            </div>
+            <div className="text-2xl font-bold text-purple-600">{refStats.conversionRate}%</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Credits & Codes Overview */}
+      <div className="grid md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              Credit Summary
+            </CardTitle>
+            <CardDescription>Platform-wide referral credit activity</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 bg-green-50 dark:bg-green-950/30 rounded-lg">
+                <p className="text-sm font-medium text-green-700 dark:text-green-400 mb-1">Credits Earned</p>
+                <p className="text-2xl font-bold text-green-600">${parseFloat(refStats.totalCreditsEarned).toFixed(2)}</p>
+              </div>
+              <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                <p className="text-sm font-medium text-blue-700 dark:text-blue-400 mb-1">Credits Spent</p>
+                <p className="text-2xl font-bold text-blue-600">${parseFloat(refStats.totalCreditsSpent).toFixed(2)}</p>
+              </div>
+            </div>
+            <div className="mt-4 pt-4 border-t">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Active Referral Codes</span>
+                <span className="font-semibold">{refStats.activeCodes} / {refStats.totalCodes}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Monthly Trend */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Monthly Trend
+            </CardTitle>
+            <CardDescription>Referrals over the last 12 months</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {refStats.monthlyTrend.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">No referral data yet</p>
+            ) : (
+              <div className="space-y-2">
+                {refStats.monthlyTrend.map((m: any) => (
+                  <div key={m.month} className="flex items-center gap-3">
+                    <span className="text-xs text-muted-foreground w-16 shrink-0">{m.month}</span>
+                    <div className="flex-1 h-5 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"
+                        style={{ width: `${Math.max(5, (m.total / Math.max(...refStats.monthlyTrend.map((t: any) => t.total), 1)) * 100)}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-medium w-8 text-right">{m.total}</span>
+                    <span className="text-xs text-green-600 w-8 text-right">({Number(m.completed) || 0})</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Top Referrers */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Crown className="h-5 w-5" />
+            Top Referrers
+          </CardTitle>
+          <CardDescription>Users who have referred the most people to the platform</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {refStats.topReferrers.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">No referrers yet</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Rank</TableHead>
+                  <TableHead>User</TableHead>
+                  <TableHead className="text-center">Total Referrals</TableHead>
+                  <TableHead className="text-center">Completed</TableHead>
+                  <TableHead className="text-right">Total Earned</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {refStats.topReferrers.map((r: any, i: number) => (
+                  <TableRow key={r.userId}>
+                    <TableCell>
+                      {i === 0 ? (
+                        <span className="text-amber-500 font-bold">#1</span>
+                      ) : i === 1 ? (
+                        <span className="text-gray-400 font-bold">#2</span>
+                      ) : i === 2 ? (
+                        <span className="text-amber-700 font-bold">#3</span>
+                      ) : (
+                        <span className="text-muted-foreground">#{i + 1}</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">{r.userName || "Unknown"}</p>
+                        <p className="text-xs text-muted-foreground">{r.userEmail || ""}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center font-semibold">{r.totalReferrals}</TableCell>
+                    <TableCell className="text-center">
+                      <Badge variant={Number(r.completedReferrals) > 0 ? "default" : "secondary"}>
+                        {Number(r.completedReferrals) || 0}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-semibold text-green-600">
+                      ${parseFloat(r.totalEarned || "0").toFixed(2)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 // ============================================================================
 // PUSH NOTIFICATION ANALYTICS PANEL

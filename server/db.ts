@@ -37,6 +37,12 @@ export {
   getReferralHistory,
   getPendingReferralForReferee,
   updateReferralCode,
+  addReferralCredit,
+  getReferralCreditBalance,
+  getReferralCreditHistory,
+  spendReferralCredits,
+  fulfillReferralOnBookingComplete,
+  getReferralAnalytics,
 } from "./db/referrals";
 
 // Provider category management (multi-category support)

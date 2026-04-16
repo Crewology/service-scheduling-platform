@@ -170,4 +170,9 @@ export const adminRouter = router({
   getPushAnalytics: adminProcedure.query(async () => {
     return await db.getPushAnalytics();
   }),
+
+  // Referral Analytics
+  getReferralAnalytics: adminProcedure.query(async () => {
+    return await db.getReferralAnalytics();
+  }),
 });

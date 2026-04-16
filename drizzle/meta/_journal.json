@@ -190,6 +190,13 @@
       "when": 1776333862617,
       "tag": "0026_old_wraith",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "5",
+      "when": 1776337256590,
+      "tag": "0027_spooky_tyrannus",
+      "breakpoints": true
     }
   ]
 }

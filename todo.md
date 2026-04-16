@@ -627,3 +627,26 @@
 - [x] Push adoption rate visualization with progress bar
 - [x] Avg devices per user and recent growth metrics
 - [x] Tests for admin enhancements (13 tests: push analytics, contact submissions, referral system, admin router)
+
+## Feature: Referral Reward Fulfillment
+- [x] Add referral_credits table to schema (earned/spent/expired types)
+- [x] DB helpers: addReferralCredit, getReferralCreditBalance, getReferralCreditHistory, spendReferralCredits, fulfillReferralOnBookingComplete
+- [x] referralFulfillment module to auto-complete referral + credit referrer on booking completion
+- [x] Wire fulfillment into booking status update flow (on "completed")
+- [x] Add getCreditBalance, getCreditHistory, spendCredits endpoints to referral router
+- [x] Show credit balance on Referrals page (banner + stats card)
+- [x] 34 tests for referral reward fulfillment
+
+## Feature: Admin Referral Analytics
+- [x] getReferralAnalytics DB helper (total codes, conversion rate, top referrers, monthly trend, credit summary)
+- [x] Admin router endpoint: getReferralAnalytics
+- [x] Referrals tab in admin dashboard with stats cards, credit summary, monthly trend, top referrers table
+- [x] Conversion rate and active codes metrics
+
+## Feature: Referral Email Notifications
+- [x] Add referral_signup, referral_completed, referral_welcome notification types
+- [x] Email templates for all three referral notification types
+- [x] Wire referral_signup + referral_welcome into applyCode mutation
+- [x] Wire referral_completed into booking completion flow (referralFulfillment module)
+- [x] In-app notification for referrer when referral completes
+- [x] Unsubscribe links included via existing notification service infrastructure

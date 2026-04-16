@@ -26,7 +26,10 @@ export type NotificationType =
   | 'session_completed'
   | 'session_cancelled'
   | 'session_rescheduled'
-  | 'review_reminder';
+  | 'review_reminder'
+  | 'referral_signup'
+  | 'referral_completed'
+  | 'referral_welcome';
 
 export interface NotificationRecipient {
   userId: number;

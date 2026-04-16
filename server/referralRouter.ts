@@ -10,6 +10,9 @@ import {
   getReferralHistory,
   updateReferralCode,
   getReferralCodeByUserId,
+  getReferralCreditBalance,
+  getReferralCreditHistory,
+  spendReferralCredits,
 } from "./db/referrals";
 
 export const referralRouter = router({
@@ -77,6 +80,49 @@ export const referralRouter = router({
         refereeBookingId: input.bookingId,
         refereeDiscountAmount: input.discountAmount,
       });
+
+      // Send referral email notifications (non-blocking)
+      try {
+        const { sendNotification } = await import("./notifications");
+        const { getUserById } = await import("./db/users");
+        const referrer = await getUserById(input.referrerId);
+        const referee = ctx.user;
+
+        // Get the referral code for discount info
+        const refCode = await getReferralCodeByCode(
+          (await getReferralCodeByUserId(input.referrerId))?.code || ""
+        );
+
+        // Email to referrer: someone signed up using their code
+        if (referrer?.email) {
+          await sendNotification({
+            type: "referral_signup",
+            channel: "email",
+            recipient: { userId: referrer.id, email: referrer.email, name: referrer.name || "User" },
+            data: {
+              referrerName: referrer.name || "User",
+              refereeName: referee.name || "New User",
+            },
+          });
+        }
+
+        // Email to referee: welcome with referral info
+        if (referee.email) {
+          await sendNotification({
+            type: "referral_welcome",
+            channel: "email",
+            recipient: { userId: referee.id, email: referee.email, name: referee.name || "User" },
+            data: {
+              refereeName: referee.name || "User",
+              referrerName: referrer?.name || "A friend",
+              discountPercent: refCode?.refereeDiscountPercent || 10,
+            },
+          });
+        }
+      } catch (emailErr) {
+        console.error("[Referral] Email notification failed (non-blocking):", emailErr);
+      }
+
       return { success: true };
     }),
 
@@ -95,6 +141,34 @@ export const referralRouter = router({
       if (!code) throw new TRPCError({ code: "NOT_FOUND", message: "No referral code found" });
       await updateReferralCode(code.id, input);
       return { success: true };
+    }),
+
+  /**
+   * Get the current user's referral credit balance.
+   */
+  getCreditBalance: protectedProcedure.query(async ({ ctx }) => {
+    const balance = await getReferralCreditBalance(ctx.user.id);
+    return { balance };
+  }),
+
+  /**
+   * Get the current user's referral credit history.
+   */
+  getCreditHistory: protectedProcedure.query(async ({ ctx }) => {
+    return getReferralCreditHistory(ctx.user.id);
+  }),
+
+  /**
+   * Spend referral credits on a booking.
+   */
+  spendCredits: protectedProcedure
+    .input(z.object({
+      bookingId: z.number(),
+      maxAmount: z.number().positive(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const spent = await spendReferralCredits(ctx.user.id, input.bookingId, input.maxAmount);
+      return { spent };
     }),
 
   /**
