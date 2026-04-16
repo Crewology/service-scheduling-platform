@@ -356,9 +356,14 @@ export function NavHeader() {
     refetchInterval: 15000,
   });
 
+  // Check for provider profile as fallback (in case role hasn't been updated yet)
+  const { data: myProfile } = trpc.provider.getMyProfile.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
   const unreadMessages = typeof unreadCount === "number" ? unreadCount : 0;
 
-  const isProvider = user?.role === "provider";
+  const isProvider = user?.role === "provider" || !!myProfile;
   const isAdmin = user?.role === "admin";
 
   return (

@@ -650,6 +650,7 @@ export default function ProviderOnboarding() {
   const createProvider = trpc.provider.create.useMutation({
     onSuccess: () => {
       utils.provider.getMyProfile.invalidate();
+      utils.auth.me.invalidate(); // Refresh user role so NavHeader shows Dashboard link
       toast.success("Profile created!");
     },
     onError: (err) => toast.error(err.message),

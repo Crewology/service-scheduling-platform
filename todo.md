@@ -708,3 +708,12 @@
 
 ## Bug: Featured Providers "Provider Not Found"
 - [x] Fixed: Homepage used `provider.slug` but data has `profileSlug`; updated link + auto-generate slug for providers missing one
+
+## Bug: Provider Dashboard Not Showing for New Providers
+- [x] Root cause: `provider.create` mutation did not update user role from 'customer' to 'provider'
+- [x] Fix: Added `db.updateUserProfile(ctx.user.id, { role: "provider" })` to provider.create mutation
+- [x] Fix: Added `role` field support to legacy `updateUserProfile` function in db-legacy.ts
+- [x] Fix: NavHeader now checks both `user.role === 'provider'` AND `!!myProfile` (getMyProfile fallback)
+- [x] Fix: ProviderOnboarding invalidates `auth.me` after profile creation so NavHeader updates immediately
+- [x] Data fix: Updated 142 existing users with provider records but 'customer' role to 'provider'
+- [x] 7 new tests in provider-role.test.ts (role update, slug generation, getMyProfile, duplicate prevention, categories, updateUserProfile role field)

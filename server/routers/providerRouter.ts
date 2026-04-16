@@ -31,6 +31,9 @@ export const providerRouter = router({
       const provider = await db.getProviderByUserId(ctx.user.id);
       if (!provider) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create provider" });
       
+      // Update user role to 'provider' so NavHeader shows Dashboard link
+      await db.updateUserProfile(ctx.user.id, { role: "provider" });
+
       // Auto-generate slug
       const baseSlug = provider.businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
       const slug = `${baseSlug}-${provider.id}`;
