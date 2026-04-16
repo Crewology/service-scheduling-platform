@@ -18,6 +18,7 @@ import {
   LogOut,
   Settings,
   ChevronDown,
+  Coins,
 } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useSSE } from "@/hooks/useSSE";
@@ -235,6 +236,31 @@ function NotificationDropdown() {
   );
 }
 
+function CreditBadge() {
+  const { isAuthenticated } = useAuth();
+  const { data: balance } = trpc.referral.getCreditBalance.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
+  const balanceStr = typeof balance === "object" && balance ? balance.balance : "0";
+  const creditAmount = parseFloat(balanceStr || "0");
+  if (!isAuthenticated || creditAmount <= 0) return null;
+
+  return (
+    <Link href="/referrals">
+      <Button
+        variant="ghost"
+        size="sm"
+        className="relative h-9 gap-1.5 px-2.5 text-amber-700 hover:text-amber-800 hover:bg-amber-50"
+        title="Referral Credits"
+      >
+        <Coins className="h-4 w-4" />
+        <span className="text-xs font-semibold">${creditAmount.toFixed(0)}</span>
+      </Button>
+    </Link>
+  );
+}
+
 function UserMenuDropdown({ user }: { user: any }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -417,6 +443,9 @@ export function NavHeader() {
                   </Button>
                 </Link>
 
+                {/* Credit Balance */}
+                <CreditBadge />
+
                 {/* Notifications Dropdown */}
                 <NotificationDropdown />
 
@@ -511,6 +540,12 @@ export function NavHeader() {
                   <Button variant="ghost" className="w-full justify-start relative">
                     <Bell className="h-4 w-4 mr-2" />
                     Notifications
+                  </Button>
+                </Link>
+                <Link href="/referrals" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start">
+                    <Coins className="h-4 w-4 mr-2" />
+                    Referral Credits
                   </Button>
                 </Link>
                 {isProvider && (

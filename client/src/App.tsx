@@ -40,6 +40,7 @@ import CustomerPricing from "./pages/CustomerPricing";
 import BookingAnalytics from "./pages/BookingAnalytics";
 import TermsOfService from "./pages/TermsOfService";
 import HelpCenter from "./pages/HelpCenter";
+import ReferralProgram from "./pages/ReferralProgram";
 
 function Router() {
   return (
@@ -79,6 +80,7 @@ function Router() {
       <Route path="/privacy" component={PrivacyPolicy} />
       <Route path="/terms" component={TermsOfService} />
       <Route path="/help" component={HelpCenter} />
+      <Route path="/referral-program" component={ReferralProgram} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

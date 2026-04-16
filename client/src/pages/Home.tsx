@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
-import { Search, Calendar, Shield, Star, ArrowRight, CheckCircle2, MapPin, User } from "lucide-react";
+import { Search, Calendar, Shield, Star, ArrowRight, CheckCircle2, MapPin, User, Gift, Trophy, TrendingUp, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
@@ -258,6 +258,92 @@ export default function Home() {
           </div>
         </section>
       )}
+
+      {/* Refer & Earn Section */}
+      <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
+        <div className="container">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-10 sm:mb-14">
+              <div className="inline-flex items-center gap-2 bg-amber-100 text-amber-800 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
+                <Gift className="h-4 w-4" />
+                Referral Program
+              </div>
+              <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4">Refer & Earn Rewards</h2>
+              <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+                Share OlogyCrew with friends and service providers. Earn credits toward your next booking with every successful referral.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6 mb-10">
+              <div className="bg-white rounded-xl p-6 shadow-soft text-center">
+                <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
+                  <Users className="h-7 w-7 text-blue-600" />
+                </div>
+                <h3 className="font-bold text-lg mb-2">Share Your Link</h3>
+                <p className="text-sm text-muted-foreground">
+                  Get your unique referral link and share it with friends, family, or fellow professionals.
+                </p>
+              </div>
+
+              <div className="bg-white rounded-xl p-6 shadow-soft text-center">
+                <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle2 className="h-7 w-7 text-green-600" />
+                </div>
+                <h3 className="font-bold text-lg mb-2">They Sign Up & Book</h3>
+                <p className="text-sm text-muted-foreground">
+                  When your referral joins and completes their first booking, you both earn rewards.
+                </p>
+              </div>
+
+              <div className="bg-white rounded-xl p-6 shadow-soft text-center">
+                <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
+                  <Trophy className="h-7 w-7 text-amber-600" />
+                </div>
+                <h3 className="font-bold text-lg mb-2">Earn & Level Up</h3>
+                <p className="text-sm text-muted-foreground">
+                  Unlock higher reward tiers as you refer more people — from Bronze (10%) to Platinum (25%).
+                </p>
+              </div>
+            </div>
+
+            {/* Tier Preview */}
+            <div className="bg-white rounded-xl p-6 sm:p-8 shadow-soft mb-8">
+              <h3 className="font-bold text-lg mb-4 text-center">Reward Tiers</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center p-3 rounded-lg bg-orange-50 border border-orange-200">
+                  <div className="text-2xl font-bold text-orange-700">10%</div>
+                  <div className="text-sm font-semibold text-orange-600">Bronze</div>
+                  <div className="text-xs text-muted-foreground mt-1">0–5 referrals</div>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-slate-50 border border-slate-300">
+                  <div className="text-2xl font-bold text-slate-600">15%</div>
+                  <div className="text-sm font-semibold text-slate-500">Silver</div>
+                  <div className="text-xs text-muted-foreground mt-1">6–10 referrals</div>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-yellow-50 border border-yellow-300">
+                  <div className="text-2xl font-bold text-yellow-700">20%</div>
+                  <div className="text-sm font-semibold text-yellow-600">Gold</div>
+                  <div className="text-xs text-muted-foreground mt-1">11–25 referrals</div>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-violet-50 border border-violet-300">
+                  <div className="text-2xl font-bold text-violet-700">25%</div>
+                  <div className="text-sm font-semibold text-violet-600">Platinum</div>
+                  <div className="text-xs text-muted-foreground mt-1">26+ referrals</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <Link href="/referral-program">
+                <Button size="lg" className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0">
+                  <Gift className="mr-2 h-5 w-5" />
+                  Learn More & Start Earning
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* CTA Section for Providers */}
       <section className="py-12 sm:py-16 md:py-20 gradient-primary text-white">

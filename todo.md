@@ -679,3 +679,13 @@
 - [x] Tier progress card on Referrals page with all 4 tiers, progress bar, and next-tier indicator
 - [x] Dynamic reward percentages shown throughout referral UI
 - [x] 39 tests for all three features (credits at checkout, expiration, tiers)
+
+## Feature: Referral Program Visibility
+- [x] Add "Refer & Earn" section to homepage with 3-step process, tier preview, and CTA
+- [x] Add credit balance badge to navigation header (Coins icon, links to /referrals)
+- [x] Add Referral Credits link in mobile menu
+- [x] Create public /referral-program landing page (hero, stats, how-it-works, tiers, benefits, FAQ, CTA)
+- [x] Register /referral-program route in App.tsx
+- [x] Link referral program page from homepage section
+- [x] Handle object balance return type correctly in CreditBadge and ReferralProgram
+- [x] 29 tests for referral visibility features
