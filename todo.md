@@ -597,3 +597,12 @@
 - [x] Add "How it works" 4-step overview
 - [x] Add "Get Started Free" CTA that reveals the onboarding form
 - [x] Existing providers skip landing and go straight to onboarding form
+
+## Feature: Conditional CTA for Existing Providers
+- [x] Change "Become a Provider" on homepage to "Go to Dashboard" if logged-in user is already a provider
+
+## Feature: Provider Testimonials Section
+- [x] Add testimonials/quotes section to provider landing page with 3 placeholder success stories
+
+## Feature: Provider FAQ Accordion
+- [x] Add collapsible FAQ accordion to provider landing page (7 questions: cost, payouts, cancellation, categories, scheduling, mobile/location, verification)

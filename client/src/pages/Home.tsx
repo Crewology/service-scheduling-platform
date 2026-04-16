@@ -16,6 +16,9 @@ export default function Home() {
   const [, setLocation] = useLocation();
   const { data: categories } = trpc.category.list.useQuery();
   const { data: featuredProviders } = trpc.provider.listFeatured.useQuery();
+  const { data: myProviderProfile } = trpc.provider.getMyProfile.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
 
   const featuredCategories = categories?.slice(0, 8) || [];
 
@@ -291,12 +294,21 @@ export default function Home() {
               </div>
             </div>
             
-            <Link href="/provider/onboarding">
-              <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90">
-                Become a Provider
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
+            {isAuthenticated && myProviderProfile ? (
+              <Link href="/dashboard">
+                <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90">
+                  Go to Dashboard
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/provider/onboarding">
+                <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90">
+                  Become a Provider
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </section>

@@ -38,6 +38,8 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { NavHeader } from "@/components/shared/NavHeader";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { MessageSquareQuote, HelpCircle, ChevronDown } from "lucide-react";
 
 // ============================================================================
 // CATEGORY ICON MAP — visual icons for each category
@@ -358,6 +360,62 @@ function WhyBecomeProvider({ onGetStarted }: { onGetStarted: () => void }) {
         </div>
       </section>
 
+      {/* Testimonials */}
+      <section className="py-16 bg-muted/30">
+        <div className="container max-w-5xl">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold">What Providers Are Saying</h2>
+            <p className="text-muted-foreground mt-2">
+              Hear from service professionals who grew their business with OlogyCrew.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                name: "Marcus T.",
+                role: "Mobile Barber",
+                quote: "I went from 5 clients a week to over 20 in my first month. The booking system handles everything so I can focus on cutting hair.",
+                rating: 5,
+              },
+              {
+                name: "Jasmine R.",
+                role: "Massage Therapist",
+                quote: "The scheduling tools are a game-changer. Clients book directly, I get reminders, and payments land in my account automatically.",
+                rating: 5,
+              },
+              {
+                name: "David K.",
+                role: "Handyman Services",
+                quote: "I love that I can set my own prices and availability. The 1% fee is nothing compared to what other platforms charge. Highly recommend.",
+                rating: 5,
+              },
+            ].map((testimonial) => (
+              <Card key={testimonial.name} className="border-0 shadow-sm">
+                <CardContent className="pt-6">
+                  <div className="flex gap-0.5 mb-3">
+                    {Array.from({ length: testimonial.rating }).map((_, i) => (
+                      <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed italic mb-4">
+                    "{testimonial.quote}"
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+                      <User className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">{testimonial.name}</p>
+                      <p className="text-xs text-muted-foreground">{testimonial.role}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Social Proof / Stats */}
       <section className="py-12 bg-primary text-primary-foreground">
         <div className="container max-w-4xl">
@@ -381,6 +439,76 @@ function WhyBecomeProvider({ onGetStarted }: { onGetStarted: () => void }) {
               <div className="text-sm opacity-80 mt-1">Verified Reviews</div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-16">
+        <div className="container max-w-3xl">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl sm:text-3xl font-bold">Frequently Asked Questions</h2>
+            <p className="text-muted-foreground mt-2">
+              Everything you need to know before getting started.
+            </p>
+          </div>
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="cost">
+              <AccordionTrigger className="text-left text-base">
+                How much does it cost to become a provider?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground leading-relaxed">
+                Signing up is completely free. There are no monthly fees, no subscription charges, and no upfront costs. We only charge a simple 1% platform fee on each completed transaction, so you only pay when you earn.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="payouts">
+              <AccordionTrigger className="text-left text-base">
+                How and when do I get paid?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground leading-relaxed">
+                Payments are processed securely through Stripe. Once a customer completes a booking, funds are deposited directly into your connected bank account. Standard Stripe payouts typically arrive within 2 business days.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="cancellation">
+              <AccordionTrigger className="text-left text-base">
+                What happens if a customer cancels?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground leading-relaxed">
+                You set your own cancellation policy during onboarding. Options include flexible (full refund up to 24 hours before), moderate (50% refund up to 48 hours before), or strict (no refund within 7 days). Cancellations and refunds are handled automatically based on your chosen policy.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="categories">
+              <AccordionTrigger className="text-left text-base">
+                Can I offer services in multiple categories?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground leading-relaxed">
+                Absolutely! You can select as many categories as you like during onboarding and add services under each one. Whether you're a barber who also does mobile detailing, or a photographer who offers event planning, OlogyCrew supports multi-category providers.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="schedule">
+              <AccordionTrigger className="text-left text-base">
+                How does scheduling work?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground leading-relaxed">
+                You set your weekly availability with specific time slots for each day. You can also add date-specific overrides for holidays or special hours. The system automatically prevents double-bookings and sends reminders to both you and your customers 24 hours before each appointment.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="mobile">
+              <AccordionTrigger className="text-left text-base">
+                Can I offer both mobile and in-location services?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground leading-relaxed">
+                Yes! Each service can be set as fixed-location (customers come to you), mobile (you go to the customer), or both. You can set different pricing for mobile vs. in-location services and define your service radius for mobile bookings.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="verification">
+              <AccordionTrigger className="text-left text-base">
+                How do I get verified?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground leading-relaxed">
+                Complete your profile, add services, connect Stripe for payments, and maintain a good review rating. Verified providers get a badge on their profile, higher search visibility, and increased trust from potential customers.
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
       </section>
 
