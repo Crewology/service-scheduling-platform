@@ -6,6 +6,7 @@ import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
 import { BadgeManager } from "./components/BadgeManager";
+import { ViewModeProvider } from "./contexts/ViewModeContext";
 import { getLoginUrl } from "./const";
 import "./index.css";
 
@@ -57,7 +58,9 @@ createRoot(document.getElementById("root")!).render(
   <trpc.Provider client={trpcClient} queryClient={queryClient}>
     <QueryClientProvider client={queryClient}>
       <BadgeManager />
-      <App />
+      <ViewModeProvider>
+        <App />
+      </ViewModeProvider>
     </QueryClientProvider>
   </trpc.Provider>
 );

@@ -11,6 +11,7 @@ import {
   Menu,
   X,
   User,
+  Briefcase,
   CheckCheck,
   ExternalLink,
   Heart,
@@ -23,6 +24,8 @@ import {
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useSSE } from "@/hooks/useSSE";
 import { toast } from "sonner";
+import { ViewModeSwitcher, ViewModeSwitcherMobile } from "@/components/ViewModeSwitcher";
+import { useViewMode } from "@/contexts/ViewModeContext";
 
 function NotificationDropdown() {
   const [open, setOpen] = useState(false);
@@ -365,6 +368,7 @@ export function NavHeader() {
 
   const isProvider = user?.role === "provider" || !!myProfile;
   const isAdmin = user?.role === "admin";
+  const { isProviderView, isCustomerView, canSwitch } = useViewMode();
 
   return (
     <header className="border-b bg-white sticky top-0 z-50">
@@ -454,8 +458,11 @@ export function NavHeader() {
                 {/* Notifications Dropdown */}
                 <NotificationDropdown />
 
-                {/* Provider Dashboard */}
-                {isProvider && (
+                {/* View Mode Switcher for providers */}
+                <ViewModeSwitcher />
+
+                {/* Provider Dashboard — show when in provider view */}
+                {isProvider && isProviderView && (
                   <Link href="/provider/dashboard">
                     <Button variant="outline" size="sm" className="text-xs px-2.5">
                       Dashboard
@@ -501,6 +508,10 @@ export function NavHeader() {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="lg:hidden border-t py-4 space-y-2">
+            {/* Mobile View Switcher */}
+            <div className="px-2 pb-2">
+              <ViewModeSwitcherMobile />
+            </div>
             <Link href="/browse" onClick={() => setMobileMenuOpen(false)}>
               <Button variant="ghost" className="w-full justify-start">Browse Services</Button>
             </Link>
@@ -553,9 +564,12 @@ export function NavHeader() {
                     Referral Credits
                   </Button>
                 </Link>
-                {isProvider && (
+                {isProvider && isProviderView && (
                   <Link href="/provider/dashboard" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start">Dashboard</Button>
+                    <Button variant="ghost" className="w-full justify-start">
+                      <Briefcase className="h-4 w-4 mr-2" />
+                      Provider Dashboard
+                    </Button>
                   </Link>
                 )}
                 {isAdmin && (

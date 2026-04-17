@@ -756,3 +756,15 @@
 - [x] Visual progress bar at top of profile page (hides when 100% complete)
 - [x] "Complete Profile" button opens edit mode
 - [x] 6 tests in profile-features.test.ts
+
+## Feature: Provider/Customer View Switcher (Work, Live, Play)
+- [x] Create ViewMode context to track current view (provider vs customer)
+- [x] Add toggle/switcher UI in NavHeader for providers (pill-style toggle with icons)
+- [x] Provider View shows: Dashboard link, provider-specific nav items
+- [x] Customer View shows: Browse Services, Search, customer booking nav items (Dashboard hidden)
+- [x] Persist view mode preference in localStorage
+- [x] Both views always accessible — one account, two perspectives
+- [x] Customers (non-providers) don't see the switcher
+- [x] Mobile version with full-width toggle at top of mobile menu
+- [x] ViewModeProvider wraps App in main.tsx
+- [x] 11 tests passing (role-selection + profile-features)
