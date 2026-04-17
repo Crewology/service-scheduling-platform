@@ -882,3 +882,8 @@
 - [x] Add "Day Rate" label for services 8+ hours (ServiceDetail price section + booking confirmation)
 - [x] Ensure calendar/booking info displays correctly for day-rate services
 - [x] Write 19 Vitest tests for formatDuration, getDurationPricingLabel, and DURATION_PRESETS
+
+## Bug Fix: Day Rate Duration Selection Error
+- [x] Investigate and fix error when selecting day rate (8+ hr) duration in service creation/editing
+- [x] Root cause: empty strings sent for decimal columns (hourlyRate) — MySQL rejects empty string for decimal
+- [x] Fix: convert empty strings to null for numeric fields (basePrice, hourlyRate, depositAmount, depositPercentage) in both service.create and service.update

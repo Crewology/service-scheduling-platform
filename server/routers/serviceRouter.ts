@@ -41,13 +41,13 @@ export const serviceRouter = router({
         description: input.description,
         serviceType: input.serviceType,
         pricingModel: input.pricingModel,
-        basePrice: input.basePrice?.toString(),
-        hourlyRate: input.hourlyRate?.toString(),
+        basePrice: input.basePrice?.toString().trim() || null,
+        hourlyRate: input.hourlyRate?.toString().trim() || null,
         durationMinutes: input.durationMinutes,
         depositRequired: input.depositRequired,
         depositType: input.depositType,
-        depositAmount: input.depositAmount?.toString(),
-        depositPercentage: input.depositPercentage?.toString(),
+        depositAmount: input.depositAmount?.toString().trim() || null,
+        depositPercentage: input.depositPercentage?.toString().trim() || null,
       });
       const providerServices = await db.getServicesByProviderId(provider.id);
       const created = providerServices.find(s => s.name === input.name);
@@ -161,9 +161,21 @@ export const serviceRouter = router({
       if (service.providerId !== provider.id) throw new TRPCError({ code: "FORBIDDEN", message: "Not your service" });
       const { id, ...updateData } = input;
       const cleanData: Record<string, any> = {};
+      const numericStringFields = ["basePrice", "hourlyRate", "depositAmount", "depositPercentage"];
+      const optionalTextFields = ["cancellationPolicy", "specialRequirements", "description"];
       for (const [key, value] of Object.entries(updateData)) {
         if (value !== undefined) {
-          cleanData[key] = ["basePrice", "hourlyRate", "depositAmount", "depositPercentage"].includes(key) ? value.toString() : value;
+          if (numericStringFields.includes(key)) {
+            // Convert empty strings to null for decimal columns
+            const strVal = value?.toString().trim();
+            cleanData[key] = strVal ? strVal : null;
+          } else if (optionalTextFields.includes(key)) {
+            // Convert empty strings to null for optional text columns
+            const strVal = typeof value === "string" ? value.trim() : value;
+            cleanData[key] = strVal || null;
+          } else {
+            cleanData[key] = value;
+          }
         }
       }
       await db.updateService(input.id, cleanData);
