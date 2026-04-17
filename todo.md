@@ -865,3 +865,9 @@
 - [x] Generate a 1200x630 branded OG image with OlogyCrew tagline and 12 category chips
 - [x] Update homepage OG tags to use the branded image with caching
 - [x] All 13 OG tag tests passing
+
+## Bug Fix: Share Dialog Layout Issues
+- [x] Fix text overflow/overrun in Share dialog title and URL (truncated at 28 chars)
+- [x] Fix social media buttons/images overrunning the dialog boundaries (overflow-hidden + flex justify-between)
+- [x] Fix mobile responsiveness — responsive w-10/sm:w-11 buttons, proper padding
+- [x] Ensure QR code tab is properly sized and doesn't overflow (180px centered)

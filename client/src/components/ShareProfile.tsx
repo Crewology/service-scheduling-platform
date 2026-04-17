@@ -38,7 +38,6 @@ export function ShareProfile({
       await navigator.clipboard.writeText(fullUrl);
       toast.success("Link copied to clipboard!");
     } catch {
-      // Fallback for older browsers
       const textArea = document.createElement("textarea");
       textArea.value = fullUrl;
       document.body.appendChild(textArea);
@@ -88,7 +87,7 @@ export function ShareProfile({
       href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
     },
     {
-      name: "X (Twitter)",
+      name: "X",
       icon: (
         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
           <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
@@ -129,28 +128,33 @@ export function ShareProfile({
     },
   ];
 
+  // Truncate title for dialog header
+  const displayTitle = title.length > 28 ? title.slice(0, 28) + "..." : title;
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
           <Button variant={variant} size={size} className="gap-2">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
             </svg>
-            Share
+            {size !== "icon" && <span>Share</span>}
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Share {title}</DialogTitle>
+      <DialogContent className="p-0 gap-0 overflow-hidden">
+        <DialogHeader className="px-5 pt-5 pb-3">
+          <DialogTitle className="text-base font-semibold truncate pr-6">
+            Share {displayTitle}
+          </DialogTitle>
         </DialogHeader>
 
         {/* Tab switcher */}
-        <div className="flex gap-1 p-1 bg-muted rounded-lg">
+        <div className="mx-5 flex gap-1 p-1 bg-muted rounded-lg">
           <button
             onClick={() => setActiveTab("share")}
-            className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+            className={`flex-1 py-1.5 px-2 rounded-md text-sm font-medium transition-colors ${
               activeTab === "share"
                 ? "bg-background text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
@@ -160,7 +164,7 @@ export function ShareProfile({
           </button>
           <button
             onClick={() => setActiveTab("qr")}
-            className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+            className={`flex-1 py-1.5 px-2 rounded-md text-sm font-medium transition-colors ${
               activeTab === "qr"
                 ? "bg-background text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
@@ -170,89 +174,92 @@ export function ShareProfile({
           </button>
         </div>
 
-        {activeTab === "share" ? (
-          <div className="space-y-4">
-            {/* Copy Link */}
-            <div className="flex items-center gap-2">
-              <div className="flex-1 bg-muted rounded-md px-3 py-2 text-sm truncate text-muted-foreground">
-                {fullUrl}
+        <div className="px-5 pb-5 pt-4 overflow-hidden">
+          {activeTab === "share" ? (
+            <div className="space-y-5 overflow-hidden">
+              {/* Copy Link — URL bar + button */}
+              <div className="flex items-center gap-2">
+                <div className="flex-1 min-w-0 bg-muted rounded-md px-3 py-2 text-sm text-muted-foreground">
+                  <span className="block truncate">{fullUrl}</span>
+                </div>
+                <Button onClick={handleCopyLink} size="sm" className="shrink-0 gap-1.5">
+                  <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  Copy
+                </Button>
               </div>
-              <Button onClick={handleCopyLink} size="sm" className="shrink-0">
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-                Copy
-              </Button>
-            </div>
 
-            {/* Social share buttons */}
-            <div className="grid grid-cols-5 gap-3">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.name}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex flex-col items-center gap-1.5 group"
-                  onClick={() => {
-                    toast.success(`Opening ${social.name}...`);
+              {/* Social share — 5 buttons in a row, evenly spaced */}
+              <div className="flex justify-between px-2">
+                {socialLinks.map((social) => (
+                  <a
+                    key={social.name}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-center gap-1.5 group"
+                    onClick={() => {
+                      toast.success(`Opening ${social.name}...`);
+                    }}
+                  >
+                    <div
+                      className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center text-white transition-transform group-hover:scale-110 ${social.color}`}
+                    >
+                      {social.icon}
+                    </div>
+                    <span className="text-[10px] sm:text-[11px] text-muted-foreground group-hover:text-foreground transition-colors">
+                      {social.name}
+                    </span>
+                  </a>
+                ))}
+              </div>
+
+              {/* Native share (mobile) */}
+              {typeof navigator !== "undefined" && "share" in navigator && (
+                <Button
+                  variant="outline"
+                  className="w-full gap-2"
+                  size="sm"
+                  onClick={async () => {
+                    try {
+                      await navigator.share({ title, text: description || title, url: fullUrl });
+                    } catch {
+                      // User cancelled or not supported
+                    }
                   }}
                 >
-                  <div
-                    className={`w-12 h-12 rounded-full flex items-center justify-center text-white transition-transform group-hover:scale-110 ${social.color}`}
-                  >
-                    {social.icon}
-                  </div>
-                  <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors">
-                    {social.name}
-                  </span>
-                </a>
-              ))}
+                  <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                  More sharing options...
+                </Button>
+              )}
             </div>
-
-            {/* Native share (mobile) */}
-            {typeof navigator !== "undefined" && "share" in navigator && (
-              <Button
-                variant="outline"
-                className="w-full gap-2"
-                onClick={async () => {
-                  try {
-                    await navigator.share({ title, text: description || title, url: fullUrl });
-                  } catch {
-                    // User cancelled or not supported
-                  }
-                }}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+          ) : (
+            <div className="flex flex-col items-center gap-3 py-2">
+              <div ref={qrRef} className="bg-white p-3 rounded-xl inline-flex">
+                <QRCodeSVG
+                  value={fullUrl}
+                  size={180}
+                  level="H"
+                  includeMargin={false}
+                  bgColor="#ffffff"
+                  fgColor="#000000"
+                />
+              </div>
+              <p className="text-xs sm:text-sm text-muted-foreground text-center">
+                Scan this QR code to visit the profile
+              </p>
+              <Button onClick={handleDownloadQR} variant="outline" size="sm" className="gap-2">
+                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                More sharing options...
+                Download QR Code
               </Button>
-            )}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center gap-4 py-2">
-            <div ref={qrRef} className="bg-white p-4 rounded-xl">
-              <QRCodeSVG
-                value={fullUrl}
-                size={200}
-                level="H"
-                includeMargin={false}
-                bgColor="#ffffff"
-                fgColor="#000000"
-              />
             </div>
-            <p className="text-sm text-muted-foreground text-center">
-              Scan this QR code to visit the profile
-            </p>
-            <Button onClick={handleDownloadQR} variant="outline" className="gap-2">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              Download QR Code
-            </Button>
-          </div>
-        )}
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
