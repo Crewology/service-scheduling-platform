@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,10 +7,106 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { User, Mail, Phone, Shield, Camera, Loader2 } from "lucide-react";
+import { User, Mail, Phone, Shield, Camera, Loader2, CheckCircle2, Circle, ArrowRight, Briefcase } from "lucide-react";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { getLoginUrl } from "@/const";
 import { formatDate } from "@/lib/dateUtils";
+import { useLocation } from "wouter";
+
+// Profile completion fields definition
+interface CompletionField {
+  key: string;
+  label: string;
+  check: (user: any) => boolean;
+  hint: string;
+}
+
+const COMPLETION_FIELDS: CompletionField[] = [
+  { key: "name", label: "Full name", check: (u) => !!(u?.firstName && u?.lastName), hint: "Add your first and last name" },
+  { key: "email", label: "Email address", check: (u) => !!u?.email, hint: "Add your email address" },
+  { key: "phone", label: "Phone number", check: (u) => !!u?.phone, hint: "Add your phone number" },
+  { key: "photo", label: "Profile photo", check: (u) => !!u?.profilePhotoUrl, hint: "Upload a profile photo" },
+];
+
+function ProfileCompletionCard({ user, onEditClick }: { user: any; onEditClick: () => void }) {
+  const completedCount = COMPLETION_FIELDS.filter((f) => f.check(user)).length;
+  const totalCount = COMPLETION_FIELDS.length;
+  const percentage = Math.round((completedCount / totalCount) * 100);
+  const isComplete = completedCount === totalCount;
+
+  if (isComplete) return null;
+
+  return (
+    <Card className="border-primary/20 bg-primary/5">
+      <CardContent className="pt-6">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-semibold text-sm">Complete Your Profile</h3>
+          <span className="text-sm font-medium text-primary">{percentage}%</span>
+        </div>
+        {/* Progress bar */}
+        <div className="w-full h-2 bg-muted rounded-full mb-4 overflow-hidden">
+          <div
+            className="h-full bg-primary rounded-full transition-all duration-500"
+            style={{ width: `${percentage}%` }}
+          />
+        </div>
+        {/* Checklist */}
+        <div className="space-y-2">
+          {COMPLETION_FIELDS.map((field) => {
+            const done = field.check(user);
+            return (
+              <div key={field.key} className="flex items-center gap-2 text-sm">
+                {done ? (
+                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                ) : (
+                  <Circle className="h-4 w-4 text-muted-foreground shrink-0" />
+                )}
+                <span className={done ? "text-muted-foreground line-through" : ""}>{field.label}</span>
+                {!done && (
+                  <span className="text-xs text-muted-foreground ml-auto hidden sm:inline">— {field.hint}</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        {completedCount < totalCount && (
+          <Button size="sm" className="mt-4 w-full sm:w-auto" onClick={onEditClick}>
+            Complete Profile
+          </Button>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function BecomeProviderCard() {
+  const [, navigate] = useLocation();
+
+  return (
+    <Card className="border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
+      <CardContent className="pt-6">
+        <div className="flex items-start gap-4">
+          <div className="h-12 w-12 rounded-xl bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shrink-0">
+            <Briefcase className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="font-semibold text-base mb-1">Become a Service Provider</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Start offering your services on OlogyCrew. Set up your provider profile, list your services, and begin accepting bookings from customers.
+            </p>
+            <Button
+              onClick={() => navigate("/provider/onboarding")}
+              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Get Started
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function UserProfile() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -75,6 +171,8 @@ export default function UserProfile() {
     e.target.value = "";
   };
 
+  const isCustomer = user?.role === "customer";
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -92,9 +190,13 @@ export default function UserProfile() {
     <div className="min-h-screen bg-background">
       <NavHeader />
 
-      <div className="container max-w-2xl py-8">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">My Profile</h1>
+      <div className="container max-w-2xl py-8 space-y-6">
+        <h1 className="text-2xl sm:text-3xl font-bold">My Profile</h1>
 
+        {/* Profile Completion Indicator */}
+        <ProfileCompletionCard user={user} onEditClick={() => setEditing(true)} />
+
+        {/* Main Profile Card */}
         <Card>
           <CardHeader className="space-y-4">
             {/* Profile info row */}
@@ -229,6 +331,9 @@ export default function UserProfile() {
             )}
           </CardContent>
         </Card>
+
+        {/* Become a Provider CTA — only for customers */}
+        {isCustomer && <BecomeProviderCard />}
       </div>
     </div>
   );

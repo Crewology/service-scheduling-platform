@@ -743,3 +743,16 @@
 - [x] Form grid stacks to single column on mobile (grid-cols-1 sm:grid-cols-2)
 - [x] Changed "Hover over photo" to "Tap photo" for mobile-friendly text
 - [x] Added active:opacity-100 to camera overlay for touch devices
+
+## Feature: Switch to Provider Option on Profile Page
+- [x] Add "Become a Provider" card/section on profile page for customers
+- [x] Clicking it navigates to /provider/onboarding
+- [x] Only show for users with role='customer' (hide for existing providers)
+
+## Feature: Profile Completion Indicator
+- [x] Add progress bar showing profile completion percentage
+- [x] Track fields: name (first+last), email, phone, profile photo
+- [x] Show checklist of incomplete fields with actionable hints
+- [x] Visual progress bar at top of profile page (hides when 100% complete)
+- [x] "Complete Profile" button opens edit mode
+- [x] 6 tests in profile-features.test.ts
