@@ -43,17 +43,19 @@ export function ShareProfile({
   const encodedDesc = encodeURIComponent(description || title);
 
   const handleCopyLink = async () => {
+    // Copy the social URL (with OG tags) so pasting in Messenger/social apps shows the right preview
+    const copyTarget = socialUrl;
     try {
-      await navigator.clipboard.writeText(fullUrl);
-      toast.success("Link copied to clipboard!");
+      await navigator.clipboard.writeText(copyTarget);
+      toast.success("Link copied! Paste it anywhere to share with a rich preview.");
     } catch {
       const textArea = document.createElement("textarea");
-      textArea.value = fullUrl;
+      textArea.value = copyTarget;
       document.body.appendChild(textArea);
       textArea.select();
       document.execCommand("copy");
       document.body.removeChild(textArea);
-      toast.success("Link copied to clipboard!");
+      toast.success("Link copied! Paste it anywhere to share with a rich preview.");
     }
   };
 
@@ -189,7 +191,7 @@ export function ShareProfile({
               {/* Copy Link — URL bar + button */}
               <div className="flex items-center gap-2">
                 <div className="flex-1 min-w-0 bg-muted rounded-md px-3 py-2 text-sm text-muted-foreground">
-                  <span className="block truncate">{fullUrl}</span>
+                  <span className="block truncate">{socialUrl}</span>
                 </div>
                 <Button onClick={handleCopyLink} size="sm" className="shrink-0 gap-1.5">
                   <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">

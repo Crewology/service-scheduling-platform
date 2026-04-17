@@ -310,11 +310,15 @@ function PublicProfileSection({ provider }: { provider: any }) {
   const profileUrl = provider.profileSlug
     ? `${window.location.origin}/p/${provider.profileSlug}`
     : null;
+  // Use the /api/og/ URL for sharing — this serves proper OG meta tags for social media previews
+  const shareableUrl = provider.profileSlug
+    ? `${window.location.origin}/api/og/provider/${provider.profileSlug}`
+    : null;
 
   const copyUrl = () => {
-    if (profileUrl) {
-      navigator.clipboard.writeText(profileUrl);
-      toast.success("Profile link copied to clipboard!");
+    if (shareableUrl) {
+      navigator.clipboard.writeText(shareableUrl);
+      toast.success("Profile link copied! This link shows your profile preview on social media.");
     }
   };
 
@@ -388,22 +392,30 @@ function PublicProfileSection({ provider }: { provider: any }) {
           </div>
 
           {editingSlug ? (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">{window.location.origin}/p/</span>
+            <div className="space-y-3">
+              <div className="text-sm text-muted-foreground">{window.location.origin}/p/</div>
               <Input
                 value={slugInput}
                 onChange={(e) => setSlugInput(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
                 placeholder="your-custom-url"
-                className="max-w-xs"
+                className="w-full text-base"
+                autoFocus
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
+                style={{ fontSize: '16px' }}
               />
-              <Button
-                size="sm"
-                onClick={() => updateSlug.mutate({ slug: slugInput })}
-                disabled={updateSlug.isPending || slugInput.length < 3}
-              >
-                {updateSlug.isPending ? "Saving..." : "Save"}
-              </Button>
-              <Button size="sm" variant="ghost" onClick={() => setEditingSlug(false)}>Cancel</Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => updateSlug.mutate({ slug: slugInput })}
+                  disabled={updateSlug.isPending || slugInput.length < 3}
+                >
+                  {updateSlug.isPending ? "Saving..." : "Save"}
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setEditingSlug(false)}>Cancel</Button>
+              </div>
             </div>
           ) : (
             <Button variant="ghost" size="sm" onClick={() => { setSlugInput(provider.profileSlug || ""); setEditingSlug(true); }}>

@@ -898,3 +898,15 @@
 - [x] Canonical URL in og:url points to the SPA page, not the /api/og/ route
 - [x] Wrote 9 vitest tests for OG page route (all passing)
 - [x] Verified correct OG tags served for Facebook, LinkedIn, and Twitter/X bots on dev server
+## Bug Fix: Twitter/X Card Preview Not Showing
+- [x] Confirmed: Twitter/X just takes longer to crawl new URLs — OG tags were correct all along
+
+## Task: Update Provider Slug & Subscription Tier
+- [x] Upgraded provider subscription from free to premium (active) for testing gated features
+- [x] Changed provider slug from "test-service-provider-1" to "chisolm-audio"
+
+## Bug Fix: Mobile Share & Slug Editor Issues
+- [x] Copy Link on My Page tab now copies /api/og/ URL for proper social media previews in Messenger
+- [x] ShareProfile Copy Link button also copies /api/og/ URL instead of SPA URL
+- [x] Slug editor input field fixed for mobile iPhone — full-width, 16px font (prevents iOS zoom), stacked layout
+- [x] Native share ("More sharing options") also uses /api/og/ URL
