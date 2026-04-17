@@ -810,3 +810,7 @@
 - [x] Show provider-level results section above service results
 - [x] Show provider/business name on each service result card
 - [x] Write tests for provider name search (10 tests passing)
+
+## Bug Fix: Search Input Loses Focus After Each Keystroke
+- [x] Diagnose root cause of search input losing focus on every keypress
+- [x] Fix the focus loss issue so users can type continuously

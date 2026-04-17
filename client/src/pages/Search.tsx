@@ -11,6 +11,134 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { Search as SearchIcon, MapPin, DollarSign, Star, X, SlidersHorizontal, Clock, Building2, ArrowRight, BadgeCheck } from "lucide-react";
 import { NavHeader } from "@/components/shared/NavHeader";
 
+/**
+ * Inline filter JSX block — extracted as a helper that returns JSX elements
+ * (NOT a component) so React never unmounts/remounts the inputs on re-render.
+ */
+function renderFilters(opts: {
+  keyword: string;
+  setKeyword: (v: string) => void;
+  categoryId: number | undefined;
+  setCategoryId: (v: number | undefined) => void;
+  priceRange: number[];
+  setPriceRange: (v: number[]) => void;
+  location: string;
+  setLocation: (v: string) => void;
+  sortBy: string;
+  setSortBy: (v: "price" | "rating" | "distance") => void;
+  categories: { id: number; name: string }[] | undefined;
+  hasActiveFilters: boolean;
+  clearAllFilters: () => void;
+}) {
+  return (
+    <div className="space-y-6">
+      {/* Keyword Search */}
+      <div>
+        <label className="text-sm font-medium mb-2 block">Search</label>
+        <div className="relative">
+          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Service or provider name..."
+            value={opts.keyword}
+            onChange={(e) => opts.setKeyword(e.target.value)}
+            className="pl-10 pr-8"
+          />
+          {opts.keyword && (
+            <button
+              onClick={() => opts.setKeyword("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-muted transition-colors"
+              aria-label="Clear keyword"
+            >
+              <X className="h-3.5 w-3.5 text-muted-foreground" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Category Filter */}
+      <div>
+        <label className="text-sm font-medium mb-2 block">Category</label>
+        <Select
+          value={opts.categoryId?.toString() || "all"}
+          onValueChange={(value) => opts.setCategoryId(value === "all" ? undefined : parseInt(value))}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="All Categories" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            {opts.categories?.map((cat) => (
+              <SelectItem key={cat.id} value={cat.id.toString()}>
+                {cat.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Price Range */}
+      <div>
+        <label className="text-sm font-medium mb-2 block">
+          Price Range: ${opts.priceRange[0]} - ${opts.priceRange[1]}
+        </label>
+        <Slider
+          min={0}
+          max={500}
+          step={10}
+          value={opts.priceRange}
+          onValueChange={opts.setPriceRange}
+          className="mt-4"
+        />
+      </div>
+
+      {/* Location Filter */}
+      <div>
+        <label className="text-sm font-medium mb-2 block">Location</label>
+        <div className="relative">
+          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="City, state, or zip"
+            value={opts.location}
+            onChange={(e) => opts.setLocation(e.target.value)}
+            className="pl-10 pr-8"
+          />
+          {opts.location && (
+            <button
+              onClick={() => opts.setLocation("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-muted transition-colors"
+              aria-label="Clear location"
+            >
+              <X className="h-3.5 w-3.5 text-muted-foreground" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Sort By */}
+      <div>
+        <label className="text-sm font-medium mb-2 block">Sort By</label>
+        <Select value={opts.sortBy} onValueChange={(value: any) => opts.setSortBy(value)}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="rating">Highest Rated</SelectItem>
+            <SelectItem value="price">Lowest Price</SelectItem>
+            <SelectItem value="distance">Nearest</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {opts.hasActiveFilters && (
+        <Button variant="outline" onClick={opts.clearAllFilters} className="w-full gap-2">
+          <X className="h-4 w-4" />
+          Clear All Filters
+        </Button>
+      )}
+    </div>
+  );
+}
+
 export default function Search() {
   // Read ?q= from URL (sent by homepage search bar)
   const searchString = useSearch();
@@ -63,113 +191,22 @@ export default function Search() {
     setSortBy("rating");
   };
 
-  const FilterContent = () => (
-    <div className="space-y-6">
-      {/* Keyword Search */}
-      <div>
-        <label className="text-sm font-medium mb-2 block">Search</label>
-        <div className="relative">
-          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Service or provider name..."
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            className="pl-10 pr-8"
-          />
-          {keyword && (
-            <button
-              onClick={() => setKeyword("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-muted transition-colors"
-              aria-label="Clear keyword"
-            >
-              <X className="h-3.5 w-3.5 text-muted-foreground" />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Category Filter */}
-      <div>
-        <label className="text-sm font-medium mb-2 block">Category</label>
-        <Select
-          value={categoryId?.toString() || "all"}
-          onValueChange={(value) => setCategoryId(value === "all" ? undefined : parseInt(value))}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="All Categories" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            {categories?.map((cat) => (
-              <SelectItem key={cat.id} value={cat.id.toString()}>
-                {cat.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Price Range */}
-      <div>
-        <label className="text-sm font-medium mb-2 block">
-          Price Range: ${priceRange[0]} - ${priceRange[1]}
-        </label>
-        <Slider
-          min={0}
-          max={500}
-          step={10}
-          value={priceRange}
-          onValueChange={setPriceRange}
-          className="mt-4"
-        />
-      </div>
-
-      {/* Location Filter */}
-      <div>
-        <label className="text-sm font-medium mb-2 block">Location</label>
-        <div className="relative">
-          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="City, state, or zip"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            className="pl-10 pr-8"
-          />
-          {location && (
-            <button
-              onClick={() => setLocation("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-muted transition-colors"
-              aria-label="Clear location"
-            >
-              <X className="h-3.5 w-3.5 text-muted-foreground" />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Sort By */}
-      <div>
-        <label className="text-sm font-medium mb-2 block">Sort By</label>
-        <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="rating">Highest Rated</SelectItem>
-            <SelectItem value="price">Lowest Price</SelectItem>
-            <SelectItem value="distance">Nearest</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {hasActiveFilters && (
-        <Button variant="outline" onClick={clearAllFilters} className="w-full gap-2">
-          <X className="h-4 w-4" />
-          Clear All Filters
-        </Button>
-      )}
-    </div>
-  );
+  // Shared props for the filter block (rendered in both desktop sidebar and mobile drawer)
+  const filterProps = {
+    keyword,
+    setKeyword,
+    categoryId,
+    setCategoryId,
+    priceRange,
+    setPriceRange,
+    location,
+    setLocation,
+    sortBy,
+    setSortBy,
+    categories: categories as { id: number; name: string }[] | undefined,
+    hasActiveFilters: !!hasActiveFilters,
+    clearAllFilters,
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -216,7 +253,7 @@ export default function Search() {
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <FilterContent />
+            {renderFilters(filterProps)}
             <Button
               className="w-full mt-4"
               onClick={() => setShowMobileFilters(false)}
@@ -237,7 +274,7 @@ export default function Search() {
                 <CardDescription>Refine your search</CardDescription>
               </CardHeader>
               <CardContent>
-                <FilterContent />
+                {renderFilters(filterProps)}
               </CardContent>
             </Card>
           </div>
