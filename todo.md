@@ -768,3 +768,18 @@
 - [x] Mobile version with full-width toggle at top of mobile menu
 - [x] ViewModeProvider wraps App in main.tsx
 - [x] 11 tests passing (role-selection + profile-features)
+
+## Bug: Book Button Offset on Mobile
+- [x] Book button on service cards is clipped/cut off on right edge on mobile — fixed with flex-col sm:flex-row stacking and w-full sm:w-auto
+
+## Bug: No Clear (X) Button in Search Field
+- [x] Added X clear buttons on keyword and location inputs, plus "Clear All Filters" button
+
+## Feature: Auto-Switch View Mode on Route Navigation
+- [x] Auto-switch to Provider view when navigating to /provider/* routes
+- [x] Auto-switch to Customer view when browsing/booking (/search, /browse, /service/*, /booking/*)
+
+## Feature: Bookings Split by View Mode
+- [x] Added "Bookings I Made" vs "Bookings I Received" pill toggle on MyBookings page
+- [x] Customer bookings (listMine) vs provider bookings (listForProvider)
+- [x] Only visible for providers (canSwitch check)

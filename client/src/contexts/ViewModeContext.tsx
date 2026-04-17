@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { useLocation } from "wouter";
 
 export type ViewMode = "customer" | "provider";
 
@@ -34,6 +35,8 @@ export function ViewModeProvider({ children }: { children: ReactNode }) {
     return "customer"; // Default, will be updated when user loads
   });
 
+  const [location] = useLocation();
+
   // When user loads/changes, set appropriate default
   useEffect(() => {
     if (!user) return;
@@ -50,6 +53,27 @@ export function ViewModeProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem(STORAGE_KEY);
     }
   }, [user, isProvider]);
+
+  // Auto-switch view mode based on route navigation
+  useEffect(() => {
+    if (!isProvider) return;
+    
+    // Provider routes → switch to provider view
+    const providerRoutes = ["/provider/dashboard", "/provider/", "/booking-detail/"];
+    const isProviderRoute = providerRoutes.some(route => location.startsWith(route));
+    
+    // Customer routes → switch to customer view
+    const customerRoutes = ["/browse", "/search", "/category/", "/service/", "/book/", "/bookings", "/saved"];
+    const isCustomerRoute = customerRoutes.some(route => location.startsWith(route));
+    
+    if (isProviderRoute && viewMode !== "provider") {
+      setViewModeState("provider");
+      localStorage.setItem(STORAGE_KEY, "provider");
+    } else if (isCustomerRoute && viewMode !== "customer") {
+      setViewModeState("customer");
+      localStorage.setItem(STORAGE_KEY, "customer");
+    }
+  }, [location, isProvider]);
 
   const setViewMode = useCallback((mode: ViewMode) => {
     setViewModeState(mode);

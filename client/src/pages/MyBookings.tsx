@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { trpc } from "@/lib/trpc";
-import { Calendar, Clock, MapPin, DollarSign, MessageSquare, XCircle, AlertTriangle, Loader2, Download, FileText, FileSpreadsheet, WifiOff, RefreshCw } from "lucide-react";
+import { Calendar, Clock, MapPin, DollarSign, MessageSquare, XCircle, AlertTriangle, Loader2, Download, FileText, FileSpreadsheet, WifiOff, RefreshCw, Briefcase, ShoppingBag } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
@@ -14,19 +14,28 @@ import { formatTimeForDisplay } from "@shared/timeSlots";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { toast } from "sonner";
 import { useOfflineBookings } from "@/hooks/useOfflineBookings";
+import { useViewMode } from "@/contexts/ViewModeContext";
 
 export default function MyBookings() {
   const { user, isAuthenticated, loading } = useAuth();
   const [, setLocation] = useLocation();
+  const { canSwitch, isProviderView } = useViewMode();
+  const [bookingView, setBookingView] = useState<"customer" | "provider">(isProviderView ? "provider" : "customer");
 
+  // Customer bookings (bookings I made)
   const { data: onlineBookings, isLoading, refetch } = trpc.booking.listMine.useQuery(undefined, {
     enabled: isAuthenticated,
   });
 
+  // Provider bookings (bookings I received) — only fetch for providers
+  const { data: receivedBookings, isLoading: isLoadingReceived, refetch: refetchReceived } = trpc.booking.listForProvider.useQuery(undefined, {
+    enabled: isAuthenticated && canSwitch,
+  });
+
   // Wire in offline bookings support
   const { bookings, isOffline, isUsingCache, cachedAt, cacheAge } = useOfflineBookings(
-    onlineBookings,
-    isLoading
+    bookingView === "customer" ? onlineBookings : receivedBookings,
+    bookingView === "customer" ? isLoading : isLoadingReceived
   );
 
   if (loading) {
@@ -89,7 +98,7 @@ export default function MyBookings() {
                   size="sm"
                   className="shrink-0 border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-300 dark:hover:bg-amber-900/30"
                   onClick={() => {
-                    refetch();
+                    bookingView === "customer" ? refetch() : refetchReceived();
                     toast.info("Refreshing bookings...");
                   }}
                 >
@@ -101,11 +110,43 @@ export default function MyBookings() {
           </div>
         )}
 
+        {/* Provider/Customer booking view toggle */}
+        {canSwitch && (
+          <div className="mb-6 flex items-center gap-1 p-1 bg-muted rounded-lg w-fit">
+            <button
+              onClick={() => setBookingView("customer")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                bookingView === "customer"
+                  ? "bg-white shadow-sm text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <ShoppingBag className="h-4 w-4" />
+              Bookings I Made
+            </button>
+            <button
+              onClick={() => setBookingView("provider")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                bookingView === "provider"
+                  ? "bg-white shadow-sm text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Briefcase className="h-4 w-4" />
+              Bookings I Received
+            </button>
+          </div>
+        )}
+
         <div className="mb-8 flex flex-col sm:flex-row items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2">My Bookings</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">
+              {bookingView === "provider" && canSwitch ? "Bookings I Received" : "My Bookings"}
+            </h1>
             <p className="text-muted-foreground">
-              Manage and track all your service bookings
+              {bookingView === "provider" && canSwitch
+                ? "Manage bookings from your customers"
+                : "Manage and track all your service bookings"}
             </p>
           </div>
           <DropdownMenu>
