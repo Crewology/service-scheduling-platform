@@ -1,5 +1,6 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
+import { formatDuration } from "../../../shared/duration";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -169,7 +170,7 @@ export default function MyQuotes() {
                         </div>
                         {quote.quotedDurationMinutes && (
                           <p className="text-sm text-blue-700 dark:text-blue-400">
-                            Estimated duration: {quote.quotedDurationMinutes} minutes
+                            Estimated duration: {formatDuration(quote.quotedDurationMinutes)}
                           </p>
                         )}
                         {quote.providerNotes && (

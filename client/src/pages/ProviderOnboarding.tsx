@@ -2,6 +2,7 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useProtectedPage } from "@/hooks/useProtectedPage";
 import { trpc } from "@/lib/trpc";
+import { formatDuration, DURATION_PRESETS } from "../../../shared/duration";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -160,15 +161,9 @@ function AddServiceDialog({
               <Select value={duration.toString()} onValueChange={(v) => setDuration(parseInt(v))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="15">15 min</SelectItem>
-                  <SelectItem value="30">30 min</SelectItem>
-                  <SelectItem value="45">45 min</SelectItem>
-                  <SelectItem value="60">1 hour</SelectItem>
-                  <SelectItem value="90">1.5 hours</SelectItem>
-                  <SelectItem value="120">2 hours</SelectItem>
-                  <SelectItem value="180">3 hours</SelectItem>
-                  <SelectItem value="240">4 hours</SelectItem>
-                  <SelectItem value="480">Full Day</SelectItem>
+                  {DURATION_PRESETS.map(p => (
+                    <SelectItem key={p.value} value={p.value.toString()}>{p.label}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -1209,7 +1204,7 @@ export default function ProviderOnboarding() {
                                 <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
                                   {service.durationMinutes && (
                                     <span className="flex items-center gap-1">
-                                      <Clock className="h-3 w-3" /> {service.durationMinutes} min
+                                      <Clock className="h-3 w-3" /> {formatDuration(service.durationMinutes)}
                                     </span>
                                   )}
                                   <span className="capitalize">{service.serviceType.replace("_", " ")}</span>

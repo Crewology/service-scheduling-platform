@@ -2,6 +2,7 @@ import { useState, useMemo, useRef } from "react";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { useParams, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { formatDuration } from "../../../shared/duration";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -452,7 +453,7 @@ export default function PublicProviderProfile() {
                               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                 {service.durationMinutes && (
                                   <span className="flex items-center gap-1">
-                                    <Clock className="w-3 h-3" /> {service.durationMinutes} min
+                                    <Clock className="w-3 h-3" /> {formatDuration(service.durationMinutes)}
                                   </span>
                                 )}
                                 <Badge variant="outline" className="text-xs capitalize">

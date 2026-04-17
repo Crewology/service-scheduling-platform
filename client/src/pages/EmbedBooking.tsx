@@ -1,4 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
+import { formatDuration } from "../../../shared/duration";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -255,7 +256,7 @@ export default function EmbedBooking() {
                     <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-500">
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
-                        {svc.durationMinutes} min
+                        {formatDuration(svc.durationMinutes)}
                       </span>
                     </div>
                   </div>
@@ -281,7 +282,7 @@ export default function EmbedBooking() {
             <div className="text-center">
               <h3 className="text-base font-semibold">{service.name}</h3>
               <p className="text-xs text-gray-500 mt-0.5">
-                {service.durationMinutes} min &middot; {formatPrice(service.basePrice || service.hourlyRate)}
+                {formatDuration(service.durationMinutes)} &middot; {formatPrice(service.basePrice || service.hourlyRate)}
               </p>
             </div>
           )}
@@ -467,7 +468,7 @@ export default function EmbedBooking() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Duration</span>
-                <span className="font-medium">{service.durationMinutes} min</span>
+                <span className="font-medium">{formatDuration(service.durationMinutes)}</span>
               </div>
               <div className="border-t pt-2 mt-2 flex justify-between text-sm font-semibold">
                 <span>Total</span>

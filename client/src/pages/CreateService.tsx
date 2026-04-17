@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc";
+import { DURATION_PRESETS } from "../../../shared/duration";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
@@ -191,16 +192,15 @@ export default function CreateService() {
               </div>
 
               <div>
-                <Label htmlFor="duration">Duration (minutes) *</Label>
-                <Input
-                  id="duration"
-                  type="number"
-                  value={formData.durationMinutes}
-                  onChange={(e) => setFormData({ ...formData, durationMinutes: e.target.value })}
-                  min="15"
-                  step="15"
-                  required
-                />
+                <Label htmlFor="duration">Duration *</Label>
+                <Select value={formData.durationMinutes} onValueChange={(v) => setFormData({ ...formData, durationMinutes: v })}>
+                  <SelectTrigger id="duration"><SelectValue placeholder="Select duration" /></SelectTrigger>
+                  <SelectContent>
+                    {DURATION_PRESETS.map(p => (
+                      <SelectItem key={p.value} value={p.value.toString()}>{p.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>

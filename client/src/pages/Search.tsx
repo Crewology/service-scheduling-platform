@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Link, useSearch } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { formatDuration } from "../../../shared/duration";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -414,7 +415,7 @@ export default function Search() {
                                   {service.durationMinutes && (
                                     <div className="flex items-center gap-1">
                                       <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-                                      <span>{service.durationMinutes} min</span>
+                                      <span>{formatDuration(service.durationMinutes)}</span>
                                     </div>
                                   )}
 

@@ -61,6 +61,7 @@ import { getLoginUrl } from "@/const";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { ShareProfile } from "@/components/ShareProfile";
 import { formatCurrency } from "@/lib/dateUtils";
+import { formatDuration, DURATION_PRESETS } from "../../../shared/duration";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -1237,7 +1238,7 @@ export default function ProviderDashboard() {
                         </div>
                         <div>
                           <p className="text-sm font-medium mb-1">{booking.bookingType === "multi_day" ? "Duration / Day" : booking.bookingType === "recurring" ? "Duration / Session" : "Duration"}</p>
-                          <p className="text-sm text-muted-foreground">{booking.durationMinutes} minutes</p>
+                          <p className="text-sm text-muted-foreground">{formatDuration(booking.durationMinutes)}</p>
                         </div>
                         <div>
                           <p className="text-sm font-medium mb-1">Total Amount</p>
@@ -1426,7 +1427,7 @@ export default function ProviderDashboard() {
                             </div>
                             {quote.quotedDurationMinutes && (
                               <p className="text-xs text-blue-700 dark:text-blue-400 mt-1">
-                                Est. duration: {quote.quotedDurationMinutes} min
+                                Est. duration: {formatDuration(quote.quotedDurationMinutes)}
                               </p>
                             )}
                             {quote.providerNotes && (
@@ -1546,7 +1547,7 @@ export default function ProviderDashboard() {
                               </div>
                               <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
                                 <span className="capitalize">{service.serviceType.replace('_', ' ')}</span>
-                                {service.durationMinutes && <span>· {service.durationMinutes} min</span>}
+                                {service.durationMinutes && <span>· {formatDuration(service.durationMinutes)}</span>}
                               </div>
                               <div className="flex gap-1 mt-2 pt-2 border-t">
                                 <Button size="sm" variant="ghost" className="h-7 text-xs flex-1" onClick={() => openEditService(service)}>
@@ -2139,8 +2140,16 @@ export default function ProviderDashboard() {
               </div>
             </div>
             <div>
-              <Label>Duration (minutes)</Label>
-              <Input type="number" value={serviceForm.durationMinutes || 60} onChange={e => setServiceForm({ ...serviceForm, durationMinutes: parseInt(e.target.value) || 60 })} />
+              <Label>Duration</Label>
+              <select
+                className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                value={serviceForm.durationMinutes || 60}
+                onChange={e => setServiceForm({ ...serviceForm, durationMinutes: parseInt(e.target.value) || 60 })}
+              >
+                {DURATION_PRESETS.map(p => (
+                  <option key={p.value} value={p.value}>{p.label}</option>
+                ))}
+              </select>
             </div>
             <div>
               <Label>Cancellation Policy</Label>
@@ -2565,16 +2574,18 @@ export default function ProviderDashboard() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="quote-duration">Estimated Duration (minutes) *</Label>
-              <Input
+              <Label htmlFor="quote-duration">Estimated Duration *</Label>
+              <select
                 id="quote-duration"
-                type="number"
-                min="15"
-                step="15"
-                placeholder="e.g., 60"
+                className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
                 value={quoteDuration}
                 onChange={(e) => setQuoteDuration(e.target.value)}
-              />
+              >
+                <option value="">Select duration...</option>
+                {DURATION_PRESETS.map(p => (
+                  <option key={p.value} value={p.value}>{p.label}</option>
+                ))}
+              </select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="quote-notes">Notes for Customer</Label>

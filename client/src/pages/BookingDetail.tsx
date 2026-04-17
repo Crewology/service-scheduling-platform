@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useParams, useLocation, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { formatDuration } from "../../../shared/duration";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -298,7 +299,7 @@ export default function BookingDetail() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Duration</p>
-                    <p className="font-medium">{booking.durationMinutes} minutes</p>
+                    <p className="font-medium">{formatDuration(booking.durationMinutes)}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Location Type</p>

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { formatDuration } from "../../../shared/duration";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -373,7 +374,7 @@ export default function CategoryDetail() {
                               </Badge>
                               {service.durationMinutes && (
                                 <span className="flex items-center gap-1">
-                                  <Clock className="w-3 h-3" /> {service.durationMinutes} min
+                                  <Clock className="w-3 h-3" /> {formatDuration(service.durationMinutes)}
                                 </span>
                               )}
                             </div>

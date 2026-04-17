@@ -874,3 +874,11 @@
 
 ## Bug Fix: Browse & Book Button on Provider Profile
 - [x] Fix "Browse & Book" button to smooth-scroll to provider's services section instead of general browse page
+
+## Feature: Smart Duration Display & Day Rate Support
+- [x] Create shared formatDuration utility (min → "45 min", "2 hrs", "Full Day (10 hrs)")
+- [x] Update all duration displays across the platform (10 files: CategoryDetail, EmbedBooking, MyQuotes, ProviderDashboard, ProviderOnboarding, PublicProviderProfile, Search, ServiceDetail, CreateService, BookingDetail)
+- [x] Update service creation/edit forms to use DURATION_PRESETS dropdown (CreateService, ProviderDashboard edit, ProviderOnboarding, quote response)
+- [x] Add "Day Rate" label for services 8+ hours (ServiceDetail price section + booking confirmation)
+- [x] Ensure calendar/booking info displays correctly for day-rate services
+- [x] Write 19 Vitest tests for formatDuration, getDurationPricingLabel, and DURATION_PRESETS

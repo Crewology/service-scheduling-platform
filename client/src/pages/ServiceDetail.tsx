@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { trpc } from "@/lib/trpc";
+import { formatDuration, getDurationPricingLabel } from "../../../shared/duration";
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, useParams, Link } from "wouter";
 import { toast } from "sonner";
@@ -626,7 +627,7 @@ export default function ServiceDetail() {
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5">
                     <DollarSign className="h-5 w-5 text-primary" />
                     <div>
-                      <p className="text-xs text-muted-foreground">Price</p>
+                      <p className="text-xs text-muted-foreground">{getDurationPricingLabel(service.durationMinutes) || "Price"}</p>
                       <p className="font-semibold">{getPrice()}</p>
                     </div>
                   </div>
@@ -634,7 +635,7 @@ export default function ServiceDetail() {
                     <Clock className="h-5 w-5 text-primary" />
                     <div>
                       <p className="text-xs text-muted-foreground">Duration</p>
-                      <p className="font-semibold">{service.durationMinutes} min</p>
+                      <p className="font-semibold">{formatDuration(service.durationMinutes)}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5">
@@ -1286,7 +1287,7 @@ export default function ServiceDetail() {
                             <div>
                               <p className="text-muted-foreground text-xs">Duration</p>
                               <p className="font-medium">
-                                {service.durationMinutes} min
+                                {formatDuration(service.durationMinutes)}
                               </p>
                             </div>
                             <div>
@@ -1470,7 +1471,7 @@ export default function ServiceDetail() {
                       {/* Pricing */}
                       <div className="border rounded-lg p-4 space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span>{bookingType === "multi_day" ? `Price per Day` : bookingType === "recurring" ? `Price per Session` : `Service Price`}</span>
+                          <span>{bookingType === "multi_day" ? `Price per Day` : bookingType === "recurring" ? `Price per Session` : getDurationPricingLabel(service.durationMinutes) === "Day Rate" ? "Day Rate" : `Service Price`}</span>
                           <span className="font-medium">{getPrice()}</span>
                         </div>
                         {bookingType === "multi_day" && (
