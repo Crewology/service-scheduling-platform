@@ -346,8 +346,8 @@ describe("OG Tags for Category Pages", () => {
 });
 
 describe("OG Tags for Homepage", () => {
-  it("should return OG tags with OlogyCrew branding", () => {
-    const result = getHomepageOgTags("https://example.com");
+  it("should return OG tags with OlogyCrew branding", async () => {
+    const result = await getHomepageOgTags("https://example.com");
 
     expect(result).toContain('og:title');
     expect(result).toContain('OlogyCrew');
@@ -364,8 +364,8 @@ describe("OG Tags for Homepage", () => {
     expect(result).toContain('og:image');
   });
 
-  it("should use the correct origin URL", () => {
-    const result = getHomepageOgTags("https://ologycrew.com");
+  it("should use the correct origin URL", async () => {
+    const result = await getHomepageOgTags("https://ologycrew.com");
     expect(result).toContain('https://ologycrew.com');
     expect(result).not.toContain('localhost');
   });

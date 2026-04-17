@@ -59,6 +59,7 @@ import {
 import { Link, useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
 import { NavHeader } from "@/components/shared/NavHeader";
+import { ShareProfile } from "@/components/ShareProfile";
 import { formatCurrency } from "@/lib/dateUtils";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -375,6 +376,13 @@ function PublicProfileSection({ provider }: { provider: any }) {
                 <ExternalLink className="w-4 h-4" />
               </Button>
             </Link>
+            <ShareProfile
+              url={profileUrl!}
+              title={provider.businessName}
+              description={provider.description || `Book services from ${provider.businessName} on OlogyCrew`}
+              size="icon"
+              variant="outline"
+            />
           </div>
 
           {editingSlug ? (

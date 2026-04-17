@@ -12,10 +12,12 @@ import { useLocation, useParams, Link } from "wouter";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
 import { Calendar } from "@/components/ui/calendar";
-import { MapPin, Clock, DollarSign, Star, ChevronRight, CheckCircle2, ArrowLeft, Info, Image as ImageIcon, Tag, X, Loader2, Gift, CalendarRange, Repeat, CalendarDays } from "lucide-react";
+import { MapPin, Clock, DollarSign, Star, ChevronRight, CheckCircle2, ArrowLeft, Info, Image as ImageIcon, Tag, X, Loader2, Gift, CalendarRange, Repeat, CalendarDays, Share2 } from "lucide-react";
 import { generateTimeSlots, formatTimeForDisplay, type TimeSlot } from "@shared/timeSlots";
 import { ReviewList } from "@/components/shared/ReviewList";
 import { NavHeader } from "@/components/shared/NavHeader";
+import { ShareProfile } from "@/components/ShareProfile";
+
 
 type BookingStep = "date" | "time" | "details" | "confirm";
 type BookingType = "single" | "multi_day" | "recurring";
@@ -589,15 +591,27 @@ export default function ServiceDetail() {
                       </span>
                     </CardDescription>
                   </div>
-                  {reviews && reviews.length > 0 && (
-                    <div className="flex items-center gap-1 bg-warning/10 px-3 py-1.5 rounded-full">
-                      <Star className="h-4 w-4 fill-warning text-warning" />
-                      <span className="font-semibold text-sm">{averageRating.toFixed(1)}</span>
-                      <span className="text-muted-foreground text-sm">
-                        ({reviews.length})
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {reviews && reviews.length > 0 && (
+                      <div className="flex items-center gap-1 bg-warning/10 px-3 py-1.5 rounded-full">
+                        <Star className="h-4 w-4 fill-warning text-warning" />
+                        <span className="font-semibold text-sm">{averageRating.toFixed(1)}</span>
+                        <span className="text-muted-foreground text-sm">
+                          ({reviews.length})
+                        </span>
+                      </div>
+                    )}
+                    <ShareProfile
+                      url={`${window.location.origin}/service/${id}`}
+                      title={`${service.name} — ${provider?.businessName || 'OlogyCrew'}`}
+                      description={service.description || `Book ${service.name} on OlogyCrew`}
+                      trigger={
+                        <Button variant="outline" size="icon" className="h-9 w-9">
+                          <Share2 className="h-4 w-4" />
+                        </Button>
+                      }
+                    />
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">

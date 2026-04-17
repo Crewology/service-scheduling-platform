@@ -780,3 +780,261 @@ export async function generateProviderOgImage(
     return null;
   }
 }
+
+
+/**
+ * Generate a branded 1200x630 OG image for the OlogyCrew homepage.
+ * Shows the tagline, popular category icons, and branding.
+ * Returns the public URL of the generated image, or null on failure.
+ */
+export async function generateHomepageOgImage(): Promise<string | null> {
+  try {
+    const fontData = await loadFont();
+
+    // Popular category labels to show as "chips"
+    const categoryChips = [
+      "Barber", "Massage", "Photography", "Handyman",
+      "DJ & Music", "Fitness", "Home Cleaning", "Auto Detailing",
+      "Event Planning", "Pet Care", "Tech Support", "Salon",
+    ];
+
+    const element = {
+      type: "div",
+      props: {
+        style: {
+          width: "1200px",
+          height: "630px",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)",
+          fontFamily: "Inter",
+          position: "relative",
+          overflow: "hidden",
+        },
+        children: [
+          // Decorative background circles
+          {
+            type: "div",
+            props: {
+              style: {
+                position: "absolute",
+                top: "-80px",
+                right: "-80px",
+                width: "300px",
+                height: "300px",
+                borderRadius: "50%",
+                background: "rgba(59, 130, 246, 0.08)",
+              },
+            },
+          },
+          {
+            type: "div",
+            props: {
+              style: {
+                position: "absolute",
+                bottom: "-100px",
+                left: "-60px",
+                width: "350px",
+                height: "350px",
+                borderRadius: "50%",
+                background: "rgba(59, 130, 246, 0.06)",
+              },
+            },
+          },
+          // Logo area
+          {
+            type: "div",
+            props: {
+              style: {
+                display: "flex",
+                alignItems: "center",
+                gap: "16px",
+                marginBottom: "24px",
+              },
+              children: [
+                {
+                  type: "div",
+                  props: {
+                    style: {
+                      width: "56px",
+                      height: "56px",
+                      borderRadius: "50%",
+                      background: "linear-gradient(135deg, #3b82f6, #2563eb)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "white",
+                      fontSize: "28px",
+                      fontWeight: "700",
+                    },
+                    children: "O",
+                  },
+                },
+                {
+                  type: "div",
+                  props: {
+                    style: {
+                      fontSize: "36px",
+                      fontWeight: "700",
+                      color: "white",
+                      letterSpacing: "-0.5px",
+                    },
+                    children: "OlogyCrew",
+                  },
+                },
+              ],
+            },
+          },
+          // Tagline
+          {
+            type: "div",
+            props: {
+              style: {
+                fontSize: "48px",
+                fontWeight: "700",
+                color: "white",
+                textAlign: "center",
+                lineHeight: "1.2",
+                maxWidth: "900px",
+                marginBottom: "12px",
+              },
+              children: "Find Trusted Service Professionals",
+            },
+          },
+          // Subtitle
+          {
+            type: "div",
+            props: {
+              style: {
+                fontSize: "22px",
+                color: "rgba(148, 163, 184, 1)",
+                textAlign: "center",
+                maxWidth: "700px",
+                marginBottom: "36px",
+                lineHeight: "1.4",
+              },
+              children: "Book instantly. Pay securely. Get the job done right.",
+            },
+          },
+          // Category chips - Row 1
+          {
+            type: "div",
+            props: {
+              style: {
+                display: "flex",
+                flexWrap: "wrap",
+                justifyContent: "center",
+                gap: "10px",
+                maxWidth: "900px",
+                marginBottom: "10px",
+              },
+              children: categoryChips.slice(0, 6).map((cat) => ({
+                type: "div",
+                props: {
+                  style: {
+                    padding: "8px 20px",
+                    borderRadius: "20px",
+                    background: "rgba(59, 130, 246, 0.12)",
+                    border: "1px solid rgba(59, 130, 246, 0.25)",
+                    color: "rgba(147, 197, 253, 1)",
+                    fontSize: "16px",
+                    fontWeight: "600",
+                  },
+                  children: cat,
+                },
+              })),
+            },
+          },
+          // Category chips - Row 2
+          {
+            type: "div",
+            props: {
+              style: {
+                display: "flex",
+                flexWrap: "wrap",
+                justifyContent: "center",
+                gap: "10px",
+                maxWidth: "900px",
+              },
+              children: categoryChips.slice(6).map((cat) => ({
+                type: "div",
+                props: {
+                  style: {
+                    padding: "8px 20px",
+                    borderRadius: "20px",
+                    background: "rgba(59, 130, 246, 0.08)",
+                    border: "1px solid rgba(59, 130, 246, 0.15)",
+                    color: "rgba(148, 163, 184, 1)",
+                    fontSize: "16px",
+                    fontWeight: "600",
+                  },
+                  children: cat,
+                },
+              })),
+            },
+          },
+          // Bottom bar with URL
+          {
+            type: "div",
+            props: {
+              style: {
+                position: "absolute",
+                bottom: "0",
+                left: "0",
+                right: "0",
+                height: "48px",
+                background: "rgba(0, 0, 0, 0.3)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+              },
+              children: [
+                {
+                  type: "div",
+                  props: {
+                    style: {
+                      fontSize: "14px",
+                      color: "rgba(148, 163, 184, 0.8)",
+                      letterSpacing: "1px",
+                    },
+                    children: "42+ SERVICE CATEGORIES  •  VERIFIED PROVIDERS  •  SECURE PAYMENTS",
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    };
+
+    const svg = await satori(element as any, {
+      width: 1200,
+      height: 630,
+      fonts: [
+        {
+          name: "Inter",
+          data: fontData,
+          weight: 400,
+          style: "normal" as const,
+        },
+      ],
+    });
+
+    const resvg = new Resvg(svg, {
+      fitTo: { mode: "width" as const, value: 1200 },
+    });
+    const pngData = resvg.render();
+    const pngBuffer = pngData.asPng();
+
+    const fileKey = `og-images/homepage-${nanoid(8)}.png`;
+    const { url } = await storagePut(fileKey, Buffer.from(pngBuffer), "image/png");
+
+    return url;
+  } catch (error) {
+    console.error("[OG Image] Error generating homepage OG image:", error);
+    return null;
+  }
+}

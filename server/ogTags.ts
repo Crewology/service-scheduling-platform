@@ -1,5 +1,5 @@
 import * as db from "./db";
-import { generateProviderOgImage, generateServiceOgImage } from "./ogImage";
+import { generateProviderOgImage, generateServiceOgImage, generateHomepageOgImage } from "./ogImage";
 
 // In-memory cache for generated OG image URLs (key -> url)
 // This avoids regenerating the image on every social crawler visit
@@ -158,10 +158,18 @@ export async function getCategoryOgTags(categorySlug: string, origin: string): P
 /**
  * Build OG meta tag HTML for the homepage.
  */
-export function getHomepageOgTags(origin: string): string {
+export async function getHomepageOgTags(origin: string): Promise<string> {
   const title = "OlogyCrew — Book Trusted Service Professionals";
   const description = "Find and book trusted service professionals for barbering, auto detailing, fitness, photography, home services, and more. Browse categories, compare providers, and schedule appointments instantly.";
-  const imageUrl = OLOGYCREW_LOGO;
+
+  // Try to get/generate branded homepage OG image
+  let imageUrl: string = OLOGYCREW_LOGO;
+  try {
+    const generatedUrl = await getCachedOgImage("homepage", generateHomepageOgImage);
+    if (generatedUrl) imageUrl = generatedUrl;
+  } catch (e) {
+    console.error("[OG Tags] Error generating homepage OG image:", e);
+  }
 
   return buildOgTagsHtml({
     title,

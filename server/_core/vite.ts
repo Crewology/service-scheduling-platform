@@ -52,7 +52,7 @@ async function injectOgTags(url: string, template: string, origin: string): Prom
 
   // Homepage (exact match on / or /?)
   if (!ogTags && (url === "/" || url === "/?")) {
-    ogTags = getHomepageOgTags(origin);
+    ogTags = await getHomepageOgTags(origin);
   }
 
   if (ogTags) {

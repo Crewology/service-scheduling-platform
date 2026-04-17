@@ -851,3 +851,17 @@
 - [x] Add category page OG tags (/category/:slug with category name and description)
 - [x] Wire homepage and category OG tags into vite.ts
 - [x] All 13 OG tag tests passing (provider, service, category, homepage)
+
+## Feature: Share Button on Provider Dashboard
+- [x] Add Share Profile button to provider's own dashboard/profile management view
+- [x] Reuse existing ShareProfile component with provider's public profile URL
+
+## Feature: Share Service Button on Service Detail Pages
+- [x] Reuse ShareProfile component for individual services with service-specific metadata
+- [x] Add Share button to service detail page header next to rating badge
+- [x] Include copy-link, social share (Facebook, X, WhatsApp, LinkedIn), and email options
+
+## Feature: Branded Homepage OG Image
+- [x] Generate a 1200x630 branded OG image with OlogyCrew tagline and 12 category chips
+- [x] Update homepage OG tags to use the branded image with caching
+- [x] All 13 OG tag tests passing
