@@ -3,6 +3,7 @@ import { z } from "zod";
 import * as db from "../db";
 import { TRPCError } from "@trpc/server";
 import { canCustomerSaveMore, CUSTOMER_TIERS } from "../customerSubscription";
+import { invalidateOgImageCache } from "../ogTags";
 
 export const providerRouter = router({
   create: protectedProcedure
@@ -163,6 +164,8 @@ export const providerRouter = router({
       const provider = await db.getProviderByUserId(ctx.user.id);
       if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
       await db.updateProviderProfile(provider.id, input);
+      // Invalidate OG image cache so social previews reflect updated info
+      if (provider.profileSlug) invalidateOgImageCache(provider.profileSlug);
       const updated = await db.getProviderByUserId(ctx.user.id);
       return updated!;
     }),
@@ -186,6 +189,9 @@ export const providerRouter = router({
       
       // Update user profile photo
       await db.updateUserProfile(ctx.user.id, { profilePhotoUrl: url });
+      // Invalidate OG image cache so social previews use new photo
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (provider?.profileSlug) invalidateOgImageCache(provider.profileSlug);
       return { url };
     }),
 

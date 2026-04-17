@@ -819,3 +819,13 @@
 - [x] Add useDebounce hook for 300ms delay on search keyword
 - [x] Apply debounced value to service and provider search queries
 - [x] Keep instant UI feedback (input updates immediately, queries delayed)
+
+## Bug Fix: Provider Profile Social Sharing Preview
+- [x] Audit current OG meta tag setup for provider profile pages
+- [x] Implement dynamic 1200x630 OG image generator using satori + resvg
+- [x] OG image shows business name, description, location, rating, verified badge, profile photo
+- [x] OG image cached in-memory with 24h TTL and uploaded to S3
+- [x] Cache invalidation on provider profile update and photo upload
+- [x] Fallback chain: generated OG image → profile photo → OlogyCrew logo
+- [x] Full OG + Twitter Card meta tags with image dimensions
+- [x] Tests passing (6 tests: empty slug, full tags, caching, invalidation, HTML escaping, fallback)
