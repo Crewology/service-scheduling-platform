@@ -783,3 +783,11 @@
 - [x] Added "Bookings I Made" vs "Bookings I Received" pill toggle on MyBookings page
 - [x] Customer bookings (listMine) vs provider bookings (listForProvider)
 - [x] Only visible for providers (canSwitch check)
+
+## Feature: Navigation Safety — No Dead-End Pages
+- [x] Audit all pages/routes for navigation gaps (missing NavHeader, no back button, no breadcrumbs)
+- [x] Create reusable PageHeader component with contextual back button and breadcrumbs
+- [x] Add NavHeader + PageHeader to 11 pages: Referrals, PrivacyPolicy, TermsOfService, ProviderReviews, PublicProviderProfile, NotFound, SubmitReview, BookingAnalytics, CreateService, HelpCenter, ManageAvailability
+- [x] Replaced custom headers in CreateService and ManageAvailability with consistent NavHeader + PageHeader
+- [x] Every page now has NavHeader (logo links home, hamburger menu) and contextual breadcrumbs
+- [x] 0 TypeScript errors

@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { Star } from "lucide-react";
 import { toast } from "sonner";
+import { NavHeader } from "@/components/shared/NavHeader";
+import { PageHeader } from "@/components/shared/PageHeader";
 
 export default function SubmitReview() {
   const [, params] = useRoute("/booking/:id/review");
@@ -82,98 +84,100 @@ export default function SubmitReview() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="container max-w-2xl">
-        <Card>
-          <CardHeader>
-            <CardTitle>Write a Review</CardTitle>
-            <CardDescription>
-              Share your experience with this service
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Booking Info */}
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-muted-foreground">Service</p>
-                <p className="font-medium">Service #{booking.serviceId}</p>
-                <p className="text-sm text-muted-foreground mt-2">Date</p>
-                <p className="font-medium">{booking.bookingDate}</p>
-              </div>
-
-              {/* Rating */}
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Your Rating <span className="text-red-500">*</span>
-                </label>
-                <div className="flex gap-2">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setRating(star)}
-                      onMouseEnter={() => setHoverRating(star)}
-                      onMouseLeave={() => setHoverRating(0)}
-                      className="transition-transform hover:scale-110"
-                    >
-                      <Star
-                        className={`h-10 w-10 ${
-                          star <= (hoverRating || rating)
-                            ? "fill-yellow-400 text-yellow-400"
-                            : "text-gray-300"
-                        }`}
-                      />
-                    </button>
-                  ))}
-                </div>
-                <p className="text-sm text-muted-foreground mt-2">
-                  {rating === 0 && "Select a rating"}
-                  {rating === 1 && "Poor"}
-                  {rating === 2 && "Fair"}
-                  {rating === 3 && "Good"}
-                  {rating === 4 && "Very Good"}
-                  {rating === 5 && "Excellent"}
-                </p>
-              </div>
-
-              {/* Comment */}
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Your Review
-                </label>
-                <Textarea
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  placeholder="Tell others about your experience with this service provider..."
-                  rows={6}
-                  className="resize-none"
+    <div className="min-h-screen bg-gray-50">
+        <NavHeader />
+        <main className="py-12">
+            <div className="container max-w-2xl">
+                <PageHeader
+                    title="Write a Review"
+                    backHref="/my-bookings"
+                    breadcrumbs={[{ label: "My Bookings", href: "/my-bookings" }, { label: "Write Review" }]}
                 />
-                <p className="text-sm text-muted-foreground mt-2">
-                  Share details about the quality of service, professionalism, and overall experience.
-                </p>
-              </div>
+                <Card className="mt-8">
+                    <CardContent className="pt-6">
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* Booking Info */}
+                        <div className="p-4 bg-gray-50 rounded-lg">
+                            <p className="text-sm text-muted-foreground">Service</p>
+                            <p className="font-medium">Service #{booking.serviceId}</p>
+                            <p className="text-sm text-muted-foreground mt-2">Date</p>
+                            <p className="font-medium">{booking.bookingDate}</p>
+                        </div>
 
-              {/* Actions */}
-              <div className="flex gap-3">
-                <Button
-                  type="submit"
-                  disabled={submitReview.isPending || rating === 0}
-                  className="flex-1"
-                >
-                  {submitReview.isPending ? "Submitting..." : "Submit Review"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate(`/booking/${bookingId}`)}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
+                        {/* Rating */}
+                        <div>
+                            <label className="block text-sm font-medium mb-2">
+                            Your Rating <span className="text-red-500">*</span>
+                            </label>
+                            <div className="flex gap-2">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                                <button
+                                key={star}
+                                type="button"
+                                onClick={() => setRating(star)}
+                                onMouseEnter={() => setHoverRating(star)}
+                                onMouseLeave={() => setHoverRating(0)}
+                                className="transition-transform hover:scale-110"
+                                >
+                                <Star
+                                    className={`h-10 w-10 ${
+                                    star <= (hoverRating || rating)
+                                        ? "fill-yellow-400 text-yellow-400"
+                                        : "text-gray-300"
+                                    }`}
+                                />
+                                </button>
+                            ))}
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-2">
+                            {rating === 0 && "Select a rating"}
+                            {rating === 1 && "Poor"}
+                            {rating === 2 && "Fair"}
+                            {rating === 3 && "Good"}
+                            {rating === 4 && "Very Good"}
+                            {rating === 5 && "Excellent"}
+                            </p>
+                        </div>
+
+                        {/* Comment */}
+                        <div>
+                            <label className="block text-sm font-medium mb-2">
+                            Your Review
+                            </label>
+                            <Textarea
+                            value={comment}
+                            onChange={(e) => setComment(e.target.value)}
+                            placeholder="Tell others about your experience with this service provider..."
+                            rows={6}
+                            className="resize-none"
+                            />
+                            <p className="text-sm text-muted-foreground mt-2">
+                            Share details about the quality of service, professionalism, and overall experience.
+                            </p>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex gap-3">
+                            <Button
+                            type="submit"
+                            disabled={submitReview.isPending || rating === 0}
+                            className="flex-1"
+                            >
+                            {submitReview.isPending ? "Submitting..." : "Submit Review"}
+                            </Button>
+                            <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => navigate(`/booking/${bookingId}`)}
+                            >
+                            Cancel
+                            </Button>
+                        </div>
+                        </form>
+                    </CardContent>
+                </Card>
+            </div>
+        </main>
     </div>
   );
 }

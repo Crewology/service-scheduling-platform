@@ -14,6 +14,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { NavHeader } from "@/components/shared/NavHeader";
+import { PageHeader } from "@/components/shared/PageHeader";
 import {
   DollarSign,
   TrendingUp,
@@ -360,6 +362,8 @@ export default function BookingAnalytics() {
 
   if (loading) {
     return (
+      <>
+      <NavHeader />
       <div className="container py-8 space-y-6">
         <div className="h-8 w-48 bg-muted animate-pulse rounded" />
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -368,14 +372,18 @@ export default function BookingAnalytics() {
           ))}
         </div>
       </div>
+      </>
     );
   }
 
   if (!user) {
     return (
+      <>
+      <NavHeader />
       <div className="container py-8 text-center">
         <p>Please sign in to view analytics.</p>
       </div>
+      </>
     );
   }
 
@@ -392,7 +400,13 @@ export default function BookingAnalytics() {
   const sub = subscriptionQuery.data;
 
   return (
+    <>
+    <NavHeader />
     <div className="container py-8 space-y-6">
+      <PageHeader
+        title="Booking Analytics"
+        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Analytics" }]}
+      />
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Link href="/saved-providers" className="hover:text-foreground transition-colors">
@@ -657,5 +671,6 @@ export default function BookingAnalytics() {
         </>
       ) : null}
     </div>
+    </>
   );
 }

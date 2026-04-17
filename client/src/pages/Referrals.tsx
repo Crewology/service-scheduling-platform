@@ -31,6 +31,8 @@ import {
   Zap,
 } from "lucide-react";
 import { Link } from "wouter";
+import { NavHeader } from "@/components/shared/NavHeader";
+import { PageHeader } from "@/components/shared/PageHeader";
 
 export default function Referrals() {
   const { user, isAuthenticated } = useAuth();
@@ -91,6 +93,7 @@ export default function Referrals() {
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-orange-50">
+        <NavHeader />
         <div className="container max-w-2xl py-20 text-center">
           <Gift className="h-16 w-16 text-primary mx-auto mb-6" />
           <h1 className="text-2xl sm:text-3xl font-bold mb-4">Referral Program</h1>
@@ -133,7 +136,7 @@ export default function Referrals() {
     if (!myCode) return;
     const link = type === "provider" ? providerReferralLink : customerReferralLink;
     const text = type === "provider"
-      ? `I've been using OlogyCrew to manage my service bookings and it's great! Sign up as a provider with my referral link and we both earn credits.`
+      ? `I'''ve been using OlogyCrew to manage my service bookings and it'''s great! Sign up as a provider with my referral link and we both earn credits.`
       : `Use my referral code ${myCode.code} to get ${myCode.refereeDiscountPercent}% off your first booking on OlogyCrew!`;
     const title = type === "provider" ? "Join OlogyCrew as a Provider" : "Join OlogyCrew";
 
@@ -161,28 +164,13 @@ export default function Referrals() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-orange-50">
-      {/* Header */}
-      <div className="bg-white border-b">
-        <div className="container max-w-5xl py-6">
-          <Link href="/">
-            <Button variant="ghost" size="sm" className="mb-4">
-              <ArrowLeft className="h-4 w-4 mr-2" /> Back to Home
-            </Button>
-          </Link>
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-orange-500 text-white">
-              <Gift className="h-6 w-6" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold">Referral Program</h1>
-              <p className="text-muted-foreground">
-                Share your code, earn rewards when friends book or join as providers
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
+      <NavHeader />
+      <PageHeader
+        title="Referral Program"
+        subtitle="Share your code, earn rewards when friends book or join as providers"
+        backHref="/provider/dashboard"
+        breadcrumbs={[{ label: "Dashboard", href: "/provider/dashboard" }, { label: "Referrals" }]}
+      />
       <div className="container max-w-5xl py-8 space-y-6">
         {/* Tier Progress Card */}
         {tierInfo && (
@@ -257,112 +245,125 @@ export default function Referrals() {
 
         {/* Credit Balance + Expiration Warning */}
         {creditBalance && parseFloat(creditBalance.balance) > 0 && (
-          <Card className="border-2 border-emerald-200 bg-gradient-to-r from-emerald-50 to-green-50">
+          <Card className="border-2 border-amber-300 bg-amber-50">
             <CardContent className="py-4">
-              <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-full bg-emerald-100">
-                    <DollarSign className="h-6 w-6 text-emerald-600" />
+                  <div className="p-2.5 rounded-full bg-amber-100">
+                    <DollarSign className="h-6 w-6 text-amber-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-emerald-700">Available Credit Balance</p>
-                    <p className="text-2xl font-bold text-emerald-600">${parseFloat(creditBalance.balance).toFixed(2)}</p>
+                    <h3 className="font-bold text-lg">Your Credit Balance</h3>
+                    <p className="text-3xl font-bold text-amber-700">${creditBalance.balance}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-xs text-emerald-600/70">Auto-applied at checkout</p>
-                  {daysUntilExpiry !== null && daysUntilExpiry <= 14 && (
-                    <div className="flex items-center gap-1 mt-1 text-amber-600">
-                      <AlertTriangle className="h-3 w-3" />
-                      <p className="text-xs font-medium">
-                        ${nextExpiration?.amount} expires in {daysUntilExpiry} day{daysUntilExpiry !== 1 ? "s" : ""}
-                      </p>
-                    </div>
-                  )}
-                  {daysUntilExpiry !== null && daysUntilExpiry > 14 && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Next expiry: {new Date(nextExpiration!.expiresAt).toLocaleDateString()}
+                {daysUntilExpiry !== null && nextExpiration && (
+                  <div className="text-sm text-amber-800 bg-amber-100/80 border border-amber-200 rounded-lg p-2 text-center">
+                    <p className="font-semibold">
+                      <AlertTriangle className="inline-block h-4 w-4 mr-1.5" />
+                      <span className="font-bold">${nextExpiration.amount}</span> in credits will expire in <span className="font-bold">{daysUntilExpiry} day{daysUntilExpiry !== 1 ? "s" : ""}</span>.
                     </p>
-                  )}
-                </div>
+                    <p className="text-xs">Use your credits on your next booking to avoid losing them!</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
         )}
 
-        {/* Tabs: Customer vs Provider Referrals */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2 max-w-md">
-            <TabsTrigger value="customer" className="flex items-center gap-2">
-              <UserPlus className="h-4 w-4" />
-              Customer Referrals
-            </TabsTrigger>
-            <TabsTrigger value="provider" className="flex items-center gap-2">
-              <Briefcase className="h-4 w-4" />
-              Provider Referrals
-            </TabsTrigger>
-          </TabsList>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+            <TabsList>
+              <TabsTrigger value="customer">
+                <Users className="h-4 w-4 mr-2" />
+                Refer a Customer
+              </TabsTrigger>
+              {provider && (
+                <TabsTrigger value="provider">
+                  <Briefcase className="h-4 w-4 mr-2" />
+                  Refer a Provider
+                </TabsTrigger>
+              )}
+            </TabsList>
+            <Button variant="ghost" size="sm" onClick={() => setShowSettings(!showSettings)}>
+              <Settings className="h-4 w-4 mr-2" />
+              Settings
+            </Button>
+          </div>
 
           {/* ================================================================ */}
           {/* CUSTOMER REFERRALS TAB */}
           {/* ================================================================ */}
           <TabsContent value="customer" className="space-y-6 mt-6">
-            {/* Referral Code Card */}
-            <Card className="border-2 border-primary/20 bg-gradient-to-r from-purple-50 to-orange-50">
+            {/* Customer Referral Link Card */}
+            <Card className="border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-indigo-50">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Gift className="h-5 w-5 text-primary" />
-                  Your Customer Referral Code
+                  <UserPlus className="h-5 w-5 text-purple-600" />
+                  Refer a Customer
                 </CardTitle>
                 <CardDescription>
-                  Share this code with friends. They get{" "}
-                  <strong>{myCode?.refereeDiscountPercent || 10}% off</strong> their first booking,
-                  and you earn <strong>{tierInfo?.currentTier.rewardPercent || 10}% credit</strong> when they complete it.
+                  Share your referral link with friends. When they book their first service, you both get a discount!
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {codeLoading ? (
                   <div className="flex items-center gap-2">
                     <Loader2 className="h-5 w-5 animate-spin" />
-                    <span>Generating your code...</span>
+                    <span>Loading your referral link...</span>
                   </div>
                 ) : myCode ? (
                   <div className="space-y-4">
-                    {/* Code Display */}
+                    {/* Customer Referral Link */}
                     <div className="flex items-center gap-3">
-                      <div className="flex-1 bg-white border-2 border-dashed border-primary/30 rounded-lg px-6 py-4 text-center">
-                        <span className="text-xl sm:text-3xl font-mono font-bold tracking-wider text-primary">
-                          {myCode.code}
-                        </span>
+                      <div className="flex-1">
+                        <Input
+                          readOnly
+                          value={customerReferralLink}
+                          className="bg-white text-sm font-mono"
+                          onClick={(e) => (e.target as HTMLInputElement).select()}
+                        />
                       </div>
-                      <Button variant="outline" size="icon" onClick={copyCode} title="Copy code">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => copyLink(customerReferralLink, "Referral")}
+                        title="Copy referral link"
+                      >
                         <Copy className="h-4 w-4" />
                       </Button>
                     </div>
 
                     {/* Share Actions */}
                     <div className="flex flex-wrap gap-3">
-                      <Button onClick={() => copyLink(customerReferralLink, "Referral")} variant="outline" className="flex-1">
+                      <Button
+                        onClick={() => copyLink(customerReferralLink, "Referral")}
+                        variant="outline"
+                        className="flex-1"
+                      >
                         <Copy className="h-4 w-4 mr-2" /> Copy Link
                       </Button>
-                      <Button onClick={() => shareReferral("customer")} className="flex-1 bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600">
-                        <Share2 className="h-4 w-4 mr-2" /> Share
+                      <Button
+                        onClick={() => shareReferral("customer")}
+                        className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-500 hover:from-purple-700 hover:to-indigo-600"
+                      >
+                        <Share2 className="h-4 w-4 mr-2" /> Share with Friends
                       </Button>
                     </div>
 
-                    {/* Referral Link */}
-                    <div className="bg-white rounded-lg p-3 border">
-                      <Label className="text-xs text-muted-foreground mb-1 block">Your customer referral link</Label>
-                      <p className="text-sm font-mono text-muted-foreground break-all">{customerReferralLink}</p>
-                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Referral code: <span className="font-mono font-semibold">{myCode.code}</span>
+                      {" "}&middot;{" "}
+                      You earn {tierInfo?.currentTier.rewardPercent || 10}% credit &middot; They get {myCode.refereeDiscountPercent}% off
+                    </p>
                   </div>
                 ) : (
-                  <p className="text-muted-foreground">Unable to generate referral code. Please try again later.</p>
+                  <p className="text-muted-foreground">Unable to generate referral link. Please try again later.</p>
                 )}
               </CardContent>
             </Card>
 
-            {/* Stats Cards */}
+            {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Card>
                 <CardContent className="pt-6 text-center">
@@ -388,117 +389,26 @@ export default function Referrals() {
               <Card>
                 <CardContent className="pt-6 text-center">
                   <DollarSign className="h-8 w-8 text-emerald-500 mx-auto mb-2" />
-                  <p className="text-2xl font-bold">${parseFloat(creditBalance?.balance || "0").toFixed(2)}</p>
-                  <p className="text-sm text-muted-foreground">Credit Balance</p>
+                  <p className="text-2xl font-bold">${stats?.totalEarnings || "0.00"}</p>
+                  <p className="text-sm text-muted-foreground">Credits Earned</p>
                 </CardContent>
               </Card>
             </div>
 
-            {/* How It Works */}
+            {/* History & Settings */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  How It Works
-                </CardTitle>
+                <CardTitle>Referral History</CardTitle>
+                <CardDescription>Track the status of your referrals and earnings.</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-3 gap-6">
-                  <div className="text-center space-y-2">
-                    <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-600 font-bold flex items-center justify-center mx-auto">1</div>
-                    <h3 className="font-semibold">Share Your Code</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Send your unique referral code or link to friends and family.
-                    </p>
-                  </div>
-                  <div className="text-center space-y-2">
-                    <div className="w-10 h-10 rounded-full bg-orange-100 text-orange-600 font-bold flex items-center justify-center mx-auto">2</div>
-                    <h3 className="font-semibold">They Book a Service</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Your friend enters your code at checkout and gets {myCode?.refereeDiscountPercent || 10}% off.
-                    </p>
-                  </div>
-                  <div className="text-center space-y-2">
-                    <div className="w-10 h-10 rounded-full bg-green-100 text-green-600 font-bold flex items-center justify-center mx-auto">3</div>
-                    <h3 className="font-semibold">You Earn Rewards</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Once their booking completes, you earn {tierInfo?.currentTier.rewardPercent || 10}% credit. Credits expire after 90 days.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Credit History */}
-            {creditHistory && creditHistory.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5" />
-                    Credit History
-                  </CardTitle>
-                  <CardDescription>Your earned, spent, and expired credits</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 max-h-64 overflow-y-auto">
-                    {creditHistory.map((credit: any) => (
-                      <div key={credit.id} className="flex items-center justify-between p-2.5 rounded-lg border bg-white">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${
-                            credit.type === "earned" ? "bg-emerald-500" :
-                            credit.type === "spent" ? "bg-blue-500" : "bg-red-500"
-                          }`} />
-                          <div>
-                            <p className="text-sm font-medium">{credit.description || credit.type}</p>
-                            <div className="flex items-center gap-2">
-                              <p className="text-xs text-muted-foreground">
-                                {new Date(credit.createdAt).toLocaleDateString()}
-                              </p>
-                              {credit.type === "earned" && credit.expiresAt && (
-                                <p className="text-xs text-amber-600">
-                                  Expires {new Date(credit.expiresAt).toLocaleDateString()}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        <span className={`text-sm font-semibold ${
-                          credit.type === "earned" ? "text-emerald-600" :
-                          credit.type === "spent" ? "text-blue-600" : "text-red-500"
-                        }`}>
-                          {credit.type === "earned" ? "+" : "-"}${credit.amount}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Referral History */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>Referral History</CardTitle>
-                  <CardDescription>Track who you've referred and your rewards</CardDescription>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowSettings(!showSettings)}
-                >
-                  <Settings className="h-4 w-4 mr-2" /> Settings
-                </Button>
-              </CardHeader>
-              <CardContent>
-                {/* Settings Panel */}
                 {showSettings && myCode && (
                   <>
-                    <div className="bg-muted/50 rounded-lg p-4 mb-4 space-y-4">
-                      <h4 className="font-semibold text-sm">Referral Settings</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="p-4 rounded-lg bg-muted/50 border mb-4 space-y-4">
+                      <h4 className="font-semibold">Referral Settings</h4>
+                      <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label className="text-xs">Referrer Discount (%)</Label>
+                          <Label className="text-xs">Your Discount (%)</Label>
                           <Input
                             type="number"
                             min={1}
@@ -739,8 +649,7 @@ export default function Referrals() {
             {/* Provider Referral History (same data) */}
             <Card>
               <CardHeader>
-                <CardTitle>Referral History</CardTitle>
-                <CardDescription>Track all your referrals — both customers and providers</CardDescription>
+                <CardTitle>Provider Referral History</CardTitle>
               </CardHeader>
               <CardContent>
                 {historyLoading ? (
@@ -752,7 +661,7 @@ export default function Referrals() {
                     <Briefcase className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
                     <h3 className="font-semibold text-lg mb-2">No Provider Referrals Yet</h3>
                     <p className="text-muted-foreground text-sm mb-4">
-                      Share your provider referral link to start growing the OlogyCrew community!
+                      Share your provider referral link to start earning!
                     </p>
                   </div>
                 ) : (
@@ -764,7 +673,7 @@ export default function Referrals() {
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
-                            <Users className="h-4 w-4 text-emerald-600" />
+                            <Briefcase className="h-4 w-4 text-emerald-600" />
                           </div>
                           <div>
                             <p className="font-medium text-sm">
@@ -794,25 +703,6 @@ export default function Referrals() {
                 )}
               </CardContent>
             </Card>
-
-            {/* Not a provider yet? CTA */}
-            {!provider && (
-              <Card className="border-dashed border-2 border-emerald-300 bg-emerald-50/50">
-                <CardContent className="py-8 text-center">
-                  <Briefcase className="h-10 w-10 text-emerald-600 mx-auto mb-3" />
-                  <h3 className="font-semibold text-lg mb-2">Not a Provider Yet?</h3>
-                  <p className="text-muted-foreground text-sm mb-4 max-w-md mx-auto">
-                    Join OlogyCrew as a service provider to unlock your full referral potential.
-                    Manage bookings, set your own prices, and grow your business.
-                  </p>
-                  <Link href="/provider/onboarding">
-                    <Button className="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600">
-                      Become a Provider
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            )}
           </TabsContent>
         </Tabs>
       </div>

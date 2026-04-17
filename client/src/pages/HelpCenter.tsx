@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { Link } from "wouter";
+import { NavHeader } from "@/components/shared/NavHeader";
 import {
   Search,
   ChevronDown,
@@ -688,6 +689,7 @@ export default function HelpCenter() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-muted/30 to-background">
+      <NavHeader />
       {/* Hero Section */}
       <div className="bg-primary/5 border-b">
         <div className="container max-w-5xl py-10 md:py-16">

@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from "react";
+import { NavHeader } from "@/components/shared/NavHeader";
 import { useParams, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent } from "@/components/ui/card";
@@ -251,6 +252,7 @@ export default function PublicProviderProfile() {
 
   return (
     <div className="min-h-screen bg-background">
+      <NavHeader />
       {/* ================================================================ */}
       {/* HERO — Profile Photo + Name + Bio + Stats                        */}
       {/* ================================================================ */}

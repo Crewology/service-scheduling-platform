@@ -1,18 +1,18 @@
-import { Link } from "wouter";
+import { NavHeader } from "@/components/shared/NavHeader";
+import { PageHeader } from "@/components/shared/PageHeader";
 
 export default function TermsOfService() {
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur sticky top-0 z-50">
-        <div className="container flex items-center h-16">
-          <Link href="/" className="font-bold text-xl">OlogyCrew</Link>
-        </div>
-      </header>
+      <NavHeader />
 
       <main className="container max-w-3xl py-12">
-        <h1 className="text-3xl font-bold mb-2">Terms of Service</h1>
-        <p className="text-muted-foreground mb-8">Last updated: April 4, 2026</p>
+        <PageHeader
+          title="Terms of Service"
+          backHref="/"
+          breadcrumbs={[{ label: "Terms of Service" }]}
+        />
+        <p className="text-muted-foreground mb-8 mt-4">Last updated: April 4, 2026</p>
 
         <div className="prose prose-neutral dark:prose-invert max-w-none space-y-6">
           <section>
@@ -161,12 +161,6 @@ export default function TermsOfService() {
               Email: info@ologycrew.com
             </p>
           </section>
-        </div>
-
-        <div className="mt-12 pt-8 border-t text-center">
-          <Link href="/" className="text-primary hover:underline">Back to Home</Link>
-          <span className="mx-4 text-muted-foreground">|</span>
-          <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
         </div>
       </main>
     </div>

@@ -1,4 +1,6 @@
 import { useAuth } from "@/_core/hooks/useAuth";
+import { NavHeader } from "@/components/shared/NavHeader";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -84,18 +86,15 @@ export default function ProviderReviews() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-white sticky top-0 z-50">
-        <div className="container">
-          <div className="flex items-center justify-between h-16">
-            <Button variant="ghost" onClick={() => setLocation("/provider/dashboard")}>
-              ← Back to Dashboard
-            </Button>
-            <h1 className="text-xl font-bold">OlogyCrew</h1>
-            <div className="w-32"></div>
-          </div>
-        </div>
-      </header>
+      <NavHeader />
+      <PageHeader
+        title="Reviews"
+        backHref="/provider/dashboard"
+        breadcrumbs={[
+          { label: "Dashboard", href: "/provider/dashboard" },
+          { label: "Reviews" }
+        ]}
+      />
 
       <div className="container py-8 max-w-4xl">
         <Card>
