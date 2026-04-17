@@ -74,12 +74,17 @@ const guideSections: GuideSection[] = [
       {
         title: "Creating Your Account",
         content:
-          "Sign up for OlogyCrew by clicking the \"Sign In\" button in the top navigation. You'll be guided through a quick registration process. Once signed in, you can immediately start browsing services, saving providers, and making bookings. Your account works for both booking services (as a customer) and offering services (as a provider).",
+          "Sign up for OlogyCrew by clicking the \"Sign In\" button in the top navigation. After your first login, you'll be asked to choose your role — Customer (looking to book services) or Provider (offering services). Don't worry, this isn't permanent! Customers can become providers later from their profile page, and providers can always browse and book services too. Once you've selected your role, you'll be taken to your personalized experience.",
+      },
+      {
+        title: "Switching Between Customer & Provider Views",
+        content:
+          "OlogyCrew is built around the \"Work, Live, Play\" concept — providers are people too, and they can also book services as customers. If you're a provider, you'll see a toggle switch in the navigation bar that lets you flip between Provider view (manage your business, dashboard, bookings received) and Customer view (browse services, make bookings, leave reviews). The platform automatically switches your view based on where you navigate — for example, visiting your Dashboard switches to Provider view, while browsing services switches to Customer view.",
       },
       {
         title: "Browsing & Searching Services",
         content:
-          "Use the \"Browse Services\" link in the navigation to explore all 42+ service categories — from Barber Shops and Massage Therapists to DJ & Music Services and Cybersecurity. You can also use the search bar on the homepage or the dedicated Search page to find specific services by keyword. Each category page shows all available providers and their services.",
+          "Use the \"Browse Services\" link in the navigation to explore all 42+ service categories — from Barber Shops and Massage Therapists to DJ & Music Services and Cybersecurity. You can also use the search bar on the homepage or the dedicated Search page to find specific services by keyword and location. Use the X buttons on search fields to quickly clear your filters. Each category page shows all available providers and their services.",
         link: "/browse",
         linkText: "Browse Services",
       },
@@ -104,7 +109,7 @@ const guideSections: GuideSection[] = [
       {
         title: "How Bookings Work",
         content:
-          "When you book a service, the provider receives a notification and can confirm, reschedule, or discuss details with you via messaging. Booking statuses include: Pending (awaiting provider confirmation), Confirmed (provider accepted), In Progress (service started), Completed (service finished), and Cancelled. You can view all your bookings from the \"My Bookings\" page.",
+          "When you book a service, the provider receives a notification and can confirm, reschedule, or discuss details with you via messaging. Booking statuses include: Pending (awaiting provider confirmation), Confirmed (provider accepted), In Progress (service started), Completed (service finished), and Cancelled. View all your bookings from the \"My Bookings\" page. If you're also a provider, you'll see two tabs: \"Bookings I Made\" (services you booked as a customer) and \"Bookings I Received\" (bookings from your customers).",
         link: "/my-bookings",
         linkText: "View My Bookings",
       },
@@ -144,6 +149,13 @@ const guideSections: GuideSection[] = [
         link: "/analytics",
         linkText: "View Analytics",
       },
+      {
+        title: "Becoming a Provider",
+        content:
+          "Want to offer your own services? You don't need a separate account. Visit your Profile page and you'll see a \"Become a Provider\" card that walks you through the process. Click \"Get Started\" to begin the provider onboarding wizard. Once complete, you'll have access to both customer and provider features — book services and offer your own, all from one account.",
+        link: "/profile",
+        linkText: "View Profile",
+      },
     ],
   },
   {
@@ -155,7 +167,7 @@ const guideSections: GuideSection[] = [
       {
         title: "Provider Onboarding",
         content:
-          "Getting started as a provider is a simple 4-step process: (1) Choose your service categories from our 42+ options, (2) Set up your business profile with a description, location, and contact info, (3) Add your services with pricing and duration, and (4) Upload portfolio photos to showcase your work. The onboarding wizard guides you through each step, and your dashboard shows a checklist of what's complete.",
+          "There are two ways to become a provider: (1) Choose \"Provider\" when you first sign up and see the role selection screen, or (2) Click \"Become a Provider\" from your profile page if you initially signed up as a customer. Either way, you'll enter the onboarding wizard — a simple 4-step process: choose your service categories from our 42+ options, set up your business profile with a description, location, and contact info, add your services with pricing and duration, and upload portfolio photos to showcase your work. Your dashboard shows a checklist of what's complete.",
         link: "/provider/onboarding",
         linkText: "Start Onboarding",
       },
@@ -189,7 +201,12 @@ const guideSections: GuideSection[] = [
       {
         title: "Your Public Profile",
         content:
-          "Every provider gets a public profile page that customers can view. It shows your services, reviews, portfolio, availability, and business information. Professional and Business subscribers can customize their profile URL slug for a more professional look (e.g., /p/your-business-name).",
+          "Every provider gets a public profile page that customers can view. It shows your services, reviews, portfolio, availability, and business information. Professional and Business subscribers can customize their profile URL slug for a more professional look (e.g., /p/your-business-name). When you share your profile link on social media (Facebook, Twitter/X, LinkedIn, etc.), a rich preview card is automatically generated with your business name, description, and photo — making your profile look professional and clickable.",
+      },
+      {
+        title: "Provider & Customer View Switcher",
+        content:
+          "As a provider, you can also browse and book services as a customer. Use the toggle in the navigation bar to switch between Provider view and Customer view. In Provider view, you see your dashboard, received bookings, and business tools. In Customer view, you see the regular browsing experience, your made bookings, and saved providers. The platform remembers your preference and auto-switches based on where you navigate.",
       },
       {
         title: "Promo Codes & Widgets",
@@ -251,7 +268,7 @@ const guideSections: GuideSection[] = [
       {
         title: "Your Profile",
         content:
-          "Access your profile from the user menu in the top-right corner. Update your name, profile photo, and other details. Your profile information is used for bookings and communications with providers.",
+          "Access your profile from the user menu in the top-right corner. Update your name, profile photo, phone number, and other details. Your profile page includes a completion indicator that shows your progress — a checklist highlights which fields still need attention (name, email, phone, photo). Once your profile is 100% complete, the indicator disappears. A complete profile helps providers communicate with you and improves your booking experience.",
         link: "/profile",
         linkText: "Edit Profile",
       },
@@ -275,6 +292,11 @@ const guideSections: GuideSection[] = [
           "We take your privacy seriously. Your personal information is protected and never shared without your consent. Payments are processed through Stripe's secure infrastructure. Review our Privacy Policy and Terms of Service for full details.",
         link: "/privacy",
         linkText: "Privacy Policy",
+      },
+      {
+        title: "Navigation & Getting Around",
+        content:
+          "Every page on OlogyCrew includes a navigation header and breadcrumbs so you always know where you are and can easily get back. Use the back button at the top of any detail page to return to the previous screen. The navigation bar provides quick access to your bookings, messages, notifications, and profile from anywhere on the platform.",
       },
     ],
   },
@@ -302,7 +324,7 @@ const faqItems: FAQItem[] = [
   {
     question: "How do I become a service provider?",
     answer:
-      "After signing in, go to the Provider Onboarding page. You'll choose your service categories, set up your business profile, add services with pricing, and upload portfolio photos. The entire process takes about 10 minutes.",
+      "There are two ways: (1) When you first sign up, choose \"Provider\" on the role selection screen, or (2) If you already have a customer account, go to your Profile page and click the \"Become a Provider\" card. Either way, you'll enter the onboarding wizard where you choose your service categories, set up your business profile, add services with pricing, and upload portfolio photos. The entire process takes about 10 minutes.",
     category: "Providers",
   },
   {
@@ -370,6 +392,30 @@ const faqItems: FAQItem[] = [
     answer:
       "Yes, providers have full control over their pricing. They can set fixed prices, hourly rates, or custom pricing for each service. Some providers also offer deposits or payment plans for larger bookings.",
     category: "Payments",
+  },
+  {
+    question: "How do I switch between customer and provider mode?",
+    answer:
+      "If you're a provider, you'll see a toggle switch in the navigation bar that lets you flip between Provider view and Customer view. Provider view shows your dashboard, received bookings, and business tools. Customer view shows the regular browsing experience and your made bookings. The platform also auto-switches based on where you navigate.",
+    category: "General",
+  },
+  {
+    question: "I signed up as a customer but want to be a provider — how do I switch?",
+    answer:
+      "Go to your Profile page and you'll see a \"Become a Provider\" card. Click \"Get Started\" to begin the provider onboarding wizard. Once complete, you'll have access to both customer and provider features from the same account — no need to create a new one.",
+    category: "Providers",
+  },
+  {
+    question: "Can I book services as a provider?",
+    answer:
+      "Absolutely! OlogyCrew is built around the \"Work, Live, Play\" concept — providers are people too. Use the view switcher in the navigation bar to switch to Customer view, and you can browse, book, and review services just like any other customer. Your bookings as a customer are kept separate from the bookings you receive as a provider.",
+    category: "Providers",
+  },
+  {
+    question: "What is the profile completion indicator?",
+    answer:
+      "Your Profile page shows a progress bar and checklist highlighting which fields still need attention (name, email, phone number, profile photo). Once all fields are filled in, the indicator disappears. A complete profile helps providers communicate with you and improves your overall experience.",
+    category: "General",
   },
 ];
 

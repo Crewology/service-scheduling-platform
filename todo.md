@@ -791,3 +791,13 @@
 - [x] Replaced custom headers in CreateService and ManageAvailability with consistent NavHeader + PageHeader
 - [x] Every page now has NavHeader (logo links home, hamburger menu) and contextual breadcrumbs
 - [x] 0 TypeScript errors
+
+## Feature: Update Platform Documentation
+- [x] Update Help Center FAQs with role selection flow
+- [x] Update Help Center with Provider/Customer view switcher info
+- [x] Update Help Center with bookings split (Made vs Received)
+- [x] Update Help Center with Become a Provider from profile
+- [x] Update Help Center with profile completion indicator
+- [x] Update Help Center with navigation improvements (breadcrumbs, back buttons)
+- [x] Update Help Center with search improvements (clear buttons)
+- [x] Update Help Center with OG meta tags / social sharing info for providers
