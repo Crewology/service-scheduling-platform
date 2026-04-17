@@ -297,6 +297,7 @@ export default function PublicProviderProfile() {
                 {/* Share Button */}
                 <ShareProfile
                   url={`/p/${provider.profileSlug || params.slug}`}
+                  shareUrl={`/api/og/provider/${provider.profileSlug || params.slug}`}
                   title={provider.businessName || "Provider"}
                   description={provider.description || `Book services from ${provider.businessName} on OlogyCrew`}
                   size="sm"

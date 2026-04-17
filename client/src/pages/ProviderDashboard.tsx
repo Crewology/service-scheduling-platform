@@ -379,6 +379,7 @@ function PublicProfileSection({ provider }: { provider: any }) {
             </Link>
             <ShareProfile
               url={profileUrl!}
+              shareUrl={`/api/og/provider/${provider.profileSlug}`}
               title={provider.businessName}
               description={provider.description || `Book services from ${provider.businessName} on OlogyCrew`}
               size="icon"

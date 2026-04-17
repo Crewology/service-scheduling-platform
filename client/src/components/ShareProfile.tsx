@@ -8,6 +8,9 @@ interface ShareProfileProps {
   url: string;
   title: string;
   description?: string;
+  /** Optional share URL that goes through /api/og/ for proper social media previews.
+   *  If not provided, falls back to `url`. */
+  shareUrl?: string;
   /** Render trigger — defaults to a Share button */
   trigger?: React.ReactNode;
   /** Variant for the default trigger button */
@@ -20,6 +23,7 @@ export function ShareProfile({
   url,
   title,
   description,
+  shareUrl,
   trigger,
   variant = "outline",
   size = "default",
@@ -28,8 +32,13 @@ export function ShareProfile({
   const [activeTab, setActiveTab] = useState<"share" | "qr">("share");
   const qrRef = useRef<HTMLDivElement>(null);
 
+  // The canonical URL (what users see and copy)
   const fullUrl = url.startsWith("http") ? url : `${window.location.origin}${url}`;
-  const encodedUrl = encodeURIComponent(fullUrl);
+  // The share URL for social media (goes through /api/og/ for proper OG tags)
+  const socialUrl = shareUrl
+    ? (shareUrl.startsWith("http") ? shareUrl : `${window.location.origin}${shareUrl}`)
+    : fullUrl;
+  const encodedUrl = encodeURIComponent(socialUrl);
   const encodedTitle = encodeURIComponent(title);
   const encodedDesc = encodeURIComponent(description || title);
 
@@ -223,7 +232,7 @@ export function ShareProfile({
                   size="sm"
                   onClick={async () => {
                     try {
-                      await navigator.share({ title, text: description || title, url: fullUrl });
+                      await navigator.share({ title, text: description || title, url: socialUrl });
                     } catch {
                       // User cancelled or not supported
                     }

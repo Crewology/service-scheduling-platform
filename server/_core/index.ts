@@ -91,6 +91,10 @@ async function startServer() {
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
+  // OG page route for social media sharing (bypasses CDN pre-rendering)
+  const { handleOgPage } = await import("../ogPageRoute");
+  app.get("/api/og/:type/:id", handleOgPage);
+
   // Booking export routes (CSV/PDF)
   const cookieParser = await import("cookie-parser");
   app.use(cookieParser.default());

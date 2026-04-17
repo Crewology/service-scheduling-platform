@@ -887,3 +887,14 @@
 - [x] Investigate and fix error when selecting day rate (8+ hr) duration in service creation/editing
 - [x] Root cause: empty strings sent for decimal columns (hourlyRate) — MySQL rejects empty string for decimal
 - [x] Fix: convert empty strings to null for numeric fields (basePrice, hourlyRate, depositAmount, depositPercentage) in both service.create and service.update
+
+## Bug Fix: Social Media Link Preview (OG Tags) for Provider Profiles
+- [x] Investigated: Manus CDN pre-renders SPA pages and replaces server-injected OG tags with generic platform defaults
+- [x] Created /api/og/:type/:id route that serves minimal HTML with proper OG tags (bypasses CDN)
+- [x] Route supports provider, service, and category entities with auto-redirect to canonical SPA page
+- [x] Updated ShareProfile component with shareUrl prop for social media sharing
+- [x] Updated ProviderDashboard, PublicProviderProfile, ServiceDetail to pass shareUrl through /api/og/
+- [x] Added meta refresh + JS redirect so human visitors are instantly redirected to the real page
+- [x] Canonical URL in og:url points to the SPA page, not the /api/og/ route
+- [x] Wrote 9 vitest tests for OG page route (all passing)
+- [x] Verified correct OG tags served for Facebook, LinkedIn, and Twitter/X bots on dev server
