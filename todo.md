@@ -829,3 +829,25 @@
 - [x] Fallback chain: generated OG image → profile photo → OlogyCrew logo
 - [x] Full OG + Twitter Card meta tags with image dimensions
 - [x] Tests passing (6 tests: empty slug, full tags, caching, invalidation, HTML escaping, fallback)
+
+## Feature: Share Profile Button
+- [x] Create ShareProfile component with dialog/popover
+- [x] Copy Link button with one-click URL copying and toast confirmation
+- [x] Social media share buttons: Facebook, Twitter/X, WhatsApp, LinkedIn
+- [x] QR code generator for the profile URL
+- [x] Email share option
+- [x] Add Share button to PublicProviderProfile page
+- [ ] Add Share button to provider's own dashboard/profile view
+
+## Feature: OG Images for Service Pages
+- [x] Create generateServiceOgImage function (1200x630 branded card)
+- [x] Service OG image shows: service name, price, duration, provider name, category
+- [x] Add getServiceOgTags function for /service/:id pages
+- [x] Wire service OG tags into vite.ts server-side injection
+- [x] Cache service OG images with invalidation on service update
+
+## Feature: OG Tags for Homepage and Category Pages
+- [x] Add homepage OG tags (site name, description, logo)
+- [x] Add category page OG tags (/category/:slug with category name and description)
+- [x] Wire homepage and category OG tags into vite.ts
+- [x] All 13 OG tag tests passing (provider, service, category, homepage)
