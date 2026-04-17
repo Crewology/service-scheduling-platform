@@ -814,3 +814,8 @@
 ## Bug Fix: Search Input Loses Focus After Each Keystroke
 - [x] Diagnose root cause of search input losing focus on every keypress
 - [x] Fix the focus loss issue so users can type continuously
+
+## Feature: Debounce Search Queries
+- [x] Add useDebounce hook for 300ms delay on search keyword
+- [x] Apply debounced value to service and provider search queries
+- [x] Keep instant UI feedback (input updates immediately, queries delayed)

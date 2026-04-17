@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { Link, useSearch } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -158,20 +159,24 @@ export default function Search() {
     if (q) setKeyword(q);
   }, [searchString]);
 
+  // Debounce keyword and location so API calls only fire after 300ms of inactivity
+  const debouncedKeyword = useDebounce(keyword, 300);
+  const debouncedLocation = useDebounce(location, 300);
+
   const { data: categories } = trpc.category.list.useQuery();
 
-  // Search services (now also matches provider business name)
+  // Search services (uses debounced values to reduce API calls)
   const { data: services, isLoading: servicesLoading } = trpc.service.search.useQuery({
-    keyword,
+    keyword: debouncedKeyword,
     categoryId,
     minPrice: priceRange[0],
     maxPrice: priceRange[1],
     sortBy,
-    location: location || undefined,
+    location: debouncedLocation || undefined,
   });
 
-  // Search providers by name (only when keyword has 2+ chars)
-  const trimmedKeyword = keyword.trim();
+  // Search providers by name (only when debounced keyword has 2+ chars)
+  const trimmedKeyword = debouncedKeyword.trim();
   const { data: providers, isLoading: providersLoading } = trpc.provider.search.useQuery(
     { query: trimmedKeyword },
     { enabled: trimmedKeyword.length >= 2 }
