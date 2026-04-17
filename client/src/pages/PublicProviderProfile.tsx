@@ -378,7 +378,7 @@ export default function PublicProviderProfile() {
       <div className="container max-w-5xl py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column — Services & Reviews */}
-          <div className="lg:col-span-2 space-y-8">
+          <div id="services-section" className="lg:col-span-2 space-y-8">
             {/* Category Filter Tabs */}
             {categories && categories.length > 1 && (
               <div className="flex gap-2 flex-wrap">
@@ -647,11 +647,15 @@ export default function PublicProviderProfile() {
                       </p>
                     )}
                     <Separator />
-                    <Link href="/browse">
-                      <Button className="w-full">
-                        <Calendar className="w-4 h-4 mr-2" /> Browse & Book
-                      </Button>
-                    </Link>
+                    <Button 
+                      className="w-full"
+                      onClick={() => {
+                        const el = document.getElementById('services-section');
+                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }}
+                    >
+                      <Calendar className="w-4 h-4 mr-2" /> Browse & Book
+                    </Button>
                     <Button 
                       variant="outline" 
                       className="w-full"

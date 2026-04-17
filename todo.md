@@ -871,3 +871,6 @@
 - [x] Fix social media buttons/images overrunning the dialog boundaries (overflow-hidden + flex justify-between)
 - [x] Fix mobile responsiveness — responsive w-10/sm:w-11 buttons, proper padding
 - [x] Ensure QR code tab is properly sized and doesn't overflow (180px centered)
+
+## Bug Fix: Browse & Book Button on Provider Profile
+- [x] Fix "Browse & Book" button to smooth-scroll to provider's services section instead of general browse page
