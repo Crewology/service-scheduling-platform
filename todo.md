@@ -801,3 +801,12 @@
 - [x] Update Help Center with navigation improvements (breadcrumbs, back buttons)
 - [x] Update Help Center with search improvements (clear buttons)
 - [x] Update Help Center with OG meta tags / social sharing info for providers
+
+## Feature: Search by Provider/Business Name
+- [x] Expand searchServices DB query to also match provider businessName via JOIN
+- [x] Add searchProviders DB function to find providers by business name
+- [x] Add provider.search tRPC endpoint returning matching providers
+- [x] Read URL ?q= param in Search.tsx to pre-fill keyword from homepage
+- [x] Show provider-level results section above service results
+- [x] Show provider/business name on each service result card
+- [x] Write tests for provider name search (10 tests passing)

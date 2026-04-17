@@ -76,6 +76,32 @@ export const providerRouter = router({
       return await db.getAllProviders(input || {});
     }),
 
+  search: publicProcedure
+    .input(z.object({ query: z.string() }))
+    .query(async ({ input }) => {
+      if (!input.query.trim()) return [];
+      const providers = await db.searchProviders(input.query.trim());
+      // Enrich with categories
+      const enriched = await Promise.all(
+        providers.map(async (provider: any) => {
+          const categories = await db.getProviderCategories(provider.id);
+          let slug = provider.profileSlug;
+          if (!slug) {
+            const baseSlug = provider.businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+            slug = `${baseSlug}-${provider.id}`;
+            await db.updateProviderSlug(provider.id, slug);
+          }
+          return {
+            ...provider,
+            slug,
+            profileSlug: slug,
+            categories: categories.map((c: any) => ({ id: c.categoryId, name: c.categoryName })),
+          };
+        })
+      );
+      return enriched;
+    }),
+
   listFeatured: publicProcedure.query(async () => {
     const providers = await db.getAllProviders({ isActive: true });
     // Separate official provider(s) to ensure they always appear first

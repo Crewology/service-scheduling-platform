@@ -59,6 +59,7 @@ export {
   removeProviderCategory,
   setProviderCategories,
   getProvidersByCategory,
+  searchProviders,
 } from "./db/services";
 
 // Availability management

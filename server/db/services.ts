@@ -3,7 +3,9 @@ import {
   serviceCategories,
   services,
   servicePhotos,
+  serviceProviders,
   providerCategories,
+  users,
   type Service,
   type ProviderCategory,
 } from "../../drizzle/schema";
@@ -136,13 +138,89 @@ export async function searchServices(searchTerm: string) {
   const db = await getDb();
   if (!db) return [];
   const term = `%${searchTerm}%`;
-  return await db.select().from(services)
+  // Search services by name/description AND by provider business name
+  const rows = await db
+    .select({
+      id: services.id,
+      providerId: services.providerId,
+      categoryId: services.categoryId,
+      name: services.name,
+      description: services.description,
+      serviceType: services.serviceType,
+      pricingModel: services.pricingModel,
+      basePrice: services.basePrice,
+      hourlyRate: services.hourlyRate,
+      durationMinutes: services.durationMinutes,
+      depositRequired: services.depositRequired,
+      depositType: services.depositType,
+      depositAmount: services.depositAmount,
+      depositPercentage: services.depositPercentage,
+      cancellationPolicy: services.cancellationPolicy,
+      specialRequirements: services.specialRequirements,
+      bufferTimeMinutes: services.bufferTimeMinutes,
+      isActive: services.isActive,
+      createdAt: services.createdAt,
+      updatedAt: services.updatedAt,
+      deletedAt: services.deletedAt,
+      businessName: serviceProviders.businessName,
+      providerSlug: serviceProviders.profileSlug,
+    })
+    .from(services)
+    .innerJoin(serviceProviders, eq(services.providerId, serviceProviders.id))
     .where(and(
       eq(services.isActive, true),
-      or(like(services.name, term), like(services.description, term))
+      eq(serviceProviders.isActive, true),
+      or(
+        like(services.name, term),
+        like(services.description, term),
+        like(serviceProviders.businessName, term)
+      )
     ))
     .orderBy(services.name)
     .limit(50);
+  return rows;
+}
+
+/**
+ * Search providers by business name. Returns enriched provider objects
+ * with categories and profile photo for display in search results.
+ */
+export async function searchProviders(searchTerm: string) {
+  const db = await getDb();
+  if (!db) return [];
+  const term = `%${searchTerm}%`;
+  const rows = await db
+    .select({
+      id: serviceProviders.id,
+      userId: serviceProviders.userId,
+      businessName: serviceProviders.businessName,
+      description: serviceProviders.description,
+      city: serviceProviders.city,
+      state: serviceProviders.state,
+      averageRating: serviceProviders.averageRating,
+      totalReviews: serviceProviders.totalReviews,
+      totalBookings: serviceProviders.totalBookings,
+      profileSlug: serviceProviders.profileSlug,
+      isOfficial: serviceProviders.isOfficial,
+      isFeatured: serviceProviders.isFeatured,
+      verificationStatus: serviceProviders.verificationStatus,
+      profilePhotoUrl: users.profilePhotoUrl,
+    })
+    .from(serviceProviders)
+    .innerJoin(users, eq(serviceProviders.userId, users.id))
+    .where(and(
+      eq(serviceProviders.isActive, true),
+      or(
+        like(serviceProviders.businessName, term),
+        like(serviceProviders.description, term)
+      )
+    ))
+    .orderBy(
+      desc(serviceProviders.isOfficial),
+      desc(serviceProviders.averageRating)
+    )
+    .limit(10);
+  return rows;
 }
 
 export async function getServicesByProvider(providerId: number) {

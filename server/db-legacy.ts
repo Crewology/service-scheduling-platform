@@ -292,23 +292,29 @@ export async function searchServices(searchTerm: string) {
   const db = await getDb();
   if (!db) return [];
 
+  const term = `%${searchTerm}%`;
   // Search with priority boost for paid tier providers
+  // Also search by provider business name and include businessName/providerSlug in results
   const results = await db.select({
     service: services,
     tier: providerSubscriptions.tier,
     subStatus: providerSubscriptions.status,
     isFeatured: serviceProviders.isFeatured,
+    businessName: serviceProviders.businessName,
+    providerSlug: serviceProviders.profileSlug,
   })
     .from(services)
     .leftJoin(serviceProviders, eq(services.providerId, serviceProviders.id))
     .leftJoin(providerSubscriptions, eq(serviceProviders.id, providerSubscriptions.providerId))
     .where(and(
       or(
-        like(services.name, `%${searchTerm}%`),
-        like(services.description, `%${searchTerm}%`)
+        like(services.name, term),
+        like(services.description, term),
+        like(serviceProviders.businessName, term)
       ),
       eq(services.isActive, true)
-    ));
+    ))
+    .limit(50);
 
   // Sort: featured first, then premium, then basic, then free
   const tierOrder: Record<string, number> = { premium: 0, basic: 1, free: 2 };
@@ -325,7 +331,7 @@ export async function searchServices(searchTerm: string) {
     return (b.service.createdAt?.getTime() || 0) - (a.service.createdAt?.getTime() || 0);
   });
 
-  return results.map(r => r.service);
+  return results.map(r => ({ ...r.service, businessName: r.businessName, providerSlug: r.providerSlug }));
 }
 
 // ============================================================================
