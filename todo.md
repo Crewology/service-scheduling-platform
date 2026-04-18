@@ -927,3 +927,17 @@
 ## Bug Fix: Browse & Search Still Broken on Production
 - [ ] Browse Services page shows "No categories found" when not signed in
 - [ ] Search page auto-triggers search on page load without user input
+
+## Task: Comprehensive Platform Documentation
+- [x] Write PLATFORM_DOCS.md covering all architecture, schema, routes, APIs, components, tiers, integrations, and features
+- [x] Document all 28 database tables with columns and relationships
+- [x] Document all 38 application routes with auth requirements
+- [x] Document all 22 tRPC routers with key procedures
+- [x] Document all 24 DB helper files, 7 server modules, 8 Express routes
+- [x] Document all 38 pages, 19 components, 7 shared components, 12 hooks, 2 contexts
+- [x] Document 5 shared utilities (const, duration, shareUrl, timeSlots, types)
+- [x] Document provider tiers (Free/Basic/Premium) and customer tiers (Free/Pro/Business)
+- [x] Document all integrations (Stripe, Twilio, SSE, PWA, iCal, S3, OG tags, email)
+- [x] Document complete feature inventory across 30+ development phases
+- [x] Document all resolved bug fixes and known issues
+- [x] Include service category appendix (42 categories) and test coverage summary (530+ tests, 51 files)
