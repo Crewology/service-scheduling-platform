@@ -917,3 +917,9 @@
 
 ## Bug Fix: 404 on "Go to Dashboard" Button
 - [x] Fix 404 error when clicking "Go to Dashboard" on the homepage — link was /dashboard, changed to /provider/dashboard
+
+## Bug Fix: Browse & Search Issues (Logged Out)
+- [x] Browse Services page: disabled refetchOnWindowFocus globally to prevent loading flash on tab switch
+- [x] Search not finding "Chisolm Audio": fixed price filter to include custom_quote services with null basePrice
+- [x] Search auto-triggers on tab switch: disabled refetchOnWindowFocus globally in QueryClient config
+- [x] Provider category names showing as null in search results: fixed getProviderCategories to JOIN with serviceCategories

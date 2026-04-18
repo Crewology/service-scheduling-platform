@@ -41,12 +41,21 @@ export async function getCategoryBySlug(slug: string) {
 // PROVIDER-CATEGORY MANAGEMENT (multi-category support)
 // ============================================================================
 
-export async function getProviderCategories(providerId: number): Promise<ProviderCategory[]> {
+export async function getProviderCategories(providerId: number) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(providerCategories)
+  const rows = await db.select({
+    id: providerCategories.id,
+    providerId: providerCategories.providerId,
+    categoryId: providerCategories.categoryId,
+    isActive: providerCategories.isActive,
+    createdAt: providerCategories.createdAt,
+    categoryName: serviceCategories.name,
+  }).from(providerCategories)
+    .innerJoin(serviceCategories, eq(providerCategories.categoryId, serviceCategories.id))
     .where(and(eq(providerCategories.providerId, providerId), eq(providerCategories.isActive, true)))
     .orderBy(providerCategories.createdAt);
+  return rows;
 }
 
 export async function addProviderCategory(providerId: number, categoryId: number): Promise<void> {

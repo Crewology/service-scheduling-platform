@@ -91,10 +91,16 @@ export const serviceRouter = router({
         results = results.filter(s => s.categoryId === input.categoryId);
       }
       if (input.minPrice !== undefined) {
-        results = results.filter(s => parseFloat(s.basePrice || "0") >= input.minPrice!);
+        results = results.filter(s => {
+          if (!s.basePrice) return true; // Include custom_quote / no-price services
+          return parseFloat(s.basePrice) >= input.minPrice!;
+        });
       }
       if (input.maxPrice !== undefined) {
-        results = results.filter(s => parseFloat(s.basePrice || "0") <= input.maxPrice!);
+        results = results.filter(s => {
+          if (!s.basePrice) return true; // Include custom_quote / no-price services
+          return parseFloat(s.basePrice) <= input.maxPrice!;
+        });
       }
       if (input.location && input.location.trim()) {
         const loc = input.location.toLowerCase().trim();
