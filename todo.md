@@ -910,3 +910,10 @@
 - [x] ShareProfile Copy Link button also copies /api/og/ URL instead of SPA URL
 - [x] Slug editor input field fixed for mobile iPhone — full-width, 16px font (prevents iOS zoom), stacked layout
 - [x] Native share ("More sharing options") also uses /api/og/ URL
+
+## New Category: Holistic Wellness Center
+- [ ] Add Holistic Wellness Center category to the database
+- [ ] Add appropriate services under the new category
+
+## Bug Fix: 404 on "Go to Dashboard" Button
+- [x] Fix 404 error when clicking "Go to Dashboard" on the homepage — link was /dashboard, changed to /provider/dashboard

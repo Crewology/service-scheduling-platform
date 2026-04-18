@@ -381,7 +381,7 @@ export default function Home() {
             </div>
             
             {isAuthenticated && myProviderProfile ? (
-              <Link href="/dashboard">
+              <Link href="/provider/dashboard">
                 <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90">
                   Go to Dashboard
                   <ArrowRight className="ml-2 h-5 w-5" />
