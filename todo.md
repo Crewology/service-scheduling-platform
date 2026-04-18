@@ -923,3 +923,7 @@
 - [x] Search not finding "Chisolm Audio": fixed price filter to include custom_quote services with null basePrice
 - [x] Search auto-triggers on tab switch: disabled refetchOnWindowFocus globally in QueryClient config
 - [x] Provider category names showing as null in search results: fixed getProviderCategories to JOIN with serviceCategories
+
+## Bug Fix: Browse & Search Still Broken on Production
+- [ ] Browse Services page shows "No categories found" when not signed in
+- [ ] Search page auto-triggers search on page load without user input
