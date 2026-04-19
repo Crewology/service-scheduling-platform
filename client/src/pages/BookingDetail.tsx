@@ -212,8 +212,16 @@ export default function BookingDetail() {
               Created {formatDate(booking.createdAt)}
             </p>
           </div>
-          {/* Status action buttons */}
+          {/* Quick actions */}
           <div className="flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setLocation(`/messages/${booking.id}`)}
+            >
+              <MessageSquare className="h-4 w-4 mr-1" />
+              Message
+            </Button>
             {booking.status === "pending" && (
               <>
                 <Button
@@ -680,6 +688,14 @@ export default function BookingDetail() {
                         Open Full Chat
                       </Button>
                     </Link>
+                    {isCustomer && provider && (
+                      <Link href={`/messages/${booking.id}`}>
+                        <Button variant="default" size="sm" className="w-full mt-2">
+                          <MessageSquare className="h-4 w-4 mr-1" />
+                          Message Provider
+                        </Button>
+                      </Link>
+                    )}
                   </>
                 ) : (
                   <p className="text-muted-foreground">Customer info unavailable</p>

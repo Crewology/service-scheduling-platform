@@ -954,3 +954,15 @@
 - [x] startConversation tRPC procedure for direct messaging without a booking
 - [x] Message dialog with textarea, character counter, and send button
 - [x] 10 tests passing for messageRouter (5 new startConversation tests)
+
+## Feature: File/Image Attachments in Messages
+- [x] Add file upload endpoint for message attachments (S3 storage)
+- [x] Update message send procedure to accept attachment URL and metadata
+- [x] Add attachment picker (paperclip icon) in chat UI with image preview
+- [x] Display inline image/file attachments in message bubbles
+- [x] Support image, PDF, and common document types
+- [x] File size validation (max 10MB)
+
+## Feature: Message Button on Booking Detail Pages
+- [x] Add "Message" button on booking detail page for quick conversation access
+- [x] Navigate directly to the booking's conversation thread

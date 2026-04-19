@@ -28,6 +28,11 @@ vi.mock("./notifications/pushHelper", () => ({
   sendPushNotification: vi.fn(),
 }));
 
+// Mock storage for attachment upload tests
+vi.mock("./storage", () => ({
+  storagePut: vi.fn().mockResolvedValue({ key: "test-key", url: "https://cdn.example.com/file.jpg" }),
+}));
+
 import * as db from "./db";
 
 type AuthenticatedUser = NonNullable<TrpcContext["user"]>;
@@ -210,12 +215,15 @@ describe("message.startConversation", () => {
     });
 
     expect(result).toEqual({ conversationId: "conv-1-2" });
-    expect(db.createMessage).toHaveBeenCalledWith({
-      conversationId: "conv-1-2",
-      senderId: 1,
-      recipientId: 2,
-      messageText: "Hi, I'm interested in your services!",
-    });
+    expect(db.createMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        conversationId: "conv-1-2",
+        senderId: 1,
+        recipientId: 2,
+        messageText: "Hi, I'm interested in your services!",
+        attachmentUrl: null,
+      })
+    );
     expect(db.createNotification).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: 2,
@@ -266,7 +274,6 @@ describe("message.startConversation", () => {
     vi.mocked(db.createMessage).mockResolvedValue(undefined as any);
     vi.mocked(db.createNotification).mockResolvedValue(undefined as any);
 
-    // User 10 messages user 5 → should still be conv-5-10
     const ctx = createAuthContext(10);
     const caller = appRouter.createCaller(ctx);
     const result = await caller.message.startConversation({
@@ -290,5 +297,155 @@ describe("message.startConversation", () => {
         messageText: "",
       })
     ).rejects.toThrow();
+  });
+});
+
+describe("message.uploadAttachment", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("uploads a valid image and returns URL", async () => {
+    const ctx = createAuthContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const result = await caller.message.uploadAttachment({
+      base64: "iVBORw0KGgoAAAANSUhEUg==", // tiny base64
+      mimeType: "image/png",
+      fileName: "test-image.png",
+      fileSize: 1024,
+    });
+
+    expect(result).toMatchObject({
+      url: "https://cdn.example.com/file.jpg",
+      fileName: "test-image.png",
+      mimeType: "image/png",
+    });
+  });
+
+  it("rejects unsupported file types", async () => {
+    const ctx = createAuthContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.message.uploadAttachment({
+        base64: "dGVzdA==",
+        mimeType: "application/zip",
+        fileName: "archive.zip",
+        fileSize: 1024,
+      })
+    ).rejects.toThrow("File type not allowed");
+  });
+
+  it("rejects files exceeding 10MB", async () => {
+    const ctx = createAuthContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.message.uploadAttachment({
+        base64: "dGVzdA==",
+        mimeType: "image/png",
+        fileName: "huge.png",
+        fileSize: 11 * 1024 * 1024, // 11MB
+      })
+    ).rejects.toThrow("File too large");
+  });
+
+  it("accepts PDF files", async () => {
+    const ctx = createAuthContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const result = await caller.message.uploadAttachment({
+      base64: "JVBERi0xLjQ=",
+      mimeType: "application/pdf",
+      fileName: "document.pdf",
+      fileSize: 5000,
+    });
+
+    expect(result.mimeType).toBe("application/pdf");
+    expect(result.fileName).toBe("document.pdf");
+  });
+});
+
+describe("message.send with attachments", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("sends a message with an attachment URL", async () => {
+    vi.mocked(db.createMessage).mockResolvedValue(undefined as any);
+    vi.mocked(db.getConversationMessages).mockResolvedValue([
+      {
+        id: 1,
+        conversationId: "conv-1-2",
+        senderId: 1,
+        recipientId: 2,
+        messageText: "Check this out",
+        attachmentUrl: "https://cdn.example.com/file.jpg",
+        bookingId: null,
+        isRead: false,
+        readAt: null,
+        createdAt: new Date(),
+      },
+    ] as any);
+    vi.mocked(db.createNotification).mockResolvedValue(undefined as any);
+
+    const ctx = createAuthContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.message.send({
+      recipientId: 2,
+      messageText: "Check this out",
+      attachmentUrl: "https://cdn.example.com/file.jpg",
+    });
+
+    expect(result.attachmentUrl).toBe("https://cdn.example.com/file.jpg");
+    expect(db.createMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        attachmentUrl: "https://cdn.example.com/file.jpg",
+        messageText: "Check this out",
+      })
+    );
+  });
+
+  it("sends attachment-only message (no text)", async () => {
+    vi.mocked(db.createMessage).mockResolvedValue(undefined as any);
+    vi.mocked(db.getConversationMessages).mockResolvedValue([
+      {
+        id: 2,
+        conversationId: "conv-1-2",
+        senderId: 1,
+        recipientId: 2,
+        messageText: "📎 Attachment",
+        attachmentUrl: "https://cdn.example.com/doc.pdf",
+        bookingId: null,
+        isRead: false,
+        readAt: null,
+        createdAt: new Date(),
+      },
+    ] as any);
+    vi.mocked(db.createNotification).mockResolvedValue(undefined as any);
+
+    const ctx = createAuthContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.message.send({
+      recipientId: 2,
+      messageText: "",
+      attachmentUrl: "https://cdn.example.com/doc.pdf",
+    });
+
+    expect(result.messageText).toBe("📎 Attachment");
+    expect(result.attachmentUrl).toBe("https://cdn.example.com/doc.pdf");
+  });
+
+  it("rejects message with no text and no attachment", async () => {
+    const ctx = createAuthContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.message.send({
+        recipientId: 2,
+        messageText: "",
+      })
+    ).rejects.toThrow("Message text or attachment required");
   });
 });
