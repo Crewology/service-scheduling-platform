@@ -159,6 +159,60 @@ export const messageRouter = router({
       return await db.getMessagesByBooking(input.bookingId);
     }),
   
+  startConversation: protectedProcedure
+    .input(z.object({
+      recipientId: z.number(),
+      messageText: z.string().min(1).max(2000),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.recipientId === ctx.user.id) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Cannot message yourself" });
+      }
+      // Check recipient exists
+      const recipient = await db.getUserById(input.recipientId);
+      if (!recipient) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      }
+      const ids = [ctx.user.id, input.recipientId].sort((a, b) => a - b);
+      const conversationId = `conv-${ids[0]}-${ids[1]}`;
+      
+      await db.createMessage({
+        conversationId,
+        senderId: ctx.user.id,
+        recipientId: input.recipientId,
+        messageText: input.messageText,
+      });
+      
+      // Push notifications
+      try {
+        const preview = input.messageText.length > 100 ? input.messageText.slice(0, 100) + "..." : input.messageText;
+        await db.createNotification({
+          userId: input.recipientId,
+          notificationType: "message_received",
+          title: "New Message",
+          message: `${ctx.user.name || "Someone"}: ${preview}`,
+          actionUrl: `/messages`,
+        });
+        const { sseManager } = await import("../sseManager");
+        sseManager.pushMessageNotification(input.recipientId, {
+          conversationId,
+          senderId: ctx.user.id,
+          senderName: ctx.user.name || "Someone",
+          messagePreview: preview,
+        });
+        const { sendPushNotification } = await import("../notifications/pushHelper");
+        sendPushNotification("message_received", { userId: input.recipientId }, {
+          customerName: ctx.user.name || "Someone",
+          providerName: ctx.user.name || "Someone",
+          message: preview,
+        });
+      } catch (err) {
+        console.error("[Message] Notification failed (non-blocking):", err);
+      }
+      
+      return { conversationId };
+    }),
+
   markAsRead: protectedProcedure
     .input(z.object({ conversationId: z.string() }))
     .mutation(async ({ ctx, input }) => {

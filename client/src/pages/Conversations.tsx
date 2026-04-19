@@ -2,19 +2,60 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
-import { MessageSquare, ArrowRight, Inbox } from "lucide-react";
+import { MessageSquare, ArrowRight, Inbox, RefreshCw } from "lucide-react";
 import { useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { useSSE } from "@/hooks/useSSE";
+import { useCallback, useState, useEffect } from "react";
+import { toast } from "sonner";
 
 export default function Conversations() {
   const { user, isAuthenticated, loading } = useAuth();
   const [, setLocation] = useLocation();
+  const utils = trpc.useUtils();
+  const [sseConnected, setSseConnected] = useState(false);
 
-  const { data: conversations, isLoading } = trpc.message.myConversations.useQuery(undefined, {
+  const { data: conversations, isLoading, isFetching } = trpc.message.myConversations.useQuery(undefined, {
     enabled: isAuthenticated,
+    // Slower polling when SSE is active, faster as fallback
+    refetchInterval: sseConnected ? 60000 : 15000,
   });
+
+  // SSE real-time updates: instantly refresh conversations when a new message arrives
+  const handleNewMessage = useCallback((data: any) => {
+    // Invalidate the conversations list so it re-fetches immediately
+    utils.message.myConversations.invalidate();
+    utils.message.unreadCount.invalidate();
+  }, [utils]);
+
+  const handleNotification = useCallback((data: any) => {
+    // Also refresh on general notifications (covers message_received type)
+    if (data.notificationType === "message_received") {
+      utils.message.myConversations.invalidate();
+    }
+  }, [utils]);
+
+  useSSE({
+    enabled: isAuthenticated,
+    onNewMessage: handleNewMessage,
+    onNotification: handleNotification,
+    onConnected: () => setSseConnected(true),
+    onDisconnected: () => setSseConnected(false),
+  });
+
+  // Auto-open a specific conversation if linked from notification
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const convId = params.get("conversation");
+    if (convId && conversations && conversations.length > 0) {
+      const match = conversations.find((c: any) => c.conversationId === convId);
+      if (match?.bookingId) {
+        setLocation(`/messages/${match.bookingId}`);
+      }
+    }
+  }, [conversations, setLocation]);
 
   if (loading) {
     return (
@@ -40,10 +81,18 @@ export default function Conversations() {
     <div className="min-h-screen bg-background">
       <NavHeader />
       <div className="container py-8 max-w-3xl">
-        <PageHeader
-          title="Messages"
-          subtitle="Your conversations with providers and customers"
-        />
+        <div className="flex items-center justify-between">
+          <PageHeader
+            title="Messages"
+            subtitle="Your conversations with providers and customers"
+          />
+          {sseConnected && (
+            <span className="flex items-center gap-1.5 text-xs text-green-600">
+              <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+              Live
+            </span>
+          )}
+        </div>
 
         {isLoading ? (
           <div className="space-y-3 mt-6">
@@ -58,6 +107,7 @@ export default function Conversations() {
               <h3 className="text-lg font-medium mb-2">No messages yet</h3>
               <p className="text-muted-foreground text-sm mb-6">
                 When you book a service or receive a booking, you can message the other party here.
+                You can also start a conversation from any provider's profile page.
               </p>
               <Button onClick={() => setLocation("/browse")} variant="outline">
                 Browse Services
@@ -82,6 +132,9 @@ export default function Conversations() {
                   onClick={() => {
                     if (conv.bookingId) {
                       setLocation(`/messages/${conv.bookingId}`);
+                    } else {
+                      // For conversations without a booking, navigate to messages with conversationId
+                      toast.info("This conversation doesn't have a linked booking yet. Messages will appear once a booking is created.");
                     }
                   }}
                 >

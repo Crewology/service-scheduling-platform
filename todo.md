@@ -944,3 +944,13 @@
 
 ## Bug: Messages Navigation Redirects to My Bookings
 - [x] Fix Messages icon/link in navbar redirecting to My Bookings instead of Messages page
+
+## Feature: Start Conversation Button & Real-time SSE Messages
+- [x] Add "Start Conversation" button on public provider profiles
+- [x] Add "Start Conversation" button on booking detail pages (accessible via provider profile)
+- [x] Implement real-time SSE updates for conversations inbox (instant refresh on new messages)
+- [x] SSE "Live" indicator on conversations page
+- [x] Reduced polling when SSE active (60s vs 15s fallback)
+- [x] startConversation tRPC procedure for direct messaging without a booking
+- [x] Message dialog with textarea, character counter, and send button
+- [x] 10 tests passing for messageRouter (5 new startConversation tests)

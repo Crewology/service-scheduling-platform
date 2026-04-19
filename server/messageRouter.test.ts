@@ -181,3 +181,114 @@ describe("message.listByBooking", () => {
     await expect(caller.message.listByBooking({ bookingId: 10 })).rejects.toThrow("Access denied");
   });
 });
+
+describe("message.startConversation", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("creates a new conversation and returns conversationId", async () => {
+    vi.mocked(db.getUserById).mockResolvedValue({
+      id: 2,
+      openId: "recipient",
+      name: "Recipient User",
+      email: "recipient@example.com",
+      loginMethod: "manus",
+      role: "provider",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastSignedIn: new Date(),
+    } as any);
+    vi.mocked(db.createMessage).mockResolvedValue(undefined as any);
+    vi.mocked(db.createNotification).mockResolvedValue(undefined as any);
+
+    const ctx = createAuthContext(1);
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.message.startConversation({
+      recipientId: 2,
+      messageText: "Hi, I'm interested in your services!",
+    });
+
+    expect(result).toEqual({ conversationId: "conv-1-2" });
+    expect(db.createMessage).toHaveBeenCalledWith({
+      conversationId: "conv-1-2",
+      senderId: 1,
+      recipientId: 2,
+      messageText: "Hi, I'm interested in your services!",
+    });
+    expect(db.createNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 2,
+        notificationType: "message_received",
+        title: "New Message",
+      })
+    );
+  });
+
+  it("throws BAD_REQUEST when messaging yourself", async () => {
+    const ctx = createAuthContext(1);
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.message.startConversation({
+        recipientId: 1,
+        messageText: "Hello myself",
+      })
+    ).rejects.toThrow("Cannot message yourself");
+  });
+
+  it("throws NOT_FOUND when recipient does not exist", async () => {
+    vi.mocked(db.getUserById).mockResolvedValue(null as any);
+
+    const ctx = createAuthContext(1);
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.message.startConversation({
+        recipientId: 999,
+        messageText: "Hello?",
+      })
+    ).rejects.toThrow("User not found");
+  });
+
+  it("generates correct conversationId regardless of user order", async () => {
+    vi.mocked(db.getUserById).mockResolvedValue({
+      id: 5,
+      openId: "user5",
+      name: "User Five",
+      email: "u5@example.com",
+      loginMethod: "manus",
+      role: "customer",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastSignedIn: new Date(),
+    } as any);
+    vi.mocked(db.createMessage).mockResolvedValue(undefined as any);
+    vi.mocked(db.createNotification).mockResolvedValue(undefined as any);
+
+    // User 10 messages user 5 → should still be conv-5-10
+    const ctx = createAuthContext(10);
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.message.startConversation({
+      recipientId: 5,
+      messageText: "Hey there!",
+    });
+
+    expect(result).toEqual({ conversationId: "conv-5-10" });
+    expect(db.createMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ conversationId: "conv-5-10" })
+    );
+  });
+
+  it("rejects empty messages", async () => {
+    const ctx = createAuthContext(1);
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.message.startConversation({
+        recipientId: 2,
+        messageText: "",
+      })
+    ).rejects.toThrow();
+  });
+});

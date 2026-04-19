@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef } from "react";
 import { NavHeader } from "@/components/shared/NavHeader";
-import { useParams, Link } from "wouter";
+import { useParams, Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { formatDuration } from "../../../shared/duration";
 import { Card, CardContent } from "@/components/ui/card";
@@ -148,8 +148,20 @@ export default function PublicProviderProfile() {
   const [quoteLocationType, setQuoteLocationType] = useState<"mobile" | "fixed_location" | "virtual">("mobile");
   const [quoteCategory, setQuoteCategory] = useState<number | undefined>(undefined);
   const [quoteSubmitting, setQuoteSubmitting] = useState(false);
+  const [showMessageDialog, setShowMessageDialog] = useState(false);
+  const [directMessage, setDirectMessage] = useState("");
 
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
+  const startConversation = trpc.message.startConversation.useMutation({
+    onSuccess: () => {
+      toast.success("Message sent! Redirecting to your conversations...");
+      setShowMessageDialog(false);
+      setDirectMessage("");
+      setTimeout(() => setLocation("/messages"), 500);
+    },
+    onError: (err) => toast.error(err.message),
+  });
   const requestQuote = trpc.provider.requestQuote.useMutation({
     onSuccess: () => {
       toast.success("Quote request sent! The provider will respond shortly.");
@@ -665,6 +677,23 @@ export default function PublicProviderProfile() {
                     >
                       <FileText className="w-4 h-4 mr-2" /> Request a Quote
                     </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => {
+                        if (!user) {
+                          window.location.href = getLoginUrl();
+                          return;
+                        }
+                        if (user.id === provider.userId) {
+                          toast.info("This is your own profile");
+                          return;
+                        }
+                        setShowMessageDialog(true);
+                      }}
+                    >
+                      <MessageSquare className="w-4 h-4 mr-2" /> Message Provider
+                    </Button>
                   </>
                 ) : (
                   <p className="text-sm text-muted-foreground">No services available yet.</p>
@@ -889,6 +918,69 @@ export default function PublicProviderProfile() {
                 <span className="flex items-center gap-2">
                   <Send className="h-4 w-4" />
                   Send Quote Request
+                </span>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ================================================================ */}
+      {/* MESSAGE PROVIDER DIALOG                                          */}
+      {/* ================================================================ */}
+      <Dialog open={showMessageDialog} onOpenChange={setShowMessageDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5 text-primary" />
+              Message {provider.businessName}
+            </DialogTitle>
+            <DialogDescription>
+              Start a conversation with this provider. They'll receive a notification and can reply directly.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="direct-message">Your Message *</Label>
+              <Textarea
+                id="direct-message"
+                placeholder="Hi! I'm interested in your services. I'd like to know more about..."
+                value={directMessage}
+                onChange={(e) => setDirectMessage(e.target.value)}
+                rows={4}
+                maxLength={2000}
+              />
+              <p className="text-xs text-muted-foreground">
+                {directMessage.length}/2000 characters
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="flex gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setShowMessageDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (!directMessage.trim()) {
+                  toast.error("Please enter a message");
+                  return;
+                }
+                startConversation.mutate({
+                  recipientId: provider.userId,
+                  messageText: directMessage.trim(),
+                });
+              }}
+              disabled={startConversation.isPending || !directMessage.trim()}
+            >
+              {startConversation.isPending ? (
+                <span className="flex items-center gap-2">
+                  <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Sending...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Send className="h-4 w-4" />
+                  Send Message
                 </span>
               )}
             </Button>
