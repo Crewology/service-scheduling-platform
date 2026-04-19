@@ -7,6 +7,8 @@ interface UseSSEOptions {
   onNotification?: SSEEventHandler;
   onUnreadCount?: SSEEventHandler;
   onNewMessage?: SSEEventHandler;
+  onTyping?: SSEEventHandler;
+  onReadReceipt?: SSEEventHandler;
   onConnected?: (clientId: string) => void;
   onDisconnected?: () => void;
 }
@@ -23,6 +25,8 @@ export function useSSE(options: UseSSEOptions = {}) {
     onNotification,
     onUnreadCount,
     onNewMessage,
+    onTyping,
+    onReadReceipt,
     onConnected,
     onDisconnected,
   } = options;
@@ -37,6 +41,8 @@ export function useSSE(options: UseSSEOptions = {}) {
     onNotification,
     onUnreadCount,
     onNewMessage,
+    onTyping,
+    onReadReceipt,
     onConnected,
     onDisconnected,
   });
@@ -44,6 +50,8 @@ export function useSSE(options: UseSSEOptions = {}) {
     onNotification,
     onUnreadCount,
     onNewMessage,
+    onTyping,
+    onReadReceipt,
     onConnected,
     onDisconnected,
   };
@@ -92,6 +100,24 @@ export function useSSE(options: UseSSEOptions = {}) {
         try {
           const data = JSON.parse(e.data);
           handlersRef.current.onNewMessage?.(data);
+        } catch {
+          // ignore parse errors
+        }
+      });
+
+      es.addEventListener("typing", (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          handlersRef.current.onTyping?.(data);
+        } catch {
+          // ignore parse errors
+        }
+      });
+
+      es.addEventListener("readReceipt", (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          handlersRef.current.onReadReceipt?.(data);
         } catch {
           // ignore parse errors
         }

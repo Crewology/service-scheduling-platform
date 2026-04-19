@@ -137,6 +137,29 @@ class SSEManager {
   }
 
   /**
+   * Send a typing indicator event to a user
+   */
+  pushTypingIndicator(userId: number, data: {
+    conversationId: string;
+    senderId: number;
+    senderName: string;
+    isTyping: boolean;
+  }): void {
+    this.sendToUser(userId, "typing", data);
+  }
+
+  /**
+   * Send a read receipt event to a user (sender sees their messages were read)
+   */
+  pushReadReceipt(userId: number, data: {
+    conversationId: string;
+    readBy: number;
+    readAt: string;
+  }): void {
+    this.sendToUser(userId, "readReceipt", data);
+  }
+
+  /**
    * Broadcast raw data to all connected clients (used for heartbeat)
    */
   private broadcast(data: string): void {

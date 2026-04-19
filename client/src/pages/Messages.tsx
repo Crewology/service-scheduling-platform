@@ -4,12 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { trpc } from "@/lib/trpc";
-import { Send, Paperclip, X, FileText, Image as ImageIcon, Download } from "lucide-react";
+import { Send, Paperclip, X, FileText, Download, Check, CheckCheck } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useParams } from "wouter";
 import { getLoginUrl } from "@/const";
 import { toast } from "sonner";
 import { NavHeader } from "@/components/shared/NavHeader";
+import { useSSE } from "@/hooks/useSSE";
 
 // Helper to determine if a URL is an image
 function isImageUrl(url: string): boolean {
@@ -24,7 +25,6 @@ function getFileNameFromUrl(url: string): string {
     const path = new URL(url).pathname;
     const parts = path.split("/");
     const raw = parts[parts.length - 1] || "file";
-    // Remove the timestamp-hash prefix (e.g., "1234567890-abc12345-")
     const cleaned = raw.replace(/^\d+-[a-z0-9]+-/, "");
     return decodeURIComponent(cleaned);
   } catch {
@@ -42,6 +42,7 @@ export default function Messages() {
   const [message, setMessage] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const utils = trpc.useUtils();
 
   // Attachment state
   const [pendingAttachment, setPendingAttachment] = useState<{
@@ -51,14 +52,23 @@ export default function Messages() {
   } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
+  // Typing indicator state
+  const [otherUserTyping, setOtherUserTyping] = useState(false);
+  const [typingUserName, setTypingUserName] = useState("");
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastTypingSentRef = useRef(0);
+
+  // Read receipt state — tracks which messages have been read
+  const [readConversationAt, setReadConversationAt] = useState<string | null>(null);
+
   const { data: booking } = trpc.booking.getById.useQuery(
     { id: parseInt(bookingId!) },
     { enabled: isAuthenticated && !!bookingId }
   );
 
-  const { data: messages, refetch } = trpc.message.listByBooking.useQuery(
+  const { data: messagesList, refetch } = trpc.message.listByBooking.useQuery(
     { bookingId: parseInt(bookingId!) },
-    { enabled: isAuthenticated && !!bookingId, refetchInterval: 5000 }
+    { enabled: isAuthenticated && !!bookingId, refetchInterval: 15000 }
   );
 
   const { data: service } = trpc.service.getById.useQuery(
@@ -72,6 +82,66 @@ export default function Messages() {
   );
 
   const uploadAttachment = trpc.message.uploadAttachment.useMutation();
+  const sendTypingMutation = trpc.message.sendTyping.useMutation();
+  const markAsReadMutation = trpc.message.markAsRead.useMutation();
+
+  // Compute conversationId for this chat
+  const recipientId = booking && provider && user
+    ? (booking.customerId === user.id ? provider.userId : booking.customerId)
+    : null;
+  const conversationId = user && recipientId
+    ? `conv-${Math.min(user.id, recipientId)}-${Math.max(user.id, recipientId)}`
+    : null;
+
+  // SSE: listen for typing and read receipt events
+  const handleTyping = useCallback((data: any) => {
+    if (data.conversationId === conversationId && data.senderId !== user?.id) {
+      if (data.isTyping) {
+        setOtherUserTyping(true);
+        setTypingUserName(data.senderName || "");
+        // Auto-clear after 4 seconds if no new typing event
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = setTimeout(() => setOtherUserTyping(false), 4000);
+      } else {
+        setOtherUserTyping(false);
+      }
+    }
+  }, [conversationId, user?.id]);
+
+  const handleReadReceipt = useCallback((data: any) => {
+    if (data.conversationId === conversationId) {
+      setReadConversationAt(data.readAt);
+      // Refresh messages to update read status
+      refetch();
+    }
+  }, [conversationId, refetch]);
+
+  const handleNewMessage = useCallback((data: any) => {
+    if (data.conversationId === conversationId) {
+      refetch();
+      // Clear typing indicator when a message arrives
+      setOtherUserTyping(false);
+    }
+  }, [conversationId, refetch]);
+
+  useSSE({
+    enabled: isAuthenticated,
+    onTyping: handleTyping,
+    onReadReceipt: handleReadReceipt,
+    onNewMessage: handleNewMessage,
+  });
+
+  // Mark messages as read when viewing the conversation
+  useEffect(() => {
+    if (conversationId && isAuthenticated && messagesList && messagesList.length > 0) {
+      const hasUnread = messagesList.some((m: any) => m.recipientId === user?.id && !m.isRead);
+      if (hasUnread) {
+        markAsReadMutation.mutate({ conversationId });
+        utils.message.unreadCount.invalidate();
+        utils.message.myConversations.invalidate();
+      }
+    }
+  }, [conversationId, messagesList, isAuthenticated, user?.id]);
 
   const sendMessage = trpc.message.send.useMutation({
     onSuccess: () => {
@@ -94,7 +164,7 @@ export default function Messages() {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messagesList]);
 
   // Clean up preview URL on unmount
   useEffect(() => {
@@ -104,6 +174,30 @@ export default function Messages() {
       }
     };
   }, [pendingAttachment]);
+
+  // Clean up typing timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    };
+  }, []);
+
+  // Debounced typing indicator sender
+  const handleTypingInput = useCallback((text: string) => {
+    setMessage(text);
+    if (!conversationId || !recipientId) return;
+
+    const now = Date.now();
+    // Only send typing event every 2 seconds
+    if (now - lastTypingSentRef.current > 2000 && text.length > 0) {
+      lastTypingSentRef.current = now;
+      sendTypingMutation.mutate({
+        recipientId,
+        conversationId,
+        isTyping: true,
+      });
+    }
+  }, [conversationId, recipientId, sendTypingMutation]);
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -126,7 +220,6 @@ export default function Messages() {
       return;
     }
 
-    // Read as base64
     const reader = new FileReader();
     reader.onload = () => {
       const base64 = (reader.result as string).split(",")[1];
@@ -134,8 +227,6 @@ export default function Messages() {
       setPendingAttachment({ file, previewUrl, base64 });
     };
     reader.readAsDataURL(file);
-
-    // Reset file input so the same file can be re-selected
     e.target.value = "";
   }, []);
 
@@ -177,10 +268,9 @@ export default function Messages() {
   const handleSend = async () => {
     if ((!message.trim() && !pendingAttachment) || !booking || !provider) return;
     
-    const recipientId = booking.customerId === user?.id ? provider.userId : booking.customerId;
+    const rid = booking.customerId === user?.id ? provider.userId : booking.customerId;
     let attachmentUrl: string | undefined;
 
-    // Upload attachment first if present
     if (pendingAttachment) {
       setIsUploading(true);
       try {
@@ -200,7 +290,7 @@ export default function Messages() {
     }
 
     sendMessage.mutate({
-      recipientId,
+      recipientId: rid,
       messageText: message.trim(),
       bookingId: parseInt(bookingId!),
       attachmentUrl,
@@ -215,6 +305,24 @@ export default function Messages() {
   };
 
   const isSending = sendMessage.isPending || isUploading;
+
+  // Determine the last message sent by the current user that has been read
+  const getReadStatus = (msg: any, index: number) => {
+    if (msg.senderId !== user?.id) return null; // Only show on sent messages
+    
+    if (msg.isRead) {
+      // Find if this is the last read message to show "Seen at" timestamp
+      const isLastReadByMe = !messagesList?.slice(index + 1).some(
+        (m: any) => m.senderId === user?.id && m.isRead
+      );
+      return {
+        status: "read" as const,
+        readAt: msg.readAt,
+        showTimestamp: isLastReadByMe,
+      };
+    }
+    return { status: "delivered" as const, readAt: null, showTimestamp: false };
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -237,43 +345,79 @@ export default function Messages() {
         <Card className="h-[calc(100vh-16rem)] sm:h-[600px] flex flex-col">
           <ScrollArea className="flex-1 p-4" ref={scrollRef}>
             <div className="space-y-4">
-              {!messages || messages.length === 0 ? (
+              {!messagesList || messagesList.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   <p>No messages yet. Start the conversation!</p>
                 </div>
               ) : (
-                messages.map((msg: any) => {
+                messagesList.map((msg: any, index: number) => {
                   const isMe = msg.senderId === user?.id;
+                  const readInfo = getReadStatus(msg, index);
                   return (
-                    <div
-                      key={msg.id}
-                      className={`flex ${isMe ? "justify-end" : "justify-start"}`}
-                    >
-                      <div
-                        className={`max-w-[70%] rounded-lg p-3 ${
-                          isMe
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted"
-                        }`}
-                      >
-                        {/* Attachment display */}
-                        {msg.attachmentUrl && (
-                          <MessageAttachment
-                            url={msg.attachmentUrl}
-                            isMe={isMe}
-                          />
-                        )}
-                        {/* Message text (skip if it's just the placeholder) */}
-                        {msg.messageText && msg.messageText !== "📎 Attachment" && (
-                          <p className="text-sm">{msg.messageText}</p>
-                        )}
-                        <p className={`text-xs mt-1 ${isMe ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-                          {new Date(msg.createdAt).toLocaleString()}
-                        </p>
+                    <div key={msg.id}>
+                      <div className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                        <div
+                          className={`max-w-[70%] rounded-lg p-3 ${
+                            isMe
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted"
+                          }`}
+                        >
+                          {/* Attachment display */}
+                          {msg.attachmentUrl && (
+                            <MessageAttachment url={msg.attachmentUrl} isMe={isMe} />
+                          )}
+                          {/* Message text */}
+                          {msg.messageText && msg.messageText !== "📎 Attachment" && (
+                            <p className="text-sm">{msg.messageText}</p>
+                          )}
+                          <div className={`flex items-center gap-1 mt-1 ${isMe ? "justify-end" : ""}`}>
+                            <p className={`text-xs ${isMe ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                              {new Date(msg.createdAt).toLocaleString()}
+                            </p>
+                            {/* Read receipt checkmarks */}
+                            {isMe && readInfo && (
+                              <span className={`inline-flex ${readInfo.status === "read" ? "text-blue-300" : "text-primary-foreground/50"}`}>
+                                {readInfo.status === "read" ? (
+                                  <CheckCheck className="h-3.5 w-3.5" />
+                                ) : (
+                                  <Check className="h-3.5 w-3.5" />
+                                )}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
+                      {/* "Seen" timestamp on last read message */}
+                      {isMe && readInfo?.showTimestamp && readInfo.readAt && (
+                        <p className="text-[10px] text-muted-foreground text-right mt-0.5 mr-1">
+                          Seen {new Date(readInfo.readAt).toLocaleString(undefined, {
+                            hour: "numeric",
+                            minute: "2-digit",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </p>
+                      )}
                     </div>
                   );
                 })
+              )}
+
+              {/* Typing indicator */}
+              {otherUserTyping && (
+                <div className="flex justify-start">
+                  <div className="bg-muted rounded-lg px-4 py-2.5 flex items-center gap-2">
+                    <div className="flex gap-1">
+                      <span className="h-2 w-2 rounded-full bg-muted-foreground/60 animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="h-2 w-2 rounded-full bg-muted-foreground/60 animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="h-2 w-2 rounded-full bg-muted-foreground/60 animate-bounce" style={{ animationDelay: "300ms" }} />
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {typingUserName ? `${typingUserName} is typing` : "Typing"}
+                    </span>
+                  </div>
+                </div>
               )}
             </div>
           </ScrollArea>
@@ -314,7 +458,6 @@ export default function Messages() {
           {/* Message Input */}
           <div className="border-t p-4">
             <div className="flex gap-2 items-end">
-              {/* Hidden file input */}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -322,7 +465,6 @@ export default function Messages() {
                 accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.csv"
                 onChange={handleFileSelect}
               />
-              {/* Attachment button */}
               <Button
                 variant="ghost"
                 size="icon"
@@ -336,7 +478,7 @@ export default function Messages() {
               <Input
                 placeholder="Type your message..."
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                onChange={(e) => handleTypingInput(e.target.value)}
                 onKeyPress={handleKeyPress}
                 disabled={isSending}
               />
@@ -377,7 +519,6 @@ function MessageAttachment({ url, isMe }: { url: string; isMe: boolean }) {
     );
   }
 
-  // Non-image file
   return (
     <a
       href={url}

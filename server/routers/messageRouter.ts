@@ -126,6 +126,19 @@ export const messageRouter = router({
         !!input.attachmentUrl,
       );
 
+      // Clear typing indicator for sender when message is sent
+      try {
+        const { sseManager } = await import("../sseManager");
+        sseManager.pushTypingIndicator(input.recipientId, {
+          conversationId,
+          senderId: ctx.user.id,
+          senderName: ctx.user.name || "Someone",
+          isTyping: false,
+        });
+      } catch {
+        // Non-blocking
+      }
+
       return newMsg;
     }),
     
@@ -265,11 +278,124 @@ export const messageRouter = router({
       return { conversationId };
     }),
 
+  // ─── Typing Indicators ─────────────────────────────────────────
+  sendTyping: protectedProcedure
+    .input(z.object({
+      recipientId: z.number(),
+      conversationId: z.string(),
+      isTyping: z.boolean(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const { sseManager } = await import("../sseManager");
+      sseManager.pushTypingIndicator(input.recipientId, {
+        conversationId: input.conversationId,
+        senderId: ctx.user.id,
+        senderName: ctx.user.name || "Someone",
+        isTyping: input.isTyping,
+      });
+      return { success: true };
+    }),
+
+  // ─── Read Receipts (enhanced markAsRead) ───────────────────────
   markAsRead: protectedProcedure
     .input(z.object({ conversationId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       await db.markMessagesAsRead(input.conversationId, ctx.user.id);
+      
+      // Determine the other user in the conversation and push read receipt
+      try {
+        const parts = input.conversationId.replace("conv-", "").split("-");
+        const userIds = parts.map(Number);
+        const otherUserId = userIds.find(id => id !== ctx.user.id);
+        if (otherUserId) {
+          const { sseManager } = await import("../sseManager");
+          sseManager.pushReadReceipt(otherUserId, {
+            conversationId: input.conversationId,
+            readBy: ctx.user.id,
+            readAt: new Date().toISOString(),
+          });
+        }
+      } catch {
+        // Non-blocking — read receipt push is best-effort
+      }
+      
       return { success: true };
+    }),
+
+  // ─── Message Search ────────────────────────────────────────────
+  searchMessages: protectedProcedure
+    .input(z.object({
+      query: z.string().min(1).max(200),
+      dateFrom: z.string().optional(), // ISO date string
+      dateTo: z.string().optional(),   // ISO date string
+    }))
+    .query(async ({ ctx, input }) => {
+      const { getDb } = await import("../db/connection");
+      const { messages: messagesTable } = await import("../../drizzle/schema");
+      const { eq, or, and, like, gte, lte, desc } = await import("drizzle-orm");
+      
+      const database = await getDb();
+      if (!database) return [];
+
+      // Build conditions: user must be sender or recipient
+      const userCondition = or(
+        eq(messagesTable.senderId, ctx.user.id),
+        eq(messagesTable.recipientId, ctx.user.id),
+      );
+      const searchCondition = like(messagesTable.messageText, `%${input.query}%`);
+      
+      const conditions = [userCondition!, searchCondition];
+      
+      if (input.dateFrom) {
+        conditions.push(gte(messagesTable.createdAt, new Date(input.dateFrom)));
+      }
+      if (input.dateTo) {
+        // Add 1 day to include the full end date
+        const endDate = new Date(input.dateTo);
+        endDate.setDate(endDate.getDate() + 1);
+        conditions.push(lte(messagesTable.createdAt, endDate));
+      }
+
+      const results = await database.select()
+        .from(messagesTable)
+        .where(and(...conditions))
+        .orderBy(desc(messagesTable.createdAt))
+        .limit(50);
+
+      // Enrich results with conversation partner info
+      const enriched = await Promise.all(
+        results.map(async (msg) => {
+          const otherUserId = msg.senderId === ctx.user.id ? msg.recipientId : msg.senderId;
+          let otherUserName = "Unknown User";
+          try {
+            const otherUser = await db.getUserById(otherUserId);
+            if (otherUser) {
+              otherUserName = otherUser.name || otherUser.email || "Unknown User";
+            }
+            const otherProvider = await db.getProviderByUserId(otherUserId);
+            if (otherProvider) {
+              otherUserName = otherProvider.businessName || otherUserName;
+            }
+          } catch {
+            // Non-blocking
+          }
+          return {
+            id: msg.id,
+            conversationId: msg.conversationId,
+            senderId: msg.senderId,
+            recipientId: msg.recipientId,
+            messageText: msg.messageText,
+            attachmentUrl: msg.attachmentUrl,
+            bookingId: msg.bookingId,
+            createdAt: msg.createdAt,
+            otherUserId,
+            otherUserName,
+            isFromMe: msg.senderId === ctx.user.id,
+          };
+        })
+      );
+
+      return enriched;
     }),
 
   unreadCount: protectedProcedure.query(async ({ ctx }) => {

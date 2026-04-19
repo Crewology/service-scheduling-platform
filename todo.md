@@ -966,3 +966,23 @@
 ## Feature: Message Button on Booking Detail Pages
 - [x] Add "Message" button on booking detail page for quick conversation access
 - [x] Navigate directly to the booking's conversation thread
+
+## Feature: Typing Indicators via SSE
+- [x] Add typing event type to SSE manager
+- [x] Add sendTyping tRPC procedure to messageRouter
+- [x] Show "User is typing..." indicator in chat UI in real-time
+- [x] Auto-clear typing indicator after timeout (4 seconds)
+- [x] Debounce typing events from frontend (2-second throttle)
+
+## Feature: Message Search
+- [x] Add searchMessages tRPC procedure (keyword + optional date range)
+- [x] Add search UI to Conversations inbox page (search bar + date filters)
+- [x] Display search results with conversation context and highlighted matches
+- [x] Navigate to specific message in conversation from search results
+
+## Feature: Read Receipts
+- [x] Update markAsRead to record readAt timestamp per message
+- [x] Display single checkmark (delivered) / double checkmark (read) on sent messages
+- [x] Show "Seen" timestamp on the last read message
+- [x] Push read receipt events via SSE for real-time updates
+- [x] 23 messageRouter tests passing (6 new for typing, read receipts, search)

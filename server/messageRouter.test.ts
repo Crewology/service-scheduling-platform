@@ -20,6 +20,8 @@ vi.mock("./db", () => ({
 vi.mock("./sseManager", () => ({
   sseManager: {
     pushMessageNotification: vi.fn(),
+    pushTypingIndicator: vi.fn(),
+    pushReadReceipt: vi.fn(),
   },
 }));
 
@@ -447,5 +449,118 @@ describe("message.send with attachments", () => {
         messageText: "",
       })
     ).rejects.toThrow("Message text or attachment required");
+  });
+});
+
+describe("message.sendTyping", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("pushes a typing indicator event via SSE", async () => {
+    const { sseManager } = await import("./sseManager");
+
+    const ctx = createAuthContext(1);
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.message.sendTyping({
+      recipientId: 2,
+      conversationId: "conv-1-2",
+      isTyping: true,
+    });
+
+    expect(result).toEqual({ success: true });
+    expect(sseManager.pushTypingIndicator).toHaveBeenCalledWith(2, {
+      conversationId: "conv-1-2",
+      senderId: 1,
+      senderName: "Test User",
+      isTyping: true,
+    });
+  });
+
+  it("sends stop-typing event", async () => {
+    const { sseManager } = await import("./sseManager");
+
+    const ctx = createAuthContext(1);
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.message.sendTyping({
+      recipientId: 2,
+      conversationId: "conv-1-2",
+      isTyping: false,
+    });
+
+    expect(result).toEqual({ success: true });
+    expect(sseManager.pushTypingIndicator).toHaveBeenCalledWith(2, {
+      conversationId: "conv-1-2",
+      senderId: 1,
+      senderName: "Test User",
+      isTyping: false,
+    });
+  });
+});
+
+describe("message.markAsRead", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("marks messages as read and pushes read receipt via SSE", async () => {
+    vi.mocked(db.markMessagesAsRead).mockResolvedValue(undefined as any);
+    const { sseManager } = await import("./sseManager");
+
+    const ctx = createAuthContext(2);
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.message.markAsRead({
+      conversationId: "conv-1-2",
+    });
+
+    expect(result).toEqual({ success: true });
+    expect(db.markMessagesAsRead).toHaveBeenCalledWith("conv-1-2", 2);
+    // Should push read receipt to the other user (user 1)
+    expect(sseManager.pushReadReceipt).toHaveBeenCalledWith(1, {
+      conversationId: "conv-1-2",
+      readBy: 2,
+      readAt: expect.any(String),
+    });
+  });
+
+  it("pushes read receipt to the correct other user", async () => {
+    vi.mocked(db.markMessagesAsRead).mockResolvedValue(undefined as any);
+    const { sseManager } = await import("./sseManager");
+
+    const ctx = createAuthContext(1);
+    const caller = appRouter.createCaller(ctx);
+    await caller.message.markAsRead({
+      conversationId: "conv-1-5",
+    });
+
+    // User 1 reads, so receipt goes to user 5
+    expect(sseManager.pushReadReceipt).toHaveBeenCalledWith(5, expect.objectContaining({
+      conversationId: "conv-1-5",
+      readBy: 1,
+    }));
+  });
+});
+
+describe("message.searchMessages", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("rejects empty search query", async () => {
+    const ctx = createAuthContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.message.searchMessages({ query: "" })
+    ).rejects.toThrow();
+  });
+
+  it("rejects search query exceeding max length", async () => {
+    const ctx = createAuthContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.message.searchMessages({ query: "a".repeat(201) })
+    ).rejects.toThrow();
   });
 });
