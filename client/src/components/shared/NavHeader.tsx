@@ -438,7 +438,7 @@ export function NavHeader() {
                 </Link>
 
                 {/* Messages with unread badge */}
-                <Link href="/my-bookings">
+                <Link href="/messages">
                   <Button variant="ghost" size="icon" className="relative h-9 w-9" title="Messages">
                     <MessageSquare className="h-4 w-4" />
                     {unreadMessages > 0 && (
@@ -541,7 +541,7 @@ export function NavHeader() {
                     My Quotes
                   </Button>
                 </Link>
-                <Link href="/my-bookings" onClick={() => setMobileMenuOpen(false)}>
+                <Link href="/messages" onClick={() => setMobileMenuOpen(false)}>
                   <Button variant="ghost" className="w-full justify-start relative">
                     <MessageSquare className="h-4 w-4 mr-2" />
                     Messages

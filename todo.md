@@ -941,3 +941,6 @@
 - [x] Document complete feature inventory across 30+ development phases
 - [x] Document all resolved bug fixes and known issues
 - [x] Include service category appendix (42 categories) and test coverage summary (530+ tests, 51 files)
+
+## Bug: Messages Navigation Redirects to My Bookings
+- [x] Fix Messages icon/link in navbar redirecting to My Bookings instead of Messages page

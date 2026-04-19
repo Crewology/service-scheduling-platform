@@ -67,7 +67,84 @@ export const messageRouter = router({
     }),
     
   myConversations: protectedProcedure.query(async ({ ctx }) => {
-    return await db.getUserConversations(ctx.user.id);
+    // Get raw conversation list from db-legacy (grouped by conversation partner)
+    const rawConversations = await db.getUserConversations(ctx.user.id);
+    
+    if (!rawConversations || rawConversations.length === 0) return [];
+
+    // Enrich each conversation with user info, booking context, and unread count
+    const enriched = await Promise.all(
+      rawConversations.map(async (msg: any) => {
+        const otherUserId = msg.senderId === ctx.user.id ? msg.recipientId : msg.senderId;
+        
+        // Get the other user's info
+        let otherUserName = "Unknown User";
+        let otherUserPhoto: string | null = null;
+        try {
+          const otherUser = await db.getUserById(otherUserId);
+          if (otherUser) {
+            otherUserName = otherUser.name || otherUser.email || "Unknown User";
+            otherUserPhoto = otherUser.profilePhotoUrl || null;
+          }
+          // If the other user is a provider, use business name
+          const otherProvider = await db.getProviderByUserId(otherUserId);
+          if (otherProvider) {
+            otherUserName = otherProvider.businessName || otherUserName;
+          }
+        } catch {
+          // Non-blocking
+        }
+
+        // Get booking context if available
+        let bookingLabel: string | null = null;
+        let bookingId: number | null = msg.bookingId || null;
+        if (bookingId) {
+          try {
+            const booking = await db.getBookingById(bookingId);
+            if (booking) {
+              bookingLabel = `Booking #${booking.bookingNumber}`;
+            }
+          } catch {
+            // Non-blocking
+          }
+        }
+
+        // Count unread messages from this conversation partner
+        let unreadCount = 0;
+        try {
+          const { getDb } = await import("../db/connection");
+          const { messages: messagesTable } = await import("../../drizzle/schema");
+          const { eq, and } = await import("drizzle-orm");
+          const database = await getDb();
+          if (database) {
+            const result = await database.select({ count: (await import("drizzle-orm")).sql<number>`COUNT(*)` })
+              .from(messagesTable)
+              .where(and(
+                eq(messagesTable.conversationId, msg.conversationId),
+                eq(messagesTable.recipientId, ctx.user.id),
+                eq(messagesTable.isRead, false)
+              ));
+            unreadCount = result[0]?.count || 0;
+          }
+        } catch {
+          // Non-blocking
+        }
+
+        return {
+          conversationId: msg.conversationId,
+          otherUserId,
+          otherUserName,
+          otherUserPhoto,
+          lastMessage: msg.messageText,
+          lastAt: msg.createdAt,
+          bookingId,
+          bookingLabel,
+          unreadCount,
+        };
+      })
+    );
+
+    return enriched;
   }),
   
   listByBooking: protectedProcedure

@@ -16,6 +16,7 @@ import ServiceDetail from "./pages/ServiceDetail";
 import BookingConfirmation from "./pages/BookingConfirmation";
 import MyBookings from "./pages/MyBookings";
 import Messages from "./pages/Messages";
+import Conversations from "./pages/Conversations";
 import Search from "./pages/Search";
 import AdminDashboard from "./pages/AdminDashboard";
 import SubmitReview from "./pages/SubmitReview";
@@ -59,6 +60,7 @@ function Router() {
       <Route path="/service/:id" component={ServiceDetail} />
       <Route path="/booking/:id" component={BookingConfirmation} />
       <Route path="/my-bookings" component={MyBookings} />
+      <Route path="/messages" component={Conversations} />
       <Route path="/messages/:bookingId" component={Messages} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/booking/:id/review" component={SubmitReview} />
