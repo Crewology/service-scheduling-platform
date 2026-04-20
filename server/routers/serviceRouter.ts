@@ -84,6 +84,8 @@ export const serviceRouter = router({
       location: z.string().optional(),
     }))
     .query(async ({ input }) => {
+      // Ensure DB is available before searching
+      await db.requireDb();
       const searchTerm = input.query || input.keyword || "";
       let results = await db.searchServices(searchTerm);
       

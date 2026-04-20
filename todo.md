@@ -995,3 +995,20 @@
 - [x] Fix Search page auto-triggering search without user input
 - [x] Search only fires when user enters query or adjusts filters
 - [x] Shows friendly "Search for Services" welcome state on initial load
+
+## CRITICAL Bug: Browse Services empty on production/mobile
+- [x] Fix Browse Services showing "No categories found" on mobile Safari (categories API failing silently)
+- [x] Add error handling/retry logic for category.list procedure
+- [x] Ensure categories load reliably for unauthenticated users
+- [x] ROOT CAUSE: getDb() cached null forever after DB connection failure (ECONNRESET)
+- [x] Fixed both db-legacy.ts and db/connection.ts with retry logic + exponential backoff
+- [x] Added requireDb() helper that throws proper TRPCError instead of silently returning empty
+- [x] Added error state with "Try Again" button on Browse page
+- [x] Added tRPC query retry config (3 retries with exponential backoff)
+
+## CRITICAL Bug: Search returns no results for valid queries
+- [x] Fix Search returning "No results found" for "Handyman" and other valid categories
+- [x] Same root cause as Browse: DB connection caching null
+- [x] Added error state with "Try Again" button on Search page
+- [x] Added tRPC query retry config (3 retries with exponential backoff)
+- [x] Verified: Searching "Handyman" now returns 2 providers + 50 services

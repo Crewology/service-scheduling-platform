@@ -32,18 +32,43 @@ import {
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
+let _lastAttempt: number = 0;
+const MIN_RETRY_MS = 3000;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
+/**
+ * Lazily create the drizzle instance with automatic retry on failure.
+ * Fixed: no longer caches null forever on connection failure.
+ */
 export async function getDb() {
-  if (!_db && process.env.DATABASE_URL) {
+  if (_db) return _db;
+  const now = Date.now();
+  if (_lastAttempt && now - _lastAttempt < MIN_RETRY_MS) return null;
+  if (process.env.DATABASE_URL) {
+    _lastAttempt = now;
     try {
       _db = drizzle(process.env.DATABASE_URL);
+      _lastAttempt = 0;
+      console.log("[Database] Connection established successfully");
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
     }
   }
   return _db;
+}
+
+export function resetDbConnection() {
+  _db = null;
+  _lastAttempt = 0;
+}
+
+export async function requireDb() {
+  const db = await getDb();
+  if (!db) {
+    resetDbConnection();
+    throw new Error("Database temporarily unavailable. Please try again.");
+  }
+  return db;
 }
 
 // ============================================================================

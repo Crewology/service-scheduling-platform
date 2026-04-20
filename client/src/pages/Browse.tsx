@@ -2,14 +2,21 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
-import { Search, MapPin, Filter } from "lucide-react";
+import { Search, Filter, RefreshCw, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
 import { NavHeader } from "@/components/shared/NavHeader";
 
 export default function Browse() {
   const [searchTerm, setSearchTerm] = useState("");
-  const { data: categories, isLoading } = trpc.category.list.useQuery();
+  const { data: categories, isLoading, isError, error, refetch, isRefetching } = trpc.category.list.useQuery(
+    undefined,
+    {
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+      staleTime: 60_000,
+    }
+  );
 
   const filteredCategories = categories?.filter((cat) =>
     cat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -54,7 +61,30 @@ export default function Browse() {
         <div className="container">
           {isLoading ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">Loading categories...</p>
+              <div className="inline-flex items-center gap-2">
+                <RefreshCw className="h-5 w-5 animate-spin text-primary" />
+                <p className="text-muted-foreground">Loading categories...</p>
+              </div>
+            </div>
+          ) : isError ? (
+            <div className="text-center py-12">
+              <div className="max-w-md mx-auto">
+                <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Unable to Load Categories</h3>
+                <p className="text-muted-foreground mb-4">
+                  {error?.message?.includes("temporarily unavailable")
+                    ? "Our servers are experiencing a brief hiccup. This usually resolves in a few seconds."
+                    : "Something went wrong while loading categories. Please try again."}
+                </p>
+                <Button
+                  onClick={() => refetch()}
+                  disabled={isRefetching}
+                  className="gap-2"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isRefetching ? "animate-spin" : ""}`} />
+                  {isRefetching ? "Retrying..." : "Try Again"}
+                </Button>
+              </div>
             </div>
           ) : filteredCategories && filteredCategories.length > 0 ? (
             <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -92,9 +122,31 @@ export default function Browse() {
                 </Link>
               ))}
             </div>
+          ) : searchTerm ? (
+            <div className="text-center py-12">
+              <Search className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+              <p className="text-muted-foreground">No categories found matching "{searchTerm}".</p>
+              <Button variant="link" onClick={() => setSearchTerm("")} className="mt-2">
+                Clear search
+              </Button>
+            </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No categories found matching your search.</p>
+              <div className="max-w-md mx-auto">
+                <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Categories Temporarily Unavailable</h3>
+                <p className="text-muted-foreground mb-4">
+                  We're having trouble loading the service categories. Please try refreshing.
+                </p>
+                <Button
+                  onClick={() => refetch()}
+                  disabled={isRefetching}
+                  className="gap-2"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isRefetching ? "animate-spin" : ""}`} />
+                  {isRefetching ? "Refreshing..." : "Refresh"}
+                </Button>
+              </div>
             </div>
           )}
         </div>

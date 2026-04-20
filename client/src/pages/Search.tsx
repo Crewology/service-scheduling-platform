@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { EmptyState } from "@/components/shared/EmptyState";
-import { Search as SearchIcon, MapPin, DollarSign, Star, X, SlidersHorizontal, Clock, Building2, ArrowRight, BadgeCheck } from "lucide-react";
+import { Search as SearchIcon, MapPin, DollarSign, Star, X, SlidersHorizontal, Clock, Building2, ArrowRight, BadgeCheck, RefreshCw, AlertCircle } from "lucide-react";
 import { NavHeader } from "@/components/shared/NavHeader";
 
 /**
@@ -164,27 +164,39 @@ export default function Search() {
   const debouncedKeyword = useDebounce(keyword, 300);
   const debouncedLocation = useDebounce(location, 300);
 
-  const { data: categories } = trpc.category.list.useQuery();
+  const { data: categories } = trpc.category.list.useQuery(undefined, {
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+    staleTime: 60_000,
+  });
 
   // Determine if user has actively set any filter
   const hasSearchIntent = !!(debouncedKeyword || categoryId || debouncedLocation || priceRange[0] > 0 || priceRange[1] < 500);
 
   // Search services (uses debounced values to reduce API calls)
   // Only fire when user has entered a query or adjusted filters
-  const { data: services, isLoading: servicesLoading } = trpc.service.search.useQuery({
+  const { data: services, isLoading: servicesLoading, isError: servicesError, refetch: refetchServices, isRefetching: isRefetchingServices } = trpc.service.search.useQuery({
     keyword: debouncedKeyword,
     categoryId,
     minPrice: priceRange[0],
     maxPrice: priceRange[1],
     sortBy,
     location: debouncedLocation || undefined,
-  }, { enabled: hasSearchIntent });
+  }, {
+    enabled: hasSearchIntent,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+  });
 
   // Search providers by name (only when debounced keyword has 2+ chars)
   const trimmedKeyword = debouncedKeyword.trim();
-  const { data: providers, isLoading: providersLoading } = trpc.provider.search.useQuery(
+  const { data: providers, isLoading: providersLoading, isError: providersError, refetch: refetchProviders } = trpc.provider.search.useQuery(
     { query: trimmedKeyword },
-    { enabled: trimmedKeyword.length >= 2 }
+    {
+      enabled: trimmedKeyword.length >= 2,
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+    }
   );
 
   const isLoading = (hasSearchIntent && servicesLoading) || (trimmedKeyword.length >= 2 && providersLoading);
@@ -301,6 +313,24 @@ export default function Search() {
               </div>
             ) : isLoading ? (
               <LoadingSpinner message="Searching..." />
+            ) : (servicesError || providersError) ? (
+              <div className="text-center py-12">
+                <div className="max-w-md mx-auto">
+                  <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Search Temporarily Unavailable</h3>
+                  <p className="text-muted-foreground mb-4">
+                    We're having trouble connecting to our servers. This usually resolves in a few seconds.
+                  </p>
+                  <Button
+                    onClick={() => { refetchServices(); refetchProviders(); }}
+                    disabled={isRefetchingServices}
+                    className="gap-2"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isRefetchingServices ? "animate-spin" : ""}`} />
+                    {isRefetchingServices ? "Retrying..." : "Try Again"}
+                  </Button>
+                </div>
+              </div>
             ) : !hasAnyResults ? (
               <EmptyState
                 icon={SearchIcon}
