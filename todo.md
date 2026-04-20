@@ -1018,3 +1018,6 @@
 - [x] Placed as first middleware before helmet, rate limiting, and all routes
 - [x] Skips redirect for localhost/dev environments
 - [x] Root cause of "Harmful Website" warning: site was serving content over plain HTTP
+
+## Task: Developer Guide Documentation
+- [x] Create DEVELOPER_GUIDE.md — comprehensive developer documentation covering architecture, decision rationale, blast radius analysis, data flows, and development guidelines
