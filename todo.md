@@ -1012,3 +1012,9 @@
 - [x] Added error state with "Try Again" button on Search page
 - [x] Added tRPC query retry config (3 retries with exponential backoff)
 - [x] Verified: Searching "Handyman" now returns 2 providers + 50 services
+
+## CRITICAL Fix: HTTPS Enforcement
+- [x] Add HTTP→HTTPS redirect middleware (301 redirect via x-forwarded-proto header)
+- [x] Placed as first middleware before helmet, rate limiting, and all routes
+- [x] Skips redirect for localhost/dev environments
+- [x] Root cause of "Harmful Website" warning: site was serving content over plain HTTP

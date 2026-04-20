@@ -33,7 +33,17 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
-  
+
+  // PRIORITY 1: Force HTTPS in production
+  // Cloudflare/reverse proxy sets x-forwarded-proto header
+  app.use((req, res, next) => {
+    const proto = req.headers['x-forwarded-proto'];
+    if (proto === 'http' && req.hostname !== 'localhost' && !req.hostname.startsWith('127.')) {
+      return res.redirect(301, `https://${req.hostname}${req.originalUrl}`);
+    }
+    next();
+  });
+
   // PRIORITY 2: Security headers via helmet
   app.use(helmet({
     contentSecurityPolicy: false, // Managed per-route for widgets
