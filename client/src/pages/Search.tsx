@@ -166,7 +166,11 @@ export default function Search() {
 
   const { data: categories } = trpc.category.list.useQuery();
 
+  // Determine if user has actively set any filter
+  const hasSearchIntent = !!(debouncedKeyword || categoryId || debouncedLocation || priceRange[0] > 0 || priceRange[1] < 500);
+
   // Search services (uses debounced values to reduce API calls)
+  // Only fire when user has entered a query or adjusted filters
   const { data: services, isLoading: servicesLoading } = trpc.service.search.useQuery({
     keyword: debouncedKeyword,
     categoryId,
@@ -174,7 +178,7 @@ export default function Search() {
     maxPrice: priceRange[1],
     sortBy,
     location: debouncedLocation || undefined,
-  });
+  }, { enabled: hasSearchIntent });
 
   // Search providers by name (only when debounced keyword has 2+ chars)
   const trimmedKeyword = debouncedKeyword.trim();
@@ -183,7 +187,7 @@ export default function Search() {
     { enabled: trimmedKeyword.length >= 2 }
   );
 
-  const isLoading = servicesLoading || (trimmedKeyword.length >= 2 && providersLoading);
+  const isLoading = (hasSearchIntent && servicesLoading) || (trimmedKeyword.length >= 2 && providersLoading);
   const hasActiveFilters = keyword || categoryId || location || priceRange[0] > 0 || priceRange[1] < 500;
   const hasProviderResults = providers && providers.length > 0;
   const hasServiceResults = services && services.length > 0;
@@ -287,7 +291,15 @@ export default function Search() {
 
           {/* Results */}
           <div className="lg:col-span-3 space-y-6">
-            {isLoading ? (
+            {!hasSearchIntent && !keyword ? (
+              <div className="text-center py-16">
+                <SearchIcon className="h-12 w-12 text-muted-foreground/40 mx-auto mb-4" />
+                <h2 className="text-lg font-semibold text-muted-foreground mb-2">Search for Services</h2>
+                <p className="text-sm text-muted-foreground/70 max-w-md mx-auto">
+                  Enter a service name, provider, or keyword in the search box, or use the filters to find what you need.
+                </p>
+              </div>
+            ) : isLoading ? (
               <LoadingSpinner message="Searching..." />
             ) : !hasAnyResults ? (
               <EmptyState

@@ -986,3 +986,12 @@
 - [x] Show "Seen" timestamp on the last read message
 - [x] Push read receipt events via SSE for real-time updates
 - [x] 23 messageRouter tests passing (6 new for typing, read receipts, search)
+
+## Bug: Production - Browse Services Empty for Unauthenticated Users
+- [x] Browse Services confirmed working correctly for unauthenticated users (was intermittent backend issue)
+- [x] Categories load via public procedure for all visitors
+
+## Bug: Production - Search Auto-Triggers Without Input
+- [x] Fix Search page auto-triggering search without user input
+- [x] Search only fires when user enters query or adjusts filters
+- [x] Shows friendly "Search for Services" welcome state on initial load
