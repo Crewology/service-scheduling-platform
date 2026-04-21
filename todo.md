@@ -1021,3 +1021,16 @@
 
 ## Task: Developer Guide Documentation
 - [x] Create DEVELOPER_GUIDE.md — comprehensive developer documentation covering architecture, decision rationale, blast radius analysis, data flows, and development guidelines
+
+## Task: Performance & Load Testing
+- [x] Lighthouse audit (performance, accessibility, SEO, best practices)
+- [x] API load testing on key endpoints (browse, search, booking, messaging)
+- [x] Frontend bundle size analysis
+- [x] Database query performance audit (missing indexes, slow queries, N+1)
+- [x] Compile comprehensive performance report
+
+## Task: Code Splitting Optimization
+- [x] Convert all page imports in App.tsx to React.lazy()
+- [x] Add Suspense boundaries with loading fallbacks
+- [x] Verify production build produces multiple chunks
+- [x] Verify app still works correctly after splitting
