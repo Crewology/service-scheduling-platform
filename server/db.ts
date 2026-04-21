@@ -66,6 +66,7 @@ export {
 export {
   getAvailabilityByProvider,
   getAvailabilityOverrides,
+  replaceWeeklySchedule,
 } from "./db/availability";
 
 // Portfolio management

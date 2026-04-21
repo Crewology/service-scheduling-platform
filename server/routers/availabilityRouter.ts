@@ -77,6 +77,22 @@ export const availabilityRouter = router({
       return { success: true };
     }),
 
+  setWeeklySchedule: protectedProcedure
+    .input(z.object({
+      entries: z.array(z.object({
+        dayOfWeek: z.number().min(0).max(6),
+        startTime: z.string(),
+        endTime: z.string(),
+        isAvailable: z.boolean().default(true),
+      })),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+      await db.replaceWeeklySchedule(provider.id, input.entries);
+      return await db.getProviderAvailability(provider.id);
+    }),
+
   deleteSchedule: protectedProcedure
     .input(z.object({ scheduleId: z.number() }))
     .mutation(async ({ ctx, input }) => {

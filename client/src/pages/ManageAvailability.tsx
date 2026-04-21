@@ -6,21 +6,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { trpc } from "@/lib/trpc";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
 import { Calendar } from "@/components/ui/calendar";
+import { Clock, Trash2, Check } from "lucide-react";
 
 const DAYS_OF_WEEK = [
-  { value: "monday", label: "Monday" },
-  { value: "tuesday", label: "Tuesday" },
-  { value: "wednesday", label: "Wednesday" },
-  { value: "thursday", label: "Thursday" },
-  { value: "friday", label: "Friday" },
-  { value: "saturday", label: "Saturday" },
-  { value: "sunday", label: "Sunday" },
+  { value: "sunday", dayNum: 0, label: "Sunday", short: "Sun" },
+  { value: "monday", dayNum: 1, label: "Monday", short: "Mon" },
+  { value: "tuesday", dayNum: 2, label: "Tuesday", short: "Tue" },
+  { value: "wednesday", dayNum: 3, label: "Wednesday", short: "Wed" },
+  { value: "thursday", dayNum: 4, label: "Thursday", short: "Thu" },
+  { value: "friday", dayNum: 5, label: "Friday", short: "Fri" },
+  { value: "saturday", dayNum: 6, label: "Saturday", short: "Sat" },
 ];
+
+function formatTime12h(time24: string): string {
+  const [hours, minutes] = time24.split(":").map(Number);
+  const ampm = hours >= 12 ? "PM" : "AM";
+  const h = hours % 12 || 12;
+  return `${h}:${minutes.toString().padStart(2, "0")} ${ampm}`;
+}
 
 export default function ManageAvailability() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -39,13 +47,13 @@ export default function ManageAvailability() {
     enabled: !!provider,
   });
   
-  const setSchedule = trpc.availability.createSchedule.useMutation({
+  const setWeeklyScheduleMutation = trpc.availability.setWeeklySchedule.useMutation({
     onSuccess: () => {
-      toast.success("Schedule updated!");
+      toast.success("Weekly schedule saved!");
       refetchSchedules();
     },
     onError: (error: any) => {
-      toast.error(error.message || "Failed to update schedule");
+      toast.error(error.message || "Failed to save schedule");
     },
   });
   
@@ -61,14 +69,38 @@ export default function ManageAvailability() {
   });
 
   const [weeklySchedule, setWeeklySchedule] = useState<Record<string, { enabled: boolean; startTime: string; endTime: string }>>({
+    sunday: { enabled: false, startTime: "09:00", endTime: "17:00" },
     monday: { enabled: true, startTime: "09:00", endTime: "17:00" },
     tuesday: { enabled: true, startTime: "09:00", endTime: "17:00" },
     wednesday: { enabled: true, startTime: "09:00", endTime: "17:00" },
     thursday: { enabled: true, startTime: "09:00", endTime: "17:00" },
     friday: { enabled: true, startTime: "09:00", endTime: "17:00" },
     saturday: { enabled: false, startTime: "09:00", endTime: "17:00" },
-    sunday: { enabled: false, startTime: "09:00", endTime: "17:00" },
   });
+
+  // Populate the weekly schedule form from existing saved data
+  useEffect(() => {
+    if (schedules && schedules.length > 0) {
+      const newSchedule: Record<string, { enabled: boolean; startTime: string; endTime: string }> = {};
+      for (const day of DAYS_OF_WEEK) {
+        const existing = (schedules as any[]).find((s: any) => s.dayOfWeek === day.dayNum && s.isAvailable);
+        if (existing) {
+          newSchedule[day.value] = {
+            enabled: true,
+            startTime: existing.startTime?.substring(0, 5) || "09:00",
+            endTime: existing.endTime?.substring(0, 5) || "17:00",
+          };
+        } else {
+          newSchedule[day.value] = {
+            enabled: false,
+            startTime: "09:00",
+            endTime: "17:00",
+          };
+        }
+      }
+      setWeeklySchedule(newSchedule);
+    }
+  }, [schedules]);
 
   const deleteOverride = trpc.availability.deleteOverride.useMutation({
     onSuccess: () => {
@@ -105,26 +137,21 @@ export default function ManageAvailability() {
   const handleSaveWeeklySchedule = () => {
     if (!provider) return;
     
-    const dayMap: Record<string, number> = {
-      sunday: 0,
-      monday: 1,
-      tuesday: 2,
-      wednesday: 3,
-      thursday: 4,
-      friday: 5,
-      saturday: 6,
-    };
+    const entries: Array<{ dayOfWeek: number; startTime: string; endTime: string; isAvailable: boolean }> = [];
     
-    // Save each day's schedule
-    Object.entries(weeklySchedule).forEach(([day, schedule]) => {
-      if (schedule.enabled) {
-        setSchedule.mutate({
-          dayOfWeek: dayMap[day],
+    for (const day of DAYS_OF_WEEK) {
+      const schedule = weeklySchedule[day.value];
+      if (schedule?.enabled) {
+        entries.push({
+          dayOfWeek: day.dayNum,
           startTime: schedule.startTime,
           endTime: schedule.endTime,
+          isAvailable: true,
         });
       }
-    });
+    }
+    
+    setWeeklyScheduleMutation.mutate({ entries });
   };
 
   const handleAddOverride = () => {
@@ -175,6 +202,18 @@ export default function ManageAvailability() {
         </Card>
       </div>
     );
+  }
+
+  // Build the current schedule display from saved data
+  const scheduleByDay = new Map<number, Array<{ startTime: string; endTime: string }>>();
+  if (schedules) {
+    for (const s of schedules as any[]) {
+      if (!s.isAvailable) continue;
+      if (!scheduleByDay.has(s.dayOfWeek)) {
+        scheduleByDay.set(s.dayOfWeek, []);
+      }
+      scheduleByDay.get(s.dayOfWeek)!.push({ startTime: s.startTime, endTime: s.endTime });
+    }
   }
 
   return (
@@ -256,32 +295,62 @@ export default function ManageAvailability() {
                   </div>
                 ))}
                 
-                <Button onClick={handleSaveWeeklySchedule} className="w-full mt-4">
-                  Save Weekly Schedule
+                <Button 
+                  onClick={handleSaveWeeklySchedule} 
+                  className="w-full mt-4"
+                  disabled={setWeeklyScheduleMutation.isPending}
+                >
+                  {setWeeklyScheduleMutation.isPending ? "Saving..." : "Save Weekly Schedule"}
                 </Button>
               </CardContent>
             </Card>
 
-            {/* Current Schedule Display */}
-            {schedules && schedules.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Current Schedule</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-sm">
-                    {schedules.map((schedule: any) => (
-                      <div key={schedule.id} className="flex justify-between">
-                        <span className="capitalize font-medium">{schedule.dayOfWeek}</span>
-                        <span className="text-muted-foreground">
-                          {schedule.startTime} - {schedule.endTime}
-                        </span>
-                      </div>
-                    ))}
+            {/* Current Schedule Display — Clean Weekly Grid */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5" />
+                  Current Schedule
+                </CardTitle>
+                <CardDescription>Your saved weekly availability</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {schedules && (schedules as any[]).length > 0 ? (
+                  <div className="divide-y">
+                    {DAYS_OF_WEEK.map((day) => {
+                      const slots = scheduleByDay.get(day.dayNum);
+                      const isAvailable = slots && slots.length > 0;
+                      return (
+                        <div key={day.value} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                          <span className={`font-medium text-sm w-28 ${isAvailable ? "text-foreground" : "text-muted-foreground"}`}>
+                            {day.label}
+                          </span>
+                          {isAvailable ? (
+                            <div className="flex items-center gap-2">
+                              <Check className="h-4 w-4 text-emerald-500" />
+                              <span className="text-sm">
+                                {slots.map((s, i) => (
+                                  <span key={i}>
+                                    {i > 0 && ", "}
+                                    {formatTime12h(s.startTime)} – {formatTime12h(s.endTime)}
+                                  </span>
+                                ))}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-muted-foreground italic">Unavailable</span>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No schedule set yet. Use the form above to set your weekly availability.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
           </div>
 
           {/* Date-Specific Overrides */}
@@ -416,7 +485,7 @@ export default function ManageAvailability() {
                           </p>
                           {override.isAvailable ? (
                             <p className="text-muted-foreground">
-                              Custom hours: {override.startTime} - {override.endTime}
+                              Custom hours: {formatTime12h(override.startTime)} - {formatTime12h(override.endTime)}
                             </p>
                           ) : (
                             <p className="text-destructive font-medium">Blocked - Unavailable</p>
@@ -431,7 +500,7 @@ export default function ManageAvailability() {
                           className="text-destructive hover:text-destructive"
                           onClick={() => deleteOverride.mutate({ overrideId: override.id })}
                         >
-                          Remove
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     ))}

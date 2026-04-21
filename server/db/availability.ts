@@ -16,6 +16,39 @@ export async function createAvailabilitySchedule(data: typeof availabilitySchedu
   return result;
 }
 
+/**
+ * Replace all weekly schedule entries for a provider in one atomic operation.
+ * Deletes all existing entries, then inserts the new set.
+ * This prevents duplicate accumulation from repeated saves.
+ */
+export async function replaceWeeklySchedule(
+  providerId: number,
+  entries: Array<{ dayOfWeek: number; startTime: string; endTime: string; isAvailable?: boolean; locationType?: "mobile" | "fixed_location" | "virtual" | null; maxConcurrentBookings?: number }>
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Delete all existing schedule entries for this provider
+  await db.delete(availabilitySchedules).where(eq(availabilitySchedules.providerId, providerId));
+  
+  // Insert new entries if any
+  if (entries.length > 0) {
+    await db.insert(availabilitySchedules).values(
+      entries.map(entry => ({
+        providerId,
+        dayOfWeek: entry.dayOfWeek,
+        startTime: entry.startTime,
+        endTime: entry.endTime,
+        isAvailable: entry.isAvailable ?? true,
+        locationType: entry.locationType,
+        maxConcurrentBookings: entry.maxConcurrentBookings ?? 1,
+      }))
+    );
+  }
+  
+  return { success: true };
+}
+
 export async function getAvailabilityByProvider(providerId: number) {
   const db = await getDb();
   if (!db) return [];
