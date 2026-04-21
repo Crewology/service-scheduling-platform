@@ -103,7 +103,7 @@ describe("SSEManager", () => {
       notificationType: "booking_confirmed",
       title: "Booking Confirmed",
       message: "Your booking has been confirmed",
-      actionUrl: "/bookings/1",
+      actionUrl: "/booking/1/detail",
       relatedBookingId: 1,
     });
 

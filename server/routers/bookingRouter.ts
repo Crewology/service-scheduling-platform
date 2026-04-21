@@ -190,7 +190,7 @@ export const bookingRouter = router({
             notificationType: "booking_created",
             title: "New Booking Request",
             message: `${ctx.user.name || "A customer"} booked ${service.name} for ${input.bookingDate} at ${input.startTime}`,
-            actionUrl: `/provider/bookings`,
+            actionUrl: `/provider/dashboard`,
             relatedBookingId: bookingId,
           });
         }
@@ -199,7 +199,7 @@ export const bookingRouter = router({
           notificationType: "booking_confirmed",
           title: "Booking Confirmed",
           message: `Your booking for ${service.name} on ${input.bookingDate} at ${input.startTime} has been submitted`,
-          actionUrl: `/bookings/${bookingId}`,
+          actionUrl: `/booking/${bookingId}/detail`,
           relatedBookingId: bookingId,
         });
       } catch (err) {
@@ -380,7 +380,7 @@ export const bookingRouter = router({
             notificationType: statusMsg.type,
             title: statusMsg.title,
             message: statusMsg.message,
-            actionUrl: `/bookings/${booking.id}`,
+            actionUrl: `/booking/${booking.id}/detail`,
             relatedBookingId: booking.id,
           });
         }
@@ -391,7 +391,7 @@ export const bookingRouter = router({
             notificationType: statusMsg.type,
             title: statusMsg.title,
             message: `Booking ${booking.bookingNumber} status changed to ${input.status}`,
-            actionUrl: `/provider/bookings`,
+            actionUrl: `/provider/dashboard`,
             relatedBookingId: booking.id,
           });
         }
@@ -545,7 +545,7 @@ export const bookingRouter = router({
             notificationType: "booking_cancelled",
             title: "Booking Cancelled",
             message: `Booking ${booking.bookingNumber} for ${service?.name || "Service"} has been cancelled. ${parseFloat(refundAmount) > 0 ? `Refund: $${refundAmount}` : "No refund applicable."}`,
-            actionUrl: `/bookings/${booking.id}`,
+            actionUrl: `/booking/${booking.id}/detail`,
             relatedBookingId: booking.id,
           });
         }
@@ -555,7 +555,7 @@ export const bookingRouter = router({
             notificationType: "booking_cancelled",
             title: "Booking Cancelled by Customer",
             message: `${customer?.name || "Customer"} cancelled booking ${booking.bookingNumber} for ${service?.name || "Service"}`,
-            actionUrl: `/provider/bookings`,
+            actionUrl: `/provider/dashboard`,
             relatedBookingId: booking.id,
           });
         }

@@ -1034,3 +1034,6 @@
 - [x] Add Suspense boundaries with loading fallbacks
 - [x] Verify production build produces multiple chunks
 - [x] Verify app still works correctly after splitting
+
+## Bug: Notification Individual Page 404
+- [x] Fix 404 when clicking on individual notification — diagnose routing and implement fix

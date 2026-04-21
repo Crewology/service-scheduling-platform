@@ -32,7 +32,7 @@ async function pushMessageNotifications(
       notificationType: "message_received",
       title: "New Message",
       message: `${senderName}: ${preview}`,
-      actionUrl: `/messages?conversation=${conversationId}`,
+      actionUrl: bookingId ? `/messages/${bookingId}` : `/messages`,
     });
 
     const { sseManager } = await import("../sseManager");
