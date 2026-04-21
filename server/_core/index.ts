@@ -64,7 +64,7 @@ async function startServer() {
   });
   const sensitiveLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 30, // 30 requests per 15 min for sensitive endpoints
+    max: 100, // 100 requests per 15 min for sensitive endpoints (increased for testing)
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: "Too many attempts, please try again later." },

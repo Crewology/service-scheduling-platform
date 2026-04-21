@@ -1037,3 +1037,13 @@
 
 ## Bug: Notification Individual Page 404
 - [x] Fix 404 when clicking on individual notification — diagnose routing and implement fix
+
+## Bug: Login Attempts Exceeded
+- [x] Investigate and fix login rate limiting blocking user testing
+
+## Feature: Edit Deposit in Edit Service
+- [x] Add deposit fields (deposit type, deposit amount/percentage) to edit service form
+- [x] Ensure backend update procedure accepts deposit fields (already supported)
+
+## Fix: Increase OAuth Rate Limit for Testing
+- [x] Bump sensitive rate limit from 30 to 100 requests per 15 min

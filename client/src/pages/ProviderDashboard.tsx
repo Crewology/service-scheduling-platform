@@ -1033,6 +1033,10 @@ export default function ProviderDashboard() {
       hourlyRate: service.hourlyRate || "",
       durationMinutes: service.durationMinutes || 60,
       cancellationPolicy: service.cancellationPolicy || "",
+      depositRequired: service.depositRequired ?? false,
+      depositType: service.depositType || "fixed",
+      depositAmount: service.depositAmount || "",
+      depositPercentage: service.depositPercentage || "",
     });
     setEditingService(service);
   };
@@ -2167,6 +2171,60 @@ export default function ProviderDashboard() {
             <div>
               <Label>Cancellation Policy</Label>
               <Textarea value={serviceForm.cancellationPolicy || ""} onChange={e => setServiceForm({ ...serviceForm, cancellationPolicy: e.target.value })} rows={2} />
+            </div>
+            {/* Deposit Settings */}
+            <div className="border rounded-lg p-4 space-y-3 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="edit-deposit-required"
+                  checked={serviceForm.depositRequired || false}
+                  onChange={e => setServiceForm({ ...serviceForm, depositRequired: e.target.checked, ...(!e.target.checked && { depositAmount: "", depositPercentage: "" }) })}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+                <Label htmlFor="edit-deposit-required" className="mb-0 cursor-pointer">Require Deposit</Label>
+              </div>
+              {serviceForm.depositRequired && (
+                <div className="space-y-3 pt-1">
+                  <div>
+                    <Label>Deposit Type</Label>
+                    <select
+                      className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                      value={serviceForm.depositType || "fixed"}
+                      onChange={e => setServiceForm({ ...serviceForm, depositType: e.target.value, depositAmount: "", depositPercentage: "" })}
+                    >
+                      <option value="fixed">Fixed Amount ($)</option>
+                      <option value="percentage">Percentage (%)</option>
+                    </select>
+                  </div>
+                  {serviceForm.depositType === "percentage" ? (
+                    <div>
+                      <Label>Deposit Percentage (%)</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="100"
+                        step="1"
+                        value={serviceForm.depositPercentage || ""}
+                        onChange={e => setServiceForm({ ...serviceForm, depositPercentage: e.target.value })}
+                        placeholder="e.g. 25"
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <Label>Deposit Amount ($)</Label>
+                      <Input
+                        type="number"
+                        min="0.50"
+                        step="0.01"
+                        value={serviceForm.depositAmount || ""}
+                        onChange={e => setServiceForm({ ...serviceForm, depositAmount: e.target.value })}
+                        placeholder="e.g. 50.00"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>
