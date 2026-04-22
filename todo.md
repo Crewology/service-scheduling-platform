@@ -1062,3 +1062,18 @@
 
 ## Bug: Duplicate "Connect Payment Account" in Profile Checklist
 - [x] Fix duplicate display of Connect payment account step in Complete Your Profile widget — excluded nextStep from grid since it's already highlighted above
+
+## Feature: Tier Selection in Provider Onboarding
+- [x] Add subscription tier selection step to provider onboarding wizard (Step 4: Your Plan)
+- [x] Show Free/Basic/Premium tiers with feature comparison
+- [x] Set provider tier on selection (default to Free if skipped)
+- [x] Add 14-day Premium trial banner for new/free providers
+- [x] Add selectFreeTier mutation to subscription router
+- [x] Update onboarding to 5 steps: Profile → Skills → Services → Plan → Get Paid
+
+## Bug: Stripe Connect "Invalid" Error for New Providers
+- [x] Improve Stripe Connect error handling with try-catch wrappers
+- [x] Add auto-recovery for invalid Stripe accounts (StripeInvalidRequestError)
+- [x] Add user-friendly error messages for auth, connection, and rate limit errors
+- [x] Improve getDashboardLink and getOnboardingLink error handling
+- [x] Add missing ENV.stripeSecretKey check in startOnboarding

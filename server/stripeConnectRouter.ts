@@ -19,49 +19,103 @@ export const stripeConnectRouter = router({
       const provider = await db.getProviderByUserId(ctx.user.id);
       if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider profile not found" });
 
-      // If already has a Stripe account, return a new onboarding link
-      if (provider.stripeAccountId) {
+      if (!ENV.stripeSecretKey) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Payment setup is temporarily unavailable. Please try again later or contact support.",
+        });
+      }
+
+      try {
+        // If already has a Stripe account, return a new onboarding link
+        if (provider.stripeAccountId) {
+          try {
+            const accountLink = await stripe.accountLinks.create({
+              account: provider.stripeAccountId,
+              refresh_url: `${input.origin}/provider/dashboard?stripe=refresh`,
+              return_url: `${input.origin}/provider/dashboard?stripe=return`,
+              type: "account_onboarding",
+            });
+            return { url: accountLink.url, accountId: provider.stripeAccountId };
+          } catch (linkError: any) {
+            // If the existing account is invalid, clear it and create a new one
+            if (linkError?.type === "StripeInvalidRequestError") {
+              console.warn(`[StripeConnect] Existing account ${provider.stripeAccountId} is invalid, creating new one`);
+              await db.updateProviderStripeAccount(provider.id, {
+                stripeAccountId: null as any,
+                stripeAccountStatus: "not_connected",
+                stripeOnboardingComplete: false,
+                payoutEnabled: false,
+              });
+              // Fall through to create a new account
+            } else {
+              throw linkError;
+            }
+          }
+        }
+
+        // Create a new Express account
+        const account = await stripe.accounts.create({
+          type: "express",
+          country: "US",
+          email: ctx.user.email || undefined,
+          business_type: provider.businessType === "sole_proprietor" ? "individual" : "company",
+          capabilities: {
+            card_payments: { requested: true },
+            transfers: { requested: true },
+          },
+          metadata: {
+            providerId: provider.id.toString(),
+            userId: ctx.user.id.toString(),
+            platform: "ologycrew",
+          },
+        });
+
+        const accountId = account.id;
+
+        await db.updateProviderStripeAccount(provider.id, {
+          stripeAccountId: accountId,
+          stripeAccountStatus: "onboarding",
+        });
+
         const accountLink = await stripe.accountLinks.create({
-          account: provider.stripeAccountId,
+          account: accountId,
           refresh_url: `${input.origin}/provider/dashboard?stripe=refresh`,
           return_url: `${input.origin}/provider/dashboard?stripe=return`,
           type: "account_onboarding",
         });
-        return { url: accountLink.url, accountId: provider.stripeAccountId };
+
+        return { url: accountLink.url, accountId };
+      } catch (error: any) {
+        console.error("[StripeConnect] Onboarding error:", error?.message || error);
+
+        if (error instanceof TRPCError) throw error;
+
+        // Provide user-friendly error messages based on Stripe error types
+        if (error?.type === "StripeAuthenticationError") {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Payment service configuration error. Please contact support.",
+          });
+        }
+        if (error?.type === "StripeConnectionError" || error?.code === "ECONNREFUSED") {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Unable to connect to payment service. Please try again in a few minutes.",
+          });
+        }
+        if (error?.type === "StripeRateLimitError") {
+          throw new TRPCError({
+            code: "TOO_MANY_REQUESTS",
+            message: "Too many requests. Please wait a moment and try again.",
+          });
+        }
+
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Unable to set up payments right now. Please try again later or skip this step.",
+        });
       }
-
-      // Create a new Express account
-      const account = await stripe.accounts.create({
-        type: "express",
-        country: "US",
-        email: ctx.user.email || undefined,
-        business_type: provider.businessType === "sole_proprietor" ? "individual" : "company",
-        capabilities: {
-          card_payments: { requested: true },
-          transfers: { requested: true },
-        },
-        metadata: {
-          providerId: provider.id.toString(),
-          userId: ctx.user.id.toString(),
-          platform: "ologycrew",
-        },
-      });
-
-      const accountId = account.id;
-
-      await db.updateProviderStripeAccount(provider.id, {
-        stripeAccountId: accountId,
-        stripeAccountStatus: "onboarding",
-      });
-
-      const accountLink = await stripe.accountLinks.create({
-        account: accountId,
-        refresh_url: `${input.origin}/provider/dashboard?stripe=refresh`,
-        return_url: `${input.origin}/provider/dashboard?stripe=return`,
-        type: "account_onboarding",
-      });
-
-      return { url: accountLink.url, accountId };
     }),
 
   // Check the status of the provider's Stripe Connect account
@@ -117,11 +171,25 @@ export const stripeConnectRouter = router({
   getDashboardLink: protectedProcedure.mutation(async ({ ctx }) => {
     const provider = await db.getProviderByUserId(ctx.user.id);
     if (!provider?.stripeAccountId) {
-      throw new TRPCError({ code: "BAD_REQUEST", message: "No Stripe account connected" });
+      throw new TRPCError({ code: "BAD_REQUEST", message: "No Stripe account connected. Please complete Stripe onboarding first." });
     }
 
-    const loginLink = await stripe.accounts.createLoginLink(provider.stripeAccountId);
-    return { url: loginLink.url };
+    try {
+      const loginLink = await stripe.accounts.createLoginLink(provider.stripeAccountId);
+      return { url: loginLink.url };
+    } catch (error: any) {
+      console.error("[StripeConnect] Dashboard link error:", error?.message || error);
+      if (error?.type === "StripeInvalidRequestError") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Your Stripe account needs to complete onboarding before you can access the dashboard.",
+        });
+      }
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Unable to access Stripe dashboard. Please try again later.",
+      });
+    }
   }),
 
   // Get a new onboarding link (for resuming incomplete onboarding)
@@ -130,17 +198,37 @@ export const stripeConnectRouter = router({
     .mutation(async ({ ctx, input }) => {
       const provider = await db.getProviderByUserId(ctx.user.id);
       if (!provider?.stripeAccountId) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "No Stripe account connected" });
+        throw new TRPCError({ code: "BAD_REQUEST", message: "No Stripe account connected. Please start the onboarding process first." });
       }
 
-      const accountLink = await stripe.accountLinks.create({
-        account: provider.stripeAccountId,
-        refresh_url: `${input.origin}/provider/dashboard?stripe=refresh`,
-        return_url: `${input.origin}/provider/dashboard?stripe=return`,
-        type: "account_onboarding",
-      });
-
-      return { url: accountLink.url };
+      try {
+        const accountLink = await stripe.accountLinks.create({
+          account: provider.stripeAccountId,
+          refresh_url: `${input.origin}/provider/dashboard?stripe=refresh`,
+          return_url: `${input.origin}/provider/dashboard?stripe=return`,
+          type: "account_onboarding",
+        });
+        return { url: accountLink.url };
+      } catch (error: any) {
+        console.error("[StripeConnect] Onboarding link error:", error?.message || error);
+        if (error?.type === "StripeInvalidRequestError") {
+          // Account may be deleted or invalid, reset and ask user to start over
+          await db.updateProviderStripeAccount(provider.id, {
+            stripeAccountId: null as any,
+            stripeAccountStatus: "not_connected",
+            stripeOnboardingComplete: false,
+            payoutEnabled: false,
+          });
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Your previous Stripe account is no longer valid. Please start the setup process again.",
+          });
+        }
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Unable to generate onboarding link. Please try again later.",
+        });
+      }
     }),
 
   // Get the provider's Stripe balance

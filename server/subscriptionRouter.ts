@@ -65,6 +65,29 @@ export const subscriptionRouter = router({
     return Object.values(SUBSCRIPTION_TIERS);
   }),
 
+  // Select free tier explicitly during onboarding (creates a subscription record)
+  selectFreeTier: protectedProcedure.mutation(async ({ ctx }) => {
+    const provider = await db.getProviderByUserId(ctx.user.id);
+    if (!provider) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+    }
+
+    // Check if already has a subscription
+    const existing = await db.getProviderSubscription(provider.id);
+    if (existing && (existing.status === "active" || existing.status === "trialing")) {
+      return { tier: existing.tier, status: existing.status };
+    }
+
+    // Create a free tier subscription record
+    await db.upsertProviderSubscription({
+      providerId: provider.id,
+      tier: "free",
+      status: "active",
+    });
+
+    return { tier: "free" as const, status: "active" as const };
+  }),
+
   // Get current provider's subscription
   mySubscription: protectedProcedure.query(async ({ ctx }) => {
     const provider = await db.getProviderByUserId(ctx.user.id);

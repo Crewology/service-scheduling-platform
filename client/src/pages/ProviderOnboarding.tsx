@@ -37,6 +37,7 @@ import {
   Users,
   Zap,
   ArrowRight,
+  Crown,
 } from "lucide-react";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -59,7 +60,8 @@ const STEPS = [
   { id: 1, title: "Your Profile", icon: User, description: "Photo, name & location" },
   { id: 2, title: "Your Skills", icon: Grid3X3, description: "Choose your categories" },
   { id: 3, title: "Your Services", icon: Wrench, description: "Add services & pricing" },
-  { id: 4, title: "Get Paid", icon: CreditCard, description: "Connect Stripe" },
+  { id: 4, title: "Your Plan", icon: Zap, description: "Choose a subscription" },
+  { id: 5, title: "Get Paid", icon: CreditCard, description: "Connect Stripe" },
 ];
 
 // ============================================================================
@@ -586,7 +588,7 @@ export default function ProviderOnboarding() {
   const [currentStep, setCurrentStep] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     const step = parseInt(params.get("step") || "1", 10);
-    return step >= 1 && step <= 4 ? step : 1;
+    return step >= 1 && step <= 5 ? step : 1;
   });
   const utils = trpc.useUtils();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -680,6 +682,33 @@ export default function ProviderOnboarding() {
       window.open(data.url, "_blank");
       toast.success("Stripe Connect opened in a new tab");
     },
+    onError: (err) => {
+      if (err.message.includes("Invalid") || err.message.includes("API")) {
+        toast.error("Stripe is not available right now. You can set this up later from your dashboard.");
+      } else {
+        toast.error(err.message);
+      }
+    },
+  });
+
+  // Tier selection mutations
+  const selectFreeTier = trpc.subscription.selectFreeTier.useMutation({
+    onSuccess: () => {
+      setSelectedTier("free");
+      utils.subscription.mySubscription.invalidate();
+      toast.success("Free plan selected! You can upgrade anytime.");
+      setCurrentStep(5);
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const createCheckout = trpc.subscription.createCheckout.useMutation({
+    onSuccess: (data) => {
+      if (data.url) {
+        window.open(data.url, "_blank");
+        toast.success("Checkout opened in a new tab. Complete payment to activate your plan.");
+      }
+    },
     onError: (err) => toast.error(err.message),
   });
 
@@ -707,13 +736,21 @@ export default function ProviderOnboarding() {
     }
   };
 
+  // Step 4: Tier selection
+  const { data: currentSubscription } = trpc.subscription.mySubscription.useQuery(undefined, {
+    enabled: !!existingProvider,
+  });
+  const [selectedTier, setSelectedTier] = useState<"free" | "basic" | "premium" | null>(null);
+
   // Step completion tracking
+  const tierSelected = !!currentSubscription?.subscription || selectedTier !== null;
   const stepComplete = useMemo(() => ({
     1: !!existingProvider,
     2: (myCategories?.length ?? 0) > 0,
     3: (myServices?.length ?? 0) > 0,
-    4: existingProvider?.payoutEnabled === true,
-  }), [existingProvider, myCategories, myServices]);
+    4: tierSelected,
+    5: existingProvider?.payoutEnabled === true,
+  }), [existingProvider, myCategories, myServices, tierSelected]);
 
   // Initialize selected categories from existing data
   useMemo(() => {
@@ -846,13 +883,13 @@ export default function ProviderOnboarding() {
             <div className="flex items-center justify-between text-sm mb-1">
               <span className="text-muted-foreground">Overall Progress</span>
               <span className="font-semibold text-primary">
-                {Math.round((Object.values(stepComplete).filter(Boolean).length / 4) * 100)}%
+                {Math.round((Object.values(stepComplete).filter(Boolean).length / 5) * 100)}%
               </span>
             </div>
             <div className="h-2 rounded-full bg-muted overflow-hidden">
               <div
                 className="h-full rounded-full bg-primary transition-all duration-500"
-                style={{ width: `${(Object.values(stepComplete).filter(Boolean).length / 4) * 100}%` }}
+                style={{ width: `${(Object.values(stepComplete).filter(Boolean).length / 5) * 100}%` }}
               />
             </div>
           </div>
@@ -1243,7 +1280,7 @@ export default function ProviderOnboarding() {
                   onClick={() => setCurrentStep(4)}
                   disabled={(myServices?.length ?? 0) === 0}
                 >
-                  Continue to Payments
+                  Choose Your Plan
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               </div>
@@ -1252,9 +1289,223 @@ export default function ProviderOnboarding() {
         )}
 
         {/* ================================================================ */}
-        {/* STEP 4: GET PAID (Stripe Connect)                                */}
+        {/* STEP 4: CHOOSE YOUR PLAN (Tier Selection)                        */}
         {/* ================================================================ */}
         {currentStep === 4 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-5 w-5" />
+                Choose Your Plan
+              </CardTitle>
+              <CardDescription>
+                Pick the plan that fits your business. You can always upgrade or downgrade later.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Tier Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Free Tier */}
+                <div
+                  className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all hover:shadow-md ${
+                    selectedTier === "free" || (currentSubscription?.currentTier === "free" && !selectedTier)
+                      ? "border-primary bg-primary/5 ring-1 ring-primary/20"
+                      : "border-transparent bg-muted/50 hover:border-muted-foreground/20"
+                  }`}
+                  onClick={() => setSelectedTier("free")}
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                      <Star className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Starter</h3>
+                      <p className="text-xs text-muted-foreground">Free forever</p>
+                    </div>
+                  </div>
+                  <div className="mb-3">
+                    <span className="text-2xl font-bold">$0</span>
+                    <span className="text-muted-foreground text-sm">/month</span>
+                  </div>
+                  <ul className="space-y-1.5 text-sm">
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Up to 3 services</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> 2 photos per service</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Basic public profile</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Booking management</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Customer messaging</li>
+                  </ul>
+                  {(selectedTier === "free" || (currentSubscription?.currentTier === "free" && !selectedTier)) && (
+                    <div className="absolute top-3 right-3">
+                      <CheckCircle className="h-5 w-5 text-primary" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Basic Tier */}
+                <div
+                  className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all hover:shadow-md ${
+                    selectedTier === "basic" || currentSubscription?.currentTier === "basic"
+                      ? "border-primary bg-primary/5 ring-1 ring-primary/20"
+                      : "border-transparent bg-muted/50 hover:border-muted-foreground/20"
+                  }`}
+                  onClick={() => setSelectedTier("basic")}
+                >
+                  <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] px-2">Popular</Badge>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                      <Zap className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Professional</h3>
+                      <p className="text-xs text-muted-foreground">$19.99/month</p>
+                    </div>
+                  </div>
+                  <div className="mb-3">
+                    <span className="text-2xl font-bold">$19</span>
+                    <span className="text-muted-foreground text-sm">.99/mo</span>
+                  </div>
+                  <ul className="space-y-1.5 text-sm">
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Up to 10 services</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> 5 photos per service</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Custom profile URL</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Priority search placement</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Business analytics</li>
+                  </ul>
+                  {(selectedTier === "basic" || currentSubscription?.currentTier === "basic") && (
+                    <div className="absolute top-3 right-3">
+                      <CheckCircle className="h-5 w-5 text-primary" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Premium Tier */}
+                <div
+                  className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all hover:shadow-md ${
+                    selectedTier === "premium" || currentSubscription?.currentTier === "premium"
+                      ? "border-primary bg-primary/5 ring-1 ring-primary/20"
+                      : "border-transparent bg-muted/50 hover:border-muted-foreground/20"
+                  }`}
+                  onClick={() => setSelectedTier("premium")}
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                      <Crown className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Business</h3>
+                      <p className="text-xs text-muted-foreground">$49.99/month</p>
+                    </div>
+                  </div>
+                  <div className="mb-3">
+                    <span className="text-2xl font-bold">$49</span>
+                    <span className="text-muted-foreground text-sm">.99/mo</span>
+                  </div>
+                  <ul className="space-y-1.5 text-sm">
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Unlimited services</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> 5 photos per service</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Featured listing badge</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Full analytics suite</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Priority support</li>
+                  </ul>
+                  {(selectedTier === "premium" || currentSubscription?.currentTier === "premium") && (
+                    <div className="absolute top-3 right-3">
+                      <CheckCircle className="h-5 w-5 text-primary" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 14-day Premium Trial Banner */}
+              {(!currentSubscription?.subscription || currentSubscription?.currentTier === "free") && (
+                <div className="p-4 rounded-lg bg-gradient-to-r from-amber-500/10 to-primary/10 border border-amber-500/20">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                      <Crown className="h-4 w-4 text-amber-500" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-sm">Try Premium free for 14 days</h4>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Get unlimited services, featured listing, full analytics, and priority support. 
+                        Cancel anytime — no charge if you cancel before the trial ends.
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="shrink-0 border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10"
+                      onClick={() => {
+                        createCheckout.mutate({ tier: "premium", withTrial: true });
+                      }}
+                      disabled={createCheckout.isPending}
+                    >
+                      {createCheckout.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        "Start Free Trial"
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* All plans include */}
+              <div className="text-center text-xs text-muted-foreground">
+                All plans include: 1% transaction fee on bookings &middot; Stripe payments &middot; Booking management &middot; Customer messaging
+              </div>
+
+              <div className="flex justify-between pt-4">
+                <Button variant="outline" onClick={() => setCurrentStep(3)}>
+                  <ChevronLeft className="h-4 w-4 mr-1" /> Back
+                </Button>
+                <div className="flex gap-2">
+                  {selectedTier === "free" || (!selectedTier && (!currentSubscription?.subscription || currentSubscription?.currentTier === "free")) ? (
+                    <Button
+                      onClick={() => selectFreeTier.mutate()}
+                      disabled={selectFreeTier.isPending}
+                    >
+                      {selectFreeTier.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                      Start with Free
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  ) : selectedTier === "basic" ? (
+                    <Button
+                      onClick={() => createCheckout.mutate({ tier: "basic" })}
+                      disabled={createCheckout.isPending}
+                    >
+                      {createCheckout.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                      Subscribe to Professional
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  ) : selectedTier === "premium" ? (
+                    <Button
+                      onClick={() => createCheckout.mutate({ tier: "premium" })}
+                      disabled={createCheckout.isPending}
+                    >
+                      {createCheckout.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                      Subscribe to Business
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => {
+                        // Already has a subscription, just advance
+                        setCurrentStep(5);
+                      }}
+                    >
+                      Continue
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ================================================================ */}
+        {/* STEP 5: GET PAID (Stripe Connect)                                */}
+        {/* ================================================================ */}
+        {currentStep === 5 && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -1302,7 +1553,7 @@ export default function ProviderOnboarding() {
               )}
 
               <div className="flex justify-between">
-                <Button variant="outline" onClick={() => setCurrentStep(3)}>
+                <Button variant="outline" onClick={() => setCurrentStep(4)}>
                   <ChevronLeft className="h-4 w-4 mr-1" /> Back
                 </Button>
                 <div className="flex gap-2">
