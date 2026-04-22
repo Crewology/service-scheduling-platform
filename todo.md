@@ -1164,3 +1164,9 @@
 - [x] Add 5 new FAQ items: Trust Badges, Professional Trial, Annual Billing, Service Limits, Search Ranking
 - [x] Update visibility FAQ to mention Trust Score system
 - [x] Update onboarding FAQ to mention 5-step process and trial
+
+## Feature: SendGrid Email Delivery & Test Script
+- [x] Update send-test-emails.mjs to use SendGrid API directly (was using old Forge API)
+- [x] Send all 29 branded test emails to garychisolm30@gmail.com via SendGrid (29/29 delivered)
+- [x] All emails include OlogyCrew logo header, gradient branding, unsubscribe link, and manage preferences link
+- [x] Email subjects numbered [1/29 TEST] through [29/29 TEST] for easy identification

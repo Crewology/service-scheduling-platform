@@ -65,6 +65,7 @@ import ReferralProgram from "./pages/ReferralProgram";
 
 // Admin
 import AdminDashboard from "./pages/AdminDashboard";
+import EmailPreview from "./pages/EmailPreview";
 
 // Not Found
 import NotFound from "./pages/NotFound";
@@ -88,6 +89,7 @@ function Router() {
       <Route path="/messages" component={Conversations} />
       <Route path="/messages/:bookingId" component={Messages} />
       <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin/email-preview" component={EmailPreview} />
       <Route path="/booking/:id/review" component={SubmitReview} />
       <Route path="/provider/reviews" component={ProviderReviews} />
       <Route path="/profile" component={UserProfile} />

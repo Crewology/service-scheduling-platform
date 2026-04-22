@@ -5,7 +5,7 @@ import * as db from "../../db";
 import crypto from "crypto";
 
 /**
- * Email notification provider using Manus built-in email API.
+ * Email notification provider using SendGrid API.
  * Automatically generates unsubscribe tokens and includes
  * one-click unsubscribe links in every email footer.
  */
@@ -40,6 +40,11 @@ export class EmailProvider implements NotificationProvider {
       return false;
     }
 
+    if (!ENV.sendgridApiKey) {
+      console.warn("[EmailProvider] SendGrid API key not configured, skipping email");
+      return false;
+    }
+
     // Check user preferences before sending
     try {
       const prefs = await db.getNotificationPreferences(notification.recipient.userId);
@@ -57,32 +62,93 @@ export class EmailProvider implements NotificationProvider {
     const unsubscribeToken = await this.ensureUnsubscribeToken(notification.recipient.userId);
 
     try {
-      const response = await fetch(`${ENV.forgeApiUrl}/email/send`, {
+      const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${ENV.forgeApiKey}`,
+          "Authorization": `Bearer ${ENV.sendgridApiKey}`,
         },
         body: JSON.stringify({
-          to: notification.recipient.email,
+          personalizations: [{
+            to: [{ email: notification.recipient.email }],
+          }],
+          from: {
+            email: "garychisolm30@gmail.com",
+            name: "OlogyCrew",
+          },
           subject: template.subject,
-          html: this.formatEmailHTML(template.body, {
-            ...notification.data,
-            unsubscribeToken,
-          }),
-          text: template.body,
+          content: [
+            {
+              type: "text/plain",
+              value: template.body,
+            },
+            {
+              type: "text/html",
+              value: this.formatEmailHTML(template.body, {
+                ...notification.data,
+                unsubscribeToken,
+              }),
+            },
+          ],
         }),
       });
 
       if (!response.ok) {
-        console.error("[EmailProvider] Failed to send email:", await response.text());
+        const errorText = await response.text();
+        console.error("[EmailProvider] SendGrid error:", response.status, errorText);
         return false;
       }
 
-      console.log(`[EmailProvider] Email sent to ${notification.recipient.email}`);
+      console.log(`[EmailProvider] Email sent to ${notification.recipient.email} via SendGrid`);
       return true;
     } catch (error) {
       console.error("[EmailProvider] Error sending email:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Send a raw email directly via SendGrid (no user preferences check).
+   * Used for test/preview emails.
+   */
+  static async sendRaw(to: string, subject: string, htmlBody: string, textBody: string): Promise<boolean> {
+    if (!ENV.sendgridApiKey) {
+      console.warn("[EmailProvider] SendGrid API key not configured");
+      return false;
+    }
+
+    try {
+      const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${ENV.sendgridApiKey}`,
+        },
+        body: JSON.stringify({
+          personalizations: [{
+            to: [{ email: to }],
+          }],
+          from: {
+            email: "garychisolm30@gmail.com",
+            name: "OlogyCrew",
+          },
+          subject,
+          content: [
+            { type: "text/plain", value: textBody },
+            { type: "text/html", value: htmlBody },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("[EmailProvider.sendRaw] SendGrid error:", response.status, errorText);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("[EmailProvider.sendRaw] Error:", error);
       return false;
     }
   }
