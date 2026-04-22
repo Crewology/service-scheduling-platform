@@ -1059,3 +1059,6 @@
 
 ## Bug: 404 on Back Button from More Menu Pages
 - [x] Fix 404 when hitting back button from Promo Codes page — back arrow linked to /provider instead of /provider/dashboard
+
+## Bug: Duplicate "Connect Payment Account" in Profile Checklist
+- [x] Fix duplicate display of Connect payment account step in Complete Your Profile widget — excluded nextStep from grid since it's already highlighted above

@@ -2930,9 +2930,9 @@ function OnboardingChecklist({
           </div>
         )}
 
-        {/* All steps grid */}
+        {/* All steps grid — exclude the "next" step since it's already highlighted above */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
-          {steps.map((step: any, idx: number) => (
+          {steps.filter((s: any) => s !== nextStep).map((step: any, idx: number) => (
             <div
               key={step.id}
               className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
