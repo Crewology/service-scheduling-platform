@@ -21,6 +21,9 @@ const FROM_NAME = 'OlogyCrew';
 const SITE_URL = 'https://servsched-qd7ehrqo.manus.space';
 const LOGO_URL = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png';
 
+// Real unsubscribe token for Gary Chisolm (userId 1) from the database
+const REAL_UNSUBSCRIBE_TOKEN = 'e1b67893e6ebb47bf0d8362294062aac519dcef9e319a6a8e2ad554248d4446d';
+
 if (!SENDGRID_API_KEY) {
   console.error('Missing SENDGRID_API_KEY environment variable');
   process.exit(1);
@@ -41,7 +44,7 @@ function formatEmailHTML(body, data = {}) {
     .replace(/\n\n/g, '</p><p>')
     .replace(/\n/g, '<br>');
 
-  const unsubscribeUrl = `${SITE_URL}/unsubscribe/test-token-123`;
+  const unsubscribeUrl = `${SITE_URL}/unsubscribe/${REAL_UNSUBSCRIBE_TOKEN}`;
 
   return `
 <!DOCTYPE html>
