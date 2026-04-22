@@ -1112,3 +1112,22 @@
 - [x] Add trust score recalculation on review creation (reviewRouter)
 - [x] Add trust score recalculation on profile update and photo upload (providerRouter)
 - [x] Write 16 vitest tests for trust score calculation logic (all passing)
+
+## Feature: Priority Search Ranking (Trust Score + Tier Boost)
+- [x] Add trust score and tier-based sorting to searchServices and searchProviders queries
+- [x] Weight: Trust Score (primary) + Subscription Tier boost (Premium +30, Basic +15, Free +0)
+- [x] Ensure merit-based ranking: Trusted Free > New Premium
+- [x] Trust badges already display in search results via TrustBadge component
+- [x] Official providers still ranked first via isOfficial flag
+
+## Feature: 14-Day Professional Trial for New Providers
+- [x] Add startProfessionalTrial mutation to subscription router
+- [x] Add checkTrialStatus query to subscription router (returns daysRemaining, isTrialing, trialExpired, showUrgentNudge)
+- [x] Create trial expiry check logic with auto-downgrade to Free tier
+- [x] Build TrialCountdownBanner component (blue for normal, red for urgent ≤3 days)
+- [x] Build TrialExpiredBanner component with upgrade CTA
+- [x] Build TrialStatusBanner auto-selector component for Provider Dashboard
+- [x] Update onboarding tier selection step with "Try Professional free for 14 days" banner
+- [x] Add trial status display to SubscriptionManagement page (active trial, expired trial, start trial CTA)
+- [x] Handle trial expiry: auto-downgrade to Free tier in checkTrialStatus
+- [x] Write 23 vitest tests for priority ranking and trial logic (all passing)

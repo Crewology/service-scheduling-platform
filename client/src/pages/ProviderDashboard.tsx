@@ -66,6 +66,7 @@ import { PhotoUpload } from "@/components/PhotoUpload";
 import { Checkbox } from "@/components/ui/checkbox";
 import { UpgradePrompt, UpgradeBanner } from "@/components/UpgradePrompt";
 import { TrustBadge, TrustScoreProgress } from "@/components/TrustBadge";
+import { TrialStatusBanner } from "@/components/TrialBanner";
 
 // ============================================================================
 // SERVICE PHOTOS MANAGER
@@ -1085,6 +1086,9 @@ export default function ProviderDashboard() {
             Edit Profile
           </Button>
         </div>
+
+        {/* Trial Status Banner */}
+        <TrialStatusBanner />
 
         {/* Stats Overview */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-8">

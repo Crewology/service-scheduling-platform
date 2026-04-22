@@ -65,6 +65,93 @@ export const subscriptionRouter = router({
     return Object.values(SUBSCRIPTION_TIERS);
   }),
 
+  // Start 14-day Professional trial for new providers
+  startProfessionalTrial: protectedProcedure.mutation(async ({ ctx }) => {
+    const provider = await db.getProviderByUserId(ctx.user.id);
+    if (!provider) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+    }
+
+    // Check if already has an active/trialing subscription
+    const existing = await db.getProviderSubscription(provider.id);
+    if (existing && existing.status === "trialing") {
+      return { tier: existing.tier, status: existing.status, trialEndsAt: existing.trialEndsAt };
+    }
+    if (existing && existing.status === "active" && existing.tier !== "free") {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Already have an active paid subscription" });
+    }
+
+    // Start 14-day Professional trial
+    const now = new Date();
+    const trialEnd = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+
+    await db.upsertProviderSubscription({
+      providerId: provider.id,
+      tier: "basic",
+      status: "trialing",
+      trialEndsAt: trialEnd,
+      currentPeriodStart: now,
+      currentPeriodEnd: trialEnd,
+    });
+
+    return { tier: "basic" as const, status: "trialing" as const, trialEndsAt: trialEnd };
+  }),
+
+  // Check and handle trial expiry (called on dashboard load)
+  checkTrialStatus: protectedProcedure.query(async ({ ctx }) => {
+    const provider = await db.getProviderByUserId(ctx.user.id);
+    if (!provider) return null;
+
+    const sub = await db.getProviderSubscription(provider.id);
+    if (!sub) return null;
+
+    // If trialing, check if expired
+    if (sub.status === "trialing" && sub.trialEndsAt) {
+      const now = new Date();
+      const trialEnd = new Date(sub.trialEndsAt);
+      const daysRemaining = Math.max(0, Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+
+      if (daysRemaining <= 0) {
+        // Trial expired — downgrade to free
+        await db.upsertProviderSubscription({
+          providerId: provider.id,
+          tier: "free",
+          status: "active",
+          trialEndsAt: undefined,
+          currentPeriodStart: undefined,
+          currentPeriodEnd: undefined,
+        });
+        return {
+          isTrialing: false,
+          trialExpired: true,
+          trialTier: "basic" as const,
+          daysRemaining: 0,
+          trialEndsAt: sub.trialEndsAt,
+          currentTier: "free" as const,
+        };
+      }
+
+      return {
+        isTrialing: true,
+        trialExpired: false,
+        trialTier: sub.tier,
+        daysRemaining,
+        trialEndsAt: sub.trialEndsAt,
+        currentTier: sub.tier,
+        showUrgentNudge: daysRemaining <= 3,
+      };
+    }
+
+    return {
+      isTrialing: false,
+      trialExpired: false,
+      trialTier: null,
+      daysRemaining: 0,
+      trialEndsAt: null,
+      currentTier: sub.tier,
+    };
+  }),
+
   // Select free tier explicitly during onboarding (creates a subscription record)
   selectFreeTier: protectedProcedure.mutation(async ({ ctx }) => {
     const provider = await db.getProviderByUserId(ctx.user.id);

@@ -5,6 +5,7 @@ import {
   servicePhotos,
   serviceProviders,
   providerCategories,
+  providerSubscriptions,
   users,
   type Service,
   type ProviderCategory,
@@ -148,6 +149,14 @@ export async function searchServices(searchTerm: string) {
   if (!db) return [];
   const term = `%${searchTerm}%`;
   // Search services by name/description AND by provider business name
+  // Priority ranking: trust score (primary) + subscription tier boost (secondary)
+  const tierBoost = sql<number>`CASE 
+    WHEN ${providerSubscriptions.tier} = 'premium' AND ${providerSubscriptions.status} IN ('active', 'trialing') THEN 30
+    WHEN ${providerSubscriptions.tier} = 'basic' AND ${providerSubscriptions.status} IN ('active', 'trialing') THEN 15
+    ELSE 0
+  END`;
+  const rankScore = sql<number>`(COALESCE(${serviceProviders.trustScore}, 0) + ${tierBoost})`;
+
   const rows = await db
     .select({
       id: services.id,
@@ -173,9 +182,12 @@ export async function searchServices(searchTerm: string) {
       deletedAt: services.deletedAt,
       businessName: serviceProviders.businessName,
       providerSlug: serviceProviders.profileSlug,
+      trustScore: serviceProviders.trustScore,
+      trustLevel: serviceProviders.trustLevel,
     })
     .from(services)
     .innerJoin(serviceProviders, eq(services.providerId, serviceProviders.id))
+    .leftJoin(providerSubscriptions, eq(serviceProviders.id, providerSubscriptions.providerId))
     .where(and(
       eq(services.isActive, true),
       eq(serviceProviders.isActive, true),
@@ -185,7 +197,11 @@ export async function searchServices(searchTerm: string) {
         like(serviceProviders.businessName, term)
       )
     ))
-    .orderBy(services.name)
+    .orderBy(
+      desc(serviceProviders.isOfficial),
+      desc(rankScore),
+      desc(serviceProviders.averageRating)
+    )
     .limit(50);
   return rows;
 }
@@ -198,6 +214,14 @@ export async function searchProviders(searchTerm: string) {
   const db = await getDb();
   if (!db) return [];
   const term = `%${searchTerm}%`;
+  // Priority ranking: trust score (primary) + subscription tier boost (secondary)
+  const tierBoost = sql<number>`CASE 
+    WHEN ${providerSubscriptions.tier} = 'premium' AND ${providerSubscriptions.status} IN ('active', 'trialing') THEN 30
+    WHEN ${providerSubscriptions.tier} = 'basic' AND ${providerSubscriptions.status} IN ('active', 'trialing') THEN 15
+    ELSE 0
+  END`;
+  const rankScore = sql<number>`(COALESCE(${serviceProviders.trustScore}, 0) + ${tierBoost})`;
+
   const rows = await db
     .select({
       id: serviceProviders.id,
@@ -214,9 +238,12 @@ export async function searchProviders(searchTerm: string) {
       isFeatured: serviceProviders.isFeatured,
       verificationStatus: serviceProviders.verificationStatus,
       profilePhotoUrl: users.profilePhotoUrl,
+      trustScore: serviceProviders.trustScore,
+      trustLevel: serviceProviders.trustLevel,
     })
     .from(serviceProviders)
     .innerJoin(users, eq(serviceProviders.userId, users.id))
+    .leftJoin(providerSubscriptions, eq(serviceProviders.id, providerSubscriptions.providerId))
     .where(and(
       eq(serviceProviders.isActive, true),
       or(
@@ -226,6 +253,7 @@ export async function searchProviders(searchTerm: string) {
     ))
     .orderBy(
       desc(serviceProviders.isOfficial),
+      desc(rankScore),
       desc(serviceProviders.averageRating)
     )
     .limit(10);

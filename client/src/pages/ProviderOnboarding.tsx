@@ -702,6 +702,16 @@ export default function ProviderOnboarding() {
     onError: (err) => toast.error(err.message),
   });
 
+  const startTrial = trpc.subscription.startProfessionalTrial.useMutation({
+    onSuccess: () => {
+      setSelectedTier("basic");
+      utils.subscription.mySubscription.invalidate();
+      toast.success("Professional trial started! You have 14 days of full access.");
+      setCurrentStep(5);
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
   const createCheckout = trpc.subscription.createCheckout.useMutation({
     onSuccess: (data) => {
       if (data.url) {
@@ -1482,30 +1492,28 @@ export default function ProviderOnboarding() {
                 </div>
               </div>
 
-              {/* 14-day Premium Trial Banner */}
+              {/* 14-day Professional Trial Banner */}
               {(!currentSubscription?.subscription || currentSubscription?.currentTier === "free") && (
-                <div className="p-4 rounded-lg bg-gradient-to-r from-amber-500/10 to-primary/10 border border-amber-500/20">
+                <div className="p-4 rounded-lg bg-gradient-to-r from-blue-500/10 to-primary/10 border border-blue-500/20">
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                      <Crown className="h-4 w-4 text-amber-500" />
+                    <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                      <Zap className="h-4 w-4 text-blue-500" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-sm">Try Premium free for 14 days</h4>
+                      <h4 className="font-semibold text-sm">Try Professional free for 14 days</h4>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        Get unlimited services, featured listing, full analytics, and priority support. 
-                        Cancel anytime — no charge if you cancel before the trial ends.
+                        Get 10 service listings, priority search placement, business analytics, and a custom profile URL.
+                        No credit card required — automatically reverts to Free if you don't subscribe.
                       </p>
                     </div>
                     <Button
                       size="sm"
                       variant="outline"
-                      className="shrink-0 border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10"
-                      onClick={() => {
-                        createCheckout.mutate({ tier: "premium", interval: billingInterval, withTrial: true });
-                      }}
-                      disabled={createCheckout.isPending}
+                      className="shrink-0 border-blue-500/30 text-blue-600 dark:text-blue-400 hover:bg-blue-500/10"
+                      onClick={() => startTrial.mutate()}
+                      disabled={startTrial.isPending}
                     >
-                      {createCheckout.isPending ? (
+                      {startTrial.isPending ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
                         "Start Free Trial"

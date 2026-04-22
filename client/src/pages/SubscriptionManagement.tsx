@@ -126,6 +126,20 @@ export default function SubscriptionManagement() {
 
   const currentTier = currentSub?.currentTier || "free";
 
+  const { data: trialStatus } = trpc.subscription.checkTrialStatus.useQuery(undefined, {
+    enabled: isAuthenticated,
+    staleTime: 60_000,
+  });
+
+  const startTrial = trpc.subscription.startProfessionalTrial.useMutation({
+    onSuccess: () => {
+      toast.success("Professional trial started! You have 14 days of full access.");
+      // Invalidate queries to refresh the page
+      window.location.reload();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
   const handleSubscribe = (tier: string) => {
     if (tier === "free") return;
     setSubscribing(tier);
@@ -210,6 +224,67 @@ export default function SubscriptionManagement() {
             </span>
           </button>
         </div>
+
+        {/* Trial Status Banner */}
+        {trialStatus?.isTrialing && (
+          <div className="mb-6 p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Zap className="h-5 w-5 text-blue-500" />
+                <div>
+                  <p className="font-medium text-sm">
+                    Professional Trial — {trialStatus.daysRemaining} day{trialStatus.daysRemaining !== 1 ? 's' : ''} remaining
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {trialStatus.showUrgentNudge 
+                      ? "Your trial is ending soon! Subscribe to keep your Professional features."
+                      : "Enjoying your trial? Subscribe anytime to keep access after it ends."}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {trialStatus?.trialExpired && currentTier === "free" && (
+          <div className="mb-6 p-4 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
+            <div className="flex items-center gap-3">
+              <Crown className="h-5 w-5 text-amber-500" />
+              <div>
+                <p className="font-medium text-sm">Your Professional trial has ended</p>
+                <p className="text-xs text-muted-foreground">
+                  You're on the Starter plan. Subscribe to Professional to restore priority search, analytics, and more.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Start Trial CTA for free users who haven't tried yet */}
+        {currentTier === "free" && !trialStatus?.isTrialing && !trialStatus?.trialExpired && (
+          <div className="mb-6 p-4 rounded-lg bg-gradient-to-r from-blue-500/10 to-primary/10 border border-blue-500/20">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Zap className="h-5 w-5 text-blue-500" />
+                <div>
+                  <p className="font-medium text-sm">Try Professional free for 14 days</p>
+                  <p className="text-xs text-muted-foreground">
+                    No credit card required. Get 10 services, priority search, analytics, and custom URL.
+                  </p>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="shrink-0 border-blue-500/30 text-blue-600 dark:text-blue-400 hover:bg-blue-500/10"
+                onClick={() => startTrial.mutate()}
+                disabled={startTrial.isPending}
+              >
+                {startTrial.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Start Free Trial"}
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Current Plan Badge */}
         {currentTier !== "free" && (
