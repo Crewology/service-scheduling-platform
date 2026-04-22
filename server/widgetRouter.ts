@@ -20,7 +20,7 @@ export const widgetRouter = router({
         city: provider.city,
         state: provider.state,
         profileSlug: provider.profileSlug,
-        isVerified: provider.verificationStatus === 'verified',
+        trustLevel: provider.trustLevel || 'new',
       };
     }),
 

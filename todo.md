@@ -1131,3 +1131,14 @@
 - [x] Add trial status display to SubscriptionManagement page (active trial, expired trial, start trial CTA)
 - [x] Handle trial expiry: auto-downgrade to Free tier in checkTrialStatus
 - [x] Write 23 vitest tests for priority ranking and trial logic (all passing)
+
+## Fix: Remove All "Verified" Text & Update Why Choose Section
+- [x] Audit entire codebase for remaining "verified" text (found in Home, AdminDashboard, ogImage, widgetRouter, PublicProviderProfile)
+- [x] Home.tsx: "Verified Providers" → "Trust-Rated Providers" with Rising/Trusted/Top Pro badge pills
+- [x] AdminDashboard.tsx: "Provider verified" toast → "Provider approved"
+- [x] AdminDashboard.tsx: Badge displays "approved" instead of "verified" for approved providers
+- [x] ogImage.ts: "Verified" OG badge → trust level badge (Rising/Trusted/Top Pro with color coding)
+- [x] widgetRouter.ts: isVerified field → trustLevel field
+- [x] PublicProviderProfile.tsx: Removed old "Verified" badge fallback
+- [x] PublicProviderProfile.tsx: "Insurance Verified" → "Insured"
+- [x] Updated "Why Choose OlogyCrew" section to showcase automated trust badge system

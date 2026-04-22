@@ -303,11 +303,7 @@ export default function PublicProviderProfile() {
                 {provider.trustLevel && provider.trustLevel !== "new" && (
                   <TrustBadge level={provider.trustLevel} size="md" />
                 )}
-                {!provider.trustLevel && provider.verificationStatus === "verified" && !provider.isOfficial && (
-                  <Badge className="gap-1 bg-blue-500 hover:bg-blue-600 text-white">
-                    <CheckCircle className="w-3 h-3" /> Verified
-                  </Badge>
-                )}
+
                 {/* Favorite Button */}
                 <FavoriteButton providerId={provider.id} />
                 {/* Share Button */}
@@ -720,7 +716,7 @@ export default function PublicProviderProfile() {
                   <p>Member since {new Date(provider.createdAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}</p>
                 </div>
 
-                {/* Trust & Verification Badges */}
+                {/* Trust & Credentials */}
                 {(provider.trustLevel && provider.trustLevel !== "new") || provider.insuranceVerified || provider.backgroundCheckVerified ? (
                   <>
                     <Separator />
@@ -733,7 +729,7 @@ export default function PublicProviderProfile() {
                       )}
                       {provider.insuranceVerified && (
                         <p className="flex items-center gap-1.5 text-sm text-green-600">
-                          <Shield className="w-4 h-4" /> Insurance Verified
+                          <Shield className="w-4 h-4" /> Insured
                         </p>
                       )}
                       {provider.backgroundCheckVerified && (

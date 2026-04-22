@@ -291,7 +291,7 @@ export default function AdminDashboard() {
     onSuccess: () => {
       utils.admin.listProviders.invalidate();
       utils.admin.getStats.invalidate();
-      toast.success("Provider verified");
+      toast.success("Provider approved");
     },
     onError: (err) => toast.error(err.message),
   });
@@ -591,7 +591,7 @@ export default function AdminDashboard() {
                                 "destructive"
                               }
                             >
-                              {provider.verificationStatus}
+                              {provider.verificationStatus === "verified" ? "approved" : provider.verificationStatus}
                             </Badge>
                           </TableCell>
                           <TableCell>

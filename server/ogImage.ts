@@ -411,7 +411,9 @@ export async function generateProviderOgImage(
     const location = [provider.city, provider.state].filter(Boolean).join(", ");
     const rating = parseFloat(provider.averageRating || "0");
     const reviewCount = provider.totalReviews || 0;
-    const isVerified = provider.verificationStatus === "verified";
+    const trustLevel = provider.trustLevel || "new";
+    const trustBadgeText = trustLevel === "top_pro" ? "Top Pro" : trustLevel === "trusted" ? "Trusted" : trustLevel === "rising" ? "Rising" : "";
+    const trustBadgeColor = trustLevel === "top_pro" ? "#f59e0b" : trustLevel === "trusted" ? "#22c55e" : trustLevel === "rising" ? "#3b82f6" : "";
 
     const fontData = await loadFont();
 
@@ -531,7 +533,7 @@ export async function generateProviderOgImage(
                         justifyContent: "center",
                       },
                       children: [
-                        // Business name + verified badge
+                        // Business name + trust badge
                         {
                           type: "div",
                           props: {
@@ -554,20 +556,20 @@ export async function generateProviderOgImage(
                                   children: businessName,
                                 },
                               },
-                              ...(isVerified
+                              ...(trustBadgeText
                                 ? [
                                     {
                                       type: "div",
                                       props: {
                                         style: {
-                                          background: "#22c55e",
+                                          background: trustBadgeColor,
                                           borderRadius: "8px",
                                           padding: "4px 12px",
                                           fontSize: "16px",
                                           fontWeight: 600,
                                           color: "white",
                                         },
-                                        children: "Verified",
+                                        children: trustBadgeText,
                                       },
                                     },
                                   ]

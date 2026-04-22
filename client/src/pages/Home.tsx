@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
-import { Search, Calendar, Shield, Star, ArrowRight, CheckCircle2, MapPin, User, Gift, Trophy, TrendingUp, Users } from "lucide-react";
+import { Search, Calendar, Shield, Star, ArrowRight, CheckCircle2, MapPin, User, Gift, Trophy, TrendingUp, Users, Award, ShieldCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
@@ -94,12 +94,17 @@ export default function Home() {
             <Card className="border-2 hover:border-primary transition-colors shadow-soft">
               <CardContent className="p-6 sm:p-8 text-center">
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
-                  <Shield className="h-8 w-8 text-primary" />
+                  <Award className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="text-xl sm:text-2xl font-bold mb-3">Verified Providers</h3>
+                <h3 className="text-xl sm:text-2xl font-bold mb-3">Trust-Rated Providers</h3>
                 <p className="text-muted-foreground">
-                  All service providers are background-checked, licensed, and insured for your peace of mind.
+                  Every provider earns trust badges based on completed bookings, customer reviews, and profile quality — so you can book with confidence.
                 </p>
+                <div className="flex items-center justify-center gap-2 mt-4">
+                  <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-blue-100 text-blue-700"><TrendingUp className="h-3 w-3" /> Rising</span>
+                  <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-green-100 text-green-700"><ShieldCheck className="h-3 w-3" /> Trusted</span>
+                  <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-amber-100 text-amber-700"><Trophy className="h-3 w-3" /> Top Pro</span>
+                </div>
               </CardContent>
             </Card>
             
