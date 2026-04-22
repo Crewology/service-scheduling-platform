@@ -673,7 +673,7 @@ Congratulations and welcome to **OlogyCrew**! Your provider profile is now live 
 - **Set Your Availability** — Configure your weekly schedule so customers can book open time slots
 - **Connect Stripe** — Set up payments to receive secure payouts directly to your bank account
 
-[Go to Provider Dashboard](/provider-dashboard)
+[Go to Provider Dashboard](/provider/dashboard)
 
 **Build Your Trust Score:**
 OlogyCrew uses a **Trust Score** system to highlight reliable providers. Complete bookings on time, earn great reviews, and maintain a fast response time to climb the ranks from **New** to **Trusted** to **Top Pro**.

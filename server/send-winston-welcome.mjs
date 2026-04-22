@@ -1,24 +1,21 @@
 /**
- * Send 2 test welcome emails: one for customer, one for provider.
- * Uses SendGrid API directly with the same HTML template as production.
+ * Send Winston (Legacy) a welcome provider email.
  */
 import "dotenv/config";
+import mysql from "mysql2/promise";
 
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
-const TO_EMAIL = "garychisolm30@gmail.com";
+const TO_EMAIL = "legacy.vk@gmail.com";
 const FROM_EMAIL = "garychisolm30@gmail.com";
 const FROM_NAME = "OlogyCrew";
 const SITE_URL = "https://servsched-qd7ehrqo.manus.space";
 const SITE_LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png";
 
-// Fetch the real unsubscribe token from the DB
-import mysql from "mysql2/promise";
-
 async function getUnsubscribeToken() {
   try {
     const conn = await mysql.createConnection(process.env.DATABASE_URL);
     const [rows] = await conn.execute(
-      "SELECT unsubscribeToken FROM notification_preferences WHERE userId = 1 LIMIT 1"
+      "SELECT unsubscribeToken FROM notification_preferences WHERE userId = 2190639 LIMIT 1"
     );
     await conn.end();
     if (rows.length > 0 && rows[0].unsubscribeToken) {
@@ -27,7 +24,7 @@ async function getUnsubscribeToken() {
   } catch (e) {
     console.warn("Could not fetch unsubscribe token:", e.message);
   }
-  return "test-token";
+  return "no-token";
 }
 
 function formatEmailHTML(body, unsubscribeToken) {
@@ -41,7 +38,9 @@ function formatEmailHTML(body, unsubscribeToken) {
     .replace(/\n\n/g, '</p><p>')
     .replace(/\n/g, '<br>');
 
-  const unsubscribeUrl = `${SITE_URL}/unsubscribe/${unsubscribeToken}`;
+  const unsubscribeUrl = unsubscribeToken !== "no-token"
+    ? `${SITE_URL}/unsubscribe/${unsubscribeToken}`
+    : `${SITE_URL}/notification-settings`;
 
   return `
 <!DOCTYPE html>
@@ -71,35 +70,6 @@ function formatEmailHTML(body, unsubscribeToken) {
   `.trim();
 }
 
-async function sendEmail(subject, body, unsubscribeToken) {
-  const htmlBody = formatEmailHTML(body, unsubscribeToken);
-  const plainBody = body.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\[(.*?)\]\((.*?)\)/g, '$1: $2');
-
-  const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${SENDGRID_API_KEY}`,
-    },
-    body: JSON.stringify({
-      personalizations: [{ to: [{ email: TO_EMAIL }] }],
-      from: { email: FROM_EMAIL, name: FROM_NAME },
-      subject,
-      content: [
-        { type: "text/plain", value: plainBody },
-        { type: "text/html", value: htmlBody },
-      ],
-    }),
-  });
-
-  if (!response.ok) {
-    const err = await response.text();
-    console.error(`  FAILED (${response.status}):`, err);
-    return false;
-  }
-  return true;
-}
-
 async function main() {
   if (!SENDGRID_API_KEY) {
     console.error("SENDGRID_API_KEY not set");
@@ -107,47 +77,12 @@ async function main() {
   }
 
   const unsubscribeToken = await getUnsubscribeToken();
-  console.log("Using unsubscribe token:", unsubscribeToken.substring(0, 8) + "...");
+  console.log("Unsubscribe token:", unsubscribeToken ? unsubscribeToken.substring(0, 8) + "..." : "none");
 
-  // ─── EMAIL 1: Welcome Customer ───
-  const customerBody = `
-Hello Gary,
+  const body = `
+Hello Winston,
 
-Welcome to **OlogyCrew**! We're thrilled to have you on board.
-
-You now have access to **42+ service categories** — from barbers and massage therapists to DJs, photographers, handymen, personal trainers, and much more. Every provider on our platform is vetted with our **Trust Score** system, so you can book with confidence.
-
-**Here's how to get started:**
-
-- **Browse Services** — Explore categories and find the right professional for your needs
-- **Book Instantly** — Pick a date, time, and pay securely through the platform
-- **Leave Reviews** — Help the community by sharing your experience after each appointment
-
-[Browse Services](${SITE_URL}/browse)
-
-If you have any questions, our Help Center is always available.
-
-[Visit Help Center](${SITE_URL}/help)
-
-Welcome aboard!
-
-Best regards,
-The OlogyCrew Team
-  `.trim();
-
-  console.log("\n[1/2] Sending Welcome Customer email...");
-  const ok1 = await sendEmail(
-    "[TEST] Welcome to OlogyCrew — Let's Get You Booked!",
-    customerBody,
-    unsubscribeToken
-  );
-  console.log(ok1 ? "  ✅ Sent!" : "  ❌ Failed");
-
-  // ─── EMAIL 2: Welcome Provider ───
-  const providerBody = `
-Hello Gary's Pro Services,
-
-Congratulations and welcome to **OlogyCrew**! Your provider profile is now live and customers can start finding and booking your services.
+Congratulations and welcome to **OlogyCrew**! Your provider profile for **Legacy** is now live and customers can start finding and booking your services.
 
 **Here's what to do next to maximize your bookings:**
 
@@ -172,15 +107,34 @@ Best regards,
 The OlogyCrew Team
   `.trim();
 
-  console.log("[2/2] Sending Welcome Provider email...");
-  const ok2 = await sendEmail(
-    "[TEST] Welcome to OlogyCrew — Your Provider Profile is Live!",
-    providerBody,
-    unsubscribeToken
-  );
-  console.log(ok2 ? "  ✅ Sent!" : "  ❌ Failed");
+  const htmlBody = formatEmailHTML(body, unsubscribeToken);
+  const plainBody = body.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\[(.*?)\]\((.*?)\)/g, '$1: $2');
 
-  console.log(`\n✅ Done! ${[ok1, ok2].filter(Boolean).length}/2 emails sent to ${TO_EMAIL}`);
+  console.log(`\nSending welcome email to Winston (${TO_EMAIL})...`);
+
+  const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${SENDGRID_API_KEY}`,
+    },
+    body: JSON.stringify({
+      personalizations: [{ to: [{ email: TO_EMAIL }] }],
+      from: { email: FROM_EMAIL, name: FROM_NAME },
+      subject: "Welcome to OlogyCrew — Your Provider Profile is Live!",
+      content: [
+        { type: "text/plain", value: plainBody },
+        { type: "text/html", value: htmlBody },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.text();
+    console.error(`  FAILED (${response.status}):`, err);
+  } else {
+    console.log("  ✅ Welcome email sent to Winston at legacy.vk@gmail.com!");
+  }
 }
 
 main().catch(console.error);
