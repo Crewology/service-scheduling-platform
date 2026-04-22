@@ -13,16 +13,30 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
+import { UpgradePrompt } from "@/components/UpgradePrompt";
 
 export default function CreateService() {
   const { user, isAuthenticated, loading } = useAuth();
   const [, setLocation] = useLocation();
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   
   const { data: provider } = trpc.provider.getMyProfile.useQuery(undefined, {
     enabled: isAuthenticated,
   });
   
   const { data: categories } = trpc.category.list.useQuery();
+
+  const { data: mySubscription } = trpc.subscription.mySubscription.useQuery(undefined, {
+    enabled: !!provider,
+  });
+
+  const { data: existingServices } = trpc.service.listMine.useQuery(undefined, {
+    enabled: !!provider,
+  });
+
+  const currentTier = (mySubscription?.currentTier || "free") as "free" | "basic" | "premium";
+  const serviceLimit = mySubscription?.tierConfig?.limits?.maxServices || 3;
+  const serviceCount = existingServices?.length || 0;
   
   const createService = trpc.service.create.useMutation({
     onSuccess: () => {
@@ -30,7 +44,11 @@ export default function CreateService() {
       setLocation("/provider/dashboard");
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to create service");
+      if (error.message?.includes("plan allows up to") || error.data?.code === "FORBIDDEN") {
+        setShowUpgradePrompt(true);
+      } else {
+        toast.error(error.message || "Failed to create service");
+      }
     },
   });
 
@@ -374,6 +392,16 @@ export default function CreateService() {
           </div>
         </form>
       </div>
+
+      {/* Upgrade Prompt Dialog */}
+      <UpgradePrompt
+        open={showUpgradePrompt}
+        onClose={() => setShowUpgradePrompt(false)}
+        reason="service_limit"
+        currentTier={currentTier}
+        currentCount={serviceCount}
+        currentLimit={serviceLimit}
+      />
     </div>
   );
 }

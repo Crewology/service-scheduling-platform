@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Upload, X, Image as ImageIcon, Loader2 } from "lucide-react";
+import { UpgradePrompt } from "@/components/UpgradePrompt";
 
 interface PhotoUploadProps {
   serviceId: number;
@@ -16,12 +17,20 @@ export function PhotoUpload({ serviceId, existingPhotos = [], maxPhotos = 10, on
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [showUpgradeForPhotos, setShowUpgradeForPhotos] = useState(false);
+
   const uploadPhoto = trpc.service.uploadPhoto.useMutation({
     onSuccess: () => {
       toast.success("Photo uploaded successfully");
       onPhotosChanged?.();
     },
-    onError: (err) => toast.error(err.message),
+    onError: (err) => {
+      if (err.message?.includes("Free tier allows") || err.message?.includes("Upgrade to")) {
+        setShowUpgradeForPhotos(true);
+      } else {
+        toast.error(err.message);
+      }
+    },
   });
 
   const deletePhoto = trpc.service.deletePhoto.useMutation({
@@ -194,6 +203,15 @@ export function PhotoUpload({ serviceId, existingPhotos = [], maxPhotos = 10, on
           )}
         </div>
       )}
+      {/* Photo limit upgrade prompt */}
+      <UpgradePrompt
+        open={showUpgradeForPhotos}
+        onClose={() => setShowUpgradeForPhotos(false)}
+        reason="photo_limit"
+        currentTier="free"
+        currentCount={existingPhotos.length}
+        currentLimit={2}
+      />
     </div>
   );
 }

@@ -64,6 +64,7 @@ import { formatCurrency } from "@/lib/dateUtils";
 import { formatDuration, DURATION_PRESETS } from "../../../shared/duration";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { Checkbox } from "@/components/ui/checkbox";
+import { UpgradePrompt, UpgradeBanner } from "@/components/UpgradePrompt";
 
 // ============================================================================
 // SERVICE PHOTOS MANAGER
@@ -808,6 +809,8 @@ export default function ProviderDashboard() {
   const [quoteDuration, setQuoteDuration] = useState("");
   const [quoteNotes, setQuoteNotes] = useState("");
   const [quoteValidDays, setQuoteValidDays] = useState("7");
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const [upgradeReason, setUpgradeReason] = useState<"service_limit" | "photo_limit" | "general">("general");
   const profilePhotoInputRef = useRef<HTMLInputElement>(null);
   
   const uploadProfilePhoto = trpc.provider.uploadProfilePhoto.useMutation({
@@ -846,6 +849,14 @@ export default function ProviderDashboard() {
   const { data: services } = trpc.service.listMine.useQuery(undefined, {
     enabled: !!provider,
   });
+
+  const { data: mySubscription } = trpc.subscription.mySubscription.useQuery(undefined, {
+    enabled: !!provider,
+  });
+
+  const currentTier = (mySubscription?.currentTier || "free") as "free" | "basic" | "premium";
+  const serviceLimit = mySubscription?.tierConfig?.limits?.maxServices || 3;
+  const serviceCount = services?.length || 0;
 
   const { data: myCategories } = trpc.provider.getMyCategories.useQuery(undefined, {
     enabled: !!provider,
@@ -1496,13 +1507,34 @@ export default function ProviderDashboard() {
                     <Grid3X3 className="h-4 w-4 mr-1" /> Manage Categories
                   </Button>
                 </Link>
-                <Link href="/provider/services/new">
-                  <Button size="sm">
-                    <Plus className="h-4 w-4 mr-1" /> Add Service
+                {serviceCount >= serviceLimit && currentTier !== "premium" ? (
+                  <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-white" onClick={() => {
+                    setUpgradeReason("service_limit");
+                    setShowUpgradePrompt(true);
+                  }}>
+                    <Crown className="h-4 w-4 mr-1" /> Upgrade to Add More
                   </Button>
-                </Link>
+                ) : (
+                  <Link href="/provider/services/new">
+                    <Button size="sm">
+                      <Plus className="h-4 w-4 mr-1" /> Add Service
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
+
+            {/* Tier limit banner */}
+            <UpgradeBanner
+              reason="service_limit"
+              currentTier={currentTier}
+              currentCount={serviceCount}
+              maxCount={serviceLimit}
+              onUpgradeClick={() => {
+                setUpgradeReason("service_limit");
+                setShowUpgradePrompt(true);
+              }}
+            />
 
             {/* Active Categories with their services */}
             {myCategories && myCategories.length > 0 ? (
@@ -2706,6 +2738,16 @@ export default function ProviderDashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Upgrade Prompt Dialog */}
+      <UpgradePrompt
+        open={showUpgradePrompt}
+        onClose={() => setShowUpgradePrompt(false)}
+        reason={upgradeReason}
+        currentTier={currentTier}
+        currentCount={upgradeReason === "service_limit" ? serviceCount : undefined}
+        currentLimit={upgradeReason === "service_limit" ? serviceLimit : undefined}
+      />
     </div>
   );
 }

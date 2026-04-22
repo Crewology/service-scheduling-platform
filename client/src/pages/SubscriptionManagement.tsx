@@ -25,9 +25,9 @@ import { NavHeader } from "@/components/shared/NavHeader";
 const PLANS = [
   {
     tier: "free" as const,
-    name: "Free",
-    price: "$0",
-    period: "forever",
+    name: "Starter",
+    monthlyPrice: 0,
+    yearlyPrice: 0,
     description: "Get started and list your services",
     icon: Star,
     features: [
@@ -46,9 +46,9 @@ const PLANS = [
   },
   {
     tier: "basic" as const,
-    name: "Basic",
-    price: "$19",
-    period: "/month",
+    name: "Professional",
+    monthlyPrice: 19.99,
+    yearlyPrice: 191.88,
     description: "Grow your business with more visibility",
     icon: Zap,
     features: [
@@ -67,9 +67,9 @@ const PLANS = [
   },
   {
     tier: "premium" as const,
-    name: "Premium",
-    price: "$49",
-    period: "/month",
+    name: "Business",
+    monthlyPrice: 49.99,
+    yearlyPrice: 479.88,
     description: "Full suite for professional providers",
     icon: Crown,
     features: [
@@ -88,18 +88,10 @@ const PLANS = [
   },
 ];
 
-const FEATURE_ICONS: Record<string, any> = {
-  "services": Users,
-  "photos": Camera,
-  "search": Search,
-  "branding": Palette,
-  "analytics": BarChart3,
-  "support": Shield,
-};
-
 export default function SubscriptionManagement() {
   const { isAuthenticated } = useAuth();
   const [subscribing, setSubscribing] = useState<string | null>(null);
+  const [billingInterval, setBillingInterval] = useState<"month" | "year">("month");
 
   const { data: currentSub, isLoading: subLoading } = trpc.subscription.mySubscription.useQuery(undefined, {
     enabled: isAuthenticated,
@@ -139,7 +131,22 @@ export default function SubscriptionManagement() {
     setSubscribing(tier);
     subscribe.mutate({ 
       tier: tier as "basic" | "premium",
+      interval: billingInterval,
     });
+  };
+
+  const formatPrice = (plan: typeof PLANS[0]) => {
+    if (plan.tier === "free") return { main: "$0", sub: "forever" };
+    if (billingInterval === "year") {
+      const monthly = (plan.yearlyPrice / 12).toFixed(2);
+      return { main: `$${monthly}`, sub: "/mo" };
+    }
+    return { main: `$${plan.monthlyPrice.toFixed(2)}`, sub: "/mo" };
+  };
+
+  const getAnnualSavings = (plan: typeof PLANS[0]) => {
+    if (plan.tier === "free") return 0;
+    return Math.round(plan.monthlyPrice * 12 - plan.yearlyPrice);
   };
 
   if (!isAuthenticated) {
@@ -171,6 +178,37 @@ export default function SubscriptionManagement() {
           <p className="text-muted-foreground text-lg">
             Unlock more features to grow your business. All plans include a low 1% transaction fee.
           </p>
+        </div>
+
+        {/* Annual/Monthly Toggle */}
+        <div className="flex items-center justify-center gap-3 mb-8">
+          <button
+            onClick={() => setBillingInterval("month")}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              billingInterval === "month"
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => setBillingInterval("year")}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${
+              billingInterval === "year"
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Annual
+            <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
+              billingInterval === "year"
+                ? "bg-primary-foreground/20 text-primary-foreground"
+                : "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+            }`}>
+              Save 20%
+            </span>
+          </button>
         </div>
 
         {/* Current Plan Badge */}
@@ -214,6 +252,8 @@ export default function SubscriptionManagement() {
             const isDowngrade = 
               (currentTier === "premium" && plan.tier !== "premium") ||
               (currentTier === "basic" && plan.tier === "free");
+            const price = formatPrice(plan);
+            const savings = getAnnualSavings(plan);
 
             return (
               <Card 
@@ -242,9 +282,19 @@ export default function SubscriptionManagement() {
                   <CardTitle className="text-xl">{plan.name}</CardTitle>
                   <CardDescription>{plan.description}</CardDescription>
                   <div className="mt-4">
-                    <span className="text-4xl font-bold">{plan.price}</span>
-                    <span className="text-muted-foreground">{plan.period}</span>
+                    <span className="text-4xl font-bold">{price.main}</span>
+                    <span className="text-muted-foreground">{price.sub}</span>
                   </div>
+                  {billingInterval === "year" && plan.tier !== "free" && (
+                    <div className="mt-2 space-y-1">
+                      <p className="text-xs text-muted-foreground">
+                        Billed as ${plan.yearlyPrice.toFixed(2)}/year
+                      </p>
+                      <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 border-0">
+                        Save ${savings}/year
+                      </Badge>
+                    </div>
+                  )}
                 </CardHeader>
 
                 <CardContent className="flex-1">
@@ -309,6 +359,36 @@ export default function SubscriptionManagement() {
           })}
         </div>
 
+        {/* Usage Stats */}
+        {currentSub?.usage && (
+          <div className="mb-12 p-6 rounded-lg border bg-card">
+            <h3 className="font-semibold mb-4 flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-primary" />
+              Your Usage
+            </h3>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Services</p>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full transition-all ${
+                        currentSub.usage.servicesUsed >= currentSub.usage.servicesLimit
+                          ? "bg-red-500"
+                          : "bg-primary"
+                      }`}
+                      style={{ width: `${Math.min(100, (currentSub.usage.servicesUsed / currentSub.usage.servicesLimit) * 100)}%` }}
+                    />
+                  </div>
+                  <span className="text-sm font-medium">
+                    {currentSub.usage.servicesUsed}/{currentSub.usage.servicesLimit === 999 ? "∞" : currentSub.usage.servicesLimit}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* FAQ Section */}
         <div className="max-w-2xl mx-auto">
           <h2 className="text-2xl font-bold text-center mb-8">Frequently Asked Questions</h2>
@@ -323,6 +403,12 @@ export default function SubscriptionManagement() {
               <h3 className="font-semibold mb-2">Can I cancel anytime?</h3>
               <p className="text-sm text-muted-foreground">
                 Yes, you can cancel your subscription at any time. Your plan will remain active until the end of your current billing period, then you'll be moved to the Free tier.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-2">How does annual billing work?</h3>
+              <p className="text-sm text-muted-foreground">
+                When you choose annual billing, you pay for 12 months upfront at a 20% discount. For example, Professional is $15.99/mo billed annually ($191.88/year) instead of $19.99/mo billed monthly ($239.88/year).
               </p>
             </div>
             <div>

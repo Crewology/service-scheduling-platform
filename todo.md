@@ -1077,3 +1077,21 @@
 - [x] Add user-friendly error messages for auth, connection, and rate limit errors
 - [x] Improve getDashboardLink and getOnboardingLink error handling
 - [x] Add missing ENV.stripeSecretKey check in startOnboarding
+
+## Feature: Annual Pricing Toggle on Tier Selection
+- [x] Add monthly/annual toggle switch to tier selection step in onboarding
+- [x] Show discounted annual prices (save ~20%) with visual savings badge
+- [x] Pass billing interval to createCheckout mutation
+- [x] Update SubscriptionManagement page with same annual toggle
+- [x] Add "Billed as $X/year" and "Save $X/year" badges for annual pricing
+- [x] Add FAQ section explaining annual billing
+
+## Feature: Tier-Based Feature Gating with Upgrade Prompts
+- [x] Enforce service count limits based on tier (Free: 3, Basic: 10, Premium: unlimited) — already in backend
+- [x] Create reusable UpgradePrompt dialog component with billing toggle
+- [x] Create UpgradeBanner component for inline limit warnings
+- [x] Show upgrade prompt modal when provider tries to add service beyond limit (CreateService page)
+- [x] Show upgrade prompt when photo upload limit is hit (PhotoUpload component)
+- [x] Enforce photo upload limits per service based on tier — already in backend
+- [x] Show contextual upgrade banners in provider dashboard Services tab when near/at limits
+- [x] Add vitest tests for annual pricing calculations and feature gating logic (22 tests)

@@ -741,6 +741,7 @@ export default function ProviderOnboarding() {
     enabled: !!existingProvider,
   });
   const [selectedTier, setSelectedTier] = useState<"free" | "basic" | "premium" | null>(null);
+  const [billingInterval, setBillingInterval] = useState<"month" | "year">("month");
 
   // Step completion tracking
   const tierSelected = !!currentSubscription?.subscription || selectedTier !== null;
@@ -1303,6 +1304,34 @@ export default function ProviderOnboarding() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Monthly / Annual Toggle */}
+              <div className="flex items-center justify-center gap-3">
+                <span className={`text-sm font-medium transition-colors ${
+                  billingInterval === "month" ? "text-foreground" : "text-muted-foreground"
+                }`}>Monthly</span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={billingInterval === "year"}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                    billingInterval === "year" ? "bg-primary" : "bg-muted"
+                  }`}
+                  onClick={() => setBillingInterval(prev => prev === "month" ? "year" : "month")}
+                >
+                  <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-background shadow-lg ring-0 transition-transform ${
+                    billingInterval === "year" ? "translate-x-5" : "translate-x-0"
+                  }`} />
+                </button>
+                <span className={`text-sm font-medium transition-colors ${
+                  billingInterval === "year" ? "text-foreground" : "text-muted-foreground"
+                }`}>Annual</span>
+                {billingInterval === "year" && (
+                  <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-[10px] px-1.5 py-0.5">
+                    Save 20%
+                  </Badge>
+                )}
+              </div>
+
               {/* Tier Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Free Tier */}
@@ -1357,12 +1386,24 @@ export default function ProviderOnboarding() {
                     </div>
                     <div>
                       <h3 className="font-semibold">Professional</h3>
-                      <p className="text-xs text-muted-foreground">$19.99/month</p>
+                      <p className="text-xs text-muted-foreground">
+                        {billingInterval === "year" ? "$15.99/mo billed annually" : "$19.99/month"}
+                      </p>
                     </div>
                   </div>
                   <div className="mb-3">
-                    <span className="text-2xl font-bold">$19</span>
-                    <span className="text-muted-foreground text-sm">.99/mo</span>
+                    {billingInterval === "year" ? (
+                      <>
+                        <span className="text-2xl font-bold">$15</span>
+                        <span className="text-muted-foreground text-sm">.99/mo</span>
+                        <span className="ml-2 text-xs line-through text-muted-foreground">$19.99</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-2xl font-bold">$19</span>
+                        <span className="text-muted-foreground text-sm">.99/mo</span>
+                      </>
+                    )}
                   </div>
                   <ul className="space-y-1.5 text-sm">
                     <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Up to 10 services</li>
@@ -1371,6 +1412,13 @@ export default function ProviderOnboarding() {
                     <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Priority search placement</li>
                     <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Business analytics</li>
                   </ul>
+                  {billingInterval === "year" && (
+                    <div className="mt-3 text-center">
+                      <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-[10px]">
+                        Save $48/year
+                      </Badge>
+                    </div>
+                  )}
                   {(selectedTier === "basic" || currentSubscription?.currentTier === "basic") && (
                     <div className="absolute top-3 right-3">
                       <CheckCircle className="h-5 w-5 text-primary" />
@@ -1393,12 +1441,24 @@ export default function ProviderOnboarding() {
                     </div>
                     <div>
                       <h3 className="font-semibold">Business</h3>
-                      <p className="text-xs text-muted-foreground">$49.99/month</p>
+                      <p className="text-xs text-muted-foreground">
+                        {billingInterval === "year" ? "$39.99/mo billed annually" : "$49.99/month"}
+                      </p>
                     </div>
                   </div>
                   <div className="mb-3">
-                    <span className="text-2xl font-bold">$49</span>
-                    <span className="text-muted-foreground text-sm">.99/mo</span>
+                    {billingInterval === "year" ? (
+                      <>
+                        <span className="text-2xl font-bold">$39</span>
+                        <span className="text-muted-foreground text-sm">.99/mo</span>
+                        <span className="ml-2 text-xs line-through text-muted-foreground">$49.99</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-2xl font-bold">$49</span>
+                        <span className="text-muted-foreground text-sm">.99/mo</span>
+                      </>
+                    )}
                   </div>
                   <ul className="space-y-1.5 text-sm">
                     <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Unlimited services</li>
@@ -1407,6 +1467,13 @@ export default function ProviderOnboarding() {
                     <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Full analytics suite</li>
                     <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Priority support</li>
                   </ul>
+                  {billingInterval === "year" && (
+                    <div className="mt-3 text-center">
+                      <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-[10px]">
+                        Save $120/year
+                      </Badge>
+                    </div>
+                  )}
                   {(selectedTier === "premium" || currentSubscription?.currentTier === "premium") && (
                     <div className="absolute top-3 right-3">
                       <CheckCircle className="h-5 w-5 text-primary" />
@@ -1434,7 +1501,7 @@ export default function ProviderOnboarding() {
                       variant="outline"
                       className="shrink-0 border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10"
                       onClick={() => {
-                        createCheckout.mutate({ tier: "premium", withTrial: true });
+                        createCheckout.mutate({ tier: "premium", interval: billingInterval, withTrial: true });
                       }}
                       disabled={createCheckout.isPending}
                     >
@@ -1469,20 +1536,20 @@ export default function ProviderOnboarding() {
                     </Button>
                   ) : selectedTier === "basic" ? (
                     <Button
-                      onClick={() => createCheckout.mutate({ tier: "basic" })}
+                      onClick={() => createCheckout.mutate({ tier: "basic", interval: billingInterval })}
                       disabled={createCheckout.isPending}
                     >
                       {createCheckout.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                      Subscribe to Professional
+                      Subscribe to Professional{billingInterval === "year" ? " (Annual)" : ""}
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   ) : selectedTier === "premium" ? (
                     <Button
-                      onClick={() => createCheckout.mutate({ tier: "premium" })}
+                      onClick={() => createCheckout.mutate({ tier: "premium", interval: billingInterval })}
                       disabled={createCheckout.isPending}
                     >
                       {createCheckout.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                      Subscribe to Business
+                      Subscribe to Business{billingInterval === "year" ? " (Annual)" : ""}
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   ) : (
