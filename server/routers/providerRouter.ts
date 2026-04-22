@@ -103,6 +103,56 @@ export const providerRouter = router({
       return enriched;
     }),
 
+  /**
+   * Get spotlight providers: Top Pro and Trusted providers sorted by trust score.
+   * Used for the "Provider Spotlight" section on the homepage.
+   */
+  getSpotlightProviders: publicProcedure.query(async () => {
+    const providers = await db.getAllProviders({ isActive: true });
+    // Filter to only trusted and top_pro trust levels
+    const spotlightCandidates = providers.filter(
+      (p: any) => p.trustLevel === "top_pro" || p.trustLevel === "trusted"
+    );
+    // Sort by trust score descending, then by rating
+    const sorted = spotlightCandidates
+      .sort((a: any, b: any) => {
+        const scoreDiff = (b.trustScore || 0) - (a.trustScore || 0);
+        if (scoreDiff !== 0) return scoreDiff;
+        return parseFloat(b.averageRating || "0") - parseFloat(a.averageRating || "0");
+      })
+      .slice(0, 6);
+    // Enrich with categories, profile photo, and trust data
+    const enriched = await Promise.all(
+      sorted.map(async (provider: any) => {
+        const categories = await db.getProviderCategories(provider.id);
+        const user = await db.getUserById(provider.userId);
+        let slug = provider.profileSlug;
+        if (!slug) {
+          const baseSlug = provider.businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+          slug = `${baseSlug}-${provider.id}`;
+          await db.updateProviderSlug(provider.id, slug);
+        }
+        return {
+          id: provider.id,
+          businessName: provider.businessName,
+          slug,
+          profileSlug: slug,
+          profilePhotoUrl: user?.profilePhotoUrl || null,
+          city: provider.city,
+          state: provider.state,
+          averageRating: provider.averageRating,
+          totalReviews: provider.totalReviews,
+          totalBookings: provider.totalBookings,
+          trustScore: provider.trustScore,
+          trustLevel: provider.trustLevel,
+          isOfficial: provider.isOfficial,
+          categories: categories.map((c: any) => ({ id: c.categoryId, name: c.categoryName })),
+        };
+      })
+    );
+    return enriched;
+  }),
+
   listFeatured: publicProcedure.query(async () => {
     const providers = await db.getAllProviders({ isActive: true });
     // Separate official provider(s) to ensure they always appear first

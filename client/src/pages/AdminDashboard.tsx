@@ -32,6 +32,8 @@ import {
   Trash2,
   FileText,
   Shield,
+  RefreshCw,
+  ShieldCheck,
   MessageSquare,
   Send,
   Clock,
@@ -264,6 +266,17 @@ export default function AdminDashboard() {
       </div>
     );
   }
+
+  // Bulk trust recalculation
+  const [recalculateResult, setRecalculateResult] = useState<{ updated: number } | null>(null);
+  const recalculateAllTrust = trpc.trust.recalculateAll.useMutation({
+    onSuccess: (data) => {
+      setRecalculateResult(data);
+      utils.admin.listProviders.invalidate();
+      toast.success(`Trust scores recalculated for ${data.updated} providers`);
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
   const { data: stats, isLoading: statsLoading } = trpc.admin.getStats.useQuery();
   const { data: users, isLoading: usersLoading } = trpc.admin.listUsers.useQuery();
@@ -555,6 +568,38 @@ export default function AdminDashboard() {
 
           {/* Providers Tab */}
           <TabsContent value="providers">
+            {/* Bulk Trust Recalculation Card */}
+            <Card className="mb-6 border-amber-200 bg-amber-50/50">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                <div>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <ShieldCheck className="h-5 w-5 text-amber-600" />
+                    Trust Score Management
+                  </CardTitle>
+                  <CardDescription className="mt-1">Recalculate trust scores for all active providers based on current data</CardDescription>
+                </div>
+                <Button
+                  onClick={() => recalculateAllTrust.mutate()}
+                  disabled={recalculateAllTrust.isPending}
+                  className="bg-amber-600 hover:bg-amber-700"
+                >
+                  {recalculateAllTrust.isPending ? (
+                    <><RefreshCw className="h-4 w-4 mr-2 animate-spin" />Recalculating...</>
+                  ) : (
+                    <><RefreshCw className="h-4 w-4 mr-2" />Recalculate All Trust Scores</>
+                  )}
+                </Button>
+              </CardHeader>
+              {recalculateResult && (
+                <CardContent className="pt-0">
+                  <div className="flex items-center gap-2 text-sm text-green-700 bg-green-100 rounded-lg px-3 py-2">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Successfully recalculated trust scores for {recalculateResult.updated} providers
+                  </div>
+                </CardContent>
+              )}
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Provider Management</CardTitle>

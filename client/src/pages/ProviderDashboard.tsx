@@ -1,4 +1,8 @@
 import { useState, useMemo, useRef } from "react";
+import {
+  LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, Legend, Area, AreaChart, PieChart, Pie, Cell
+} from "recharts";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -1898,129 +1902,151 @@ export default function ProviderDashboard() {
               </Card>
             </div>
 
-            {/* Booking Source Breakdown */}
+            {/* Booking Trends Chart (Recharts) */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Booking Sources</CardTitle>
-                <CardDescription>Where your bookings are coming from</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {(!analytics?.bookingSources || analytics.bookingSources.length === 0) ? (
-                  <p className="text-sm text-muted-foreground text-center py-6">No booking data yet</p>
-                ) : (
-                  <div className="space-y-3">
-                    {analytics.bookingSources.map((source: any) => {
-                      const totalBookings = analytics.bookingSources.reduce((sum: number, s: any) => sum + Number(s.count), 0);
-                      const percentage = totalBookings > 0 ? Math.round((Number(source.count) / totalBookings) * 100) : 0;
-                      const sourceLabels: Record<string, { label: string; icon: any; color: string }> = {
-                        direct: { label: "Direct (Website)", icon: Globe, color: "bg-blue-500" },
-                        embed_widget: { label: "Embed Widget", icon: Code2, color: "bg-green-500" },
-                        provider_page: { label: "Provider Page", icon: ExternalLink, color: "bg-purple-500" },
-                        api: { label: "API", icon: Smartphone, color: "bg-orange-500" },
-                      };
-                      const config = sourceLabels[source.source] || { label: source.source, icon: Globe, color: "bg-gray-500" };
-                      const IconComponent = config.icon;
-                      return (
-                        <div key={source.source} className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-lg ${config.color} flex items-center justify-center flex-shrink-0`}>
-                            <IconComponent className="w-4 h-4 text-white" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-sm font-medium">{config.label}</span>
-                              <span className="text-sm text-muted-foreground">{source.count} bookings ({percentage}%)</span>
-                            </div>
-                            <div className="w-full bg-muted rounded-full h-2">
-                              <div className={`${config.color} h-2 rounded-full transition-all`} style={{ width: `${percentage}%` }} />
-                            </div>
-                          </div>
-                          <div className="text-right flex-shrink-0">
-                            <span className="text-sm font-semibold">{formatCurrency(Number(source.revenue))}</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Monthly Booking Trends */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Monthly Trends</CardTitle>
-                <CardDescription>Booking volume and revenue over the last 12 months</CardDescription>
+                <CardTitle className="text-base">Booking Trends</CardTitle>
+                <CardDescription>Monthly booking volume over the last 12 months</CardDescription>
               </CardHeader>
               <CardContent>
                 {(!analytics?.bookingTrends || analytics.bookingTrends.length === 0) ? (
                   <p className="text-sm text-muted-foreground text-center py-6">No trend data yet. Bookings will appear here over time.</p>
                 ) : (
-                  <div className="space-y-2">
-                    {analytics.bookingTrends.map((month: any) => {
-                      const maxBookings = Math.max(...analytics.bookingTrends.map((m: any) => Number(m.totalBookings)));
-                      const barWidth = maxBookings > 0 ? Math.round((Number(month.totalBookings) / maxBookings) * 100) : 0;
-                      return (
-                        <div key={month.month} className="flex items-center gap-3">
-                          <span className="text-xs text-muted-foreground w-16 flex-shrink-0">{month.month}</span>
-                          <div className="flex-1">
-                            <div className="w-full bg-muted rounded-full h-6 relative">
-                              <div className="bg-primary h-6 rounded-full transition-all flex items-center" style={{ width: `${Math.max(barWidth, 5)}%` }}>
-                                <span className="text-xs text-primary-foreground font-medium pl-2 whitespace-nowrap">{month.totalBookings}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="text-right flex-shrink-0 w-24">
-                            <span className="text-sm font-medium">{formatCurrency(Number(month.revenue))}</span>
-                          </div>
-                          <div className="flex gap-1 flex-shrink-0">
-                            <Badge variant="outline" className="text-xs">{month.completedBookings} done</Badge>
-                            {Number(month.cancelledBookings) > 0 && (
-                              <Badge variant="destructive" className="text-xs">{month.cancelledBookings} cancelled</Badge>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
+                  <div className="h-72">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={analytics.bookingTrends.map((m: any) => ({
+                        month: m.month,
+                        completed: Number(m.completedBookings),
+                        cancelled: Number(m.cancelledBookings),
+                        total: Number(m.totalBookings),
+                      }))}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis dataKey="month" tick={{ fontSize: 12 }} className="text-muted-foreground" />
+                        <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }}
+                          labelStyle={{ fontWeight: 600 }}
+                        />
+                        <Legend />
+                        <Bar dataKey="completed" name="Completed" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="cancelled" name="Cancelled" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            {/* Top Services */}
+            {/* Revenue Over Time Chart (Recharts) */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Top Performing Services</CardTitle>
-                <CardDescription>Your most booked services ranked by volume</CardDescription>
+                <CardTitle className="text-base">Revenue Over Time</CardTitle>
+                <CardDescription>Monthly revenue from completed bookings</CardDescription>
               </CardHeader>
               <CardContent>
-                {(!analytics?.topServices || analytics.topServices.length === 0) ? (
-                  <p className="text-sm text-muted-foreground text-center py-6">No service data yet</p>
+                {(!analytics?.bookingTrends || analytics.bookingTrends.length === 0) ? (
+                  <p className="text-sm text-muted-foreground text-center py-6">No revenue data yet</p>
                 ) : (
-                  <div className="space-y-3">
-                    {analytics.topServices.map((svc: any, idx: number) => (
-                      <div key={svc.serviceId} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <span className="text-sm font-bold text-primary">#{idx + 1}</span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{svc.serviceName || `Service #${svc.serviceId}`}</p>
-                          <p className="text-xs text-muted-foreground">{svc.totalBookings} bookings ({svc.completedBookings} completed)</p>
-                        </div>
-                        <div className="text-right flex-shrink-0">
-                          <p className="text-sm font-semibold">{formatCurrency(Number(svc.revenue))}</p>
-                          {Number(svc.avgRating) > 0 && (
-                            <p className="text-xs text-muted-foreground flex items-center justify-end gap-1">
-                              <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                              {Number(svc.avgRating).toFixed(1)} ({svc.reviewCount})
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                  <div className="h-72">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={analytics.bookingTrends.map((m: any) => ({
+                        month: m.month,
+                        revenue: Number(m.revenue),
+                      }))}>
+                        <defs>
+                          <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                        <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `$${v}`} />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }}
+                          formatter={(value: number) => [`$${value.toFixed(2)}`, "Revenue"]}
+                        />
+                        <Area type="monotone" dataKey="revenue" stroke="#6366f1" fill="url(#revenueGradient)" strokeWidth={2} />
+                      </AreaChart>
+                    </ResponsiveContainer>
                   </div>
                 )}
               </CardContent>
             </Card>
+
+            {/* Booking Source Breakdown - Pie Chart */}
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Booking Sources</CardTitle>
+                  <CardDescription>Where your bookings come from</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {(!analytics?.bookingSources || analytics.bookingSources.length === 0) ? (
+                    <p className="text-sm text-muted-foreground text-center py-6">No booking data yet</p>
+                  ) : (
+                    <div className="h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={analytics.bookingSources.map((s: any) => {
+                              const labels: Record<string, string> = {
+                                direct: "Direct", embed_widget: "Widget", provider_page: "Profile", api: "API",
+                              };
+                              return { name: labels[s.source] || s.source, value: Number(s.count) };
+                            })}
+                            cx="50%" cy="50%" innerRadius={50} outerRadius={80}
+                            paddingAngle={3} dataKey="value"
+                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          >
+                            {analytics.bookingSources.map((_: any, idx: number) => (
+                              <Cell key={idx} fill={["#3b82f6", "#22c55e", "#a855f7", "#f97316", "#6b7280"][idx % 5]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Top Services */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Top Performing Services</CardTitle>
+                  <CardDescription>Most booked services by volume</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {(!analytics?.topServices || analytics.topServices.length === 0) ? (
+                    <p className="text-sm text-muted-foreground text-center py-6">No service data yet</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {analytics.topServices.map((svc: any, idx: number) => (
+                        <div key={svc.serviceId} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <span className="text-sm font-bold text-primary">#{idx + 1}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{svc.serviceName || `Service #${svc.serviceId}`}</p>
+                            <p className="text-xs text-muted-foreground">{svc.totalBookings} bookings ({svc.completedBookings} completed)</p>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <p className="text-sm font-semibold">{formatCurrency(Number(svc.revenue))}</p>
+                            {Number(svc.avgRating) > 0 && (
+                              <p className="text-xs text-muted-foreground flex items-center justify-end gap-1">
+                                <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                                {Number(svc.avgRating).toFixed(1)} ({svc.reviewCount})
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           
           {/* Embed Widget sub-section inside My Page */}
             <div className="space-y-4">

@@ -6,9 +6,12 @@ import { trpc } from "@/lib/trpc";
 import { Search, Calendar, Shield, Star, ArrowRight, CheckCircle2, MapPin, User, Gift, Trophy, TrendingUp, Users, Award, ShieldCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { OfficialBadge } from "@/components/OfficialBadge";
+import { TrustBadge } from "@/components/TrustBadge";
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
@@ -16,6 +19,8 @@ export default function Home() {
   const [, setLocation] = useLocation();
   const { data: categories } = trpc.category.list.useQuery();
   const { data: featuredProviders } = trpc.provider.listFeatured.useQuery();
+  const { data: spotlightProviders } = trpc.provider.getSpotlightProviders.useQuery();
+  const autoplayPlugin = useMemo(() => Autoplay({ delay: 5000, stopOnInteraction: true }), []);
   const { data: myProviderProfile } = trpc.provider.getMyProfile.useQuery(undefined, {
     enabled: isAuthenticated,
   });
@@ -134,6 +139,114 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Provider Spotlight Section */}
+      {spotlightProviders && spotlightProviders.length > 0 && (
+        <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-br from-amber-50/80 via-white to-orange-50/80">
+          <div className="container">
+            <div className="text-center mb-10 sm:mb-14">
+              <div className="inline-flex items-center gap-2 bg-amber-100 text-amber-800 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
+                <Trophy className="h-4 w-4" />
+                Weekly Spotlight
+              </div>
+              <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4">Top-Rated Professionals</h2>
+              <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+                Providers who have earned the highest trust scores through exceptional service
+              </p>
+            </div>
+
+            <Carousel
+              opts={{ align: "start", loop: true }}
+              plugins={[autoplayPlugin]}
+              className="w-full max-w-6xl mx-auto"
+            >
+              <CarouselContent className="-ml-4">
+                {spotlightProviders.map((provider: any) => (
+                  <CarouselItem key={provider.id} className="pl-4 md:basis-1/2 lg:basis-1/3">
+                    <Link href={`/p/${provider.slug || provider.profileSlug}`}>
+                      <Card className="hover:shadow-lg transition-all cursor-pointer group h-full border-2 border-transparent hover:border-amber-200 bg-white">
+                        <CardContent className="p-6">
+                          <div className="flex items-center gap-4 mb-4">
+                            {provider.profilePhotoUrl ? (
+                              <img
+                                src={provider.profilePhotoUrl}
+                                alt={provider.businessName}
+                                className="w-16 h-16 rounded-full object-cover border-2 border-amber-200 shadow-sm"
+                              />
+                            ) : (
+                              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center shadow-sm">
+                                <User className="w-8 h-8 text-amber-600" />
+                              </div>
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5">
+                                <h3 className="font-bold text-lg group-hover:text-primary transition-colors truncate">
+                                  {provider.businessName}
+                                </h3>
+                                {provider.isOfficial && <OfficialBadge size="sm" showLabel={false} />}
+                              </div>
+                              {provider.city && (
+                                <p className="text-sm text-muted-foreground flex items-center gap-1">
+                                  <MapPin className="w-3.5 h-3.5" />
+                                  {provider.city}{provider.state ? `, ${provider.state}` : ""}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Trust Badge */}
+                          <div className="mb-3">
+                            <TrustBadge level={provider.trustLevel} size="md" showLabel showTooltip />
+                          </div>
+
+                          {/* Rating & Stats */}
+                          <div className="flex items-center gap-3 mb-3">
+                            {parseFloat(provider.averageRating || "0") > 0 && (
+                              <div className="flex items-center gap-1">
+                                <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                                <span className="font-semibold text-sm">
+                                  {parseFloat(provider.averageRating).toFixed(1)}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  ({provider.totalReviews})
+                                </span>
+                              </div>
+                            )}
+                            {provider.totalBookings > 0 && (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+                                {provider.totalBookings} jobs
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Categories */}
+                          {provider.categories && provider.categories.length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                              {provider.categories.slice(0, 3).map((cat: any) => (
+                                <Badge key={cat.id} variant="secondary" className="text-[10px] px-2 py-0.5">
+                                  {cat.name}
+                                </Badge>
+                              ))}
+                              {provider.categories.length > 3 && (
+                                <Badge variant="outline" className="text-[10px] px-2 py-0.5">
+                                  +{provider.categories.length - 3} more
+                                </Badge>
+                              )}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="-left-4 md:-left-6" />
+              <CarouselNext className="-right-4 md:-right-6" />
+            </Carousel>
+          </div>
+        </section>
+      )}
 
       {/* Categories Section */}
       <section className="py-12 sm:py-16 md:py-20 bg-muted/30">

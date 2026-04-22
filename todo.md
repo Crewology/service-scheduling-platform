@@ -1170,3 +1170,23 @@
 - [x] Send all 29 branded test emails to garychisolm30@gmail.com via SendGrid (29/29 delivered)
 - [x] All emails include OlogyCrew logo header, gradient branding, unsubscribe link, and manage preferences link
 - [x] Email subjects numbered [1/29 TEST] through [29/29 TEST] for easy identification
+
+## Feature: Featured Provider Spotlight on Homepage
+- [x] Create getSpotlightProviders query returning Top Pro / Trusted providers with highest trust scores
+- [x] Build Featured Provider Spotlight section on homepage with rotating weekly highlight cards
+- [x] Display trust badge, categories, rating, response time, and profile photo on spotlight cards
+- [x] Write vitest tests for spotlight query
+
+## Feature: Provider Analytics Charts on Dashboard
+- [x] Create getProviderAnalytics query returning booking trends and revenue over time (last 6 months)
+- [x] Build booking trend bar chart on Provider Dashboard (Recharts)
+- [x] Build revenue area chart on Provider Dashboard (Recharts)
+- [x] Add pie chart for booking source breakdown
+- [x] Add analytics summary cards (total bookings, total revenue, avg rating, repeat customers)
+- [x] Write vitest tests for analytics query
+
+## Feature: Admin Bulk Trust Recalculation
+- [x] Add recalculateAllTrustScores admin mutation to trust router (already existed)
+- [x] Add "Recalculate All Trust Scores" button to Admin Dashboard (Providers tab)
+- [x] Show progress/result feedback after bulk recalculation (success toast + green banner)
+- [x] Write vitest tests for admin recalculation endpoint
