@@ -145,9 +145,12 @@ export default function TermsOfService() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mt-8 mb-3">15. Termination</h2>
+            <h2 className="text-xl font-semibold mt-8 mb-3">15. Termination & Account Deletion</h2>
             <p className="text-muted-foreground leading-relaxed">
               OlogyCrew may terminate or suspend your account and access to the Service at any time, with or without cause, with or without notice. Upon termination, your right to use the Service will immediately cease. All provisions of these Terms that by their nature should survive termination shall survive.
+            </p>
+            <p className="text-muted-foreground leading-relaxed mt-3">
+              You may voluntarily delete your account at any time through the self-service deletion feature on your Profile page. Account deletion is subject to the completion or cancellation of all active bookings. Upon deletion, your personal information will be anonymized in accordance with our <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>. Anonymized booking and transaction records may be retained for legal and business purposes as described in our Privacy Policy.
             </p>
           </section>
 

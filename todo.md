@@ -1222,3 +1222,9 @@
 - [x] Two-step dialog: "Are you sure?" → type "DELETE" to confirm
 - [x] Block admin self-deletion (admins must be managed via database)
 - [x] Write vitest tests for account deletion endpoint (7/7 passed)
+
+## Feature: Privacy Policy Update — Account Deletion & Data Retention
+- [x] Add "Account Deletion" section (Section 8) to Privacy Policy page
+- [x] Add "Data Retention & Anonymization" section (Section 7) explaining what data is kept and why
+- [x] Expand "Your Rights" section (Section 9) with GDPR/CCPA rights (access, deletion, portability, non-discrimination)
+- [x] Update Terms of Service Section 15 ("Termination & Account Deletion") with voluntary deletion reference
