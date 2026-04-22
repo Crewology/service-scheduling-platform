@@ -108,10 +108,6 @@ export async function processReviewReminders(): Promise<{ processed: number; sen
           serviceName: service?.name || "your service",
           providerName: provider?.businessName || providerUser?.name || "your provider",
           customerName: customer.name || "Valued Customer",
-          reviewUrl: `/booking/${booking.id}/review`,
-          unsubscribeUrl: customerPrefs?.unsubscribeToken
-            ? `/unsubscribe/${customerPrefs.unsubscribeToken}`
-            : "/notification-settings",
         };
 
         // Send email reminder

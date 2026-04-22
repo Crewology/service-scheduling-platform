@@ -19,7 +19,7 @@ const TARGET_EMAIL = 'garychisolm30@gmail.com';
 const FROM_EMAIL = 'garychisolm30@gmail.com';
 const FROM_NAME = 'OlogyCrew';
 const SITE_URL = 'https://servsched-qd7ehrqo.manus.space';
-const LOGO_URL = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-logo-bpuqPGEAxn4sv2cDWUMqrC.webp';
+const LOGO_URL = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png';
 
 if (!SENDGRID_API_KEY) {
   console.error('Missing SENDGRID_API_KEY environment variable');
@@ -52,7 +52,8 @@ function formatEmailHTML(body, data = {}) {
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(135deg, #1e3a5f 0%, #0ea5e9 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-    <img src="${LOGO_URL}" alt="OlogyCrew" style="max-width: 220px; height: auto; margin-bottom: 4px;" />
+    <img src="${LOGO_URL}" alt="OlogyCrew" style="max-width: 60px; height: auto; margin-bottom: 4px; border-radius: 12px;" />
+    <div style="color: #ffffff; font-size: 22px; font-weight: 700; margin-top: 8px; letter-spacing: 0.5px;">OlogyCrew</div>
   </div>
   <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
     <p>${html}</p>
@@ -89,7 +90,7 @@ You have a new booking request!
 
 Please review and confirm this booking in your dashboard.
 
-[View Booking](${SITE_URL}/provider/bookings/42)
+[View Booking](${SITE_URL}/booking/42/detail)
 
 Best regards,
 OlogyCrew Team`
@@ -107,7 +108,7 @@ Your booking has been confirmed!
 **Time:** 2:00 PM - 3:30 PM
 **Total:** $120.00
 
-[View Booking Details](${SITE_URL}/bookings/42)
+[View Booking Details](${SITE_URL}/booking/42/detail)
 
 We'll send you a reminder 24 hours before your appointment.
 
@@ -143,7 +144,7 @@ Your Deep Tissue Massage service with Gary Chisolm has been completed.
 
 We'd love to hear about your experience. Please take a moment to leave a review.
 
-[Leave a Review](${SITE_URL}/reviews/new?booking=42)
+[Leave a Review](${SITE_URL}/booking/42/review)
 
 Best regards,
 OlogyCrew Team`
@@ -162,7 +163,7 @@ We've received your payment!
 **Service:** Deep Tissue Massage
 **Date:** May 5, 2026
 
-[View Receipt](${SITE_URL}/payments/receipt/42)
+[View Receipt](${SITE_URL}/booking/42/detail)
 
 Best regards,
 OlogyCrew Team`
@@ -179,7 +180,7 @@ We were unable to process your payment for booking #BK-10042.
 
 Please update your payment method and try again.
 
-[Update Payment](${SITE_URL}/payments/update?booking=42)
+[Update Payment](${SITE_URL}/booking/42/detail)
 
 Best regards,
 OlogyCrew Team`
@@ -196,7 +197,7 @@ You have a new message regarding booking #BK-10042.
 **From:** Sarah Johnson
 **Message:** Hi Gary, I wanted to confirm the address for tomorrow's appointment. Is it still at 123 Main St?
 
-[Reply to Message](${SITE_URL}/messages?booking=42)
+[Reply to Message](${SITE_URL}/messages/42)
 
 Best regards,
 OlogyCrew Team`
@@ -235,7 +236,7 @@ This is a reminder about your upcoming appointment.
 **Time:** 2:00 PM
 **Location:** 123 Main St, Atlanta, GA 30301
 
-[View Booking](${SITE_URL}/bookings/42)
+[View Booking](${SITE_URL}/booking/42/detail)
 
 See you tomorrow!
 
@@ -253,7 +254,7 @@ Your appointment is coming up in 1 hour!
 **Time:** 2:00 PM
 **Location:** 123 Main St, Atlanta, GA 30301
 
-[View Booking](${SITE_URL}/bookings/42)
+[View Booking](${SITE_URL}/booking/42/detail)
 
 Best regards,
 OlogyCrew Team`
@@ -443,7 +444,7 @@ Your feedback helps other customers find great service providers and helps Gary 
 
 It only takes a minute to share your experience.
 
-[Leave a Review](${SITE_URL}/reviews/new?booking=42)
+[Leave a Review](${SITE_URL}/booking/42/review)
 
 If you've already left a review, thank you! You can ignore this message.
 
@@ -495,7 +496,7 @@ As a referred member, you'll receive a **10% discount** on your first booking!
 
 Browse our 42+ service categories and book your first appointment today.
 
-[Browse Services](${SITE_URL}/services)
+[Browse Services](${SITE_URL}/browse)
 
 Best regards,
 OlogyCrew Team`

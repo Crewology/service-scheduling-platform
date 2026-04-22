@@ -21,7 +21,7 @@ You have a new booking request!
 
 Please review and confirm this booking in your dashboard.
 
-[View Booking](${data.bookingUrl})
+[View Booking](/booking/${data.bookingId}/detail)
 
 Best regards,
 OlogyCrew Team
@@ -42,7 +42,7 @@ Your booking has been confirmed!
 **Time:** ${data.time}
 **Total:** ${data.amount}
 
-[View Booking Details](${data.bookingUrl})
+[View Booking Details](/booking/${data.bookingId}/detail)
 
 We'll send you a reminder 24 hours before your appointment.
 
@@ -84,7 +84,7 @@ Your ${data.serviceName} service with ${data.providerName} has been completed.
 
 We'd love to hear about your experience. Please take a moment to leave a review.
 
-[Leave a Review](${data.reviewUrl})
+[Leave a Review](/booking/${data.bookingId}/review)
 
 Best regards,
 OlogyCrew Team
@@ -104,7 +104,7 @@ We've received your payment!
 **Service:** ${data.serviceName}
 **Date:** ${data.date}
 
-[View Receipt](${data.receiptUrl})
+[View Receipt](/booking/${data.bookingId}/detail)
 
 Best regards,
 OlogyCrew Team
@@ -124,7 +124,7 @@ We were unable to process your payment for booking #${data.bookingNumber}.
 
 Please update your payment method and try again.
 
-[Update Payment](${data.paymentUrl})
+[Update Payment](/booking/${data.bookingId}/detail)
 
 Best regards,
 OlogyCrew Team
@@ -142,7 +142,7 @@ You have a new message regarding booking #${data.bookingNumber}.
 **From:** ${data.senderName}
 **Message:** ${data.message}
 
-[Reply to Message](${data.messageUrl})
+[Reply to Message](/messages/${data.bookingId})
 
 Best regards,
 OlogyCrew Team
@@ -162,7 +162,7 @@ You've received a new review!
 **Service:** ${data.serviceName}
 **Review:** ${data.reviewText}
 
-[View Review](${data.reviewUrl})
+[View Review](/provider/reviews)
 
 Best regards,
 OlogyCrew Team
@@ -183,7 +183,7 @@ This is a reminder about your upcoming appointment.
 **Time:** ${data.time}
 **Location:** ${data.location}
 
-[View Booking](${data.bookingUrl})
+[View Booking](/booking/${data.bookingId}/detail)
 
 See you tomorrow!
 
@@ -204,7 +204,7 @@ Your appointment is coming up in 1 hour!
 **Time:** ${data.time}
 **Location:** ${data.location}
 
-[View Booking](${data.bookingUrl})
+[View Booking](/booking/${data.bookingId}/detail)
 
 Best regards,
 OlogyCrew Team
@@ -429,11 +429,11 @@ Your feedback helps other customers find great service providers and helps ${dat
 
 It only takes a minute to share your experience.
 
-[Leave a Review](${data.reviewUrl})
+[Leave a Review](/booking/${data.bookingId}/review)
 
 If you've already left a review, thank you! You can ignore this message.
 
-[Unsubscribe](${data.unsubscribeUrl})
+[Unsubscribe](/notification-settings)
 
 Best regards,
 OlogyCrew Team
@@ -502,7 +502,7 @@ Here's what you now have access to:
 
 Your trial ends on **${data.trialEndDate}**. Make the most of it!
 
-[Go to Your Dashboard](${data.dashboardUrl})
+[Go to Your Dashboard](/provider/dashboard)
 
 Best regards,
 OlogyCrew Team
@@ -524,14 +524,14 @@ ${data.reviewsReceived ? `- **${data.reviewsReceived} reviews** earned` : ''}
 
 Don't lose your progress — upgrade to Professional for just **$19.99/month** (or save 20% with annual billing at $15.99/month).
 
-[Upgrade Now](${data.upgradeUrl})
+[Upgrade Now](/provider/subscription)
 
 Your trial ends on **${data.trialEndDate}**.
 
 Best regards,
 OlogyCrew Team
       `.trim(),
-      smsBody: `7 days left on your OlogyCrew Professional trial! Upgrade at ${data.upgradeUrl} to keep your features.`,
+      smsBody: `7 days left on your OlogyCrew Professional trial! Upgrade to keep your features.`,
     },
 
     trial_3_days: {
@@ -549,14 +549,14 @@ When your trial expires, you'll lose access to:
 
 **Upgrade now to keep everything you've built.**
 
-[Upgrade to Professional — $19.99/mo](${data.upgradeUrl})
+[Upgrade to Professional — $19.99/mo](/provider/subscription)
 
 Or save 20% with annual billing at just **$15.99/month**.
 
 Best regards,
 OlogyCrew Team
       `.trim(),
-      smsBody: `Only 3 days left on your OlogyCrew trial! Upgrade now to keep your Professional features: ${data.upgradeUrl}`,
+      smsBody: `Only 3 days left on your OlogyCrew trial! Upgrade now to keep your Professional features.`,
     },
 
     trial_1_day: {
@@ -574,12 +574,12 @@ After expiration, your account will be downgraded to the Free tier:
 
 Don't let your hard work go to waste. Upgrade now and keep growing your business.
 
-[Upgrade to Professional — $19.99/mo](${data.upgradeUrl})
+[Upgrade to Professional — $19.99/mo](/provider/subscription)
 
 Best regards,
 OlogyCrew Team
       `.trim(),
-      smsBody: `Your OlogyCrew Professional trial expires TOMORROW! Upgrade now: ${data.upgradeUrl}`,
+      smsBody: `Your OlogyCrew Professional trial expires TOMORROW! Upgrade now to keep your features.`,
     },
 
     trial_expired: {
@@ -593,18 +593,18 @@ You can still use OlogyCrew with the Free plan, but you'll have limited features
 
 Ready to upgrade? You can reactivate Professional anytime:
 
-[Upgrade to Professional — $19.99/mo](${data.upgradeUrl})
+[Upgrade to Professional — $19.99/mo](/provider/subscription)
 
 Or save 20% with annual billing at just **$15.99/month**.
 
 We'd love to have you back on Professional!
 
-[Unsubscribe](${data.unsubscribeUrl})
+[Unsubscribe](/notification-settings)
 
 Best regards,
 OlogyCrew Team
       `.trim(),
-      smsBody: `Your OlogyCrew Professional trial has ended. Upgrade anytime at ${data.upgradeUrl} to restore your features.`,
+      smsBody: `Your OlogyCrew Professional trial has ended. Upgrade anytime to restore your features.`,
     },
 
     referral_welcome: {
@@ -618,7 +618,7 @@ ${data.discountPercent ? `As a referred member, you'll receive a **${data.discou
 
 Browse our 42+ service categories and book your first appointment today.
 
-[Browse Services](/services)
+[Browse Services](/browse)
 
 Best regards,
 OlogyCrew Team

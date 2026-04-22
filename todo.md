@@ -1190,3 +1190,17 @@
 - [x] Add "Recalculate All Trust Scores" button to Admin Dashboard (Providers tab)
 - [x] Show progress/result feedback after bulk recalculation (success toast + green banner)
 - [x] Write vitest tests for admin recalculation endpoint
+
+## Feature: Email Branding & Link Fixes
+- [x] Replace email header logo with actual OlogyCrew site logo (logo-navbar_38427c60.png)
+- [x] Fix Browse Services link (/services → /browse)
+- [x] Fix Unsubscribe link (relative path → absolute URL with unsubscribe token)
+- [x] Fix Leave A Review link (/reviews/new?booking=42 → /booking/{id}/review)
+- [x] Fix View Booking link (/provider/bookings/42 → /booking/{id}/detail)
+- [x] Fix Update Payment link (/payments/update?booking=42 → /booking/{id}/detail)
+- [x] Fix View Receipt link (/payments/receipt/42 → /booking/{id}/detail)
+- [x] Fix Reply to Message link (/messages?booking=42 → /messages/{id})
+- [x] Fix production email provider to use correct logo + absolute URLs
+- [x] Fix all notification callers to pass bookingId in data
+- [x] Fix trial notification templates to use hardcoded correct paths
+- [x] Send test emails to verify all fixes (29/29 sent successfully)

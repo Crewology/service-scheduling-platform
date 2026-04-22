@@ -147,7 +147,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         amount: paymentType === "deposit" ? booking.depositAmount || "0" : booking.totalAmount || "0",
         date: booking.bookingDate,
         time: booking.startTime,
-        bookingUrl: `${ENV.forgeApiUrl}/booking/${booking.id}`,
+        // bookingUrl removed — templates now use bookingId directly
       },
     });
   }
@@ -207,7 +207,7 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
         providerName: provider?.businessName || "Provider",
         customerName: customer.name || "Customer",
         amount: booking.totalAmount || "0",
-        paymentUrl: `/booking/${booking.id}`,
+        // paymentUrl removed — templates now use bookingId directly
       },
     });
     console.log(`[Stripe] Payment failure notification sent to customer ${customer.id} for booking ${booking.bookingNumber}`);

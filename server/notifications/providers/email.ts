@@ -4,6 +4,17 @@ import { ENV } from "../../_core/env";
 import * as db from "../../db";
 import crypto from "crypto";
 
+// Site logo used in the navbar — same branding in emails
+const SITE_LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png";
+
+/**
+ * Resolve the public site URL.
+ * In production the custom domain is used; in dev we fall back to the dev-server origin.
+ */
+function getSiteUrl(): string {
+  return "https://servsched-qd7ehrqo.manus.space";
+}
+
 /**
  * Email notification provider using SendGrid API.
  * Automatically generates unsubscribe tokens and includes
@@ -154,16 +165,22 @@ export class EmailProvider implements NotificationProvider {
   }
 
   private formatEmailHTML(body: string, data: any): string {
-    // Convert markdown-style formatting to HTML
+    const siteUrl = getSiteUrl();
+
+    // Convert markdown-style formatting to HTML, making relative URLs absolute
     let html = body
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" style="color: #2563eb; text-decoration: none;">$1</a>')
+      .replace(/\[(.*?)\]\((.*?)\)/g, (_: string, text: string, href: string) => {
+        const fullHref = href.startsWith('/') ? `${siteUrl}${href}` : href;
+        return `<a href="${fullHref}" style="color: #2563eb; text-decoration: none;">${text}</a>`;
+      })
+      .replace(/\n- /g, '<br>\u2022 ')
       .replace(/\n\n/g, '</p><p>')
       .replace(/\n/g, '<br>');
 
-    // Build unsubscribe URL — uses a relative path that works across environments
+    // Build absolute unsubscribe URL
     const unsubscribeUrl = data.unsubscribeToken
-      ? `/unsubscribe/${data.unsubscribeToken}`
+      ? `${siteUrl}/unsubscribe/${data.unsubscribeToken}`
       : "#";
 
     return `
@@ -175,7 +192,8 @@ export class EmailProvider implements NotificationProvider {
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(135deg, #1e3a5f 0%, #0ea5e9 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-    <img src="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-logo-bpuqPGEAxn4sv2cDWUMqrC.webp" alt="OlogyCrew" style="max-width: 220px; height: auto; margin-bottom: 4px;" />
+    <img src="${SITE_LOGO_URL}" alt="OlogyCrew" style="max-width: 60px; height: auto; margin-bottom: 4px; border-radius: 12px;" />
+    <div style="color: #ffffff; font-size: 22px; font-weight: 700; margin-top: 8px; letter-spacing: 0.5px;">OlogyCrew</div>
   </div>
   <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
     <p>${html}</p>
@@ -185,7 +203,7 @@ export class EmailProvider implements NotificationProvider {
     <p>
       <a href="${unsubscribeUrl}" style="color: #6b7280; text-decoration: underline;">Unsubscribe from emails</a>
       &nbsp;&middot;&nbsp;
-      <a href="/notification-settings" style="color: #6b7280; text-decoration: underline;">Manage preferences</a>
+      <a href="${siteUrl}/notification-settings" style="color: #6b7280; text-decoration: underline;">Manage preferences</a>
     </p>
   </div>
 </body>

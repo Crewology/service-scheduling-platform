@@ -195,7 +195,7 @@ export async function checkAndSendTrialMilestoneNotification(
           providerName: ctx.providerName,
           trialEndDate,
           upgradeUrl,
-          unsubscribeUrl: `/unsubscribe`,
+          // unsubscribeUrl removed — email footer handles unsubscribe link automatically
           ...providerStats,
         },
       },

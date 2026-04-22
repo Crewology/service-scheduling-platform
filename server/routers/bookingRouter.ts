@@ -146,6 +146,7 @@ export const bookingRouter = router({
             channel: "email",
             recipient: { userId: providerUser.id, email: providerUser.email, name: providerUser.name || "Provider" },
             data: {
+              bookingId,
               bookingNumber,
               serviceName: service.name,
               customerName: ctx.user.name || "Customer",
@@ -168,6 +169,7 @@ export const bookingRouter = router({
             channel: "email",
             recipient: { userId: ctx.user.id, email: ctx.user.email, name: ctx.user.name || "Customer" },
             data: {
+              bookingId,
               bookingNumber,
               serviceName: service.name,
               providerName: providerData?.businessName || "Provider",
@@ -318,6 +320,7 @@ export const bookingRouter = router({
         const providerUser = providerData ? await db.getUserById(providerData.userId) : null;
 
         const notifData = {
+          bookingId: booking.id,
           bookingNumber: booking.bookingNumber,
           serviceName: service?.name || "Service",
           providerName: providerData?.businessName || providerUser?.name || "Provider",
@@ -511,6 +514,7 @@ export const bookingRouter = router({
       const providerUser = providerData ? await db.getUserById(providerData.userId) : null;
 
       const cancelData = {
+        bookingId: booking.id,
         bookingNumber: booking.bookingNumber,
         serviceName: service?.name || "Service",
         cancelledBy,
@@ -774,6 +778,7 @@ export const bookingRouter = router({
             channel: "email",
             recipient: { userId: providerUser.id, email: providerUser.email, name: providerUser.name || "Provider" },
             data: {
+              bookingId,
               bookingNumber,
               serviceName: service.name,
               customerName: ctx.user.name || "Customer",
@@ -947,6 +952,7 @@ export const bookingRouter = router({
             channel: "email",
             recipient: { userId: providerUser.id, email: providerUser.email, name: providerUser.name || "Provider" },
             data: {
+              bookingId,
               bookingNumber,
               serviceName: service.name,
               customerName: ctx.user.name || "Customer",
@@ -1003,6 +1009,7 @@ export const bookingRouter = router({
         const service = booking.serviceId ? await db.getServiceById(booking.serviceId) : null;
         const providerData = await db.getProviderById(booking.providerId);
         const sessionData = {
+          bookingId: booking.id,
           bookingNumber: booking.bookingNumber,
           sessionDate: session.sessionDate,
           sessionNumber: session.sessionNumber,
@@ -1102,6 +1109,7 @@ export const bookingRouter = router({
         const providerUser = providerData ? await db.getUserById(providerData.userId) : null;
         const notifyTarget = isCustomer ? providerUser : customer;
         const rescheduleData = {
+          bookingId: booking.id,
           bookingNumber: booking.bookingNumber,
           sessionNumber: session.sessionNumber,
           originalDate: session.sessionDate,
