@@ -1228,3 +1228,6 @@
 - [x] Add "Data Retention & Anonymization" section (Section 7) explaining what data is kept and why
 - [x] Expand "Your Rights" section (Section 9) with GDPR/CCPA rights (access, deletion, portability, non-discrimination)
 - [x] Update Terms of Service Section 15 ("Termination & Account Deletion") with voluntary deletion reference
+
+## Admin: Pre-register Rlstephens42@comcast.net as admin
+- [x] Auto-promote Rlstephens42@comcast.net to admin role on signup
