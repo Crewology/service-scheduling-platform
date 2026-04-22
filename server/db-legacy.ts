@@ -412,16 +412,35 @@ export async function getProviderBookings(providerId: number, status?: string) {
     conditions.push(eq(bookings.status, status as any));
   }
   
-  return await db.select().from(bookings)
+  const results = await db.select({
+    booking: bookings,
+    serviceName: services.name,
+  }).from(bookings)
+    .leftJoin(services, eq(bookings.serviceId, services.id))
     .where(and(...conditions))
     .orderBy(desc(bookings.bookingDate));
+  
+  return results.map(r => ({
+    ...r.booking,
+    serviceName: r.serviceName || 'Unknown Service',
+  }));
 }
 
 export async function getAllBookings() {
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(bookings).orderBy(bookings.createdAt).limit(100);
+  const results = await db.select({
+    booking: bookings,
+    serviceName: services.name,
+  }).from(bookings)
+    .leftJoin(services, eq(bookings.serviceId, services.id))
+    .orderBy(bookings.createdAt).limit(100);
+  
+  return results.map(r => ({
+    ...r.booking,
+    serviceName: r.serviceName || 'Unknown Service',
+  }));
 }
 
 export async function getBookingsByDateRange(providerId: number, startDate: string, endDate: string) {

@@ -1049,6 +1049,10 @@
 - [x] Bump sensitive rate limit from 30 to 100 requests per 15 min
 
 ## Bug: Schedule Duplicates & Display
-- [ ] Fix duplicate-on-save bug — schedule save should replace existing entries, not append
-- [ ] Redesign Current Schedule display — show weekly grid with day names and AM/PM times
-- [ ] Clean up existing duplicate schedule data in database
+- [x] Fix duplicate-on-save bug — schedule save should replace existing entries, not append
+- [x] Redesign Current Schedule display — show weekly grid with day names and AM/PM times
+- [x] Clean up existing duplicate schedule data in database
+
+## Feature: Service Name on Booking Cards
+- [x] Add service name prominently to booking cards (Provider Dashboard + Admin Dashboard)
+- [x] Show booking number as small muted secondary text under the service name

@@ -1223,7 +1223,8 @@ export default function ProviderDashboard() {
                     <CardHeader>
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">
-                          <CardTitle className="text-lg truncate">{booking.bookingNumber}</CardTitle>
+                          <CardTitle className="text-lg truncate">{booking.serviceName || 'Service'}</CardTitle>
+                          <p className="text-xs text-muted-foreground font-mono mt-0.5">{booking.bookingNumber}</p>
                           <CardDescription>
                             {booking.bookingType === "multi_day" && booking.endDate
                               ? `${new Date(booking.bookingDate).toLocaleDateString()} — ${new Date(booking.endDate).toLocaleDateString()}`

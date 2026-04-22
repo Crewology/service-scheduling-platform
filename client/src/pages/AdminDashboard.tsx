@@ -456,7 +456,8 @@ export default function AdminDashboard() {
                       {bookings?.slice(0, 5).map((booking: any) => (
                         <div key={booking.id} className="flex items-center justify-between py-2 border-b last:border-0">
                           <div>
-                            <p className="text-sm font-medium">{booking.bookingNumber}</p>
+                            <p className="text-sm font-medium">{booking.serviceName || 'Service'}</p>
+                            <p className="text-xs text-muted-foreground font-mono">{booking.bookingNumber}</p>
                             <p className="text-xs text-muted-foreground">{booking.bookingDate}</p>
                           </div>
                           <div className="flex items-center gap-2">
@@ -655,7 +656,10 @@ export default function AdminDashboard() {
                     <TableBody>
                       {bookings?.map((booking: any) => (
                         <TableRow key={booking.id}>
-                          <TableCell className="font-medium">{booking.bookingNumber}</TableCell>
+                          <TableCell>
+                            <p className="font-medium">{booking.serviceName || 'Service'}</p>
+                            <p className="text-xs text-muted-foreground font-mono">{booking.bookingNumber}</p>
+                          </TableCell>
                           <TableCell>{booking.bookingDate}</TableCell>
                           <TableCell>{booking.startTime} - {booking.endTime}</TableCell>
                           <TableCell className="capitalize">{booking.locationType?.replace('_', ' ')}</TableCell>
