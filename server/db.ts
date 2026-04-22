@@ -202,3 +202,9 @@ export {
   getProviderTrustScore,
   recalculateAllTrustScores,
 } from "./db/trustScore";
+
+// Account deletion (GDPR/CCPA)
+export {
+  hasActiveBookings,
+  deleteUserAccount,
+} from "./db/users";

@@ -1208,3 +1208,17 @@
 ## Fix: Unsubscribe Confirmation Dialog
 - [x] Add "Are you sure?" confirmation step before unsubscribing
 - [x] Re-enable email notifications for Gary (userId 1) after accidental unsubscribe
+
+## Feature: Account Deletion (GDPR/CCPA Compliance)
+- [x] Create deleteAccount backend endpoint with proper data anonymization
+- [x] Handle active bookings check before allowing deletion
+- [x] Anonymize user data instead of hard delete (preserve booking/review history integrity)
+- [x] Cancel any active subscriptions on deletion
+- [x] Deactivate provider profile and services if user is a provider
+- [x] Clear notification preferences
+- [x] Send confirmation email via SendGrid after processing deletion
+- [x] Notify platform owner of account deletion
+- [x] Add "Delete My Account" section to UserProfile page with multi-step confirmation
+- [x] Two-step dialog: "Are you sure?" → type "DELETE" to confirm
+- [x] Block admin self-deletion (admins must be managed via database)
+- [x] Write vitest tests for account deletion endpoint (7/7 passed)

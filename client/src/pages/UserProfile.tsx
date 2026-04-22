@@ -7,7 +7,16 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { User, Mail, Phone, Shield, Camera, Loader2, CheckCircle2, Circle, ArrowRight, Briefcase } from "lucide-react";
+import { User, Mail, Phone, Shield, Camera, Loader2, CheckCircle2, Circle, ArrowRight, Briefcase, AlertTriangle, Trash2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { getLoginUrl } from "@/const";
 import { formatDate } from "@/lib/dateUtils";
@@ -103,6 +112,131 @@ function BecomeProviderCard() {
             </Button>
           </div>
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function DeleteAccountSection() {
+  const [, navigate] = useLocation();
+  const [open, setOpen] = useState(false);
+  const [step, setStep] = useState<"initial" | "confirm" | "type">("initial");
+  const [confirmText, setConfirmText] = useState("");
+
+  const deleteAccount = trpc.auth.deleteAccount.useMutation({
+    onSuccess: () => {
+      toast.success("Your account has been deleted. We're sorry to see you go.");
+      setOpen(false);
+      // Redirect to home after a short delay
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 2000);
+    },
+    onError: (err) => {
+      toast.error(err.message);
+    },
+  });
+
+  const handleClose = () => {
+    setOpen(false);
+    setStep("initial");
+    setConfirmText("");
+  };
+
+  return (
+    <Card className="border-red-200 dark:border-red-900/50">
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2 text-red-600 dark:text-red-400">
+          <Trash2 className="h-4 w-4" />
+          Delete Account
+        </CardTitle>
+        <CardDescription>
+          Permanently delete your account and all associated data. This action cannot be undone.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Dialog open={open} onOpenChange={(val) => { if (!val) handleClose(); else setOpen(true); }}>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/30">
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete My Account
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            {step === "initial" && (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5 text-amber-500" />
+                    Are you sure?
+                  </DialogTitle>
+                  <DialogDescription className="text-left space-y-3 pt-2">
+                    <p>Deleting your account will:</p>
+                    <ul className="list-disc pl-5 space-y-1 text-sm">
+                      <li>Remove your personal information (name, email, phone, photo)</li>
+                      <li>Deactivate your provider profile and all listed services</li>
+                      <li>Cancel any active subscriptions</li>
+                      <li>Remove you from all future bookings</li>
+                    </ul>
+                    <p className="font-medium text-foreground">Your booking history will be preserved for record-keeping, but your identity will be anonymized.</p>
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter className="flex-col gap-2 sm:flex-col">
+                  <Button
+                    variant="destructive"
+                    className="w-full"
+                    onClick={() => setStep("confirm")}
+                  >
+                    I understand, continue
+                  </Button>
+                  <Button variant="outline" className="w-full" onClick={handleClose}>
+                    No, keep my account
+                  </Button>
+                </DialogFooter>
+              </>
+            )}
+
+            {step === "confirm" && (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2 text-red-600">
+                    <AlertTriangle className="h-5 w-5 text-red-500" />
+                    Final Confirmation
+                  </DialogTitle>
+                  <DialogDescription className="text-left pt-2">
+                    <p className="mb-4">This action is <strong className="text-foreground">permanent and cannot be undone</strong>. To confirm, type <strong className="text-foreground">DELETE</strong> in the box below.</p>
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="py-2">
+                  <Input
+                    placeholder='Type "DELETE" to confirm'
+                    value={confirmText}
+                    onChange={(e) => setConfirmText(e.target.value)}
+                    className="font-mono text-center text-lg tracking-widest"
+                    autoFocus
+                  />
+                </div>
+                <DialogFooter className="flex-col gap-2 sm:flex-col">
+                  <Button
+                    variant="destructive"
+                    className="w-full"
+                    disabled={confirmText !== "DELETE" || deleteAccount.isPending}
+                    onClick={() => deleteAccount.mutate({ confirmation: "DELETE" })}
+                  >
+                    {deleteAccount.isPending ? (
+                      <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Deleting account...</>
+                    ) : (
+                      "Permanently Delete My Account"
+                    )}
+                  </Button>
+                  <Button variant="outline" className="w-full" onClick={() => { setStep("initial"); setConfirmText(""); }}>
+                    Go back
+                  </Button>
+                </DialogFooter>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
@@ -334,6 +468,9 @@ export default function UserProfile() {
 
         {/* Become a Provider CTA — only for customers */}
         {isCustomer && <BecomeProviderCard />}
+
+        {/* Delete Account Section */}
+        {user?.role !== "admin" && <DeleteAccountSection />}
       </div>
     </div>
   );
