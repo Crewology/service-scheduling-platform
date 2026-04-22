@@ -29,7 +29,12 @@ export type NotificationType =
   | 'review_reminder'
   | 'referral_signup'
   | 'referral_completed'
-  | 'referral_welcome';
+  | 'referral_welcome'
+  | 'trial_started'
+  | 'trial_7_days'
+  | 'trial_3_days'
+  | 'trial_1_day'
+  | 'trial_expired';
 
 export interface NotificationRecipient {
   userId: number;

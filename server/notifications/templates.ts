@@ -483,6 +483,130 @@ OlogyCrew Team
       smsBody: `You earned $${data.creditAmount || '0.00'} in referral credits! ${data.refereeName} completed a booking. Use credits on your next booking.`,
     },
 
+    // ============================================================================
+    // TRIAL MILESTONE NOTIFICATIONS
+    // ============================================================================
+
+    trial_started: {
+      subject: `Welcome to Your 14-Day Professional Trial!`,
+      body: `
+Hello ${data.providerName},
+
+Congratulations! Your **14-day Professional trial** has started.
+
+Here's what you now have access to:
+- **Up to 10 services** listed on the platform
+- **3 photos per service** to showcase your work
+- **Priority search placement** to attract more customers
+- **Custom profile slug** for easy sharing
+
+Your trial ends on **${data.trialEndDate}**. Make the most of it!
+
+[Go to Your Dashboard](${data.dashboardUrl})
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `Your 14-day Professional trial on OlogyCrew has started! Explore your new features in your dashboard.`,
+    },
+
+    trial_7_days: {
+      subject: `7 Days Left on Your Professional Trial`,
+      body: `
+Hello ${data.providerName},
+
+You have **7 days** remaining on your Professional trial.
+
+Here's what you've accomplished so far:
+${data.servicesCreated ? `- **${data.servicesCreated} services** listed` : ''}
+${data.bookingsReceived ? `- **${data.bookingsReceived} bookings** received` : ''}
+${data.reviewsReceived ? `- **${data.reviewsReceived} reviews** earned` : ''}
+
+Don't lose your progress — upgrade to Professional for just **$19.99/month** (or save 20% with annual billing at $15.99/month).
+
+[Upgrade Now](${data.upgradeUrl})
+
+Your trial ends on **${data.trialEndDate}**.
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `7 days left on your OlogyCrew Professional trial! Upgrade at ${data.upgradeUrl} to keep your features.`,
+    },
+
+    trial_3_days: {
+      subject: `Only 3 Days Left — Don't Lose Your Professional Features`,
+      body: `
+Hello ${data.providerName},
+
+Your Professional trial ends in just **3 days** (${data.trialEndDate}).
+
+When your trial expires, you'll lose access to:
+- Priority search placement
+- Services beyond the free limit (3)
+- Extra photo uploads
+- Custom profile slug
+
+**Upgrade now to keep everything you've built.**
+
+[Upgrade to Professional — $19.99/mo](${data.upgradeUrl})
+
+Or save 20% with annual billing at just **$15.99/month**.
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `Only 3 days left on your OlogyCrew trial! Upgrade now to keep your Professional features: ${data.upgradeUrl}`,
+    },
+
+    trial_1_day: {
+      subject: `Last Day — Your Professional Trial Expires Tomorrow`,
+      body: `
+Hello ${data.providerName},
+
+**Your Professional trial expires tomorrow.**
+
+After expiration, your account will be downgraded to the Free tier:
+- Only 3 services visible (extras will be hidden)
+- 1 photo per service
+- Standard search placement
+- No custom profile slug
+
+Don't let your hard work go to waste. Upgrade now and keep growing your business.
+
+[Upgrade to Professional — $19.99/mo](${data.upgradeUrl})
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `Your OlogyCrew Professional trial expires TOMORROW! Upgrade now: ${data.upgradeUrl}`,
+    },
+
+    trial_expired: {
+      subject: `Your Professional Trial Has Ended`,
+      body: `
+Hello ${data.providerName},
+
+Your 14-day Professional trial has ended, and your account has been moved to the **Free tier**.
+
+You can still use OlogyCrew with the Free plan, but you'll have limited features.
+
+Ready to upgrade? You can reactivate Professional anytime:
+
+[Upgrade to Professional — $19.99/mo](${data.upgradeUrl})
+
+Or save 20% with annual billing at just **$15.99/month**.
+
+We'd love to have you back on Professional!
+
+[Unsubscribe](${data.unsubscribeUrl})
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `Your OlogyCrew Professional trial has ended. Upgrade anytime at ${data.upgradeUrl} to restore your features.`,
+    },
+
     referral_welcome: {
       subject: `Welcome to OlogyCrew — You've been referred!`,
       body: `

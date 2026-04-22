@@ -5,6 +5,7 @@ import Stripe from "stripe";
 import { ENV } from "./_core/env";
 import * as db from "./db";
 import { SUBSCRIPTION_TIERS, STRIPE_PRODUCT_NAME, getTrialDays, type SubscriptionTier } from "./products";
+import { sendTrialStartedNotification, checkAndSendTrialMilestoneNotification } from "./trialNotifications";
 
 const stripe = new Stripe(ENV.stripeSecretKey, {
   apiVersion: "2025-12-18.acacia" as any,
@@ -94,6 +95,17 @@ export const subscriptionRouter = router({
       currentPeriodEnd: trialEnd,
     });
 
+    // Send trial started email notification (fire-and-forget)
+    const user = ctx.user;
+    sendTrialStartedNotification({
+      providerId: provider.id,
+      userId: user.id,
+      email: user.email || undefined,
+      providerName: provider.businessName,
+      daysRemaining: 14,
+      trialEndsAt: trialEnd,
+    }).catch(err => console.error("[Trial] Failed to send trial_started notification:", err));
+
     return { tier: "basic" as const, status: "trialing" as const, trialEndsAt: trialEnd };
   }),
 
@@ -121,15 +133,37 @@ export const subscriptionRouter = router({
           currentPeriodStart: undefined,
           currentPeriodEnd: undefined,
         });
-        return {
-          isTrialing: false,
-          trialExpired: true,
-          trialTier: "basic" as const,
-          daysRemaining: 0,
-          trialEndsAt: sub.trialEndsAt,
-          currentTier: "free" as const,
-        };
+      // Send trial expired notification (fire-and-forget)
+      const user = ctx.user;
+      checkAndSendTrialMilestoneNotification({
+        providerId: provider.id,
+        userId: user.id,
+        email: user.email || undefined,
+        providerName: provider.businessName,
+        daysRemaining: 0,
+        trialEndsAt: new Date(sub.trialEndsAt!),
+      }).catch(err => console.error("[Trial] Failed to send trial_expired notification:", err));
+
+      return {
+        isTrialing: false,
+        trialExpired: true,
+        trialTier: "basic" as const,
+        daysRemaining: 0,
+        trialEndsAt: sub.trialEndsAt,
+        currentTier: "free" as const,
+      };
       }
+
+      // Check and send milestone notifications (7, 3, 1 day) — fire-and-forget
+      const user = ctx.user;
+      checkAndSendTrialMilestoneNotification({
+        providerId: provider.id,
+        userId: user.id,
+        email: user.email || undefined,
+        providerName: provider.businessName,
+        daysRemaining,
+        trialEndsAt: new Date(sub.trialEndsAt!),
+      }).catch(err => console.error("[Trial] Failed to send milestone notification:", err));
 
       return {
         isTrialing: true,

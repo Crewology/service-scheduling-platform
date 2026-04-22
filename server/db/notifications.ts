@@ -54,6 +54,17 @@ export async function getNotificationsByUser(userId: number, limit = 50) {
     .limit(limit);
 }
 
+export async function getNotificationsByType(userId: number, notificationType: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(notifications)
+    .where(and(
+      eq(notifications.userId, userId),
+      eq(notifications.notificationType, notificationType)
+    ))
+    .orderBy(desc(notifications.createdAt));
+}
+
 export async function markNotificationRead(notificationId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

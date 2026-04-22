@@ -157,6 +157,10 @@ export {
 // Notification helpers
 export {
   getUnreadCount,
+  getNotificationsByType,
+  createNotification,
+  getNotificationPreferences,
+  upsertNotificationPreferences,
 } from "./db/notifications";
 
 // Saved provider folders

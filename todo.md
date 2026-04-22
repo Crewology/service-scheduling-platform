@@ -1142,3 +1142,14 @@
 - [x] PublicProviderProfile.tsx: Removed old "Verified" badge fallback
 - [x] PublicProviderProfile.tsx: "Insurance Verified" → "Insured"
 - [x] Updated "Why Choose OlogyCrew" section to showcase automated trust badge system
+
+## Feature: Trial Milestone Email Notifications
+- [x] Build trial notification helper (server/trialNotifications.ts) with milestone tracking
+- [x] Add 5 notification types: trial_started, trial_7_days, trial_3_days, trial_1_day, trial_expired
+- [x] Create email templates for each milestone with upgrade CTAs and pricing info
+- [x] Include unsubscribe link in trial_expired email (compliance requirement)
+- [x] Track sent milestones via notifications table to prevent duplicate emails
+- [x] Add getNotificationsByType helper to db/notifications.ts
+- [x] Integrate trial_started notification into startProfessionalTrial mutation
+- [x] Integrate milestone checks into checkTrialStatus query (fire-and-forget)
+- [x] Write 23 vitest tests for trial email templates, milestone logic, and compliance (all passing)
