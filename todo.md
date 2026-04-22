@@ -1231,3 +1231,10 @@
 
 ## Admin: Pre-register Rlstephens42@comcast.net as admin
 - [x] Auto-promote Rlstephens42@comcast.net to admin role on signup
+
+## Feature: Welcome Emails for New Signups
+- [x] Create welcome_customer email template for new customer signups
+- [x] Create welcome_provider email template for new provider registrations
+- [x] Wire welcome_customer into selectRole mutation (authRouter)
+- [x] Wire welcome_provider into provider create mutation (providerRouter)
+- [x] Send both test welcome emails for review (2/2 sent successfully)

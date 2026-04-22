@@ -625,6 +625,71 @@ OlogyCrew Team
       `.trim(),
       smsBody: `Welcome to OlogyCrew! You were referred by ${data.referrerName}. Browse services and book your first appointment today.`,
     },
+
+    // ============================================================================
+    // WELCOME EMAILS
+    // ============================================================================
+
+    welcome_customer: {
+      subject: `Welcome to OlogyCrew — Let's Get You Booked!`,
+      body: `
+Hello ${data.customerName || 'there'},
+
+Welcome to **OlogyCrew**! We're thrilled to have you on board.
+
+You now have access to **42+ service categories** — from barbers and massage therapists to DJs, photographers, handymen, personal trainers, and much more. Every provider on our platform is vetted with our **Trust Score** system, so you can book with confidence.
+
+**Here's how to get started:**
+
+- **Browse Services** — Explore categories and find the right professional for your needs
+- **Book Instantly** — Pick a date, time, and pay securely through the platform
+- **Leave Reviews** — Help the community by sharing your experience after each appointment
+
+[Browse Services](/browse)
+
+If you have any questions, our Help Center is always available.
+
+[Visit Help Center](/help)
+
+Welcome aboard!
+
+Best regards,
+The OlogyCrew Team
+      `.trim(),
+      smsBody: `Welcome to OlogyCrew! Browse 42+ service categories and book your first appointment today.`,
+    },
+
+    welcome_provider: {
+      subject: `Welcome to OlogyCrew — Your Provider Profile is Live!`,
+      body: `
+Hello ${data.providerName || 'there'},
+
+Congratulations and welcome to **OlogyCrew**! Your provider profile is now live and customers can start finding and booking your services.
+
+**Here's what to do next to maximize your bookings:**
+
+- **Complete Your Profile** — Add a professional photo, bio, and business details to stand out
+- **Add Your Services** — List your services with pricing, duration, and descriptions
+- **Set Your Availability** — Configure your weekly schedule so customers can book open time slots
+- **Connect Stripe** — Set up payments to receive secure payouts directly to your bank account
+
+[Go to Provider Dashboard](/provider-dashboard)
+
+**Build Your Trust Score:**
+OlogyCrew uses a **Trust Score** system to highlight reliable providers. Complete bookings on time, earn great reviews, and maintain a fast response time to climb the ranks from **New** to **Trusted** to **Top Pro**.
+
+**Need Help?**
+Visit our Help Center anytime for tips on growing your business on OlogyCrew.
+
+[Visit Help Center](/help)
+
+We're excited to have you as part of the OlogyCrew community!
+
+Best regards,
+The OlogyCrew Team
+      `.trim(),
+      smsBody: `Welcome to OlogyCrew! Your provider profile is live. Complete your setup to start receiving bookings.`,
+    },
   };
 
   return templates[type] || {

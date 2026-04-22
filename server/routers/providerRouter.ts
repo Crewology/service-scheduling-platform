@@ -44,6 +44,28 @@ export const providerRouter = router({
       if (categoryIds && categoryIds.length > 0) {
         await db.setProviderCategories(provider.id, categoryIds);
       }
+
+      // Send welcome provider email
+      if (ctx.user.email) {
+        try {
+          const { sendNotification } = await import("../notifications");
+          await sendNotification({
+            type: "welcome_provider",
+            channel: "email",
+            recipient: {
+              userId: ctx.user.id,
+              email: ctx.user.email,
+              name: ctx.user.name || undefined,
+            },
+            data: {
+              providerName: provider.businessName || ctx.user.name || "there",
+            },
+          });
+        } catch (err) {
+          console.error("[Provider] Failed to send welcome provider email:", err);
+        }
+      }
+
       return provider;
     }),
     

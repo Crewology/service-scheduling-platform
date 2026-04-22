@@ -18,6 +18,28 @@ export const authRouter = router({
         role: input.role,
         hasSelectedRole: true,
       });
+
+      // Send welcome email for customers (providers get theirs when they create their profile)
+      if (input.role === "customer" && ctx.user.email) {
+        try {
+          const { sendNotification } = await import("../notifications");
+          await sendNotification({
+            type: "welcome_customer",
+            channel: "email",
+            recipient: {
+              userId: ctx.user.id,
+              email: ctx.user.email,
+              name: ctx.user.name || undefined,
+            },
+            data: {
+              customerName: ctx.user.name || ctx.user.firstName || "there",
+            },
+          });
+        } catch (err) {
+          console.error("[Auth] Failed to send welcome customer email:", err);
+        }
+      }
+
       return { success: true, role: input.role };
     }),
 

@@ -34,7 +34,9 @@ export type NotificationType =
   | 'trial_7_days'
   | 'trial_3_days'
   | 'trial_1_day'
-  | 'trial_expired';
+  | 'trial_expired'
+  | 'welcome_customer'
+  | 'welcome_provider';
 
 export interface NotificationRecipient {
   userId: number;
