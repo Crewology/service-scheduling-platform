@@ -1204,3 +1204,7 @@
 - [x] Fix all notification callers to pass bookingId in data
 - [x] Fix trial notification templates to use hardcoded correct paths
 - [x] Send test emails to verify all fixes (29/29 sent successfully)
+
+## Fix: Unsubscribe Confirmation Dialog
+- [x] Add "Are you sure?" confirmation step before unsubscribing
+- [x] Re-enable email notifications for Gary (userId 1) after accidental unsubscribe

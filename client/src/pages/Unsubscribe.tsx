@@ -3,12 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useParams } from "wouter";
 import { useState } from "react";
-import { Mail, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { Mail, CheckCircle, AlertCircle, Loader2, ShieldAlert } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Unsubscribe() {
   const { token } = useParams<{ token: string }>();
   const [unsubscribed, setUnsubscribed] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const { data: prefs, isLoading } = trpc.notification.getByToken.useQuery(
     { token: token || "" },
@@ -19,6 +20,7 @@ export default function Unsubscribe() {
     onSuccess: (data) => {
       if (data.success) {
         setUnsubscribed(true);
+        setShowConfirm(false);
       }
     },
   });
@@ -76,6 +78,61 @@ export default function Unsubscribe() {
     );
   }
 
+  // ── Confirmation step ──
+  if (showConfirm) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <Card className="max-w-md w-full border-amber-200">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-2">
+              <ShieldAlert className="h-10 w-10 text-amber-500" />
+            </div>
+            <CardTitle>Are you sure?</CardTitle>
+            <CardDescription>
+              You will stop receiving <strong>all</strong> email notifications from OlogyCrew,
+              including booking confirmations, payment receipts, and appointment reminders.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Button
+              className="w-full"
+              variant="destructive"
+              onClick={() => unsubscribeMutation.mutate({ token: token || "" })}
+              disabled={unsubscribeMutation.isPending}
+            >
+              {unsubscribeMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Unsubscribing...
+                </>
+              ) : (
+                "Yes, Unsubscribe from All Emails"
+              )}
+            </Button>
+
+            <Button
+              className="w-full"
+              variant="outline"
+              onClick={() => setShowConfirm(false)}
+              disabled={unsubscribeMutation.isPending}
+            >
+              No, Keep My Emails
+            </Button>
+
+            <p className="text-xs text-center text-muted-foreground pt-1">
+              Prefer to keep some emails?{" "}
+              <Link href="/notification-settings" className="text-primary hover:underline">
+                Manage individual preferences
+              </Link>{" "}
+              instead.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // ── Initial landing ──
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <Card className="max-w-md w-full">
@@ -85,7 +142,7 @@ export default function Unsubscribe() {
           </div>
           <CardTitle>Unsubscribe from Emails</CardTitle>
           <CardDescription>
-            Click the button below to unsubscribe from all OlogyCrew email notifications.
+            This will unsubscribe you from all OlogyCrew email notifications.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -107,17 +164,9 @@ export default function Unsubscribe() {
           <Button
             className="w-full"
             variant="destructive"
-            onClick={() => unsubscribeMutation.mutate({ token: token || "" })}
-            disabled={unsubscribeMutation.isPending}
+            onClick={() => setShowConfirm(true)}
           >
-            {unsubscribeMutation.isPending ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Unsubscribing...
-              </>
-            ) : (
-              "Unsubscribe from All Emails"
-            )}
+            Unsubscribe from All Emails
           </Button>
 
           <p className="text-xs text-center text-muted-foreground">
