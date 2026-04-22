@@ -1056,3 +1056,6 @@
 ## Feature: Service Name on Booking Cards
 - [x] Add service name prominently to booking cards (Provider Dashboard + Admin Dashboard)
 - [x] Show booking number as small muted secondary text under the service name
+
+## Bug: 404 on Back Button from More Menu Pages
+- [x] Fix 404 when hitting back button from Promo Codes page — back arrow linked to /provider instead of /provider/dashboard
