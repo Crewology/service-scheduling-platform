@@ -74,6 +74,10 @@ export const serviceProviders = mysqlTable("service_providers", {
   isFeatured: boolean("isFeatured").default(false).notNull(),
   isOfficial: boolean("isOfficial").default(false).notNull(),
   isActive: boolean("isActive").default(true).notNull(),
+  // Automated trust score system (0-100)
+  trustScore: int("trustScore").default(0).notNull(),
+  trustLevel: mysqlEnum("trustLevel", ["new", "rising", "trusted", "top_pro"]).default("new").notNull(),
+  trustScoreUpdatedAt: timestamp("trustScoreUpdatedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   deletedAt: timestamp("deletedAt"),
@@ -82,6 +86,7 @@ export const serviceProviders = mysqlTable("service_providers", {
   cityStateIdx: index("city_state_idx").on(table.city, table.state),
   ratingIdx: index("rating_idx").on(table.averageRating),
   featuredActiveIdx: index("featured_active_idx").on(table.isFeatured, table.isActive),
+  trustLevelIdx: index("trust_level_idx").on(table.trustLevel, table.isActive),
 }));
 
 export type ServiceProvider = typeof serviceProviders.$inferSelect;

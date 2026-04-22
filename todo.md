@@ -1095,3 +1095,20 @@
 - [x] Enforce photo upload limits per service based on tier — already in backend
 - [x] Show contextual upgrade banners in provider dashboard Services tab when near/at limits
 - [x] Add vitest tests for annual pricing calculations and feature gating logic (22 tests)
+
+## Feature: Remove "verified" from Hero & Build Automated Trust Badge System
+- [x] Remove "verified" from homepage hero copy (changed to "skilled providers")
+- [x] Design trust score criteria (Stripe KYC, profile completeness, booking history, ratings)
+- [x] Add trustScore, trustLevel, trustScoreUpdatedAt fields to provider schema
+- [x] Create shared trust score calculation engine (shared/trustScore.ts)
+- [x] Create trust score DB helpers (server/db/trustScore.ts)
+- [x] Create trust tRPC router with getProviderTrust, getMyTrustScore, getMyTrustBreakdown, recalculateMyTrust, recalculateAll
+- [x] Create TrustBadge UI component with 4 levels: New, Rising, Trusted, Top Pro
+- [x] Create TrustScoreProgress widget with breakdown bars and improvement tips
+- [x] Display trust badges on Search results page (provider cards)
+- [x] Display trust badges on Public Provider Profile page (header + sidebar)
+- [x] Add Trust Score widget to Provider Dashboard with breakdown and tips
+- [x] Add trust score recalculation on booking completion (bookingRouter)
+- [x] Add trust score recalculation on review creation (reviewRouter)
+- [x] Add trust score recalculation on profile update and photo upload (providerRouter)
+- [x] Write 16 vitest tests for trust score calculation logic (all passing)

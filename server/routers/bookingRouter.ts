@@ -404,6 +404,14 @@ export const bookingRouter = router({
             console.error("[Referral] Fulfillment failed (non-blocking):", refErr);
           }
         }
+        // Recalculate provider trust score on booking completion
+        if (input.status === "completed") {
+          try {
+            await db.updateProviderTrustScore(booking.providerId);
+          } catch (trustErr) {
+            console.error("[TrustScore] Recalculation failed (non-blocking):", trustErr);
+          }
+        }
       } catch (err) {
         console.error("[BookingStatus] Notification send failed (non-blocking):", err);
       }

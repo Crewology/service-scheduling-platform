@@ -43,7 +43,7 @@ export default function Home() {
               <span className="gradient-text">Near You</span>
             </h1>
             <p className="text-base sm:text-lg md:text-2xl text-muted-foreground mb-8 md:mb-10 text-balance">
-              Connect with verified providers across 42+ service categories. Book instantly, pay securely, and get the job done right.
+              Connect with skilled providers across 42+ service categories. Book instantly, pay securely, and get the job done right.
             </p>
             
             {/* Search Bar */}

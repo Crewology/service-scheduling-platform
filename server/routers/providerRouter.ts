@@ -166,6 +166,8 @@ export const providerRouter = router({
       await db.updateProviderProfile(provider.id, input);
       // Invalidate OG image cache so social previews reflect updated info
       if (provider.profileSlug) invalidateOgImageCache(provider.profileSlug);
+      // Recalculate trust score after profile update
+      try { await db.updateProviderTrustScore(provider.id); } catch (e) { console.error("[TrustScore] Recalc failed:", e); }
       const updated = await db.getProviderByUserId(ctx.user.id);
       return updated!;
     }),
@@ -192,6 +194,8 @@ export const providerRouter = router({
       // Invalidate OG image cache so social previews use new photo
       const provider = await db.getProviderByUserId(ctx.user.id);
       if (provider?.profileSlug) invalidateOgImageCache(provider.profileSlug);
+      // Recalculate trust score after photo upload
+      if (provider) { try { await db.updateProviderTrustScore(provider.id); } catch (e) { console.error("[TrustScore] Recalc failed:", e); } }
       return { url };
     }),
 

@@ -190,3 +190,11 @@ export {
 export {
   getPushAnalytics,
 } from "./db/analytics";
+
+// Trust score system
+export {
+  gatherTrustScoreInput,
+  updateProviderTrustScore,
+  getProviderTrustScore,
+  recalculateAllTrustScores,
+} from "./db/trustScore";

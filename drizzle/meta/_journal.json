@@ -211,6 +211,13 @@
       "when": 1776377945107,
       "tag": "0029_lovely_paladin",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "5",
+      "when": 1776824001586,
+      "tag": "0030_cynical_dagger",
+      "breakpoints": true
     }
   ]
 }

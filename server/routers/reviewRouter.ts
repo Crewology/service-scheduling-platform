@@ -61,6 +61,14 @@ export const reviewRouter = router({
       });
       
       const created = await db.getReviewByBookingId(input.bookingId);
+
+      // Recalculate provider trust score after new review
+      try {
+        await db.updateProviderTrustScore(providerId);
+      } catch (trustErr) {
+        console.error("[TrustScore] Recalculation after review failed (non-blocking):", trustErr);
+      }
+
       return created!;
     }),
 });

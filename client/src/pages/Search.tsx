@@ -12,6 +12,7 @@ import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Search as SearchIcon, MapPin, DollarSign, Star, X, SlidersHorizontal, Clock, Building2, ArrowRight, BadgeCheck, RefreshCw, AlertCircle } from "lucide-react";
 import { NavHeader } from "@/components/shared/NavHeader";
+import { TrustBadge } from "@/components/TrustBadge";
 
 /**
  * Inline filter JSX block — extracted as a helper that returns JSX elements
@@ -368,7 +369,10 @@ export default function Search() {
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-1.5">
                                     <h3 className="font-semibold text-sm truncate">{provider.businessName}</h3>
-                                    {provider.verificationStatus === "verified" && (
+                                    {provider.trustLevel && provider.trustLevel !== "new" && (
+                                      <TrustBadge level={provider.trustLevel} size="sm" showLabel={false} />
+                                    )}
+                                    {!provider.trustLevel && provider.verificationStatus === "verified" && (
                                       <BadgeCheck className="h-4 w-4 text-blue-500 shrink-0" />
                                     )}
                                   </div>

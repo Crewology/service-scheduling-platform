@@ -30,6 +30,7 @@ import { customerSubscriptionRouter } from "./customerSubscriptionRouter";
 import { foldersRouter } from "./foldersRouter";
 import { contactRouter } from "./contactRouter";
 import { pushRouter } from "./pushRouter";
+import { trustRouter } from "./trustRouter";
 
 export const appRouter = router({
   system: systemRouter,
@@ -54,6 +55,7 @@ export const appRouter = router({
   folders: foldersRouter,
   contact: contactRouter,
   push: pushRouter,
+  trust: trustRouter,
 });
 
 export type AppRouter = typeof appRouter;

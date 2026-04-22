@@ -65,6 +65,7 @@ import { formatDuration, DURATION_PRESETS } from "../../../shared/duration";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { Checkbox } from "@/components/ui/checkbox";
 import { UpgradePrompt, UpgradeBanner } from "@/components/UpgradePrompt";
+import { TrustBadge, TrustScoreProgress } from "@/components/TrustBadge";
 
 // ============================================================================
 // SERVICE PHOTOS MANAGER
@@ -883,6 +884,11 @@ export default function ProviderDashboard() {
     enabled: !!provider,
   });
 
+  // Trust score
+  const { data: trustBreakdown } = trpc.trust.getMyTrustBreakdown.useQuery(undefined, {
+    enabled: !!provider,
+  });
+
   const respondToQuote = trpc.provider.respondToQuote.useMutation({
     onSuccess: () => {
       utils.provider.providerQuotes.invalidate();
@@ -1126,6 +1132,24 @@ export default function ProviderDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Trust Score Widget */}
+        {trustBreakdown && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="text-lg">Your Trust Score</CardTitle>
+              <CardDescription>Build your reputation to attract more customers</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <TrustScoreProgress
+                score={trustBreakdown.score}
+                level={trustBreakdown.level}
+                breakdown={trustBreakdown.breakdown}
+                tips={trustBreakdown.tips}
+              />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Onboarding Checklist Widget */}
         <OnboardingChecklist

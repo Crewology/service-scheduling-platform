@@ -40,6 +40,7 @@ import {
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { toast } from "sonner";
+import { TrustBadge } from "@/components/TrustBadge";
 
 function formatCurrency(value: string | number | null | undefined): string {
   const num = typeof value === "string" ? parseFloat(value) : (value ?? 0);
@@ -299,7 +300,10 @@ export default function PublicProviderProfile() {
               <div className="flex items-center gap-3 flex-wrap">
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">{provider.businessName}</h1>
                 {provider.isOfficial && <OfficialBadge size="lg" />}
-                {provider.verificationStatus === "verified" && !provider.isOfficial && (
+                {provider.trustLevel && provider.trustLevel !== "new" && (
+                  <TrustBadge level={provider.trustLevel} size="md" />
+                )}
+                {!provider.trustLevel && provider.verificationStatus === "verified" && !provider.isOfficial && (
                   <Badge className="gap-1 bg-blue-500 hover:bg-blue-600 text-white">
                     <CheckCircle className="w-3 h-3" /> Verified
                   </Badge>
@@ -716,15 +720,16 @@ export default function PublicProviderProfile() {
                   <p>Member since {new Date(provider.createdAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}</p>
                 </div>
 
-                {/* Trust Badges */}
-                {(provider.insuranceVerified || provider.backgroundCheckVerified || provider.verificationStatus === "verified") && (
+                {/* Trust & Verification Badges */}
+                {(provider.trustLevel && provider.trustLevel !== "new") || provider.insuranceVerified || provider.backgroundCheckVerified ? (
                   <>
                     <Separator />
                     <div className="space-y-2">
-                      {provider.verificationStatus === "verified" && (
-                        <p className="flex items-center gap-1.5 text-sm text-blue-600">
-                          <CheckCircle className="w-4 h-4" /> Identity Verified
-                        </p>
+                      {provider.trustLevel && provider.trustLevel !== "new" && (
+                        <div className="flex items-center gap-2">
+                          <TrustBadge level={provider.trustLevel} size="md" showTooltip={false} />
+                          <span className="text-xs text-muted-foreground">Provider</span>
+                        </div>
                       )}
                       {provider.insuranceVerified && (
                         <p className="flex items-center gap-1.5 text-sm text-green-600">
@@ -738,7 +743,7 @@ export default function PublicProviderProfile() {
                       )}
                     </div>
                   </>
-                )}
+                ) : null}
               </CardContent>
             </Card>
 
