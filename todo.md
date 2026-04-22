@@ -1153,3 +1153,14 @@
 - [x] Integrate trial_started notification into startProfessionalTrial mutation
 - [x] Integrate milestone checks into checkTrialStatus query (fire-and-forget)
 - [x] Write 23 vitest tests for trial email templates, milestone logic, and compliance (all passing)
+
+## Fix: Update Help Center with Recent Features
+- [x] Add Trust Badge System section (New, Rising, Trusted, Top Pro levels) — "Trust Badges & Reputation" article
+- [x] Add 14-Day Professional Trial documentation — "14-Day Professional Trial" article
+- [x] Update onboarding description from 4 steps to 5 steps (includes Plan selection)
+- [x] Add Annual Pricing toggle explanation — updated Provider Subscription Plans article
+- [x] Add Tier-Based Feature Gating documentation — "Service & Photo Limits" article
+- [x] Add Trial Email Notifications documentation — covered in trial article
+- [x] Add 5 new FAQ items: Trust Badges, Professional Trial, Annual Billing, Service Limits, Search Ranking
+- [x] Update visibility FAQ to mention Trust Score system
+- [x] Update onboarding FAQ to mention 5-step process and trial

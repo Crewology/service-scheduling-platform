@@ -167,7 +167,7 @@ const guideSections: GuideSection[] = [
       {
         title: "Provider Onboarding",
         content:
-          "There are two ways to become a provider: (1) Choose \"Provider\" when you first sign up and see the role selection screen, or (2) Click \"Become a Provider\" from your profile page if you initially signed up as a customer. Either way, you'll enter the onboarding wizard — a simple 4-step process: choose your service categories from our 42+ options, set up your business profile with a description, location, and contact info, add your services with pricing and duration, and upload portfolio photos to showcase your work. Your dashboard shows a checklist of what's complete.",
+          "There are two ways to become a provider: (1) Choose \"Provider\" when you first sign up and see the role selection screen, or (2) Click \"Become a Provider\" from your profile page if you initially signed up as a customer. Either way, you'll enter the onboarding wizard — a simple 5-step process:\n\n1. Profile — Set up your business profile with a description, location, and contact info\n2. Skills — Choose your service categories from our 42+ options\n3. Services — Add your services with pricing and duration\n4. Your Plan — Choose your subscription tier (Starter, Professional, or Business) or start a free 14-day Professional trial\n5. Get Paid — Connect your Stripe account to receive payments\n\nYour dashboard shows a checklist of what's complete.",
         link: "/provider/onboarding",
         linkText: "Start Onboarding",
       },
@@ -215,6 +215,27 @@ const guideSections: GuideSection[] = [
         link: "/provider/promo-codes",
         linkText: "Manage Promo Codes",
       },
+      {
+        title: "Trust Badges & Reputation",
+        content:
+          "OlogyCrew uses an automated Trust Score system to help customers identify reliable providers. Your trust level is calculated from five factors:\n\n\u2022 Profile Completeness (25%) \u2014 Photo, bio, contact info, and business details\n\u2022 Stripe Verification (20%) \u2014 Having a connected and verified Stripe account\n\u2022 Booking History (25%) \u2014 Number of completed bookings and completion rate\n\u2022 Customer Reviews (20%) \u2014 Average rating and number of reviews\n\u2022 Account Age (10%) \u2014 How long you've been on the platform\n\nBased on your score, you earn one of four trust levels:\n\u2022 New \u2014 Just getting started (score 0-29)\n\u2022 Rising \u2014 Building your reputation (score 30-59)\n\u2022 Trusted \u2014 Established provider (score 60-84)\n\u2022 Top Pro \u2014 Elite provider status (score 85-100)\n\nYour trust badge appears on your profile and in search results. Higher trust levels rank you higher in search. Check your Trust Score breakdown and improvement tips on your Provider Dashboard.",
+        link: "/provider/dashboard",
+        linkText: "View Your Trust Score",
+      },
+      {
+        title: "14-Day Professional Trial",
+        content:
+          "New providers can start a free 14-day Professional trial \u2014 no credit card required. During the trial, you get access to all Professional features: up to 10 services, 3 photos per service, custom profile URL slug, priority search placement, and analytics dashboard. Start your trial during onboarding (Step 4: Your Plan) or from the Subscription Management page.\n\nYou'll receive email notifications at key milestones: 7 days remaining, 3 days remaining, 1 day remaining, and when the trial expires. If you don't upgrade before the trial ends, your account automatically reverts to the free Starter tier. You can upgrade to Professional ($19.99/mo) or Business ($49.99/mo) at any time \u2014 save 20% with annual billing.",
+        link: "/provider/subscription",
+        linkText: "Manage Subscription",
+      },
+      {
+        title: "Service & Photo Limits",
+        content:
+          "Each subscription tier has different limits for services and photos:\n\n\u2022 Starter (Free) \u2014 Up to 3 services, 1 photo per service\n\u2022 Professional ($19.99/mo) \u2014 Up to 10 services, 3 photos per service\n\u2022 Business ($49.99/mo) \u2014 Unlimited services, 5 photos per service\n\nWhen you reach your tier's limit, you'll see an upgrade prompt with a comparison of what each tier offers. You can upgrade at any time from the Subscription Management page. If you're on a trial and it expires, your services remain but you won't be able to add new ones beyond the Starter limit.",
+        link: "/provider/subscription",
+        linkText: "Upgrade Your Plan",
+      },
     ],
   },
   {
@@ -236,7 +257,7 @@ const guideSections: GuideSection[] = [
       {
         title: "Provider Subscription Plans",
         content:
-          "Providers can choose from three subscription tiers:\n\n• Starter (Free) — Up to 3 services, 2 photos per service, basic profile, standard search placement\n\n• Professional ($19.99/mo or $191.88/yr) — Up to 10 services, 5 photos, custom URL slug, priority search, analytics dashboard\n\n• Business ($49.99/mo or $479.88/yr) — Unlimited services, featured listing badge, top search placement, full analytics, custom branding, priority support",
+          "Providers can choose from three subscription tiers:\n\n• Starter (Free) — Up to 3 services, 1 photo per service, basic profile, standard search placement\n\n• Professional ($19.99/mo or $15.99/mo billed annually) — Up to 10 services, 3 photos per service, custom URL slug, priority search placement, analytics dashboard\n\n• Business ($49.99/mo or $39.99/mo billed annually) — Unlimited services, 5 photos per service, featured listing badge, top search placement, full analytics, custom branding, priority support\n\nSave 20% by choosing annual billing! Use the Monthly/Annual toggle on the pricing page to compare. New providers can start a free 14-day Professional trial — no credit card required — to experience all Professional features before committing.",
         link: "/provider/subscription",
         linkText: "Manage Subscription",
       },
@@ -324,7 +345,7 @@ const faqItems: FAQItem[] = [
   {
     question: "How do I become a service provider?",
     answer:
-      "There are two ways: (1) When you first sign up, choose \"Provider\" on the role selection screen, or (2) If you already have a customer account, go to your Profile page and click the \"Become a Provider\" card. Either way, you'll enter the onboarding wizard where you choose your service categories, set up your business profile, add services with pricing, and upload portfolio photos. The entire process takes about 10 minutes.",
+      "There are two ways: (1) When you first sign up, choose \"Provider\" on the role selection screen, or (2) If you already have a customer account, go to your Profile page and click the \"Become a Provider\" card. Either way, you'll enter the 5-step onboarding wizard: set up your business profile, choose your service categories, add services with pricing, select your subscription plan (or start a free 14-day Professional trial), and connect Stripe for payments. The entire process takes about 10 minutes.",
     category: "Providers",
   },
   {
@@ -366,7 +387,7 @@ const faqItems: FAQItem[] = [
   {
     question: "How do I get more visibility as a provider?",
     answer:
-      "Upgrade to a Professional or Business subscription for priority search placement and featured listing badges. Also, complete your profile fully, upload quality portfolio photos, respond quickly to bookings and quotes, and earn positive reviews — all of these improve your visibility.",
+      "Your visibility is determined by your Trust Score and subscription tier. Build your Trust Score by completing your profile, uploading quality portfolio photos, connecting Stripe, earning positive reviews, and completing bookings. Higher trust levels (Rising, Trusted, Top Pro) rank you higher in search results. Upgrading to Professional or Business adds a tier boost to your search ranking. The combination of trust score and subscription tier determines your final placement.",
     category: "Providers",
   },
   {
@@ -416,6 +437,36 @@ const faqItems: FAQItem[] = [
     answer:
       "Your Profile page shows a progress bar and checklist highlighting which fields still need attention (name, email, phone number, profile photo). Once all fields are filled in, the indicator disappears. A complete profile helps providers communicate with you and improves your overall experience.",
     category: "General",
+  },
+  {
+    question: "What are Trust Badges and how do I earn one?",
+    answer:
+      "Trust Badges are automatically earned based on your Trust Score, which is calculated from your profile completeness, Stripe verification, booking history, customer reviews, and account age. There are four levels: New (0-29), Rising (30-59), Trusted (60-84), and Top Pro (85-100). Your badge appears on your profile and in search results. Higher trust levels also rank you higher in search. Check your Trust Score breakdown and improvement tips on your Provider Dashboard.",
+    category: "Providers",
+  },
+  {
+    question: "What is the 14-day Professional trial?",
+    answer:
+      "New providers can try the Professional tier free for 14 days — no credit card required. You get access to all Professional features including up to 10 services, 3 photos per service, custom URL slug, and priority search placement. Start your trial during onboarding or from the Subscription Management page. You'll receive email reminders at 7, 3, and 1 day before expiry. If you don't upgrade, your account reverts to the free Starter tier.",
+    category: "Providers",
+  },
+  {
+    question: "Can I save money with annual billing?",
+    answer:
+      "Yes! Both provider and customer subscriptions offer annual billing at a 20% discount. For example, the Professional plan is $19.99/month or $15.99/month when billed annually ($191.88/year). Use the Monthly/Annual toggle on the pricing or subscription page to compare and switch.",
+    category: "Payments",
+  },
+  {
+    question: "What happens when I reach my service or photo limit?",
+    answer:
+      "Each subscription tier has limits on how many services and photos you can add. When you reach your limit, you'll see an upgrade prompt showing what each tier offers. Your existing services and photos are never deleted — you just can't add new ones beyond your tier's limit until you upgrade. Starter allows 3 services (1 photo each), Professional allows 10 services (3 photos each), and Business offers unlimited services (5 photos each).",
+    category: "Providers",
+  },
+  {
+    question: "How does search ranking work?",
+    answer:
+      "Search results are ranked by a combination of your Trust Score and subscription tier. Your Trust Score is the primary factor — providers with higher trust levels appear first. Subscription tier provides a secondary boost: Business gets the highest boost, Professional gets a moderate boost, and Starter gets no boost. This means a Trusted provider on the free plan can still rank above a New provider on a paid plan, keeping the system merit-based.",
+    category: "Providers",
   },
 ];
 
