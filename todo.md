@@ -1252,12 +1252,12 @@
 - [x] Link "Get Started" button to plan page
 
 ## UX/UI Fixes — Group 3: Plan & Pricing Updates
-- [ ] Update plan pricing: Pro = $19 / Business = $49 (all instances)
-- [ ] Change Free Plan to only allow 5 saved providers
-- [ ] Free account should not be able to connect a payment account
+- [x] Update plan pricing: Pro = $19 / Business = $49 (all instances)
+- [x] Change Free Plan to only allow 5 saved providers
+- [x] Free account should not be able to connect a payment account
 - [x] Add "Plans" link to main navigation (completed in Group 2)
-- [ ] Fix plan tag visibility issue (CSS)
-- [ ] Change photo upload limits per plan: Starter 1, Professional 3, Business 5
+- [x] Fix plan tag visibility issue (CSS) — improved badge contrast with background colors
+- [x] Change photo upload limits per plan: Starter 1, Professional 3, Business 5
 
 ## UX/UI Fixes — Group 4: Messages & Notifications
 - [ ] Manage general messages — delete messages + show read status

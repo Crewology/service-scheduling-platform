@@ -40,7 +40,7 @@ export const SUBSCRIPTION_TIERS: Record<SubscriptionTier, TierConfig> = {
     yearlyPrice: 0,
     features: [
       "Up to 3 active services",
-      "2 photos per service",
+      "1 photo per service",
       "Basic public profile",
       "Standard search placement",
       "Booking management",
@@ -48,7 +48,7 @@ export const SUBSCRIPTION_TIERS: Record<SubscriptionTier, TierConfig> = {
     ],
     limits: {
       maxServices: 3,
-      maxPhotosPerService: 2,
+      maxPhotosPerService: 1,
       prioritySearch: false,
       customBranding: false,
       analyticsAccess: false,
@@ -60,11 +60,11 @@ export const SUBSCRIPTION_TIERS: Record<SubscriptionTier, TierConfig> = {
   basic: {
     name: "Professional",
     tier: "basic",
-    monthlyPrice: 19.99,
-    yearlyPrice: 191.88, // ~$16/mo
+    monthlyPrice: 19,
+    yearlyPrice: 182.40, // ~$15.20/mo (20% off)
     features: [
       "Up to 10 active services",
-      "5 photos per service",
+      "3 photos per service",
       "Custom profile URL slug",
       "Priority search placement",
       "Business analytics dashboard",
@@ -74,7 +74,7 @@ export const SUBSCRIPTION_TIERS: Record<SubscriptionTier, TierConfig> = {
     ],
     limits: {
       maxServices: 10,
-      maxPhotosPerService: 5,
+      maxPhotosPerService: 3,
       prioritySearch: true,
       customBranding: false,
       analyticsAccess: true,
@@ -86,8 +86,8 @@ export const SUBSCRIPTION_TIERS: Record<SubscriptionTier, TierConfig> = {
   premium: {
     name: "Business",
     tier: "premium",
-    monthlyPrice: 49.99,
-    yearlyPrice: 479.88, // ~$40/mo
+    monthlyPrice: 49,
+    yearlyPrice: 470.40, // ~$39.20/mo (20% off)
     features: [
       "Unlimited active services",
       "5 photos per service",

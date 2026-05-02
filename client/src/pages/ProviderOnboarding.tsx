@@ -1397,7 +1397,7 @@ export default function ProviderOnboarding() {
                     <div>
                       <h3 className="font-semibold">Professional</h3>
                       <p className="text-xs text-muted-foreground">
-                        {billingInterval === "year" ? "$15.99/mo billed annually" : "$19.99/month"}
+                        {billingInterval === "year" ? "$15.20/mo billed annually" : "$19/month"}
                       </p>
                     </div>
                   </div>
@@ -1405,19 +1405,19 @@ export default function ProviderOnboarding() {
                     {billingInterval === "year" ? (
                       <>
                         <span className="text-2xl font-bold">$15</span>
-                        <span className="text-muted-foreground text-sm">.99/mo</span>
-                        <span className="ml-2 text-xs line-through text-muted-foreground">$19.99</span>
+                        <span className="text-muted-foreground text-sm">.20/mo</span>
+                        <span className="ml-2 text-xs line-through text-muted-foreground">$19</span>
                       </>
                     ) : (
                       <>
                         <span className="text-2xl font-bold">$19</span>
-                        <span className="text-muted-foreground text-sm">.99/mo</span>
+                        <span className="text-muted-foreground text-sm">/mo</span>
                       </>
                     )}
                   </div>
                   <ul className="space-y-1.5 text-sm">
                     <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Up to 10 services</li>
-                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> 5 photos per service</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> 3 photos per service</li>
                     <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Custom profile URL</li>
                     <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Priority search placement</li>
                     <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Business analytics</li>
@@ -1425,7 +1425,7 @@ export default function ProviderOnboarding() {
                   {billingInterval === "year" && (
                     <div className="mt-3 text-center">
                       <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-[10px]">
-                        Save $48/year
+                        Save $45.60/year
                       </Badge>
                     </div>
                   )}
@@ -1452,7 +1452,7 @@ export default function ProviderOnboarding() {
                     <div>
                       <h3 className="font-semibold">Business</h3>
                       <p className="text-xs text-muted-foreground">
-                        {billingInterval === "year" ? "$39.99/mo billed annually" : "$49.99/month"}
+                        {billingInterval === "year" ? "$39.20/mo billed annually" : "$49/month"}
                       </p>
                     </div>
                   </div>
@@ -1460,13 +1460,13 @@ export default function ProviderOnboarding() {
                     {billingInterval === "year" ? (
                       <>
                         <span className="text-2xl font-bold">$39</span>
-                        <span className="text-muted-foreground text-sm">.99/mo</span>
-                        <span className="ml-2 text-xs line-through text-muted-foreground">$49.99</span>
+                        <span className="text-muted-foreground text-sm">.20/mo</span>
+                        <span className="ml-2 text-xs line-through text-muted-foreground">$49</span>
                       </>
                     ) : (
                       <>
                         <span className="text-2xl font-bold">$49</span>
-                        <span className="text-muted-foreground text-sm">.99/mo</span>
+                        <span className="text-muted-foreground text-sm">/mo</span>
                       </>
                     )}
                   </div>
@@ -1480,7 +1480,7 @@ export default function ProviderOnboarding() {
                   {billingInterval === "year" && (
                     <div className="mt-3 text-center">
                       <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-[10px]">
-                        Save $120/year
+                        Save $117.60/year
                       </Badge>
                     </div>
                   )}
@@ -1597,6 +1597,14 @@ export default function ProviderOnboarding() {
                   <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold">Payments Connected</h3>
                   <p className="text-muted-foreground mt-1">You're all set to receive payments</p>
+                </div>
+              ) : (selectedTier === "free" || (!selectedTier && (!currentSubscription?.subscription || currentSubscription?.currentTier === "free"))) ? (
+                <div className="text-center py-8">
+                  <Shield className="h-12 w-12 text-amber-500 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold">Upgrade Required</h3>
+                  <p className="text-muted-foreground mt-1 max-w-md mx-auto">
+                    Payment account setup requires a Professional or Business subscription. Go back to Step 4 to upgrade your plan, or skip this step and upgrade later from your dashboard.
+                  </p>
                 </div>
               ) : (
                 <>

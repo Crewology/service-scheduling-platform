@@ -32,7 +32,7 @@ const PLANS = [
     icon: Star,
     features: [
       { text: "Up to 3 services listed", included: true },
-      { text: "2 photos per service", included: true },
+      { text: "1 photo per service", included: true },
       { text: "Basic public profile", included: true },
       { text: "Standard search placement", included: true },
       { text: "1% transaction fee on bookings", included: true },
@@ -47,13 +47,13 @@ const PLANS = [
   {
     tier: "basic" as const,
     name: "Professional",
-    monthlyPrice: 19.99,
-    yearlyPrice: 191.88,
+    monthlyPrice: 19,
+    yearlyPrice: 182.40,
     description: "Grow your business with more visibility",
     icon: Zap,
     features: [
       { text: "Up to 10 services listed", included: true },
-      { text: "5 photos per service", included: true },
+      { text: "3 photos per service", included: true },
       { text: "Enhanced public profile", included: true },
       { text: "Priority search placement", included: true },
       { text: "1% transaction fee on bookings", included: true },
@@ -68,8 +68,8 @@ const PLANS = [
   {
     tier: "premium" as const,
     name: "Business",
-    monthlyPrice: 49.99,
-    yearlyPrice: 479.88,
+    monthlyPrice: 49,
+    yearlyPrice: 470.40,
     description: "Full suite for professional providers",
     icon: Crown,
     features: [
@@ -346,7 +346,7 @@ export default function SubscriptionManagement() {
                 )}
                 {isCurrent && (
                   <div className="absolute -top-3 right-4">
-                    <Badge variant="outline" className="bg-background">Current Plan</Badge>
+                    <Badge className="bg-green-600 text-white border-0 shadow-sm">Current Plan</Badge>
                   </div>
                 )}
 
@@ -483,7 +483,7 @@ export default function SubscriptionManagement() {
             <div>
               <h3 className="font-semibold mb-2">How does annual billing work?</h3>
               <p className="text-sm text-muted-foreground">
-                When you choose annual billing, you pay for 12 months upfront at a 20% discount. For example, Professional is $15.99/mo billed annually ($191.88/year) instead of $19.99/mo billed monthly ($239.88/year).
+                When you choose annual billing, you pay for 12 months upfront at a 20% discount. For example, Professional is $15.20/mo billed annually ($182.40/year) instead of $19/mo billed monthly ($228/year).
               </p>
             </div>
             <div>

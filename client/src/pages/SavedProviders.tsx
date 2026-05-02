@@ -119,10 +119,10 @@ export default function SavedProviders() {
     return favorites.filter((f: any) => f.folderId === activeFolder);
   }, [favorites, activeFolder]);
 
-  const tierConfig: Record<string, { label: string; icon: any; color: string }> = {
-    free: { label: "Free", icon: Heart, color: "text-muted-foreground" },
-    pro: { label: "Pro", icon: Zap, color: "text-blue-500" },
-    business: { label: "Business", icon: Crown, color: "text-amber-500" },
+  const tierConfig: Record<string, { label: string; icon: any; color: string; bgColor: string }> = {
+    free: { label: "Free", icon: Heart, color: "text-muted-foreground", bgColor: "bg-muted" },
+    pro: { label: "Pro", icon: Zap, color: "text-blue-600 dark:text-blue-400", bgColor: "bg-blue-100 dark:bg-blue-900/40" },
+    business: { label: "Business", icon: Crown, color: "text-amber-600 dark:text-amber-400", bgColor: "bg-amber-100 dark:bg-amber-900/40" },
   };
   const currentTierConfig = tierConfig[tier] || tierConfig.free;
 
@@ -181,7 +181,7 @@ export default function SavedProviders() {
                 Analytics
               </Button>
             )}
-            <Badge variant="outline" className={`gap-1.5 px-3 py-1 ${currentTierConfig.color}`}>
+            <Badge variant="outline" className={`gap-1.5 px-3 py-1 ${currentTierConfig.color} ${currentTierConfig.bgColor} border-current/20`}>
               <currentTierConfig.icon className="h-3.5 w-3.5" />
               {currentTierConfig.label} Plan
             </Badge>

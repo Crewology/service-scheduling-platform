@@ -19,6 +19,16 @@ export const stripeConnectRouter = router({
       const provider = await db.getProviderByUserId(ctx.user.id);
       if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider profile not found" });
 
+      // Free accounts cannot connect a payment account — must upgrade first
+      const subscription = await db.getProviderSubscription(provider.id);
+      const currentTier = subscription?.tier || "free";
+      if (currentTier === "free") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Payment account setup requires a Professional or Business subscription. Please upgrade your plan first.",
+        });
+      }
+
       if (!ENV.stripeSecretKey) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",

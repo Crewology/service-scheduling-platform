@@ -75,7 +75,7 @@ import { TrialStatusBanner } from "@/components/TrialBanner";
 // ============================================================================
 // SERVICE PHOTOS MANAGER
 // ============================================================================
-function ServicePhotosManager({ serviceId, onClose }: { serviceId: number; onClose: () => void }) {
+function ServicePhotosManager({ serviceId, onClose, maxPhotos = 1 }: { serviceId: number; onClose: () => void; maxPhotos?: number }) {
   const utils = trpc.useUtils();
   const { data: photos, refetch } = trpc.service.getPhotos.useQuery({ serviceId });
 
@@ -89,7 +89,7 @@ function ServicePhotosManager({ serviceId, onClose }: { serviceId: number; onClo
           caption: p.caption,
           displayOrder: p.sortOrder || 0,
         }))}
-        maxPhotos={5}
+        maxPhotos={maxPhotos}
         onPhotosChanged={() => {
           refetch();
           utils.service.listByProvider.invalidate();
@@ -102,7 +102,7 @@ function ServicePhotosManager({ serviceId, onClose }: { serviceId: number; onClo
 // ============================================================================
 // STRIPE CONNECT SECTION
 // ============================================================================
-function StripeConnectSection({ provider }: { provider: any }) {
+function StripeConnectSection({ provider, currentTier }: { provider: any; currentTier?: string }) {
   const { data: connectStatus, isLoading } = trpc.stripeConnect.getStatus.useQuery();
   const { data: balance } = trpc.stripeConnect.getBalance.useQuery(undefined, {
     enabled: connectStatus?.connected && connectStatus?.chargesEnabled,
@@ -137,6 +137,7 @@ function StripeConnectSection({ provider }: { provider: any }) {
 
   // Not connected yet
   if (!connectStatus?.connected) {
+    const isFree = !currentTier || currentTier === "free";
     return (
       <div className="space-y-6">
         <div>
@@ -144,29 +145,49 @@ function StripeConnectSection({ provider }: { provider: any }) {
           <p className="text-muted-foreground mt-1">Connect your Stripe account to receive payments directly from clients</p>
         </div>
 
-        <Card className="border-dashed border-2">
-          <CardContent className="py-12 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-              <CreditCard className="w-8 h-8 text-primary" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold">Set Up Payments</h3>
-              <p className="text-sm text-muted-foreground max-w-md mx-auto mt-2">
-                Connect with Stripe to accept credit cards, debit cards, and other payment methods.
-                Payments go directly to your bank account — the platform takes just a 1% service fee.
-              </p>
-            </div>
-            <Button
-              size="lg"
-              onClick={() => startOnboarding.mutate({ origin: window.location.origin })}
-              disabled={startOnboarding.isPending}
-            >
-              <CreditCard className="w-4 h-4 mr-2" />
-              {startOnboarding.isPending ? "Setting up..." : "Connect with Stripe"}
-            </Button>
-            <p className="text-xs text-muted-foreground">You'll be redirected to Stripe to complete setup</p>
-          </CardContent>
-        </Card>
+        {isFree ? (
+          <Card className="border-dashed border-2 border-amber-500/30">
+            <CardContent className="py-12 text-center space-y-4">
+              <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto">
+                <CreditCard className="w-8 h-8 text-amber-500" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">Upgrade Required</h3>
+                <p className="text-sm text-muted-foreground max-w-md mx-auto mt-2">
+                  Payment account setup requires a Professional ($19/mo) or Business ($49/mo) subscription.
+                  Upgrade your plan to start accepting payments from clients.
+                </p>
+              </div>
+              <Button size="lg" onClick={() => window.location.href = "/provider/subscription"}>
+                Upgrade Your Plan
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="border-dashed border-2">
+            <CardContent className="py-12 text-center space-y-4">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                <CreditCard className="w-8 h-8 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">Set Up Payments</h3>
+                <p className="text-sm text-muted-foreground max-w-md mx-auto mt-2">
+                  Connect with Stripe to accept credit cards, debit cards, and other payment methods.
+                  Payments go directly to your bank account — the platform takes just a 1% service fee.
+                </p>
+              </div>
+              <Button
+                size="lg"
+                onClick={() => startOnboarding.mutate({ origin: window.location.origin })}
+                disabled={startOnboarding.isPending}
+              >
+                <CreditCard className="w-4 h-4 mr-2" />
+                {startOnboarding.isPending ? "Setting up..." : "Connect with Stripe"}
+              </Button>
+              <p className="text-xs text-muted-foreground">You'll be redirected to Stripe to complete setup</p>
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>
@@ -1822,7 +1843,7 @@ export default function ProviderDashboard() {
           
             {/* Stripe Connect & Payments sub-section */}
             <div className="border-t pt-6">
-              <StripeConnectSection provider={provider} />
+              <StripeConnectSection provider={provider} currentTier={currentTier} />
             </div>
 
             {/* Subscription Plan */}
@@ -1834,7 +1855,15 @@ export default function ProviderDashboard() {
               <CardContent>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium capitalize">{(provider as any)?.subscriptionTier || "Free"} Plan</p>
+                    <p className="font-medium">
+                      <Badge variant="outline" className={`gap-1.5 px-2.5 py-0.5 ${
+                        currentTier === "premium" ? "text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40" :
+                        currentTier === "basic" ? "text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40" :
+                        "text-muted-foreground bg-muted"
+                      }`}>
+                        {currentTier === "premium" ? "Business" : currentTier === "basic" ? "Professional" : "Starter"} Plan
+                      </Badge>
+                    </p>
                     <p className="text-sm text-muted-foreground">Manage your subscription, upgrade, or view plan details</p>
                   </div>
                   <Link href="/provider/subscription">
@@ -2334,6 +2363,7 @@ export default function ProviderDashboard() {
             <ServicePhotosManager
               serviceId={managingPhotosServiceId}
               onClose={() => setManagingPhotosServiceId(null)}
+              maxPhotos={mySubscription?.tierConfig?.limits?.maxPhotosPerService || 1}
             />
           )}
         </DialogContent>

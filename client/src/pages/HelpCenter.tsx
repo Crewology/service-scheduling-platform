@@ -225,14 +225,14 @@ const guideSections: GuideSection[] = [
       {
         title: "14-Day Professional Trial",
         content:
-          "New providers can start a free 14-day Professional trial \u2014 no credit card required. During the trial, you get access to all Professional features: up to 10 services, 3 photos per service, custom profile URL slug, priority search placement, and analytics dashboard. Start your trial during onboarding (Step 4: Your Plan) or from the Subscription Management page.\n\nYou'll receive email notifications at key milestones: 7 days remaining, 3 days remaining, 1 day remaining, and when the trial expires. If you don't upgrade before the trial ends, your account automatically reverts to the free Starter tier. You can upgrade to Professional ($19.99/mo) or Business ($49.99/mo) at any time \u2014 save 20% with annual billing.",
+          "New providers can start a free 14-day Professional trial \u2014 no credit card required. During the trial, you get access to all Professional features: up to 10 services, 3 photos per service, custom profile URL slug, priority search placement, and analytics dashboard. Start your trial during onboarding (Step 4: Your Plan) or from the Subscription Management page.\n\nYou'll receive email notifications at key milestones: 7 days remaining, 3 days remaining, 1 day remaining, and when the trial expires. If you don't upgrade before the trial ends, your account automatically reverts to the free Starter tier. You can upgrade to Professional ($19/mo) or Business ($49/mo) at any time \u2014 save 20% with annual billing.",
         link: "/provider/subscription",
         linkText: "Manage Subscription",
       },
       {
         title: "Service & Photo Limits",
         content:
-          "Each subscription tier has different limits for services and photos:\n\n\u2022 Starter (Free) \u2014 Up to 3 services, 1 photo per service\n\u2022 Professional ($19.99/mo) \u2014 Up to 10 services, 3 photos per service\n\u2022 Business ($49.99/mo) \u2014 Unlimited services, 5 photos per service\n\nWhen you reach your tier's limit, you'll see an upgrade prompt with a comparison of what each tier offers. You can upgrade at any time from the Subscription Management page. If you're on a trial and it expires, your services remain but you won't be able to add new ones beyond the Starter limit.",
+          "Each subscription tier has different limits for services and photos:\n\n\u2022 Starter (Free) \u2014 Up to 3 services, 1 photo per service\n\u2022 Professional ($19/mo) \u2014 Up to 10 services, 3 photos per service\n\u2022 Business ($49/mo) \u2014 Unlimited services, 5 photos per service\n\nWhen you reach your tier's limit, you'll see an upgrade prompt with a comparison of what each tier offers. You can upgrade at any time from the Subscription Management page. If you're on a trial and it expires, your services remain but you won't be able to add new ones beyond the Starter limit.",
         link: "/provider/subscription",
         linkText: "Upgrade Your Plan",
       },
@@ -257,14 +257,14 @@ const guideSections: GuideSection[] = [
       {
         title: "Provider Subscription Plans",
         content:
-          "Providers can choose from three subscription tiers:\n\n• Starter (Free) — Up to 3 services, 1 photo per service, basic profile, standard search placement\n\n• Professional ($19.99/mo or $15.99/mo billed annually) — Up to 10 services, 3 photos per service, custom URL slug, priority search placement, analytics dashboard\n\n• Business ($49.99/mo or $39.99/mo billed annually) — Unlimited services, 5 photos per service, featured listing badge, top search placement, full analytics, custom branding, priority support\n\nSave 20% by choosing annual billing! Use the Monthly/Annual toggle on the pricing page to compare. New providers can start a free 14-day Professional trial — no credit card required — to experience all Professional features before committing.",
+          "Providers can choose from three subscription tiers:\n\n• Starter (Free) — Up to 3 services, 1 photo per service, basic profile, standard search placement\n\n• Professional ($19/mo or $15.20/mo billed annually) — Up to 10 services, 3 photos per service, custom URL slug, priority search placement, analytics dashboard\n\n• Business ($49/mo or $39.20/mo billed annually) — Unlimited services, 5 photos per service, featured listing badge, top search placement, full analytics, custom branding, priority support\n\nSave 20% by choosing annual billing! Use the Monthly/Annual toggle on the pricing page to compare. New providers can start a free 14-day Professional trial — no credit card required — to experience all Professional features before committing.",
         link: "/provider/subscription",
         linkText: "Manage Subscription",
       },
       {
         title: "Customer Subscription Plans",
         content:
-          "Customers can optionally upgrade for enhanced features:\n\n• Free — Save up to 10 providers, book any service, message providers, leave reviews, quote requests\n\n• Pro ($9.99/mo or $95.88/yr) — Save up to 50 providers, priority booking, provider folders\n\n• Business ($24.99/mo or $239.88/yr) — Unlimited saves, bulk quote requests, booking analytics & exports, dedicated support",
+          "Customers can optionally upgrade for enhanced features:\n\n• Free — Save up to 5 providers, book any service, message providers, leave reviews, quote requests\n\n• Pro ($19/mo or $182.40/yr) — Save up to 50 providers, priority booking, provider folders\n\n• Business ($49/mo or $470.40/yr) — Unlimited saves, bulk quote requests, booking analytics & exports, dedicated support",
         link: "/pricing",
         linkText: "View Pricing",
       },
@@ -453,7 +453,7 @@ const faqItems: FAQItem[] = [
   {
     question: "Can I save money with annual billing?",
     answer:
-      "Yes! Both provider and customer subscriptions offer annual billing at a 20% discount. For example, the Professional plan is $19.99/month or $15.99/month when billed annually ($191.88/year). Use the Monthly/Annual toggle on the pricing or subscription page to compare and switch.",
+      "Yes! Both provider and customer subscriptions offer annual billing at a 20% discount. For example, the Professional plan is $19/month or $15.20/month when billed annually ($182.40/year). Use the Monthly/Annual toggle on the pricing or subscription page to compare and switch.",
     category: "Payments",
   },
   {

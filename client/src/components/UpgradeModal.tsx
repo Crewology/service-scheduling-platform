@@ -18,8 +18,8 @@ const tiers = [
   {
     tier: "pro" as const,
     name: "Pro",
-    price: "$9.99",
-    yearlyPrice: "$7.99",
+    price: "$19",
+    yearlyPrice: "$15.20",
     savedLimit: "50",
     icon: Zap,
     color: "text-blue-500",
@@ -34,8 +34,8 @@ const tiers = [
   {
     tier: "business" as const,
     name: "Business",
-    price: "$24.99",
-    yearlyPrice: "$19.99",
+    price: "$49",
+    yearlyPrice: "$39.20",
     savedLimit: "Unlimited",
     icon: Crown,
     color: "text-amber-500",

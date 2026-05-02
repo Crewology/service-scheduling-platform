@@ -79,14 +79,14 @@ const REASON_MESSAGES: Record<UpgradeReason, { title: string; description: strin
 const TIER_BENEFITS = {
   basic: {
     name: "Professional",
-    price: "$19.99/mo",
-    annualPrice: "$15.99/mo",
+    price: "$19/mo",
+    annualPrice: "$15.20/mo",
     icon: Zap,
     color: "text-blue-600 dark:text-blue-400",
     bgColor: "bg-blue-100 dark:bg-blue-900/30",
     features: [
       "Up to 10 active services",
-      "5 photos per service",
+      "3 photos per service",
       "Custom profile URL",
       "Priority search placement",
       "Business analytics dashboard",
@@ -94,8 +94,8 @@ const TIER_BENEFITS = {
   },
   premium: {
     name: "Business",
-    price: "$49.99/mo",
-    annualPrice: "$39.99/mo",
+    price: "$49/mo",
+    annualPrice: "$39.20/mo",
     icon: Crown,
     color: "text-amber-600 dark:text-amber-400",
     bgColor: "bg-amber-100 dark:bg-amber-900/30",
@@ -189,7 +189,7 @@ export function UpgradePrompt({ open, onClose, reason, currentTier, currentCount
                   <div>
                     <h4 className="font-semibold text-sm">Professional</h4>
                     <p className="text-xs text-muted-foreground">
-                      {billingInterval === "year" ? "$15.99/mo" : "$19.99/mo"}
+                      {billingInterval === "year" ? "$15.20/mo" : "$19/mo"}
                     </p>
                   </div>
                 </div>
@@ -222,7 +222,7 @@ export function UpgradePrompt({ open, onClose, reason, currentTier, currentCount
                   <div>
                     <h4 className="font-semibold text-sm">Business</h4>
                     <p className="text-xs text-muted-foreground">
-                      {billingInterval === "year" ? "$39.99/mo" : "$49.99/mo"}
+                      {billingInterval === "year" ? "$39.20/mo" : "$49/mo"}
                     </p>
                   </div>
                   {reasonInfo.minTier === "premium" && (

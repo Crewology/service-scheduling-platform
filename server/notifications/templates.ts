@@ -522,7 +522,7 @@ ${data.servicesCreated ? `- **${data.servicesCreated} services** listed` : ''}
 ${data.bookingsReceived ? `- **${data.bookingsReceived} bookings** received` : ''}
 ${data.reviewsReceived ? `- **${data.reviewsReceived} reviews** earned` : ''}
 
-Don't lose your progress — upgrade to Professional for just **$19.99/month** (or save 20% with annual billing at $15.99/month).
+Don't lose your progress — upgrade to Professional for just **$19/month** (or save 20% with annual billing at $15.20/month).
 
 [Upgrade Now](/provider/subscription)
 
@@ -549,9 +549,9 @@ When your trial expires, you'll lose access to:
 
 **Upgrade now to keep everything you've built.**
 
-[Upgrade to Professional — $19.99/mo](/provider/subscription)
+[Upgrade to Professional — $19/mo](/provider/subscription)
 
-Or save 20% with annual billing at just **$15.99/month**.
+Or save 20% with annual billing at just **$15.20/month**.
 
 Best regards,
 OlogyCrew Team
@@ -574,7 +574,7 @@ After expiration, your account will be downgraded to the Free tier:
 
 Don't let your hard work go to waste. Upgrade now and keep growing your business.
 
-[Upgrade to Professional — $19.99/mo](/provider/subscription)
+[Upgrade to Professional — $19/mo](/provider/subscription)
 
 Best regards,
 OlogyCrew Team
@@ -593,9 +593,9 @@ You can still use OlogyCrew with the Free plan, but you'll have limited features
 
 Ready to upgrade? You can reactivate Professional anytime:
 
-[Upgrade to Professional — $19.99/mo](/provider/subscription)
+[Upgrade to Professional — $19/mo](/provider/subscription)
 
-Or save 20% with annual billing at just **$15.99/month**.
+Or save 20% with annual billing at just **$15.20/month**.
 
 We'd love to have you back on Professional!
 

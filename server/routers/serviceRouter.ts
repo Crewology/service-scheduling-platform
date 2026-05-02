@@ -214,13 +214,15 @@ export const serviceRouter = router({
       if (service.providerId !== provider.id) throw new TRPCError({ code: "FORBIDDEN", message: "Not your service" });
 
       const existingPhotos = await db.getServicePhotos(input.serviceId);
-      if (existingPhotos.length >= 5) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Maximum 5 photos per service" });
-      }
-
       const tier = await db.getProviderTier(provider.id);
-      if (tier === "free" && existingPhotos.length >= 2) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Free tier allows up to 2 photos per service. Upgrade to Basic or Premium for more." });
+      const { SUBSCRIPTION_TIERS } = await import("../products");
+      const maxPhotos = SUBSCRIPTION_TIERS[tier]?.limits?.maxPhotosPerService || 1;
+      if (existingPhotos.length >= maxPhotos) {
+        const tierName = tier === "free" ? "Starter" : tier === "basic" ? "Professional" : "Business";
+        throw new TRPCError({ 
+          code: "FORBIDDEN", 
+          message: `${tierName} plan allows up to ${maxPhotos} photo${maxPhotos > 1 ? "s" : ""} per service. Upgrade your plan for more.` 
+        });
       }
 
       const { storagePut } = await import("../storage");

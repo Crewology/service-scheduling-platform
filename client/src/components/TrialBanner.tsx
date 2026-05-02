@@ -137,7 +137,7 @@ export function TrialExpiredBanner() {
               onClick={() => navigate("/provider/subscription")}
             >
               <Zap className="h-3 w-3 mr-1" />
-              Upgrade to Professional — $19.99/mo
+              Upgrade to Professional — $19/mo
               <ArrowRight className="h-3 w-3 ml-1" />
             </Button>
           </div>

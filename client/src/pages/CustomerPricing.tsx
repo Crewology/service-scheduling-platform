@@ -26,7 +26,7 @@ const plans = [
     borderColor: "border-border",
     description: "Perfect for casual users who book occasionally",
     features: {
-      savedProviders: "10",
+      savedProviders: "5",
       priorityBooking: false,
       providerFolders: false,
       bulkQuotes: false,
@@ -37,8 +37,8 @@ const plans = [
   {
     tier: "pro" as const,
     name: "Pro",
-    monthlyPrice: 9.99,
-    yearlyPrice: 7.99,
+    monthlyPrice: 19,
+    yearlyPrice: 15.20,
     icon: Zap,
     color: "text-blue-500",
     bgColor: "bg-blue-500/10",
@@ -56,8 +56,8 @@ const plans = [
   {
     tier: "business" as const,
     name: "Business",
-    monthlyPrice: 24.99,
-    yearlyPrice: 19.99,
+    monthlyPrice: 49,
+    yearlyPrice: 39.20,
     icon: Crown,
     color: "text-amber-500",
     bgColor: "bg-amber-500/10",

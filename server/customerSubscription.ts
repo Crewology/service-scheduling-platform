@@ -2,9 +2,9 @@
  * Customer Subscription Tiers & Helpers
  * 
  * Controls saved provider limits and premium perks for customers/bookers.
- * Free: 10 saved providers
- * Pro ($9.99/mo): 50 saved providers + priority booking + folders
- * Business ($24.99/mo): Unlimited saved providers + bulk quotes + analytics
+ * Free: 5 saved providers
+ * Pro ($19/mo): 50 saved providers + priority booking + folders
+ * Business ($49/mo): Unlimited saved providers + bulk quotes + analytics
  */
 
 export type CustomerTier = "free" | "pro" | "business";
@@ -31,9 +31,9 @@ export const CUSTOMER_TIERS: Record<CustomerTier, CustomerTierConfig> = {
     tier: "free",
     monthlyPrice: 0,
     yearlyPrice: 0,
-    savedProviderLimit: 10,
+    savedProviderLimit: 5,
     features: [
-      "Save up to 10 providers",
+      "Save up to 5 providers",
       "Book any service",
       "Message providers",
       "Leave reviews",
@@ -50,8 +50,8 @@ export const CUSTOMER_TIERS: Record<CustomerTier, CustomerTierConfig> = {
   pro: {
     name: "Pro",
     tier: "pro",
-    monthlyPrice: 9.99,
-    yearlyPrice: 95.88, // ~$7.99/mo
+    monthlyPrice: 19,
+    yearlyPrice: 182.40, // ~$15.20/mo (20% off)
     savedProviderLimit: 50,
     features: [
       "Save up to 50 providers",
@@ -73,8 +73,8 @@ export const CUSTOMER_TIERS: Record<CustomerTier, CustomerTierConfig> = {
   business: {
     name: "Business",
     tier: "business",
-    monthlyPrice: 24.99,
-    yearlyPrice: 239.88, // ~$19.99/mo
+    monthlyPrice: 49,
+    yearlyPrice: 470.40, // ~$39.20/mo (20% off)
     savedProviderLimit: -1, // unlimited
     features: [
       "Unlimited saved providers",
