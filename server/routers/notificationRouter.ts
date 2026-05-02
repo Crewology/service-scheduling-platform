@@ -56,6 +56,18 @@ export const notificationRouter = router({
       return { success };
     }),
 
+  deleteNotification: protectedProcedure
+    .input(z.object({ notificationId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await db.deleteNotification(input.notificationId, ctx.user.id);
+      return { success: true };
+    }),
+
+  clearAll: protectedProcedure.mutation(async ({ ctx }) => {
+    await db.clearAllNotifications(ctx.user.id);
+    return { success: true };
+  }),
+
   getByToken: publicProcedure
     .input(z.object({ token: z.string() }))
     .query(async ({ input }) => {

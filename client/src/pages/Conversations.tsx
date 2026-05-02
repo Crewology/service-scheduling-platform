@@ -3,7 +3,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
-import { MessageSquare, ArrowRight, Inbox, Search, X, Calendar, FileText } from "lucide-react";
+import { MessageSquare, ArrowRight, Inbox, Search, X, Calendar, FileText, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
 import { NavHeader } from "@/components/shared/NavHeader";
@@ -25,9 +35,25 @@ export default function Conversations() {
   const [searchDateTo, setSearchDateTo] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
 
+  // Delete conversation state
+  const [deleteConvId, setDeleteConvId] = useState<string | null>(null);
+  const [deleteConvName, setDeleteConvName] = useState("");
+
   const { data: conversations, isLoading } = trpc.message.myConversations.useQuery(undefined, {
     enabled: isAuthenticated,
     refetchInterval: sseConnected ? 60000 : 15000,
+  });
+
+  const deleteConversation = trpc.message.deleteConversation.useMutation({
+    onSuccess: () => {
+      utils.message.myConversations.invalidate();
+      utils.message.unreadCount.invalidate();
+      toast.success("Conversation deleted");
+      setDeleteConvId(null);
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to delete conversation");
+    },
   });
 
   // Search query — only fires when user submits
@@ -372,13 +398,26 @@ export default function Conversations() {
                             </p>
                           </div>
 
-                          {/* Unread badge + arrow */}
-                          <div className="flex items-center gap-2 shrink-0">
+                          {/* Unread badge + delete + arrow */}
+                          <div className="flex items-center gap-1 shrink-0">
                             {isUnread && (
                               <span className="h-5 min-w-[20px] rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center px-1.5">
                                 {conv.unreadCount > 9 ? "9+" : conv.unreadCount}
                               </span>
                             )}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeleteConvId(conv.conversationId);
+                                setDeleteConvName(otherName);
+                              }}
+                              title="Delete conversation"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                             <ArrowRight className="h-4 w-4 text-muted-foreground" />
                           </div>
                         </div>
@@ -390,6 +429,33 @@ export default function Conversations() {
             )}
           </>
         )}
+
+        {/* Delete Conversation Confirmation Dialog */}
+        <AlertDialog open={!!deleteConvId} onOpenChange={(open) => !open && setDeleteConvId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete conversation?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete all messages in your conversation with{" "}
+                <strong>{deleteConvName}</strong>. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => {
+                  if (deleteConvId) {
+                    deleteConversation.mutate({ conversationId: deleteConvId });
+                  }
+                }}
+                disabled={deleteConversation.isPending}
+              >
+                {deleteConversation.isPending ? "Deleting..." : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

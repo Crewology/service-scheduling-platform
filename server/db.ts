@@ -161,6 +161,8 @@ export {
   createNotification,
   getNotificationPreferences,
   upsertNotificationPreferences,
+  deleteNotification,
+  clearAllNotifications,
 } from "./db/notifications";
 
 // Saved provider folders
@@ -202,6 +204,12 @@ export {
   getProviderTrustScore,
   recalculateAllTrustScores,
 } from "./db/trustScore";
+
+// Message management
+export {
+  deleteMessage,
+  deleteConversation,
+} from "./db/messages";
 
 // Account deletion (GDPR/CCPA)
 export {

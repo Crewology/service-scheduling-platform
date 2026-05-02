@@ -6,13 +6,27 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getLoginUrl } from "@/const";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Bell,
   CheckCheck,
   Settings,
   ArrowLeft,
   Loader2,
+  Trash2,
+  X,
 } from "lucide-react";
 import { Link } from "wouter";
+import { useState } from "react";
+import { toast } from "sonner";
 
 function getIcon(type: string) {
   switch (type) {
@@ -69,6 +83,7 @@ function typeLabel(type: string) {
 export default function Notifications() {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const utils = trpc.useUtils();
+  const [showClearAllDialog, setShowClearAllDialog] = useState(false);
 
   const { data: notifications, isLoading } = trpc.notification.list.useQuery(
     { unreadOnly: false },
@@ -86,6 +101,40 @@ export default function Notifications() {
     onSuccess: () => {
       utils.notification.list.invalidate();
       utils.notification.unreadCount.invalidate();
+    },
+  });
+
+  const deleteNotification = trpc.notification.deleteNotification.useMutation({
+    onMutate: async ({ notificationId }) => {
+      // Optimistic update: remove from cache immediately
+      await utils.notification.list.cancel();
+      const prev = utils.notification.list.getData({ unreadOnly: false });
+      utils.notification.list.setData({ unreadOnly: false }, (old: any) =>
+        old ? old.filter((n: any) => n.id !== notificationId) : []
+      );
+      return { prev };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.prev) {
+        utils.notification.list.setData({ unreadOnly: false }, context.prev);
+      }
+      toast.error("Failed to delete notification");
+    },
+    onSettled: () => {
+      utils.notification.list.invalidate();
+      utils.notification.unreadCount.invalidate();
+    },
+  });
+
+  const clearAll = trpc.notification.clearAll.useMutation({
+    onSuccess: () => {
+      utils.notification.list.invalidate();
+      utils.notification.unreadCount.invalidate();
+      toast.success("All notifications cleared");
+      setShowClearAllDialog(false);
+    },
+    onError: () => {
+      toast.error("Failed to clear notifications");
     },
   });
 
@@ -154,6 +203,17 @@ export default function Notifications() {
                 Mark all read
               </Button>
             )}
+            {notifications && notifications.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowClearAllDialog(true)}
+                className="text-destructive hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                Clear all
+              </Button>
+            )}
             <Link href="/notification-settings">
               <Button variant="ghost" size="icon">
                 <Settings className="h-4 w-4" />
@@ -182,7 +242,7 @@ export default function Notifications() {
             {notifications.map((n: any) => (
               <Card
                 key={n.id}
-                className={`cursor-pointer transition-all hover:shadow-sm ${
+                className={`group cursor-pointer transition-all hover:shadow-sm ${
                   !n.isRead ? "border-primary/20 bg-primary/[0.02]" : ""
                 }`}
                 onClick={() => {
@@ -210,6 +270,19 @@ export default function Notifications() {
                         {!n.isRead && (
                           <span className="h-2 w-2 rounded-full bg-primary shrink-0" />
                         )}
+                        {/* Delete button - visible on hover */}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteNotification.mutate({ notificationId: n.id });
+                          }}
+                          title="Delete notification"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
                       </div>
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">
@@ -225,6 +298,28 @@ export default function Notifications() {
           </div>
         )}
       </div>
+
+      {/* Clear All Confirmation Dialog */}
+      <AlertDialog open={showClearAllDialog} onOpenChange={setShowClearAllDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Clear all notifications?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete all your notifications. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => clearAll.mutate()}
+              disabled={clearAll.isPending}
+            >
+              {clearAll.isPending ? "Clearing..." : "Clear All"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

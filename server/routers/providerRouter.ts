@@ -931,7 +931,7 @@ export const providerRouter = router({
           const service = quote.serviceId ? await db.getServiceById(quote.serviceId) : null;
           const providerData = await db.getProviderById(quote.providerId);
 
-          const bookingNumber = `SKL-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+          const bookingNumber = `OC-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
           const subtotal = parseFloat(quote.quotedAmount).toFixed(2);
           const platformFee = (parseFloat(subtotal) * 0.01).toFixed(2);
           const totalAmount = (parseFloat(subtotal) + parseFloat(platformFee)).toFixed(2);

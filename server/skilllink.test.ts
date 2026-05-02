@@ -280,7 +280,7 @@ describe("booking", () => {
     });
 
     expect(result).toBeDefined();
-    expect(result.bookingNumber).toMatch(/^SKL-/);
+    expect(result.bookingNumber).toMatch(/^OC-/);
     bookingId = result.id;
   });
 

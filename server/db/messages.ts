@@ -74,3 +74,35 @@ export async function getUnreadMessageCount(userId: number): Promise<number> {
     .where(and(eq(messages.recipientId, userId), eq(messages.isRead, false)));
   return result[0]?.count || 0;
 }
+
+export async function deleteMessage(messageId: number, userId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  // Only allow deleting messages the user sent
+  const result = await db.delete(messages)
+    .where(and(eq(messages.id, messageId), eq(messages.senderId, userId)));
+  return true;
+}
+
+export async function deleteConversation(conversationId: string, userId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  // Delete all messages in the conversation where the user is sender or recipient
+  await db.delete(messages)
+    .where(and(
+      eq(messages.conversationId, conversationId),
+      or(
+        eq(messages.senderId, userId),
+        eq(messages.recipientId, userId)
+      )
+    ));
+  return true;
+}
+
+export async function getConversationMessages(conversationId: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(messages)
+    .where(eq(messages.conversationId, conversationId))
+    .orderBy(messages.createdAt);
+}

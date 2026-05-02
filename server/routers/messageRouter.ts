@@ -398,6 +398,28 @@ export const messageRouter = router({
       return enriched;
     }),
 
+  // ─── Delete Individual Message ─────────────────────────────
+  deleteMessage: protectedProcedure
+    .input(z.object({ messageId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await db.deleteMessage(input.messageId, ctx.user.id);
+      return { success: true };
+    }),
+
+  // ─── Delete Entire Conversation ───────────────────────────
+  deleteConversation: protectedProcedure
+    .input(z.object({ conversationId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Verify user is part of this conversation
+      const parts = input.conversationId.replace("conv-", "").split("-");
+      const userIds = parts.map(Number);
+      if (!userIds.includes(ctx.user.id)) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Not your conversation" });
+      }
+      await db.deleteConversation(input.conversationId, ctx.user.id);
+      return { success: true };
+    }),
+
   unreadCount: protectedProcedure.query(async ({ ctx }) => {
     return await db.getUnreadMessageCount(ctx.user.id);
   }),

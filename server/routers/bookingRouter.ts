@@ -69,7 +69,7 @@ export const bookingRouter = router({
         });
       }
 
-      const bookingNumber = `SKL-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+      const bookingNumber = `OC-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
       
       let subtotal = input.subtotal || (service.basePrice ? service.basePrice : "0.00");
       let subtotalNum = parseFloat(subtotal);
@@ -724,7 +724,7 @@ export const bookingRouter = router({
         : "0.00";
       const remainingAmount = (parseFloat(totalAmount) - parseFloat(depositAmount)).toFixed(2);
 
-      const bookingNumber = `SKL-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+      const bookingNumber = `OC-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
       const bookingId = await db.createBooking({
         bookingNumber,
@@ -891,7 +891,7 @@ export const bookingRouter = router({
         : "0.00";
       const remainingAmount = (parseFloat(totalAmount) - parseFloat(depositAmount)).toFixed(2);
 
-      const bookingNumber = `SKL-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+      const bookingNumber = `OC-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
       const lastDate = uniqueDates[uniqueDates.length - 1];
 
       const bookingId = await db.createBooking({

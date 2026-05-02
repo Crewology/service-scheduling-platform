@@ -1,12 +1,23 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { trpc } from "@/lib/trpc";
-import { Calendar, Clock, MapPin, DollarSign, MessageSquare, XCircle, AlertTriangle, Loader2, Download, FileText, FileSpreadsheet, WifiOff, RefreshCw, Briefcase, ShoppingBag } from "lucide-react";
+import { Calendar, Clock, MapPin, DollarSign, MessageSquare, XCircle, AlertTriangle, Loader2, Download, FileText, FileSpreadsheet, WifiOff, RefreshCw, Briefcase, ShoppingBag, Search, X, Trash2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
@@ -22,6 +33,23 @@ export default function MyBookings() {
   const { canSwitch, isProviderView } = useViewMode();
   const [bookingView, setBookingView] = useState<"customer" | "provider">(isProviderView ? "provider" : "customer");
 
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Hidden (deleted) bookings state — stored locally
+  const [hiddenBookingIds, setHiddenBookingIds] = useState<Set<number>>(() => {
+    try {
+      const stored = localStorage.getItem("hiddenBookingIds");
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
+
+  // Confirm delete dialog
+  const [deleteBookingId, setDeleteBookingId] = useState<number | null>(null);
+  const [deleteBookingLabel, setDeleteBookingLabel] = useState("");
+
   // Customer bookings (bookings I made)
   const { data: onlineBookings, isLoading, refetch } = trpc.booking.listMine.useQuery(undefined, {
     enabled: isAuthenticated,
@@ -33,10 +61,37 @@ export default function MyBookings() {
   });
 
   // Wire in offline bookings support
-  const { bookings, isOffline, isUsingCache, cachedAt, cacheAge } = useOfflineBookings(
+  const { bookings: rawBookings, isOffline, isUsingCache, cachedAt, cacheAge } = useOfflineBookings(
     bookingView === "customer" ? onlineBookings : receivedBookings,
     bookingView === "customer" ? isLoading : isLoadingReceived
   );
+
+  // Filter out hidden bookings
+  const bookings = useMemo(() => {
+    if (!rawBookings) return [];
+    return rawBookings.filter((b: any) => !hiddenBookingIds.has(b.id));
+  }, [rawBookings, hiddenBookingIds]);
+
+  // Search filter
+  const filteredBookings = useMemo(() => {
+    if (!bookings || !searchQuery.trim()) return bookings;
+    const q = searchQuery.toLowerCase().trim();
+    return bookings.filter((b: any) => {
+      const bookingNum = (b.bookingNumber || "").toLowerCase();
+      const serviceName = (b.serviceName || "").toLowerCase();
+      const providerName = (b.providerName || "").toLowerCase();
+      return bookingNum.includes(q) || serviceName.includes(q) || providerName.includes(q);
+    });
+  }, [bookings, searchQuery]);
+
+  const hideBooking = (bookingId: number) => {
+    const newHidden = new Set(hiddenBookingIds);
+    newHidden.add(bookingId);
+    setHiddenBookingIds(newHidden);
+    localStorage.setItem("hiddenBookingIds", JSON.stringify(Array.from(newHidden)));
+    setDeleteBookingId(null);
+    toast.success("Booking removed from your list");
+  };
 
   if (loading) {
     return (
@@ -52,9 +107,9 @@ export default function MyBookings() {
   }
 
   const filterBookings = (status?: string[]) => {
-    if (!bookings) return [];
-    if (!status) return bookings;
-    return bookings.filter((b: any) => status.includes(b.status));
+    if (!filteredBookings) return [];
+    if (!status) return filteredBookings;
+    return filteredBookings.filter((b: any) => status.includes(b.status));
   };
 
   const upcomingBookings = filterBookings(["pending", "confirmed"]);
@@ -179,6 +234,34 @@ export default function MyBookings() {
           </DropdownMenu>
         </div>
 
+        {/* Search Bar */}
+        <div className="mb-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by booking #, service, or provider..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-10"
+            />
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                onClick={() => setSearchQuery("")}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          {searchQuery && (
+            <p className="text-xs text-muted-foreground mt-1.5 ml-1">
+              {filteredBookings?.length || 0} result{(filteredBookings?.length || 0) !== 1 ? "s" : ""} for "{searchQuery}"
+            </p>
+          )}
+        </div>
+
         <Tabs defaultValue="upcoming" className="space-y-6">
           <TabsList>
             <TabsTrigger value="upcoming">
@@ -188,7 +271,7 @@ export default function MyBookings() {
               Past ({pastBookings.length})
             </TabsTrigger>
             <TabsTrigger value="all">
-              All ({bookings?.length || 0})
+              All ({filteredBookings?.length || 0})
             </TabsTrigger>
           </TabsList>
 
@@ -199,10 +282,14 @@ export default function MyBookings() {
               <Card>
                 <CardContent className="py-12 text-center">
                   <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground mb-4">No upcoming bookings</p>
-                  <Button onClick={() => setLocation("/browse")} disabled={isOffline}>
-                    Browse Services
-                  </Button>
+                  <p className="text-muted-foreground mb-4">
+                    {searchQuery ? "No matching upcoming bookings" : "No upcoming bookings"}
+                  </p>
+                  {!searchQuery && (
+                    <Button onClick={() => setLocation("/browse")} disabled={isOffline}>
+                      Browse Services
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             ) : (
@@ -218,12 +305,24 @@ export default function MyBookings() {
             ) : pastBookings.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <p className="text-muted-foreground">No past bookings</p>
+                  <p className="text-muted-foreground">
+                    {searchQuery ? "No matching past bookings" : "No past bookings"}
+                  </p>
                 </CardContent>
               </Card>
             ) : (
               pastBookings.map((booking: any) => (
-                <BookingCard key={booking.id} booking={booking} setLocation={setLocation} isOffline={isOffline} />
+                <BookingCard
+                  key={booking.id}
+                  booking={booking}
+                  setLocation={setLocation}
+                  isOffline={isOffline}
+                  canDelete
+                  onDelete={(id, label) => {
+                    setDeleteBookingId(id);
+                    setDeleteBookingLabel(label);
+                  }}
+                />
               ))
             )}
           </TabsContent>
@@ -231,29 +330,82 @@ export default function MyBookings() {
           <TabsContent value="all" className="space-y-4">
             {isLoading && !isUsingCache ? (
               <p className="text-center text-muted-foreground py-12">Loading bookings...</p>
-            ) : !bookings || bookings.length === 0 ? (
+            ) : !filteredBookings || filteredBookings.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
                   <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground mb-4">No bookings yet</p>
-                  <Button onClick={() => setLocation("/browse")} disabled={isOffline}>
-                    Browse Services
-                  </Button>
+                  <p className="text-muted-foreground mb-4">
+                    {searchQuery ? "No matching bookings" : "No bookings yet"}
+                  </p>
+                  {!searchQuery && (
+                    <Button onClick={() => setLocation("/browse")} disabled={isOffline}>
+                      Browse Services
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             ) : (
-              bookings.map((booking: any) => (
-                <BookingCard key={booking.id} booking={booking} setLocation={setLocation} isOffline={isOffline} />
-              ))
+              filteredBookings.map((booking: any) => {
+                const isPast = ["completed", "cancelled", "no_show", "refunded"].includes(booking.status);
+                return (
+                  <BookingCard
+                    key={booking.id}
+                    booking={booking}
+                    setLocation={setLocation}
+                    isOffline={isOffline}
+                    canDelete={isPast}
+                    onDelete={(id, label) => {
+                      setDeleteBookingId(id);
+                      setDeleteBookingLabel(label);
+                    }}
+                  />
+                );
+              })
             )}
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Delete (Hide) Booking Confirmation */}
+      <AlertDialog open={!!deleteBookingId} onOpenChange={(open) => !open && setDeleteBookingId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove booking from list?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will hide <strong>{deleteBookingLabel}</strong> from your bookings list.
+              The booking record will still exist for reference if needed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (deleteBookingId) hideBooking(deleteBookingId);
+              }}
+            >
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
 
-function BookingCard({ booking, setLocation, isOffline }: { booking: any; setLocation: (path: string) => void; isOffline: boolean }) {
+function BookingCard({
+  booking,
+  setLocation,
+  isOffline,
+  canDelete,
+  onDelete,
+}: {
+  booking: any;
+  setLocation: (path: string) => void;
+  isOffline: boolean;
+  canDelete?: boolean;
+  onDelete?: (id: number, label: string) => void;
+}) {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const utils = trpc.useUtils();
@@ -343,7 +495,23 @@ function BookingCard({ booking, setLocation, isOffline }: { booking: any; setLoc
                 Booking #{booking.bookingNumber}
               </p>
             </div>
-            {getStatusBadge(booking.status)}
+            <div className="flex items-center gap-2">
+              {getStatusBadge(booking.status)}
+              {canDelete && onDelete && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(booking.id, `${serviceName} - #${booking.bookingNumber}`);
+                  }}
+                  title="Remove from list"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">

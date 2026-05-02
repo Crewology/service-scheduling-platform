@@ -21,6 +21,7 @@ import { NavHeader } from "@/components/shared/NavHeader";
 import { getLoginUrl } from "@/const";
 import { formatDate } from "@/lib/dateUtils";
 import { useLocation } from "wouter";
+import { Building2 } from "lucide-react";
 
 // Profile completion fields definition
 interface CompletionField {
@@ -252,7 +253,21 @@ export default function UserProfile() {
     phone: "",
     email: "",
   });
+  const [businessName, setBusinessName] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch provider profile for business name
+  const { data: providerProfile } = trpc.provider.getMyProfile.useQuery(undefined, {
+    enabled: user?.role === "provider",
+  });
+
+  const updateProvider = trpc.provider.update.useMutation({
+    onSuccess: () => {
+      utils.provider.getMyProfile.invalidate();
+      toast.success("Business name updated");
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
   useEffect(() => {
     if (user) {
@@ -264,6 +279,12 @@ export default function UserProfile() {
       });
     }
   }, [user]);
+
+  useEffect(() => {
+    if (providerProfile) {
+      setBusinessName(providerProfile.businessName || "");
+    }
+  }, [providerProfile]);
 
   const updateProfile = trpc.auth.updateProfile.useMutation({
     onSuccess: () => {
@@ -424,9 +445,25 @@ export default function UserProfile() {
                     placeholder="Phone number"
                   />
                 </div>
+                {user?.role === "provider" && (
+                  <div>
+                    <Label>Business Name</Label>
+                    <Input 
+                      value={businessName} 
+                      onChange={e => setBusinessName(e.target.value)} 
+                      placeholder="Your business name"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">This is the name customers see on your provider profile</p>
+                  </div>
+                )}
                 <div className="flex gap-2 pt-2">
-                  <Button onClick={() => updateProfile.mutate(form)} disabled={updateProfile.isPending}>
-                    {updateProfile.isPending ? "Saving..." : "Save Changes"}
+                  <Button onClick={() => {
+                    updateProfile.mutate(form);
+                    if (user?.role === "provider" && businessName !== providerProfile?.businessName) {
+                      updateProvider.mutate({ businessName });
+                    }
+                  }} disabled={updateProfile.isPending || updateProvider.isPending}>
+                    {(updateProfile.isPending || updateProvider.isPending) ? "Saving..." : "Save Changes"}
                   </Button>
                   <Button variant="outline" onClick={() => setEditing(false)}>Cancel</Button>
                 </div>
@@ -454,6 +491,15 @@ export default function UserProfile() {
                     <p className="font-medium">{user?.phone || "Not set"}</p>
                   </div>
                 </div>
+                {user?.role === "provider" && providerProfile?.businessName && (
+                  <div className="flex items-center gap-3 py-3 border-b">
+                    <Building2 className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Business Name</p>
+                      <p className="font-medium">{providerProfile.businessName}</p>
+                    </div>
+                  </div>
+                )}
                 <div className="flex items-center gap-3 py-3">
                   <Shield className="h-4 w-4 text-muted-foreground" />
                   <div>

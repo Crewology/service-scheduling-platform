@@ -245,7 +245,7 @@ export default function ServiceDetail() {
 
   const createBooking = trpc.booking.create.useMutation({
     onSuccess: (data) => {
-      toast.success("Booking created successfully!");
+      toast.success("Booking request sent! The provider will confirm your booking.");
       // Record referral if a referral code was applied
       if (referralApplied?.valid) {
         applyReferral.mutate({
@@ -269,7 +269,7 @@ export default function ServiceDetail() {
   // Multi-day booking mutation
   const createMultiDay = trpc.booking.createMultiDay.useMutation({
     onSuccess: (data) => {
-      toast.success("Multi-day booking created successfully!");
+      toast.success("Multi-day booking request sent! The provider will confirm your booking.");
       if (!data) return;
       if (service?.depositRequired || service?.pricingModel !== "custom_quote") {
         handlePayment(data.id);
@@ -285,7 +285,7 @@ export default function ServiceDetail() {
   // Recurring booking mutation
   const createRecurring = trpc.booking.createRecurring.useMutation({
     onSuccess: (data) => {
-      toast.success("Recurring booking created successfully!");
+      toast.success("Recurring booking request sent! The provider will confirm your booking.");
       if (!data) return;
       if (service?.depositRequired || service?.pricingModel !== "custom_quote") {
         handlePayment(data.id);
@@ -508,6 +508,7 @@ export default function ServiceDetail() {
   };
 
   const isBookingPending = createBooking.isPending || createMultiDay.isPending || createRecurring.isPending;
+  const isBookingSuccess = createBooking.isSuccess || createMultiDay.isSuccess || createRecurring.isSuccess;
 
   const calculateEndTime = (startTime: string, durationMinutes: number): string => {
     const [hours, minutes] = startTime.split(":").map(Number);
@@ -1540,11 +1541,13 @@ export default function ServiceDetail() {
 
                     <Button
                       onClick={handleBooking}
-                      disabled={isBookingPending}
-                      className="w-full"
+                      disabled={isBookingPending || isBookingSuccess}
+                      className={`w-full ${isBookingSuccess ? 'bg-green-600 hover:bg-green-600 cursor-default' : ''}`}
                       size="lg"
                     >
-                      {isBookingPending
+                      {isBookingSuccess
+                        ? "✓ Request Sent"
+                        : isBookingPending
                         ? "Processing..."
                         : service.depositRequired
                         ? "Pay Deposit & Book"

@@ -1260,19 +1260,19 @@
 - [x] Change photo upload limits per plan: Starter 1, Professional 3, Business 5
 
 ## UX/UI Fixes — Group 4: Messages & Notifications
-- [ ] Manage general messages — delete messages + show read status
-- [ ] Delete individual + clear all message function
-- [ ] Ability to delete notifications
+- [x] Manage general messages — delete messages + show read status (delivered/read indicators)
+- [x] Delete individual + clear all message function (delete conversations + individual messages)
+- [x] Ability to delete notifications (individual delete + clear all)
 
 ## UX/UI Fixes — Group 5: Bookings & Events
-- [ ] Add my bookings search (Booking #, Service, Provider)
-- [ ] Need option to delete past events
-- [ ] Update confirmed booking button to say "request sent" after click → change to pending
+- [x] Add my bookings search (Booking #, Service, Provider) with debounced search
+- [x] Need option to delete past events (hide completed/cancelled bookings)
+- [x] Update confirmed booking button to say "request sent" after click → green ✓ Request Sent state
 
 ## UX/UI Fixes — Group 6: Profile & Provider
-- [ ] Update profile name — allow changing it
-- [ ] Add business name field and connect it for Providers
-- [ ] Change SKL to OC
+- [x] Update profile name — allow changing it (auto-composes display name from first+last)
+- [x] Add business name field and connect it for Providers (on UserProfile page)
+- [x] Change SKL to OC (all booking number prefixes updated)
 
 ## UX/UI Fixes — Group 7: UI/Display
 - [ ] Change time to 12-hour clock (not military) in emails

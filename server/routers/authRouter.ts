@@ -146,7 +146,15 @@ export const authRouter = router({
       email: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      await db.updateUserProfile(ctx.user.id, input);
+      // Auto-compose the display name from firstName + lastName
+      const updateData: Record<string, any> = { ...input };
+      if (input.firstName !== undefined || input.lastName !== undefined) {
+        const currentUser = await db.getUserById(ctx.user.id);
+        const newFirst = input.firstName ?? currentUser?.firstName ?? "";
+        const newLast = input.lastName ?? currentUser?.lastName ?? "";
+        updateData.name = [newFirst, newLast].filter(Boolean).join(" ") || currentUser?.name;
+      }
+      await db.updateUserProfile(ctx.user.id, updateData);
       const updated = await db.getUserById(ctx.user.id);
       return updated!;
     }),

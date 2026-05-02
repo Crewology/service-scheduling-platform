@@ -277,7 +277,7 @@ describe("Booking System", () => {
       // New router returns full booking object
       expect(result).toBeDefined();
       expect(result.bookingNumber).toBeDefined();
-      expect(result.bookingNumber).toMatch(/^SKL-/);
+      expect(result.bookingNumber).toMatch(/^OC-/);
     } catch (error: any) {
       // Service might not exist in test database — expected
       expect(error.message).toBeDefined();

@@ -120,6 +120,22 @@ export async function getPreferencesByUnsubscribeToken(token: string): Promise<N
   return rows[0] || null;
 }
 
+export async function deleteNotification(notificationId: number, userId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  await db.delete(notifications)
+    .where(and(eq(notifications.id, notificationId), eq(notifications.userId, userId)));
+  return true;
+}
+
+export async function clearAllNotifications(userId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  await db.delete(notifications)
+    .where(eq(notifications.userId, userId));
+  return true;
+}
+
 export async function unsubscribeAllEmail(token: string): Promise<boolean> {
   const db = await getDb();
   if (!db) return false;
