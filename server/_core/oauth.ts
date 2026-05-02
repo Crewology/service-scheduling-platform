@@ -44,7 +44,27 @@ export function registerOAuthRoutes(app: Express) {
       const cookieOptions = getSessionCookieOptions(req);
       res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
-      res.redirect(302, "/");
+      // Smart redirect based on user's role and state
+      const user = await db.getUserByOpenId(userInfo.openId);
+      let redirectPath = "/";
+
+      if (user) {
+        if (!user.hasSelectedRole) {
+          // New user — send to role selection
+          redirectPath = "/select-role";
+        } else if (user.role === "provider") {
+          // Returning provider — send to dashboard
+          redirectPath = "/provider/dashboard";
+        } else if (user.role === "customer") {
+          // Returning customer — send to browse
+          redirectPath = "/browse";
+        } else if (user.role === "admin") {
+          // Admin — send to admin dashboard
+          redirectPath = "/admin";
+        }
+      }
+
+      res.redirect(302, redirectPath);
     } catch (error) {
       console.error("[OAuth] Callback failed", error);
       res.status(500).json({ error: "OAuth callback failed" });

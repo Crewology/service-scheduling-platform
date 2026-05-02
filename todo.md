@@ -1244,18 +1244,18 @@
 - [x] Fix deletion flow to remove all user info from all databases (comprehensive cleanup of ALL tables)
 
 ## UX/UI Fixes — Group 2: Login & Onboarding Flow
-- [ ] Update login flow for Providers — sign in takes them to their dashboard
-- [ ] Customers taken to "Browse Services" page on login
-- [ ] Choose account upon login — customers can't choose Provider role; only providers get both options
-- [ ] Custom login page — remove "Powered by Manus" / Meta info
-- [ ] New "Get Started" process — Get Started → sign up → choose role → Profile builder → Dashboard
-- [ ] Link "Get Started" button to plan page
+- [x] Update login flow for Providers — sign in takes them to their dashboard
+- [x] Customers taken to "Browse Services" page on login
+- [x] Choose account upon login — customers can't choose Provider role; only providers get both options
+- [x] Custom login page — remove "Powered by Manus" / Meta info
+- [x] New "Get Started" process — Get Started → sign up → choose role → Profile builder → Dashboard
+- [x] Link "Get Started" button to plan page
 
 ## UX/UI Fixes — Group 3: Plan & Pricing Updates
 - [ ] Update plan pricing: Pro = $19 / Business = $49 (all instances)
 - [ ] Change Free Plan to only allow 5 saved providers
 - [ ] Free account should not be able to connect a payment account
-- [ ] Add "Plans" link to main navigation
+- [x] Add "Plans" link to main navigation (completed in Group 2)
 - [ ] Fix plan tag visibility issue (CSS)
 - [ ] Change photo upload limits per plan: Starter 1, Professional 3, Business 5
 

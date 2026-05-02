@@ -403,6 +403,14 @@ export function NavHeader() {
               Search
             </Link>
             <Link
+              href="/pricing"
+              className={`text-sm font-medium transition-colors ${
+                location === "/pricing" ? "text-primary" : "hover:text-primary"
+              }`}
+            >
+              Plans
+            </Link>
+            <Link
               href="/help"
               className={`text-sm font-medium transition-colors ${
                 location === "/help" ? "text-primary" : "hover:text-primary"
@@ -487,9 +495,9 @@ export function NavHeader() {
                 <a href={getLoginUrl()}>
                   <Button variant="ghost" size="sm">Sign In</Button>
                 </a>
-                <a href={getLoginUrl()}>
+                <Link href="/pricing">
                   <Button size="sm">Get Started</Button>
-                </a>
+                </Link>
               </>
             )}
           </div>
@@ -517,6 +525,9 @@ export function NavHeader() {
             </Link>
             <Link href="/search" onClick={() => setMobileMenuOpen(false)}>
               <Button variant="ghost" className="w-full justify-start">Search</Button>
+            </Link>
+            <Link href="/pricing" onClick={() => setMobileMenuOpen(false)}>
+              <Button variant="ghost" className="w-full justify-start">Plans</Button>
             </Link>
             <Link href="/help" onClick={() => setMobileMenuOpen(false)}>
               <Button variant="ghost" className="w-full justify-start">Help</Button>

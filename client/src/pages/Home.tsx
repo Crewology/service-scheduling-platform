@@ -547,6 +547,7 @@ export default function Home() {
             <div>
               <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-sm opacity-80">
+                <li><Link href="/pricing" className="hover:opacity-100">Plans & Pricing</Link></li>
                 <li><Link href="/referral-program" className="hover:opacity-100">Referral Program</Link></li>
                 <li><Link href="/help" className="hover:opacity-100">Help Center</Link></li>
                 <li><Link href="/help#contact" className="hover:opacity-100">Contact Support</Link></li>

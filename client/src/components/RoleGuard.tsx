@@ -34,6 +34,9 @@ export function RoleGuard({ children }: { children: React.ReactNode }) {
       "/help",
       "/unsubscribe/",
       "/p/",
+      "/category/",
+      "/service/",
+      "/referral-program",
       "/contact",
       "/about",
     ];

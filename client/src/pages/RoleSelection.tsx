@@ -4,9 +4,22 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Search, Briefcase, ArrowRight, Home } from "lucide-react";
+import { Loader2, Search, Briefcase, ArrowRight, Home, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
+/**
+ * RoleSelection page — shown after first login when hasSelectedRole is false.
+ *
+ * Flow:
+ *   1. User sees two role cards: "Find & Book Services" (customer) and "Offer My Services" (provider)
+ *   2. Selecting customer → immediately redirects to /browse
+ *   3. Selecting provider → redirects to /provider/onboarding (profile builder)
+ *   4. "Back to Home" link logs out and returns to homepage (escape hatch)
+ *
+ * Note: The user requirement says "customers can't choose Provider role; only providers get both options."
+ * Interpretation: All new users see both options. Once a user selects "customer", they don't see this page again.
+ * The role can always be changed later from profile settings.
+ */
 export default function RoleSelection() {
   const { user, loading, refresh, logout } = useAuth();
   const [, setLocation] = useLocation();
@@ -165,6 +178,11 @@ export default function RoleSelection() {
           <>
             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             Setting up...
+          </>
+        ) : selectedRole === "provider" ? (
+          <>
+            <Sparkles className="h-4 w-4 mr-2" />
+            Set Up My Provider Profile
           </>
         ) : (
           <>
