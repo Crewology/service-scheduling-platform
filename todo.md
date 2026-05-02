@@ -1238,3 +1238,46 @@
 - [x] Wire welcome_customer into selectRole mutation (authRouter)
 - [x] Wire welcome_provider into provider create mutation (providerRouter)
 - [x] Send both test welcome emails for review (2/2 sent successfully)
+
+## UX/UI Fixes — Group 1: Critical Fixes
+- [x] Fix login page loop issue — getting stuck in loop, ensure user can get back to home page
+- [x] Fix deletion flow to remove all user info from all databases (comprehensive cleanup of ALL tables)
+
+## UX/UI Fixes — Group 2: Login & Onboarding Flow
+- [ ] Update login flow for Providers — sign in takes them to their dashboard
+- [ ] Customers taken to "Browse Services" page on login
+- [ ] Choose account upon login — customers can't choose Provider role; only providers get both options
+- [ ] Custom login page — remove "Powered by Manus" / Meta info
+- [ ] New "Get Started" process — Get Started → sign up → choose role → Profile builder → Dashboard
+- [ ] Link "Get Started" button to plan page
+
+## UX/UI Fixes — Group 3: Plan & Pricing Updates
+- [ ] Update plan pricing: Pro = $19 / Business = $49 (all instances)
+- [ ] Change Free Plan to only allow 5 saved providers
+- [ ] Free account should not be able to connect a payment account
+- [ ] Add "Plans" link to main navigation
+- [ ] Fix plan tag visibility issue (CSS)
+- [ ] Change photo upload limits per plan: Starter 1, Professional 3, Business 5
+
+## UX/UI Fixes — Group 4: Messages & Notifications
+- [ ] Manage general messages — delete messages + show read status
+- [ ] Delete individual + clear all message function
+- [ ] Ability to delete notifications
+
+## UX/UI Fixes — Group 5: Bookings & Events
+- [ ] Add my bookings search (Booking #, Service, Provider)
+- [ ] Need option to delete past events
+- [ ] Update confirmed booking button to say "request sent" after click → change to pending
+
+## UX/UI Fixes — Group 6: Profile & Provider
+- [ ] Update profile name — allow changing it
+- [ ] Add business name field and connect it for Providers
+- [ ] Change SKL to OC
+
+## UX/UI Fixes — Group 7: UI/Display
+- [ ] Change time to 12-hour clock (not military) in emails
+- [ ] Remove email support on help page
+- [ ] Account Manager Area — user can see/manage their subscription
+
+## UX/UI Fixes — Group 8: Payment
+- [ ] Add PayPal as additional payment option

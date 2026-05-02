@@ -6,11 +6,11 @@ import { useEffect } from "react";
  * RoleGuard wraps the app router and redirects authenticated users
  * who haven't selected a role yet to the /select-role page.
  * 
- * Skips redirect for:
- * - Unauthenticated users (they can browse freely)
- * - Users already on /select-role
- * - Users who have already selected a role (hasSelectedRole === true)
- * - Public pages like /embed/*, /p/*, /privacy, /terms, etc.
+ * Only redirects when the user tries to access protected pages
+ * (dashboard, bookings, messages, etc.) without having selected a role.
+ * 
+ * Public pages are always accessible, even for authenticated users
+ * who haven't selected a role yet.
  */
 export function RoleGuard({ children }: { children: React.ReactNode }) {
   const { user, loading, isAuthenticated } = useAuth();
@@ -21,11 +21,28 @@ export function RoleGuard({ children }: { children: React.ReactNode }) {
     if (!isAuthenticated || !user) return;
     if (location === "/select-role") return;
 
-    // Don't redirect on public/embed pages
-    const publicPaths = ["/embed/", "/privacy", "/terms", "/help", "/unsubscribe/", "/p/"];
-    if (publicPaths.some(p => location.startsWith(p))) return;
+    // Pages that are always accessible (even without role selection)
+    const publicPaths = [
+      "/",
+      "/browse",
+      "/search",
+      "/plans",
+      "/pricing",
+      "/embed/",
+      "/privacy",
+      "/terms",
+      "/help",
+      "/unsubscribe/",
+      "/p/",
+      "/contact",
+      "/about",
+    ];
 
-    // Redirect if user hasn't selected a role yet
+    // Check exact match for "/" and prefix match for others
+    if (location === "/") return;
+    if (publicPaths.some(p => p !== "/" && location.startsWith(p))) return;
+
+    // Redirect if user hasn't selected a role yet and is on a protected page
     if (user.hasSelectedRole === false) {
       setLocation("/select-role");
     }

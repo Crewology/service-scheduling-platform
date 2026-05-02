@@ -4,11 +4,11 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Search, Briefcase, ArrowRight } from "lucide-react";
+import { Loader2, Search, Briefcase, ArrowRight, Home } from "lucide-react";
 import { toast } from "sonner";
 
 export default function RoleSelection() {
-  const { user, loading, refresh } = useAuth();
+  const { user, loading, refresh, logout } = useAuth();
   const [, setLocation] = useLocation();
   const [selectedRole, setSelectedRole] = useState<"customer" | "provider" | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -19,7 +19,7 @@ export default function RoleSelection() {
       if (data.role === "provider") {
         setLocation("/provider/onboarding");
       } else {
-        setLocation("/");
+        setLocation("/browse");
       }
       toast.success(
         data.role === "provider"
@@ -41,6 +41,17 @@ export default function RoleSelection() {
     if (!selectedRole) return;
     setIsSubmitting(true);
     selectRoleMutation.mutate({ role: selectedRole });
+  };
+
+  const handleSkip = async () => {
+    // Log the user out and send them to the home page
+    // This prevents the RoleGuard from redirecting them back here
+    try {
+      await logout();
+    } catch {
+      // Ignore logout errors
+    }
+    setLocation("/");
   };
 
   if (loading) {
@@ -162,6 +173,15 @@ export default function RoleSelection() {
           </>
         )}
       </Button>
+
+      {/* Back to Home link — escape hatch to prevent login loop */}
+      <button
+        onClick={handleSkip}
+        className="mt-4 text-sm text-gray-500 hover:text-amber-600 transition-colors flex items-center gap-1.5 group"
+      >
+        <Home className="h-3.5 w-3.5 group-hover:text-amber-600" />
+        Back to Home
+      </button>
 
       {/* Note */}
       <p className="text-xs text-gray-400 mt-6 text-center max-w-sm">

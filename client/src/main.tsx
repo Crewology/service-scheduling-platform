@@ -23,8 +23,18 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
   if (typeof window === "undefined") return;
 
   const isUnauthorized = error.message === UNAUTHED_ERR_MSG;
-
   if (!isUnauthorized) return;
+
+  // Don't redirect to login if user is on a public page or select-role
+  // This prevents login loops when unauthenticated queries fire on public pages
+  const publicPaths = ["/", "/browse", "/search", "/plans", "/pricing", "/privacy", "/terms", "/help", "/contact", "/about", "/select-role"];
+  const currentPath = window.location.pathname;
+  const isPublicPage = publicPaths.includes(currentPath) ||
+    currentPath.startsWith("/embed/") ||
+    currentPath.startsWith("/p/") ||
+    currentPath.startsWith("/unsubscribe/");
+
+  if (isPublicPage) return;
 
   window.location.href = getLoginUrl();
 };
