@@ -96,8 +96,7 @@ export default function CustomerPricing() {
   const createCheckout = trpc.customerSubscription.createCheckout.useMutation({
     onSuccess: (data) => {
       if (data.url) {
-        window.open(data.url, "_blank");
-        toast.success("Redirecting to checkout — complete your subscription in the new tab.");
+        window.location.href = data.url;
       }
     },
     onError: (err) => toast.error(err.message),
@@ -106,8 +105,7 @@ export default function CustomerPricing() {
   const createPortal = trpc.customerSubscription.createPortalSession.useMutation({
     onSuccess: (data) => {
       if (data.url) {
-        window.open(data.url, "_blank");
-        toast.success("Opening subscription management portal.");
+        window.location.href = data.url;
       }
     },
     onError: (err) => toast.error(err.message),

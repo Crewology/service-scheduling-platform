@@ -86,8 +86,7 @@ export default function AccountSubscription() {
   const createCheckout = trpc.customerSubscription.createCheckout.useMutation({
     onSuccess: (data) => {
       if (data.url) {
-        toast.info("Redirecting to checkout...");
-        window.open(data.url, "_blank");
+        window.location.href = data.url;
       }
     },
     onError: (err) => {
@@ -101,7 +100,7 @@ export default function AccountSubscription() {
   const createPortal = trpc.customerSubscription.createPortalSession.useMutation({
     onSuccess: (data) => {
       if (data.url) {
-        window.open(data.url, "_blank");
+        window.location.href = data.url;
       }
     },
     onError: (err) => {

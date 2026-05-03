@@ -117,9 +117,7 @@ export function UpgradePrompt({ open, onClose, reason, currentTier, currentCount
   const createCheckout = trpc.subscription.createCheckout.useMutation({
     onSuccess: (data) => {
       if (data.url) {
-        window.open(data.url, "_blank");
-        toast.success("Checkout opened in a new tab. Complete payment to activate your plan.");
-        onClose();
+        window.location.href = data.url;
       }
     },
     onError: (err) => toast.error(err.message),

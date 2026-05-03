@@ -58,8 +58,7 @@ export default function UpgradeModal({ open, onOpenChange, currentTier = "free",
   const createCheckout = trpc.customerSubscription.createCheckout.useMutation({
     onSuccess: (data) => {
       if (data.url) {
-        window.open(data.url, "_blank");
-        toast.success("Redirecting to checkout — complete your subscription in the new tab.");
+        window.location.href = data.url;
         onOpenChange(false);
       }
     },

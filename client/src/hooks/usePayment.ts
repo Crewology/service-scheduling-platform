@@ -9,8 +9,7 @@ export function usePayment() {
   const createCheckout = trpc.stripe.createCheckoutSession.useMutation({
     onSuccess: (data) => {
       if (data.url) {
-        toast.info("Redirecting to secure payment...");
-        window.open(data.url, "_blank");
+        window.location.href = data.url;
       }
     },
     onError: (error) => {

@@ -104,8 +104,7 @@ export default function SubscriptionManagement() {
   const subscribe = trpc.subscription.createCheckout.useMutation({
     onSuccess: (data) => {
       if (data.url) {
-        window.open(data.url, '_blank');
-        toast.success("Redirecting to checkout...");
+        window.location.href = data.url;
       }
       setSubscribing(null);
     },
@@ -118,7 +117,7 @@ export default function SubscriptionManagement() {
   const manageSubscription = trpc.subscription.createPortalSession.useMutation({
     onSuccess: (data) => {
       if (data.url) {
-        window.open(data.url, '_blank');
+        window.location.href = data.url;
       }
     },
     onError: (err) => toast.error(err.message),

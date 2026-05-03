@@ -92,8 +92,7 @@ export default function BookingConfirmation() {
   const createCheckout = trpc.stripe.createCheckoutSession.useMutation({
     onSuccess: (data) => {
       if (data.url) {
-        toast.info("Redirecting to payment...");
-        window.open(data.url, "_blank");
+        window.location.href = data.url;
       } else if (data.paidWithCredits && !data.url) {
         toast.success("Booking paid in full with referral credits!");
         setLocation("/my-bookings");

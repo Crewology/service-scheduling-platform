@@ -679,8 +679,7 @@ export default function ProviderOnboarding() {
 
   const startOnboarding = trpc.stripeConnect.startOnboarding.useMutation({
     onSuccess: (data) => {
-      window.open(data.url, "_blank");
-      toast.success("Stripe Connect opened in a new tab");
+      window.location.href = data.url;
     },
     onError: (err) => {
       if (err.message.includes("Invalid") || err.message.includes("API")) {
@@ -715,8 +714,7 @@ export default function ProviderOnboarding() {
   const createCheckout = trpc.subscription.createCheckout.useMutation({
     onSuccess: (data) => {
       if (data.url) {
-        window.open(data.url, "_blank");
-        toast.success("Checkout opened in a new tab. Complete payment to activate your plan.");
+        window.location.href = data.url;
       }
     },
     onError: (err) => toast.error(err.message),

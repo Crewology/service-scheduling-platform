@@ -110,23 +110,21 @@ function StripeConnectSection({ provider, currentTier }: { provider: any; curren
 
   const startOnboarding = trpc.stripeConnect.startOnboarding.useMutation({
     onSuccess: (data) => {
-      window.open(data.url, '_blank');
-      toast.success("Stripe onboarding opened in a new tab");
+      window.location.href = data.url;
     },
     onError: (err) => toast.error(err.message),
   });
 
   const getDashboardLink = trpc.stripeConnect.getDashboardLink.useMutation({
     onSuccess: (data) => {
-      window.open(data.url, '_blank');
+      window.location.href = data.url;
     },
     onError: (err) => toast.error(err.message),
   });
 
   const getOnboardingLink = trpc.stripeConnect.getOnboardingLink.useMutation({
     onSuccess: (data) => {
-      window.open(data.url, '_blank');
-      toast.success("Onboarding resumed in a new tab");
+      window.location.href = data.url;
     },
     onError: (err) => toast.error(err.message),
   });

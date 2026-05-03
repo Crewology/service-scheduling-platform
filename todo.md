@@ -1316,3 +1316,8 @@
 - [x] Remove PayPal from payment_method_types in all 3 checkout files (revisit later)
 - [x] Update related tests (12/12 passing)
 - [x] Ensure checkout works with card-only payments
+
+## Bug Fix: Stripe Checkout Not Opening on Mobile
+- [x] Replace window.open(_blank) with window.location.href for Stripe checkout URLs (all 10 instances)
+- [x] Ensure redirect works on mobile Safari and Chrome
+- [x] Remove toast about "new tab" since we're redirecting in same window
