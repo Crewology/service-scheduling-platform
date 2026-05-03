@@ -266,7 +266,7 @@ export const subscriptionRouter = router({
 
       const sessionParams: Stripe.Checkout.SessionCreateParams = {
         customer: customerId,
-        payment_method_types: ["card", "paypal"],
+        payment_method_types: ["card"],
         line_items: [{ price: priceId, quantity: 1 }],
         mode: "subscription",
         success_url: `${ctx.req.headers.origin}/provider/dashboard?tab=subscription&status=success`,

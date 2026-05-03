@@ -1311,3 +1311,8 @@
 - [x] Center "Current Plan" badge horizontally on plan cards (desktop)
 - [x] Center "Current Plan" badge horizontally on plan cards (mobile)
 - [x] Also verify "Most Popular" badge centering
+
+## Bug Fix: Stripe Checkout PayPal Error
+- [x] Remove PayPal from payment_method_types in all 3 checkout files (revisit later)
+- [x] Update related tests (12/12 passing)
+- [x] Ensure checkout works with card-only payments

@@ -89,38 +89,38 @@ describe("Group 7: UI/Display Fixes", () => {
   });
 });
 
-describe("Group 8: Payment - PayPal", () => {
-  it("should include PayPal in customer subscription checkout", async () => {
+describe("Group 8: Payment - Card Only (PayPal removed for now)", () => {
+  it("should use card-only in customer subscription checkout", async () => {
     const fs = await import("fs");
     const content = fs.readFileSync(
       "/home/ubuntu/service-scheduling-platform/server/customerSubscriptionRouter.ts",
       "utf-8"
     );
-    expect(content).toContain('"paypal"');
-    expect(content).toContain('payment_method_types: ["card", "paypal"]');
+    expect(content).toContain('payment_method_types: ["card"]');
+    expect(content).not.toContain('"paypal"');
   });
 
-  it("should include PayPal in booking payment checkout", async () => {
+  it("should use card-only in booking payment checkout", async () => {
     const fs = await import("fs");
     const content = fs.readFileSync(
       "/home/ubuntu/service-scheduling-platform/server/stripeRouter.ts",
       "utf-8"
     );
-    expect(content).toContain('"paypal"');
-    expect(content).toContain('payment_method_types: ["card", "paypal"]');
+    expect(content).toContain('payment_method_types: ["card"]');
+    expect(content).not.toContain('"paypal"');
   });
 
-  it("should include PayPal in provider subscription checkout", async () => {
+  it("should use card-only in provider subscription checkout", async () => {
     const fs = await import("fs");
     const content = fs.readFileSync(
       "/home/ubuntu/service-scheduling-platform/server/subscriptionRouter.ts",
       "utf-8"
     );
-    expect(content).toContain('"paypal"');
-    expect(content).toContain('payment_method_types: ["card", "paypal"]');
+    expect(content).toContain('payment_method_types: ["card"]');
+    expect(content).not.toContain('"paypal"');
   });
 
-  it("should have PayPal in all checkout sessions consistently", async () => {
+  it("should have card-only in all checkout sessions consistently", async () => {
     const fs = await import("fs");
     const files = [
       "customerSubscriptionRouter.ts",
@@ -134,9 +134,9 @@ describe("Group 8: Payment - PayPal", () => {
       );
       const matches = content.match(/payment_method_types/g);
       expect(matches).toBeTruthy();
-      // Every payment_method_types should include paypal
-      const paypalMatches = content.match(/payment_method_types: \["card", "paypal"\]/g);
-      expect(paypalMatches?.length).toBe(matches?.length);
+      // Every payment_method_types should be card-only
+      const cardOnlyMatches = content.match(/payment_method_types: \["card"\]/g);
+      expect(cardOnlyMatches?.length).toBe(matches?.length);
     }
   });
 });

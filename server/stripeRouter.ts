@@ -126,7 +126,7 @@ export const stripeRouter = router({
         : `Booking #${booking.bookingNumber} - ${service.depositRequired ? "Deposit Payment" : "Full Payment"}`;
 
       const sessionOptions: Stripe.Checkout.SessionCreateParams = {
-        payment_method_types: ["card", "paypal"],
+        payment_method_types: ["card"],
         line_items: [
           {
             price_data: {
