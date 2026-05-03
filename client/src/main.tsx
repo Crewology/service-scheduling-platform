@@ -7,6 +7,7 @@ import superjson from "superjson";
 import App from "./App";
 import { BadgeManager } from "./components/BadgeManager";
 import { ViewModeProvider } from "./contexts/ViewModeContext";
+import { PWAInstallProvider } from "./contexts/PWAInstallContext";
 import { getLoginUrl } from "./const";
 import "./index.css";
 
@@ -75,7 +76,9 @@ createRoot(document.getElementById("root")!).render(
     <QueryClientProvider client={queryClient}>
       <BadgeManager />
       <ViewModeProvider>
-        <App />
+        <PWAInstallProvider>
+          <App />
+        </PWAInstallProvider>
       </ViewModeProvider>
     </QueryClientProvider>
   </trpc.Provider>

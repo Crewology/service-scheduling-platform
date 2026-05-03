@@ -3,12 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
-import { Search, Calendar, Shield, Star, ArrowRight, CheckCircle2, MapPin, User, Gift, Trophy, TrendingUp, Users, Award, ShieldCheck } from "lucide-react";
+import { Search, Calendar, Shield, Star, ArrowRight, CheckCircle2, MapPin, User, Gift, Trophy, TrendingUp, Users, Award, ShieldCheck, Download } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
 import { useState, useMemo } from "react";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { OfficialBadge } from "@/components/OfficialBadge";
+import { usePWAInstallContext } from "@/contexts/PWAInstallContext";
 import { TrustBadge } from "@/components/TrustBadge";
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
@@ -18,6 +19,7 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
   const [, setLocation] = useLocation();
   const { data: categories } = trpc.category.list.useQuery();
+  const { isInstalled: pwaInstalled, triggerInstall: pwaInstall } = usePWAInstallContext();
   const { data: featuredProviders } = trpc.provider.listFeatured.useQuery();
   const { data: spotlightProviders } = trpc.provider.getSpotlightProviders.useQuery();
   const autoplayPlugin = useMemo(() => Autoplay({ delay: 5000, stopOnInteraction: true }), []);
@@ -553,6 +555,17 @@ export default function Home() {
                 <li><Link href="/help#contact" className="hover:opacity-100">Contact Support</Link></li>
                 <li><Link href="/terms" className="hover:opacity-100">Terms of Service</Link></li>
                 <li><Link href="/privacy" className="hover:opacity-100">Privacy Policy</Link></li>
+                {!pwaInstalled && (
+                  <li>
+                    <button
+                      onClick={pwaInstall}
+                      className="hover:opacity-100 inline-flex items-center gap-1.5"
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                      Install App
+                    </button>
+                  </li>
+                )}
               </ul>
             </div>
           </div>

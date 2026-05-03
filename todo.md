@@ -1298,3 +1298,11 @@
 - [x] Fix "Install App" button not triggering install on mobile browsers (iOS: shows instructions, closing overlay keeps banner visible)
 - [x] Ensure Safari shows "Show Me How" instructions (already working)
 - [x] Ensure Chrome/Android shows native install prompt when available
+
+## Feature: Persistent Install App Link
+- [x] Add "Install App" link to footer
+- [x] Add "Install App" option in user dropdown menu
+- [x] Add "Install App" option in mobile hamburger menu
+- [x] Both trigger iOS instructions overlay or native Chrome install prompt
+- [x] Hide link if app is already installed (standalone mode)
+- [x] Created PWAInstallContext for shared install trigger logic

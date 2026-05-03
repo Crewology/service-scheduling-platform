@@ -21,12 +21,14 @@ import {
   ChevronDown,
   Coins,
   CreditCard,
+  Download,
 } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useSSE } from "@/hooks/useSSE";
 import { toast } from "sonner";
 import { ViewModeSwitcher, ViewModeSwitcherMobile } from "@/components/ViewModeSwitcher";
 import { useViewMode } from "@/contexts/ViewModeContext";
+import { usePWAInstallContext } from "@/contexts/PWAInstallContext";
 
 function NotificationDropdown() {
   const [open, setOpen] = useState(false);
@@ -269,6 +271,7 @@ function UserMenuDropdown({ user }: { user: any }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const { logout } = useAuth();
+  const { isInstalled, triggerInstall } = usePWAInstallContext();
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -319,6 +322,18 @@ function UserMenuDropdown({ user }: { user: any }) {
             <Settings className="h-4 w-4 text-muted-foreground" />
             Settings
           </Link>
+          {!isInstalled && (
+            <button
+              className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors w-full text-left"
+              onClick={() => {
+                setOpen(false);
+                triggerInstall();
+              }}
+            >
+              <Download className="h-4 w-4 text-muted-foreground" />
+              Install App
+            </button>
+          )}
           <div className="border-t my-1" />
           <button
             className="flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors w-full text-left"
@@ -378,6 +393,7 @@ export function NavHeader() {
   const isProvider = user?.role === "provider" || !!myProfile;
   const isAdmin = user?.role === "admin";
   const { isProviderView, isCustomerView, canSwitch } = useViewMode();
+  const { isInstalled: pwaInstalled, triggerInstall: pwaInstall } = usePWAInstallContext();
 
   return (
     <header className="border-b bg-white sticky top-0 z-50">
@@ -609,6 +625,22 @@ export function NavHeader() {
               <a href={getLoginUrl()}>
                 <Button className="w-full">Sign In</Button>
               </a>
+            )}
+            {/* Install App - always visible if not already installed */}
+            {!pwaInstalled && (
+              <div className="border-t pt-2 mt-2">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    pwaInstall();
+                  }}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Install App
+                </Button>
+              </div>
             )}
           </div>
         )}
