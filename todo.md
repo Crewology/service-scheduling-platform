@@ -925,8 +925,8 @@
 - [x] Provider category names showing as null in search results: fixed getProviderCategories to JOIN with serviceCategories
 
 ## Bug Fix: Browse & Search Still Broken on Production
-- [ ] Browse Services page shows "No categories found" when not signed in
-- [ ] Search page auto-triggers search on page load without user input
+- [x] Browse Services page shows "No categories found" when not signed in (verified working — publicProcedure loads all 42 categories)
+- [x] Search page auto-triggers search on page load without user input (verified working — enabled: hasSearchIntent guard prevents auto-trigger)
 
 ## Task: Comprehensive Platform Documentation
 - [x] Write PLATFORM_DOCS.md covering all architecture, schema, routes, APIs, components, tiers, integrations, and features
