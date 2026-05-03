@@ -1293,3 +1293,8 @@
 - [x] Fix "Current Plan" badge cut off at top of Free plan card
 - [x] Fix "Most Popular" badge cut off at top of Business plan card
 - [x] Ensure plan cards are properly centered on mobile
+
+## Bug Fix: PWA Install Button Not Working on Mobile
+- [x] Fix "Install App" button not triggering install on mobile browsers (iOS: shows instructions, closing overlay keeps banner visible)
+- [x] Ensure Safari shows "Show Me How" instructions (already working)
+- [x] Ensure Chrome/Android shows native install prompt when available

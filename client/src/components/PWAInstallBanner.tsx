@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { Button } from "@/components/ui/button";
-import { Download, X, Share, Plus } from "lucide-react";
+import { Download, X, Share, Plus, ArrowUp } from "lucide-react";
 
 export function PWAInstallBanner() {
   const { canInstall, isInstalled, isIOS, promptInstall } = usePWAInstall();
@@ -10,7 +10,7 @@ export function PWAInstallBanner() {
 
   // Check if user previously dismissed
   useEffect(() => {
-    const dismissedAt = localStorage.getItem("pwa-install-dismissed");
+    const dismissedAt = localStorage.getItem("pwa-install-dismissed-v2");
     if (dismissedAt) {
       const daysSince =
         (Date.now() - parseInt(dismissedAt)) / (1000 * 60 * 60 * 24);
@@ -23,7 +23,7 @@ export function PWAInstallBanner() {
 
   const handleDismiss = () => {
     setDismissed(true);
-    localStorage.setItem("pwa-install-dismissed", Date.now().toString());
+    localStorage.setItem("pwa-install-dismissed-v2", Date.now().toString());
   };
 
   const handleInstall = async () => {
@@ -59,12 +59,14 @@ export function PWAInstallBanner() {
                   className="mt-2 text-xs h-7"
                   onClick={() => setShowIOSGuide(true)}
                 >
-                  Show Me How
+                  <Download className="h-3 w-3 mr-1" />
+                  Install App
                 </Button>
               </div>
               <button
                 onClick={handleDismiss}
                 className="text-gray-400 hover:text-gray-600 shrink-0"
+                aria-label="Dismiss install banner"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -91,6 +93,11 @@ export function PWAInstallBanner() {
                   <X className="h-5 w-5" />
                 </button>
               </div>
+
+              <p className="text-sm text-gray-500 mb-4">
+                Follow these steps to add OlogyCrew to your home screen:
+              </p>
+
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <div className="bg-blue-50 rounded-full h-8 w-8 flex items-center justify-center text-sm font-bold text-blue-600 shrink-0">
@@ -125,20 +132,38 @@ export function PWAInstallBanner() {
                     3
                   </div>
                   <span className="text-sm text-gray-700">
-                    Tap <span className="font-medium">Add</span> to confirm
+                    Tap <span className="font-medium">Add</span> in the top right to confirm
                   </span>
                 </div>
               </div>
-              <Button
-                className="w-full mt-6"
-                variant="outline"
-                onClick={() => {
-                  setShowIOSGuide(false);
-                  handleDismiss();
-                }}
-              >
-                Got it
-              </Button>
+
+              {/* Arrow pointing down to Safari toolbar */}
+              <div className="flex justify-center mt-6 mb-2">
+                <div className="flex items-center gap-2 text-xs text-gray-400">
+                  <ArrowUp className="h-4 w-4 rotate-180 animate-bounce" />
+                  <span>Look for the Share button in your Safari toolbar below</span>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-4">
+                <Button
+                  className="flex-1"
+                  variant="outline"
+                  onClick={() => setShowIOSGuide(false)}
+                >
+                  Close
+                </Button>
+                <Button
+                  className="flex-1"
+                  variant="ghost"
+                  onClick={() => {
+                    setShowIOSGuide(false);
+                    handleDismiss();
+                  }}
+                >
+                  Don't show again
+                </Button>
+              </div>
             </div>
           </div>
         )}
@@ -175,6 +200,7 @@ export function PWAInstallBanner() {
           <button
             onClick={handleDismiss}
             className="text-gray-400 hover:text-gray-600 shrink-0"
+            aria-label="Dismiss install banner"
           >
             <X className="h-4 w-4" />
           </button>
