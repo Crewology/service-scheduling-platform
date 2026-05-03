@@ -149,7 +149,7 @@ export default function CustomerPricing() {
         </div>
 
         {/* Plan Cards */}
-        <div className="grid gap-6 md:grid-cols-3 mb-16">
+        <div className="grid gap-6 md:grid-cols-3 mb-16 pt-4">
           {plans.map((plan) => {
             const isCurrent = currentTier === plan.tier;
             const isDowngrade = (currentTier === "business" && plan.tier !== "business") ||
@@ -159,15 +159,15 @@ export default function CustomerPricing() {
             return (
               <Card
                 key={plan.tier}
-                className={`relative flex flex-col ${plan.popular ? `${plan.borderColor} border-2 shadow-lg` : ""} ${isCurrent ? "ring-2 ring-primary" : ""}`}
+                className={`relative flex flex-col overflow-visible ${plan.popular ? `${plan.borderColor} border-2 shadow-lg` : ""} ${isCurrent ? "ring-2 ring-primary" : ""}`}
               >
                 {plan.popular && (
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500 text-white border-0 px-4 py-1">
+                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 bg-amber-500 text-white border-0 px-4 py-1 shadow-sm">
                     Most Popular
                   </Badge>
                 )}
                 {isCurrent && (
-                  <Badge className="absolute -top-3 right-4 bg-primary text-primary-foreground border-0 px-3 py-1">
+                  <Badge className="absolute -top-3 right-4 z-10 bg-primary text-primary-foreground border-0 px-3 py-1 shadow-sm">
                     Current Plan
                   </Badge>
                 )}

@@ -320,7 +320,7 @@ export default function SubscriptionManagement() {
         )}
 
         {/* Plans Grid */}
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
+        <div className="grid md:grid-cols-3 gap-6 mb-12 pt-4">
           {PLANS.map((plan) => {
             const Icon = plan.icon;
             const isCurrent = currentTier === plan.tier;
@@ -333,19 +333,19 @@ export default function SubscriptionManagement() {
             return (
               <Card 
                 key={plan.tier}
-                className={`relative flex flex-col ${
+                className={`relative flex flex-col overflow-visible ${
                   plan.highlight 
                     ? "border-primary shadow-lg shadow-primary/10 scale-[1.02]" 
                     : ""
                 } ${isCurrent ? "ring-2 ring-primary" : ""}`}
               >
                 {plan.highlight && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge className="bg-primary text-primary-foreground px-3">Most Popular</Badge>
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+                    <Badge className="bg-primary text-primary-foreground px-3 shadow-sm">Most Popular</Badge>
                   </div>
                 )}
                 {isCurrent && (
-                  <div className="absolute -top-3 right-4">
+                  <div className="absolute -top-3 right-4 z-10">
                     <Badge className="bg-green-600 text-white border-0 shadow-sm">Current Plan</Badge>
                   </div>
                 )}

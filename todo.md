@@ -1288,3 +1288,8 @@
 
 ## Feature: Provider Share Button
 - [x] Add Share button to provider's own dashboard/profile view (already exists: copy link, social sharing, QR code, native share)
+
+## Bug Fix: Plan Type Badges Not Visible/Centered on Mobile
+- [x] Fix "Current Plan" badge cut off at top of Free plan card
+- [x] Fix "Most Popular" badge cut off at top of Business plan card
+- [x] Ensure plan cards are properly centered on mobile
