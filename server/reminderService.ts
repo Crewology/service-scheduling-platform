@@ -1,6 +1,7 @@
 import * as db from "./db";
 import { sendNotification } from "./notifications";
 import { sendPushNotification } from "./notifications/pushHelper";
+import { formatTimeForDisplay } from "@shared/timeSlots";
 
 /**
  * Reminder Service
@@ -41,7 +42,7 @@ export async function processReminders(): Promise<{
           providerName: provider?.businessName || providerUser?.name || "Provider",
           customerName: customer?.name || "Customer",
           date: booking.bookingDate,
-          time: booking.startTime,
+          time: formatTimeForDisplay(booking.startTime),
           location: booking.locationType === "virtual" 
             ? "Virtual / Online" 
             : [booking.serviceAddressLine1, booking.serviceCity, booking.serviceState].filter(Boolean).join(", ") || "See booking details",

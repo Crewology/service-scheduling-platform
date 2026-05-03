@@ -11,7 +11,6 @@ import {
   CreditCard,
   Settings,
   HelpCircle,
-  Mail,
   Phone,
   ArrowRight,
   Calendar,
@@ -363,7 +362,7 @@ const faqItems: FAQItem[] = [
   {
     question: "What if I have a problem with a service?",
     answer:
-      "First, contact the provider directly through the booking's messaging thread to try to resolve the issue. If you can't reach a resolution, contact our support team at garychisolm30@gmail.com or call (678) 525-0891 and we'll help mediate.",
+      "First, contact the provider directly through the booking's messaging thread to try to resolve the issue. If you can't reach a resolution, contact our support team by calling (678) 525-0891 or using the contact form on this page and we'll help mediate.",
     category: "General",
   },
   {
@@ -941,30 +940,7 @@ export default function HelpCenter() {
           <ContactForm />
 
           {/* Direct Contact Info */}
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="border-primary/20">
-              <CardContent className="py-6">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-xl bg-primary/10 text-primary shrink-0">
-                    <Mail className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg mb-1">Email Support</h3>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Prefer email? Reach us directly.
-                    </p>
-                    <a
-                      href="mailto:garychisolm30@gmail.com"
-                      className="inline-flex items-center gap-2 text-primary font-medium text-sm hover:underline"
-                    >
-                      garychisolm30@gmail.com
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
+          <div className="mt-6 grid grid-cols-1 gap-4">
             <Card className="border-primary/20">
               <CardContent className="py-6">
                 <div className="flex items-start gap-4">

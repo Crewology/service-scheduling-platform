@@ -20,6 +20,7 @@ import {
   Settings,
   ChevronDown,
   Coins,
+  CreditCard,
 } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useSSE } from "@/hooks/useSSE";
@@ -301,6 +302,14 @@ function UserMenuDropdown({ user }: { user: any }) {
           >
             <User className="h-4 w-4 text-muted-foreground" />
             My Profile
+          </Link>
+          <Link
+            href="/account/subscription"
+            className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors"
+            onClick={() => setOpen(false)}
+          >
+            <CreditCard className="h-4 w-4 text-muted-foreground" />
+            My Subscription
           </Link>
           <Link
             href="/notification-settings"

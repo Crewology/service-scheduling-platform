@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useParams, useLocation, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { formatDuration } from "../../../shared/duration";
+import { formatTimeForDisplay } from "@shared/timeSlots";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -302,7 +303,7 @@ export default function BookingDetail() {
                     <p className="text-sm font-medium text-muted-foreground">Time</p>
                     <p className="font-medium flex items-center gap-1">
                       <Clock className="h-4 w-4" />
-                      {booking.startTime || "N/A"} {booking.endTime ? `- ${booking.endTime}` : ""}
+                      {booking.startTime ? formatTimeForDisplay(booking.startTime) : "N/A"} {booking.endTime ? `- ${formatTimeForDisplay(booking.endTime)}` : ""}
                     </p>
                   </div>
                   <div>
@@ -421,7 +422,7 @@ export default function BookingDetail() {
                               </p>
                               <p className="text-sm text-muted-foreground flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
-                                {session.startTime} - {session.endTime}
+                                {formatTimeForDisplay(session.startTime)} - {formatTimeForDisplay(session.endTime)}
                               </p>
                               {session.rescheduledFromDate && (
                                 <p className="text-xs text-amber-600 mt-0.5">

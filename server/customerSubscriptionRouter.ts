@@ -121,7 +121,7 @@ export const customerSubscriptionRouter = router({
 
       const session = await stripe.checkout.sessions.create({
         customer: customerId,
-        payment_method_types: ["card"],
+        payment_method_types: ["card", "paypal"],
         line_items: [{ price: priceId, quantity: 1 }],
         mode: "subscription",
         success_url: `${ctx.req.headers.origin}/saved-providers?status=success`,

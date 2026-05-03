@@ -49,6 +49,7 @@ import NotificationSettings from "./pages/NotificationSettings";
 import Referrals from "./pages/Referrals";
 import SavedProviders from "./pages/SavedProviders";
 import CustomerPricing from "./pages/CustomerPricing";
+import AccountSubscription from "./pages/AccountSubscription";
 
 // Reviews
 import SubmitReview from "./pages/SubmitReview";
@@ -108,6 +109,7 @@ function Router() {
       <Route path="/saved-providers" component={SavedProviders} />
       <Route path="/my-quotes" component={MyQuotes} />
       <Route path="/pricing" component={CustomerPricing} />
+      <Route path="/account/subscription" component={AccountSubscription} />
       <Route path="/analytics" component={BookingAnalytics} />
       <Route path="/privacy" component={PrivacyPolicy} />
       <Route path="/terms" component={TermsOfService} />

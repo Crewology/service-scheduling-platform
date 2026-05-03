@@ -2,6 +2,7 @@ import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { z } from "zod";
 import * as db from "../db";
 import { TRPCError } from "@trpc/server";
+import { formatTimeForDisplay } from "@shared/timeSlots";
 
 export const bookingRouter = router({
   create: protectedProcedure
@@ -151,7 +152,7 @@ export const bookingRouter = router({
               serviceName: service.name,
               customerName: ctx.user.name || "Customer",
               date: input.bookingDate,
-              time: input.startTime,
+              time: formatTimeForDisplay(input.startTime),
               providerName: providerData?.businessName || providerUser.name || "Provider",
             },
           });
@@ -160,7 +161,7 @@ export const bookingRouter = router({
         if (providerUser) {
           sendPushNotification("booking_created", { userId: providerUser.id, name: providerUser.name || "Provider" }, {
             bookingNumber, serviceName: service.name, customerName: ctx.user.name || "Customer",
-            date: input.bookingDate, time: input.startTime,
+            date: input.bookingDate, time: formatTimeForDisplay(input.startTime),
           });
         }
         if (ctx.user.email) {
@@ -175,7 +176,7 @@ export const bookingRouter = router({
               providerName: providerData?.businessName || "Provider",
               customerName: ctx.user.name || "Customer",
               date: input.bookingDate,
-              time: input.startTime,
+              time: formatTimeForDisplay(input.startTime),
               amount: totalAmount,
             },
           });
@@ -183,7 +184,7 @@ export const bookingRouter = router({
         // Push to customer
         sendPushNotification("booking_confirmed", { userId: ctx.user.id, name: ctx.user.name || "Customer" }, {
           bookingNumber, serviceName: service.name, providerName: providerData?.businessName || "Provider",
-          date: input.bookingDate, time: input.startTime, amount: totalAmount,
+          date: input.bookingDate, time: formatTimeForDisplay(input.startTime), amount: totalAmount,
         });
          // Create in-app notifications (triggers SSE push automatically)
         if (providerUser) {
@@ -191,7 +192,7 @@ export const bookingRouter = router({
             userId: providerUser.id,
             notificationType: "booking_created",
             title: "New Booking Request",
-            message: `${ctx.user.name || "A customer"} booked ${service.name} for ${input.bookingDate} at ${input.startTime}`,
+            message: `${ctx.user.name || "A customer"} booked ${service.name} for ${input.bookingDate} at ${formatTimeForDisplay(input.startTime)}`,
             actionUrl: `/provider/dashboard`,
             relatedBookingId: bookingId,
           });
@@ -200,7 +201,7 @@ export const bookingRouter = router({
           userId: ctx.user.id,
           notificationType: "booking_confirmed",
           title: "Booking Confirmed",
-          message: `Your booking for ${service.name} on ${input.bookingDate} at ${input.startTime} has been submitted`,
+          message: `Your booking for ${service.name} on ${input.bookingDate} at ${formatTimeForDisplay(input.startTime)} has been submitted`,
           actionUrl: `/booking/${bookingId}/detail`,
           relatedBookingId: bookingId,
         });
@@ -326,7 +327,7 @@ export const bookingRouter = router({
           providerName: providerData?.businessName || providerUser?.name || "Provider",
           customerName: customer?.name || "Customer",
           date: booking.bookingDate,
-          time: booking.startTime,
+          time: formatTimeForDisplay(booking.startTime),
           amount: booking.totalAmount || "0.00",
         };
 
@@ -783,7 +784,7 @@ export const bookingRouter = router({
               serviceName: service.name,
               customerName: ctx.user.name || "Customer",
               date: `${input.startDate} to ${input.endDate} (${totalDays} days)`,
-              time: input.startTime,
+              time: formatTimeForDisplay(input.startTime),
               providerName: providerData?.businessName || providerUser.name || "Provider",
             },
           });
@@ -957,7 +958,7 @@ export const bookingRouter = router({
               serviceName: service.name,
               customerName: ctx.user.name || "Customer",
               date: `Recurring ${input.frequency}: ${daysStr} for ${input.totalWeeks} weeks (${totalSessions} sessions)`,
-              time: input.startTime,
+              time: formatTimeForDisplay(input.startTime),
               providerName: providerData?.businessName || providerUser.name || "Provider",
             },
           });

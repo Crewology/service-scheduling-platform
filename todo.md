@@ -1275,9 +1275,9 @@
 - [x] Change SKL to OC (all booking number prefixes updated)
 
 ## UX/UI Fixes — Group 7: UI/Display
-- [ ] Change time to 12-hour clock (not military) in emails
-- [ ] Remove email support on help page
-- [ ] Account Manager Area — user can see/manage their subscription
+- [x] Change time to 12-hour clock (not military) in emails (bookingRouter, reminderService, BookingDetail)
+- [x] Remove email support on help page (email card removed, FAQ updated)
+- [x] Account Manager Area — user can see/manage their subscription (new /account/subscription page + nav link)
 
 ## UX/UI Fixes — Group 8: Payment
-- [ ] Add PayPal as additional payment option
+- [x] Add PayPal as additional payment option (all 3 checkout sessions: customer sub, provider sub, booking payment)
