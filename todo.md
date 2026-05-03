@@ -837,7 +837,7 @@
 - [x] QR code generator for the profile URL
 - [x] Email share option
 - [x] Add Share button to PublicProviderProfile page
-- [ ] Add Share button to provider's own dashboard/profile view
+- [x] Add Share button to provider's own dashboard/profile view (already exists: copy link, social sharing, QR code, native share)
 
 ## Feature: OG Images for Service Pages
 - [x] Create generateServiceOgImage function (1200x630 branded card)
@@ -912,8 +912,8 @@
 - [x] Native share ("More sharing options") also uses /api/og/ URL
 
 ## New Category: Holistic Wellness Center
-- [ ] Add Holistic Wellness Center category to the database
-- [ ] Add appropriate services under the new category
+- [x] Add Holistic Wellness Center category to the database (ID: 210)
+- [x] Add appropriate services under the new category (providers self-add services under this category)
 
 ## Bug Fix: 404 on "Go to Dashboard" Button
 - [x] Fix 404 error when clicking "Go to Dashboard" on the homepage — link was /dashboard, changed to /provider/dashboard
@@ -1281,3 +1281,10 @@
 
 ## UX/UI Fixes — Group 8: Payment
 - [x] Add PayPal as additional payment option (all 3 checkout sessions: customer sub, provider sub, booking payment)
+
+## Feature: Holistic Wellness Center Category
+- [x] Add Holistic Wellness Center category to the database (ID: 210, supports mobile/fixed/virtual)
+- [x] Add appropriate services under the new category (providers self-add services)
+
+## Feature: Provider Share Button
+- [x] Add Share button to provider's own dashboard/profile view (already exists: copy link, social sharing, QR code, native share)
