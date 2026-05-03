@@ -344,9 +344,14 @@ export default function SubscriptionManagement() {
                     <Badge className="bg-primary text-primary-foreground px-3 shadow-sm">Most Popular</Badge>
                   </div>
                 )}
-                {isCurrent && (
-                  <div className="absolute -top-3 right-4 z-10">
-                    <Badge className="bg-green-600 text-white border-0 shadow-sm">Current Plan</Badge>
+                {isCurrent && !plan.highlight && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+                    <Badge className="bg-green-600 text-white border-0 shadow-sm whitespace-nowrap">Current Plan</Badge>
+                  </div>
+                )}
+                {isCurrent && plan.highlight && (
+                  <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10">
+                    <Badge className="bg-green-600 text-white border-0 shadow-sm whitespace-nowrap">Current Plan</Badge>
                   </div>
                 )}
 

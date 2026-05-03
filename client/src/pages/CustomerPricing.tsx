@@ -166,8 +166,13 @@ export default function CustomerPricing() {
                     Most Popular
                   </Badge>
                 )}
-                {isCurrent && (
-                  <Badge className="absolute -top-3 right-4 z-10 bg-primary text-primary-foreground border-0 px-3 py-1 shadow-sm">
+                {isCurrent && !plan.popular && (
+                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 bg-primary text-primary-foreground border-0 px-3 py-1 shadow-sm whitespace-nowrap">
+                    Current Plan
+                  </Badge>
+                )}
+                {isCurrent && plan.popular && (
+                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 bg-primary text-primary-foreground border-0 px-3 py-1 shadow-sm mt-6 whitespace-nowrap">
                     Current Plan
                   </Badge>
                 )}

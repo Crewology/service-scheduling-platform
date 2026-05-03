@@ -1306,3 +1306,8 @@
 - [x] Both trigger iOS instructions overlay or native Chrome install prompt
 - [x] Hide link if app is already installed (standalone mode)
 - [x] Created PWAInstallContext for shared install trigger logic
+
+## Bug Fix: Current Plan Badge Not Centered
+- [x] Center "Current Plan" badge horizontally on plan cards (desktop)
+- [x] Center "Current Plan" badge horizontally on plan cards (mobile)
+- [x] Also verify "Most Popular" badge centering
