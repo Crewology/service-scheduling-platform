@@ -895,3 +895,33 @@ export type PushSubscription = typeof pushSubscriptions.$inferSelect;
 export type InsertPushSubscription = typeof pushSubscriptions.$inferInsert;
 
 
+
+// ============================================================================
+// WAITLIST FOR GROUP CLASSES
+// ============================================================================
+/**
+ * Waitlist entries for group classes that are full.
+ * When a spot opens (cancellation), the next person on the waitlist is notified.
+ */
+export const waitlistEntries = mysqlTable("waitlist_entries", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id),
+  serviceId: int("serviceId").notNull().references(() => services.id),
+  providerId: int("providerId").notNull().references(() => serviceProviders.id),
+  bookingDate: date("bookingDate").notNull(),
+  startTime: time("startTime").notNull(),
+  endTime: time("endTime").notNull(),
+  position: int("position").notNull(), // queue position (1 = first in line)
+  status: mysqlEnum("status", ["waiting", "notified", "booked", "expired", "cancelled"]).default("waiting").notNull(),
+  notifiedAt: timestamp("notifiedAt"),
+  expiresAt: timestamp("expiresAt"), // notification expiry (e.g., 24h to book after notification)
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => [
+  index("waitlist_user_idx").on(table.userId),
+  index("waitlist_service_date_idx").on(table.serviceId, table.bookingDate, table.startTime),
+  index("waitlist_provider_idx").on(table.providerId),
+  index("waitlist_status_idx").on(table.status),
+]);
+export type WaitlistEntry = typeof waitlistEntries.$inferSelect;
+export type InsertWaitlistEntry = typeof waitlistEntries.$inferInsert;

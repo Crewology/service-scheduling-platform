@@ -53,21 +53,40 @@ export const bookingRouter = router({
         }
       }
 
-      // PRIORITY 1: Double-booking prevention
+      // PRIORITY 1: Double-booking prevention with group class capacity support
       const existingBookings = await db.getBookingsByDateRange(
         providerId,
         input.bookingDate,
         input.bookingDate
       );
-      const hasConflict = existingBookings.some((b: any) => {
+      const overlappingBookings = existingBookings.filter((b: any) => {
         if (["cancelled", "refunded", "no_show"].includes(b.status)) return false;
         return input.startTime < b.endTime && input.endTime > b.startTime;
       });
-      if (hasConflict) {
-        throw new TRPCError({
-          code: "CONFLICT",
-          message: "This time slot is no longer available. Another booking already exists for this time. Please choose a different time.",
-        });
+
+      // For group classes, check capacity; for individual services, any overlap = conflict
+      const maxCapacity = service.maxCapacity || 1;
+      const isGroupClass = service.isGroupClass || false;
+
+      if (isGroupClass) {
+        // Count bookings for this exact time slot (same service)
+        const sameSlotBookings = overlappingBookings.filter(
+          (b: any) => b.serviceId === input.serviceId && b.startTime === input.startTime
+        );
+        if (sameSlotBookings.length >= maxCapacity) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: `This class is full (${maxCapacity} spots). Please choose a different time or join the waitlist.`,
+          });
+        }
+      } else {
+        // Individual service: any overlap is a conflict
+        if (overlappingBookings.length > 0) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "This time slot is no longer available. Another booking already exists for this time. Please choose a different time.",
+          });
+        }
       }
 
       const bookingNumber = `OC-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
@@ -416,6 +435,23 @@ export const bookingRouter = router({
             console.error("[TrustScore] Recalculation failed (non-blocking):", trustErr);
           }
         }
+        // Notify next person on waitlist if a group class booking is cancelled
+        if (input.status === "cancelled" && service?.isGroupClass) {
+          try {
+            const { notifyNextOnWaitlist } = await import("./waitlistRouter");
+            const bookingDateStr = typeof booking.bookingDate === "string"
+              ? booking.bookingDate
+              : new Date(booking.bookingDate).toISOString().split("T")[0];
+            await notifyNextOnWaitlist(
+              booking.serviceId,
+              bookingDateStr,
+              booking.startTime,
+              service.name
+            );
+          } catch (wErr) {
+            console.error("[Waitlist] Notification failed (non-blocking):", wErr);
+          }
+        }
       } catch (err) {
         console.error("[BookingStatus] Notification send failed (non-blocking):", err);
       }
@@ -574,6 +610,24 @@ export const bookingRouter = router({
         }
       } catch (err) {
         console.error("[Cancellation] In-app notification failed (non-blocking):", err);
+      }
+
+      // Notify next person on waitlist if this was a group class
+      if (service?.isGroupClass) {
+        try {
+          const { notifyNextOnWaitlist } = await import("./waitlistRouter");
+          const bookingDateStr = typeof booking.bookingDate === "string"
+            ? booking.bookingDate
+            : new Date(booking.bookingDate).toISOString().split("T")[0];
+          await notifyNextOnWaitlist(
+            booking.serviceId,
+            bookingDateStr,
+            booking.startTime,
+            service.name
+          );
+        } catch (err) {
+          console.error("[Cancellation] Waitlist notification failed (non-blocking):", err);
+        }
       }
 
       const updated = await db.getBookingById(input.bookingId);

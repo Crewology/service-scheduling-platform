@@ -36,7 +36,8 @@ export type NotificationType =
   | 'trial_1_day'
   | 'trial_expired'
   | 'welcome_customer'
-  | 'welcome_provider';
+  | 'welcome_provider'
+  | 'waitlist_spot_available';
 
 export interface NotificationRecipient {
   userId: number;

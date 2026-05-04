@@ -690,6 +690,32 @@ The OlogyCrew Team
       `.trim(),
       smsBody: `Welcome to OlogyCrew! Your provider profile is live. Complete your setup to start receiving bookings.`,
     },
+
+    // ============================================================================
+    // WAITLIST NOTIFICATIONS
+    // ============================================================================
+
+    waitlist_spot_available: {
+      subject: `A Spot Opened Up! - ${data.serviceName || 'Group Class'}`,
+      body: `
+Hello ${data.customerName},
+
+Great news! A spot has opened up in a class you were waiting for.
+
+**Service:** ${data.serviceName}
+**Provider:** ${data.providerName}
+**Date:** ${data.date}
+**Time:** ${data.time}
+
+This spot is reserved for you for a limited time. Book now before it fills up!
+
+[Book Now](/services/${data.serviceId})
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `A spot opened up for ${data.serviceName} on ${data.date} at ${data.time}! Book now on OlogyCrew before it fills up.`,
+    },
   };
 
   return templates[type] || {

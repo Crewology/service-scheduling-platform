@@ -31,6 +31,7 @@ import { foldersRouter } from "./foldersRouter";
 import { contactRouter } from "./contactRouter";
 import { pushRouter } from "./pushRouter";
 import { trustRouter } from "./trustRouter";
+import { waitlistRouter } from "./routers/waitlistRouter";
 
 export const appRouter = router({
   system: systemRouter,
@@ -56,6 +57,7 @@ export const appRouter = router({
   contact: contactRouter,
   push: pushRouter,
   trust: trustRouter,
+  waitlist: waitlistRouter,
 });
 
 export type AppRouter = typeof appRouter;

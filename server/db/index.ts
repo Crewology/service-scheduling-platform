@@ -34,3 +34,4 @@ export * from "./promo";
 export * from "./verification";
 export * from "./messages";
 export * from "./referrals";
+export * from "./waitlist";

@@ -216,3 +216,18 @@ export {
   hasActiveBookings,
   deleteUserAccount,
 } from "./db/users";
+
+// Waitlist management
+export {
+  getNextWaitlistPosition,
+  joinWaitlist,
+  isUserOnWaitlist,
+  leaveWaitlist,
+  getUserWaitlistEntries,
+  getNextOnWaitlist,
+  markWaitlistNotified,
+  markWaitlistBooked,
+  expireOldNotifications,
+  getWaitlistCount,
+  getProviderWaitlistEntries,
+} from "./db/waitlist";

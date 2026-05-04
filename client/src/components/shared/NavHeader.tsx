@@ -577,6 +577,12 @@ export function NavHeader() {
                     My Quotes
                   </Button>
                 </Link>
+                <Link href="/my-waitlist" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start">
+                    <Bell className="h-4 w-4 mr-2" />
+                    My Waitlist
+                  </Button>
+                </Link>
                 <Link href="/messages" onClick={() => setMobileMenuOpen(false)}>
                   <Button variant="ghost" className="w-full justify-start relative">
                     <MessageSquare className="h-4 w-4 mr-2" />

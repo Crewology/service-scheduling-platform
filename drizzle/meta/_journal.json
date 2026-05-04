@@ -225,6 +225,13 @@
       "when": 1777913351479,
       "tag": "0031_secret_lord_hawal",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "5",
+      "when": 1777918332877,
+      "tag": "0032_lyrical_overlord",
+      "breakpoints": true
     }
   ]
 }

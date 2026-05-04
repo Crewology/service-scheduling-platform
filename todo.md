@@ -1349,3 +1349,19 @@
 - [x] Add help content for PWA installation (iPhone Safari + Android Chrome)
 - [x] Add FAQ entries: group classes, grayed out slots, block time, calendar colors, iPhone install, Android install
 - [x] Updated existing "Is there a mobile app?" FAQ with full PWA instructions
+
+## Feature: Server-Side Booking Capacity Validation
+- [x] Add atomic capacity check in booking creation procedure (count existing bookings for same slot)
+- [x] Reject booking if group class is full (return clear error message)
+- [x] Handle race conditions with database-level check (not just UI)
+- [x] Exclude cancelled/refunded/no_show bookings from count
+
+## Feature: Waitlist for Full Group Classes
+- [x] Add waitlist_entries database table (userId, serviceId, providerId, bookingDate, startTime, endTime, position, status, notifiedAt)
+- [x] Server endpoints: join waitlist, leave waitlist, check status, list my entries, list provider entries
+- [x] Auto-notify next person on waitlist when a booking is cancelled (both cancel and updateStatus procedures)
+- [x] Customer UI: "Notify Me" button on full group class time slots
+- [x] Customer UI: My Waitlist page (/my-waitlist) with status sections (Spots Available, Waiting, Past)
+- [x] Navigation: My Waitlist link in mobile hamburger menu
+- [x] Notification template for waitlist_spot_available
+- [x] 18 tests passing for capacity validation and waitlist logic

@@ -26,6 +26,7 @@ import BookingConfirmation from "./pages/BookingConfirmation";
 import BookingDetail from "./pages/BookingDetail";
 import MyBookings from "./pages/MyBookings";
 import MyQuotes from "./pages/MyQuotes";
+import MyWaitlist from "./pages/MyWaitlist";
 
 // Messaging
 import Conversations from "./pages/Conversations";
@@ -108,6 +109,7 @@ function Router() {
       <Route path="/referrals" component={Referrals} />
       <Route path="/saved-providers" component={SavedProviders} />
       <Route path="/my-quotes" component={MyQuotes} />
+      <Route path="/my-waitlist" component={MyWaitlist} />
       <Route path="/pricing" component={CustomerPricing} />
       <Route path="/account/subscription" component={AccountSubscription} />
       <Route path="/analytics" component={BookingAnalytics} />
