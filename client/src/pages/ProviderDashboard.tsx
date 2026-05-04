@@ -59,6 +59,7 @@ import {
   AlertTriangle,
   Sparkles,
   ArrowRight,
+  BellRing,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
@@ -913,6 +914,19 @@ export default function ProviderDashboard() {
     enabled: !!provider,
   });
 
+  // Waitlist entries for provider's group classes
+  const { data: waitlistEntries } = trpc.waitlist.providerEntries.useQuery(undefined, {
+    enabled: !!provider,
+  });
+
+  const removeFromWaitlist = trpc.waitlist.providerRemove.useMutation({
+    onSuccess: () => {
+      utils.waitlist.providerEntries.invalidate();
+      toast.success("Removed from waitlist");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
   const respondToQuote = trpc.provider.respondToQuote.useMutation({
     onSuccess: () => {
       utils.provider.providerQuotes.invalidate();
@@ -1545,6 +1559,96 @@ export default function ProviderDashboard() {
                 </div>
               )}
             </div>
+
+            {/* Waitlist Section */}
+            {waitlistEntries && waitlistEntries.length > 0 && (
+              <div className="mt-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <BellRing className="h-5 w-5 text-amber-500" />
+                  <h3 className="text-lg font-semibold">Waitlist</h3>
+                  <Badge variant="secondary" className="ml-1">{waitlistEntries.length}</Badge>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Customers waiting for spots in your group classes. They'll be auto-notified when a spot opens.
+                </p>
+                <div className="space-y-3">
+                  {(() => {
+                    // Group entries by service + date
+                    const grouped: Record<string, typeof waitlistEntries> = {};
+                    waitlistEntries.forEach((entry: any) => {
+                      const key = `${entry.serviceName}|${entry.bookingDate}`;
+                      if (!grouped[key]) grouped[key] = [];
+                      grouped[key].push(entry);
+                    });
+                    return Object.entries(grouped).map(([key, entries]) => {
+                      const [serviceName, bookingDate] = key.split("|");
+                      return (
+                        <Card key={key}>
+                          <CardHeader className="pb-3">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <CardTitle className="text-base">{serviceName}</CardTitle>
+                                <CardDescription>
+                                  {new Date(bookingDate + "T00:00:00").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
+                                  {" · "}
+                                  {(entries as any[])[0]?.startTime
+                                    ? new Date(`2000-01-01T${(entries as any[])[0].startTime}`).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+                                    : ""}
+                                </CardDescription>
+                              </div>
+                              <Badge variant="outline" className="text-xs">
+                                <Users className="h-3 w-3 mr-1" />
+                                {(entries as any[]).length} waiting
+                              </Badge>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="pt-0">
+                            <div className="divide-y">
+                              {(entries as any[]).map((entry: any) => (
+                                <div key={entry.id} className="flex items-center justify-between py-2 first:pt-0 last:pb-0">
+                                  <div className="flex items-center gap-3">
+                                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
+                                      #{entry.position}
+                                    </div>
+                                    <div>
+                                      <p className="text-sm font-medium">{entry.userName}</p>
+                                      <p className="text-xs text-muted-foreground">
+                                        Joined {new Date(entry.createdAt).toLocaleDateString()}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Badge
+                                      variant={entry.status === "notified" ? "default" : "secondary"}
+                                      className="text-xs"
+                                    >
+                                      {entry.status === "waiting" && "Waiting"}
+                                      {entry.status === "notified" && "Notified"}
+                                      {entry.status === "booked" && "Booked"}
+                                      {entry.status === "expired" && "Expired"}
+                                    </Badge>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                                      onClick={() => removeFromWaitlist.mutate({ id: entry.id })}
+                                      disabled={removeFromWaitlist.isPending}
+                                      title="Remove from waitlist"
+                                    >
+                                      <X className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    });
+                  })()}
+                </div>
+              </div>
+            )}
           </TabsContent>
 
           {/* Services Tab — grouped by category */}

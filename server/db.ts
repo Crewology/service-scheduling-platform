@@ -230,4 +230,5 @@ export {
   expireOldNotifications,
   getWaitlistCount,
   getProviderWaitlistEntries,
+  providerRemoveFromWaitlist,
 } from "./db/waitlist";

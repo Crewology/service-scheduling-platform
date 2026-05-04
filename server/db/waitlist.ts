@@ -226,3 +226,16 @@ export async function getProviderWaitlistEntries(providerId: number) {
     )
     .orderBy(sql`${waitlistEntries.bookingDate} ASC`, asc(waitlistEntries.startTime), asc(waitlistEntries.position));
 }
+
+/**
+ * Provider removes a user from their waitlist (sets status to cancelled)
+ */
+export async function providerRemoveFromWaitlist(id: number, providerId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db
+    .update(waitlistEntries)
+    .set({ status: "cancelled" })
+    .where(and(eq(waitlistEntries.id, id), eq(waitlistEntries.providerId, providerId)));
+  return (result[0] as any).affectedRows > 0;
+}

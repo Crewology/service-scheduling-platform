@@ -1365,3 +1365,19 @@
 - [x] Navigation: My Waitlist link in mobile hamburger menu
 - [x] Notification template for waitlist_spot_available
 - [x] 18 tests passing for capacity validation and waitlist logic
+
+## Feature: Waitlist Help & Support Documentation
+- [x] Add help article: How the Waitlist Works (for customers)
+- [x] Add help article: Managing Waitlist Entries (for customers)
+- [x] Add help article: Viewing Your Waitlist (for providers)
+- [x] Add FAQ: How do I join a waitlist?
+- [x] Add FAQ: How will I be notified when a spot opens?
+- [x] Add FAQ: How do I see who's on my waitlist? (providers)
+
+## Feature: Provider-Side Waitlist View
+- [x] Add waitlist section in provider dashboard (Bookings tab)
+- [x] Show waitlist entries grouped by service/date
+- [x] Display customer name, date, time slot, position, and status
+- [x] Allow provider to remove waitlist entries
+- [x] providerRemove backend procedure with ownership validation
+- [x] 8 tests passing for provider waitlist view and removal logic

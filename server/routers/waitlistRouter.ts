@@ -152,6 +152,21 @@ export const waitlistRouter = router({
     }));
     return enriched;
   }),
+
+  /**
+   * Provider: remove a user from their waitlist
+   */
+  providerRemove: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider not found" });
+      const success = await db.providerRemoveFromWaitlist(input.id, provider.id);
+      if (!success) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Waitlist entry not found" });
+      }
+      return { success: true };
+    }),
 });
 
 /**

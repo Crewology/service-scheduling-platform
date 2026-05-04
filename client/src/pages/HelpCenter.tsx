@@ -152,6 +152,20 @@ const guideSections: GuideSection[] = [
           "Some services are offered as group classes — such as fitness classes, dance lessons, or workshops. When browsing a group class, you'll see how many spots are remaining for each time slot (e.g., \"3 spots left\"). You can book as long as spots are available. Once all spots are filled, that time slot becomes unavailable. Group classes are a great way to enjoy services at a lower per-person cost while meeting others with similar interests.",
       },
       {
+        title: "Joining a Waitlist",
+        content:
+          "When a group class time slot is completely full, you'll see a \"Notify Me\" button instead of the regular booking button. Tap it to join the waitlist for that specific date and time. If someone cancels their booking, you'll automatically receive a notification letting you know a spot has opened up. You can then book the newly available slot before anyone else. To manage your waitlist entries, visit the My Waitlist page from the navigation menu.",
+        link: "/my-waitlist",
+        linkText: "View My Waitlist",
+      },
+      {
+        title: "Managing Your Waitlist",
+        content:
+          "Your My Waitlist page shows all the group classes you're waiting for, organized into three sections: 'Spots Available' (a spot just opened — book now!), 'Waiting' (still full, you'll be notified when a spot opens), and 'Past' (expired or already booked). You can leave a waitlist at any time by clicking the remove button. When a spot opens, you'll receive both an in-app notification and an email so you never miss your chance to book.",
+        link: "/my-waitlist",
+        linkText: "View My Waitlist",
+      },
+      {
         title: "Booking Analytics",
         content:
           "Business-tier customers have access to a detailed analytics dashboard showing spending trends, booking history, category breakdowns, and top providers. You can also export your booking history as CSV, JSON, or a branded PDF report with charts.",
@@ -210,6 +224,11 @@ const guideSections: GuideSection[] = [
         title: "Creating Group Class Services",
         content:
           "If you offer group services like fitness classes, dance lessons, or workshops, you can enable the \"Group Class\" option when creating or editing a service. Toggle on \"This is a group class\" and set the maximum number of participants (e.g., 10 for a yoga class, 20 for a workshop). Customers will see how many spots are remaining when they book. Once all spots are filled for a time slot, it automatically becomes unavailable. This is perfect for categories like Fitness Classes & Trainers, Dance Lessons & Instructors, and similar group-based services.",
+      },
+      {
+        title: "Viewing Your Waitlist",
+        content:
+          "When your group classes are full, customers can join a waitlist for specific time slots. You can view all waitlist entries from the Waitlist section in your Provider Dashboard. Entries are grouped by service and date, showing each customer's name, position in line, and status. When a booking is cancelled, the next person on the waitlist is automatically notified that a spot has opened. You can also manually remove entries if needed. A healthy waitlist is a great sign — it means demand for your classes is high!",
       },
       {
         title: "Handling Bookings",
@@ -541,6 +560,24 @@ const faqItems: FAQItem[] = [
     question: "How does search ranking work?",
     answer:
       "Search results are ranked by a combination of your Trust Score and subscription tier. Your Trust Score is the primary factor — providers with higher trust levels appear first. Subscription tier provides a secondary boost: Business gets the highest boost, Professional gets a moderate boost, and Starter gets no boost. This means a Trusted provider on the free plan can still rank above a New provider on a paid plan, keeping the system merit-based.",
+    category: "Providers",
+  },
+  {
+    question: "How do I join a waitlist for a full group class?",
+    answer:
+      "When a group class time slot is completely full, you'll see a 'Notify Me' button instead of the regular booking button. Tap it to join the waitlist for that specific date and time. You'll be automatically notified when a spot opens up due to a cancellation. Visit the My Waitlist page from the navigation menu to see all your waitlist entries and their status.",
+    category: "Bookings",
+  },
+  {
+    question: "How will I be notified when a waitlist spot opens?",
+    answer:
+      "When someone cancels their booking for a group class you're on the waitlist for, you'll receive both an in-app notification (bell icon) and an email letting you know a spot is available. Act quickly — spots are first-come, first-served once they open up. Your My Waitlist page will also update to show 'Spot Available' status for that entry.",
+    category: "Bookings",
+  },
+  {
+    question: "How do I see who's on my waitlist? (Providers)",
+    answer:
+      "Go to your Provider Dashboard and look for the Waitlist section. You'll see all customers waiting for your group classes, organized by service and date. Each entry shows the customer's name, their position in line, the date/time they're waiting for, and their current status. When a booking is cancelled, the system automatically notifies the next person in line.",
     category: "Providers",
   },
 ];
