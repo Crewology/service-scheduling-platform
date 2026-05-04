@@ -1339,3 +1339,13 @@
 - [x] Auto-close time slot when capacity is reached (spotsRemaining = 0)
 - [x] Time slot generation supports group capacity (26 tests passing)
 - [x] Widget/embed booking also updated with capacity support
+
+## Feature: Update Help & Support Pages
+- [x] Add help content for calendar availability (grayed out slots, what they mean)
+- [x] Add help content for group classes (spots remaining, how to book)
+- [x] Add help content for providers: creating group class services
+- [x] Add help content for providers: blocking time on calendar
+- [x] Add help content for providers: understanding color-coded calendar
+- [x] Add help content for PWA installation (iPhone Safari + Android Chrome)
+- [x] Add FAQ entries: group classes, grayed out slots, block time, calendar colors, iPhone install, Android install
+- [x] Updated existing "Is there a mobile app?" FAQ with full PWA instructions

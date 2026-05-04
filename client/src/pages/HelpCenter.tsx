@@ -142,6 +142,16 @@ const guideSections: GuideSection[] = [
           "You can cancel a booking from the booking detail page. Please note that cancellation policies vary by provider — some may have cancellation fees or time restrictions. Check the provider's cancellation policy before booking. If you need to reschedule instead, contact the provider through messaging first.",
       },
       {
+        title: "Understanding Time Slot Availability",
+        content:
+          "When you select a date to book a service, you'll see available time slots displayed as buttons. Slots that are already booked or overlap with existing bookings are grayed out and cannot be selected — this prevents double-bookings and ensures the provider is available when you arrive. If all slots on a particular day are grayed out, the provider is fully booked for that date. Try selecting a different day or check back later for cancellations.",
+      },
+      {
+        title: "Booking Group Classes",
+        content:
+          "Some services are offered as group classes — such as fitness classes, dance lessons, or workshops. When browsing a group class, you'll see how many spots are remaining for each time slot (e.g., \"3 spots left\"). You can book as long as spots are available. Once all spots are filled, that time slot becomes unavailable. Group classes are a great way to enjoy services at a lower per-person cost while meeting others with similar interests.",
+      },
+      {
         title: "Booking Analytics",
         content:
           "Business-tier customers have access to a detailed analytics dashboard showing spending trends, booking history, category breakdowns, and top providers. You can also export your booking history as CSV, JSON, or a branded PDF report with charts.",
@@ -181,6 +191,25 @@ const guideSections: GuideSection[] = [
           "Set your weekly availability schedule so customers know when you're available. You can set different hours for each day of the week, block off specific dates, and manage your calendar from the Provider Calendar page. Customers can only book during your available time slots.",
         link: "/provider/availability",
         linkText: "Manage Availability",
+      },
+      {
+        title: "Blocking Time on Your Calendar",
+        content:
+          "Need to take time off for a vacation, personal appointment, or just a break? Use the \"Block Time\" button on your Provider Calendar to block off specific dates or time ranges. Blocked time appears in gray on your calendar with a ban icon, and customers won't be able to book during those times. You can block a full day or just specific hours (e.g., block 12:00–2:00 PM for lunch). To quickly block a date, double-click it on the calendar. View and manage all your upcoming blocked dates in the sidebar, where you can also delete blocks you no longer need.",
+        link: "/provider/calendar",
+        linkText: "View Calendar",
+      },
+      {
+        title: "Understanding Your Calendar Colors",
+        content:
+          "Your Provider Calendar uses color-coding to help you see your schedule at a glance:\n\n• Blue — Confirmed bookings\n• Amber/Yellow — Pending bookings (awaiting your confirmation)\n• Purple — In-progress bookings (service currently happening)\n• Green — Completed bookings\n• Red — Cancelled bookings\n• Gray — Blocked time (personal time, vacations)\n\nClick on any booking or blocked time entry to see full details. The calendar supports both month and week views — use the toggle at the top to switch between them.",
+        link: "/provider/calendar",
+        linkText: "View Calendar",
+      },
+      {
+        title: "Creating Group Class Services",
+        content:
+          "If you offer group services like fitness classes, dance lessons, or workshops, you can enable the \"Group Class\" option when creating or editing a service. Toggle on \"This is a group class\" and set the maximum number of participants (e.g., 10 for a yoga class, 20 for a workshop). Customers will see how many spots are remaining when they book. Once all spots are filled for a time slot, it automatically becomes unavailable. This is perfect for categories like Fitness Classes & Trainers, Dance Lessons & Instructors, and similar group-based services.",
       },
       {
         title: "Handling Bookings",
@@ -314,6 +343,11 @@ const guideSections: GuideSection[] = [
         linkText: "Privacy Policy",
       },
       {
+        title: "Installing OlogyCrew on Your Device",
+        content:
+          "OlogyCrew can be installed as an app on your phone, tablet, or computer for a faster, native-like experience without the browser bar.\n\n• iPhone (Safari only): Open OlogyCrew in Safari, tap the Share button (square with upward arrow) at the bottom, scroll down and tap 'Add to Home Screen', then tap 'Add'. Note: this only works in Safari — not Chrome or other browsers on iPhone.\n\n• Android (Chrome): Open in Chrome. You may see an automatic install banner — tap Install. If not, tap the three-dot menu (⋮) and select 'Install app' or 'Add to Home screen'.\n\n• Desktop (Chrome/Edge): Click the 'Install App' button in the banner at the bottom of the page, or find it in the footer or your user menu dropdown.\n\nOnce installed, OlogyCrew opens in its own window and works just like a native app. You can always find the 'Install App' link in the footer or user menu if you dismissed the banner.",
+      },
+      {
         title: "Navigation & Getting Around",
         content:
           "Every page on OlogyCrew includes a navigation header and breadcrumbs so you always know where you are and can easily get back. Use the back button at the top of any detail page to return to the previous screen. The navigation bar provides quick access to your bookings, messages, notifications, and profile from anywhere on the platform.",
@@ -332,7 +366,19 @@ const faqItems: FAQItem[] = [
   {
     question: "How do I book a service?",
     answer:
-      "Browse or search for the service you need, select a provider, choose your preferred date and time from their available slots, add any special instructions, and confirm your booking. You'll be guided through secure payment via Stripe.",
+      "Browse or search for the service you need, select a provider, choose your preferred date and time from their available slots, add any special instructions, and confirm your booking. You'll be guided through secure payment via Stripe. Note: grayed-out time slots are already booked or unavailable — only highlighted slots can be selected.",
+    category: "Bookings",
+  },
+  {
+    question: "What are group classes and how do I book one?",
+    answer:
+      "Some services are offered as group classes (e.g., fitness classes, dance lessons, workshops). When viewing a group class, you'll see how many spots are remaining for each time slot — for example, '3 spots left'. You can book as long as there are spots available. Once all spots are filled, that time slot becomes unavailable. Group classes are a great way to enjoy services at a lower per-person cost.",
+    category: "Bookings",
+  },
+  {
+    question: "Why are some time slots grayed out?",
+    answer:
+      "Grayed-out time slots indicate that the provider is unavailable during that time. This could be because: (1) another customer has already booked that slot, (2) the provider has blocked off that time for personal reasons, or (3) the time slot overlaps with an existing booking. Only available (highlighted) slots can be selected for booking.",
     category: "Bookings",
   },
   {
@@ -372,6 +418,24 @@ const faqItems: FAQItem[] = [
     category: "Providers",
   },
   {
+    question: "How do I offer group classes as a provider?",
+    answer:
+      "When creating or editing a service, toggle on 'This is a group class' and set the maximum number of participants. For example, set it to 10 for a yoga class or 20 for a workshop. Customers will see how many spots remain for each time slot. Once all spots are filled, the slot automatically closes. This is ideal for categories like Fitness Classes & Trainers, Dance Lessons & Instructors, and similar group-based services.",
+    category: "Providers",
+  },
+  {
+    question: "How do I block off time on my calendar?",
+    answer:
+      "Go to your Provider Calendar and click the 'Block Time' button. Select the date(s) and optionally set specific start/end times (or block the full day). Blocked time appears in gray on your calendar and prevents customers from booking during those times. You can also double-click any date on the calendar to quickly block it. To remove a block, find it in the 'Upcoming Blocked Dates' sidebar and click the delete button.",
+    category: "Providers",
+  },
+  {
+    question: "What do the colors on my provider calendar mean?",
+    answer:
+      "Your calendar uses color-coding: Blue = Confirmed bookings, Amber/Yellow = Pending bookings, Purple = In-progress, Green = Completed, Red = Cancelled, Gray = Blocked time (personal time off). Click any entry to see full details.",
+    category: "Providers",
+  },
+  {
     question: "How do quote requests work?",
     answer:
       "Customers can send quote requests describing what they need, their preferred dates, and budget. Providers receive the request and respond with custom pricing. Customers can compare quotes from multiple providers before deciding. Business-tier customers can send bulk quotes to multiple providers at once.",
@@ -380,7 +444,19 @@ const faqItems: FAQItem[] = [
   {
     question: "Is there a mobile app?",
     answer:
-      "OlogyCrew is a fully responsive web application that works great on mobile browsers — no app download needed. Simply visit the site on your phone's browser and you'll get the full experience optimized for your screen size.",
+      "OlogyCrew is a Progressive Web App (PWA) that you can install directly to your device's home screen for a native app-like experience — no app store needed! On iPhone: open the site in Safari, tap the Share button (square with arrow), then tap 'Add to Home Screen'. On Android: open in Chrome and tap 'Install App' from the menu, or look for the install banner. On Desktop: click the 'Install App' button in the banner or find it in the footer/user menu. Once installed, OlogyCrew opens in its own window without the browser bar, just like a native app.",
+    category: "General",
+  },
+  {
+    question: "How do I install OlogyCrew on my iPhone?",
+    answer:
+      "Apple requires a specific process to add web apps to your iPhone: (1) Open OlogyCrew in Safari — this only works in Safari, not Chrome or other browsers. (2) Tap the Share button at the bottom of the screen (the square with an upward arrow). (3) Scroll down and tap 'Add to Home Screen'. (4) Tap 'Add' in the top right. The app will appear on your home screen and open without the Safari browser bar. You can also find the 'Install App' link in the footer or user menu at any time.",
+    category: "General",
+  },
+  {
+    question: "How do I install OlogyCrew on my Android device?",
+    answer:
+      "On Android, open OlogyCrew in Chrome. You may see an automatic 'Add to Home Screen' banner — just tap Install. If no banner appears, tap the three-dot menu (⋮) in the top right corner and select 'Install app' or 'Add to Home screen'. The app will install and appear on your home screen as a standalone app. Samsung Internet and Firefox also support installation through their respective menus.",
     category: "General",
   },
   {
