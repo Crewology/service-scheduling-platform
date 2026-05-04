@@ -160,6 +160,9 @@ export const services = mysqlTable("services", {
   cancellationPolicy: text("cancellationPolicy"),
   specialRequirements: text("specialRequirements"),
   equipmentNeeded: text("equipmentNeeded"),
+  // Group class / capacity settings
+  isGroupClass: boolean("isGroupClass").default(false).notNull(),
+  maxCapacity: int("maxCapacity").default(1).notNull(), // 1 = individual, >1 = group class
   isActive: boolean("isActive").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

@@ -218,6 +218,13 @@
       "when": 1776824001586,
       "tag": "0030_cynical_dagger",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "5",
+      "when": 1777913351479,
+      "tag": "0031_secret_lord_hawal",
+      "breakpoints": true
     }
   ]
 }

@@ -1078,6 +1078,8 @@ export default function ProviderDashboard() {
       depositType: service.depositType || "fixed",
       depositAmount: service.depositAmount || "",
       depositPercentage: service.depositPercentage || "",
+      isGroupClass: service.isGroupClass ?? false,
+      maxCapacity: service.maxCapacity || 1,
     });
     setEditingService(service);
   };
@@ -2337,6 +2339,35 @@ export default function ProviderDashboard() {
                       />
                     </div>
                   )}
+                </div>
+              )}
+            </div>
+
+            {/* Group Class / Capacity */}
+            <div className="space-y-3">
+              <Label className="text-sm font-semibold">Group Class / Capacity</Label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="edit-group-class"
+                  checked={serviceForm.isGroupClass || false}
+                  onChange={e => setServiceForm({ ...serviceForm, isGroupClass: e.target.checked, maxCapacity: e.target.checked ? 10 : 1 })}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+                <Label htmlFor="edit-group-class" className="mb-0 cursor-pointer">This is a group class/session</Label>
+              </div>
+              {serviceForm.isGroupClass && (
+                <div>
+                  <Label>Maximum Participants Per Session</Label>
+                  <Input
+                    type="number"
+                    min="2"
+                    max="100"
+                    value={serviceForm.maxCapacity || 10}
+                    onChange={e => setServiceForm({ ...serviceForm, maxCapacity: parseInt(e.target.value) || 10 })}
+                    placeholder="10"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Customers will see remaining spots when booking.</p>
                 </div>
               )}
             </div>

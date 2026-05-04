@@ -226,8 +226,12 @@ export default function ServiceDetail() {
       (existingBookings || []).map((b: any) => ({
         bookingDate: b.bookingDate,
         bookingTime: b.startTime,
+        endTime: b.endTime,
+        durationMinutes: b.durationMinutes,
         status: b.status,
-      }))
+      })),
+      30,
+      service.maxCapacity || 1
     );
     
     setAvailableSlots(slots);
@@ -1016,6 +1020,11 @@ export default function ServiceDetail() {
                       {totalSlots > 0 && (
                         <p className="text-xs text-muted-foreground mt-1">
                           {availableCount} of {totalSlots} slots available
+                          {service?.isGroupClass && service.maxCapacity > 1 && (
+                            <span className="ml-1">
+                              (Group class · up to {service.maxCapacity} per session)
+                            </span>
+                          )}
                         </p>
                       )}
                     </div>
@@ -1052,15 +1061,33 @@ export default function ServiceDetail() {
                               setSelectedTime(slot.time);
                               setBookingStep("details");
                             }}
-                            className={`h-auto py-2 text-xs ${
+                            className={`h-auto py-1.5 text-xs flex flex-col items-center gap-0.5 ${
                               !slot.available
-                                ? "opacity-40 line-through"
+                                ? "opacity-40"
                                 : selectedTime === slot.time
                                 ? ""
                                 : "hover:border-primary hover:text-primary"
                             }`}
                           >
-                            {formatTimeForDisplay(slot.time)}
+                            <span className={!slot.available ? "line-through" : ""}>
+                              {formatTimeForDisplay(slot.time)}
+                            </span>
+                            {service?.isGroupClass && slot.maxCapacity > 1 && (
+                              <span className={`text-[10px] font-normal ${
+                                !slot.available
+                                  ? "text-destructive"
+                                  : slot.spotsRemaining <= 3
+                                  ? "text-amber-600"
+                                  : "text-muted-foreground"
+                              }`}>
+                                {slot.available
+                                  ? `${slot.spotsRemaining} spot${slot.spotsRemaining !== 1 ? "s" : ""} left`
+                                  : "Full"}
+                              </span>
+                            )}
+                            {!service?.isGroupClass && !slot.available && (
+                              <span className="text-[10px] font-normal text-destructive">Booked</span>
+                            )}
                           </Button>
                         ))}
                       </div>

@@ -146,8 +146,12 @@ export default function EmbedBooking() {
       ((bookedSlots || []) as any[]).map((b: any) => ({
         bookingDate: b.bookingDate,
         bookingTime: b.bookingTime,
+        endTime: b.endTime,
+        durationMinutes: b.durationMinutes,
         status: b.status,
-      }))
+      })),
+      30,
+      service.maxCapacity || 1
     );
     setAvailableSlots(slots);
   }, [selectedDate, service, weeklySchedule, allOverrides, bookedSlots]);

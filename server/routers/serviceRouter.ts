@@ -18,6 +18,8 @@ export const serviceRouter = router({
       depositType: z.enum(["fixed", "percentage"]).optional(),
       depositAmount: z.union([z.number(), z.string()]).optional(),
       depositPercentage: z.union([z.number(), z.string()]).optional(),
+      isGroupClass: z.boolean().default(false),
+      maxCapacity: z.number().min(1).default(1),
     }))
     .mutation(async ({ ctx, input }) => {
       const provider = await db.getProviderByUserId(ctx.user.id);
@@ -48,6 +50,8 @@ export const serviceRouter = router({
         depositType: input.depositType,
         depositAmount: input.depositAmount?.toString().trim() || null,
         depositPercentage: input.depositPercentage?.toString().trim() || null,
+        isGroupClass: input.isGroupClass,
+        maxCapacity: input.maxCapacity,
       });
       const providerServices = await db.getServicesByProviderId(provider.id);
       const created = providerServices.find(s => s.name === input.name);
@@ -149,6 +153,8 @@ export const serviceRouter = router({
       cancellationPolicy: z.string().optional(),
       specialRequirements: z.string().optional(),
       isActive: z.boolean().optional(),
+      isGroupClass: z.boolean().optional(),
+      maxCapacity: z.number().min(1).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const provider = await db.getProviderByUserId(ctx.user.id);

@@ -66,6 +66,8 @@ export default function CreateService() {
     depositType: "fixed" as "fixed" | "percentage",
     depositAmount: "",
     depositPercentage: "",
+    isGroupClass: false,
+    maxCapacity: "1",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -93,6 +95,8 @@ export default function CreateService() {
       depositPercentage: formData.depositRequired && formData.depositType === "percentage"
         ? parseFloat(formData.depositPercentage)
         : undefined,
+      isGroupClass: formData.isGroupClass,
+      maxCapacity: formData.isGroupClass ? parseInt(formData.maxCapacity) : 1,
     });
   };
 
@@ -294,6 +298,47 @@ export default function CreateService() {
                     placeholder="0.00"
                     required
                   />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Group Class / Capacity */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Class & Capacity</CardTitle>
+              <CardDescription>Set up group classes with participant limits</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="isGroupClass"
+                  checked={formData.isGroupClass}
+                  onChange={(e) => setFormData({ ...formData, isGroupClass: e.target.checked, maxCapacity: e.target.checked ? "10" : "1" })}
+                  className="h-4 w-4"
+                />
+                <Label htmlFor="isGroupClass" className="cursor-pointer">
+                  This is a group class/session (multiple participants per time slot)
+                </Label>
+              </div>
+
+              {formData.isGroupClass && (
+                <div>
+                  <Label htmlFor="maxCapacity">Maximum Participants Per Session *</Label>
+                  <Input
+                    id="maxCapacity"
+                    type="number"
+                    min="2"
+                    max="100"
+                    value={formData.maxCapacity}
+                    onChange={(e) => setFormData({ ...formData, maxCapacity: e.target.value })}
+                    placeholder="10"
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Customers will see remaining spots when booking. The slot auto-closes when full.
+                  </p>
                 </div>
               )}
             </CardContent>

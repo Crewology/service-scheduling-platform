@@ -57,6 +57,8 @@ export const widgetRouter = router({
           hourlyRate: service.hourlyRate,
           durationMinutes: service.durationMinutes,
           pricingModel: service.pricingModel,
+          isGroupClass: service.isGroupClass,
+          maxCapacity: service.maxCapacity,
         },
         provider: provider ? {
           id: provider.id,

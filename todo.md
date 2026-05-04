@@ -1321,3 +1321,21 @@
 - [x] Replace window.open(_blank) with window.location.href for Stripe checkout URLs (all 10 instances)
 - [x] Ensure redirect works on mobile Safari and Chrome
 - [x] Remove toast about "new tab" since we're redirecting in same window
+
+## Feature: Calendar Availability Display
+- [x] Customer booking calendar shows booked/unavailable time slots as grayed out
+- [x] Backend time slot generation with proper overlap detection (not just exact match)
+- [x] Provider dashboard calendar shows color-coded bookings (confirmed=blue, pending=amber, blocked=gray)
+- [x] Providers can manually block off dates/times via Block Time dialog
+- [x] Blocked dates shown on provider calendar (gray with ban icon)
+- [x] Upcoming blocked dates sidebar with delete option
+- [x] Double-click any date to quickly block it
+
+## Feature: Class Capacity for Group Services
+- [x] Add isGroupClass and maxCapacity fields to services schema
+- [x] Provider can set class size when creating a service (toggle + capacity input)
+- [x] Provider can set class size when editing a service
+- [x] Customer sees "X spots left" on available time slots for group classes
+- [x] Auto-close time slot when capacity is reached (spotsRemaining = 0)
+- [x] Time slot generation supports group capacity (26 tests passing)
+- [x] Widget/embed booking also updated with capacity support

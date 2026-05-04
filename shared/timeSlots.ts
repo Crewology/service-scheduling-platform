@@ -1,10 +1,14 @@
 /**
  * Time slot generation and availability checking utilities
+ * Supports overlap detection and group class capacity
  */
 
 export interface TimeSlot {
   time: string; // HH:MM format (e.g., "09:00")
   available: boolean;
+  bookingCount: number; // Number of existing bookings at this slot
+  maxCapacity: number; // Max allowed bookings (1 for individual, >1 for group)
+  spotsRemaining: number; // maxCapacity - bookingCount
   bookingId?: number;
 }
 
@@ -24,19 +28,25 @@ export interface ScheduleOverride {
 
 export interface ExistingBooking {
   bookingDate: string; // YYYY-MM-DD format
-  bookingTime: string; // HH:MM format
+  bookingTime: string; // HH:MM format (start time)
+  endTime?: string; // HH:MM format (end time for overlap detection)
+  durationMinutes?: number; // Duration for overlap detection
   status: string;
+}
+
+export interface GenerateTimeSlotsOptions {
+  date: string;
+  serviceDurationMinutes: number;
+  weeklySchedule: WeeklySchedule[];
+  overrides: ScheduleOverride[];
+  existingBookings: ExistingBooking[];
+  slotIntervalMinutes?: number;
+  maxCapacity?: number; // 1 = individual (default), >1 = group class
 }
 
 /**
  * Generate time slots for a given date based on provider's schedule
- * @param date - Date in YYYY-MM-DD format
- * @param serviceDurationMinutes - Duration of the service in minutes
- * @param weeklySchedule - Provider's weekly recurring schedule
- * @param overrides - Date-specific schedule overrides
- * @param existingBookings - Already booked time slots
- * @param slotIntervalMinutes - Interval between time slots (default: 30)
- * @returns Array of time slots with availability status
+ * Properly detects overlapping bookings and supports group class capacity
  */
 export function generateTimeSlots(
   date: string,
@@ -44,7 +54,8 @@ export function generateTimeSlots(
   weeklySchedule: WeeklySchedule[],
   overrides: ScheduleOverride[],
   existingBookings: ExistingBooking[],
-  slotIntervalMinutes: number = 30
+  slotIntervalMinutes: number = 30,
+  maxCapacity: number = 1
 ): TimeSlot[] {
   // Get day of week for the date (0 = Sunday, 6 = Saturday)
   const dateObj = new Date(date + 'T00:00:00');
@@ -77,6 +88,12 @@ export function generateTimeSlots(
     return [];
   }
 
+  // Filter active bookings for this date
+  const activeBookings = existingBookings.filter(
+    b => b.bookingDate === date && 
+         ['pending', 'confirmed', 'in_progress'].includes(b.status)
+  );
+
   // Generate time slots
   const slots: TimeSlot[] = [];
   const startMinutes = timeToMinutes(startTime);
@@ -90,17 +107,26 @@ export function generateTimeSlots(
       break; // Not enough time for service
     }
 
-    // Check if this slot is already booked
-    const booking = existingBookings.find(
-      b => b.bookingDate === date && 
-           b.bookingTime === slotTime &&
-           ['pending', 'confirmed', 'in_progress'].includes(b.status)
+    // Count overlapping bookings for this time slot
+    const slotStartMinutes = minutes;
+    const slotEndMinutes = minutes + serviceDurationMinutes;
+    
+    const bookingCount = countOverlappingBookings(
+      activeBookings,
+      slotStartMinutes,
+      slotEndMinutes,
+      serviceDurationMinutes
     );
+
+    const spotsRemaining = Math.max(0, maxCapacity - bookingCount);
+    const available = spotsRemaining > 0;
 
     slots.push({
       time: slotTime,
-      available: !booking,
-      bookingId: booking ? undefined : undefined, // Could store booking ID if needed
+      available,
+      bookingCount,
+      maxCapacity,
+      spotsRemaining,
     });
   }
 
@@ -108,9 +134,42 @@ export function generateTimeSlots(
 }
 
 /**
+ * Count how many existing bookings overlap with a proposed time slot
+ */
+function countOverlappingBookings(
+  bookings: ExistingBooking[],
+  slotStartMinutes: number,
+  slotEndMinutes: number,
+  defaultDuration: number
+): number {
+  let count = 0;
+  
+  for (const booking of bookings) {
+    const bookingStartMinutes = timeToMinutes(booking.bookingTime);
+    let bookingEndMinutes: number;
+    
+    if (booking.endTime) {
+      bookingEndMinutes = timeToMinutes(booking.endTime);
+    } else if (booking.durationMinutes) {
+      bookingEndMinutes = bookingStartMinutes + booking.durationMinutes;
+    } else {
+      // Fallback: assume same duration as the service being booked
+      bookingEndMinutes = bookingStartMinutes + defaultDuration;
+    }
+
+    // Check for overlap: two intervals overlap if start1 < end2 AND start2 < end1
+    if (slotStartMinutes < bookingEndMinutes && bookingStartMinutes < slotEndMinutes) {
+      count++;
+    }
+  }
+  
+  return count;
+}
+
+/**
  * Convert HH:MM time string to minutes since midnight
  */
-function timeToMinutes(time: string): number {
+export function timeToMinutes(time: string): number {
   const [hours, minutes] = time.split(':').map(Number);
   return hours * 60 + minutes;
 }
@@ -118,7 +177,7 @@ function timeToMinutes(time: string): number {
 /**
  * Convert minutes since midnight to HH:MM time string
  */
-function minutesToTime(minutes: number): string {
+export function minutesToTime(minutes: number): string {
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
   return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
@@ -133,14 +192,17 @@ export function isTimeSlotAvailable(
   serviceDurationMinutes: number,
   weeklySchedule: WeeklySchedule[],
   overrides: ScheduleOverride[],
-  existingBookings: ExistingBooking[]
+  existingBookings: ExistingBooking[],
+  maxCapacity: number = 1
 ): boolean {
   const slots = generateTimeSlots(
     date,
     serviceDurationMinutes,
     weeklySchedule,
     overrides,
-    existingBookings
+    existingBookings,
+    30,
+    maxCapacity
   );
 
   const slot = slots.find(s => s.time === time);
