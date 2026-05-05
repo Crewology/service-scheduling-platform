@@ -1202,6 +1202,8 @@ export async function upsertProviderSubscription(data: {
   currentPeriodStart?: Date;
   currentPeriodEnd?: Date;
   trialEndsAt?: Date;
+  pausedAt?: Date | null;
+  resumesAt?: Date | null;
   cancelAtPeriodEnd?: boolean;
 }) {
   const database = await getDb();
@@ -1209,18 +1211,21 @@ export async function upsertProviderSubscription(data: {
   
   const existing = await getProviderSubscription(data.providerId);
   if (existing) {
+    const setData: any = {
+      tier: data.tier,
+      stripeSubscriptionId: data.stripeSubscriptionId,
+      stripeCustomerId: data.stripeCustomerId,
+      status: data.status,
+      currentPeriodStart: data.currentPeriodStart,
+      currentPeriodEnd: data.currentPeriodEnd,
+      trialEndsAt: data.trialEndsAt,
+      cancelAtPeriodEnd: data.cancelAtPeriodEnd,
+    };
+    if (data.pausedAt !== undefined) setData.pausedAt = data.pausedAt;
+    if (data.resumesAt !== undefined) setData.resumesAt = data.resumesAt;
     await database
       .update(providerSubscriptions)
-      .set({
-        tier: data.tier,
-        stripeSubscriptionId: data.stripeSubscriptionId,
-        stripeCustomerId: data.stripeCustomerId,
-        status: data.status,
-        currentPeriodStart: data.currentPeriodStart,
-        currentPeriodEnd: data.currentPeriodEnd,
-        trialEndsAt: data.trialEndsAt,
-        cancelAtPeriodEnd: data.cancelAtPeriodEnd,
-      } as any)
+      .set(setData)
       .where(eq(providerSubscriptions.id, existing.id));
   } else {
     await database.insert(providerSubscriptions).values(data as any);
@@ -1230,7 +1235,7 @@ export async function upsertProviderSubscription(data: {
 export async function getProviderTier(providerId: number): Promise<"free" | "basic" | "premium"> {
   const sub = await getProviderSubscription(providerId);
   if (!sub) return "free";
-  if (sub.status !== "active" && sub.status !== "trialing") return "free";
+  if (sub.status !== "active" && sub.status !== "trialing" && sub.status !== "paused") return "free";
   return sub.tier;
 }
 

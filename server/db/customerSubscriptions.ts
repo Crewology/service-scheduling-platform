@@ -35,10 +35,12 @@ export async function upsertCustomerSubscription(data: {
   tier: "free" | "pro" | "business";
   stripeSubscriptionId?: string;
   stripeCustomerId?: string;
-  status?: "active" | "trialing" | "past_due" | "cancelled" | "incomplete";
+  status?: "active" | "trialing" | "past_due" | "cancelled" | "incomplete" | "paused";
   currentPeriodStart?: Date;
   currentPeriodEnd?: Date;
   trialEndsAt?: Date;
+  pausedAt?: Date | null;
+  resumesAt?: Date | null;
   cancelAtPeriodEnd?: boolean;
 }) {
   const db = await getDb();
@@ -56,6 +58,8 @@ export async function upsertCustomerSubscription(data: {
         currentPeriodStart: data.currentPeriodStart ?? existing.currentPeriodStart,
         currentPeriodEnd: data.currentPeriodEnd ?? existing.currentPeriodEnd,
         trialEndsAt: data.trialEndsAt ?? existing.trialEndsAt,
+        pausedAt: data.pausedAt !== undefined ? data.pausedAt : existing.pausedAt,
+        resumesAt: data.resumesAt !== undefined ? data.resumesAt : existing.resumesAt,
         cancelAtPeriodEnd: data.cancelAtPeriodEnd ?? existing.cancelAtPeriodEnd,
       })
       .where(eq(customerSubscriptions.id, existing.id));

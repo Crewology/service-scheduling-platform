@@ -6,6 +6,7 @@ import { ENV } from "./_core/env";
 import * as db from "./db";
 import { SUBSCRIPTION_TIERS, STRIPE_PRODUCT_NAME, getTrialDays, type SubscriptionTier } from "./products";
 import { sendTrialStartedNotification, checkAndSendTrialMilestoneNotification } from "./trialNotifications";
+import { sendNotification } from "./notifications";
 
 const stripe = new Stripe(ENV.stripeSecretKey, {
   apiVersion: "2025-12-18.acacia" as any,
@@ -394,6 +395,20 @@ export const subscriptionRouter = router({
           currentPeriodEnd: undefined,
         });
 
+        // Send downgrade notification
+        if (ctx.user.email) {
+          await sendNotification({
+            type: "subscription_downgraded",
+            channel: "email",
+            recipient: { userId: ctx.user.id, email: ctx.user.email, name: ctx.user.name || undefined },
+            data: {
+              tier: "Starter (Free)",
+              previousTier: SUBSCRIPTION_TIERS[currentTier].name,
+              businessName: provider.businessName || undefined,
+            },
+          });
+        }
+
         return { success: true, newTier: "free" as const, message: "Downgraded to Starter. Prorated credit issued." };
       }
 
@@ -440,6 +455,20 @@ export const subscriptionRouter = router({
             status: "active",
           });
 
+          // Send downgrade notification
+          if (ctx.user.email) {
+            await sendNotification({
+              type: "subscription_downgraded",
+              channel: "email",
+              recipient: { userId: ctx.user.id, email: ctx.user.email, name: ctx.user.name || undefined },
+              data: {
+                tier: SUBSCRIPTION_TIERS.basic.name,
+                previousTier: SUBSCRIPTION_TIERS.premium.name,
+                businessName: provider.businessName || undefined,
+              },
+            });
+          }
+
           return { success: true, newTier: "basic" as const, message: "Downgraded to Professional. Prorated credit applied." };
         } catch (err: any) {
           console.error("[Downgrade] Failed to update Stripe subscription:", err.message);
@@ -449,6 +478,142 @@ export const subscriptionRouter = router({
 
       throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid downgrade path" });
     }),
+
+  // Pause subscription (up to 30 days)
+  pause: protectedProcedure
+    .input(z.object({
+      resumeDate: z.string().optional(), // ISO date string when to auto-resume
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+      }
+
+      const sub = await db.getProviderSubscription(provider.id);
+      if (!sub || !sub.stripeSubscriptionId) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "No active subscription to pause" });
+      }
+
+      if (sub.status === "paused") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Subscription is already paused" });
+      }
+
+      if (sub.status !== "active") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Only active subscriptions can be paused" });
+      }
+
+      // Calculate resume date (default 30 days, max 30 days)
+      const now = new Date();
+      let resumesAt: Date;
+      if (input.resumeDate) {
+        resumesAt = new Date(input.resumeDate);
+        const maxDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+        if (resumesAt > maxDate) resumesAt = maxDate;
+        if (resumesAt <= now) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Resume date must be in the future" });
+        }
+      } else {
+        resumesAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      }
+
+      // Pause the Stripe subscription
+      try {
+        await stripe.subscriptions.update(sub.stripeSubscriptionId, {
+          pause_collection: {
+            behavior: "void",
+            resumes_at: Math.floor(resumesAt.getTime() / 1000),
+          },
+        });
+      } catch (err: any) {
+        console.error("[Pause] Failed to pause Stripe subscription:", err.message);
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to pause subscription" });
+      }
+
+      // Update local record
+      await db.upsertProviderSubscription({
+        providerId: provider.id,
+        tier: sub.tier,
+        status: "paused",
+        pausedAt: now,
+        resumesAt: resumesAt,
+      });
+
+      // Send notification
+      if (ctx.user.email) {
+        await sendNotification({
+          type: "subscription_paused",
+          channel: "email",
+          recipient: { userId: ctx.user.id, email: ctx.user.email, name: ctx.user.name || undefined },
+          data: {
+            tier: SUBSCRIPTION_TIERS[sub.tier].name,
+            businessName: provider.businessName || undefined,
+            resumeDate: resumesAt.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
+          },
+        });
+      }
+
+      return {
+        success: true,
+        pausedAt: now.toISOString(),
+        resumesAt: resumesAt.toISOString(),
+        message: `Subscription paused. Will auto-resume on ${resumesAt.toLocaleDateString()}.`,
+      };
+    }),
+
+  // Resume a paused subscription
+  resume: protectedProcedure.mutation(async ({ ctx }) => {
+    const provider = await db.getProviderByUserId(ctx.user.id);
+    if (!provider) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+    }
+
+    const sub = await db.getProviderSubscription(provider.id);
+    if (!sub || !sub.stripeSubscriptionId) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "No subscription found" });
+    }
+
+    if (sub.status !== "paused") {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Subscription is not paused" });
+    }
+
+    // Resume the Stripe subscription
+    try {
+      await stripe.subscriptions.update(sub.stripeSubscriptionId, {
+        pause_collection: "",  // Remove pause
+      } as any);
+    } catch (err: any) {
+      console.error("[Resume] Failed to resume Stripe subscription:", err.message);
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to resume subscription" });
+    }
+
+    // Update local record
+    await db.upsertProviderSubscription({
+      providerId: provider.id,
+      tier: sub.tier,
+      status: "active",
+      pausedAt: null,
+      resumesAt: null,
+    });
+
+    // Send notification
+    if (ctx.user.email) {
+      await sendNotification({
+        type: "subscription_resumed",
+        channel: "email",
+        recipient: { userId: ctx.user.id, email: ctx.user.email, name: ctx.user.name || undefined },
+        data: {
+          tier: SUBSCRIPTION_TIERS[sub.tier].name,
+          businessName: provider.businessName || undefined,
+        },
+      });
+    }
+
+    return {
+      success: true,
+      message: "Subscription resumed! Your plan is active again.",
+    };
+  }),
 
   // Admin: get subscription analytics
   analytics: protectedProcedure.query(async ({ ctx }) => {

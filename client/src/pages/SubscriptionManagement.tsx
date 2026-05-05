@@ -19,6 +19,8 @@ import {
   Users,
   BarChart3,
   AlertTriangle,
+  Pause,
+  Play,
 } from "lucide-react";
 import { Link } from "wouter";
 import { NavHeader } from "@/components/shared/NavHeader";
@@ -125,6 +127,8 @@ export default function SubscriptionManagement() {
 
   const [downgradeTarget, setDowngradeTarget] = useState<"free" | "basic" | null>(null);
   const [showDowngradeDialog, setShowDowngradeDialog] = useState(false);
+  const [showPauseDialog, setShowPauseDialog] = useState(false);
+  const [pauseDuration, setPauseDuration] = useState<"7" | "14" | "30">("30");
 
   const downgrade = trpc.subscription.downgrade.useMutation({
     onSuccess: (data) => {
@@ -145,6 +149,26 @@ export default function SubscriptionManagement() {
       if (data.url) {
         window.location.href = data.url;
       }
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const pauseSubscription = trpc.subscription.pause.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.message);
+      setShowPauseDialog(false);
+      window.location.reload();
+    },
+    onError: (err) => {
+      toast.error(err.message);
+      setShowPauseDialog(false);
+    },
+  });
+
+  const resumeSubscription = trpc.subscription.resume.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.message);
+      window.location.reload();
     },
     onError: (err) => toast.error(err.message),
   });
@@ -313,34 +337,74 @@ export default function SubscriptionManagement() {
 
         {/* Current Plan Badge */}
         {currentTier !== "free" && (
-          <div className="mb-8 p-4 rounded-lg bg-primary/5 border border-primary/20 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Crown className="h-5 w-5 text-primary" />
-              <div>
-                <p className="font-medium">
-                  Current Plan: <span className="text-primary capitalize">{currentTier}</span>
-                </p>
-                {currentSub?.subscription?.status === "active" && (
-                  <p className="text-sm text-muted-foreground">
-                    {currentSub.subscription.cancelAtPeriodEnd 
-                      ? "Cancels at end of billing period" 
-                      : "Active and renewing"}
+          <div className="mb-8 p-4 rounded-lg bg-primary/5 border border-primary/20">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Crown className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="font-medium">
+                    Current Plan: <span className="text-primary capitalize">{currentTier === "basic" ? "Professional" : "Business"}</span>
+                    {currentSub?.subscription?.status === "paused" && (
+                      <Badge variant="secondary" className="ml-2 bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                        <Pause className="h-3 w-3 mr-1" /> Paused
+                      </Badge>
+                    )}
                   </p>
-                )}
+                  {currentSub?.subscription?.status === "active" && (
+                    <p className="text-sm text-muted-foreground">
+                      {currentSub.subscription.cancelAtPeriodEnd 
+                        ? "Cancels at end of billing period" 
+                        : "Active and renewing"}
+                    </p>
+                  )}
+                  {currentSub?.subscription?.status === "paused" && currentSub?.subscription?.resumesAt && (
+                    <p className="text-sm text-muted-foreground">
+                      Resumes on {new Date(currentSub.subscription.resumesAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {currentSub?.subscription?.status === "paused" ? (
+                  <Button 
+                    variant="default" 
+                    size="sm"
+                    onClick={() => resumeSubscription.mutate()}
+                    disabled={resumeSubscription.isPending}
+                  >
+                    {resumeSubscription.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                    ) : (
+                      <Play className="h-4 w-4 mr-1" />
+                    )}
+                    Resume Plan
+                  </Button>
+                ) : currentSub?.subscription?.status === "active" ? (
+                  <>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setShowPauseDialog(true)}
+                    >
+                      <Pause className="h-4 w-4 mr-1" />
+                      Pause Plan
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => manageSubscription.mutate()}
+                      disabled={manageSubscription.isPending}
+                    >
+                      {manageSubscription.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        "Manage Billing"
+                      )}
+                    </Button>
+                  </>
+                ) : null}
               </div>
             </div>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => manageSubscription.mutate()}
-              disabled={manageSubscription.isPending}
-            >
-              {manageSubscription.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                "Manage Subscription"
-              )}
-            </Button>
           </div>
         )}
 
@@ -557,6 +621,75 @@ export default function SubscriptionManagement() {
           </div>
         </div>
       </div>
+
+      {/* Pause Subscription Dialog */}
+      <Dialog open={showPauseDialog} onOpenChange={setShowPauseDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pause className="h-5 w-5 text-amber-500" />
+              Pause Your Subscription
+            </DialogTitle>
+            <DialogDescription className="text-left space-y-3 pt-2">
+              <p>
+                Pausing your subscription will temporarily stop billing. Your profile and data will be preserved, but:
+              </p>
+              <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm">
+                <ul className="text-amber-700 dark:text-amber-300 space-y-1 text-xs">
+                  <li>• You won't be charged during the pause</li>
+                  <li>• Customers cannot book new appointments</li>
+                  <li>• Your profile will show as "temporarily unavailable"</li>
+                  <li>• Existing bookings remain unaffected</li>
+                  <li>• Your plan features are preserved when you resume</li>
+                </ul>
+              </div>
+              <div className="pt-2">
+                <p className="text-sm font-medium mb-2">How long would you like to pause?</p>
+                <div className="flex gap-2">
+                  {(["7", "14", "30"] as const).map((days) => (
+                    <button
+                      key={days}
+                      onClick={() => setPauseDuration(days)}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                        pauseDuration === days
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-muted text-muted-foreground border-border hover:border-primary/50"
+                      }`}
+                    >
+                      {days} days
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 sm:gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowPauseDialog(false)}
+              disabled={pauseSubscription.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="default"
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+              onClick={() => {
+                const resumeDate = new Date();
+                resumeDate.setDate(resumeDate.getDate() + parseInt(pauseDuration));
+                pauseSubscription.mutate({ resumeDate: resumeDate.toISOString() });
+              }}
+              disabled={pauseSubscription.isPending}
+            >
+              {pauseSubscription.isPending ? (
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Pausing...</>
+              ) : (
+                `Pause for ${pauseDuration} Days`
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Downgrade Confirmation Dialog */}
       <Dialog open={showDowngradeDialog} onOpenChange={setShowDowngradeDialog}>

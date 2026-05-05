@@ -328,6 +328,10 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
     return;
   }
 
+  // Get previous tier to detect upgrades
+  const existingSub = await db.getProviderSubscription(parseInt(providerId));
+  const previousTier = existingSub?.tier || "free";
+
   await db.upsertProviderSubscription({
     providerId: parseInt(providerId),
     tier,
@@ -339,6 +343,29 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
     trialEndsAt: subscription.trial_end ? new Date(subscription.trial_end * 1000) : undefined,
     cancelAtPeriodEnd: subscription.cancel_at_period_end,
   });
+
+  // Send upgrade notification if tier changed upward
+  const tierOrder: Record<string, number> = { free: 0, basic: 1, premium: 2 };
+  if (stripeStatus === "active" && tierOrder[tier] > tierOrder[previousTier]) {
+    const provider = await db.getProviderById(parseInt(providerId));
+    if (provider) {
+      const user = await db.getUserById(provider.userId);
+      if (user?.email) {
+        const { SUBSCRIPTION_TIERS } = await import("./products");
+        await sendNotification({
+          type: "subscription_upgraded",
+          channel: "email",
+          recipient: { userId: user.id, email: user.email, name: user.name || undefined },
+          data: {
+            tier: SUBSCRIPTION_TIERS[tier].name,
+            previousTier: SUBSCRIPTION_TIERS[previousTier as keyof typeof SUBSCRIPTION_TIERS]?.name || previousTier,
+            businessName: provider.businessName || undefined,
+            amount: String(SUBSCRIPTION_TIERS[tier].monthlyPrice),
+          },
+        });
+      }
+    }
+  }
 
   console.log(`[Stripe] Subscription ${subscription.id} updated for provider ${providerId}: ${tier} (${stripeStatus})`);
 }

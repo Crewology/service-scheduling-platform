@@ -247,6 +247,89 @@ OlogyCrew Team
       smsBody: `Your OlogyCrew subscription has been updated to ${data.tier}. Enjoy your new features!`,
     },
 
+    subscription_upgraded: {
+      subject: `Plan Upgraded to ${data.tier || 'New Plan'}`,
+      body: `
+Hello${data.customerName ? ' ' + data.customerName : ''},
+
+Great news! Your OlogyCrew subscription has been upgraded.
+
+**New Plan:** ${data.tier || 'Upgraded'}
+**Amount:** ${data.amount || ''}/month
+${data.businessName ? `**Business:** ${data.businessName}` : ''}
+
+You now have access to all the features included in your new plan. Visit your dashboard to explore what's available.
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `Your OlogyCrew plan has been upgraded to ${data.tier}! Enjoy your new features.`,
+    },
+
+    subscription_downgraded: {
+      subject: `Plan Changed to ${data.tier || 'New Plan'}`,
+      body: `
+Hello${data.customerName ? ' ' + data.customerName : ''},
+
+Your OlogyCrew subscription has been downgraded.
+
+**New Plan:** ${data.tier || 'Downgraded'}
+${data.previousTier ? `**Previous Plan:** ${data.previousTier}` : ''}
+${data.businessName ? `**Business:** ${data.businessName}` : ''}
+
+Your plan change is effective immediately. A prorated credit has been applied to your account for the unused portion of your previous plan.
+
+You can upgrade again at any time from your subscription settings.
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `Your OlogyCrew plan has been downgraded to ${data.tier}. You can upgrade again anytime.`,
+    },
+
+    subscription_paused: {
+      subject: `Subscription Paused${data.resumeDate ? ' - Resumes ' + data.resumeDate : ''}`,
+      body: `
+Hello${data.customerName ? ' ' + data.customerName : ''},
+
+Your OlogyCrew subscription has been paused.
+
+**Plan:** ${data.tier || 'Your Plan'}
+${data.businessName ? `**Business:** ${data.businessName}` : ''}
+${data.resumeDate ? `**Resumes On:** ${data.resumeDate}` : ''}
+
+While paused:
+• You won't be charged
+• Your profile and data are preserved
+• Customers cannot book new appointments
+• Existing bookings remain unaffected
+
+You can resume your subscription at any time from your dashboard.
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `Your OlogyCrew subscription is paused${data.resumeDate ? ' until ' + data.resumeDate : ''}. Resume anytime from your dashboard.`,
+    },
+
+    subscription_resumed: {
+      subject: `Subscription Resumed - Welcome Back!`,
+      body: `
+Hello${data.customerName ? ' ' + data.customerName : ''},
+
+Welcome back! Your OlogyCrew subscription has been resumed.
+
+**Plan:** ${data.tier || 'Your Plan'}
+${data.businessName ? `**Business:** ${data.businessName}` : ''}
+
+Your profile is now active again and customers can book appointments. All your previous settings and data have been preserved.
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `Your OlogyCrew subscription is active again! Welcome back.`,
+    },
+
     refund_processed: {
       subject: `Refund Processed - $${data.refundAmount || '0.00'}`,
       body: `

@@ -1397,3 +1397,22 @@
 - [x] Update email templates and notification templates with new pricing
 - [x] Add downgrade procedure to both provider and customer subscription routers
 - [x] 31 tests passing (25 customer-subscription + 6 subscription-downgrade)
+
+## Feature: Subscription Pause/Resume
+- [x] Add pause procedure to provider subscriptionRouter (Stripe pause_collection)
+- [x] Add resume procedure to provider subscriptionRouter
+- [x] Add pause/resume procedures to customerSubscriptionRouter
+- [x] Track pause status in subscription state (pausedAt, resumesAt columns added)
+- [x] Pause UI button on SubscriptionManagement page with duration picker dialog (7/14/30 days)
+- [x] Show paused state badge and resume button when subscription is paused
+- [x] Paused subscriptions keep their tier (features preserved, billing paused)
+- [x] Schema migration: added 'paused' to status enum, pausedAt/resumesAt columns
+- [x] 17 tests passing for pause/resume logic
+
+## Feature: Subscription Change Email Notifications
+- [x] Email notification on upgrade (welcome to new tier, features unlocked)
+- [x] Email notification on downgrade (confirmation, what changes, prorated credit)
+- [x] Email notification on pause (confirmation, when it resumes, features affected)
+- [x] Email notification on resume (welcome back, features restored)
+- [x] All subscription emails use existing notification system with unsubscribe support
+- [x] Added 4 new notification templates (subscription_upgraded, subscription_downgraded, subscription_paused, subscription_resumed)
