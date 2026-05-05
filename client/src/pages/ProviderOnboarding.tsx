@@ -1395,20 +1395,20 @@ export default function ProviderOnboarding() {
                     <div>
                       <h3 className="font-semibold">Professional</h3>
                       <p className="text-xs text-muted-foreground">
-                        {billingInterval === "year" ? "$15.20/mo billed annually" : "$19/month"}
+                        {billingInterval === "year" ? "$10.08/mo billed annually" : "$12/month"}
                       </p>
                     </div>
                   </div>
                   <div className="mb-3">
                     {billingInterval === "year" ? (
                       <>
-                        <span className="text-2xl font-bold">$15</span>
-                        <span className="text-muted-foreground text-sm">.20/mo</span>
-                        <span className="ml-2 text-xs line-through text-muted-foreground">$19</span>
+                        <span className="text-2xl font-bold">$10</span>
+                        <span className="text-muted-foreground text-sm">.08/mo</span>
+                        <span className="ml-2 text-xs line-through text-muted-foreground">$12</span>
                       </>
                     ) : (
                       <>
-                        <span className="text-2xl font-bold">$19</span>
+                        <span className="text-2xl font-bold">$12</span>
                         <span className="text-muted-foreground text-sm">/mo</span>
                       </>
                     )}
@@ -1423,7 +1423,7 @@ export default function ProviderOnboarding() {
                   {billingInterval === "year" && (
                     <div className="mt-3 text-center">
                       <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-[10px]">
-                        Save $45.60/year
+                        Save $23.04/year (16% off)
                       </Badge>
                     </div>
                   )}
@@ -1450,20 +1450,20 @@ export default function ProviderOnboarding() {
                     <div>
                       <h3 className="font-semibold">Business</h3>
                       <p className="text-xs text-muted-foreground">
-                        {billingInterval === "year" ? "$39.20/mo billed annually" : "$49/month"}
+                        {billingInterval === "year" ? "$16.00/mo billed annually" : "$20/month"}
                       </p>
                     </div>
                   </div>
                   <div className="mb-3">
                     {billingInterval === "year" ? (
                       <>
-                        <span className="text-2xl font-bold">$39</span>
-                        <span className="text-muted-foreground text-sm">.20/mo</span>
-                        <span className="ml-2 text-xs line-through text-muted-foreground">$49</span>
+                        <span className="text-2xl font-bold">$16</span>
+                        <span className="text-muted-foreground text-sm">.00/mo</span>
+                        <span className="ml-2 text-xs line-through text-muted-foreground">$20</span>
                       </>
                     ) : (
                       <>
-                        <span className="text-2xl font-bold">$49</span>
+                        <span className="text-2xl font-bold">$20</span>
                         <span className="text-muted-foreground text-sm">/mo</span>
                       </>
                     )}
@@ -1478,7 +1478,7 @@ export default function ProviderOnboarding() {
                   {billingInterval === "year" && (
                     <div className="mt-3 text-center">
                       <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-[10px]">
-                        Save $117.60/year
+                        Save $48.00/year (20% off)
                       </Badge>
                     </div>
                   )}

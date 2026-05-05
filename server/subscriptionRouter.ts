@@ -343,6 +343,113 @@ export const subscriptionRouter = router({
       return { allowed, currentTier: tier, requiredTier };
     }),
 
+  // Downgrade subscription immediately (with prorated credit)
+  downgrade: protectedProcedure
+    .input(z.object({
+      targetTier: z.enum(["free", "basic"]),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+      }
+
+      const sub = await db.getProviderSubscription(provider.id);
+      if (!sub) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "No subscription found" });
+      }
+
+      const currentTier = sub.tier;
+      const targetTier = input.targetTier;
+
+      // Validate this is actually a downgrade
+      const tierOrder: Record<string, number> = { free: 0, basic: 1, premium: 2 };
+      if (tierOrder[targetTier] >= tierOrder[currentTier]) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Target tier must be lower than current tier" });
+      }
+
+      // If downgrading to free, cancel the Stripe subscription immediately with proration
+      if (targetTier === "free") {
+        if (sub.stripeSubscriptionId) {
+          try {
+            await stripe.subscriptions.cancel(sub.stripeSubscriptionId, {
+              prorate: true, // Issue prorated credit
+            });
+          } catch (err: any) {
+            console.error("[Downgrade] Failed to cancel Stripe subscription:", err.message);
+            // If subscription is already cancelled in Stripe, continue
+            if (!err.message?.includes("No such subscription")) {
+              throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to cancel subscription" });
+            }
+          }
+        }
+
+        // Update local subscription record
+        await db.upsertProviderSubscription({
+          providerId: provider.id,
+          tier: "free",
+          status: "active",
+          stripeSubscriptionId: undefined,
+          currentPeriodStart: undefined,
+          currentPeriodEnd: undefined,
+        });
+
+        return { success: true, newTier: "free" as const, message: "Downgraded to Starter. Prorated credit issued." };
+      }
+
+      // If downgrading from premium to basic, switch the subscription price immediately
+      if (currentTier === "premium" && targetTier === "basic") {
+        if (!sub.stripeSubscriptionId) {
+          // No Stripe subscription (e.g. trial) — just update locally
+          await db.upsertProviderSubscription({
+            providerId: provider.id,
+            tier: "basic",
+            status: sub.status,
+          });
+          return { success: true, newTier: "basic" as const, message: "Downgraded to Professional." };
+        }
+
+        try {
+          // Get the current subscription from Stripe
+          const stripeSubscription = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId);
+          const currentItem = stripeSubscription.items.data[0];
+
+          if (!currentItem) {
+            throw new Error("No subscription item found");
+          }
+
+          // Get the interval from the current subscription
+          const currentInterval = currentItem.price.recurring?.interval as "month" | "year" || "month";
+          
+          // Get or create the new price for the basic tier
+          const newPriceId = await getOrCreateStripePrice("basic", currentInterval);
+
+          // Update the subscription with the new price (immediate proration)
+          await stripe.subscriptions.update(sub.stripeSubscriptionId, {
+            items: [{
+              id: currentItem.id,
+              price: newPriceId,
+            }],
+            proration_behavior: "create_prorations", // Immediate prorated credit
+          });
+
+          // Update local subscription record
+          await db.upsertProviderSubscription({
+            providerId: provider.id,
+            tier: "basic",
+            status: "active",
+          });
+
+          return { success: true, newTier: "basic" as const, message: "Downgraded to Professional. Prorated credit applied." };
+        } catch (err: any) {
+          console.error("[Downgrade] Failed to update Stripe subscription:", err.message);
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to downgrade subscription" });
+        }
+      }
+
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid downgrade path" });
+    }),
+
   // Admin: get subscription analytics
   analytics: protectedProcedure.query(async ({ ctx }) => {
     if (ctx.user.role !== "admin") {

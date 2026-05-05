@@ -153,7 +153,7 @@ function StripeConnectSection({ provider, currentTier }: { provider: any; curren
               <div>
                 <h3 className="text-lg font-semibold">Upgrade Required</h3>
                 <p className="text-sm text-muted-foreground max-w-md mx-auto mt-2">
-                  Payment account setup requires a Professional ($19/mo) or Business ($49/mo) subscription.
+                  Payment account setup requires a Professional ($12/mo) or Business ($20/mo) subscription.
                   Upgrade your plan to start accepting payments from clients.
                 </p>
               </div>

@@ -18,9 +18,18 @@ import {
   Palette,
   Users,
   BarChart3,
+  AlertTriangle,
 } from "lucide-react";
 import { Link } from "wouter";
 import { NavHeader } from "@/components/shared/NavHeader";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const PLANS = [
   {
@@ -47,8 +56,8 @@ const PLANS = [
   {
     tier: "basic" as const,
     name: "Professional",
-    monthlyPrice: 19,
-    yearlyPrice: 182.40,
+    monthlyPrice: 12,
+    yearlyPrice: 120.96,
     description: "Grow your business with more visibility",
     icon: Zap,
     features: [
@@ -68,8 +77,8 @@ const PLANS = [
   {
     tier: "premium" as const,
     name: "Business",
-    monthlyPrice: 49,
-    yearlyPrice: 470.40,
+    monthlyPrice: 20,
+    yearlyPrice: 192.00,
     description: "Full suite for professional providers",
     icon: Crown,
     features: [
@@ -111,6 +120,23 @@ export default function SubscriptionManagement() {
     onError: (err) => {
       toast.error(err.message);
       setSubscribing(null);
+    },
+  });
+
+  const [downgradeTarget, setDowngradeTarget] = useState<"free" | "basic" | null>(null);
+  const [showDowngradeDialog, setShowDowngradeDialog] = useState(false);
+
+  const downgrade = trpc.subscription.downgrade.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.message);
+      setShowDowngradeDialog(false);
+      setDowngradeTarget(null);
+      window.location.reload();
+    },
+    onError: (err) => {
+      toast.error(err.message);
+      setShowDowngradeDialog(false);
+      setDowngradeTarget(null);
     },
   });
 
@@ -219,7 +245,7 @@ export default function SubscriptionManagement() {
                 ? "bg-primary-foreground/20 text-primary-foreground"
                 : "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
             }`}>
-              Save 20%
+              Save up to 20%
             </span>
           </button>
         </div>
@@ -338,18 +364,20 @@ export default function SubscriptionManagement() {
                     : ""
                 } ${isCurrent ? "ring-2 ring-primary" : ""}`}
               >
-                {plan.highlight && (
+                {/* Plan tags: Most Popular for Pro, Recommended for Business */}
+                {plan.tier === "basic" && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
                     <Badge className="bg-primary text-primary-foreground px-3 shadow-sm">Most Popular</Badge>
                   </div>
                 )}
-                {isCurrent && !plan.highlight && (
+                {plan.tier === "premium" && !isCurrent && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                    <Badge className="bg-green-600 text-white border-0 shadow-sm whitespace-nowrap">Current Plan</Badge>
+                    <Badge className="bg-amber-500 text-white border-0 px-3 shadow-sm">Recommended</Badge>
                   </div>
                 )}
-                {isCurrent && plan.highlight && (
-                  <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10">
+                {/* Current Plan tag - only show when user is signed in */}
+                {isCurrent && isAuthenticated && currentTier !== "free" && (
+                  <div className={`absolute ${plan.tier === "basic" || plan.tier === "premium" ? "top-3" : "-top-3"} left-1/2 -translate-x-1/2 z-10`}>
                     <Badge className="bg-green-600 text-white border-0 shadow-sm whitespace-nowrap">Current Plan</Badge>
                   </div>
                 )}
@@ -403,22 +431,34 @@ export default function SubscriptionManagement() {
                       <Button 
                         variant="outline" 
                         className="w-full"
-                        onClick={() => manageSubscription.mutate()}
-                        disabled={manageSubscription.isPending}
+                        onClick={() => {
+                          setDowngradeTarget("free");
+                          setShowDowngradeDialog(true);
+                        }}
+                        disabled={downgrade.isPending}
                       >
-                        Downgrade
+                        {downgrade.isPending && downgradeTarget === "free" ? (
+                          <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Processing...</>
+                        ) : "Downgrade"}
                       </Button>
                     ) : (
                       <Button variant="outline" className="w-full" disabled>
-                        Free Forever
+                        Get Started
                       </Button>
                     )
                   ) : (
                     <Button 
-                      className={`w-full ${plan.highlight ? "" : "variant-outline"}`}
-                      variant={plan.highlight ? "default" : "outline"}
-                      onClick={() => handleSubscribe(plan.tier)}
-                      disabled={subscribing === plan.tier || subscribe.isPending}
+                      className={`w-full ${plan.tier === "basic" ? "" : ""}`}
+                      variant={plan.tier === "basic" ? "default" : "outline"}
+                      onClick={() => {
+                        if (isDowngrade) {
+                          setDowngradeTarget(plan.tier as "basic");
+                          setShowDowngradeDialog(true);
+                        } else {
+                          handleSubscribe(plan.tier);
+                        }
+                      }}
+                      disabled={subscribing === plan.tier || subscribe.isPending || (downgrade.isPending && downgradeTarget === plan.tier)}
                     >
                       {subscribing === plan.tier ? (
                         <>
@@ -428,7 +468,7 @@ export default function SubscriptionManagement() {
                       ) : isDowngrade ? (
                         "Downgrade"
                       ) : (
-                        `Upgrade to ${plan.name}`
+                        `Select ${plan.name}`
                       )}
                     </Button>
                   )}
@@ -487,7 +527,13 @@ export default function SubscriptionManagement() {
             <div>
               <h3 className="font-semibold mb-2">How does annual billing work?</h3>
               <p className="text-sm text-muted-foreground">
-                When you choose annual billing, you pay for 12 months upfront at a 20% discount. For example, Professional is $15.20/mo billed annually ($182.40/year) instead of $19/mo billed monthly ($228/year).
+                When you choose annual billing, you pay for 12 months upfront at a discount. Professional saves 16% ($10.08/mo billed annually at $120.96/year instead of $12/mo). Business saves 20% ($16.00/mo billed annually at $192.00/year instead of $20/mo).
+              </p>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-2">What happens when I downgrade?</h3>
+              <p className="text-sm text-muted-foreground">
+                When you downgrade, your current plan remains active until the end of your billing period. After that, you'll be moved to the lower tier. You won't be charged again for the higher plan.
               </p>
             </div>
             <div>
@@ -511,6 +557,77 @@ export default function SubscriptionManagement() {
           </div>
         </div>
       </div>
+
+      {/* Downgrade Confirmation Dialog */}
+      <Dialog open={showDowngradeDialog} onOpenChange={setShowDowngradeDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Confirm Downgrade
+            </DialogTitle>
+            <DialogDescription className="text-left space-y-3 pt-2">
+              <p>
+                You're about to downgrade from <strong>{currentTier === "premium" ? "Business" : "Professional"}</strong> to{" "}
+                <strong>{downgradeTarget === "free" ? "Starter (Free)" : "Professional"}</strong>.
+              </p>
+              <p>
+                This change takes effect <strong>immediately</strong>. You'll receive a prorated credit for the unused time on your current plan.
+              </p>
+              {downgradeTarget === "free" && (
+                <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm">
+                  <p className="font-medium text-amber-800 dark:text-amber-200 mb-1">You'll lose access to:</p>
+                  <ul className="text-amber-700 dark:text-amber-300 space-y-1 text-xs">
+                    <li>• Priority search placement</li>
+                    <li>• Extra service listings (limited to 3)</li>
+                    <li>• Additional photo uploads (limited to 1 per service)</li>
+                    <li>• Analytics dashboard</li>
+                    {currentTier === "premium" && <li>• Custom branding & featured badge</li>}
+                  </ul>
+                </div>
+              )}
+              {downgradeTarget === "basic" && (
+                <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm">
+                  <p className="font-medium text-amber-800 dark:text-amber-200 mb-1">You'll lose access to:</p>
+                  <ul className="text-amber-700 dark:text-amber-300 space-y-1 text-xs">
+                    <li>• Unlimited services (limited to 10)</li>
+                    <li>• Custom branding & featured badge</li>
+                    <li>• Priority support</li>
+                    <li>• 5 photos per service (limited to 3)</li>
+                  </ul>
+                </div>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 sm:gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDowngradeDialog(false);
+                setDowngradeTarget(null);
+              }}
+              disabled={downgrade.isPending}
+            >
+              Keep Current Plan
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (downgradeTarget) {
+                  downgrade.mutate({ targetTier: downgradeTarget });
+                }
+              }}
+              disabled={downgrade.isPending}
+            >
+              {downgrade.isPending ? (
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Downgrading...</>
+              ) : (
+                "Confirm Downgrade"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

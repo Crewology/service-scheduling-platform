@@ -9,10 +9,18 @@ import { Switch } from "@/components/ui/switch";
 import {
   Heart, Crown, Zap, Check, X, ArrowLeft,
   FolderHeart, BarChart3, Headphones, Send,
-  Star, Shield, Loader2,
+  Star, Shield, Loader2, AlertTriangle,
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const plans = [
   {
@@ -37,12 +45,13 @@ const plans = [
   {
     tier: "pro" as const,
     name: "Pro",
-    monthlyPrice: 19,
-    yearlyPrice: 15.20,
+    monthlyPrice: 12,
+    yearlyPrice: 10.08,
     icon: Zap,
     color: "text-blue-500",
     bgColor: "bg-blue-500/10",
     borderColor: "border-blue-500/30",
+    popular: true,
     description: "For frequent bookers and small event planners",
     features: {
       savedProviders: "50",
@@ -56,13 +65,13 @@ const plans = [
   {
     tier: "business" as const,
     name: "Business",
-    monthlyPrice: 49,
-    yearlyPrice: 39.20,
+    monthlyPrice: 20,
+    yearlyPrice: 16.00,
     icon: Crown,
     color: "text-amber-500",
     bgColor: "bg-amber-500/10",
     borderColor: "border-amber-500/30",
-    popular: true,
+    recommended: true,
     description: "For logistics managers, agencies, and production companies",
     features: {
       savedProviders: "Unlimited",
@@ -111,6 +120,23 @@ export default function CustomerPricing() {
     onError: (err) => toast.error(err.message),
   });
 
+  const [downgradeTarget, setDowngradeTarget] = useState<"free" | "pro" | null>(null);
+  const [showDowngradeDialog, setShowDowngradeDialog] = useState(false);
+
+  const customerDowngrade = trpc.customerSubscription.downgrade.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.message);
+      setShowDowngradeDialog(false);
+      setDowngradeTarget(null);
+      window.location.reload();
+    },
+    onError: (err) => {
+      toast.error(err.message);
+      setShowDowngradeDialog(false);
+      setDowngradeTarget(null);
+    },
+  });
+
   const currentTier = subInfo?.currentTier || "free";
 
   return (
@@ -157,20 +183,20 @@ export default function CustomerPricing() {
             return (
               <Card
                 key={plan.tier}
-                className={`relative flex flex-col overflow-visible ${plan.popular ? `${plan.borderColor} border-2 shadow-lg` : ""} ${isCurrent ? "ring-2 ring-primary" : ""}`}
+                className={`relative flex flex-col overflow-visible ${plan.popular ? `${plan.borderColor} border-2 shadow-lg` : (plan as any).recommended ? `${plan.borderColor} border-2` : ""} ${isCurrent ? "ring-2 ring-primary" : ""}`}
               >
                 {plan.popular && (
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 bg-amber-500 text-white border-0 px-4 py-1 shadow-sm">
+                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 bg-blue-500 text-white border-0 px-4 py-1 shadow-sm">
                     Most Popular
                   </Badge>
                 )}
-                {isCurrent && !plan.popular && (
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 bg-primary text-primary-foreground border-0 px-3 py-1 shadow-sm whitespace-nowrap">
-                    Current Plan
+                {(plan as any).recommended && !plan.popular && (
+                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 bg-amber-500 text-white border-0 px-4 py-1 shadow-sm">
+                    Recommended
                   </Badge>
                 )}
-                {isCurrent && plan.popular && (
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 bg-primary text-primary-foreground border-0 px-3 py-1 shadow-sm mt-6 whitespace-nowrap">
+                {isCurrent && user && (
+                  <Badge className={`absolute ${plan.popular || (plan as any).recommended ? "top-4" : "-top-3"} left-1/2 -translate-x-1/2 z-10 bg-green-600 text-white border-0 px-3 py-1 shadow-sm whitespace-nowrap`}>
                     Current Plan
                   </Badge>
                 )}
@@ -236,14 +262,21 @@ export default function CustomerPricing() {
                       <Button variant="outline" disabled className="w-full">
                         Current Plan
                       </Button>
-                    ) : (
+                    ) : isDowngrade ? (
                       <Button
                         variant="outline"
                         className="w-full"
-                        onClick={() => createPortal.mutate()}
-                        disabled={createPortal.isPending}
+                        onClick={() => {
+                          setDowngradeTarget("free");
+                          setShowDowngradeDialog(true);
+                        }}
+                        disabled={customerDowngrade.isPending}
                       >
-                        {createPortal.isPending ? "Loading..." : "Manage Subscription"}
+                        {customerDowngrade.isPending && downgradeTarget === "free" ? "Processing..." : "Downgrade"}
+                      </Button>
+                    ) : (
+                      <Button variant="outline" className="w-full" disabled>
+                        Get Started
                       </Button>
                     )
                   ) : isCurrent ? (
@@ -259,10 +292,13 @@ export default function CustomerPricing() {
                     <Button
                       variant="outline"
                       className="w-full"
-                      onClick={() => createPortal.mutate()}
-                      disabled={createPortal.isPending}
+                      onClick={() => {
+                        setDowngradeTarget(plan.tier as "pro");
+                        setShowDowngradeDialog(true);
+                      }}
+                      disabled={customerDowngrade.isPending}
                     >
-                      {createPortal.isPending ? "Loading..." : "Downgrade"}
+                      {customerDowngrade.isPending && downgradeTarget === plan.tier ? "Processing..." : "Downgrade"}
                     </Button>
                   ) : (
                     <Button
@@ -283,7 +319,7 @@ export default function CustomerPricing() {
                       {createCheckout.isPending ? (
                         <Loader2 className="h-4 w-4 animate-spin mr-2" />
                       ) : null}
-                      {createCheckout.isPending ? "Loading..." : `Upgrade to ${plan.name}`}
+                      {createCheckout.isPending ? "Loading..." : `Select ${plan.name}`}
                     </Button>
                   )}
                 </CardContent>
@@ -384,6 +420,77 @@ export default function CustomerPricing() {
           </Button>
         </div>
       </div>
+
+      {/* Downgrade Confirmation Dialog */}
+      <Dialog open={showDowngradeDialog} onOpenChange={setShowDowngradeDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Confirm Downgrade
+            </DialogTitle>
+            <DialogDescription className="text-left space-y-3 pt-2">
+              <p>
+                You're about to downgrade from <strong>{currentTier === "business" ? "Business" : "Pro"}</strong> to{" "}
+                <strong>{downgradeTarget === "free" ? "Free" : "Pro"}</strong>.
+              </p>
+              <p>
+                This change takes effect <strong>immediately</strong>. You'll receive a prorated credit for the unused time on your current plan.
+              </p>
+              {downgradeTarget === "free" && (
+                <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm">
+                  <p className="font-medium text-amber-800 dark:text-amber-200 mb-1">You'll lose access to:</p>
+                  <ul className="text-amber-700 dark:text-amber-300 space-y-1 text-xs">
+                    <li>• Priority booking</li>
+                    <li>• Extra saved providers (limited to 5)</li>
+                    <li>• Provider folders</li>
+                    {currentTier === "business" && <li>• Booking analytics & exports</li>}
+                    {currentTier === "business" && <li>• Dedicated support</li>}
+                  </ul>
+                </div>
+              )}
+              {downgradeTarget === "pro" && (
+                <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm">
+                  <p className="font-medium text-amber-800 dark:text-amber-200 mb-1">You'll lose access to:</p>
+                  <ul className="text-amber-700 dark:text-amber-300 space-y-1 text-xs">
+                    <li>• Unlimited saved providers (limited to 25)</li>
+                    <li>• Booking analytics dashboard</li>
+                    <li>• Booking history export</li>
+                    <li>• Dedicated support</li>
+                  </ul>
+                </div>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 sm:gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDowngradeDialog(false);
+                setDowngradeTarget(null);
+              }}
+              disabled={customerDowngrade.isPending}
+            >
+              Keep Current Plan
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (downgradeTarget) {
+                  customerDowngrade.mutate({ targetTier: downgradeTarget });
+                }
+              }}
+              disabled={customerDowngrade.isPending}
+            >
+              {customerDowngrade.isPending ? (
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Downgrading...</>
+              ) : (
+                "Confirm Downgrade"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

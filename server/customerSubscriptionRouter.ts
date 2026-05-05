@@ -236,6 +236,94 @@ export const customerSubscriptionRouter = router({
       return { data: JSON.stringify(bookings, null, 2), count: bookings.length, format: "json" as const };
     }),
 
+  // Downgrade subscription immediately (with prorated credit)
+  downgrade: protectedProcedure
+    .input(z.object({
+      targetTier: z.enum(["free", "pro"]),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const currentTier = await db.getCustomerTier(ctx.user.id);
+      const targetTier = input.targetTier;
+
+      // Validate this is actually a downgrade
+      const tierOrder: Record<string, number> = { free: 0, pro: 1, business: 2 };
+      if (tierOrder[targetTier] >= tierOrder[currentTier]) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Target tier must be lower than current tier" });
+      }
+
+      const sub = await db.getCustomerSubscription(ctx.user.id);
+
+      // If downgrading to free, cancel the Stripe subscription immediately
+      if (targetTier === "free") {
+        if (sub?.stripeSubscriptionId) {
+          try {
+            await stripe.subscriptions.cancel(sub.stripeSubscriptionId, {
+              prorate: true,
+            });
+          } catch (err: any) {
+            console.error("[Customer Downgrade] Failed to cancel Stripe subscription:", err.message);
+            if (!err.message?.includes("No such subscription")) {
+              throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to cancel subscription" });
+            }
+          }
+        }
+
+        await db.upsertCustomerSubscription({
+          userId: ctx.user.id,
+          tier: "free",
+          status: "active",
+          stripeSubscriptionId: undefined,
+        });
+
+        return { success: true, newTier: "free" as const, message: "Downgraded to Free. Prorated credit issued." };
+      }
+
+      // If downgrading from business to pro, switch the subscription price immediately
+      if (currentTier === "business" && targetTier === "pro") {
+        if (!sub?.stripeSubscriptionId) {
+          await db.upsertCustomerSubscription({
+            userId: ctx.user.id,
+            tier: "pro",
+            status: sub?.status || "active",
+          });
+          return { success: true, newTier: "pro" as const, message: "Downgraded to Pro." };
+        }
+
+        try {
+          const stripeSubscription = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId);
+          const currentItem = stripeSubscription.items.data[0];
+
+          if (!currentItem) {
+            throw new Error("No subscription item found");
+          }
+
+          const currentInterval = currentItem.price.recurring?.interval as "month" | "year" || "month";
+          const newPriceId = await getOrCreateCustomerStripePrice("pro", currentInterval);
+
+          await stripe.subscriptions.update(sub.stripeSubscriptionId, {
+            items: [{
+              id: currentItem.id,
+              price: newPriceId,
+            }],
+            proration_behavior: "create_prorations",
+          });
+
+          await db.upsertCustomerSubscription({
+            userId: ctx.user.id,
+            tier: "pro",
+            status: "active",
+          });
+
+          return { success: true, newTier: "pro" as const, message: "Downgraded to Pro. Prorated credit applied." };
+        } catch (err: any) {
+          console.error("[Customer Downgrade] Failed to update Stripe subscription:", err.message);
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to downgrade subscription" });
+        }
+      }
+
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid downgrade path" });
+    }),
+
   // Check if user can save more providers (used before toggling favorite)
   canSaveMore: protectedProcedure.query(async ({ ctx }) => {
     const tier = await db.getCustomerTier(ctx.user.id);

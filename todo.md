@@ -1381,3 +1381,19 @@
 - [x] Allow provider to remove waitlist entries
 - [x] providerRemove backend procedure with ownership validation
 - [x] 8 tests passing for provider waitlist view and removal logic
+
+## Feature: Subscription Plan Updates (from PDF requirements)
+- [x] Update pricing: Pro=$12/mo, Business=$20/mo (was $19/$49)
+- [x] Update annual discounts: 16% for Pro, 20% for Business (was 20% flat)
+- [x] Update plan tags: Pro="Most Popular", Business="Recommended"
+- [x] Hide "Current Plan" tag when user is logged out
+- [x] Button labels: "Select Pro", "Select Business", "Get Started" (for free) when signing up
+- [x] Free plan button says "Downgrade" when signed in as Pro or Business user
+- [x] Fix downgrade flow: replace Stripe Portal redirect with in-app immediate downgrade (prorated credit)
+- [x] Downgrade confirmation dialog with clear messaging about what changes and what's lost
+- [x] Update pricing in products.ts backend config
+- [x] Update pricing on all frontend pages (SubscriptionManagement, CustomerPricing, ProviderOnboarding, etc.)
+- [x] Update UpgradeModal, UpgradePrompt, TrialBanner components with new pricing
+- [x] Update email templates and notification templates with new pricing
+- [x] Add downgrade procedure to both provider and customer subscription routers
+- [x] 31 tests passing (25 customer-subscription + 6 subscription-downgrade)

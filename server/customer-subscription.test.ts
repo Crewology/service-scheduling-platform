@@ -9,22 +9,22 @@ describe("Customer Subscription Tiers", () => {
     expect(Object.keys(CUSTOMER_TIERS)).toEqual(["free", "pro", "business"]);
   });
 
-  it("free tier should have 10 saved provider limit", async () => {
+  it("free tier should have 5 saved provider limit", async () => {
     const { CUSTOMER_TIERS } = await import("./customerSubscription");
-    expect(CUSTOMER_TIERS.free.savedProviderLimit).toBe(10);
+    expect(CUSTOMER_TIERS.free.savedProviderLimit).toBe(5);
     expect(CUSTOMER_TIERS.free.monthlyPrice).toBe(0);
   });
 
-  it("pro tier should have 50 saved provider limit at $9.99/mo", async () => {
+  it("pro tier should have 50 saved provider limit at $12/mo", async () => {
     const { CUSTOMER_TIERS } = await import("./customerSubscription");
     expect(CUSTOMER_TIERS.pro.savedProviderLimit).toBe(50);
-    expect(CUSTOMER_TIERS.pro.monthlyPrice).toBe(9.99);
+    expect(CUSTOMER_TIERS.pro.monthlyPrice).toBe(12);
   });
 
-  it("business tier should have unlimited (-1) saved providers at $24.99/mo", async () => {
+  it("business tier should have unlimited (-1) saved providers at $20/mo", async () => {
     const { CUSTOMER_TIERS } = await import("./customerSubscription");
     expect(CUSTOMER_TIERS.business.savedProviderLimit).toBe(-1);
-    expect(CUSTOMER_TIERS.business.monthlyPrice).toBe(24.99);
+    expect(CUSTOMER_TIERS.business.monthlyPrice).toBe(20);
   });
 
   it("yearly prices should be lower than monthly * 12", async () => {
@@ -68,16 +68,16 @@ describe("Customer Subscription Tiers", () => {
 // SAVED PROVIDER LIMIT LOGIC TESTS
 // ============================================================================
 describe("canCustomerSaveMore", () => {
-  it("free tier: should allow saving when under limit (count < 10)", async () => {
+  it("free tier: should allow saving when under limit (count < 5)", async () => {
     const { canCustomerSaveMore } = await import("./customerSubscription");
     expect(canCustomerSaveMore("free", 0)).toBe(true);
-    expect(canCustomerSaveMore("free", 5)).toBe(true);
-    expect(canCustomerSaveMore("free", 9)).toBe(true);
+    expect(canCustomerSaveMore("free", 2)).toBe(true);
+    expect(canCustomerSaveMore("free", 4)).toBe(true);
   });
 
-  it("free tier: should block saving when at limit (count >= 10)", async () => {
+  it("free tier: should block saving when at limit (count >= 5)", async () => {
     const { canCustomerSaveMore } = await import("./customerSubscription");
-    expect(canCustomerSaveMore("free", 10)).toBe(false);
+    expect(canCustomerSaveMore("free", 5)).toBe(false);
     expect(canCustomerSaveMore("free", 15)).toBe(false);
   });
 
@@ -105,7 +105,7 @@ describe("canCustomerSaveMore", () => {
 describe("getCustomerSavedLimit", () => {
   it("should return correct limits for each tier", async () => {
     const { getCustomerSavedLimit } = await import("./customerSubscription");
-    expect(getCustomerSavedLimit("free")).toBe(10);
+    expect(getCustomerSavedLimit("free")).toBe(5);
     expect(getCustomerSavedLimit("pro")).toBe(50);
     expect(getCustomerSavedLimit("business")).toBe(-1);
   });

@@ -45,8 +45,8 @@ const tierConfig = {
     bgColor: "bg-blue-50",
     borderColor: "border-blue-200",
     description: "Enhanced features for frequent users",
-    price: "$19/mo",
-    yearlyPrice: "$15.20/mo",
+    price: "$12/mo",
+    yearlyPrice: "$10.08/mo",
     features: [
       "Everything in Free",
       "Save up to 25 providers",
@@ -62,8 +62,8 @@ const tierConfig = {
     bgColor: "bg-amber-50",
     borderColor: "border-amber-200",
     description: "Full access with analytics and exports",
-    price: "$49/mo",
-    yearlyPrice: "$39.20/mo",
+    price: "$20/mo",
+    yearlyPrice: "$16.00/mo",
     features: [
       "Everything in Pro",
       "Unlimited saved providers",

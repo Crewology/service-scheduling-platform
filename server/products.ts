@@ -60,8 +60,8 @@ export const SUBSCRIPTION_TIERS: Record<SubscriptionTier, TierConfig> = {
   basic: {
     name: "Professional",
     tier: "basic",
-    monthlyPrice: 19,
-    yearlyPrice: 182.40, // ~$15.20/mo (20% off)
+    monthlyPrice: 12,
+    yearlyPrice: 120.96, // ~$10.08/mo (16% off)
     features: [
       "Up to 10 active services",
       "3 photos per service",
@@ -86,8 +86,8 @@ export const SUBSCRIPTION_TIERS: Record<SubscriptionTier, TierConfig> = {
   premium: {
     name: "Business",
     tier: "premium",
-    monthlyPrice: 49,
-    yearlyPrice: 470.40, // ~$39.20/mo (20% off)
+    monthlyPrice: 20,
+    yearlyPrice: 192.00, // ~$16.00/mo (20% off)
     features: [
       "Unlimited active services",
       "5 photos per service",
