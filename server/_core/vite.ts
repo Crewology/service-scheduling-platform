@@ -63,9 +63,13 @@ async function injectOgTags(url: string, template: string, origin: string): Prom
 }
 
 export async function setupVite(app: Express, server: Server) {
+  // Disable HMR when accessed through a proxy (e.g., manus.computer preview URLs)
+  // The proxy doesn't support WebSocket upgrade, so HMR causes console errors.
+  // In production, Vite isn't used at all (static files are served directly).
+  const isProxied = process.env.NODE_ENV === "development";
   const serverOptions = {
     middlewareMode: true,
-    hmr: { server },
+    hmr: false as const,
     allowedHosts: true as const,
   };
 
