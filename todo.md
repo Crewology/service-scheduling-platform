@@ -1416,3 +1416,41 @@
 - [x] Email notification on resume (welcome back, features restored)
 - [x] All subscription emails use existing notification system with unsubscribe support
 - [x] Added 4 new notification templates (subscription_upgraded, subscription_downgraded, subscription_paused, subscription_resumed)
+
+## Feature: Admin Team Management
+- [x] Add admin_roles enum to schema (super_admin, support_agent, moderator)
+- [x] Add promoteToAdmin procedure (owner/super_admin only)
+- [x] Add demoteFromAdmin procedure (owner/super_admin only)
+- [x] Add Team Management tab in admin dashboard
+- [x] Show current team members with roles and last active
+- [x] Allow owner to promote users to admin by searching their email
+- [x] Allow owner to demote admins back to their original role
+- [x] Protect super_admin actions (only owner can manage other admins)
+
+## Feature: Admin User Detail View
+- [x] Create /admin/users/:id route and page
+- [x] Show user profile info (name, email, phone, photo, join date, last login)
+- [x] Show subscription status and history
+- [x] Show booking history (as customer and/or provider)
+- [x] Show payment history
+- [x] Show reviews given and received
+- [x] Show services listed (if provider)
+- [x] Quick actions: suspend/unsuspend, promote to admin
+
+## Feature: Admin Search & Filters
+- [x] Add search bar to Users tab (search by name, email, phone)
+- [x] Add filters: role, status (active/suspended)
+- [x] Add search bar to Providers tab (search by business name, city)
+- [x] Add filters: verification status
+- [x] Add search bar to Bookings tab (search by customer/provider name, service)
+- [x] Add filters: booking status
+- [x] Server-side pagination for large datasets (25 per page)
+
+## Feature: Admin Audit Log
+- [x] Create audit_log table (action, actor_id, target_id, target_type, details, timestamp)
+- [x] Log all admin actions: suspend/unsuspend, verify/reject, promote/demote, flag/hide/delete review
+- [x] Create Audit Log tab in admin dashboard
+- [x] Show chronological list with actor name, action description, target, timestamp
+- [x] Add filters: action type, actor, date range
+- [x] Link audit entries to user detail view
+- [x] 11 tests passing for admin features

@@ -62,6 +62,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Link } from "wouter";
 import { formatCurrency, formatDate } from "@/lib/dateUtils";
 import { NavHeader } from "@/components/shared/NavHeader";
+import { TeamManagementPanel } from "./admin/TeamManagementPanel";
+import { AuditLogPanel } from "./admin/AuditLogPanel";
 
 function SubscriptionAnalyticsPanel() {
   const { data: analytics, isLoading } = trpc.admin.getSubscriptionAnalytics.useQuery();
@@ -418,6 +420,14 @@ export default function AdminDashboard() {
               <Bell className="h-3.5 w-3.5 mr-1" />
               Push
             </TabsTrigger>
+            <TabsTrigger value="team">
+              <Shield className="h-3.5 w-3.5 mr-1" />
+              Team
+            </TabsTrigger>
+            <TabsTrigger value="audit">
+              <Activity className="h-3.5 w-3.5 mr-1" />
+              Audit Log
+            </TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -500,70 +510,7 @@ export default function AdminDashboard() {
 
           {/* Users Tab */}
           <TabsContent value="users">
-            <Card>
-              <CardHeader>
-                <CardTitle>User Management</CardTitle>
-                <CardDescription>View and manage all platform users</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {usersLoading ? (
-                  <LoadingSpinner />
-                ) : (
-                  <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>ID</TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Joined</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {users?.map((u: any) => (
-                        <TableRow key={u.id}>
-                          <TableCell className="text-muted-foreground">{u.id}</TableCell>
-                          <TableCell className="font-medium">{u.name || "N/A"}</TableCell>
-                          <TableCell>{u.email}</TableCell>
-                          <TableCell>
-                            <Badge variant={u.role === "admin" ? "default" : "secondary"}>
-                              {u.role}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{formatDate(u.createdAt)}</TableCell>
-                          <TableCell>
-                            {u.deletedAt ? (
-                              <Badge variant="destructive">Suspended</Badge>
-                            ) : (
-                              <Badge variant="outline" className="text-green-600 border-green-600">Active</Badge>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {u.role !== "admin" && (
-                              u.deletedAt ? (
-                                <Button size="sm" variant="outline" onClick={() => unsuspendUser.mutate({ userId: u.id })} disabled={unsuspendUser.isPending}>
-                                  <Undo2 className="h-3.5 w-3.5 mr-1" />
-                                  Unsuspend
-                                </Button>
-                              ) : (
-                                <Button size="sm" variant="outline" className="text-destructive" onClick={() => suspendUser.mutate({ userId: u.id })} disabled={suspendUser.isPending}>
-                                  <Ban className="h-3.5 w-3.5 mr-1" />
-                                  Suspend
-                                </Button>
-                              )
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <UsersFilterPanel suspendUser={suspendUser} unsuspendUser={unsuspendUser} />
           </TabsContent>
 
           {/* Providers Tab */}
@@ -752,6 +699,16 @@ export default function AdminDashboard() {
 
           <TabsContent value="push">
             <PushAnalyticsPanel />
+          </TabsContent>
+
+          {/* Team Management Tab */}
+          <TabsContent value="team">
+            <TeamManagementPanel />
+          </TabsContent>
+
+          {/* Audit Log Tab */}
+          <TabsContent value="audit">
+            <AuditLogPanel />
           </TabsContent>
         </Tabs>
       </div>
@@ -2121,5 +2078,197 @@ function PushAnalyticsPanel() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+
+// ============================================================================
+// USERS FILTER PANEL
+// ============================================================================
+function UsersFilterPanel({ suspendUser, unsuspendUser }: { suspendUser: any; unsuspendUser: any }) {
+  const [userSearch, setUserSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [userPage, setUserPage] = useState(1);
+  const utils = trpc.useUtils();
+
+  const { data: filteredUsers, isLoading } = trpc.admin.searchUsersFiltered.useQuery({
+    query: userSearch || undefined,
+    role: roleFilter !== "all" ? roleFilter as any : undefined,
+    status: statusFilter !== "all" ? statusFilter as any : undefined,
+    page: userPage,
+    limit: 25,
+  });
+
+  const clearFilters = () => {
+    setUserSearch("");
+    setRoleFilter("all");
+    setStatusFilter("all");
+    setUserPage(1);
+  };
+
+  const hasFilters = userSearch || roleFilter !== "all" || statusFilter !== "all";
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>User Management</CardTitle>
+            <CardDescription>Search, filter, and manage all platform users. Click a user to view their full profile.</CardDescription>
+          </div>
+          {hasFilters && (
+            <Button variant="outline" size="sm" onClick={clearFilters}>
+              <XCircle className="h-3.5 w-3.5 mr-1" />
+              Clear All
+            </Button>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent>
+        {/* Search & Filters */}
+        <div className="flex flex-wrap gap-3 mb-4">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name, email, or phone..."
+              value={userSearch}
+              onChange={(e) => { setUserSearch(e.target.value); setUserPage(1); }}
+              className="pl-9"
+            />
+            {userSearch && (
+              <button
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                onClick={() => setUserSearch("")}
+              >
+                <XCircle className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          <Select value={roleFilter} onValueChange={(v) => { setRoleFilter(v); setUserPage(1); }}>
+            <SelectTrigger className="w-[130px]">
+              <SelectValue placeholder="All Roles" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Roles</SelectItem>
+              <SelectItem value="customer">Customer</SelectItem>
+              <SelectItem value="provider">Provider</SelectItem>
+              <SelectItem value="admin">Admin</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setUserPage(1); }}>
+            <SelectTrigger className="w-[130px]">
+              <SelectValue placeholder="All Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="suspended">Suspended</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Results */}
+        {isLoading ? (
+          <LoadingSpinner />
+        ) : !filteredUsers || filteredUsers.users.length === 0 ? (
+          <div className="text-center py-8">
+            <Users className="h-10 w-10 text-muted-foreground/30 mx-auto mb-2" />
+            <p className="text-muted-foreground">No users found matching your criteria</p>
+          </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Joined</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredUsers.users.map((u: any) => (
+                    <TableRow key={u.id} className="cursor-pointer hover:bg-muted/50">
+                      <TableCell className="font-medium">
+                        <Link href={`/admin/users/${u.id}`} className="text-primary hover:underline">
+                          {u.name || "N/A"}
+                        </Link>
+                      </TableCell>
+                      <TableCell>{u.email}</TableCell>
+                      <TableCell>
+                        <Badge variant={u.role === "admin" ? "default" : "secondary"}>
+                          {u.role}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">{formatDate(u.createdAt)}</TableCell>
+                      <TableCell>
+                        {u.deletedAt ? (
+                          <Badge variant="destructive">Suspended</Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-green-600 border-green-600">Active</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Link href={`/admin/users/${u.id}`}>
+                            <Button size="sm" variant="ghost">
+                              <Eye className="h-3.5 w-3.5" />
+                            </Button>
+                          </Link>
+                          {u.role !== "admin" && (
+                            u.deletedAt ? (
+                              <Button size="sm" variant="outline" onClick={() => unsuspendUser.mutate({ userId: u.id })} disabled={unsuspendUser.isPending}>
+                                <Undo2 className="h-3.5 w-3.5 mr-1" />
+                                Unsuspend
+                              </Button>
+                            ) : (
+                              <Button size="sm" variant="outline" className="text-destructive" onClick={() => suspendUser.mutate({ userId: u.id })} disabled={suspendUser.isPending}>
+                                <Ban className="h-3.5 w-3.5 mr-1" />
+                                Suspend
+                              </Button>
+                            )
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Pagination */}
+            {filteredUsers.totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4">
+                <p className="text-sm text-muted-foreground">
+                  Page {filteredUsers.page} of {filteredUsers.totalPages} ({filteredUsers.total} users)
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setUserPage(p => Math.max(1, p - 1))}
+                    disabled={userPage <= 1}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setUserPage(p => p + 1)}
+                    disabled={userPage >= filteredUsers.totalPages}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 }

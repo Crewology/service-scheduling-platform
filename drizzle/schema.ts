@@ -33,6 +33,7 @@ export const users = mysqlTable("users", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
   deletedAt: timestamp("deletedAt"),
+  adminRole: mysqlEnum("adminRole", ["super_admin", "support_agent", "moderator"]),
 });
 
 export type User = typeof users.$inferSelect;
@@ -929,3 +930,24 @@ export const waitlistEntries = mysqlTable("waitlist_entries", {
 ]);
 export type WaitlistEntry = typeof waitlistEntries.$inferSelect;
 export type InsertWaitlistEntry = typeof waitlistEntries.$inferInsert;
+
+
+/**
+ * Admin audit log — tracks all admin actions for accountability.
+ */
+export const auditLog = mysqlTable("audit_log", {
+  id: int("id").autoincrement().primaryKey(),
+  actorId: int("actorId").notNull().references(() => users.id),
+  action: varchar("action", { length: 100 }).notNull(), // e.g., "suspend_user", "verify_provider", "promote_to_admin"
+  targetType: varchar("targetType", { length: 50 }).notNull(), // "user", "provider", "review", "booking"
+  targetId: int("targetId").notNull(),
+  details: text("details"), // JSON string with additional context
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => [
+  index("audit_actor_idx").on(table.actorId),
+  index("audit_action_idx").on(table.action),
+  index("audit_target_idx").on(table.targetType, table.targetId),
+  index("audit_created_idx").on(table.createdAt),
+]);
+export type AuditLogEntry = typeof auditLog.$inferSelect;
+export type InsertAuditLogEntry = typeof auditLog.$inferInsert;
