@@ -1454,3 +1454,14 @@
 - [x] Add filters: action type, actor, date range
 - [x] Link audit entries to user detail view
 - [x] 11 tests passing for admin features
+
+## Bug Fix: Account Deletion Not Clearing All User Data
+- [x] Audit all database tables that reference userId (found 8 missing tables)
+- [x] Update deleteAccount procedure to clear data from ALL tables
+- [x] Clear: bookings, booking_sessions, payments (delete customer's bookings + child records)
+- [x] Clear: waitlist entries (delete all user's waitlist entries)
+- [x] Clear: promo codes (delete provider's promo codes)
+- [x] Clear: contact replies (delete replies to user's contact submissions)
+- [x] Clear: audit log entries (anonymize target entries)
+- [x] Cancel provider Stripe subscription in authRouter (was only cancelling customer sub)
+- [x] All 15 account deletion tests passing (7 + 8)

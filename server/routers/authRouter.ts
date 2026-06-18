@@ -93,8 +93,18 @@ export const authRouter = router({
           }
         }
 
-        // Check provider Stripe connect account — we can't delete it but we note it
-        // Provider subscriptions are handled by the db.deleteUserAccount function
+        // Cancel provider Stripe subscription if exists
+        try {
+          const provider = await db.getProviderByUserId(userId);
+          if (provider) {
+            const providerSub = await db.getProviderSubscription(provider.id);
+            if (providerSub?.stripeSubscriptionId) {
+              await stripe.subscriptions.cancel(providerSub.stripeSubscriptionId);
+            }
+          }
+        } catch (e: any) {
+          console.warn(`[DeleteAccount] Failed to cancel provider subscription: ${e.message}`);
+        }
       } catch (e: any) {
         console.warn(`[DeleteAccount] Stripe cleanup warning: ${e.message}`);
       }

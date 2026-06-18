@@ -5,6 +5,8 @@ import {
   serviceProviders,
   services,
   bookings,
+  bookingSessions,
+  payments,
   notificationPreferences,
   customerSubscriptions,
   notifications,
@@ -15,6 +17,7 @@ import {
   referralCodes,
   referrals,
   referralCredits,
+  promoCodes,
   promoRedemptions,
   pushSubscriptions,
   portfolioItems,
@@ -27,7 +30,10 @@ import {
   providerCategories,
   verificationDocuments,
   contactSubmissions,
+  contactReplies,
   quoteRequests,
+  waitlistEntries,
+  auditLog,
 } from "../../drizzle/schema";
 import { ENV } from "../_core/env";
 import { getDb } from "./connection";
@@ -254,6 +260,11 @@ export async function deleteUserAccount(userId: number): Promise<{
   reviewsAnonymized: number;
   referralDataDeleted: number;
   pushSubscriptionsDeleted: number;
+  waitlistDeleted: number;
+  bookingsDeleted: number;
+  bookingSessionsDeleted: number;
+  paymentsDeleted: number;
+  promoCodesDeleted: number;
 }> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -522,7 +533,92 @@ export async function deleteUserAccount(userId: number): Promise<{
     }
   }
 
-  // 12. Disable email notifications
+  // 12. Delete waitlist entries
+  let waitlistDeleted = 0;
+  try {
+    const wlResult = await db.delete(waitlistEntries).where(
+      eq(waitlistEntries.userId, userId)
+    );
+    waitlistDeleted = wlResult[0]?.affectedRows ?? 0;
+  } catch (e) {
+    console.warn(`[DeleteAccount] Waitlist cleanup: ${(e as Error).message}`);
+  }
+
+  // 13. Delete/anonymize bookings and related records
+  let bookingsDeleted = 0;
+  let bookingSessionsDeleted = 0;
+  let paymentsDeleted = 0;
+  try {
+    // Get all booking IDs for this customer
+    const userBookings = await db
+      .select({ id: bookings.id })
+      .from(bookings)
+      .where(eq(bookings.customerId, userId));
+    const bookingIds = userBookings.map(b => b.id);
+
+    if (bookingIds.length > 0) {
+      // Delete booking sessions first (child records)
+      const sessResult = await db.delete(bookingSessions).where(
+        inArray(bookingSessions.bookingId, bookingIds)
+      );
+      bookingSessionsDeleted = sessResult[0]?.affectedRows ?? 0;
+
+      // Delete payments for these bookings
+      const payResult = await db.delete(payments).where(
+        inArray(payments.bookingId, bookingIds)
+      );
+      paymentsDeleted = payResult[0]?.affectedRows ?? 0;
+
+      // Delete the bookings themselves
+      const bkResult = await db.delete(bookings).where(
+        eq(bookings.customerId, userId)
+      );
+      bookingsDeleted = bkResult[0]?.affectedRows ?? 0;
+    }
+  } catch (e) {
+    console.warn(`[DeleteAccount] Bookings/payments cleanup: ${(e as Error).message}`);
+  }
+
+  // 14. Delete promo codes owned by provider (if applicable)
+  let promoCodesDeleted = 0;
+  if (providerRows.length > 0) {
+    const providerId = providerRows[0].id;
+    try {
+      const promoResult = await db.delete(promoCodes).where(
+        eq(promoCodes.providerId, providerId)
+      );
+      promoCodesDeleted = promoResult[0]?.affectedRows ?? 0;
+    } catch (e) {
+      console.warn(`[DeleteAccount] Promo codes cleanup: ${(e as Error).message}`);
+    }
+  }
+
+  // 15. Delete contact replies to user's submissions
+  try {
+    const userSubmissions = await db
+      .select({ id: contactSubmissions.id })
+      .from(contactSubmissions)
+      .where(eq(contactSubmissions.userId, userId));
+    const submissionIds = userSubmissions.map(s => s.id);
+    if (submissionIds.length > 0) {
+      await db.delete(contactReplies).where(
+        inArray(contactReplies.submissionId, submissionIds)
+      );
+    }
+  } catch (e) {
+    console.warn(`[DeleteAccount] Contact replies cleanup: ${(e as Error).message}`);
+  }
+
+  // 16. Anonymize audit log entries where user is the target
+  try {
+    await db.update(auditLog).set({
+      details: "[Account deleted]",
+    }).where(eq(auditLog.targetId, userId));
+  } catch (e) {
+    console.warn(`[DeleteAccount] Audit log cleanup: ${(e as Error).message}`);
+  }
+
+  // 17. Disable email notifications
   try {
     await db.update(notificationPreferences).set({
       emailEnabled: false,
@@ -533,7 +629,7 @@ export async function deleteUserAccount(userId: number): Promise<{
     // Preferences row may not exist — that's fine
   }
 
-  // 13. Mark customer subscriptions as cancelled
+  // 18. Mark customer subscriptions as cancelled
   try {
     const subResult = await db.update(customerSubscriptions).set({
       status: "cancelled",
@@ -559,6 +655,11 @@ export async function deleteUserAccount(userId: number): Promise<{
     reviewsAnonymized,
     referralDataDeleted,
     pushSubscriptionsDeleted,
+    waitlistDeleted,
+    bookingsDeleted,
+    bookingSessionsDeleted,
+    paymentsDeleted,
+    promoCodesDeleted,
   });
 
   return {
@@ -573,5 +674,10 @@ export async function deleteUserAccount(userId: number): Promise<{
     reviewsAnonymized,
     referralDataDeleted,
     pushSubscriptionsDeleted,
+    waitlistDeleted,
+    bookingsDeleted,
+    bookingSessionsDeleted,
+    paymentsDeleted,
+    promoCodesDeleted,
   };
 }
