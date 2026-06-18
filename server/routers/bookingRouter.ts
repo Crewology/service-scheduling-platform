@@ -1239,4 +1239,31 @@ export const bookingRouter = router({
         overrides: overrides || [],
       };
     }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const booking = await db.getBookingById(input.id);
+      if (!booking) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
+      }
+
+      // Only the provider who owns the booking can delete it
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider || booking.providerId !== provider.id) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Only the provider can delete bookings" });
+      }
+
+      // Only allow deletion of completed, cancelled, no_show, or refunded bookings
+      const deletableStatuses = ["cancelled", "completed", "no_show", "refunded"];
+      if (!deletableStatuses.includes(booking.status)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Cannot delete a booking with status "${booking.status}". Only cancelled, completed, no-show, or refunded bookings can be removed.`,
+        });
+      }
+
+      await db.deleteBooking(input.id);
+      return { success: true };
+    }),
 });

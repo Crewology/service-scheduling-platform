@@ -824,6 +824,7 @@ export default function ProviderDashboard() {
   const [activeTab, setActiveTab] = useState("bookings");
   const [showPackageDialog, setShowPackageDialog] = useState(false);
   const [conflictBookingId, setConflictBookingId] = useState<number | null>(null);
+  const [deletingBookingId, setDeletingBookingId] = useState<number | null>(null);
   const [showConflictWarning, setShowConflictWarning] = useState(false);
   const [conflictData, setConflictData] = useState<any[]>([]);
   const [packageName, setPackageName] = useState("");
@@ -973,6 +974,15 @@ export default function ProviderDashboard() {
       utils.service.listMine.invalidate();
       setDeletingServiceId(null);
       toast.success("Service deleted");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const deleteBooking = trpc.booking.delete.useMutation({
+    onSuccess: () => {
+      utils.booking.listForProvider.invalidate();
+      setDeletingBookingId(null);
+      toast.success("Booking removed");
     },
     onError: (err) => toast.error(err.message),
   });
@@ -1421,6 +1431,17 @@ export default function ProviderDashboard() {
                             Message Customer
                           </Button>
                         </Link>
+                        {["cancelled", "completed", "no_show", "refunded"].includes(booking.status) && (
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => setDeletingBookingId(booking.id)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            Remove
+                          </Button>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -2723,6 +2744,24 @@ export default function ProviderDashboard() {
             <Button variant="outline" onClick={() => setDeletingServiceId(null)}>Cancel</Button>
             <Button variant="destructive" onClick={() => deletingServiceId && deleteService.mutate({ id: deletingServiceId })} disabled={deleteService.isPending}>
               {deleteService.isPending ? "Deleting..." : "Delete Service"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Booking Confirmation */}
+      <Dialog open={!!deletingBookingId} onOpenChange={() => setDeletingBookingId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove Booking</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to remove this booking from your list? This will permanently delete the booking record and any associated messages, reviews, and payment records. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeletingBookingId(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={() => deletingBookingId && deleteBooking.mutate({ id: deletingBookingId })} disabled={deleteBooking.isPending}>
+              {deleteBooking.isPending ? "Removing..." : "Remove Booking"}
             </Button>
           </DialogFooter>
         </DialogContent>

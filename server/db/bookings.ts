@@ -1,6 +1,10 @@
 import { eq, and, gte, lte, desc, asc, sql, inArray } from "drizzle-orm";
 import {
   bookings,
+  bookingSessions,
+  payments,
+  reviews,
+  messages,
   services,
   serviceProviders,
   users,
@@ -288,4 +292,26 @@ export async function checkProviderConflicts(
     return results.filter((b) => b.id !== excludeBookingId) as any;
   }
   return results as any;
+}
+
+
+// ============================================================================
+// BOOKING DELETION
+// ============================================================================
+
+/**
+ * Delete a booking and all related records (sessions, payments, reviews, messages).
+ * Only allowed for bookings with status: cancelled, completed, no_show, refunded.
+ */
+export async function deleteBooking(bookingId: number): Promise<void> {
+  const database = await getDb();
+  if (!database) throw new Error("Database not available");
+
+  // Delete related records first (foreign key constraints)
+  await database.delete(bookingSessions).where(eq(bookingSessions.bookingId, bookingId));
+  await database.delete(messages).where(eq(messages.bookingId, bookingId));
+  await database.delete(reviews).where(eq(reviews.bookingId, bookingId));
+  await database.delete(payments).where(eq(payments.bookingId, bookingId));
+  // Finally delete the booking itself
+  await database.delete(bookings).where(eq(bookings.id, bookingId));
 }

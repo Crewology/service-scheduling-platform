@@ -93,6 +93,7 @@ export {
 export {
   checkProviderConflicts,
   getProviderCalendarBookings,
+  deleteBooking,
 } from "./db/bookings";
 
 // Quote requests

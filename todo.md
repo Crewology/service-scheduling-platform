@@ -1478,3 +1478,8 @@
 
 ## Bug Fix: provider_subscriptions table query failure on service creation
 - [x] Fix failed query on provider_subscriptions table when creating a service (added missing pausedAt/resumesAt columns and 'paused' enum value to both provider_subscriptions and customer_subscriptions)
+
+## Bookings Tab: Delete function for old/cancelled bookings
+- [x] Add backend procedure to delete bookings (restricted to cancelled/completed/no-show status)
+- [x] Add delete button to bookings in the Provider Dashboard bookings tab
+- [x] Add confirmation dialog before deletion
