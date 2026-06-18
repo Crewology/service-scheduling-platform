@@ -8,6 +8,9 @@ import {
   services,
   serviceProviders,
   users,
+  notifications,
+  promoRedemptions,
+  referralCredits,
   type Booking,
 } from "../../drizzle/schema";
 import { getDb } from "./connection";
@@ -307,11 +310,16 @@ export async function deleteBooking(bookingId: number): Promise<void> {
   const database = await getDb();
   if (!database) throw new Error("Database not available");
 
-  // Delete related records first (foreign key constraints)
+  // Delete/nullify related records first (foreign key constraints)
   await database.delete(bookingSessions).where(eq(bookingSessions.bookingId, bookingId));
   await database.delete(messages).where(eq(messages.bookingId, bookingId));
   await database.delete(reviews).where(eq(reviews.bookingId, bookingId));
   await database.delete(payments).where(eq(payments.bookingId, bookingId));
+  // Nullify references in notifications (relatedBookingId is nullable)
+  await database.update(notifications).set({ relatedBookingId: null }).where(eq(notifications.relatedBookingId, bookingId));
+  // Nullify references in promo_redemptions and referral_credits (bookingId is nullable)
+  await database.update(promoRedemptions).set({ bookingId: null }).where(eq(promoRedemptions.bookingId, bookingId));
+  await database.update(referralCredits).set({ bookingId: null }).where(eq(referralCredits.bookingId, bookingId));
   // Finally delete the booking itself
   await database.delete(bookings).where(eq(bookings.id, bookingId));
 }
