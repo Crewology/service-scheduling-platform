@@ -14,6 +14,7 @@ import { useLocation } from "wouter";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
 import { UpgradePrompt } from "@/components/UpgradePrompt";
+import { HelpTip, HelpBanner } from "@/components/shared/HelpTip";
 
 export default function CreateService() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -148,7 +149,10 @@ export default function CreateService() {
           {/* Basic Information */}
           <Card>
             <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle>Basic Information</CardTitle>
+                <HelpTip text="Choose the category that best matches your service. Use a clear, descriptive name that customers can easily search for." variant="info" />
+              </div>
               <CardDescription>Tell customers about your service</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -196,7 +200,10 @@ export default function CreateService() {
               </div>
 
               <div>
-                <Label htmlFor="serviceType">Service Type *</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="serviceType">Service Type *</Label>
+                  <HelpTip text="Mobile: you travel to the customer. Fixed Location: customer comes to your shop/studio. Virtual: service delivered online (video call, etc)." />
+                </div>
                 <Select
                   value={formData.serviceType}
                   onValueChange={(value: any) => setFormData({ ...formData, serviceType: value })}
@@ -230,7 +237,10 @@ export default function CreateService() {
           {/* Pricing */}
           <Card>
             <CardHeader>
-              <CardTitle>Pricing</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle>Pricing</CardTitle>
+                <HelpTip text="Fixed Price: one set price per booking. Hourly: charged by the hour. Package: bundled services at a set price. Custom Quote: customers request a quote first." variant="info" />
+              </div>
               <CardDescription>Set your pricing model</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -306,7 +316,10 @@ export default function CreateService() {
           {/* Group Class / Capacity */}
           <Card>
             <CardHeader>
-              <CardTitle>Class & Capacity</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle>Class & Capacity</CardTitle>
+                <HelpTip text="Enable this for services like fitness classes, workshops, or group lessons where multiple people can book the same time slot." variant="info" />
+              </div>
               <CardDescription>Set up group classes with participant limits</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -347,7 +360,10 @@ export default function CreateService() {
           {/* Deposit Settings */}
           <Card>
             <CardHeader>
-              <CardTitle>Deposit Settings</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle>Deposit Settings</CardTitle>
+                <HelpTip text="Deposits help reduce no-shows. You can charge a fixed dollar amount or a percentage of the service price upfront when the customer books." variant="info" />
+              </div>
               <CardDescription>Require a deposit to secure bookings</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">

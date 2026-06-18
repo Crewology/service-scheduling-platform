@@ -1487,3 +1487,11 @@
 ## Chat Feature: Profile images in messaging
 - [x] Display profile images (avatars) next to messages in the chat interface
 - [x] Show user/provider profile photo if uploaded, fallback to initials
+
+## Helpful Tips & FAQ
+- [x] Create reusable HelpTip component (info icon with tooltip/popover)
+- [x] Create Help/FAQ page with common questions for providers and customers (already exists at /help)
+- [x] Add contextual tips to Provider Dashboard (bookings, services, availability)
+- [x] Add contextual tips to service creation/editing form
+- [x] Add contextual tips to customer booking flow and profile pages
+- [x] Register Help/FAQ page route in App.tsx and add navigation link (already exists)

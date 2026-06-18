@@ -72,6 +72,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { UpgradePrompt, UpgradeBanner } from "@/components/UpgradePrompt";
 import { TrustBadge, TrustScoreProgress } from "@/components/TrustBadge";
 import { TrialStatusBanner } from "@/components/TrialBanner";
+import { HelpTip, HelpBanner } from "@/components/shared/HelpTip";
 
 // ============================================================================
 // SERVICE PHOTOS MANAGER
@@ -1186,6 +1187,13 @@ export default function ProviderDashboard() {
           </Card>
         </div>
 
+        {/* Quick Tips Banner */}
+        <HelpBanner
+          text="Tip: Respond to pending bookings within 24 hours to maintain a high trust score. Complete your profile, add portfolio photos, and collect reviews to rank higher in search results."
+          variant="tip"
+          className="mb-4"
+        />
+
         {/* Trust Score Widget */}
         {trustBreakdown && (
           <Card className="mb-8">
@@ -1285,7 +1293,10 @@ export default function ProviderDashboard() {
           {/* Bookings Tab */}
           <TabsContent value="bookings" className="space-y-4 pb-20 md:pb-0">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">Bookings</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-2xl font-bold">Bookings</h2>
+                <HelpTip text="View and manage all customer bookings. Confirm pending bookings promptly to maintain a high response rate and build trust with customers." variant="info" />
+              </div>
               <Link href="/provider/calendar">
                 <Button variant="outline" size="sm" className="gap-1.5">
                   <Calendar className="h-4 w-4" />
@@ -1676,7 +1687,10 @@ export default function ProviderDashboard() {
           <TabsContent value="services" className="space-y-6 pb-20 md:pb-0">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold">My Categories & Services</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl font-bold">My Categories & Services</h2>
+                  <HelpTip text="Add services you offer within your chosen categories. Each service needs a name, price, and duration. Customers will see these when browsing your profile." variant="info" />
+                </div>
                 <p className="text-sm text-muted-foreground mt-1">Manage the categories you serve and the services you offer in each</p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -1872,7 +1886,10 @@ export default function ProviderDashboard() {
           {/* === SCHEDULE TAB (Availability + Calendar Sync) === */}
           <TabsContent value="schedule" className="space-y-6 pb-20 md:pb-0">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">Manage Availability</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-2xl font-bold">Manage Availability</h2>
+                <HelpTip text="Set your weekly working hours so customers know when you're available. You can also block specific dates for vacations or personal time." variant="info" />
+              </div>
             </div>
             <Card>
               <CardContent className="py-12 text-center">
@@ -1896,7 +1913,10 @@ export default function ProviderDashboard() {
           {/* === FINANCES TAB (Earnings + Payments) === */}
           <TabsContent value="finances" className="space-y-6 pb-20 md:pb-0">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">Earnings</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-2xl font-bold">Earnings</h2>
+                <HelpTip text="Track your income from completed bookings. Earnings are deposited to your connected Stripe account. Pending payouts reflect confirmed bookings not yet completed." variant="info" />
+              </div>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">

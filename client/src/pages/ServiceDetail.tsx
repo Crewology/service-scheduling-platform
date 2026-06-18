@@ -18,6 +18,7 @@ import { generateTimeSlots, formatTimeForDisplay, type TimeSlot } from "@shared/
 import { ReviewList } from "@/components/shared/ReviewList";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { ShareProfile } from "@/components/ShareProfile";
+import { HelpTip, HelpBanner } from "@/components/shared/HelpTip";
 
 
 type BookingStep = "date" | "time" | "details" | "confirm";
@@ -722,7 +723,10 @@ export default function ServiceDetail() {
           <div className="lg:col-span-1">
             <Card className="sticky top-20 shadow-medium">
               <CardHeader className="pb-3">
-                <CardTitle className="text-xl">Book This Service</CardTitle>
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-xl">Book This Service</CardTitle>
+                  <HelpTip text="Select a date, choose an available time slot, add any special requests, then confirm and pay. Grayed-out slots are already booked." variant="info" />
+                </div>
                 <CardDescription>
                   Follow the steps below to complete your booking
                 </CardDescription>
@@ -1235,9 +1239,12 @@ export default function ServiceDetail() {
                     )}
 
                     <div className="mb-4">
-                      <Label htmlFor="notes" className="text-sm">
-                        Special Requests (optional)
-                      </Label>
+                      <div className="flex items-center gap-1.5">
+                        <Label htmlFor="notes" className="text-sm">
+                          Special Requests (optional)
+                        </Label>
+                        <HelpTip text="Let the provider know about any preferences, allergies, or specific needs. This helps them prepare for your appointment." />
+                      </div>
                       <Textarea
                         id="notes"
                         value={bookingForm.notes}

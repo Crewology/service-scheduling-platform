@@ -22,6 +22,7 @@ import { getLoginUrl } from "@/const";
 import { formatDate } from "@/lib/dateUtils";
 import { useLocation } from "wouter";
 import { Building2 } from "lucide-react";
+import { HelpBanner } from "@/components/shared/HelpTip";
 
 // Profile completion fields definition
 interface CompletionField {
@@ -350,6 +351,12 @@ export default function UserProfile() {
 
         {/* Profile Completion Indicator */}
         <ProfileCompletionCard user={user} onEditClick={() => setEditing(true)} />
+
+        {/* Helpful tip for profile */}
+        <HelpBanner
+          text="A complete profile helps providers communicate with you and builds trust. Add your name, phone number, and a profile photo so providers know who to expect."
+          variant="tip"
+        />
 
         {/* Main Profile Card */}
         <Card>

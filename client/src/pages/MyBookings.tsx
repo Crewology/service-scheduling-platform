@@ -26,6 +26,7 @@ import { NavHeader } from "@/components/shared/NavHeader";
 import { toast } from "sonner";
 import { useOfflineBookings } from "@/hooks/useOfflineBookings";
 import { useViewMode } from "@/contexts/ViewModeContext";
+import { HelpTip } from "@/components/shared/HelpTip";
 
 export default function MyBookings() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -195,9 +196,12 @@ export default function MyBookings() {
 
         <div className="mb-8 flex flex-col sm:flex-row items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2">
-              {bookingView === "provider" && canSwitch ? "Bookings I Received" : "My Bookings"}
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl sm:text-3xl font-bold">
+                {bookingView === "provider" && canSwitch ? "Bookings I Received" : "My Bookings"}
+              </h1>
+              <HelpTip text="Track all your bookings here. You can message providers, cancel bookings, or export your history. Click on any booking to see full details." variant="info" />
+            </div>
             <p className="text-muted-foreground">
               {bookingView === "provider" && canSwitch
                 ? "Manage bookings from your customers"
