@@ -178,7 +178,7 @@ self.addEventListener('push', (event) => {
   }
 
   const ICON_URL = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/android-chrome-192x192_3e2c5d17.png';
-  const BADGE_URL = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/favicon-32x32_9b666460.png';
+  const BADGE_URL = '/manus-storage/favicon-32x32_cd6296c5.png';
 
   event.waitUntil(
     self.registration.getNotifications().then((existingNotifications) => {
