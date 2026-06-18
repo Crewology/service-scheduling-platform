@@ -122,8 +122,20 @@ export const referralRouter = router({
             },
           });
         }
+
+        // In-app notification for the referrer
+        if (referrer) {
+          const { createNotification } = await import("./db");
+          await createNotification({
+            userId: referrer.id,
+            notificationType: "referral_signup",
+            title: "New Referral Sign-Up!",
+            message: `${referee.name || "Someone"} just signed up using your referral link! You'll earn credits when they complete their first booking.`,
+            actionUrl: "/referrals",
+          });
+        }
       } catch (emailErr) {
-        console.error("[Referral] Email notification failed (non-blocking):", emailErr);
+        console.error("[Referral] Notification failed (non-blocking):", emailErr);
       }
 
       return { success: true };

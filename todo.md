@@ -1495,3 +1495,8 @@
 - [x] Add contextual tips to service creation/editing form
 - [x] Add contextual tips to customer booking flow and profile pages
 - [x] Register Help/FAQ page route in App.tsx and add navigation link (already exists)
+
+## Fix: Customer referral link auto-capture and notifications
+- [x] Capture ?ref= parameter from homepage URL and store in localStorage
+- [x] Auto-fill referral code in booking flow from stored localStorage value
+- [x] Add in-app notification for referrer when someone signs up via their referral link

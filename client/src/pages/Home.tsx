@@ -6,7 +6,7 @@ import { trpc } from "@/lib/trpc";
 import { Search, Calendar, Shield, Star, ArrowRight, CheckCircle2, MapPin, User, Gift, Trophy, TrendingUp, Users, Award, ShieldCheck, Download } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { OfficialBadge } from "@/components/OfficialBadge";
 import { usePWAInstallContext } from "@/contexts/PWAInstallContext";
@@ -18,6 +18,19 @@ export default function Home() {
   const { user, isAuthenticated } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [, setLocation] = useLocation();
+
+  // Capture customer referral code from URL (?ref=CODE) and store in localStorage
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const refCode = params.get("ref");
+    if (refCode) {
+      localStorage.setItem("customer_referral_code", refCode.toUpperCase().trim());
+      // Clean the URL without reloading
+      const url = new URL(window.location.href);
+      url.searchParams.delete("ref");
+      window.history.replaceState({}, "", url.pathname + url.search);
+    }
+  }, []);
   const { data: categories } = trpc.category.list.useQuery();
   const { isInstalled: pwaInstalled, triggerInstall: pwaInstall } = usePWAInstallContext();
   const { data: featuredProviders } = trpc.provider.listFeatured.useQuery();

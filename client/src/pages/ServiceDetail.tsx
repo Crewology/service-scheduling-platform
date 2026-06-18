@@ -285,6 +285,8 @@ export default function ServiceDetail() {
           bookingId: data.id,
           discountAmount: (getNumericPrice() * referralApplied.refereeDiscountPercent / 100).toFixed(2),
         });
+        // Clear the stored referral code after successful application
+        localStorage.removeItem("customer_referral_code");
       }
       if (service?.depositRequired || service?.pricingModel !== "custom_quote") {
         handlePayment(data.id);
@@ -366,6 +368,33 @@ export default function ServiceDetail() {
   } | null>(null);
   const validateReferral = trpc.referral.validate.useMutation();
   const applyReferral = trpc.referral.applyCode.useMutation();
+
+  // Auto-fill referral code from localStorage (captured from /?ref=CODE link)
+  useEffect(() => {
+    const storedRef = localStorage.getItem("customer_referral_code");
+    if (storedRef && !referralCode && !referralApplied) {
+      setReferralCode(storedRef);
+      // Auto-validate the stored referral code
+      setReferralValidating(true);
+      validateReferral.mutate(
+        { code: storedRef },
+        {
+          onSuccess: (result) => {
+            if (result.valid) {
+              setReferralApplied(result as any);
+            } else {
+              // Invalid code, clear it from storage
+              localStorage.removeItem("customer_referral_code");
+            }
+          },
+          onError: () => {
+            localStorage.removeItem("customer_referral_code");
+          },
+          onSettled: () => setReferralValidating(false),
+        }
+      );
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [promoApplied, setPromoApplied] = useState<{
     valid: boolean;
     promoCodeId: number | null;
