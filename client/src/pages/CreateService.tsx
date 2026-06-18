@@ -89,10 +89,10 @@ export default function CreateService() {
       durationMinutes: parseInt(formData.durationMinutes),
       depositRequired: formData.depositRequired,
       depositType: formData.depositRequired ? formData.depositType : undefined,
-      depositAmount: formData.depositRequired && formData.depositType === "fixed" 
+      depositAmount: formData.depositRequired && formData.depositType === "fixed" && formData.depositAmount
         ? parseFloat(formData.depositAmount) 
         : undefined,
-      depositPercentage: formData.depositRequired && formData.depositType === "percentage"
+      depositPercentage: formData.depositRequired && formData.depositType === "percentage" && formData.depositPercentage
         ? parseFloat(formData.depositPercentage)
         : undefined,
       isGroupClass: formData.isGroupClass,

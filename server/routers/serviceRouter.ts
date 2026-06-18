@@ -16,8 +16,16 @@ export const serviceRouter = router({
       durationMinutes: z.number().optional(),
       depositRequired: z.boolean().default(false),
       depositType: z.enum(["fixed", "percentage"]).optional(),
-      depositAmount: z.union([z.number(), z.string()]).optional(),
-      depositPercentage: z.union([z.number(), z.string()]).optional(),
+      depositAmount: z.union([z.number(), z.string()]).optional().transform(v => {
+        if (v === undefined || v === null || v === "") return undefined;
+        const n = typeof v === "string" ? parseFloat(v) : v;
+        return isNaN(n) ? undefined : n;
+      }),
+      depositPercentage: z.union([z.number(), z.string()]).optional().transform(v => {
+        if (v === undefined || v === null || v === "") return undefined;
+        const n = typeof v === "string" ? parseFloat(v) : v;
+        return isNaN(n) ? undefined : n;
+      }),
       isGroupClass: z.boolean().default(false),
       maxCapacity: z.number().min(1).default(1),
     }))
@@ -148,8 +156,16 @@ export const serviceRouter = router({
       durationMinutes: z.number().optional(),
       depositRequired: z.boolean().optional(),
       depositType: z.enum(["fixed", "percentage"]).optional(),
-      depositAmount: z.union([z.number(), z.string()]).optional(),
-      depositPercentage: z.union([z.number(), z.string()]).optional(),
+      depositAmount: z.union([z.number(), z.string()]).optional().transform(v => {
+        if (v === undefined || v === null || v === "") return undefined;
+        const n = typeof v === "string" ? parseFloat(v) : v;
+        return isNaN(n) ? undefined : n;
+      }),
+      depositPercentage: z.union([z.number(), z.string()]).optional().transform(v => {
+        if (v === undefined || v === null || v === "") return undefined;
+        const n = typeof v === "string" ? parseFloat(v) : v;
+        return isNaN(n) ? undefined : n;
+      }),
       cancellationPolicy: z.string().optional(),
       specialRequirements: z.string().optional(),
       isActive: z.boolean().optional(),

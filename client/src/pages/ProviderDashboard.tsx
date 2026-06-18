@@ -2478,7 +2478,22 @@ export default function ProviderDashboard() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditingService(null)}>Cancel</Button>
-            <Button onClick={() => updateService.mutate(serviceForm)} disabled={updateService.isPending}>
+            <Button onClick={() => {
+              const payload = { ...serviceForm };
+              // Prevent NaN from empty deposit fields
+              if (!payload.depositRequired) {
+                payload.depositAmount = undefined;
+                payload.depositPercentage = undefined;
+                payload.depositType = undefined;
+              } else if (payload.depositType === "percentage") {
+                payload.depositAmount = undefined;
+                payload.depositPercentage = payload.depositPercentage || undefined;
+              } else {
+                payload.depositPercentage = undefined;
+                payload.depositAmount = payload.depositAmount || undefined;
+              }
+              updateService.mutate(payload);
+            }} disabled={updateService.isPending}>
               {updateService.isPending ? "Saving..." : "Save Changes"}
             </Button>
           </DialogFooter>

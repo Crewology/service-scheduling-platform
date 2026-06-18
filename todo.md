@@ -1465,3 +1465,13 @@
 - [x] Clear: audit log entries (anonymize target entries)
 - [x] Cancel provider Stripe subscription in authRouter (was only cancelling customer sub)
 - [x] All 15 account deletion tests passing (7 + 8)
+
+## Account Deletion: Final Confirmation Modal (type 'DELETE')
+- [x] Confirmation modal already implemented with multi-step flow (initial warning → type DELETE → confirm)
+- [x] Modal requires exact text "DELETE" before the button becomes enabled
+- [x] Applies to all users (customer and provider) via shared DeleteAccountSection component
+- [x] Backend also validates confirmation parameter
+
+## Bug Fix: depositPercentage NaN error when adding a service
+- [x] Fix depositPercentage being sent as NaN in service creation form (CreateService.tsx + ProviderDashboard.tsx)
+- [x] Ensure proper number coercion/default for depositPercentage field (backend transform in serviceRouter.ts)
