@@ -50,9 +50,63 @@ async function injectOgTags(url: string, template: string, origin: string): Prom
     ].join("\n    ");
   }
 
+  // Provider onboarding referral page (/provider/onboarding?ref=...)
+  if (!ogTags && url.startsWith("/provider/onboarding")) {
+    ogTags = [
+      `<meta property="og:title" content="Join OlogyCrew as a Service Provider" />`,
+      `<meta property="og:description" content="Start your business on OlogyCrew. Reach new customers, manage bookings, accept secure payments, and grow your service business. Sign up today!" />`,
+      `<meta property="og:url" content="${origin}/provider/onboarding" />`,
+      `<meta property="og:type" content="website" />`,
+      `<meta property="og:site_name" content="OlogyCrew" />`,
+      `<meta name="twitter:card" content="summary_large_image" />`,
+      `<meta name="twitter:title" content="Join OlogyCrew as a Service Provider" />`,
+      `<meta name="twitter:description" content="Start your business on OlogyCrew. Reach new customers, manage bookings, accept secure payments, and grow your service business." />`,
+      `<meta property="og:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-compressed_d69712f3.jpg" />`,
+      `<meta property="og:image:width" content="1200" />`,
+      `<meta property="og:image:height" content="630" />`,
+      `<meta name="twitter:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-compressed_d69712f3.jpg" />`,
+    ].join("\n    ");
+  }
+
+  // Signup referral page (/signup?ref=...)
+  if (!ogTags && url.startsWith("/signup")) {
+    ogTags = [
+      `<meta property="og:title" content="Join OlogyCrew — Book Trusted Service Professionals" />`,
+      `<meta property="og:description" content="Sign up for OlogyCrew and get access to 42+ service categories. Book trusted professionals, pay securely, and get the job done right." />`,
+      `<meta property="og:url" content="${origin}/signup" />`,
+      `<meta property="og:type" content="website" />`,
+      `<meta property="og:site_name" content="OlogyCrew" />`,
+      `<meta name="twitter:card" content="summary_large_image" />`,
+      `<meta name="twitter:title" content="Join OlogyCrew — Book Trusted Service Professionals" />`,
+      `<meta name="twitter:description" content="Sign up for OlogyCrew and get access to 42+ service categories. Book trusted professionals, pay securely, and get the job done right." />`,
+      `<meta property="og:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-compressed_d69712f3.jpg" />`,
+      `<meta property="og:image:width" content="1200" />`,
+      `<meta property="og:image:height" content="630" />`,
+      `<meta name="twitter:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-compressed_d69712f3.jpg" />`,
+    ].join("\n    ");
+  }
+
   // Homepage (exact match on / or /?)
   if (!ogTags && (url === "/" || url === "/?")) {
     ogTags = await getHomepageOgTags(origin);
+  }
+
+  // Fallback OG tags for any page that doesn't have specific ones
+  if (!ogTags) {
+    ogTags = [
+      `<meta property="og:title" content="OlogyCrew — Service Scheduling Platform" />`,
+      `<meta property="og:description" content="Find and book trusted service professionals near you. 42+ categories, instant booking, secure payments." />`,
+      `<meta property="og:url" content="${origin}${url.split('?')[0]}" />`,
+      `<meta property="og:type" content="website" />`,
+      `<meta property="og:site_name" content="OlogyCrew" />`,
+      `<meta name="twitter:card" content="summary_large_image" />`,
+      `<meta name="twitter:title" content="OlogyCrew — Service Scheduling Platform" />`,
+      `<meta name="twitter:description" content="Find and book trusted service professionals near you. 42+ categories, instant booking, secure payments." />`,
+      `<meta property="og:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-compressed_d69712f3.jpg" />`,
+      `<meta property="og:image:width" content="1200" />`,
+      `<meta property="og:image:height" content="630" />`,
+      `<meta name="twitter:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-compressed_d69712f3.jpg" />`,
+    ].join("\n    ");
   }
 
   if (ogTags) {
