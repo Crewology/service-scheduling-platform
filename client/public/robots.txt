@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /provider/dashboard
+Disallow: /my-bookings
+Disallow: /messages
+Disallow: /profile
+
+Sitemap: https://ologycrew.com/sitemap.xml

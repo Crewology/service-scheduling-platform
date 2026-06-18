@@ -147,6 +147,72 @@ async function startServer() {
       createContext,
     })
   );
+  // Dynamic sitemap.xml
+  app.get("/sitemap.xml", async (req, res) => {
+    const origin = `${req.protocol}://${req.get("host")}`;
+    const { getDb } = await import("../db");
+    const { serviceProviders, services, serviceCategories } = await import("../../drizzle/schema");
+    const { eq, isNotNull } = await import("drizzle-orm");
+    const db = await getDb();
+    if (!db) {
+      res.status(500).send("Database unavailable");
+      return;
+    }
+
+    // Fetch public providers with profileSlug
+    const providers = await db.select({ slug: serviceProviders.profileSlug, updatedAt: serviceProviders.updatedAt })
+      .from(serviceProviders).where(isNotNull(serviceProviders.profileSlug)).limit(500);
+
+    // Fetch active services
+    const activeServices = await db.select({ id: services.id, updatedAt: services.updatedAt })
+      .from(services).where(eq(services.isActive, true)).limit(1000);
+
+    // Fetch categories
+    const categories = await db.select({ slug: serviceCategories.slug })
+      .from(serviceCategories).limit(100);
+
+    const today = new Date().toISOString().split("T")[0];
+
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+    xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+
+    // Static pages
+    const staticPages = [
+      { loc: "/", priority: "1.0", changefreq: "daily" },
+      { loc: "/browse", priority: "0.9", changefreq: "daily" },
+      { loc: "/search", priority: "0.8", changefreq: "daily" },
+      { loc: "/pricing", priority: "0.7", changefreq: "monthly" },
+      { loc: "/help", priority: "0.6", changefreq: "monthly" },
+      { loc: "/privacy", priority: "0.3", changefreq: "yearly" },
+      { loc: "/terms", priority: "0.3", changefreq: "yearly" },
+      { loc: "/referral-program", priority: "0.6", changefreq: "monthly" },
+    ];
+
+    for (const page of staticPages) {
+      xml += `  <url>\n    <loc>${origin}${page.loc}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${page.changefreq}</changefreq>\n    <priority>${page.priority}</priority>\n  </url>\n`;
+    }
+
+    // Category pages
+    for (const cat of categories) {
+      xml += `  <url>\n    <loc>${origin}/category/${cat.slug}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
+    }
+
+    // Provider profile pages
+    for (const p of providers) {
+      const lastmod = p.updatedAt ? new Date(p.updatedAt).toISOString().split("T")[0] : today;
+      xml += `  <url>\n    <loc>${origin}/p/${p.slug}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
+    }
+
+    // Service detail pages
+    for (const s of activeServices) {
+      const lastmod = s.updatedAt ? new Date(s.updatedAt).toISOString().split("T")[0] : today;
+      xml += `  <url>\n    <loc>${origin}/service/${s.id}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n  </url>\n`;
+    }
+
+    xml += `</urlset>`;
+    res.set("Content-Type", "application/xml").send(xml);
+  });
+
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);
