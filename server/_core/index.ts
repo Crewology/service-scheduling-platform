@@ -152,7 +152,7 @@ async function startServer() {
     // Use canonical domain, falling back to request host for dev
     const host = req.get("host") || "";
     const isProduction = !host.includes("localhost") && !host.includes("manus.computer");
-    const origin = isProduction ? "https://ologycrew.com" : `${req.protocol}://${host}`;
+    const origin = isProduction ? "https://www.ologywood.com" : `${req.protocol}://${host}`;
     const { getDb } = await import("../db");
     const { serviceProviders, services, serviceCategories } = await import("../../drizzle/schema");
     const { eq, isNotNull } = await import("drizzle-orm");

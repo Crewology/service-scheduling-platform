@@ -20,6 +20,7 @@ import PublicProviderProfile from "./pages/PublicProviderProfile";
 // Auth & onboarding
 import RoleSelection from "./pages/RoleSelection";
 import ProviderOnboarding from "./pages/ProviderOnboarding";
+import Signup from "./pages/Signup";
 
 // Booking flow
 import BookingConfirmation from "./pages/BookingConfirmation";
@@ -77,6 +78,7 @@ import NotFound from "./pages/NotFound";
 function Router() {
   return (
     <Switch>
+      <Route path="/signup" component={Signup} />
       <Route path="/select-role" component={RoleSelection} />
       <Route path="/" component={Home} />
       <Route path="/browse" component={Browse} />

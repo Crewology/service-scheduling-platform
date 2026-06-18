@@ -1495,3 +1495,7 @@
 - [x] Add contextual tips to service creation/editing form
 - [x] Add contextual tips to customer booking flow and profile pages
 - [x] Register Help/FAQ page route in App.tsx and add navigation link (already exists)
+
+## Bug Fix: /signup route 404 error for referral links
+- [x] Add /signup route that handles ?ref= parameter and redirects to login/sign-up flow
+- [x] Update sitemap canonical domain from ologycrew.com to ologywood.com
