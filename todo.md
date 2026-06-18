@@ -1475,3 +1475,6 @@
 ## Bug Fix: depositPercentage NaN error when adding a service
 - [x] Fix depositPercentage being sent as NaN in service creation form (CreateService.tsx + ProviderDashboard.tsx)
 - [x] Ensure proper number coercion/default for depositPercentage field (backend transform in serviceRouter.ts)
+
+## Bug Fix: provider_subscriptions table query failure on service creation
+- [x] Fix failed query on provider_subscriptions table when creating a service (added missing pausedAt/resumesAt columns and 'paused' enum value to both provider_subscriptions and customer_subscriptions)
