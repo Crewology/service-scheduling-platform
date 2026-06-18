@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { trpc } from "@/lib/trpc";
-import { Send, Paperclip, X, FileText, Download, Check, CheckCheck } from "lucide-react";
+import { Send, Paperclip, X, FileText, Download, Check, CheckCheck, User as UserIcon } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useParams } from "wouter";
 import { getLoginUrl } from "@/const";
@@ -332,12 +333,33 @@ export default function Messages() {
         {/* Conversation Header */}
         <Card className="mb-4">
           <CardHeader>
-            <CardTitle className="text-lg">
-              {service?.name} - Booking #{booking.bookingNumber}
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Conversation with {provider?.businessName}
-            </p>
+            <div className="flex items-center gap-3">
+              {/* Other user's avatar in the header */}
+              {(() => {
+                const otherPhoto = messagesList?.[0]?.senderPhotoUrl && messagesList[0].senderId !== user?.id
+                  ? messagesList[0].senderPhotoUrl
+                  : messagesList?.find((m: any) => m.senderId !== user?.id)?.senderPhotoUrl || null;
+                const otherName = provider?.businessName || "";
+                return (
+                  <Avatar className="size-10 shrink-0">
+                    {otherPhoto ? (
+                      <AvatarImage src={otherPhoto} alt={otherName} className="object-cover" />
+                    ) : null}
+                    <AvatarFallback className="text-sm font-medium">
+                      {otherName?.[0]?.toUpperCase() || "?"}
+                    </AvatarFallback>
+                  </Avatar>
+                );
+              })()}
+              <div>
+                <CardTitle className="text-lg">
+                  {service?.name} - Booking #{booking.bookingNumber}
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Conversation with {provider?.businessName}
+                </p>
+              </div>
+            </div>
           </CardHeader>
         </Card>
 
@@ -353,9 +375,24 @@ export default function Messages() {
                 messagesList.map((msg: any, index: number) => {
                   const isMe = msg.senderId === user?.id;
                   const readInfo = getReadStatus(msg, index);
+                  const senderPhoto = isMe ? user?.profilePhotoUrl : msg.senderPhotoUrl;
+                  const senderInitial = isMe
+                    ? (user?.name?.[0] || user?.firstName?.[0] || "?")
+                    : (msg.senderName?.[0] || "?");
                   return (
                     <div key={msg.id}>
-                      <div className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                      <div className={`flex items-end gap-2 ${isMe ? "justify-end" : "justify-start"}`}>
+                        {/* Avatar for other user (left side) */}
+                        {!isMe && (
+                          <Avatar className="size-8 shrink-0">
+                            {senderPhoto ? (
+                              <AvatarImage src={senderPhoto} alt="" className="object-cover" />
+                            ) : null}
+                            <AvatarFallback className="text-xs font-medium bg-muted-foreground/20">
+                              {senderInitial.toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
                         <div
                           className={`max-w-[70%] rounded-lg p-3 ${
                             isMe
@@ -387,6 +424,17 @@ export default function Messages() {
                             )}
                           </div>
                         </div>
+                        {/* Avatar for current user (right side) */}
+                        {isMe && (
+                          <Avatar className="size-8 shrink-0">
+                            {senderPhoto ? (
+                              <AvatarImage src={senderPhoto} alt="" className="object-cover" />
+                            ) : null}
+                            <AvatarFallback className="text-xs font-medium bg-primary/20">
+                              {senderInitial.toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
                       </div>
                       {/* "Seen" timestamp on last read message */}
                       {isMe && readInfo?.showTimestamp && readInfo.readAt && (

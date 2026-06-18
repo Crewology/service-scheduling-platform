@@ -1483,3 +1483,7 @@
 - [x] Add backend procedure to delete bookings (restricted to cancelled/completed/no-show status)
 - [x] Add delete button to bookings in the Provider Dashboard bookings tab
 - [x] Add confirmation dialog before deletion
+
+## Chat Feature: Profile images in messaging
+- [x] Display profile images (avatars) next to messages in the chat interface
+- [x] Show user/provider profile photo if uploaded, fallback to initials

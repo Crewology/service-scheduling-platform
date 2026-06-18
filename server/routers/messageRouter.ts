@@ -237,7 +237,26 @@ export const messageRouter = router({
       if (booking.customerId !== ctx.user.id && booking.providerId !== provider?.id && ctx.user.role !== "admin") {
         throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
       }
-      return await db.getMessagesByBooking(input.bookingId);
+      const msgs = await db.getMessagesByBooking(input.bookingId);
+      // Collect unique sender IDs and fetch their profile photos
+      const senderIds = Array.from(new Set(msgs.map((m: any) => m.senderId)));
+      const senderPhotos: Record<number, string | null> = {};
+      const senderNames: Record<number, string | null> = {};
+      await Promise.all(senderIds.map(async (sid) => {
+        try {
+          const u = await db.getUserById(sid);
+          senderPhotos[sid] = u?.profilePhotoUrl || null;
+          senderNames[sid] = u?.name || u?.firstName || null;
+        } catch {
+          senderPhotos[sid] = null;
+          senderNames[sid] = null;
+        }
+      }));
+      return msgs.map((m: any) => ({
+        ...m,
+        senderPhotoUrl: senderPhotos[m.senderId] || null,
+        senderName: senderNames[m.senderId] || null,
+      }));
     }),
   
   startConversation: protectedProcedure
