@@ -103,7 +103,10 @@ async function startServer() {
 
   // Sitemap.xml (proper XML format for search engines)
   app.get("/sitemap.xml", (req, res) => {
-    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    // Use canonical domain for sitemap URLs (not internal Cloud Run domain)
+    const forwardedHost = req.get("x-forwarded-host") || req.get("host") || "";
+    const isCustomDomain = forwardedHost.includes("ologycrew.com") || forwardedHost.includes("manus.space");
+    const baseUrl = isCustomDomain ? `https://${forwardedHost}` : "https://www.ologycrew.com";
     const staticPages = [
       { loc: "/", priority: "1.0", changefreq: "daily" },
       { loc: "/browse", priority: "0.9", changefreq: "daily" },
@@ -122,7 +125,9 @@ async function startServer() {
 
   // robots.txt
   app.get("/robots.txt", (req, res) => {
-    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    const forwardedHost = req.get("x-forwarded-host") || req.get("host") || "";
+    const isCustomDomain = forwardedHost.includes("ologycrew.com") || forwardedHost.includes("manus.space");
+    const baseUrl = isCustomDomain ? `https://${forwardedHost}` : "https://www.ologycrew.com";
     const robotsTxt = `User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /provider/\nDisallow: /messages\nDisallow: /my-bookings\nDisallow: /api/\n\nSitemap: ${baseUrl}/sitemap.xml`;
     res.set("Content-Type", "text/plain");
     res.send(robotsTxt);
