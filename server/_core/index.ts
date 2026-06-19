@@ -101,38 +101,6 @@ async function startServer() {
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-  // Sitemap.xml (proper XML format for search engines)
-  app.get("/sitemap.xml", (req, res) => {
-    // Use canonical domain for sitemap URLs (not internal Cloud Run domain)
-    const forwardedHost = req.get("x-forwarded-host") || req.get("host") || "";
-    const isCustomDomain = forwardedHost.includes("ologycrew.com") || forwardedHost.includes("manus.space");
-    const baseUrl = isCustomDomain ? `https://${forwardedHost}` : "https://www.ologycrew.com";
-    const staticPages = [
-      { loc: "/", priority: "1.0", changefreq: "daily" },
-      { loc: "/browse", priority: "0.9", changefreq: "daily" },
-      { loc: "/search", priority: "0.8", changefreq: "daily" },
-      { loc: "/pricing", priority: "0.7", changefreq: "weekly" },
-      { loc: "/help", priority: "0.6", changefreq: "weekly" },
-      { loc: "/referral-program", priority: "0.5", changefreq: "monthly" },
-      { loc: "/privacy", priority: "0.3", changefreq: "monthly" },
-      { loc: "/terms", priority: "0.3", changefreq: "monthly" },
-    ];
-    const urls = staticPages.map(p => `  <url>\n    <loc>${baseUrl}${p.loc}</loc>\n    <changefreq>${p.changefreq}</changefreq>\n    <priority>${p.priority}</priority>\n  </url>`).join("\n");
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>`;
-    res.set("Content-Type", "application/xml");
-    res.send(xml);
-  });
-
-  // robots.txt
-  app.get("/robots.txt", (req, res) => {
-    const forwardedHost = req.get("x-forwarded-host") || req.get("host") || "";
-    const isCustomDomain = forwardedHost.includes("ologycrew.com") || forwardedHost.includes("manus.space");
-    const baseUrl = isCustomDomain ? `https://${forwardedHost}` : "https://www.ologycrew.com";
-    const robotsTxt = `User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /provider/\nDisallow: /messages\nDisallow: /my-bookings\nDisallow: /api/\n\nSitemap: ${baseUrl}/sitemap.xml`;
-    res.set("Content-Type", "text/plain");
-    res.send(robotsTxt);
-  });
-
   // OG page route for social media sharing (bypasses CDN pre-rendering)
   const { handleOgPage } = await import("../ogPageRoute");
   app.get("/api/og/:type/:id", handleOgPage);

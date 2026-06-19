@@ -94,11 +94,11 @@
 - [ ] Profile photo upload for customers
 - [ ] System health monitoring in admin dashboard
 - [ ] Frontend component tests (currently server-only)
-- [x] Payment receipt PDF generation
-- [x] Real-time messaging via SSE (removed primary polling; 30s fallback only when SSE disconnects)
+- [ ] Payment receipt PDF generation
+- [ ] Real-time WebSocket messaging (currently 5s polling)
 - [ ] Upgrade prompts when subscription limits are reached
 - [ ] Service editing flow improvements
-- [x] Email unsubscribe granularity per notification type
+- [ ] Email unsubscribe granularity per notification type
 
 ## Hotfix: Provider Role & Onboarding Testing
 - [x] Fix owner account role to provider so provider dashboard is accessible
@@ -1538,12 +1538,3 @@
 - [x] Remove 15-second refetchInterval from Messages page queries
 - [x] Ensure SSE newMessage event triggers immediate data refresh
 - [x] Verify typing indicators and read receipts work without polling
-
-## Enhancement: Date Range Availability Selection (from Ray's feedback)
-- [x] Add backend support for bulk date range availability set/remove operations
-- [x] Add From/To date range fields to the Set Availability modal
-- [x] Keep single-date selection as current default behavior
-- [x] Highlight selected date range on calendar with availability type color
-- [x] Add "Remove All" button when viewing a date range that's already set
-- [x] Allow changing availability type for an entire date range at once
-- [x] Allow removing individual dates within a set range
