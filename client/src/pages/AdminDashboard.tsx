@@ -164,7 +164,7 @@ function SubscriptionAnalyticsPanel() {
               </div>
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium">Professional ($29/mo)</span>
+                  <span className="text-sm font-medium">Pro ($12/mo)</span>
                   <span className="text-sm text-muted-foreground">{analytics.tiers.basic} ({basicPct.toFixed(0)}%)</span>
                 </div>
                 <div className="h-3 bg-muted rounded-full overflow-hidden">
@@ -210,18 +210,18 @@ function SubscriptionAnalyticsPanel() {
                     <span className="text-sm">Starter</span>
                     <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
                     <div className="h-3 w-3 rounded-full bg-blue-500" />
-                    <span className="text-sm">Professional</span>
+                    <span className="text-sm">Pro</span>
                   </div>
                 </div>
                 <div className="text-3xl font-bold">{analytics.conversionRates.freeToBasic}%</div>
-                <p className="text-xs text-muted-foreground mt-1">of all providers have upgraded to Professional or higher</p>
+                <p className="text-xs text-muted-foreground mt-1">of all providers have upgraded to Pro or higher</p>
               </div>
 
               <div className="p-4 rounded-lg bg-muted/50">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <div className="h-3 w-3 rounded-full bg-blue-500" />
-                    <span className="text-sm">Professional</span>
+                    <span className="text-sm">Pro</span>
                     <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
                     <div className="h-3 w-3 rounded-full bg-purple-500" />
                     <span className="text-sm">Business</span>

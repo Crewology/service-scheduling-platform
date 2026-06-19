@@ -1500,3 +1500,12 @@
 - [x] Capture ?ref= parameter from homepage URL and store in localStorage
 - [x] Auto-fill referral code in booking flow from stored localStorage value
 - [x] Add in-app notification for referrer when someone signs up via their referral link
+
+## Plans Page Redesign: Unified Two-Audience Layout
+- [x] Update products.ts: add maxCategories to tier limits (1/5/unlimited), rename Professional to Pro
+- [x] Enforce category limits in provider onboarding/category selection backend
+- [x] Redesign Plans page (CustomerPricing.tsx) as unified two-audience page with toggle (I book services / I provide services)
+- [x] Update customer section language: Free (5 saved providers), Pro (50 saved, priority, folders, bulk quotes), Business (unlimited, analytics, dedicated support)
+- [x] Update provider section language: Starter (1 category, 3 services), Pro (5 categories, 10 services), Business (unlimited)
+- [x] Update SubscriptionManagement.tsx language to match new Plans page (Pro instead of Professional, category limits)
+- [x] Run tests, TypeScript check, verify no regressions

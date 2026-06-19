@@ -25,7 +25,7 @@ export const stripeConnectRouter = router({
       if (currentTier === "free") {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Payment account setup requires a Professional or Business subscription. Please upgrade your plan first.",
+          message: "Payment account setup requires a Pro or Business subscription. Please upgrade your plan first.",
         });
       }
 

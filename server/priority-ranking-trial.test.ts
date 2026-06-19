@@ -101,7 +101,7 @@ describe("Priority Search Ranking", () => {
   });
 });
 
-describe("14-Day Professional Trial Flow", () => {
+describe("14-Day Pro Trial Flow", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -111,11 +111,11 @@ describe("14-Day Professional Trial Flow", () => {
       expect(getTrialDays()).toBe(14);
     });
 
-    it("should trial the Professional (basic) tier, not Premium", () => {
-      // The trial is on the basic tier (Professional)
+    it("should trial the Pro (basic) tier, not Premium", () => {
+      // The trial is on the basic tier (Pro)
       const trialTier = "basic";
       expect(trialTier).toBe("basic");
-      expect(SUBSCRIPTION_TIERS[trialTier].name).toBe("Professional");
+      expect(SUBSCRIPTION_TIERS[trialTier].name).toBe("Pro");
     });
 
     it("should set correct trial end date (14 days from now)", () => {
@@ -237,12 +237,12 @@ describe("14-Day Professional Trial Flow", () => {
   });
 
   describe("Trial features access", () => {
-    it("should give trialing providers Professional tier features", () => {
+    it("should give trialing providers Pro tier features", () => {
       const trialTier = "basic" as const;
       const limits = SUBSCRIPTION_TIERS[trialTier].limits;
 
       expect(limits.maxServices).toBe(10);
-      expect(limits.maxPhotosPerService).toBe(5);
+      expect(limits.maxPhotosPerService).toBe(3);
       expect(limits.prioritySearch).toBe(true);
       expect(limits.analyticsAccess).toBe(true);
       expect(limits.customSlug).toBe(true);
@@ -261,7 +261,7 @@ describe("14-Day Professional Trial Flow", () => {
       const freeLimits = SUBSCRIPTION_TIERS.free.limits;
 
       expect(freeLimits.maxServices).toBe(3);
-      expect(freeLimits.maxPhotosPerService).toBe(2);
+      expect(freeLimits.maxPhotosPerService).toBe(1);
       expect(freeLimits.prioritySearch).toBe(false);
       expect(freeLimits.analyticsAccess).toBe(false);
       expect(freeLimits.customSlug).toBe(false);

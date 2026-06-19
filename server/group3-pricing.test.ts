@@ -3,27 +3,27 @@ import { SUBSCRIPTION_TIERS, canProviderAddPhoto } from "./products";
 
 describe("Group 3: Plan & Pricing Updates", () => {
   // =============================================
-  // 1. Pricing updates: Pro=$19, Business=$49
+  // 1. Pricing updates: Pro=$12, Business=$20
   // =============================================
   describe("Provider subscription pricing", () => {
     it("Starter tier should be free (monthlyPrice = 0)", () => {
       expect(SUBSCRIPTION_TIERS.free.monthlyPrice).toBe(0);
     });
 
-    it("Professional tier should be $19/month", () => {
-      expect(SUBSCRIPTION_TIERS.basic.monthlyPrice).toBe(19);
+    it("Pro tier should be $12/month", () => {
+      expect(SUBSCRIPTION_TIERS.basic.monthlyPrice).toBe(12);
     });
 
-    it("Business tier should be $49/month", () => {
-      expect(SUBSCRIPTION_TIERS.premium.monthlyPrice).toBe(49);
+    it("Business tier should be $20/month", () => {
+      expect(SUBSCRIPTION_TIERS.premium.monthlyPrice).toBe(20);
     });
 
-    it("Professional yearly should be ~$182.40 (20% off)", () => {
-      expect(SUBSCRIPTION_TIERS.basic.yearlyPrice).toBeCloseTo(182.40, 1);
+    it("Pro yearly should be ~$120.96 (16% off)", () => {
+      expect(SUBSCRIPTION_TIERS.basic.yearlyPrice).toBeCloseTo(120.96, 1);
     });
 
-    it("Business yearly should be ~$470.40 (20% off)", () => {
-      expect(SUBSCRIPTION_TIERS.premium.yearlyPrice).toBeCloseTo(470.40, 1);
+    it("Business yearly should be ~$192.00 (20% off)", () => {
+      expect(SUBSCRIPTION_TIERS.premium.yearlyPrice).toBeCloseTo(192.00, 1);
     });
   });
 
@@ -116,8 +116,8 @@ describe("Group 3: Plan & Pricing Updates", () => {
       expect(SUBSCRIPTION_TIERS.free.name).toBe("Starter");
     });
 
-    it("Basic tier should be named 'Professional'", () => {
-      expect(SUBSCRIPTION_TIERS.basic.name).toBe("Professional");
+    it("Basic tier should be named 'Pro'", () => {
+      expect(SUBSCRIPTION_TIERS.basic.name).toBe("Pro");
     });
 
     it("Premium tier should be named 'Business'", () => {

@@ -78,7 +78,7 @@ const REASON_MESSAGES: Record<UpgradeReason, { title: string; description: strin
 
 const TIER_BENEFITS = {
   basic: {
-    name: "Professional",
+    name: "Pro",
     price: "$12/mo",
     annualPrice: "$10.08/mo",
     icon: Zap,
@@ -185,7 +185,7 @@ export function UpgradePrompt({ open, onClose, reason, currentTier, currentCount
                     <Zap className={`h-3.5 w-3.5 ${TIER_BENEFITS.basic.color}`} />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-sm">Professional</h4>
+                    <h4 className="font-semibold text-sm">Pro</h4>
                     <p className="text-xs text-muted-foreground">
                       {billingInterval === "year" ? "$10.08/mo" : "$12/mo"}
                     </p>

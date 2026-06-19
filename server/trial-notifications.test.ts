@@ -20,8 +20,8 @@ describe("Trial Milestone Notification Templates", () => {
   describe("trial_started template", () => {
     it("should generate correct subject and body", () => {
       const template = getTemplate("trial_started", mockData);
-      expect(template.subject).toBe("Welcome to Your 14-Day Professional Trial!");
-      expect(template.body).toContain("14-day Professional trial");
+      expect(template.subject).toBe("Welcome to Your 14-Day Pro Trial!");
+      expect(template.body).toContain("14-day Pro trial");
       expect(template.body).toContain("Jane's Salon");
       expect(template.body).toContain("Monday, May 6, 2026");
       expect(template.body).toContain("Up to 10 services");
@@ -29,21 +29,21 @@ describe("Trial Milestone Notification Templates", () => {
       expect(template.body).toContain("Priority search placement");
       expect(template.body).toContain("Custom profile slug");
       expect(template.body).toContain("/provider/dashboard");
-      expect(template.smsBody).toContain("14-day Professional trial");
+      expect(template.smsBody).toContain("14-day Pro trial");
     });
   });
 
   describe("trial_7_days template", () => {
     it("should generate correct subject and body with stats", () => {
       const template = getTemplate("trial_7_days", mockData);
-      expect(template.subject).toBe("7 Days Left on Your Professional Trial");
+      expect(template.subject).toBe("7 Days Left on Your Pro Trial");
       expect(template.body).toContain("7 days");
       expect(template.body).toContain("Jane's Salon");
       expect(template.body).toContain("5 services");
       expect(template.body).toContain("3 bookings");
       expect(template.body).toContain("2 reviews");
-      expect(template.body).toContain("$19.99/month");
-      expect(template.body).toContain("$15.99/month");
+      expect(template.body).toContain("$12/month");
+      expect(template.body).toContain("$10.08/month");
       expect(template.body).toContain("/provider/subscription");
       expect(template.smsBody).toContain("7 days left");
     });
@@ -54,7 +54,7 @@ describe("Trial Milestone Notification Templates", () => {
         trialEndDate: "May 6, 2026",
         upgradeUrl: "/upgrade",
       });
-      expect(template.subject).toBe("7 Days Left on Your Professional Trial");
+      expect(template.subject).toBe("7 Days Left on Your Pro Trial");
       expect(template.body).toContain("Test");
       // Should not contain stats lines when data is missing
       expect(template.body).not.toContain("undefined");
@@ -69,8 +69,8 @@ describe("Trial Milestone Notification Templates", () => {
       expect(template.body).toContain("3 days");
       expect(template.body).toContain("lose access to");
       expect(template.body).toContain("Priority search placement");
-      expect(template.body).toContain("$19.99/mo");
-      expect(template.body).toContain("$15.99/month");
+      expect(template.body).toContain("$12/mo");
+      expect(template.body).toContain("$10.08/month");
       expect(template.smsBody).toContain("3 days left");
     });
   });
@@ -84,7 +84,7 @@ describe("Trial Milestone Notification Templates", () => {
       expect(template.body).toContain("downgraded to the Free tier");
       expect(template.body).toContain("Only 3 services visible");
       expect(template.body).toContain("1 photo per service");
-      expect(template.body).toContain("$19.99/mo");
+      expect(template.body).toContain("$12/mo");
       expect(template.smsBody).toContain("TOMORROW");
     });
   });
@@ -92,11 +92,11 @@ describe("Trial Milestone Notification Templates", () => {
   describe("trial_expired template", () => {
     it("should generate expiry notification with reactivation CTA", () => {
       const template = getTemplate("trial_expired", mockData);
-      expect(template.subject).toBe("Your Professional Trial Has Ended");
+      expect(template.subject).toBe("Your Pro Trial Has Ended");
       expect(template.body).toContain("trial has ended");
       expect(template.body).toContain("Free tier");
-      expect(template.body).toContain("$19.99/mo");
-      expect(template.body).toContain("$15.99/month");
+      expect(template.body).toContain("$12/mo");
+      expect(template.body).toContain("$10.08/month");
       expect(template.body).toContain("Unsubscribe");
       expect(template.smsBody).toContain("trial has ended");
     });

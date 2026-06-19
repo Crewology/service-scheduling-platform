@@ -240,7 +240,7 @@ export const serviceRouter = router({
       const { SUBSCRIPTION_TIERS } = await import("../products");
       const maxPhotos = SUBSCRIPTION_TIERS[tier]?.limits?.maxPhotosPerService || 1;
       if (existingPhotos.length >= maxPhotos) {
-        const tierName = tier === "free" ? "Starter" : tier === "basic" ? "Professional" : "Business";
+        const tierName = tier === "free" ? "Starter" : tier === "basic" ? "Pro" : "Business";
         throw new TRPCError({ 
           code: "FORBIDDEN", 
           message: `${tierName} plan allows up to ${maxPhotos} photo${maxPhotos > 1 ? "s" : ""} per service. Upgrade your plan for more.` 

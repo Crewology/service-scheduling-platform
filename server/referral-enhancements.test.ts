@@ -331,8 +331,8 @@ describe("Referral Enhancements", () => {
         "/home/ubuntu/service-scheduling-platform/client/src/pages/Referrals.tsx",
         "utf-8"
       );
-      expect(content).toContain("Available Credit Balance");
-      expect(content).toContain("Auto-applied at checkout");
+      expect(content).toContain("Your Credit Balance");
+      expect(content).toContain("Use your credits on your next booking");
     });
 
     it("should show credit balance in stats cards", async () => {

@@ -81,10 +81,10 @@ describe("Group 7: UI/Display Fixes", () => {
         "utf-8"
       );
       expect(pageContent).toContain('"$0"');
-      expect(pageContent).toContain('"$19/mo"');
-      expect(pageContent).toContain('"$49/mo"');
-      expect(pageContent).toContain('"$15.20/mo"');
-      expect(pageContent).toContain('"$39.20/mo"');
+      expect(pageContent).toContain('"$12/mo"');
+      expect(pageContent).toContain('"$20/mo"');
+      expect(pageContent).toContain('"$10.08/mo"');
+      expect(pageContent).toContain('"$16.00/mo"');
     });
   });
 });

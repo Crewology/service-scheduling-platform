@@ -293,6 +293,17 @@ export const providerRouter = router({
     .mutation(async ({ ctx, input }) => {
       const provider = await db.getProviderByUserId(ctx.user.id);
       if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+      // Enforce category limit based on subscription tier
+      const { canProviderAddCategory, SUBSCRIPTION_TIERS } = await import("../products");
+      const subscription = await db.getProviderSubscription(provider.id);
+      const tier = ((subscription?.tier as import("../products").SubscriptionTier) || "free");
+      const maxCategories = SUBSCRIPTION_TIERS[tier].limits.maxCategories;
+      if (input.categoryIds.length > maxCategories) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: `Your ${SUBSCRIPTION_TIERS[tier].name} plan allows up to ${maxCategories === 999 ? "unlimited" : maxCategories} service ${maxCategories === 1 ? "category" : "categories"}. Upgrade your plan to add more.`,
+        });
+      }
       await db.setProviderCategories(provider.id, input.categoryIds);
       return { success: true, count: input.categoryIds.length };
     }),
@@ -302,6 +313,17 @@ export const providerRouter = router({
     .mutation(async ({ ctx, input }) => {
       const provider = await db.getProviderByUserId(ctx.user.id);
       if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+      // Enforce category limit based on subscription tier
+      const { canProviderAddCategory, SUBSCRIPTION_TIERS } = await import("../products");
+      const subscription = await db.getProviderSubscription(provider.id);
+      const tier = ((subscription?.tier as import("../products").SubscriptionTier) || "free");
+      const currentCategories = await db.getProviderCategories(provider.id);
+      if (!canProviderAddCategory(tier, currentCategories.length)) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: `Your ${SUBSCRIPTION_TIERS[tier].name} plan allows up to ${SUBSCRIPTION_TIERS[tier].limits.maxCategories === 999 ? "unlimited" : SUBSCRIPTION_TIERS[tier].limits.maxCategories} service ${SUBSCRIPTION_TIERS[tier].limits.maxCategories === 1 ? "category" : "categories"}. Upgrade your plan to add more.`,
+        });
+      }
       await db.addProviderCategory(provider.id, input.categoryId);
       return { success: true };
     }),
@@ -385,7 +407,7 @@ export const providerRouter = router({
       if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
       const tier = await db.getProviderTier(provider.id);
       if (tier === "free") {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Custom profile URLs are available on the Professional plan and above. Upgrade to customize your link." });
+        throw new TRPCError({ code: "FORBIDDEN", message: "Custom profile URLs are available on the Pro plan and above. Upgrade to customize your link." });
       }
       const existing = await db.getProviderBySlug(input.slug);
       if (existing && existing.id !== provider.id) {

@@ -39,40 +39,40 @@ const PLANS = [
     name: "Starter",
     monthlyPrice: 0,
     yearlyPrice: 0,
-    description: "Get started and list your services",
+    description: "Get started and list your services — no cost, no commitment.",
     icon: Star,
     features: [
-      { text: "Up to 3 services listed", included: true },
+      { text: "1 service category", included: true },
+      { text: "Up to 3 services", included: true },
       { text: "1 photo per service", included: true },
       { text: "Basic public profile", included: true },
       { text: "Standard search placement", included: true },
-      { text: "1% transaction fee on bookings", included: true },
-      { text: "Priority search placement", included: false },
-      { text: "Unlimited photos", included: false },
-      { text: "Custom branding", included: false },
+      { text: "1% transaction fee", included: true },
+      { text: "Multiple categories", included: false },
       { text: "Analytics dashboard", included: false },
+      { text: "Custom branding", included: false },
       { text: "Priority support", included: false },
     ],
     highlight: false,
   },
   {
     tier: "basic" as const,
-    name: "Professional",
+    name: "Pro",
     monthlyPrice: 12,
     yearlyPrice: 120.96,
-    description: "Grow your business with more visibility",
+    description: "For providers offering multiple service categories — grow your reach.",
     icon: Zap,
     features: [
-      { text: "Up to 10 services listed", included: true },
+      { text: "Up to 5 service categories", included: true },
+      { text: "Up to 10 services", included: true },
       { text: "3 photos per service", included: true },
-      { text: "Enhanced public profile", included: true },
+      { text: "Custom profile URL slug", included: true },
       { text: "Priority search placement", included: true },
-      { text: "1% transaction fee on bookings", included: true },
-      { text: "Basic analytics", included: true },
+      { text: "Business analytics", included: true },
+      { text: "1% transaction fee", included: true },
       { text: "Email support", included: true },
       { text: "Custom branding", included: false },
-      { text: "Advanced analytics", included: false },
-      { text: "Priority support", included: false },
+      { text: "Featured listing badge", included: false },
     ],
     highlight: true,
   },
@@ -81,17 +81,17 @@ const PLANS = [
     name: "Business",
     monthlyPrice: 20,
     yearlyPrice: 192.00,
-    description: "Full suite for professional providers",
+    description: "Unlimited everything for established businesses and full-service pros.",
     icon: Crown,
     features: [
+      { text: "Unlimited service categories", included: true },
       { text: "Unlimited services", included: true },
-      { text: "Unlimited photos per service", included: true },
-      { text: "Premium public profile", included: true },
-      { text: "Top search placement", included: true },
-      { text: "1% transaction fee on bookings", included: true },
-      { text: "Advanced analytics dashboard", included: true },
+      { text: "5 photos per service", included: true },
       { text: "Custom branding & colors", included: true },
-      { text: "Featured provider badge", included: true },
+      { text: "Featured listing badge", included: true },
+      { text: "Top search placement", included: true },
+      { text: "Full analytics suite", included: true },
+      { text: "1% transaction fee", included: true },
       { text: "Priority support", included: true },
       { text: "Early access to new features", included: true },
     ],
@@ -182,7 +182,7 @@ export default function SubscriptionManagement() {
 
   const startTrial = trpc.subscription.startProfessionalTrial.useMutation({
     onSuccess: () => {
-      toast.success("Professional trial started! You have 14 days of full access.");
+      toast.success("Pro trial started! You have 14 days of full access.");
       // Invalidate queries to refresh the page
       window.location.reload();
     },
@@ -239,7 +239,7 @@ export default function SubscriptionManagement() {
           </Link>
           <h1 className="text-2xl sm:text-3xl font-bold mb-2">Choose Your Plan</h1>
           <p className="text-muted-foreground text-lg">
-            Unlock more features to grow your business. All plans include a low 1% transaction fee.
+            Grow your business with more categories, services, and visibility. All plans include a low 1% transaction fee.
           </p>
         </div>
 
@@ -282,11 +282,11 @@ export default function SubscriptionManagement() {
                 <Zap className="h-5 w-5 text-blue-500" />
                 <div>
                   <p className="font-medium text-sm">
-                    Professional Trial — {trialStatus.daysRemaining} day{trialStatus.daysRemaining !== 1 ? 's' : ''} remaining
+                    Pro Trial — {trialStatus.daysRemaining} day{trialStatus.daysRemaining !== 1 ? 's' : ''} remaining
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {trialStatus.showUrgentNudge 
-                      ? "Your trial is ending soon! Subscribe to keep your Professional features."
+                      ? "Your trial is ending soon! Subscribe to keep your Pro features."
                       : "Enjoying your trial? Subscribe anytime to keep access after it ends."}
                   </p>
                 </div>
@@ -300,9 +300,9 @@ export default function SubscriptionManagement() {
             <div className="flex items-center gap-3">
               <Crown className="h-5 w-5 text-amber-500" />
               <div>
-                <p className="font-medium text-sm">Your Professional trial has ended</p>
+                <p className="font-medium text-sm">Your Pro trial has ended</p>
                 <p className="text-xs text-muted-foreground">
-                  You're on the Starter plan. Subscribe to Professional to restore priority search, analytics, and more.
+                  You're on the Starter plan. Subscribe to Pro to restore priority search, analytics, and more.
                 </p>
               </div>
             </div>
@@ -316,7 +316,7 @@ export default function SubscriptionManagement() {
               <div className="flex items-center gap-3">
                 <Zap className="h-5 w-5 text-blue-500" />
                 <div>
-                  <p className="font-medium text-sm">Try Professional free for 14 days</p>
+                  <p className="font-medium text-sm">Try Pro free for 14 days</p>
                   <p className="text-xs text-muted-foreground">
                     No credit card required. Get 10 services, priority search, analytics, and custom URL.
                   </p>
@@ -343,7 +343,7 @@ export default function SubscriptionManagement() {
                 <Crown className="h-5 w-5 text-primary" />
                 <div>
                   <p className="font-medium">
-                    Current Plan: <span className="text-primary capitalize">{currentTier === "basic" ? "Professional" : "Business"}</span>
+                    Current Plan: <span className="text-primary capitalize">{currentTier === "basic" ? "Pro" : "Business"}</span>
                     {currentSub?.subscription?.status === "paused" && (
                       <Badge variant="secondary" className="ml-2 bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
                         <Pause className="h-3 w-3 mr-1" /> Paused
@@ -591,7 +591,7 @@ export default function SubscriptionManagement() {
             <div>
               <h3 className="font-semibold mb-2">How does annual billing work?</h3>
               <p className="text-sm text-muted-foreground">
-                When you choose annual billing, you pay for 12 months upfront at a discount. Professional saves 16% ($10.08/mo billed annually at $120.96/year instead of $12/mo). Business saves 20% ($16.00/mo billed annually at $192.00/year instead of $20/mo).
+                When you choose annual billing, you pay for 12 months upfront at a discount. Pro saves 16% ($10.08/mo billed annually at $120.96/year instead of $12/mo). Business saves 20% ($16.00/mo billed annually at $192.00/year instead of $20/mo).
               </p>
             </div>
             <div>
@@ -701,8 +701,8 @@ export default function SubscriptionManagement() {
             </DialogTitle>
             <DialogDescription className="text-left space-y-3 pt-2">
               <p>
-                You're about to downgrade from <strong>{currentTier === "premium" ? "Business" : "Professional"}</strong> to{" "}
-                <strong>{downgradeTarget === "free" ? "Starter (Free)" : "Professional"}</strong>.
+                You're about to downgrade from <strong>{currentTier === "premium" ? "Business" : "Pro"}</strong> to{" "}
+                <strong>{downgradeTarget === "free" ? "Starter (Free)" : "Pro"}</strong>.
               </p>
               <p>
                 This change takes effect <strong>immediately</strong>. You'll receive a prorated credit for the unused time on your current plan.

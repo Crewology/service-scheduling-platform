@@ -109,8 +109,8 @@ export async function sendTrialStartedNotification(ctx: TrialNotificationContext
     await recordMilestoneSent(
       ctx.userId,
       notificationType,
-      "Welcome to Your 14-Day Professional Trial!",
-      `Your Professional trial has started and ends on ${trialEndDate}.`
+      "Welcome to Your 14-Day Pro Trial!",
+      `Your Pro trial has started and ends on ${trialEndDate}.`
     );
     console.log(`[TrialNotifications] trial_started sent to user ${ctx.userId}`);
   }
@@ -213,10 +213,10 @@ export async function checkAndSendTrialMilestoneNotification(
   };
 
   const messages: Record<string, string> = {
-    trial_7_days: `You have 7 days remaining on your Professional trial. Upgrade to keep your features.`,
-    trial_3_days: `Only 3 days left! Your Professional trial ends on ${trialEndDate}.`,
-    trial_1_day: `Your Professional trial expires tomorrow. Upgrade now to keep your features.`,
-    trial_expired: `Your Professional trial has ended. Your account has been moved to the Free tier.`,
+    trial_7_days: `You have 7 days remaining on your Pro trial. Upgrade to keep your features.`,
+    trial_3_days: `Only 3 days left! Your Pro trial ends on ${trialEndDate}.`,
+    trial_1_day: `Your Pro trial expires tomorrow. Upgrade now to keep your features.`,
+    trial_expired: `Your Pro trial has ended. Your account has been moved to the Free tier.`,
   };
 
   await recordMilestoneSent(

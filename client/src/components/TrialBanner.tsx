@@ -5,7 +5,7 @@ import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 
 /**
- * TrialCountdownBanner — Shows during active Professional trial.
+ * TrialCountdownBanner — Shows during active Pro trial.
  * Displays days remaining, features unlocked, and upgrade CTA.
  * Becomes urgent (red) when <= 3 days remain.
  */
@@ -60,7 +60,7 @@ export function TrialCountdownBanner({
             <span className="font-semibold text-sm">
               {isUrgent
                 ? `Only ${daysRemaining} day${daysRemaining !== 1 ? "s" : ""} left on your trial!`
-                : `Professional Trial — ${daysRemaining} day${daysRemaining !== 1 ? "s" : ""} remaining`}
+                : `Pro Trial — ${daysRemaining} day${daysRemaining !== 1 ? "s" : ""} remaining`}
             </span>
             <span
               className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${
@@ -76,7 +76,7 @@ export function TrialCountdownBanner({
 
           <p className="text-xs text-muted-foreground mt-1">
             {isUrgent
-              ? "Don't lose access to priority search, 10 services, analytics, and custom URL. Subscribe now to keep your Professional features."
+              ? "Don't lose access to priority search, 10 services, analytics, and custom URL. Subscribe now to keep your Pro features."
               : "You have access to 10 services, priority search placement, analytics, and custom profile URL during your trial."}
           </p>
 
@@ -124,9 +124,9 @@ export function TrialExpiredBanner() {
         </div>
 
         <div className="flex-1 min-w-0">
-          <span className="font-semibold text-sm">Your Professional trial has ended</span>
+          <span className="font-semibold text-sm">Your Pro trial has ended</span>
           <p className="text-xs text-muted-foreground mt-1">
-            You're back on the Starter plan. Upgrade to Professional to restore priority search placement,
+            You're back on the Starter plan. Upgrade to Pro to restore priority search placement,
             10 service listings, business analytics, and your custom profile URL.
           </p>
 
@@ -137,7 +137,7 @@ export function TrialExpiredBanner() {
               onClick={() => navigate("/provider/subscription")}
             >
               <Zap className="h-3 w-3 mr-1" />
-              Upgrade to Professional — $12/mo
+              Upgrade to Pro — $12/mo
               <ArrowRight className="h-3 w-3 ml-1" />
             </Button>
           </div>

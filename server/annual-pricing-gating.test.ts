@@ -40,21 +40,21 @@ describe("Annual Pricing Toggle", () => {
   describe("Pricing calculations", () => {
     it("should have correct monthly prices for all tiers", () => {
       expect(SUBSCRIPTION_TIERS.free.monthlyPrice).toBe(0);
-      expect(SUBSCRIPTION_TIERS.basic.monthlyPrice).toBe(19.99);
-      expect(SUBSCRIPTION_TIERS.premium.monthlyPrice).toBe(49.99);
+      expect(SUBSCRIPTION_TIERS.basic.monthlyPrice).toBe(12);
+      expect(SUBSCRIPTION_TIERS.premium.monthlyPrice).toBe(20);
     });
 
-    it("should have correct yearly prices with ~20% discount", () => {
+    it("should have correct yearly prices with discount", () => {
       expect(SUBSCRIPTION_TIERS.free.yearlyPrice).toBe(0);
 
-      // Basic: $19.99/mo * 12 = $239.88/yr, 20% off = $191.90/yr
+      // Basic: $12/mo * 12 = $144/yr, 16% off = $120.96/yr
       const basicMonthlyTotal = SUBSCRIPTION_TIERS.basic.monthlyPrice * 12;
       const basicYearlySavings = basicMonthlyTotal - SUBSCRIPTION_TIERS.basic.yearlyPrice;
       const basicDiscount = basicYearlySavings / basicMonthlyTotal;
-      expect(basicDiscount).toBeGreaterThanOrEqual(0.19);
+      expect(basicDiscount).toBeGreaterThanOrEqual(0.15);
       expect(basicDiscount).toBeLessThanOrEqual(0.21);
 
-      // Premium: $49.99/mo * 12 = $599.88/yr, 20% off = $479.90/yr
+      // Premium: $20/mo * 12 = $240/yr, 20% off = $192/yr
       const premiumMonthlyTotal = SUBSCRIPTION_TIERS.premium.monthlyPrice * 12;
       const premiumYearlySavings = premiumMonthlyTotal - SUBSCRIPTION_TIERS.premium.yearlyPrice;
       const premiumDiscount = premiumYearlySavings / premiumMonthlyTotal;
@@ -65,19 +65,19 @@ describe("Annual Pricing Toggle", () => {
     it("should calculate annual savings correctly for display", () => {
       const basicSavings = Math.round(SUBSCRIPTION_TIERS.basic.monthlyPrice * 12 - SUBSCRIPTION_TIERS.basic.yearlyPrice);
       expect(basicSavings).toBeGreaterThan(0);
-      expect(basicSavings).toBe(48); // $19.99 * 12 - $191.88 = $48
+      expect(basicSavings).toBe(23); // $12 * 12 - $120.96 = $23.04 rounds to $23
 
       const premiumSavings = Math.round(SUBSCRIPTION_TIERS.premium.monthlyPrice * 12 - SUBSCRIPTION_TIERS.premium.yearlyPrice);
       expect(premiumSavings).toBeGreaterThan(0);
-      expect(premiumSavings).toBe(120); // $49.99 * 12 - $479.88 = $120
+      expect(premiumSavings).toBe(48); // $20 * 12 - $192 = $48
     });
 
     it("should calculate correct per-month price for annual billing", () => {
       const basicAnnualMonthly = SUBSCRIPTION_TIERS.basic.yearlyPrice / 12;
-      expect(basicAnnualMonthly).toBeCloseTo(15.99, 2);
+      expect(basicAnnualMonthly).toBeCloseTo(10.08, 2);
 
       const premiumAnnualMonthly = SUBSCRIPTION_TIERS.premium.yearlyPrice / 12;
-      expect(premiumAnnualMonthly).toBeCloseTo(39.99, 2);
+      expect(premiumAnnualMonthly).toBeCloseTo(16.00, 2);
     });
   });
 
@@ -125,8 +125,8 @@ describe("Tier-Based Feature Gating", () => {
     });
 
     it("should enforce correct photo limits per tier", () => {
-      expect(SUBSCRIPTION_TIERS.free.limits.maxPhotosPerService).toBe(2);
-      expect(SUBSCRIPTION_TIERS.basic.limits.maxPhotosPerService).toBe(5);
+      expect(SUBSCRIPTION_TIERS.free.limits.maxPhotosPerService).toBe(1);
+      expect(SUBSCRIPTION_TIERS.basic.limits.maxPhotosPerService).toBe(3);
       expect(SUBSCRIPTION_TIERS.premium.limits.maxPhotosPerService).toBe(5);
     });
 

@@ -154,7 +154,7 @@ function StripeConnectSection({ provider, currentTier }: { provider: any; curren
               <div>
                 <h3 className="text-lg font-semibold">Upgrade Required</h3>
                 <p className="text-sm text-muted-foreground max-w-md mx-auto mt-2">
-                  Payment account setup requires a Professional ($12/mo) or Business ($20/mo) subscription.
+                  Payment account setup requires a Pro ($12/mo) or Business ($20/mo) subscription.
                   Upgrade your plan to start accepting payments from clients.
                 </p>
               </div>
@@ -2006,7 +2006,7 @@ export default function ProviderDashboard() {
                         currentTier === "basic" ? "text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40" :
                         "text-muted-foreground bg-muted"
                       }`}>
-                        {currentTier === "premium" ? "Business" : currentTier === "basic" ? "Professional" : "Starter"} Plan
+                        {currentTier === "premium" ? "Business" : currentTier === "basic" ? "Pro" : "Starter"} Plan
                       </Badge>
                     </p>
                     <p className="text-sm text-muted-foreground">Manage your subscription, upgrade, or view plan details</p>

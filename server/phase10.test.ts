@@ -158,7 +158,7 @@ describe("Phase 10: Photos, Cancellations, Subscriptions", () => {
       const caller = appRouter.createCaller(createAuthContext("provider", providerUserId, "Phase10 Provider"));
       await expect(
         caller.provider.updateSlug({ slug: "my-custom-slug" })
-      ).rejects.toThrow(/Professional plan/);
+      ).rejects.toThrow(/Pro plan/);
     });
 
     it("should allow free tier to generate auto slug", async () => {
@@ -262,7 +262,7 @@ describe("Phase 10: Photos, Cancellations, Subscriptions", () => {
     it("should have correct tier limits", async () => {
       const { SUBSCRIPTION_TIERS } = await import("./products");
       expect(SUBSCRIPTION_TIERS.free.limits.maxServices).toBe(3);
-      expect(SUBSCRIPTION_TIERS.free.limits.maxPhotosPerService).toBe(2);
+      expect(SUBSCRIPTION_TIERS.free.limits.maxPhotosPerService).toBe(1);
       expect(SUBSCRIPTION_TIERS.free.limits.customSlug).toBe(false);
       expect(SUBSCRIPTION_TIERS.basic.limits.maxServices).toBe(10);
       expect(SUBSCRIPTION_TIERS.basic.limits.customSlug).toBe(true);
@@ -286,10 +286,10 @@ describe("Phase 10: Photos, Cancellations, Subscriptions", () => {
 
     it("should correctly gate photo uploads", async () => {
       const { canProviderAddPhoto } = await import("./products");
-      expect(canProviderAddPhoto("free", 1)).toBe(true);
-      expect(canProviderAddPhoto("free", 2)).toBe(false);
-      expect(canProviderAddPhoto("basic", 4)).toBe(true);
-      expect(canProviderAddPhoto("basic", 5)).toBe(false);
+      expect(canProviderAddPhoto("free", 0)).toBe(true);
+      expect(canProviderAddPhoto("free", 1)).toBe(false);
+      expect(canProviderAddPhoto("basic", 2)).toBe(true);
+      expect(canProviderAddPhoto("basic", 3)).toBe(false);
     });
   });
 

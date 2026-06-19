@@ -22,6 +22,7 @@ export interface TierConfig {
   features: string[];
   limits: {
     maxServices: number;
+    maxCategories: number;
     maxPhotosPerService: number;
     prioritySearch: boolean;
     customBranding: boolean;
@@ -39,6 +40,7 @@ export const SUBSCRIPTION_TIERS: Record<SubscriptionTier, TierConfig> = {
     monthlyPrice: 0,
     yearlyPrice: 0,
     features: [
+      "1 service category",
       "Up to 3 active services",
       "1 photo per service",
       "Basic public profile",
@@ -48,6 +50,7 @@ export const SUBSCRIPTION_TIERS: Record<SubscriptionTier, TierConfig> = {
     ],
     limits: {
       maxServices: 3,
+      maxCategories: 1,
       maxPhotosPerService: 1,
       prioritySearch: false,
       customBranding: false,
@@ -58,11 +61,12 @@ export const SUBSCRIPTION_TIERS: Record<SubscriptionTier, TierConfig> = {
     },
   },
   basic: {
-    name: "Professional",
+    name: "Pro",
     tier: "basic",
     monthlyPrice: 12,
     yearlyPrice: 120.96, // ~$10.08/mo (16% off)
     features: [
+      "Up to 5 service categories",
       "Up to 10 active services",
       "3 photos per service",
       "Custom profile URL slug",
@@ -74,6 +78,7 @@ export const SUBSCRIPTION_TIERS: Record<SubscriptionTier, TierConfig> = {
     ],
     limits: {
       maxServices: 10,
+      maxCategories: 5,
       maxPhotosPerService: 3,
       prioritySearch: true,
       customBranding: false,
@@ -89,6 +94,7 @@ export const SUBSCRIPTION_TIERS: Record<SubscriptionTier, TierConfig> = {
     monthlyPrice: 20,
     yearlyPrice: 192.00, // ~$16.00/mo (20% off)
     features: [
+      "Unlimited service categories",
       "Unlimited active services",
       "5 photos per service",
       "Custom profile URL slug",
@@ -103,6 +109,7 @@ export const SUBSCRIPTION_TIERS: Record<SubscriptionTier, TierConfig> = {
     ],
     limits: {
       maxServices: 999, // effectively unlimited
+      maxCategories: 999, // effectively unlimited
       maxPhotosPerService: 5,
       prioritySearch: true,
       customBranding: true,
@@ -159,6 +166,10 @@ export function canProviderAddService(tier: SubscriptionTier, currentCount: numb
 
 export function canProviderAddPhoto(tier: SubscriptionTier, currentCount: number): boolean {
   return currentCount < SUBSCRIPTION_TIERS[tier].limits.maxPhotosPerService;
+}
+
+export function canProviderAddCategory(tier: SubscriptionTier, currentCount: number): boolean {
+  return currentCount < SUBSCRIPTION_TIERS[tier].limits.maxCategories;
 }
 
 export function getTrialDays(): number {

@@ -571,11 +571,11 @@ OlogyCrew Team
     // ============================================================================
 
     trial_started: {
-      subject: `Welcome to Your 14-Day Professional Trial!`,
+      subject: `Welcome to Your 14-Day Pro Trial!`,
       body: `
 Hello ${data.providerName},
 
-Congratulations! Your **14-day Professional trial** has started.
+Congratulations! Your **14-day Pro trial** has started.
 
 Here's what you now have access to:
 - **Up to 10 services** listed on the platform
@@ -590,22 +590,22 @@ Your trial ends on **${data.trialEndDate}**. Make the most of it!
 Best regards,
 OlogyCrew Team
       `.trim(),
-      smsBody: `Your 14-day Professional trial on OlogyCrew has started! Explore your new features in your dashboard.`,
+      smsBody: `Your 14-day Pro trial on OlogyCrew has started! Explore your new features in your dashboard.`,
     },
 
     trial_7_days: {
-      subject: `7 Days Left on Your Professional Trial`,
+      subject: `7 Days Left on Your Pro Trial`,
       body: `
 Hello ${data.providerName},
 
-You have **7 days** remaining on your Professional trial.
+You have **7 days** remaining on your Pro trial.
 
 Here's what you've accomplished so far:
 ${data.servicesCreated ? `- **${data.servicesCreated} services** listed` : ''}
 ${data.bookingsReceived ? `- **${data.bookingsReceived} bookings** received` : ''}
 ${data.reviewsReceived ? `- **${data.reviewsReceived} reviews** earned` : ''}
 
-Don't lose your progress — upgrade to Professional for just **$12/month** (or save 16% with annual billing at $10.08/month).
+Don't lose your progress — upgrade to Pro for just **$12/month** (or save 16% with annual billing at $10.08/month).
 
 [Upgrade Now](/provider/subscription)
 
@@ -614,15 +614,15 @@ Your trial ends on **${data.trialEndDate}**.
 Best regards,
 OlogyCrew Team
       `.trim(),
-      smsBody: `7 days left on your OlogyCrew Professional trial! Upgrade to keep your features.`,
+      smsBody: `7 days left on your OlogyCrew Pro trial! Upgrade to keep your features.`,
     },
 
     trial_3_days: {
-      subject: `Only 3 Days Left — Don't Lose Your Professional Features`,
+      subject: `Only 3 Days Left — Don't Lose Your Pro Features`,
       body: `
 Hello ${data.providerName},
 
-Your Professional trial ends in just **3 days** (${data.trialEndDate}).
+Your Pro trial ends in just **3 days** (${data.trialEndDate}).
 
 When your trial expires, you'll lose access to:
 - Priority search placement
@@ -632,22 +632,22 @@ When your trial expires, you'll lose access to:
 
 **Upgrade now to keep everything you've built.**
 
-[Upgrade to Professional — $12/mo](/provider/subscription)
+[Upgrade to Pro — $12/mo](/provider/subscription)
 
 Or save 16% with annual billing at just **$10.08/month**.
 
 Best regards,
 OlogyCrew Team
       `.trim(),
-      smsBody: `Only 3 days left on your OlogyCrew trial! Upgrade now to keep your Professional features.`,
+      smsBody: `Only 3 days left on your OlogyCrew trial! Upgrade now to keep your Pro features.`,
     },
 
     trial_1_day: {
-      subject: `Last Day — Your Professional Trial Expires Tomorrow`,
+      subject: `Last Day — Your Pro Trial Expires Tomorrow`,
       body: `
 Hello ${data.providerName},
 
-**Your Professional trial expires tomorrow.**
+**Your Pro trial expires tomorrow.**
 
 After expiration, your account will be downgraded to the Free tier:
 - Only 3 services visible (extras will be hidden)
@@ -657,37 +657,37 @@ After expiration, your account will be downgraded to the Free tier:
 
 Don't let your hard work go to waste. Upgrade now and keep growing your business.
 
-[Upgrade to Professional — $12/mo](/provider/subscription)
+[Upgrade to Pro — $12/mo](/provider/subscription)
 
 Best regards,
 OlogyCrew Team
       `.trim(),
-      smsBody: `Your OlogyCrew Professional trial expires TOMORROW! Upgrade now to keep your features.`,
+      smsBody: `Your OlogyCrew Pro trial expires TOMORROW! Upgrade now to keep your features.`,
     },
 
     trial_expired: {
-      subject: `Your Professional Trial Has Ended`,
+      subject: `Your Pro Trial Has Ended`,
       body: `
 Hello ${data.providerName},
 
-Your 14-day Professional trial has ended, and your account has been moved to the **Free tier**.
+Your 14-day Pro trial has ended, and your account has been moved to the **Free tier**.
 
 You can still use OlogyCrew with the Free plan, but you'll have limited features.
 
-Ready to upgrade? You can reactivate Professional anytime:
+Ready to upgrade? You can reactivate Pro anytime:
 
-[Upgrade to Professional — $12/mo](/provider/subscription)
+[Upgrade to Pro — $12/mo](/provider/subscription)
 
 Or save 16% with annual billing at just **$10.08/month**.
 
-We'd love to have you back on Professional!
+We'd love to have you back on Pro!
 
 [Unsubscribe](/notification-settings)
 
 Best regards,
 OlogyCrew Team
       `.trim(),
-      smsBody: `Your OlogyCrew Professional trial has ended. Upgrade anytime to restore your features.`,
+      smsBody: `Your OlogyCrew Pro trial has ended. Upgrade anytime to restore your features.`,
     },
 
     referral_welcome: {

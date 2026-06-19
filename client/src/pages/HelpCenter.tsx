@@ -190,14 +190,14 @@ const guideSections: GuideSection[] = [
       {
         title: "Provider Onboarding",
         content:
-          "There are two ways to become a provider: (1) Choose \"Provider\" when you first sign up and see the role selection screen, or (2) Click \"Become a Provider\" from your profile page if you initially signed up as a customer. Either way, you'll enter the onboarding wizard — a simple 5-step process:\n\n1. Profile — Set up your business profile with a description, location, and contact info\n2. Skills — Choose your service categories from our 42+ options\n3. Services — Add your services with pricing and duration\n4. Your Plan — Choose your subscription tier (Starter, Professional, or Business) or start a free 14-day Professional trial\n5. Get Paid — Connect your Stripe account to receive payments\n\nYour dashboard shows a checklist of what's complete.",
+          "There are two ways to become a provider: (1) Choose \"Provider\" when you first sign up and see the role selection screen, or (2) Click \"Become a Provider\" from your profile page if you initially signed up as a customer. Either way, you'll enter the onboarding wizard — a simple 5-step process:\n\n1. Profile — Set up your business profile with a description, location, and contact info\n2. Skills — Choose your service categories from our 42+ options\n3. Services — Add your services with pricing and duration\n4. Your Plan — Choose your subscription tier (Starter, Pro, or Business) or start a free 14-day Pro trial\n5. Get Paid — Connect your Stripe account to receive payments\n\nYour dashboard shows a checklist of what's complete.",
         link: "/provider/onboarding",
         linkText: "Start Onboarding",
       },
       {
         title: "Managing Your Services",
         content:
-          "From your Provider Dashboard, you can add, edit, or remove services at any time. Each service includes a name, description, category, pricing (fixed, hourly, or custom), duration, and location type (mobile, in-shop, or virtual). Starter accounts can list up to 3 services, Professional up to 10, and Business gets unlimited listings.",
+          "From your Provider Dashboard, you can add, edit, or remove services at any time. Each service includes a name, description, category, pricing (fixed, hourly, or custom), duration, and location type (mobile, in-shop, or virtual). Starter accounts can list up to 3 services, Pro up to 10, and Business gets unlimited listings.",
       },
       {
         title: "Setting Your Availability",
@@ -248,7 +248,7 @@ const guideSections: GuideSection[] = [
       {
         title: "Your Public Profile",
         content:
-          "Every provider gets a public profile page that customers can view. It shows your services, reviews, portfolio, availability, and business information. Professional and Business subscribers can customize their profile URL slug for a more professional look (e.g., /p/your-business-name). When you share your profile link on social media (Facebook, Twitter/X, LinkedIn, etc.), a rich preview card is automatically generated with your business name, description, and photo — making your profile look professional and clickable.",
+          "Every provider gets a public profile page that customers can view. It shows your services, reviews, portfolio, availability, and business information. Pro and Business subscribers can customize their profile URL slug for a more professional look (e.g., /p/your-business-name). When you share your profile link on social media (Facebook, Twitter/X, LinkedIn, etc.), a rich preview card is automatically generated with your business name, description, and photo — making your profile look professional and clickable.",
       },
       {
         title: "Provider & Customer View Switcher",
@@ -270,16 +270,16 @@ const guideSections: GuideSection[] = [
         linkText: "View Your Trust Score",
       },
       {
-        title: "14-Day Professional Trial",
+        title: "14-Day Pro Trial",
         content:
-             "New providers can start a free 14-day Professional trial — no credit card required. During the trial, you get access to all Professional features: up to 10 services, 3 photos per service, custom profile URL slug, priority search placement, and analytics dashboard. Start your trial during onboarding (Step 4: Your Plan) or from the Subscription Management page.\n\nYou'll receive email notifications at key milestones: 7 days remaining, 3 days remaining, 1 day remaining, and when the trial expires. If you don't upgrade before the trial ends, your account automatically reverts to the free Starter tier. You can upgrade to Professional ($12/mo) or Business ($20/mo) at any time — save up to 20% with annual billing.",
+             "New providers can start a free 14-day Pro trial — no credit card required. During the trial, you get access to all Pro features: up to 10 services, 3 photos per service, custom profile URL slug, priority search placement, and analytics dashboard. Start your trial during onboarding (Step 4: Your Plan) or from the Subscription Management page.\n\nYou'll receive email notifications at key milestones: 7 days remaining, 3 days remaining, 1 day remaining, and when the trial expires. If you don't upgrade before the trial ends, your account automatically reverts to the free Starter tier. You can upgrade to Pro ($12/mo) or Business ($20/mo) at any time — save up to 20% with annual billing.",
         link: "/provider/subscription",
         linkText: "Manage Subscription",
       },
       {
         title: "Service & Photo Limits",
         content:
-          "Each subscription tier has different limits for services and photos:\n\n• Starter (Free) — Up to 3 services, 1 photo per service\n• Professional ($12/mo) — Up to 10 services, 3 photos per service\n• Business ($20/mo) — Unlimited services, 5 photos per service\n\nWhen you reach your tier's limit, you'll see an upgrade prompt with a comparison of what each tier offers. You can upgrade at any time from the Subscription Management page. If you're on a trial and it expires, your services remain but you won't be able to add new ones beyond the Starter limit.",
+          "Each subscription tier has different limits for services and photos:\n\n• Starter (Free) — Up to 3 services, 1 photo per service\n• Pro ($12/mo) — Up to 10 services, 3 photos per service\n• Business ($20/mo) — Unlimited services, 5 photos per service\n\nWhen you reach your tier's limit, you'll see an upgrade prompt with a comparison of what each tier offers. You can upgrade at any time from the Subscription Management page. If you're on a trial and it expires, your services remain but you won't be able to add new ones beyond the Starter limit.",
         link: "/provider/subscription",
         linkText: "Upgrade Your Plan",
       },
@@ -304,7 +304,7 @@ const guideSections: GuideSection[] = [
       {
         title: "Provider Subscription Plans",
         content:
-          "Providers can choose from three subscription tiers:\n\n• Starter (Free) — Up to 3 services, 1 photo per service, basic profile, standard search placement\n\n• Professional ($12/mo or $10.08/mo billed annually) — Up to 10 services, 3 photos per service, custom URL slug, priority search placement, analytics dashboard\n\n• Business ($20/mo or $16.00/mo billed annually) — Unlimited services, 5 photos per service, featured listing badge, top search placement, full analytics, custom branding, priority support\n\nSave up to 20% by choosing annual billing (16% off Professional, 20% off Business)! Use the Monthly/Annual toggle on the pricing page to compare. New providers can start a free 14-day Professional trial — no credit card required — to experience all Professional features before committing.",
+          "Providers can choose from three subscription tiers:\n\n• Starter (Free) — Up to 3 services, 1 photo per service, basic profile, standard search placement\n\n• Pro ($12/mo or $10.08/mo billed annually) — Up to 10 services, 3 photos per service, custom URL slug, priority search placement, analytics dashboard\n\n• Business ($20/mo or $16.00/mo billed annually) — Unlimited services, 5 photos per service, featured listing badge, top search placement, full analytics, custom branding, priority support\n\nSave up to 20% by choosing annual billing (16% off Pro, 20% off Business)! Use the Monthly/Annual toggle on the pricing page to compare. New providers can start a free 14-day Pro trial — no credit card required — to experience all Pro features before committing.",
         link: "/provider/subscription",
         linkText: "Manage Subscription",
       },
@@ -409,7 +409,7 @@ const faqItems: FAQItem[] = [
   {
     question: "How do I become a service provider?",
     answer:
-      "There are two ways: (1) When you first sign up, choose \"Provider\" on the role selection screen, or (2) If you already have a customer account, go to your Profile page and click the \"Become a Provider\" card. Either way, you'll enter the 5-step onboarding wizard: set up your business profile, choose your service categories, add services with pricing, select your subscription plan (or start a free 14-day Professional trial), and connect Stripe for payments. The entire process takes about 10 minutes.",
+      "There are two ways: (1) When you first sign up, choose \"Provider\" on the role selection screen, or (2) If you already have a customer account, go to your Profile page and click the \"Become a Provider\" card. Either way, you'll enter the 5-step onboarding wizard: set up your business profile, choose your service categories, add services with pricing, select your subscription plan (or start a free 14-day Pro trial), and connect Stripe for payments. The entire process takes about 10 minutes.",
     category: "Providers",
   },
   {
@@ -481,7 +481,7 @@ const faqItems: FAQItem[] = [
   {
     question: "How do I get more visibility as a provider?",
     answer:
-      "Your visibility is determined by your Trust Score and subscription tier. Build your Trust Score by completing your profile, uploading quality portfolio photos, connecting Stripe, earning positive reviews, and completing bookings. Higher trust levels (Rising, Trusted, Top Pro) rank you higher in search results. Upgrading to Professional or Business adds a tier boost to your search ranking. The combination of trust score and subscription tier determines your final placement.",
+      "Your visibility is determined by your Trust Score and subscription tier. Build your Trust Score by completing your profile, uploading quality portfolio photos, connecting Stripe, earning positive reviews, and completing bookings. Higher trust levels (Rising, Trusted, Top Pro) rank you higher in search results. Upgrading to Pro or Business adds a tier boost to your search ranking. The combination of trust score and subscription tier determines your final placement.",
     category: "Providers",
   },
   {
@@ -539,27 +539,27 @@ const faqItems: FAQItem[] = [
     category: "Providers",
   },
   {
-    question: "What is the 14-day Professional trial?",
+    question: "What is the 14-day Pro trial?",
     answer:
-      "New providers can try the Professional tier free for 14 days — no credit card required. You get access to all Professional features including up to 10 services, 3 photos per service, custom URL slug, and priority search placement. Start your trial during onboarding or from the Subscription Management page. You'll receive email reminders at 7, 3, and 1 day before expiry. If you don't upgrade, your account reverts to the free Starter tier.",
+      "New providers can try the Pro tier free for 14 days — no credit card required. You get access to all Pro features including up to 10 services, 3 photos per service, custom URL slug, and priority search placement. Start your trial during onboarding or from the Subscription Management page. You'll receive email reminders at 7, 3, and 1 day before expiry. If you don't upgrade, your account reverts to the free Starter tier.",
     category: "Providers",
   },
   {
     question: "Can I save money with annual billing?",
     answer:
-      "Yes! Both provider and customer subscriptions offer annual billing at a discount. Professional saves 16% ($10.08/mo billed annually at $120.96/year instead of $12/mo). Business saves 20% ($16.00/mo billed annually at $192.00/year instead of $20/mo). Use the Monthly/Annual toggle on the pricing or subscription page to compare and switch.",
+      "Yes! Both provider and customer subscriptions offer annual billing at a discount. Pro saves 16% ($10.08/mo billed annually at $120.96/year instead of $12/mo). Business saves 20% ($16.00/mo billed annually at $192.00/year instead of $20/mo). Use the Monthly/Annual toggle on the pricing or subscription page to compare and switch.",
     category: "Payments",
   },
   {
     question: "What happens when I reach my service or photo limit?",
     answer:
-      "Each subscription tier has limits on how many services and photos you can add. When you reach your limit, you'll see an upgrade prompt showing what each tier offers. Your existing services and photos are never deleted — you just can't add new ones beyond your tier's limit until you upgrade. Starter allows 3 services (1 photo each), Professional allows 10 services (3 photos each), and Business offers unlimited services (5 photos each).",
+      "Each subscription tier has limits on how many services and photos you can add. When you reach your limit, you'll see an upgrade prompt showing what each tier offers. Your existing services and photos are never deleted — you just can't add new ones beyond your tier's limit until you upgrade. Starter allows 3 services (1 photo each), Pro allows 10 services (3 photos each), and Business offers unlimited services (5 photos each).",
     category: "Providers",
   },
   {
     question: "How does search ranking work?",
     answer:
-      "Search results are ranked by a combination of your Trust Score and subscription tier. Your Trust Score is the primary factor — providers with higher trust levels appear first. Subscription tier provides a secondary boost: Business gets the highest boost, Professional gets a moderate boost, and Starter gets no boost. This means a Trusted provider on the free plan can still rank above a New provider on a paid plan, keeping the system merit-based.",
+      "Search results are ranked by a combination of your Trust Score and subscription tier. Your Trust Score is the primary factor — providers with higher trust levels appear first. Subscription tier provides a secondary boost: Business gets the highest boost, Pro gets a moderate boost, and Starter gets no boost. This means a Trusted provider on the free plan can still rank above a New provider on a paid plan, keeping the system merit-based.",
     category: "Providers",
   },
   {

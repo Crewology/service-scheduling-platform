@@ -268,12 +268,12 @@ OlogyCrew Team`,
   {
     type: "subscription_updated",
     category: "Subscription",
-    subject: "Subscription Updated - Professional Plan",
+    subject: "Subscription Updated - Pro Plan",
     body: `Hello,
 
 Your OlogyCrew subscription has been updated.
 
-**New Plan:** Professional
+**New Plan:** Pro
 **Business:** Gary's Wellness Studio
 
 Enjoy your new features! Visit your dashboard to explore what's available.
@@ -509,10 +509,10 @@ OlogyCrew Team`,
   {
     type: "trial_started",
     category: "Trial",
-    subject: "Welcome to Your 14-Day Professional Trial!",
+    subject: "Welcome to Your 14-Day Pro Trial!",
     body: `Hello Gary,
 
-Congratulations! Your **14-day Professional trial** has started.
+Congratulations! Your **14-day Pro trial** has started.
 
 Here's what you now have access to:
 - **Up to 10 services** listed on the platform
@@ -530,17 +530,17 @@ OlogyCrew Team`,
   {
     type: "trial_7_days",
     category: "Trial",
-    subject: "7 Days Left on Your Professional Trial",
+    subject: "7 Days Left on Your Pro Trial",
     body: `Hello Gary,
 
-You have **7 days** remaining on your Professional trial.
+You have **7 days** remaining on your Pro trial.
 
 Here's what you've accomplished so far:
 - **5 services** listed
 - **12 bookings** received
 - **8 reviews** earned
 
-Don't lose your progress — upgrade to Professional for just **$12/month** (or save 16% with annual billing at $10.08/month).
+Don't lose your progress — upgrade to Pro for just **$12/month** (or save 16% with annual billing at $10.08/month).
 
 [Upgrade Now](/provider/subscription)
 
@@ -552,10 +552,10 @@ OlogyCrew Team`,
   {
     type: "trial_3_days",
     category: "Trial",
-    subject: "Only 3 Days Left — Don't Lose Your Professional Features",
+    subject: "Only 3 Days Left — Don't Lose Your Pro Features",
     body: `Hello Gary,
 
-Your Professional trial ends in just **3 days** (May 16, 2026).
+Your Pro trial ends in just **3 days** (May 16, 2026).
 
 When your trial expires, you'll lose access to:
 - Priority search placement
@@ -565,7 +565,7 @@ When your trial expires, you'll lose access to:
 
 **Upgrade now to keep everything you've built.**
 
-[Upgrade to Professional — $12/mo](/provider/subscription)
+[Upgrade to Pro — $12/mo](/provider/subscription)
 
 Or save 16% with annual billing at just **$10.08/month**.
 
@@ -575,10 +575,10 @@ OlogyCrew Team`,
   {
     type: "trial_1_day",
     category: "Trial",
-    subject: "Last Day — Your Professional Trial Expires Tomorrow",
+    subject: "Last Day — Your Pro Trial Expires Tomorrow",
     body: `Hello Gary,
 
-**Your Professional trial expires tomorrow.**
+**Your Pro trial expires tomorrow.**
 
 After expiration, your account will be downgraded to the Free tier:
 - Only 3 services visible (extras will be hidden)
@@ -588,7 +588,7 @@ After expiration, your account will be downgraded to the Free tier:
 
 Don't let your hard work go to waste. Upgrade now and keep growing your business.
 
-[Upgrade to Professional — $12/mo](/provider/subscription)
+[Upgrade to Pro — $12/mo](/provider/subscription)
 
 Best regards,
 OlogyCrew Team`,
@@ -596,20 +596,20 @@ OlogyCrew Team`,
   {
     type: "trial_expired",
     category: "Trial",
-    subject: "Your Professional Trial Has Ended",
+    subject: "Your Pro Trial Has Ended",
     body: `Hello Gary,
 
-Your 14-day Professional trial has ended, and your account has been moved to the **Free tier**.
+Your 14-day Pro trial has ended, and your account has been moved to the **Free tier**.
 
 You can still use OlogyCrew with the Free plan, but you'll have limited features.
 
-Ready to upgrade? You can reactivate Professional anytime:
+Ready to upgrade? You can reactivate Pro anytime:
 
-[Upgrade to Professional — $12/mo](/provider/subscription)
+[Upgrade to Pro — $12/mo](/provider/subscription)
 
 Or save 16% with annual billing at just **$10.08/month**.
 
-We'd love to have you back on Professional!
+We'd love to have you back on Pro!
 
 Best regards,
 OlogyCrew Team`,

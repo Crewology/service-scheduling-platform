@@ -705,7 +705,7 @@ export default function ProviderOnboarding() {
     onSuccess: () => {
       setSelectedTier("basic");
       utils.subscription.mySubscription.invalidate();
-      toast.success("Professional trial started! You have 14 days of full access.");
+      toast.success("Pro trial started! You have 14 days of full access.");
       setCurrentStep(5);
     },
     onError: (err) => toast.error(err.message),
@@ -1393,7 +1393,7 @@ export default function ProviderOnboarding() {
                       <Zap className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                      <h3 className="font-semibold">Professional</h3>
+                      <h3 className="font-semibold">Pro</h3>
                       <p className="text-xs text-muted-foreground">
                         {billingInterval === "year" ? "$10.08/mo billed annually" : "$12/month"}
                       </p>
@@ -1490,7 +1490,7 @@ export default function ProviderOnboarding() {
                 </div>
               </div>
 
-              {/* 14-day Professional Trial Banner */}
+              {/* 14-day Pro Trial Banner */}
               {(!currentSubscription?.subscription || currentSubscription?.currentTier === "free") && (
                 <div className="p-4 rounded-lg bg-gradient-to-r from-blue-500/10 to-primary/10 border border-blue-500/20">
                   <div className="flex items-start gap-3">
@@ -1498,7 +1498,7 @@ export default function ProviderOnboarding() {
                       <Zap className="h-4 w-4 text-blue-500" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-sm">Try Professional free for 14 days</h4>
+                      <h4 className="font-semibold text-sm">Try Pro free for 14 days</h4>
                       <p className="text-xs text-muted-foreground mt-0.5">
                         Get 10 service listings, priority search placement, business analytics, and a custom profile URL.
                         No credit card required — automatically reverts to Free if you don't subscribe.
@@ -1546,7 +1546,7 @@ export default function ProviderOnboarding() {
                       disabled={createCheckout.isPending}
                     >
                       {createCheckout.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                      Subscribe to Professional{billingInterval === "year" ? " (Annual)" : ""}
+                      Subscribe to Pro{billingInterval === "year" ? " (Annual)" : ""}
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   ) : selectedTier === "premium" ? (
@@ -1601,7 +1601,7 @@ export default function ProviderOnboarding() {
                   <Shield className="h-12 w-12 text-amber-500 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold">Upgrade Required</h3>
                   <p className="text-muted-foreground mt-1 max-w-md mx-auto">
-                    Payment account setup requires a Professional or Business subscription. Go back to Step 4 to upgrade your plan, or skip this step and upgrade later from your dashboard.
+                    Payment account setup requires a Pro or Business subscription. Go back to Step 4 to upgrade your plan, or skip this step and upgrade later from your dashboard.
                   </p>
                 </div>
               ) : (

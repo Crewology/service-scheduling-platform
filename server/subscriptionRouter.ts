@@ -67,7 +67,7 @@ export const subscriptionRouter = router({
     return Object.values(SUBSCRIPTION_TIERS);
   }),
 
-  // Start 14-day Professional trial for new providers
+  // Start 14-day Pro trial for new providers
   startProfessionalTrial: protectedProcedure.mutation(async ({ ctx }) => {
     const provider = await db.getProviderByUserId(ctx.user.id);
     if (!provider) {
@@ -83,7 +83,7 @@ export const subscriptionRouter = router({
       throw new TRPCError({ code: "BAD_REQUEST", message: "Already have an active paid subscription" });
     }
 
-    // Start 14-day Professional trial
+    // Start 14-day Pro trial
     const now = new Date();
     const trialEnd = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
 
@@ -421,7 +421,7 @@ export const subscriptionRouter = router({
             tier: "basic",
             status: sub.status,
           });
-          return { success: true, newTier: "basic" as const, message: "Downgraded to Professional." };
+          return { success: true, newTier: "basic" as const, message: "Downgraded to Pro." };
         }
 
         try {
@@ -469,7 +469,7 @@ export const subscriptionRouter = router({
             });
           }
 
-          return { success: true, newTier: "basic" as const, message: "Downgraded to Professional. Prorated credit applied." };
+          return { success: true, newTier: "basic" as const, message: "Downgraded to Pro. Prorated credit applied." };
         } catch (err: any) {
           console.error("[Downgrade] Failed to update Stripe subscription:", err.message);
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to downgrade subscription" });
