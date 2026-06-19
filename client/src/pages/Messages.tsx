@@ -69,7 +69,7 @@ export default function Messages() {
 
   const { data: messagesList, refetch } = trpc.message.listByBooking.useQuery(
     { bookingId: parseInt(bookingId!) },
-    { enabled: isAuthenticated && !!bookingId, refetchInterval: 15000 }
+    { enabled: isAuthenticated && !!bookingId }
   );
 
   const { data: service } = trpc.service.getById.useQuery(

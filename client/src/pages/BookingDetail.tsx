@@ -568,25 +568,38 @@ export default function BookingDetail() {
               </CardHeader>
               <CardContent>
                 {payment ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Payment Status</p>
-                      <Badge className={payment.status === "captured" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}>
-                        {payment.status}
-                      </Badge>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Payment Status</p>
+                        <Badge className={payment.status === "captured" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}>
+                          {payment.status}
+                        </Badge>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Amount</p>
+                        <p className="font-medium">{formatCurrency(parseFloat(payment.amount || "0"))}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Platform Fee</p>
+                        <p className="font-medium">{formatCurrency(parseFloat(booking.platformFee || "0"))}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Payment Method</p>
+                        <p className="font-medium capitalize">{payment.paymentMethod || "Stripe"}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Amount</p>
-                      <p className="font-medium">{formatCurrency(parseFloat(payment.amount || "0"))}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Platform Fee</p>
-                      <p className="font-medium">{formatCurrency(parseFloat(booking.platformFee || "0"))}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Payment Method</p>
-                      <p className="font-medium capitalize">{payment.paymentMethod || "Stripe"}</p>
-                    </div>
+                    {payment.status === "captured" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full sm:w-auto"
+                        onClick={() => window.open(`/api/receipt/${booking.id}/pdf`, "_blank")}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Download Receipt
+                      </Button>
+                    )}
                   </div>
                 ) : (
                   <p className="text-muted-foreground text-center py-4">No payment recorded yet</p>

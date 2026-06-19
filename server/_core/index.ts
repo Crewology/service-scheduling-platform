@@ -116,6 +116,10 @@ async function startServer() {
   const { handleAnalyticsPDFExport } = await import("../analyticsExport");
   app.get("/api/export/analytics/pdf", handleAnalyticsPDFExport);
 
+  // Payment receipt PDF
+  const { handleReceiptPDF } = await import("../receiptExport");
+  app.get("/api/receipt/:bookingId/pdf", handleReceiptPDF);
+
   // Real-time SSE notifications endpoint
   const { sseManager } = await import("../sseManager");
   app.get("/api/sse/notifications", async (req, res) => {

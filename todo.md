@@ -1523,3 +1523,18 @@
 - [x] Remove SMS section from Privacy Policy, replace with general Communications section
 - [x] Remove Twilio reference from Privacy Policy information sharing
 - [x] Update "Last updated" dates to June 18, 2026
+
+## Enhancement: Granular Email Unsubscribe
+- [x] Update Unsubscribe page to show per-type toggles (booking, reminder, message, payment, marketing) instead of blanket unsubscribe
+- [x] Add backend endpoint to update individual email preferences by unsubscribe token
+- [x] Keep "Unsubscribe from all" as an option but add granular control
+
+## Enhancement: Payment Receipt PDF
+- [x] Create per-booking receipt PDF endpoint (GET /api/receipt/:bookingId/pdf)
+- [x] Include booking details, payment info, provider info, and OlogyCrew branding
+- [x] Add "Download Receipt" button on BookingDetail page for completed/paid bookings
+
+## Enhancement: Real-time Messaging (Remove Polling)
+- [x] Remove 15-second refetchInterval from Messages page queries
+- [x] Ensure SSE newMessage event triggers immediate data refresh
+- [x] Verify typing indicators and read receipts work without polling

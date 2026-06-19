@@ -41,7 +41,7 @@ export default function Conversations() {
 
   const { data: conversations, isLoading } = trpc.message.myConversations.useQuery(undefined, {
     enabled: isAuthenticated,
-    refetchInterval: sseConnected ? 60000 : 15000,
+    refetchInterval: sseConnected ? false : 30000,
   });
 
   const deleteConversation = trpc.message.deleteConversation.useMutation({

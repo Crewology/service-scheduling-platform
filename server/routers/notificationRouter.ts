@@ -56,6 +56,22 @@ export const notificationRouter = router({
       return { success };
     }),
 
+  updatePreferencesByToken: publicProcedure
+    .input(z.object({
+      token: z.string(),
+      bookingEmail: z.boolean().optional(),
+      reminderEmail: z.boolean().optional(),
+      messageEmail: z.boolean().optional(),
+      paymentEmail: z.boolean().optional(),
+      marketingEmail: z.boolean().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const { token, ...prefs } = input;
+      const updated = await db.updateEmailPreferencesByToken(token, prefs);
+      if (!updated) return { success: false, prefs: null };
+      return { success: true, prefs: updated };
+    }),
+
   deleteNotification: protectedProcedure
     .input(z.object({ notificationId: z.number() }))
     .mutation(async ({ ctx, input }) => {

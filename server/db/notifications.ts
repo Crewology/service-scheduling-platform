@@ -149,3 +149,42 @@ export async function unsubscribeAllEmail(token: string): Promise<boolean> {
     .where(eq(notificationPreferences.unsubscribeToken, token));
   return true;
 }
+
+/**
+ * Update individual email preferences by unsubscribe token.
+ * Returns the updated preferences or null if token is invalid.
+ */
+export async function updateEmailPreferencesByToken(
+  token: string,
+  prefs: {
+    bookingEmail?: boolean;
+    reminderEmail?: boolean;
+    messageEmail?: boolean;
+    paymentEmail?: boolean;
+    marketingEmail?: boolean;
+  }
+): Promise<{ bookingEmail: boolean; reminderEmail: boolean; messageEmail: boolean; paymentEmail: boolean; marketingEmail: boolean } | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const pref = await getPreferencesByUnsubscribeToken(token);
+  if (!pref) return null;
+  
+  // Determine if any email type is still enabled after update
+  const updated = {
+    bookingEmail: prefs.bookingEmail ?? pref.bookingEmail,
+    reminderEmail: prefs.reminderEmail ?? pref.reminderEmail,
+    messageEmail: prefs.messageEmail ?? pref.messageEmail,
+    paymentEmail: prefs.paymentEmail ?? pref.paymentEmail,
+    marketingEmail: prefs.marketingEmail ?? pref.marketingEmail,
+  };
+  const anyEnabled = Object.values(updated).some(v => v);
+  
+  await db.update(notificationPreferences)
+    .set({
+      ...prefs,
+      emailEnabled: anyEnabled,
+    })
+    .where(eq(notificationPreferences.unsubscribeToken, token));
+  
+  return updated;
+}

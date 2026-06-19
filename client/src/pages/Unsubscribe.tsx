@@ -2,16 +2,28 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useParams } from "wouter";
-import { useState } from "react";
-import { Mail, CheckCircle, AlertCircle, Loader2, ShieldAlert } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Mail, CheckCircle, AlertCircle, Loader2, ShieldAlert, Bell, Calendar, MessageSquare, CreditCard, Megaphone } from "lucide-react";
 import { Link } from "wouter";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
+
+const EMAIL_TYPES = [
+  { key: "bookingEmail" as const, label: "Booking Updates", description: "Confirmations, cancellations, and status changes", icon: Calendar },
+  { key: "reminderEmail" as const, label: "Appointment Reminders", description: "Upcoming booking reminders (24 hours before)", icon: Bell },
+  { key: "messageEmail" as const, label: "Message Notifications", description: "New messages from providers or customers", icon: MessageSquare },
+  { key: "paymentEmail" as const, label: "Payment & Receipts", description: "Payment confirmations, refunds, and receipts", icon: CreditCard },
+  { key: "marketingEmail" as const, label: "Promotions & Updates", description: "New features, tips, and special offers", icon: Megaphone },
+];
 
 export default function Unsubscribe() {
   const { token } = useParams<{ token: string }>();
   const [unsubscribed, setUnsubscribed] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [localPrefs, setLocalPrefs] = useState<Record<string, boolean>>({});
 
-  const { data: prefs, isLoading } = trpc.notification.getByToken.useQuery(
+  const { data: prefs, isLoading, refetch } = trpc.notification.getByToken.useQuery(
     { token: token || "" },
     { enabled: !!token }
   );
@@ -24,6 +36,43 @@ export default function Unsubscribe() {
       }
     },
   });
+
+  const updateMutation = trpc.notification.updatePreferencesByToken.useMutation({
+    onSuccess: (data) => {
+      if (data.success && data.prefs) {
+        setLocalPrefs(data.prefs);
+        setSaved(true);
+        toast.success("Email preferences updated");
+        setTimeout(() => setSaved(false), 3000);
+      }
+    },
+    onError: () => {
+      toast.error("Failed to update preferences");
+    },
+  });
+
+  // Initialize local prefs from server data
+  useEffect(() => {
+    if (prefs) {
+      setLocalPrefs({
+        bookingEmail: prefs.bookingEmail,
+        reminderEmail: prefs.reminderEmail,
+        messageEmail: prefs.messageEmail,
+        paymentEmail: prefs.paymentEmail,
+        marketingEmail: prefs.marketingEmail,
+      });
+    }
+  }, [prefs]);
+
+  const handleToggle = (key: string, value: boolean) => {
+    const newPrefs = { ...localPrefs, [key]: value };
+    setLocalPrefs(newPrefs);
+    // Auto-save on toggle
+    updateMutation.mutate({
+      token: token || "",
+      [key]: value,
+    });
+  };
 
   if (isLoading) {
     return (
@@ -78,7 +127,7 @@ export default function Unsubscribe() {
     );
   }
 
-  // ── Confirmation step ──
+  // ── Confirmation step for unsubscribe all ──
   if (showConfirm) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -116,65 +165,88 @@ export default function Unsubscribe() {
               onClick={() => setShowConfirm(false)}
               disabled={unsubscribeMutation.isPending}
             >
-              No, Keep My Emails
+              No, Go Back
             </Button>
-
-            <p className="text-xs text-center text-muted-foreground pt-1">
-              Prefer to keep some emails?{" "}
-              <Link href="/notification-settings" className="text-primary hover:underline">
-                Manage individual preferences
-              </Link>{" "}
-              instead.
-            </p>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  // ── Initial landing ──
+  // ── Main page: Granular per-type toggles ──
+  const enabledCount = Object.values(localPrefs).filter(Boolean).length;
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <Card className="max-w-md w-full">
+      <Card className="max-w-lg w-full">
         <CardHeader className="text-center">
           <div className="mx-auto mb-2">
             <Mail className="h-10 w-10 text-muted-foreground" />
           </div>
-          <CardTitle>Unsubscribe from Emails</CardTitle>
+          <CardTitle>Email Preferences</CardTitle>
           <CardDescription>
-            This will unsubscribe you from all OlogyCrew email notifications.
+            Choose which emails you'd like to receive from OlogyCrew. Changes are saved automatically.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {prefs && (
-            <div className="bg-gray-50 rounded-lg p-4 text-sm space-y-2">
-              <p className="font-medium text-muted-foreground">
-                You are currently receiving:
-              </p>
-              <ul className="space-y-1 text-muted-foreground">
-                {prefs.bookingEmail && <li>Booking updates</li>}
-                {prefs.reminderEmail && <li>Appointment reminders</li>}
-                {prefs.messageEmail && <li>Message notifications</li>}
-                {prefs.paymentEmail && <li>Payment receipts</li>}
-                {prefs.marketingEmail && <li>Marketing emails</li>}
-              </ul>
+          {/* Per-type toggles */}
+          <div className="space-y-3">
+            {EMAIL_TYPES.map(({ key, label, description, icon: Icon }) => (
+              <div
+                key={key}
+                className="flex items-center justify-between p-3 rounded-lg border bg-white hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-full bg-gray-100 flex items-center justify-center">
+                    <Icon className="h-4 w-4 text-gray-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">{label}</p>
+                    <p className="text-xs text-muted-foreground">{description}</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={localPrefs[key] ?? true}
+                  onCheckedChange={(value) => handleToggle(key, value)}
+                  disabled={updateMutation.isPending}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Status indicator */}
+          {saved && (
+            <div className="flex items-center justify-center gap-2 text-sm text-green-600">
+              <CheckCircle className="h-4 w-4" />
+              Preferences saved
             </div>
           )}
 
-          <Button
-            className="w-full"
-            variant="destructive"
-            onClick={() => setShowConfirm(true)}
-          >
-            Unsubscribe from All Emails
-          </Button>
+          {/* Summary */}
+          <div className="pt-2 border-t">
+            <p className="text-xs text-center text-muted-foreground">
+              You're receiving {enabledCount} of {EMAIL_TYPES.length} email types.
+            </p>
+          </div>
+
+          {/* Unsubscribe all option */}
+          <div className="pt-2">
+            <Button
+              className="w-full"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowConfirm(true)}
+            >
+              Unsubscribe from All Emails
+            </Button>
+          </div>
 
           <p className="text-xs text-center text-muted-foreground">
-            Or{" "}
+            You can also{" "}
             <Link href="/notification-settings" className="text-primary hover:underline">
-              manage individual preferences
+              manage all notification settings
             </Link>{" "}
-            to choose which emails you receive.
+            from your account.
           </p>
         </CardContent>
       </Card>

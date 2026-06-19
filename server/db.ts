@@ -164,6 +164,7 @@ export {
   upsertNotificationPreferences,
   deleteNotification,
   clearAllNotifications,
+  updateEmailPreferencesByToken,
 } from "./db/notifications";
 
 // Saved provider folders
