@@ -94,11 +94,11 @@
 - [ ] Profile photo upload for customers
 - [ ] System health monitoring in admin dashboard
 - [ ] Frontend component tests (currently server-only)
-- [ ] Payment receipt PDF generation
-- [ ] Real-time WebSocket messaging (currently 5s polling)
+- [x] Payment receipt PDF generation
+- [x] Real-time messaging via SSE (removed primary polling; 30s fallback only when SSE disconnects)
 - [ ] Upgrade prompts when subscription limits are reached
 - [ ] Service editing flow improvements
-- [ ] Email unsubscribe granularity per notification type
+- [x] Email unsubscribe granularity per notification type
 
 ## Hotfix: Provider Role & Onboarding Testing
 - [x] Fix owner account role to provider so provider dashboard is accessible
