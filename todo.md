@@ -1516,3 +1516,10 @@
 - [x] Audit and update email/notification templates (trial, upgrade, welcome messages)
 - [x] Audit and update error messages and upgrade prompts across the platform
 - [x] Audit and update any remaining "Professional" references in client-facing copy
+
+## Terms of Service & Privacy Policy Updates
+- [x] Remove SMS/Text Messaging section from Terms of Service (not active yet)
+- [x] Add Subscription Plans section to Terms of Service (billing, trials, cancellation, pricing changes)
+- [x] Remove SMS section from Privacy Policy, replace with general Communications section
+- [x] Remove Twilio reference from Privacy Policy information sharing
+- [x] Update "Last updated" dates to June 18, 2026

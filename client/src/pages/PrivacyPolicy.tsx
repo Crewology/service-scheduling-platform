@@ -11,7 +11,7 @@ export default function PrivacyPolicy() {
           backHref="/"
           breadcrumbs={[{ label: "Privacy Policy" }]}
         />
-        <p className="text-muted-foreground mb-8">Last updated: April 22, 2026</p>
+        <p className="text-muted-foreground mb-8">Last updated: June 18, 2026</p>
 
         <div className="prose prose-neutral dark:prose-invert max-w-none space-y-6">
           <section>
@@ -48,7 +48,7 @@ export default function PrivacyPolicy() {
               <li>Provide, operate, and maintain the Service</li>
               <li>Process bookings, payments, and transactions</li>
               <li>Send transactional notifications (booking confirmations, reminders, payment receipts)</li>
-              <li>Send SMS notifications to your phone number when you opt in</li>
+              <li>Send email notifications related to your bookings and account activity</li>
               <li>Facilitate communication between customers and service providers</li>
               <li>Improve and personalize your experience</li>
               <li>Respond to your inquiries and provide customer support</li>
@@ -57,15 +57,15 @@ export default function PrivacyPolicy() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mt-8 mb-3">4. SMS/Text Messaging</h2>
+            <h2 className="text-xl font-semibold mt-8 mb-3">4. Communications</h2>
             <p className="text-muted-foreground leading-relaxed">
-              By providing your phone number and opting in to SMS notifications, you consent to receive text messages from OlogyCrew related to your bookings, appointments, payments, and account activity. Message and data rates may apply. Message frequency varies based on your activity.
+              OlogyCrew primarily communicates with users via email for booking confirmations, appointment reminders, payment receipts, and other transactional notifications. By creating an account, you consent to receive these transactional emails.
             </p>
             <p className="text-muted-foreground leading-relaxed mt-2">
-              You can opt out of SMS notifications at any time by replying <strong>STOP</strong> to any message. To opt back in, reply <strong>START</strong>. For help, reply <strong>HELP</strong> or contact us at the information provided below. You can also manage your SMS preferences in your account notification settings.
+              You can manage your email notification preferences at any time through your account notification settings. You may also unsubscribe from non-essential emails using the unsubscribe link included in each message.
             </p>
             <p className="text-muted-foreground leading-relaxed mt-2">
-              We will not share your phone number with third parties for marketing purposes. Your phone number is used solely for transactional communications related to the Service.
+              We will not share your email address or phone number with third parties for marketing purposes. Your contact information is used solely for transactional communications related to the Service.
             </p>
           </section>
 
@@ -75,7 +75,7 @@ export default function PrivacyPolicy() {
               We do not sell your personal information. We may share your information in the following circumstances:
             </p>
             <ul className="list-disc pl-6 text-muted-foreground space-y-1 mt-2">
-              <li><strong>Service Providers:</strong> With third-party service providers who assist in operating our platform (e.g., Stripe for payment processing, Twilio for SMS delivery)</li>
+              <li><strong>Service Providers:</strong> With third-party service providers who assist in operating our platform (e.g., Stripe for payment processing)</li>
               <li><strong>Between Users:</strong> Booking details are shared between customers and service providers to facilitate service delivery</li>
               <li><strong>Legal Requirements:</strong> When required by law, regulation, or legal process</li>
               <li><strong>Business Transfers:</strong> In connection with a merger, acquisition, or sale of assets</li>
@@ -119,7 +119,7 @@ export default function PrivacyPolicy() {
               <li><strong>Data Anonymization:</strong> Your personal information (name, email, phone number, profile photo) is permanently replaced with anonymized placeholders. This cannot be undone.</li>
               <li><strong>Provider Profile Deactivation:</strong> If you are a service provider, your provider profile and all listed services are deactivated and will no longer appear in search results or public listings.</li>
               <li><strong>Subscription Cancellation:</strong> Any active subscriptions (provider tiers or customer memberships) are automatically cancelled.</li>
-              <li><strong>Notification Preferences:</strong> All email, SMS, and push notification preferences are cleared. You will not receive any further communications from OlogyCrew.</li>
+              <li><strong>Notification Preferences:</strong> All email and push notification preferences are cleared. You will not receive any further communications from OlogyCrew.</li>
               <li><strong>Session Termination:</strong> Your login session is ended and you are signed out of the platform.</li>
             </ul>
             <h3 className="text-lg font-medium mt-4 mb-2">Restrictions</h3>
@@ -142,7 +142,7 @@ export default function PrivacyPolicy() {
               <li><strong>Right to Correction:</strong> You may update or correct inaccurate personal information through your Profile page or by contacting us.</li>
               <li><strong>Right to Deletion:</strong> You may delete your account and personal information at any time through the self-service deletion feature on your Profile page, as described in Section 8 above.</li>
               <li><strong>Right to Data Portability:</strong> You may request your booking history and account data in a portable format by contacting us.</li>
-              <li><strong>Right to Opt Out:</strong> You may opt out of marketing communications, email notifications (via the Unsubscribe link in any email or your Notification Settings), and SMS notifications (by replying STOP or updating your notification settings).</li>
+              <li><strong>Right to Opt Out:</strong> You may opt out of marketing communications and email notifications via the Unsubscribe link in any email or through your Notification Settings.</li>
               <li><strong>Right to Non-Discrimination:</strong> We will not discriminate against you for exercising any of your privacy rights.</li>
             </ul>
             <p className="text-muted-foreground leading-relaxed mt-3">

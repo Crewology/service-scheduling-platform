@@ -12,7 +12,7 @@ export default function TermsOfService() {
           backHref="/"
           breadcrumbs={[{ label: "Terms of Service" }]}
         />
-        <p className="text-muted-foreground mb-8 mt-4">Last updated: April 4, 2026</p>
+        <p className="text-muted-foreground mb-8 mt-4">Last updated: June 18, 2026</p>
 
         <div className="prose prose-neutral dark:prose-invert max-w-none space-y-6">
           <section>
@@ -60,20 +60,25 @@ export default function TermsOfService() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mt-8 mb-3">6. SMS/Text Messaging Program</h2>
+            <h2 className="text-xl font-semibold mt-8 mb-3">6. Subscription Plans</h2>
             <p className="text-muted-foreground leading-relaxed">
-              OlogyCrew offers SMS notifications for booking confirmations, appointment reminders, payment receipts, and other transactional communications. By providing your phone number and opting in, you consent to receive these messages.
+              OlogyCrew offers free and paid subscription plans for both customers and service providers. Paid plans unlock additional features such as expanded service categories, increased listing limits, priority search placement, and enhanced analytics.
             </p>
-            <ul className="list-disc pl-6 text-muted-foreground space-y-1 mt-2">
-              <li><strong>Program Name:</strong> OlogyCrew Booking Notifications</li>
-              <li><strong>Message Frequency:</strong> Varies based on your booking activity</li>
-              <li><strong>Message and Data Rates:</strong> Standard message and data rates may apply</li>
-              <li><strong>Opt-Out:</strong> Reply <strong>STOP</strong> to any message to unsubscribe from SMS notifications</li>
-              <li><strong>Opt-In:</strong> Reply <strong>START</strong> to re-subscribe to SMS notifications</li>
-              <li><strong>Help:</strong> Reply <strong>HELP</strong> for assistance or contact info@ologycrew.com</li>
-            </ul>
-            <p className="text-muted-foreground leading-relaxed mt-2">
-              You can also manage your SMS notification preferences at any time through your account settings. Opting out of SMS will not affect other notification channels (email, in-app).
+            <h3 className="text-lg font-medium mt-4 mb-2">Billing</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              Paid subscriptions are billed on a monthly or annual basis through Stripe. Annual plans offer a discounted rate compared to monthly billing. Subscriptions automatically renew at the end of each billing period unless cancelled prior to the renewal date.
+            </p>
+            <h3 className="text-lg font-medium mt-4 mb-2">Free Trial</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              New service providers may be eligible for a 14-day free trial of the Pro plan. At the end of the trial period, your account will automatically revert to the Starter (free) plan unless you choose to subscribe. No payment information is required to start a trial.
+            </p>
+            <h3 className="text-lg font-medium mt-4 mb-2">Cancellation and Downgrades</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              You may cancel your subscription at any time from your account settings. Upon cancellation, your paid plan features remain active until the end of your current billing period, after which your account will be moved to the Starter (free) tier. Content exceeding the free tier limits (services, photos, categories) may be hidden but will not be deleted, and will become accessible again if you resubscribe.
+            </p>
+            <h3 className="text-lg font-medium mt-4 mb-2">Changes to Plans and Pricing</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              OlogyCrew reserves the right to modify subscription plan features and pricing. We will provide at least 30 days advance notice of any material changes via email. Existing subscribers will be grandfathered at their current rate until the end of their billing period.
             </p>
           </section>
 
