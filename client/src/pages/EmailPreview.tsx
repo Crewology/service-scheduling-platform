@@ -260,7 +260,7 @@ Your OlogyCrew subscription has been cancelled.
 
 **Business:** Gary's Wellness Studio
 
-Your account has been downgraded to the Free tier. You can resubscribe at any time from your provider dashboard.
+Your account has been downgraded to the Starter tier. You can resubscribe at any time from your provider dashboard.
 
 Best regards,
 OlogyCrew Team`,
@@ -580,7 +580,7 @@ OlogyCrew Team`,
 
 **Your Pro trial expires tomorrow.**
 
-After expiration, your account will be downgraded to the Free tier:
+After expiration, your account will be downgraded to the Starter tier:
 - Only 3 services visible (extras will be hidden)
 - 1 photo per service
 - Standard search placement
@@ -599,9 +599,9 @@ OlogyCrew Team`,
     subject: "Your Pro Trial Has Ended",
     body: `Hello Gary,
 
-Your 14-day Pro trial has ended, and your account has been moved to the **Free tier**.
+Your 14-day Pro trial has ended, and your account has been moved to the **Starter tier**.
 
-You can still use OlogyCrew with the Free plan, but you'll have limited features.
+You can still use OlogyCrew with the Starter plan (1 category, 3 services), but you'll have limited features.
 
 Ready to upgrade? You can reactivate Pro anytime:
 

@@ -206,17 +206,17 @@ export async function checkAndSendTrialMilestoneNotification(
 
   // Record in notifications table regardless of send success
   const titles: Record<string, string> = {
-    trial_7_days: "7 Days Left on Your Professional Trial",
+    trial_7_days: "7 Days Left on Your Pro Trial",
     trial_3_days: "Only 3 Days Left on Your Trial",
     trial_1_day: "Last Day — Trial Expires Tomorrow",
-    trial_expired: "Your Professional Trial Has Ended",
+    trial_expired: "Your Pro Trial Has Ended",
   };
 
   const messages: Record<string, string> = {
     trial_7_days: `You have 7 days remaining on your Pro trial. Upgrade to keep your features.`,
     trial_3_days: `Only 3 days left! Your Pro trial ends on ${trialEndDate}.`,
     trial_1_day: `Your Pro trial expires tomorrow. Upgrade now to keep your features.`,
-    trial_expired: `Your Pro trial has ended. Your account has been moved to the Free tier.`,
+    trial_expired: `Your Pro trial has ended. Your account has been moved to the Starter tier (1 category, 3 services).`,
   };
 
   await recordMilestoneSent(

@@ -1509,3 +1509,10 @@
 - [x] Update provider section language: Starter (1 category, 3 services), Pro (5 categories, 10 services), Business (unlimited)
 - [x] Update SubscriptionManagement.tsx language to match new Plans page (Pro instead of Professional, category limits)
 - [x] Run tests, TypeScript check, verify no regressions
+
+## Content Audit: Align all platform copy with new Plans structure
+- [x] Audit and update Help Center page (FAQs, plan descriptions, feature explanations)
+- [x] Audit and update provider onboarding text (trial mentions, tier descriptions)
+- [x] Audit and update email/notification templates (trial, upgrade, welcome messages)
+- [x] Audit and update error messages and upgrade prompts across the platform
+- [x] Audit and update any remaining "Professional" references in client-facing copy

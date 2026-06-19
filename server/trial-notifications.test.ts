@@ -81,7 +81,7 @@ describe("Trial Milestone Notification Templates", () => {
       expect(template.subject).toContain("Last Day");
       expect(template.subject).toContain("Expires Tomorrow");
       expect(template.body).toContain("expires tomorrow");
-      expect(template.body).toContain("downgraded to the Free tier");
+      expect(template.body).toContain("downgraded to the Starter tier");
       expect(template.body).toContain("Only 3 services visible");
       expect(template.body).toContain("1 photo per service");
       expect(template.body).toContain("$12/mo");
@@ -94,7 +94,7 @@ describe("Trial Milestone Notification Templates", () => {
       const template = getTemplate("trial_expired", mockData);
       expect(template.subject).toBe("Your Pro Trial Has Ended");
       expect(template.body).toContain("trial has ended");
-      expect(template.body).toContain("Free tier");
+      expect(template.body).toContain("Starter tier");
       expect(template.body).toContain("$12/mo");
       expect(template.body).toContain("$10.08/month");
       expect(template.body).toContain("Unsubscribe");

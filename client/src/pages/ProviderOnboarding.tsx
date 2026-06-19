@@ -695,7 +695,7 @@ export default function ProviderOnboarding() {
     onSuccess: () => {
       setSelectedTier("free");
       utils.subscription.mySubscription.invalidate();
-      toast.success("Free plan selected! You can upgrade anytime.");
+      toast.success("Starter plan selected! You can upgrade anytime.");
       setCurrentStep(5);
     },
     onError: (err) => toast.error(err.message),
@@ -1365,11 +1365,11 @@ export default function ProviderOnboarding() {
                     <span className="text-muted-foreground text-sm">/month</span>
                   </div>
                   <ul className="space-y-1.5 text-sm">
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> 1 service category</li>
                     <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Up to 3 services</li>
-                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> 2 photos per service</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> 1 photo per service</li>
                     <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Basic public profile</li>
                     <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Booking management</li>
-                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Customer messaging</li>
                   </ul>
                   {(selectedTier === "free" || (currentSubscription?.currentTier === "free" && !selectedTier)) && (
                     <div className="absolute top-3 right-3">
@@ -1414,9 +1414,9 @@ export default function ProviderOnboarding() {
                     )}
                   </div>
                   <ul className="space-y-1.5 text-sm">
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Up to 5 categories</li>
                     <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Up to 10 services</li>
                     <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> 3 photos per service</li>
-                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Custom profile URL</li>
                     <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Priority search placement</li>
                     <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Business analytics</li>
                   </ul>
@@ -1469,11 +1469,11 @@ export default function ProviderOnboarding() {
                     )}
                   </div>
                   <ul className="space-y-1.5 text-sm">
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Unlimited categories</li>
                     <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Unlimited services</li>
                     <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> 5 photos per service</li>
                     <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Featured listing badge</li>
                     <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Full analytics suite</li>
-                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Priority support</li>
                   </ul>
                   {billingInterval === "year" && (
                     <div className="mt-3 text-center">
@@ -1500,8 +1500,8 @@ export default function ProviderOnboarding() {
                     <div className="flex-1">
                       <h4 className="font-semibold text-sm">Try Pro free for 14 days</h4>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        Get 10 service listings, priority search placement, business analytics, and a custom profile URL.
-                        No credit card required — automatically reverts to Free if you don't subscribe.
+                        Get up to 5 categories, 10 service listings, priority search placement, business analytics, and a custom profile URL.
+                        No credit card required — automatically reverts to Starter if you don't subscribe.
                       </p>
                     </div>
                     <Button

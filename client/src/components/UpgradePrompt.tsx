@@ -36,7 +36,7 @@ const REASON_MESSAGES: Record<UpgradeReason, { title: string; description: strin
   },
   photo_limit: {
     title: "Photo Limit Reached",
-    description: "Free plan allows 2 photos per service. Upgrade to add up to 5 photos and showcase your work better.",
+    description: "Starter plan allows 1 photo per service. Upgrade to Pro for 3 photos or Business for 5 photos per service to better showcase your work.",
     minTier: "basic",
   },
   custom_slug: {
@@ -85,6 +85,7 @@ const TIER_BENEFITS = {
     color: "text-blue-600 dark:text-blue-400",
     bgColor: "bg-blue-100 dark:bg-blue-900/30",
     features: [
+      "Up to 5 service categories",
       "Up to 10 active services",
       "3 photos per service",
       "Custom profile URL",
@@ -100,6 +101,7 @@ const TIER_BENEFITS = {
     color: "text-amber-600 dark:text-amber-400",
     bgColor: "bg-amber-100 dark:bg-amber-900/30",
     features: [
+      "Unlimited categories",
       "Unlimited active services",
       "5 photos per service",
       "Featured listing badge",

@@ -585,7 +585,7 @@ export default function SubscriptionManagement() {
             <div>
               <h3 className="font-semibold mb-2">Can I cancel anytime?</h3>
               <p className="text-sm text-muted-foreground">
-                Yes, you can cancel your subscription at any time. Your plan will remain active until the end of your current billing period, then you'll be moved to the Free tier.
+                Yes, you can cancel your subscription at any time. Your plan will remain active until the end of your current billing period, then you'll be moved to the Starter tier.
               </p>
             </div>
             <div>

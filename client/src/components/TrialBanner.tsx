@@ -76,8 +76,8 @@ export function TrialCountdownBanner({
 
           <p className="text-xs text-muted-foreground mt-1">
             {isUrgent
-              ? "Don't lose access to priority search, 10 services, analytics, and custom URL. Subscribe now to keep your Pro features."
-              : "You have access to 10 services, priority search placement, analytics, and custom profile URL during your trial."}
+              ? "Don't lose access to 5 categories, 10 services, priority search, analytics, and custom URL. Subscribe now to keep your Pro features."
+              : "You have access to 5 categories, 10 services, priority search placement, analytics, and custom profile URL during your trial."}
           </p>
 
           <div className="flex items-center gap-2 mt-2">
@@ -126,8 +126,8 @@ export function TrialExpiredBanner() {
         <div className="flex-1 min-w-0">
           <span className="font-semibold text-sm">Your Pro trial has ended</span>
           <p className="text-xs text-muted-foreground mt-1">
-            You're back on the Starter plan. Upgrade to Pro to restore priority search placement,
-            10 service listings, business analytics, and your custom profile URL.
+            You're back on the Starter plan (1 category, 3 services). Upgrade to Pro to restore 5 categories,
+            10 service listings, priority search placement, analytics, and your custom profile URL.
           </p>
 
           <div className="flex items-center gap-2 mt-2">

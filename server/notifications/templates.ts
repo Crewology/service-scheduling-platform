@@ -221,7 +221,7 @@ Your OlogyCrew subscription has been cancelled.
 
 **Business:** ${data.businessName || 'Your Account'}
 
-Your account has been downgraded to the Free tier. You can resubscribe at any time from your provider dashboard.
+Your account has been downgraded to the Starter tier. You can resubscribe at any time from your provider dashboard.
 
 Best regards,
 OlogyCrew Team
@@ -578,6 +578,7 @@ Hello ${data.providerName},
 Congratulations! Your **14-day Pro trial** has started.
 
 Here's what you now have access to:
+- **Up to 5 service categories** to expand your offerings
 - **Up to 10 services** listed on the platform
 - **3 photos per service** to showcase your work
 - **Priority search placement** to attract more customers
@@ -625,9 +626,10 @@ Hello ${data.providerName},
 Your Pro trial ends in just **3 days** (${data.trialEndDate}).
 
 When your trial expires, you'll lose access to:
+- Multiple service categories (reverts to 1)
+- Services beyond the Starter limit (3)
+- Extra photo uploads (reverts to 1 per service)
 - Priority search placement
-- Services beyond the free limit (3)
-- Extra photo uploads
 - Custom profile slug
 
 **Upgrade now to keep everything you've built.**
@@ -649,7 +651,8 @@ Hello ${data.providerName},
 
 **Your Pro trial expires tomorrow.**
 
-After expiration, your account will be downgraded to the Free tier:
+After expiration, your account will be downgraded to the Starter tier:
+- 1 service category only
 - Only 3 services visible (extras will be hidden)
 - 1 photo per service
 - Standard search placement
@@ -670,9 +673,9 @@ OlogyCrew Team
       body: `
 Hello ${data.providerName},
 
-Your 14-day Pro trial has ended, and your account has been moved to the **Free tier**.
+Your 14-day Pro trial has ended, and your account has been moved to the **Starter tier**.
 
-You can still use OlogyCrew with the Free plan, but you'll have limited features.
+You can still use OlogyCrew with the Starter plan (1 category, 3 services), but you'll have limited features.
 
 Ready to upgrade? You can reactivate Pro anytime:
 
