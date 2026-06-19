@@ -6,12 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { trpc } from "@/lib/trpc";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
 import { Calendar } from "@/components/ui/calendar";
-import { Clock, Trash2, Check } from "lucide-react";
+import { Clock, Trash2, Check, CalendarRange, CalendarDays } from "lucide-react";
+import type { DateRange } from "react-day-picker";
 
 const DAYS_OF_WEEK = [
   { value: "sunday", dayNum: 0, label: "Sunday", short: "Sun" },
@@ -30,10 +31,38 @@ function formatTime12h(time24: string): string {
   return `${h}:${minutes.toString().padStart(2, "0")} ${ampm}`;
 }
 
+function formatDateStr(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+type SelectionMode = "single" | "range";
+
 export default function ManageAvailability() {
   const { user, isAuthenticated, loading } = useAuth();
   const [, setLocation] = useLocation();
+  
+  // Selection mode toggle
+  const [selectionMode, setSelectionMode] = useState<SelectionMode>("single");
+  
+  // Single date selection
   const [selectedDate, setSelectedDate] = useState<Date>();
+  
+  // Range date selection
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  
+  // Override form state
+  const [overrideForm, setOverrideForm] = useState({
+    isAvailable: false,
+    startTime: "09:00",
+    endTime: "17:00",
+    reason: "",
+  });
+
+  // Modal state for editing existing overrides
+  const [editingRange, setEditingRange] = useState<{ startDate: string; endDate: string } | null>(null);
   
   const { data: provider } = trpc.provider.getMyProfile.useQuery(undefined, {
     enabled: isAuthenticated,
@@ -57,7 +86,7 @@ export default function ManageAvailability() {
     },
   });
   
-  const setOverride = trpc.availability.createOverride.useMutation({
+  const setOverrideMutation = trpc.availability.createOverride.useMutation({
     onSuccess: () => {
       toast.success("Override added!");
       refetchOverrides();
@@ -65,6 +94,49 @@ export default function ManageAvailability() {
     },
     onError: (error: any) => {
       toast.error(error.message || "Failed to add override");
+    },
+  });
+
+  const createRangeOverrideMutation = trpc.availability.createRangeOverride.useMutation({
+    onSuccess: (data) => {
+      toast.success(`Availability set for ${data.datesCreated} days!`);
+      refetchOverrides();
+      setDateRange(undefined);
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to set range availability");
+    },
+  });
+
+  const deleteOverrideMutation = trpc.availability.deleteOverride.useMutation({
+    onSuccess: () => {
+      toast.success("Override removed!");
+      refetchOverrides();
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to remove override");
+    },
+  });
+
+  const deleteRangeOverridesMutation = trpc.availability.deleteRangeOverrides.useMutation({
+    onSuccess: (data) => {
+      toast.success(`Removed ${data.datesDeleted} overrides!`);
+      refetchOverrides();
+      setEditingRange(null);
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to remove range overrides");
+    },
+  });
+
+  const updateRangeOverridesMutation = trpc.availability.updateRangeOverrides.useMutation({
+    onSuccess: (data) => {
+      toast.success(`Updated ${data.datesUpdated} days!`);
+      refetchOverrides();
+      setEditingRange(null);
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to update range");
     },
   });
 
@@ -102,36 +174,71 @@ export default function ManageAvailability() {
     }
   }, [schedules]);
 
-  const deleteOverride = trpc.availability.deleteOverride.useMutation({
-    onSuccess: () => {
-      toast.success("Override removed!");
-      refetchOverrides();
-    },
-    onError: (error: any) => {
-      toast.error(error.message || "Failed to remove override");
-    },
-  });
+  // Build override date map for calendar highlighting
+  const overrideDateMap = useMemo(() => {
+    const map = new Map<string, { isAvailable: boolean; reason?: string; id: number }>();
+    if (overrides) {
+      for (const o of overrides as any[]) {
+        map.set(o.overrideDate, { isAvailable: o.isAvailable, reason: o.reason, id: o.id });
+      }
+    }
+    return map;
+  }, [overrides]);
 
-  const [overrideForm, setOverrideForm] = useState({
-    isAvailable: false,
-    startTime: "09:00",
-    endTime: "17:00",
-    reason: "",
-  });
+  // Detect consecutive date ranges in overrides for grouping
+  const overrideGroups = useMemo(() => {
+    if (!overrides || overrides.length === 0) return [];
+    
+    const sorted = [...(overrides as any[])].sort((a, b) => a.overrideDate.localeCompare(b.overrideDate));
+    const groups: Array<{ startDate: string; endDate: string; isAvailable: boolean; reason?: string; overrides: any[] }> = [];
+    
+    let currentGroup: any = null;
+    
+    for (const override of sorted) {
+      if (currentGroup && 
+          override.isAvailable === currentGroup.isAvailable &&
+          override.reason === currentGroup.reason) {
+        // Check if this date is consecutive to the current group
+        const prevDate = new Date(currentGroup.endDate + "T12:00:00");
+        const currDate = new Date(override.overrideDate + "T12:00:00");
+        const diffDays = Math.round((currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 1) {
+          currentGroup.endDate = override.overrideDate;
+          currentGroup.overrides.push(override);
+          continue;
+        }
+      }
+      
+      // Start a new group
+      if (currentGroup) groups.push(currentGroup);
+      currentGroup = {
+        startDate: override.overrideDate,
+        endDate: override.overrideDate,
+        isAvailable: override.isAvailable,
+        reason: override.reason,
+        overrides: [override],
+      };
+    }
+    if (currentGroup) groups.push(currentGroup);
+    
+    return groups;
+  }, [overrides]);
 
   const handleQuickBlock = (reason: string, days: number) => {
     if (!provider) return;
     const today = new Date();
-    for (let i = 0; i < days; i++) {
-      const d = new Date(today);
-      d.setDate(d.getDate() + i);
-      const dateStr = d.toISOString().split('T')[0];
-      setOverride.mutate({
-        overrideDate: dateStr,
-        isAvailable: false,
-        reason,
-      });
-    }
+    const startDate = formatDateStr(today);
+    const endDate = new Date(today);
+    endDate.setDate(endDate.getDate() + days - 1);
+    const endDateStr = formatDateStr(endDate);
+    
+    createRangeOverrideMutation.mutate({
+      startDate,
+      endDate: endDateStr,
+      isAvailable: false,
+      reason,
+    });
   };
 
   const handleSaveWeeklySchedule = () => {
@@ -155,19 +262,56 @@ export default function ManageAvailability() {
   };
 
   const handleAddOverride = () => {
-    if (!provider || !selectedDate) {
-      toast.error("Please select a date");
-      return;
-    }
+    if (!provider) return;
 
-    const dateStr = selectedDate.toISOString().split('T')[0];
-    
-    setOverride.mutate({
-      overrideDate: dateStr,
+    if (selectionMode === "single") {
+      if (!selectedDate) {
+        toast.error("Please select a date");
+        return;
+      }
+      const dateStr = formatDateStr(selectedDate);
+      setOverrideMutation.mutate({
+        overrideDate: dateStr,
+        isAvailable: overrideForm.isAvailable,
+        startTime: overrideForm.isAvailable ? overrideForm.startTime : undefined,
+        endTime: overrideForm.isAvailable ? overrideForm.endTime : undefined,
+        reason: overrideForm.reason || undefined,
+      });
+    } else {
+      // Range mode
+      if (!dateRange?.from || !dateRange?.to) {
+        toast.error("Please select both a start and end date");
+        return;
+      }
+      const startDate = formatDateStr(dateRange.from);
+      const endDate = formatDateStr(dateRange.to);
+      
+      createRangeOverrideMutation.mutate({
+        startDate,
+        endDate,
+        isAvailable: overrideForm.isAvailable,
+        startTime: overrideForm.isAvailable ? overrideForm.startTime : undefined,
+        endTime: overrideForm.isAvailable ? overrideForm.endTime : undefined,
+        reason: overrideForm.reason || undefined,
+      });
+    }
+  };
+
+  const handleUpdateRange = (group: typeof overrideGroups[0]) => {
+    updateRangeOverridesMutation.mutate({
+      startDate: group.startDate,
+      endDate: group.endDate,
       isAvailable: overrideForm.isAvailable,
       startTime: overrideForm.isAvailable ? overrideForm.startTime : undefined,
       endTime: overrideForm.isAvailable ? overrideForm.endTime : undefined,
       reason: overrideForm.reason || undefined,
+    });
+  };
+
+  const handleDeleteRange = (group: typeof overrideGroups[0]) => {
+    deleteRangeOverridesMutation.mutate({
+      startDate: group.startDate,
+      endDate: group.endDate,
     });
   };
 
@@ -215,6 +359,17 @@ export default function ManageAvailability() {
       scheduleByDay.get(s.dayOfWeek)!.push({ startTime: s.startTime, endTime: s.endTime });
     }
   }
+
+  // Calendar modifiers for highlighting override dates
+  const blockedDates = (overrides as any[] || [])
+    .filter((o: any) => !o.isAvailable)
+    .map((o: any) => new Date(o.overrideDate + "T12:00:00"));
+  const availableDates = (overrides as any[] || [])
+    .filter((o: any) => o.isAvailable)
+    .map((o: any) => new Date(o.overrideDate + "T12:00:00"));
+
+  // Check if a single selected date has an existing override
+  const selectedDateOverride = selectedDate ? overrideDateMap.get(formatDateStr(selectedDate)) : undefined;
 
   return (
     <div className="min-h-screen bg-background">
@@ -305,7 +460,7 @@ export default function ManageAvailability() {
               </CardContent>
             </Card>
 
-            {/* Current Schedule Display — Clean Weekly Grid */}
+            {/* Current Schedule Display */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -363,21 +518,115 @@ export default function ManageAvailability() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <Label className="mb-2 block">Select Date</Label>
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    className="rounded-md border"
-                  />
+                {/* Selection Mode Toggle */}
+                <div className="flex gap-2 p-1 bg-muted rounded-lg">
+                  <button
+                    onClick={() => {
+                      setSelectionMode("single");
+                      setDateRange(undefined);
+                    }}
+                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      selectionMode === "single"
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <CalendarDays className="h-4 w-4" />
+                    Single Date
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectionMode("range");
+                      setSelectedDate(undefined);
+                    }}
+                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      selectionMode === "range"
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <CalendarRange className="h-4 w-4" />
+                    Date Range
+                  </button>
                 </div>
 
-                {selectedDate && (
+                {/* Calendar */}
+                <div>
+                  <Label className="mb-2 block">
+                    {selectionMode === "single" ? "Select Date" : "Select Date Range (click start, then end)"}
+                  </Label>
+                  {selectionMode === "single" ? (
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={setSelectedDate}
+                      className="rounded-md border"
+                      modifiers={{
+                        blocked: blockedDates,
+                        available: availableDates,
+                      }}
+                      modifiersClassNames={{
+                        blocked: "!bg-red-100 !text-red-700 dark:!bg-red-950 dark:!text-red-400",
+                        available: "!bg-emerald-100 !text-emerald-700 dark:!bg-emerald-950 dark:!text-emerald-400",
+                      }}
+                    />
+                  ) : (
+                    <Calendar
+                      mode="range"
+                      selected={dateRange}
+                      onSelect={setDateRange}
+                      className="rounded-md border"
+                      modifiers={{
+                        blocked: blockedDates,
+                        available: availableDates,
+                      }}
+                      modifiersClassNames={{
+                        blocked: "!bg-red-100 !text-red-700 dark:!bg-red-950 dark:!text-red-400",
+                        available: "!bg-emerald-100 !text-emerald-700 dark:!bg-emerald-950 dark:!text-emerald-400",
+                      }}
+                    />
+                  )}
+                  
+                  {/* Legend */}
+                  <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-3 rounded bg-red-100 dark:bg-red-950 border border-red-300 dark:border-red-800" />
+                      Blocked
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-3 rounded bg-emerald-100 dark:bg-emerald-950 border border-emerald-300 dark:border-emerald-800" />
+                      Available (custom hours)
+                    </div>
+                  </div>
+                </div>
+
+                {/* Override Form - shows when date(s) are selected */}
+                {((selectionMode === "single" && selectedDate) || (selectionMode === "range" && dateRange?.from)) && (
                   <div className="space-y-4 pt-4 border-t">
                     <p className="text-sm font-medium">
-                      Override for {selectedDate.toLocaleDateString()}
+                      {selectionMode === "single" && selectedDate
+                        ? `Override for ${selectedDate.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" })}`
+                        : dateRange?.from && dateRange?.to
+                          ? `Override for ${dateRange.from.toLocaleDateString(undefined, { month: "short", day: "numeric" })} – ${dateRange.to.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`
+                          : `Select end date to complete range`
+                      }
                     </p>
+
+                    {/* Show existing override info for single date */}
+                    {selectionMode === "single" && selectedDateOverride && (
+                      <div className={`p-3 rounded-md text-sm ${
+                        selectedDateOverride.isAvailable
+                          ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                          : "bg-red-50 text-red-800 dark:bg-red-950 dark:text-red-300"
+                      }`}>
+                        <p className="font-medium">
+                          Current: {selectedDateOverride.isAvailable ? "Available (custom hours)" : "Blocked - Unavailable"}
+                        </p>
+                        {selectedDateOverride.reason && (
+                          <p className="text-xs mt-1">Reason: {selectedDateOverride.reason}</p>
+                        )}
+                      </div>
+                    )}
                     
                     <div className="flex items-center gap-2">
                       <input
@@ -390,7 +639,7 @@ export default function ManageAvailability() {
                         className="h-4 w-4"
                       />
                       <Label htmlFor="override-available">
-                        Available on this date
+                        Available on {selectionMode === "single" ? "this date" : "these dates"}
                       </Label>
                     </div>
 
@@ -428,13 +677,38 @@ export default function ManageAvailability() {
                         onChange={(e) =>
                           setOverrideForm({ ...overrideForm, reason: e.target.value })
                         }
-                        placeholder="e.g., Holiday, Vacation"
+                        placeholder="e.g., Holiday, Vacation, Conference"
                       />
                     </div>
 
-                    <Button onClick={handleAddOverride} className="w-full">
-                      Add Override
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={handleAddOverride}
+                        className="flex-1"
+                        disabled={
+                          setOverrideMutation.isPending ||
+                          createRangeOverrideMutation.isPending ||
+                          (selectionMode === "range" && (!dateRange?.from || !dateRange?.to))
+                        }
+                      >
+                        {(setOverrideMutation.isPending || createRangeOverrideMutation.isPending)
+                          ? "Saving..."
+                          : overrideForm.isAvailable ? "Set Available" : "Block Date(s)"
+                        }
+                      </Button>
+                      
+                      {/* Remove button for single date with existing override */}
+                      {selectionMode === "single" && selectedDateOverride && (
+                        <Button
+                          variant="destructive"
+                          onClick={() => deleteOverrideMutation.mutate({ overrideId: selectedDateOverride.id })}
+                          disabled={deleteOverrideMutation.isPending}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Remove
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 )}
               </CardContent>
@@ -454,8 +728,12 @@ export default function ManageAvailability() {
                   <Button variant="outline" size="sm" onClick={() => {
                     const tomorrow = new Date();
                     tomorrow.setDate(tomorrow.getDate() + 1);
-                    const dateStr = tomorrow.toISOString().split('T')[0];
-                    setOverride.mutate({ overrideDate: dateStr, isAvailable: false, reason: "Day Off" });
+                    createRangeOverrideMutation.mutate({
+                      startDate: formatDateStr(tomorrow),
+                      endDate: formatDateStr(tomorrow),
+                      isAvailable: false,
+                      reason: "Day Off",
+                    });
                   }} className="justify-start">
                     Tomorrow Off
                   </Button>
@@ -469,41 +747,171 @@ export default function ManageAvailability() {
               </CardContent>
             </Card>
 
-            {/* Current Overrides */}
-            {overrides && overrides.length > 0 && (
+            {/* Current Overrides - Grouped by Ranges */}
+            {overrideGroups.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Upcoming Overrides ({overrides.length})</CardTitle>
+                  <CardTitle>Upcoming Overrides ({overrides?.length || 0} days)</CardTitle>
+                  <CardDescription>
+                    Consecutive dates with the same type are grouped together
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {overrides.map((override: any) => (
-                      <div key={override.id} className="flex justify-between items-center text-sm border-b pb-2">
-                        <div>
-                          <p className="font-medium">
-                            {new Date(override.overrideDate + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
-                          </p>
-                          {override.isAvailable ? (
-                            <p className="text-muted-foreground">
-                              Custom hours: {formatTime12h(override.startTime)} - {formatTime12h(override.endTime)}
-                            </p>
-                          ) : (
-                            <p className="text-destructive font-medium">Blocked - Unavailable</p>
+                    {overrideGroups.map((group, idx) => {
+                      const isRange = group.startDate !== group.endDate;
+                      const isEditing = editingRange?.startDate === group.startDate && editingRange?.endDate === group.endDate;
+                      
+                      return (
+                        <div key={idx} className="border rounded-lg p-3 space-y-2">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="font-medium text-sm">
+                                {isRange ? (
+                                  <>
+                                    {new Date(group.startDate + "T12:00:00").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
+                                    {" – "}
+                                    {new Date(group.endDate + "T12:00:00").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
+                                    <span className="text-muted-foreground ml-1">({group.overrides.length} days)</span>
+                                  </>
+                                ) : (
+                                  new Date(group.startDate + "T12:00:00").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })
+                                )}
+                              </p>
+                              {group.isAvailable ? (
+                                <p className="text-sm text-emerald-600 dark:text-emerald-400">
+                                  Available (custom hours)
+                                </p>
+                              ) : (
+                                <p className="text-sm text-destructive font-medium">Blocked - Unavailable</p>
+                              )}
+                              {group.reason && (
+                                <p className="text-xs text-muted-foreground">{group.reason}</p>
+                              )}
+                            </div>
+                            
+                            <div className="flex gap-1">
+                              {isRange && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-muted-foreground hover:text-foreground"
+                                  onClick={() => {
+                                    if (isEditing) {
+                                      setEditingRange(null);
+                                    } else {
+                                      setEditingRange({ startDate: group.startDate, endDate: group.endDate });
+                                      setOverrideForm({
+                                        isAvailable: group.isAvailable,
+                                        startTime: "09:00",
+                                        endTime: "17:00",
+                                        reason: group.reason || "",
+                                      });
+                                    }
+                                  }}
+                                >
+                                  {isEditing ? "Cancel" : "Edit"}
+                                </Button>
+                              )}
+                              {isRange ? (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive"
+                                  onClick={() => handleDeleteRange(group)}
+                                  disabled={deleteRangeOverridesMutation.isPending}
+                                >
+                                  Remove All
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive"
+                                  onClick={() => deleteOverrideMutation.mutate({ overrideId: group.overrides[0].id })}
+                                  disabled={deleteOverrideMutation.isPending}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Edit range form */}
+                          {isEditing && (
+                            <div className="pt-2 border-t space-y-3">
+                              <p className="text-xs text-muted-foreground">Change availability type for entire range:</p>
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  id={`edit-range-${idx}`}
+                                  checked={overrideForm.isAvailable}
+                                  onChange={(e) =>
+                                    setOverrideForm({ ...overrideForm, isAvailable: e.target.checked })
+                                  }
+                                  className="h-4 w-4"
+                                />
+                                <Label htmlFor={`edit-range-${idx}`}>Available on these dates</Label>
+                              </div>
+                              {overrideForm.isAvailable && (
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div>
+                                    <Label className="text-xs">Start Time</Label>
+                                    <Input
+                                      type="time"
+                                      value={overrideForm.startTime}
+                                      onChange={(e) => setOverrideForm({ ...overrideForm, startTime: e.target.value })}
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="text-xs">End Time</Label>
+                                    <Input
+                                      type="time"
+                                      value={overrideForm.endTime}
+                                      onChange={(e) => setOverrideForm({ ...overrideForm, endTime: e.target.value })}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                              <Button
+                                size="sm"
+                                onClick={() => handleUpdateRange(group)}
+                                disabled={updateRangeOverridesMutation.isPending}
+                                className="w-full"
+                              >
+                                {updateRangeOverridesMutation.isPending ? "Updating..." : "Update Range"}
+                              </Button>
+                            </div>
                           )}
-                          {override.reason && (
-                            <p className="text-xs text-muted-foreground">{override.reason}</p>
+
+                          {/* Individual dates within a range - expandable */}
+                          {isRange && !isEditing && (
+                            <details className="text-xs">
+                              <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                                View individual dates
+                              </summary>
+                              <div className="mt-2 space-y-1 pl-2 border-l-2 border-muted">
+                                {group.overrides.map((override: any) => (
+                                  <div key={override.id} className="flex justify-between items-center py-1">
+                                    <span>
+                                      {new Date(override.overrideDate + "T12:00:00").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
+                                    </span>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-6 text-destructive hover:text-destructive"
+                                      onClick={() => deleteOverrideMutation.mutate({ overrideId: override.id })}
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            </details>
                           )}
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => deleteOverride.mutate({ overrideId: override.id })}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
