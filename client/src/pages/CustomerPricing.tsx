@@ -106,7 +106,7 @@ const providerPlans = [
       { text: "Full analytics suite", included: true },
       { text: "1% transaction fee", included: true },
       { text: "Priority support", included: true },
-      { text: "Email & SMS notifications", included: true },
+      { text: "Email notifications", included: true },
       { text: "Early access to new features", included: true },
       { text: "Custom profile URL slug", included: true },
     ],

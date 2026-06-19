@@ -70,7 +70,7 @@ const tierConfig = {
       "Booking analytics dashboard",
       "Export booking history",
       "Priority support",
-      "SMS notifications",
+      "Email notifications",
     ],
   },
 };

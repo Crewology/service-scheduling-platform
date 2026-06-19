@@ -343,7 +343,7 @@ const guideSections: GuideSection[] = [
       {
         title: "Notification Settings",
         content:
-          "OlogyCrew sends notifications for booking updates, new messages, quote responses, and more. You receive real-time in-app notifications (shown in the bell icon), plus email and SMS alerts. Customize which notifications you receive from the Notification Settings page.",
+          "OlogyCrew sends notifications for booking updates, new messages, quote responses, and more. You receive real-time in-app notifications (shown in the bell icon), plus email alerts. Customize which notifications you receive from the Notification Settings page.",
         link: "/notification-settings",
         linkText: "Notification Settings",
       },
@@ -499,7 +499,7 @@ const faqItems: FAQItem[] = [
   {
     question: "How do notifications work?",
     answer:
-      "You'll receive real-time in-app notifications (shown in the bell icon in the navigation bar) for booking updates, new messages, and quote responses. You also receive email notifications. Providers on the Business plan also get SMS alerts. You can customize your notification preferences in Settings.",
+      "You'll receive real-time in-app notifications (shown in the bell icon in the navigation bar) for booking updates, new messages, and quote responses. You also receive email notifications. You can customize your notification preferences in Settings.",
     category: "General",
   },
   {

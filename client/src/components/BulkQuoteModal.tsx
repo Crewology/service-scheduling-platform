@@ -350,7 +350,7 @@ export default function BulkQuoteModal({ open, onOpenChange, providers, folderNa
             )}
 
             <p className="text-sm text-muted-foreground text-center">
-              Track all responses on your <strong>My Quotes</strong> page. Providers will be notified via email and SMS.
+              Track all responses on your <strong>My Quotes</strong> page. Providers will be notified via email.
             </p>
 
             <DialogFooter className="flex gap-2">

@@ -179,10 +179,13 @@ export default function NotificationSettings() {
                       </p>
                     </div>
                   </div>
-                  <Switch
-                    checked={prefs.smsEnabled}
-                    onCheckedChange={() => toggle("smsEnabled")}
-                  />
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-0.5 rounded-full">Coming Soon</span>
+                    <Switch
+                      checked={false}
+                      disabled
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -266,15 +269,16 @@ export default function NotificationSettings() {
               </CardContent>
             </Card>
 
-            {/* SMS Preferences */}
-            <Card className={!prefs.smsEnabled ? "opacity-50 pointer-events-none" : ""}>
+            {/* SMS Preferences - Coming Soon */}
+            <Card className="opacity-60 pointer-events-none">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <MessageSquare className="h-5 w-5" />
                   SMS Preferences
+                  <span className="text-xs font-medium text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-0.5 rounded-full">Coming Soon</span>
                 </CardTitle>
                 <CardDescription>
-                  Choose which types of text messages you want to receive
+                  SMS notifications will be available in a future update. We'll notify you when this feature launches.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -285,10 +289,7 @@ export default function NotificationSettings() {
                       Confirmations and status changes via text
                     </p>
                   </div>
-                  <Switch
-                    checked={prefs.bookingSms}
-                    onCheckedChange={() => toggle("bookingSms")}
-                  />
+                  <Switch checked={false} disabled />
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
@@ -298,10 +299,7 @@ export default function NotificationSettings() {
                       Text reminders before your appointments
                     </p>
                   </div>
-                  <Switch
-                    checked={prefs.reminderSms}
-                    onCheckedChange={() => toggle("reminderSms")}
-                  />
+                  <Switch checked={false} disabled />
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
@@ -311,10 +309,7 @@ export default function NotificationSettings() {
                       Text alerts for new messages
                     </p>
                   </div>
-                  <Switch
-                    checked={prefs.messageSms}
-                    onCheckedChange={() => toggle("messageSms")}
-                  />
+                  <Switch checked={false} disabled />
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
@@ -324,10 +319,7 @@ export default function NotificationSettings() {
                       Text alerts for payment activity
                     </p>
                   </div>
-                  <Switch
-                    checked={prefs.paymentSms}
-                    onCheckedChange={() => toggle("paymentSms")}
-                  />
+                  <Switch checked={false} disabled />
                 </div>
               </CardContent>
             </Card>
