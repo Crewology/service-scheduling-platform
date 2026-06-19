@@ -141,6 +141,70 @@ async function startServer() {
   const { handleCalendarFeed, handleBookingIcsDownload } = await import("../calendarFeed");
   app.get("/api/calendar/:token/feed.ics", handleCalendarFeed);
   app.get("/api/calendar/booking/:bookingId/download.ics", handleBookingIcsDownload);
+  // Sitemap.xml - proper XML format for search engines
+  app.get("/sitemap.xml", (req, res) => {
+    const forwardedHost = req.get("x-forwarded-host");
+    const host = forwardedHost || req.get("host") || "";
+    // Use canonical domain if request comes through internal Cloud Run URL
+    const baseUrl = host.includes("ologycrew.com")
+      ? `https://${host}`
+      : "https://www.ologycrew.com";
+
+    const pages = [
+      { loc: "/", priority: "1.0", changefreq: "daily" },
+      { loc: "/browse", priority: "0.9", changefreq: "daily" },
+      { loc: "/search", priority: "0.8", changefreq: "daily" },
+      { loc: "/pricing", priority: "0.7", changefreq: "weekly" },
+      { loc: "/help", priority: "0.6", changefreq: "weekly" },
+      { loc: "/referral-program", priority: "0.6", changefreq: "monthly" },
+      { loc: "/privacy", priority: "0.3", changefreq: "monthly" },
+      { loc: "/terms", priority: "0.3", changefreq: "monthly" },
+    ];
+
+    const today = new Date().toISOString().split("T")[0];
+    const urls = pages
+      .map(
+        (p) => `  <url>
+    <loc>${baseUrl}${p.loc}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>${p.changefreq}</changefreq>
+    <priority>${p.priority}</priority>
+  </url>`
+      )
+      .join("\n");
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls}
+</urlset>`;
+
+    res.set("Content-Type", "application/xml");
+    res.send(xml);
+  });
+
+  // Robots.txt
+  app.get("/robots.txt", (req, res) => {
+    const forwardedHost = req.get("x-forwarded-host");
+    const host = forwardedHost || req.get("host") || "";
+    const baseUrl = host.includes("ologycrew.com")
+      ? `https://${host}`
+      : "https://www.ologycrew.com";
+
+    const robotsTxt = `User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /provider-dashboard
+Disallow: /messages
+Disallow: /bookings
+Disallow: /account
+Disallow: /api/
+
+Sitemap: ${baseUrl}/sitemap.xml`;
+
+    res.set("Content-Type", "text/plain");
+    res.send(robotsTxt);
+  });
+
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
   // tRPC API
