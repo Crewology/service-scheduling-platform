@@ -118,7 +118,7 @@ const providerPlans = [
 const customerPlans = [
   {
     tier: "free" as const,
-    name: "Free",
+    name: "Individual",
     monthlyPrice: 0,
     yearlyPrice: 0,
     icon: Heart,
@@ -145,7 +145,7 @@ const customerPlans = [
   },
   {
     tier: "pro" as const,
-    name: "Pro",
+    name: "Coordinator",
     monthlyPrice: 12,
     yearlyPrice: 10.08,
     icon: Zap,
@@ -160,7 +160,7 @@ const customerPlans = [
       { text: "Organize into folders", icon: FolderHeart },
     ],
     features: [
-      { text: "Everything in Free", included: true },
+      { text: "Everything in Individual", included: true },
       { text: "Priority booking requests", included: true },
       { text: "Organize providers into folders", included: true },
       { text: "Up to 5 bulk quote requests", included: true },
@@ -172,7 +172,7 @@ const customerPlans = [
   },
   {
     tier: "business" as const,
-    name: "Business",
+    name: "Manager",
     monthlyPrice: 20,
     yearlyPrice: 16.00,
     icon: Crown,
@@ -186,7 +186,7 @@ const customerPlans = [
       { text: "Booking analytics", icon: BarChart3 },
     ],
     features: [
-      { text: "Everything in Pro", included: true },
+      { text: "Everything in Coordinator", included: true },
       { text: "Unlimited saved providers", included: true },
       { text: "Unlimited bulk quote requests", included: true },
       { text: "Booking analytics & spend reports", included: true },
@@ -716,12 +716,12 @@ export default function CustomerPricing() {
                     a: "Yes! Browsing providers, booking services, messaging, and paying securely is completely free. You only pay for the services you book — no platform fees for customers.",
                   },
                   {
-                    q: "Who needs the Pro or Business plan?",
+                    q: "Who needs the Coordinator or Manager plan?",
                     a: "If you book multiple providers regularly, manage events, or coordinate large crews (like a logistics manager with 100+ techs), the paid plans give you organization tools, priority access, and analytics.",
                   },
                   {
                     q: "What are saved providers?",
-                    a: "Save your favorite providers for quick, easy rebooking. Free users can save up to 5, Pro gets 50, and Business gets unlimited.",
+                    a: "Save your favorite providers for quick, easy rebooking. Individual users can save up to 5, Coordinator gets 50, and Manager gets unlimited.",
                   },
                   {
                     q: "Can I cancel anytime?",
