@@ -669,9 +669,9 @@ export default function CustomerPricing() {
         )}
 
         {/* ─── FAQ ────────────────────────────────────────────────────────── */}
-        <div className="max-w-2xl mx-auto">
+        <div>
           <h2 className="text-2xl font-bold text-center mb-8">Frequently Asked Questions</h2>
-          <div className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
             {audience === "provider" ? (
               <>
                 {[
@@ -694,6 +694,10 @@ export default function CustomerPricing() {
                   {
                     q: "Is there a free trial for Pro?",
                     a: "Yes — new providers get a 14-day free trial of the Pro plan to experience priority placement, analytics, and multi-category listings before committing.",
+                  },
+                  {
+                    q: "How do customers find my services?",
+                    a: "Customers discover you through category browsing, search, and location-based results. Pro and Business plans get priority search placement to help you stand out.",
                   },
                 ].map((faq, i) => (
                   <Card key={i}>
@@ -726,6 +730,10 @@ export default function CustomerPricing() {
                   {
                     q: "What payment methods do you accept?",
                     a: "We accept all major credit and debit cards through Stripe's secure payment processing.",
+                  },
+                  {
+                    q: "How is my payment information protected?",
+                    a: "All payments are processed through Stripe, a PCI-compliant payment processor. OlogyCrew never stores your card details — they're encrypted and handled entirely by Stripe.",
                   },
                 ].map((faq, i) => (
                   <Card key={i}>
