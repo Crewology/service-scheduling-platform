@@ -479,55 +479,38 @@ export default function Home() {
       </section>
 
       {/* CTA Section for Providers */}
-      <section className="py-12 sm:py-16 md:py-20 gradient-primary text-white">
-        <div className="container">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-6">
-              Grow Your Business with OlogyCrew
-            </h2>
-            <p className="text-base sm:text-lg md:text-xl mb-8 opacity-90">
-              Join thousands of service providers who trust OlogyCrew to manage bookings, payments, and customer relationships.
-            </p>
-            
-            <div className="grid md:grid-cols-3 gap-6 mb-10">
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-6 w-6 flex-shrink-0 mt-1" />
-                <div className="text-left">
-                  <h4 className="font-semibold mb-1">Flexible Scheduling</h4>
-                  <p className="text-sm opacity-80">Set your own hours and availability</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-6 w-6 flex-shrink-0 mt-1" />
-                <div className="text-left">
-                  <h4 className="font-semibold mb-1">Secure Payments</h4>
-                  <p className="text-sm opacity-80">Get paid automatically after each job</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-6 w-6 flex-shrink-0 mt-1" />
-                <div className="text-left">
-                  <h4 className="font-semibold mb-1">Build Your Reputation</h4>
-                  <p className="text-sm opacity-80">Collect reviews and grow your business</p>
-                </div>
-              </div>
+      <section className="py-8 sm:py-10 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/90 to-blue-600"></div>
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.4\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }}></div>
+        <div className="container relative">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="text-white">
+              <h2 className="text-2xl sm:text-3xl font-bold mb-2">
+                Ready to Grow Your Business?
+              </h2>
+              <p className="text-sm sm:text-base opacity-90 flex flex-wrap items-center gap-x-4 gap-y-1">
+                <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4" /> Flexible scheduling</span>
+                <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4" /> Secure payments</span>
+                <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4" /> Build your reputation</span>
+              </p>
             </div>
-            
-            {isAuthenticated && myProviderProfile ? (
-              <Link href="/provider/dashboard">
-                <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90">
-                  Go to Dashboard
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-            ) : (
-              <Link href="/provider/onboarding">
-                <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90">
-                  Become a Provider
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-            )}
+            <div className="flex-shrink-0">
+              {isAuthenticated && myProviderProfile ? (
+                <Link href="/provider/dashboard">
+                  <Button size="lg" className="bg-white text-primary hover:bg-white/90 font-semibold shadow-lg shadow-black/20 px-8">
+                    Go to Dashboard
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+              ) : (
+                <Link href="/pricing">
+                  <Button size="lg" className="bg-white text-primary hover:bg-white/90 font-semibold shadow-lg shadow-black/20 px-8 animate-pulse hover:animate-none">
+                    Become a Provider
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </section>
