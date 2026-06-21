@@ -194,23 +194,23 @@ describe("Help Center Content", () => {
 
   describe("Customer Subscription Tiers", () => {
     const tiers = {
-      free: { name: "Free", price: 0, savedProviderLimit: 10 },
-      pro: { name: "Pro", price: 9.99, savedProviderLimit: 50 },
-      business: { name: "Business", price: 24.99, savedProviderLimit: -1 },
+      free: { name: "Individual", price: 0, savedProviderLimit: 5 },
+      pro: { name: "Coordinator", price: 12, savedProviderLimit: 50 },
+      business: { name: "Manager", price: 20, savedProviderLimit: -1 },
     };
 
-    it("should have correct Free tier info", () => {
+    it("should have correct Individual tier info", () => {
       expect(tiers.free.price).toBe(0);
-      expect(tiers.free.savedProviderLimit).toBe(10);
+      expect(tiers.free.savedProviderLimit).toBe(5);
     });
 
-    it("should have correct Pro tier info", () => {
-      expect(tiers.pro.price).toBe(9.99);
+    it("should have correct Coordinator tier info", () => {
+      expect(tiers.pro.price).toBe(12);
       expect(tiers.pro.savedProviderLimit).toBe(50);
     });
 
-    it("should have correct Business tier info (unlimited saves)", () => {
-      expect(tiers.business.price).toBe(24.99);
+    it("should have correct Manager tier info (unlimited saves)", () => {
+      expect(tiers.business.price).toBe(20);
       expect(tiers.business.savedProviderLimit).toBe(-1); // unlimited
     });
   });

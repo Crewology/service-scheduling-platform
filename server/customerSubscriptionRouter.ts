@@ -167,7 +167,7 @@ export const customerSubscriptionRouter = router({
     if (!tierConfig.perks.bookingAnalytics) {
       throw new TRPCError({
         code: "FORBIDDEN",
-        message: "Booking analytics is available for Business subscribers. Upgrade to access spending insights.",
+        message: "Booking analytics is available for Manager subscribers. Upgrade to access spending insights.",
       });
     }
 
@@ -195,7 +195,7 @@ export const customerSubscriptionRouter = router({
       if (!tierConfig.perks.bookingAnalytics) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Booking export is available for Business subscribers.",
+          message: "Booking export is available for Manager subscribers.",
         });
       }
 
@@ -283,14 +283,14 @@ export const customerSubscriptionRouter = router({
             channel: "email",
             recipient: { userId: ctx.user.id, email: ctx.user.email, name: ctx.user.name || undefined },
             data: {
-              tier: "Free",
+              tier: "Individual",
               previousTier: CUSTOMER_TIERS[currentTier].name,
               customerName: ctx.user.name || undefined,
             },
           });
         }
 
-        return { success: true, newTier: "free" as const, message: "Downgraded to Free. Prorated credit issued." };
+        return { success: true, newTier: "free" as const, message: "Downgraded to Individual. Prorated credit issued." };
       }
 
       // If downgrading from business to pro, switch the subscription price immediately
@@ -301,7 +301,7 @@ export const customerSubscriptionRouter = router({
             tier: "pro",
             status: sub?.status || "active",
           });
-          return { success: true, newTier: "pro" as const, message: "Downgraded to Pro." };
+          return { success: true, newTier: "pro" as const, message: "Downgraded to Coordinator." };
         }
 
         try {
@@ -343,7 +343,7 @@ export const customerSubscriptionRouter = router({
             });
           }
 
-          return { success: true, newTier: "pro" as const, message: "Downgraded to Pro. Prorated credit applied." };
+          return { success: true, newTier: "pro" as const, message: "Downgraded to Coordinator. Prorated credit applied." };
         } catch (err: any) {
           console.error("[Customer Downgrade] Failed to update Stripe subscription:", err.message);
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to downgrade subscription" });

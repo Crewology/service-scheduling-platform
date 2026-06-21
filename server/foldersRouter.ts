@@ -26,7 +26,7 @@ export const foldersRouter = router({
       if (tier === "free") {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Folders are available for Pro and Business subscribers. Upgrade to organize your saved providers.",
+          message: "Folders are available for Coordinator and Manager subscribers. Upgrade to organize your saved providers.",
         });
       }
       
@@ -36,7 +36,7 @@ export const foldersRouter = router({
       if (existing.length >= maxFolders) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: `You can create up to ${maxFolders} folders on the ${tier} plan.`,
+          message: `You can create up to ${maxFolders} folders on the ${tier === "pro" ? "Coordinator" : "Manager"} plan.`,
         });
       }
       

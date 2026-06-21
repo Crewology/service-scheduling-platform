@@ -120,14 +120,14 @@ const guideSections: GuideSection[] = [
       {
         title: "Requesting Quotes",
         content:
-          "Not sure about pricing? Send a quote request to any provider describing what you need, your preferred dates, and budget. Providers will respond with a custom quote. You can compare quotes from multiple providers before deciding. Business-tier customers can send bulk quote requests to multiple providers at once from the Saved Providers page.",
+          "Not sure about pricing? Send a quote request to any provider describing what you need, your preferred dates, and budget. Providers will respond with a custom quote. You can compare quotes from multiple providers before deciding. Manager-tier customers can send bulk quote requests to multiple providers at once from the Saved Providers page.",
         link: "/my-quotes",
         linkText: "View My Quotes",
       },
       {
         title: "Saving Favorite Providers",
         content:
-          "Found a provider you love? Click the heart icon on their profile or service to save them. Organize saved providers into folders for easy access. Free accounts can save up to 10 providers, Pro up to 50, and Business subscribers get unlimited saves.",
+          "Found a provider you love? Click the heart icon on their profile or service to save them. Organize saved providers into folders for easy access. Individual accounts can save up to 5 providers, Coordinator up to 50, and Manager subscribers get unlimited saves.",
         link: "/saved-providers",
         linkText: "View Saved Providers",
       },
@@ -168,7 +168,7 @@ const guideSections: GuideSection[] = [
       {
         title: "Booking Analytics",
         content:
-          "Business-tier customers have access to a detailed analytics dashboard showing spending trends, booking history, category breakdowns, and top providers. You can also export your booking history as CSV, JSON, or a branded PDF report with charts.",
+          "Manager-tier customers have access to a detailed analytics dashboard showing spending trends, booking history, category breakdowns, and top providers. You can also export your booking history as CSV, JSON, or a branded PDF report with charts.",
         link: "/analytics",
         linkText: "View Analytics",
       },
@@ -311,7 +311,7 @@ const guideSections: GuideSection[] = [
       {
         title: "Customer Subscription Plans",
         content:
-          "Booking services on OlogyCrew is always free. Customers who manage multiple providers or large crews can optionally upgrade for enhanced organization and priority features:\n\n• Free — Save up to 5 providers, book any service, message providers, leave reviews, request quotes\n\n• Pro ($12/mo or $10.08/mo billed annually) — Save up to 50 providers, priority booking requests, organize providers into folders, up to 5 bulk quote requests\n\n• Business ($20/mo or $16.00/mo billed annually) — Unlimited saved providers, unlimited bulk quote requests, booking analytics & spend reports, dedicated support\n\nThe Business plan is ideal for logistics managers, agencies, and production companies who coordinate large crews or book many providers regularly.",
+          "Booking services on OlogyCrew is always free. Customers who manage multiple providers or large crews can optionally upgrade for enhanced organization and priority features:\n\n• Individual (Free) — Save up to 5 providers, book any service, message providers, leave reviews, request quotes\n\n• Coordinator ($12/mo or $10.08/mo billed annually) — Save up to 50 providers, priority booking requests, organize providers into folders, up to 5 bulk quote requests\n\n• Manager ($20/mo or $16.00/mo billed annually) — Unlimited saved providers, unlimited bulk quote requests, booking analytics & spend reports, dedicated support\n\nThe Manager plan is ideal for logistics managers, agencies, and production companies who coordinate large crews or book many providers regularly.",
         link: "/pricing",
         linkText: "View Pricing",
       },
@@ -457,7 +457,7 @@ const faqItems: FAQItem[] = [
   {
     question: "How do quote requests work?",
     answer:
-      "Customers can send quote requests describing what they need, their preferred dates, and budget. Providers receive the request and respond with custom pricing. Customers can compare quotes from multiple providers before deciding. Business-tier customers can send bulk quotes to multiple providers at once.",
+      "Customers can send quote requests describing what they need, their preferred dates, and budget. Providers receive the request and respond with custom pricing. Customers can compare quotes from multiple providers before deciding. Manager-tier customers can send bulk quotes to multiple providers at once.",
     category: "Bookings",
   },
   {

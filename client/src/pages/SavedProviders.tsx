@@ -120,9 +120,9 @@ export default function SavedProviders() {
   }, [favorites, activeFolder]);
 
   const tierConfig: Record<string, { label: string; icon: any; color: string; bgColor: string }> = {
-    free: { label: "Free", icon: Heart, color: "text-muted-foreground", bgColor: "bg-muted" },
-    pro: { label: "Pro", icon: Zap, color: "text-blue-600 dark:text-blue-400", bgColor: "bg-blue-100 dark:bg-blue-900/40" },
-    business: { label: "Business", icon: Crown, color: "text-amber-600 dark:text-amber-400", bgColor: "bg-amber-100 dark:bg-amber-900/40" },
+    free: { label: "Individual", icon: Heart, color: "text-muted-foreground", bgColor: "bg-muted" },
+    pro: { label: "Coordinator", icon: Zap, color: "text-blue-600 dark:text-blue-400", bgColor: "bg-blue-100 dark:bg-blue-900/40" },
+    business: { label: "Manager", icon: Crown, color: "text-amber-600 dark:text-amber-400", bgColor: "bg-amber-100 dark:bg-amber-900/40" },
   };
   const currentTierConfig = tierConfig[tier] || tierConfig.free;
 
@@ -221,7 +221,7 @@ export default function SavedProviders() {
               </div>
               {count >= limit && (
                 <p className="text-xs text-muted-foreground mt-2">
-                  Upgrade to <strong>Pro</strong> for 50 providers or <strong>Business</strong> for unlimited.{" "}
+                  Upgrade to <strong>Coordinator</strong> for 50 providers or <strong>Manager</strong> for unlimited.{" "}
                   <button onClick={() => setUpgradeOpen(true)} className="text-primary hover:underline font-medium">View plans</button>
                 </p>
               )}
@@ -237,7 +237,7 @@ export default function SavedProviders() {
                 <Crown className="h-5 w-5 text-amber-500" />
               </div>
               <div>
-                <p className="text-sm font-medium">Business Plan — Unlimited Saved Providers</p>
+                <p className="text-sm font-medium">Manager Plan — Unlimited Saved Providers</p>
                 <p className="text-xs text-muted-foreground">Save as many providers as you need for your projects.</p>
               </div>
             </CardContent>
@@ -418,7 +418,7 @@ export default function SavedProviders() {
                     <CardContent className="p-3 text-center">
                       <FolderPlus className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
                       <p className="text-xs text-muted-foreground mb-2">
-                        Organize providers into folders with Pro or Business
+                        Organize providers into folders with Coordinator or Manager
                       </p>
                       <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setUpgradeOpen(true)}>
                         <Sparkles className="h-3 w-3 mr-1" />
@@ -667,7 +667,7 @@ export default function SavedProviders() {
               <FolderPlus className="h-10 w-10 mx-auto text-primary/50 mb-3" />
               <h3 className="font-semibold mb-1">Organize with Folders</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Group your saved providers by project, category, or location. Available on Pro and Business plans.
+                Group your saved providers by project, category, or location. Available on Coordinator and Manager plans.
               </p>
               <Button variant="outline" onClick={() => setUpgradeOpen(true)}>
                 <Sparkles className="h-4 w-4 mr-2" />

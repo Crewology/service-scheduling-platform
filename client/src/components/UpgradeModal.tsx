@@ -17,7 +17,7 @@ interface UpgradeModalProps {
 const tiers = [
   {
     tier: "pro" as const,
-    name: "Pro",
+    name: "Coordinator",
     price: "$12",
     yearlyPrice: "$10.08",
     savedLimit: "50",
@@ -33,7 +33,7 @@ const tiers = [
   },
   {
     tier: "business" as const,
-    name: "Business",
+    name: "Manager",
     price: "$20",
     yearlyPrice: "$16.00",
     savedLimit: "Unlimited",
@@ -80,7 +80,7 @@ export default function UpgradeModal({ open, onOpenChange, currentTier = "free",
             </div>
             <DialogDescription className="text-base">
               {currentCount !== undefined && limit !== undefined ? (
-                <>You've saved <strong>{currentCount}</strong> of <strong>{limit}</strong> providers on the {currentTier === "free" ? "Free" : currentTier} plan. Upgrade to save more!</>
+                <>You've saved <strong>{currentCount}</strong> of <strong>{limit}</strong> providers on the {currentTier === "free" ? "Individual" : currentTier === "pro" ? "Coordinator" : "Manager"} plan. Upgrade to save more!</>
               ) : (
                 <>Upgrade your plan to save more providers and unlock premium features.</>
               )}

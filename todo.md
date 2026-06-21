@@ -1538,3 +1538,14 @@
 - [x] Remove 15-second refetchInterval from Messages page queries
 - [x] Ensure SSE newMessage event triggers immediate data refresh
 - [x] Verify typing indicators and read receipts work without polling
+
+## Feature: Rename Customer Plan Names (Individual/Coordinator/Manager)
+- [x] Update CustomerPricing page plan cards (Free→Individual, Pro→Coordinator, Business→Manager)
+- [x] Update AccountSubscription page tier config
+- [x] Update SavedProviders page tier badges and upgrade copy
+- [x] Update HelpCenter customer-facing plan references
+- [x] Update UpgradeModal tier names and dynamic text
+- [x] Update server-side CUSTOMER_TIERS config (customerSubscription.ts)
+- [x] Update customerSubscriptionRouter error messages and downgrade messages
+- [x] Update foldersRouter error messages
+- [x] Update help-center.test.ts customer tier fixtures

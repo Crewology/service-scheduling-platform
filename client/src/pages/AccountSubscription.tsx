@@ -24,7 +24,7 @@ import {
 
 const tierConfig = {
   free: {
-    name: "Free",
+    name: "Individual",
     icon: Heart,
     color: "text-gray-500",
     bgColor: "bg-gray-100",
@@ -39,7 +39,7 @@ const tierConfig = {
     ],
   },
   pro: {
-    name: "Pro",
+    name: "Coordinator",
     icon: Star,
     color: "text-blue-600",
     bgColor: "bg-blue-50",
@@ -48,15 +48,15 @@ const tierConfig = {
     price: "$12/mo",
     yearlyPrice: "$10.08/mo",
     features: [
-      "Everything in Free",
-      "Save up to 25 providers",
+      "Everything in Individual",
+      "Save up to 50 providers",
       "Priority booking",
       "Advanced search filters",
       "Booking reminders",
     ],
   },
   business: {
-    name: "Business",
+    name: "Manager",
     icon: Crown,
     color: "text-amber-600",
     bgColor: "bg-amber-50",
@@ -65,7 +65,7 @@ const tierConfig = {
     price: "$20/mo",
     yearlyPrice: "$16.00/mo",
     features: [
-      "Everything in Pro",
+      "Everything in Coordinator",
       "Unlimited saved providers",
       "Booking analytics dashboard",
       "Export booking history",

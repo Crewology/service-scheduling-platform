@@ -27,7 +27,7 @@ export interface CustomerTierConfig {
 
 export const CUSTOMER_TIERS: Record<CustomerTier, CustomerTierConfig> = {
   free: {
-    name: "Free",
+    name: "Individual",
     tier: "free",
     monthlyPrice: 0,
     yearlyPrice: 0,
@@ -48,7 +48,7 @@ export const CUSTOMER_TIERS: Record<CustomerTier, CustomerTierConfig> = {
     },
   },
   pro: {
-    name: "Pro",
+    name: "Coordinator",
     tier: "pro",
     monthlyPrice: 12,
     yearlyPrice: 120.96, // ~$10.08/mo (16% off)
@@ -71,7 +71,7 @@ export const CUSTOMER_TIERS: Record<CustomerTier, CustomerTierConfig> = {
     },
   },
   business: {
-    name: "Business",
+    name: "Manager",
     tier: "business",
     monthlyPrice: 20,
     yearlyPrice: 192.00, // ~$16.00/mo (20% off)
