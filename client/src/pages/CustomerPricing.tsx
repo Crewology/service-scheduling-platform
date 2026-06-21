@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Heart, Crown, Zap, Check, X, ArrowLeft,
+  Heart, Crown, Zap, Check, X,
   FolderHeart, BarChart3, Headphones, Send,
   Star, Shield, Loader2, AlertTriangle,
   Briefcase, Users, Layers, Camera, Search,
@@ -740,13 +740,7 @@ export default function CustomerPricing() {
           </div>
         </div>
 
-        {/* Back link */}
-        <div className="text-center mt-10">
-          <Button variant="ghost" onClick={() => navigate(-1 as any)} className="gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Go Back
-          </Button>
-        </div>
+
       </div>
 
       {/* ─── DOWNGRADE DIALOG ───────────────────────────────────────────── */}
