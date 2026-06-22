@@ -470,4 +470,37 @@ router.post("/api/auth/reset-password", async (req: Request, res: Response) => {
   }
 });
 
+// ============================================================================
+// LOGOUT (GET endpoint - browser navigates here directly, guaranteeing cookie is cleared before redirect)
+// ============================================================================
+
+router.get("/api/auth/logout", (req: Request, res: Response) => {
+  const cookieOptions = getSessionCookieOptions(req);
+  // Clear the cookie using multiple approaches for maximum browser compatibility
+  res.clearCookie(COOKIE_NAME, cookieOptions);
+  res.cookie(COOKIE_NAME, "", {
+    ...cookieOptions,
+    maxAge: 0,
+    expires: new Date(0),
+  });
+  console.log("[Auth] Logout: cookie cleared via GET /api/auth/logout");
+  // Redirect to home page - browser will process Set-Cookie headers before loading /
+  const returnTo = (req.query.returnTo as string) || "/";
+  // Only allow relative paths to prevent open redirect
+  const safePath = returnTo.startsWith("/") ? returnTo : "/";
+  res.redirect(302, safePath);
+});
+
+router.post("/api/auth/logout", (req: Request, res: Response) => {
+  const cookieOptions = getSessionCookieOptions(req);
+  res.clearCookie(COOKIE_NAME, cookieOptions);
+  res.cookie(COOKIE_NAME, "", {
+    ...cookieOptions,
+    maxAge: 0,
+    expires: new Date(0),
+  });
+  console.log("[Auth] Logout: cookie cleared via POST /api/auth/logout");
+  res.json({ success: true });
+});
+
 export default router;

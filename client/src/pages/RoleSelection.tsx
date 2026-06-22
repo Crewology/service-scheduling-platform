@@ -56,15 +56,10 @@ export default function RoleSelection() {
     selectRoleMutation.mutate({ role: selectedRole });
   };
 
-  const handleSkip = async () => {
-    // Log the user out and send them to the home page
+  const handleSkip = () => {
+    // Navigate to the logout endpoint which clears the cookie and redirects to /
     // This prevents the RoleGuard from redirecting them back here
-    try {
-      await logout();
-    } catch {
-      // Ignore logout errors
-    }
-    setLocation("/");
+    window.location.href = "/api/auth/logout";
   };
 
   if (loading) {
