@@ -429,12 +429,12 @@ export default function ReferralProgram() {
       {/* FAQ */}
       <section className="py-12 sm:py-16 md:py-20 bg-muted/30">
         <div className="container">
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">Frequently Asked Questions</h2>
             </div>
 
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
                 {
                   q: "How do I get my referral link?",
