@@ -428,6 +428,10 @@ export default function AdminDashboard() {
               <Activity className="h-3.5 w-3.5 mr-1" />
               Audit Log
             </TabsTrigger>
+            <TabsTrigger value="partner">
+              <DollarSign className="h-3.5 w-3.5 mr-1" />
+              Partner Split
+            </TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -709,6 +713,11 @@ export default function AdminDashboard() {
           {/* Audit Log Tab */}
           <TabsContent value="audit">
             <AuditLogPanel />
+          </TabsContent>
+
+          {/* Partner Revenue Split Tab */}
+          <TabsContent value="partner">
+            <PartnerSplitPanel />
           </TabsContent>
         </Tabs>
       </div>
@@ -2270,5 +2279,145 @@ function UsersFilterPanel({ suspendUser, unsuspendUser }: { suspendUser: any; un
         )}
       </CardContent>
     </Card>
+  );
+}
+
+
+// ============================================================================
+// PARTNER REVENUE SPLIT PANEL
+// ============================================================================
+
+function PartnerSplitPanel() {
+  const { data: summary, isLoading: summaryLoading } = trpc.admin.getPartnerTransferSummary.useQuery();
+  const { data: transfers, isLoading: transfersLoading } = trpc.admin.getPartnerTransfers.useQuery({ limit: 50, offset: 0 });
+
+  if (summaryLoading) return <LoadingSpinner />;
+
+  return (
+    <div className="space-y-6">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Total Revenue</CardDescription>
+            <CardTitle className="text-2xl">{formatCurrency(summary?.totalRevenue || 0)}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">All tracked revenue</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Your Share (60%)</CardDescription>
+            <CardTitle className="text-2xl text-green-600">{formatCurrency(summary?.platformShare || 0)}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">Platform owner revenue</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Partner Share (40%)</CardDescription>
+            <CardTitle className="text-2xl text-blue-600">{formatCurrency(summary?.totalTransferred || 0)}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">Transferred to partner</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Transfer Status</CardDescription>
+            <CardTitle className="text-2xl">{summary?.completedCount || 0} / {summary?.totalCount || 0}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">
+              {summary?.failedCount ? <span className="text-red-500">{summary.failedCount} failed</span> : "All successful"}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Revenue Breakdown */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>From Subscriptions</CardDescription>
+            <CardTitle className="text-lg">{formatCurrency(summary?.subscriptionRevenue || 0)}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">Provider + Customer subscription partner share</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>From Booking Fees</CardDescription>
+            <CardTitle className="text-lg">{formatCurrency(summary?.bookingFeeRevenue || 0)}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">1% platform fee partner share</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Transfer History */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Transfer History</CardTitle>
+          <CardDescription>Recent partner revenue split transfers</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {transfersLoading ? (
+            <LoadingSpinner />
+          ) : !transfers || transfers.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">
+              No transfers yet. Transfers will appear here once subscription payments or booking fees are processed.
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Source</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Total Revenue</TableHead>
+                  <TableHead>Partner Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {transfers.map((transfer: any) => (
+                  <TableRow key={transfer.id}>
+                    <TableCell className="text-xs">{formatDate(transfer.createdAt)}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-xs">
+                        {transfer.sourceType === "provider_subscription" ? "Provider Sub" :
+                         transfer.sourceType === "customer_subscription" ? "Customer Sub" :
+                         "Booking Fee"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-xs max-w-[200px] truncate">{transfer.sourceDescription}</TableCell>
+                    <TableCell className="text-sm">{formatCurrency(parseFloat(transfer.totalRevenue || "0"))}</TableCell>
+                    <TableCell className="text-sm font-medium">{formatCurrency(parseFloat(transfer.amount || "0"))}</TableCell>
+                    <TableCell>
+                      <Badge variant={
+                        transfer.status === "completed" ? "default" :
+                        transfer.status === "failed" ? "destructive" :
+                        "secondary"
+                      }>
+                        {transfer.status}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }

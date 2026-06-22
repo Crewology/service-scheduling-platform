@@ -1549,3 +1549,13 @@
 - [x] Update customerSubscriptionRouter error messages and downgrade messages
 - [x] Update foldersRouter error messages
 - [x] Update help-center.test.ts customer tier fixtures
+
+## Feature: Automated 60/40 Partner Revenue Split
+- [x] Add PARTNER_STRIPE_ACCOUNT_ID secret (acct_19SruwCpKKiO3Huw)
+- [x] Create partnerSplit module (server/partnerSplit.ts) with transfer logic
+- [x] Integrate 40% auto-transfer into provider subscription webhook (invoice.payment_succeeded)
+- [x] Integrate 40% auto-transfer into customer subscription webhook (invoice.payment_succeeded)
+- [x] Integrate 40% auto-transfer into booking platform fee collection
+- [x] Add partner_transfers table to track all transfers (amount, source, status, stripeTransferId)
+- [x] Add admin dashboard section showing partner transfer history and totals
+- [x] Write tests for partner split calculations and transfer logic

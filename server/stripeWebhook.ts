@@ -4,6 +4,7 @@ import { ENV } from "./_core/env";
 import * as db from "./db";
 import { sendNotification } from "./notifications";
 import { sendPushNotification } from "./notifications/pushHelper";
+import { executePartnerTransfer } from "./partnerSplit";
 
 const stripe = new Stripe(ENV.stripeSecretKey, {
   apiVersion: "2026-01-28.clover",
@@ -79,6 +80,12 @@ export async function handleStripeWebhook(req: Request, res: Response) {
       case "invoice.payment_failed": {
         const invoice = event.data.object as Stripe.Invoice;
         await handleInvoicePaymentFailed(invoice);
+        break;
+      }
+
+      case "invoice.payment_succeeded": {
+        const invoice = event.data.object as Stripe.Invoice;
+        await handleInvoicePaymentSucceeded(invoice);
         break;
       }
 
@@ -165,6 +172,31 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         time: booking.startTime,
       }
     );
+  }
+
+  // Partner revenue split: transfer 40% of the platform fee to partner
+  // The platform fee is 1% of the booking amount
+  const bookingAmount = paymentType === "deposit"
+    ? parseFloat(booking.depositAmount || "0")
+    : parseFloat(booking.totalAmount || "0");
+  const platformFee = bookingAmount * 0.01; // 1% platform fee
+
+  if (platformFee > 0) {
+    try {
+      const splitResult = await executePartnerTransfer({
+        totalRevenue: platformFee,
+        sourceType: "booking_platform_fee",
+        sourceId: session.payment_intent as string || session.id,
+        sourceDescription: `Booking #${booking.bookingNumber} platform fee (1% of $${bookingAmount.toFixed(2)}) - ${service?.name || "Service"} by ${provider?.businessName || "Provider"}`,
+      });
+      if (splitResult.success) {
+        console.log(`[Partner Split] Booking ${booking.bookingNumber}: platform fee $${platformFee.toFixed(2)}, partner share $${splitResult.amount}`);
+      } else {
+        console.error(`[Partner Split] Failed for booking ${booking.bookingNumber}: ${splitResult.error}`);
+      }
+    } catch (err: any) {
+      console.error(`[Partner Split] Error processing booking fee split: ${err.message}`);
+    }
   }
 }
 
@@ -422,4 +454,73 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
   const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
   console.log(`[Stripe] Invoice payment failed for customer: ${customerId}`);
   // The subscription status will be updated via customer.subscription.updated event
+}
+
+async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
+  // Only process subscription invoices (not one-time payments)
+  const subscriptionDetails = invoice.parent?.subscription_details;
+  if (!subscriptionDetails) {
+    // Check billing_reason as fallback for subscription-related invoices
+    const isSubscription = invoice.billing_reason && [
+      "subscription_create", "subscription_cycle", "subscription_update", "subscription_threshold"
+    ].includes(invoice.billing_reason);
+    if (!isSubscription) {
+      console.log("[Stripe] Invoice is not subscription-related, skipping partner split");
+      return;
+    }
+  }
+
+  const amountPaid = (invoice.amount_paid || 0) / 100; // Convert cents to dollars
+  if (amountPaid <= 0) {
+    console.log("[Stripe] Invoice amount is zero (trial/free), skipping partner split");
+    return;
+  }
+
+  // Get subscription ID from parent details
+  const subscriptionId = subscriptionDetails
+    ? (typeof subscriptionDetails.subscription === "string"
+      ? subscriptionDetails.subscription
+      : subscriptionDetails.subscription?.id)
+    : null;
+
+  // Try to get subscription metadata to determine type
+  let sourceType: "provider_subscription" | "customer_subscription" = "provider_subscription";
+  let sourceDescription = "";
+
+  try {
+    if (subscriptionId) {
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      const subType = subscription.metadata?.type;
+      const tier = subscription.metadata?.tier;
+
+      if (subType === "customer_subscription") {
+        sourceType = "customer_subscription";
+        const userId = subscription.metadata?.userId;
+        sourceDescription = `Customer subscription (${tier || "unknown"} tier, user ${userId || "unknown"}) - Invoice ${invoice.id}`;
+      } else {
+        sourceType = "provider_subscription";
+        const providerId = subscription.metadata?.providerId;
+        sourceDescription = `Provider subscription (${tier || "unknown"} tier, provider ${providerId || "unknown"}) - Invoice ${invoice.id}`;
+      }
+    } else {
+      sourceDescription = `Subscription payment - Invoice ${invoice.id}`;
+    }
+  } catch (err: any) {
+    console.warn(`[Stripe] Could not retrieve subscription ${subscriptionId}: ${err.message}`);
+    sourceDescription = `Subscription payment - Invoice ${invoice.id}`;
+  }
+
+  // Execute the 40% partner transfer
+  const result = await executePartnerTransfer({
+    totalRevenue: amountPaid,
+    sourceType,
+    sourceId: invoice.id,
+    sourceDescription,
+  });
+
+  if (result.success) {
+    console.log(`[Partner Split] Subscription invoice ${invoice.id}: $${amountPaid} total, $${result.amount} transferred to partner`);
+  } else {
+    console.error(`[Partner Split] Failed for invoice ${invoice.id}: ${result.error}`);
+  }
 }

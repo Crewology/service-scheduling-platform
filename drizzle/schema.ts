@@ -951,3 +951,29 @@ export const auditLog = mysqlTable("audit_log", {
 ]);
 export type AuditLogEntry = typeof auditLog.$inferSelect;
 export type InsertAuditLogEntry = typeof auditLog.$inferInsert;
+
+
+/**
+ * Partner revenue split transfers — tracks 40% transfers to partner's Stripe account
+ */
+export const partnerTransfers = mysqlTable("partner_transfers", {
+  id: int("id").autoincrement().primaryKey(),
+  stripeTransferId: varchar("stripeTransferId", { length: 255 }),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(), // Amount transferred to partner (in dollars)
+  currency: varchar("currency", { length: 3 }).default("usd").notNull(),
+  sourceType: mysqlEnum("sourceType", ["provider_subscription", "customer_subscription", "booking_platform_fee"]).notNull(),
+  sourceId: varchar("sourceId", { length: 255 }), // Stripe invoice ID, payment intent ID, etc.
+  sourceDescription: text("sourceDescription"), // Human-readable description
+  status: mysqlEnum("status", ["pending", "completed", "failed"]).default("pending").notNull(),
+  errorMessage: text("errorMessage"),
+  partnerAccountId: varchar("partnerAccountId", { length: 255 }).notNull(),
+  splitPercentage: decimal("splitPercentage", { precision: 5, scale: 2 }).default("40.00").notNull(),
+  totalRevenue: decimal("totalRevenue", { precision: 10, scale: 2 }).notNull(), // Total revenue before split
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => [
+  index("partner_transfer_source_idx").on(table.sourceType, table.sourceId),
+  index("partner_transfer_status_idx").on(table.status),
+  index("partner_transfer_created_idx").on(table.createdAt),
+]);
+export type PartnerTransfer = typeof partnerTransfers.$inferSelect;
+export type InsertPartnerTransfer = typeof partnerTransfers.$inferInsert;

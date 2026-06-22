@@ -506,4 +506,30 @@ export const adminRouter = router({
     .query(async ({ input }) => {
       return await getAuditLogForTarget(input.targetType, input.targetId);
     }),
+
+  // ============================================================================
+  // PARTNER REVENUE SPLIT
+  // ============================================================================
+
+  getPartnerTransferSummary: adminProcedure.query(async () => {
+    const { getPartnerTransferSummary } = await import("./partnerSplit");
+    return await getPartnerTransferSummary();
+  }),
+
+  getPartnerTransfers: adminProcedure
+    .input(z.object({
+      sourceType: z.enum(["provider_subscription", "customer_subscription", "booking_platform_fee"]).optional(),
+      status: z.enum(["pending", "completed", "failed"]).optional(),
+      limit: z.number().min(1).max(100).default(50),
+      offset: z.number().min(0).default(0),
+    }).optional())
+    .query(async ({ input }) => {
+      const { getPartnerTransfers } = await import("./partnerSplit");
+      return await getPartnerTransfers({
+        sourceType: input?.sourceType,
+        status: input?.status,
+        limit: input?.limit,
+        offset: input?.offset,
+      });
+    }),
 });
