@@ -475,31 +475,49 @@ router.post("/api/auth/reset-password", async (req: Request, res: Response) => {
 // ============================================================================
 
 router.get("/api/auth/logout", (req: Request, res: Response) => {
-  const cookieOptions = getSessionCookieOptions(req);
-  // Clear the cookie using multiple approaches for maximum browser compatibility
-  res.clearCookie(COOKIE_NAME, cookieOptions);
-  res.cookie(COOKIE_NAME, "", {
-    ...cookieOptions,
-    maxAge: 0,
-    expires: new Date(0),
-  });
-  console.log("[Auth] Logout: cookie cleared via GET /api/auth/logout");
-  // Redirect to home page - browser will process Set-Cookie headers before loading /
+  // Clear the cookie with ALL possible attribute combinations to handle proxy inconsistencies.
+  // The cookie might have been set with Secure=true (login over HTTPS proxy) but the logout
+  // request might not have X-Forwarded-Proto, causing isSecureRequest to return false.
+  // Browsers only clear cookies when attributes match exactly, so we clear with all variants.
+  const baseCookieOpts = { httpOnly: true, path: "/" };
+  const variants = [
+    { ...baseCookieOpts, sameSite: "none" as const, secure: true },
+    { ...baseCookieOpts, sameSite: "none" as const, secure: false },
+    { ...baseCookieOpts, sameSite: "lax" as const, secure: true },
+    { ...baseCookieOpts, sameSite: "lax" as const, secure: false },
+    { ...baseCookieOpts, sameSite: "strict" as const, secure: true },
+    { ...baseCookieOpts, sameSite: "strict" as const, secure: false },
+  ];
+  for (const opts of variants) {
+    res.clearCookie(COOKIE_NAME, opts);
+    res.cookie(COOKIE_NAME, "", { ...opts, maxAge: 0, expires: new Date(0) });
+  }
+  console.log("[Auth] Logout: cookie cleared via GET /api/auth/logout (all variants)");
+  // Also set Cache-Control to prevent any intermediate caching
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+  res.set('Pragma', 'no-cache');
   const returnTo = (req.query.returnTo as string) || "/";
   // Only allow relative paths to prevent open redirect
   const safePath = returnTo.startsWith("/") ? returnTo : "/";
-  res.redirect(302, safePath);
+  res.redirect(302, `${safePath}?logged_out=1`);
 });
 
 router.post("/api/auth/logout", (req: Request, res: Response) => {
-  const cookieOptions = getSessionCookieOptions(req);
-  res.clearCookie(COOKIE_NAME, cookieOptions);
-  res.cookie(COOKIE_NAME, "", {
-    ...cookieOptions,
-    maxAge: 0,
-    expires: new Date(0),
-  });
-  console.log("[Auth] Logout: cookie cleared via POST /api/auth/logout");
+  // Same comprehensive clearing as the GET endpoint
+  const baseCookieOpts = { httpOnly: true, path: "/" };
+  const variants = [
+    { ...baseCookieOpts, sameSite: "none" as const, secure: true },
+    { ...baseCookieOpts, sameSite: "none" as const, secure: false },
+    { ...baseCookieOpts, sameSite: "lax" as const, secure: true },
+    { ...baseCookieOpts, sameSite: "lax" as const, secure: false },
+    { ...baseCookieOpts, sameSite: "strict" as const, secure: true },
+    { ...baseCookieOpts, sameSite: "strict" as const, secure: false },
+  ];
+  for (const opts of variants) {
+    res.clearCookie(COOKIE_NAME, opts);
+    res.cookie(COOKIE_NAME, "", { ...opts, maxAge: 0, expires: new Date(0) });
+  }
+  console.log("[Auth] Logout: cookie cleared via POST /api/auth/logout (all variants)");
   res.json({ success: true });
 });
 

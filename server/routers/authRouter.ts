@@ -44,15 +44,18 @@ export const authRouter = router({
     }),
 
   logout: publicProcedure.mutation(({ ctx }) => {
-    const cookieOptions = getSessionCookieOptions(ctx.req);
-    // Use both clearCookie AND set cookie to empty with expires in the past
-    // This ensures the cookie is removed regardless of browser behavior
-    ctx.res.clearCookie(COOKIE_NAME, cookieOptions);
-    ctx.res.cookie(COOKIE_NAME, "", {
-      ...cookieOptions,
-      maxAge: 0,
-      expires: new Date(0),
-    });
+    // Clear cookie with ALL possible attribute combinations to handle proxy inconsistencies
+    const baseCookieOpts = { httpOnly: true, path: "/" };
+    const variants = [
+      { ...baseCookieOpts, sameSite: "none" as const, secure: true },
+      { ...baseCookieOpts, sameSite: "none" as const, secure: false },
+      { ...baseCookieOpts, sameSite: "lax" as const, secure: true },
+      { ...baseCookieOpts, sameSite: "lax" as const, secure: false },
+    ];
+    for (const opts of variants) {
+      ctx.res.clearCookie(COOKIE_NAME, opts);
+      ctx.res.cookie(COOKIE_NAME, "", { ...opts, maxAge: 0, expires: new Date(0) });
+    }
     return { success: true } as const;
   }),
   
@@ -143,10 +146,18 @@ export const authRouter = router({
         // Non-critical
       }
 
-      // Clear session cookie
-      const { getSessionCookieOptions } = await import("../_core/cookies");
-      const cookieOptions = getSessionCookieOptions(ctx.req);
-      ctx.res.clearCookie(COOKIE_NAME, cookieOptions);
+      // Clear session cookie with all variants to handle proxy inconsistencies
+      const baseCookieOpts = { httpOnly: true, path: "/" };
+      const clearVariants = [
+        { ...baseCookieOpts, sameSite: "none" as const, secure: true },
+        { ...baseCookieOpts, sameSite: "none" as const, secure: false },
+        { ...baseCookieOpts, sameSite: "lax" as const, secure: true },
+        { ...baseCookieOpts, sameSite: "lax" as const, secure: false },
+      ];
+      for (const opts of clearVariants) {
+        ctx.res.clearCookie(COOKIE_NAME, opts);
+        ctx.res.cookie(COOKIE_NAME, "", { ...opts, maxAge: 0, expires: new Date(0) });
+      }
 
       return {
         success: true,

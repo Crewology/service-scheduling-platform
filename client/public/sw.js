@@ -38,9 +38,10 @@ self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (request.method !== 'GET') return;
 
-  // Skip OAuth and SSE — always go to network
+  // Skip OAuth, auth endpoints, and SSE — always go to network
   if (
     url.pathname.startsWith('/oauth') ||
+    url.pathname.startsWith('/api/auth/') ||
     request.headers.get('accept')?.includes('text/event-stream')
   ) {
     return;
@@ -73,6 +74,16 @@ self.addEventListener('fetch', (event) => {
 
   // Skip other API calls — always go to network
   if (url.pathname.startsWith('/api/')) {
+    return;
+  }
+
+  // If navigating to home after logout (detected by referrer or cache-bust param), clear all caches
+  if (request.mode === 'navigate' && url.searchParams.has('logged_out')) {
+    event.respondWith(
+      caches.keys().then((keys) =>
+        Promise.all(keys.map((key) => caches.delete(key)))
+      ).then(() => fetch(request))
+    );
     return;
   }
 

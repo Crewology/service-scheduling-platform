@@ -11,6 +11,26 @@ import { PWAInstallProvider } from "./contexts/PWAInstallContext";
 import { getLoginUrl } from "./const";
 import "./index.css";
 
+// Handle post-logout cleanup: clear all client-side state when redirected from /api/auth/logout
+(function handleLogoutCleanup() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('logged_out')) {
+    // Clear all storage
+    try { localStorage.clear(); } catch (e) { /* ignore */ }
+    try { sessionStorage.clear(); } catch (e) { /* ignore */ }
+    // Clear service worker caches
+    if ('caches' in window) {
+      caches.keys().then(names => names.forEach(name => caches.delete(name)));
+    }
+    // Remove the query param from URL without reload
+    params.delete('logged_out');
+    const cleanUrl = params.toString()
+      ? `${window.location.pathname}?${params.toString()}`
+      : window.location.pathname;
+    window.history.replaceState({}, '', cleanUrl);
+  }
+})();
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
