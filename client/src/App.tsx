@@ -18,6 +18,11 @@ import ServiceDetail from "./pages/ServiceDetail";
 import PublicProviderProfile from "./pages/PublicProviderProfile";
 
 // Auth & onboarding
+import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import VerifyEmail from "./pages/VerifyEmail";
 import RoleSelection from "./pages/RoleSelection";
 import ProviderOnboarding from "./pages/ProviderOnboarding";
 
@@ -77,6 +82,11 @@ import NotFound from "./pages/NotFound";
 function Router() {
   return (
     <Switch>
+      <Route path="/login" component={Login} />
+      <Route path="/signup" component={SignUp} />
+      <Route path="/forgot-password" component={ForgotPassword} />
+      <Route path="/reset-password" component={ResetPassword} />
+      <Route path="/verify-email" component={VerifyEmail} />
       <Route path="/select-role" component={RoleSelection} />
       <Route path="/" component={Home} />
       <Route path="/browse" component={Browse} />

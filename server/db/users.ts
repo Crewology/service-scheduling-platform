@@ -681,3 +681,173 @@ export async function deleteUserAccount(userId: number): Promise<{
     promoCodesDeleted,
   };
 }
+
+
+// ============================================================================
+// CUSTOM AUTH HELPERS
+// ============================================================================
+
+export async function getUserByEmail(email: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getUserByGoogleId(googleId: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(users).where(eq(users.googleId, googleId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function createUserWithEmail(data: {
+  email: string;
+  passwordHash: string;
+  firstName: string;
+  lastName: string;
+  emailVerificationToken: string;
+  emailVerificationExpires: Date;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const openId = `email_${crypto.randomUUID()}`;
+  const name = `${data.firstName} ${data.lastName}`.trim();
+
+  await db.insert(users).values({
+    openId,
+    email: data.email,
+    name,
+    firstName: data.firstName,
+    lastName: data.lastName,
+    passwordHash: data.passwordHash,
+    emailVerified: false,
+    emailVerificationToken: data.emailVerificationToken,
+    emailVerificationExpires: data.emailVerificationExpires,
+    authProvider: "email",
+    loginMethod: "email",
+    hasSelectedRole: false,
+    lastSignedIn: new Date(),
+  });
+
+  return getUserByOpenId(openId);
+}
+
+export async function createUserWithGoogle(data: {
+  googleId: string;
+  email: string;
+  name: string;
+  firstName: string;
+  lastName: string;
+  profilePhotoUrl?: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const openId = `google_${data.googleId}`;
+
+  await db.insert(users).values({
+    openId,
+    email: data.email,
+    name: data.name,
+    firstName: data.firstName,
+    lastName: data.lastName,
+    profilePhotoUrl: data.profilePhotoUrl || null,
+    googleId: data.googleId,
+    emailVerified: true,
+    authProvider: "google",
+    loginMethod: "google",
+    hasSelectedRole: false,
+    lastSignedIn: new Date(),
+  });
+
+  return getUserByOpenId(openId);
+}
+
+export async function setEmailVerificationToken(userId: number, token: string, expires: Date) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users).set({
+    emailVerificationToken: token,
+    emailVerificationExpires: expires,
+  }).where(eq(users.id, userId));
+}
+
+export async function verifyUserEmail(token: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.select().from(users)
+    .where(eq(users.emailVerificationToken, token))
+    .limit(1);
+
+  if (result.length === 0) return { success: false, error: "Invalid token" };
+
+  const user = result[0];
+  if (user.emailVerificationExpires && user.emailVerificationExpires < new Date()) {
+    return { success: false, error: "Token expired" };
+  }
+
+  await db.update(users).set({
+    emailVerified: true,
+    emailVerificationToken: null,
+    emailVerificationExpires: null,
+  }).where(eq(users.id, user.id));
+
+  return { success: true, user };
+}
+
+export async function setPasswordResetToken(userId: number, token: string, expires: Date) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users).set({
+    passwordResetToken: token,
+    passwordResetExpires: expires,
+  }).where(eq(users.id, userId));
+}
+
+export async function resetPassword(token: string, newPasswordHash: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.select().from(users)
+    .where(eq(users.passwordResetToken, token))
+    .limit(1);
+
+  if (result.length === 0) return { success: false, error: "Invalid token" };
+
+  const user = result[0];
+  if (user.passwordResetExpires && user.passwordResetExpires < new Date()) {
+    return { success: false, error: "Token expired" };
+  }
+
+  await db.update(users).set({
+    passwordHash: newPasswordHash,
+    passwordResetToken: null,
+    passwordResetExpires: null,
+  }).where(eq(users.id, user.id));
+
+  return { success: true, user };
+}
+
+export async function updateUserPassword(userId: number, passwordHash: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users).set({ passwordHash }).where(eq(users.id, userId));
+}
+
+export async function linkGoogleAccount(userId: number, googleId: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users).set({
+    googleId,
+    authProvider: "google",
+  }).where(eq(users.id, userId));
+}

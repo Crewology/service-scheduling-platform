@@ -34,6 +34,14 @@ export const users = mysqlTable("users", {
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
   deletedAt: timestamp("deletedAt"),
   adminRole: mysqlEnum("adminRole", ["super_admin", "support_agent", "moderator"]),
+  // Custom auth fields
+  passwordHash: varchar("passwordHash", { length: 255 }),
+  emailVerificationToken: varchar("emailVerificationToken", { length: 255 }),
+  emailVerificationExpires: timestamp("emailVerificationExpires"),
+  passwordResetToken: varchar("passwordResetToken", { length: 255 }),
+  passwordResetExpires: timestamp("passwordResetExpires"),
+  authProvider: mysqlEnum("authProvider", ["email", "google", "manus"]).default("manus"),
+  googleId: varchar("googleId", { length: 255 }),
 });
 
 export type User = typeof users.$inferSelect;

@@ -15,4 +15,6 @@ export const ENV = {
   twilioMessagingServiceSid: process.env.TWILIO_MESSAGING_SERVICE_SID ?? "",
   sendgridApiKey: process.env.SENDGRID_API_KEY ?? "",
   partnerStripeAccountId: process.env.PARTNER_STRIPE_ACCOUNT_ID ?? "",
+  googleClientId: process.env.GOOGLE_CLIENT_ID ?? "",
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
 };

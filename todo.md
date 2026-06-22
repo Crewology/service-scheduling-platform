@@ -1582,3 +1582,18 @@
 - [x] Build trial expiry detection (periodic check) — via checkTrialStatus on page load + heartbeat job
 - [x] Send notification alert when trial ends informing user to add credit card info
 - [x] Gate plan benefits behind trial/active subscription check — already gated via getCustomerTier
+
+## Feature: Custom Authentication System (Google OAuth + Email/Password)
+- [x] Set up GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET secrets
+- [x] Add password hash, email verification token, and reset token fields to users table
+- [x] Build email/password registration endpoint with bcrypt hashing
+- [x] Build email/password login endpoint with session cookie
+- [x] Build Google OAuth flow (redirect + callback)
+- [x] Build email verification flow (send verification email + verify endpoint)
+- [x] Build forgot password flow (send reset email + reset endpoint)
+- [x] Build dedicated Login page with Google button and email/password form
+- [x] Build dedicated Sign Up page with Google button and email/password form
+- [x] Add password strength indicator and show/hide toggle
+- [x] Update navigation to use new auth pages instead of Manus OAuth
+- [x] Migrate existing users to work with new auth system — compatible via shared JWT/cookie system
+- [x] Remove/bypass Manus OAuth dependency — getLoginUrl() now redirects to /login

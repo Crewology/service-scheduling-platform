@@ -1,6 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+// getLoginUrl kept for backward compat if needed elsewhere
 import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { Link, useLocation } from "wouter";
@@ -532,9 +533,9 @@ export function NavHeader() {
               </>
             ) : (
               <>
-                <a href={getLoginUrl()}>
+                <Link href="/login">
                   <Button variant="ghost" size="sm">Sign In</Button>
-                </a>
+                </Link>
                 <Link href="/pricing">
                   <Button size="sm">Get Started</Button>
                 </Link>
@@ -646,9 +647,9 @@ export function NavHeader() {
                 <MobileLogoutButton onClose={() => setMobileMenuOpen(false)} />
               </>
             ) : (
-              <a href={getLoginUrl()}>
+              <Link href="/login">
                 <Button className="w-full">Sign In</Button>
-              </a>
+              </Link>
             )}
             {/* Install App - always visible if not already installed */}
             {!pwaInstalled && (

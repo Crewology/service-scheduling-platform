@@ -209,7 +209,11 @@ Sitemap: ${baseUrl}/sitemap.xml`;
   const { handleScheduledTrialExpiry } = await import("../scheduledTrialExpiry");
   app.post("/api/scheduled/trial-expiry", handleScheduledTrialExpiry);
 
-  // OAuth callback under /api/oauth/callback
+  // Custom auth routes (email/password + Google OAuth)
+  const customAuthRouter = (await import("../customAuthRouter")).default;
+  app.use(customAuthRouter);
+
+  // Legacy OAuth callback under /api/oauth/callback (kept for existing sessions)
   registerOAuthRoutes(app);
   // tRPC API
   app.use(

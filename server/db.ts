@@ -219,6 +219,20 @@ export {
   deleteUserAccount,
 } from "./db/users";
 
+// Custom auth helpers
+export {
+  getUserByEmail,
+  getUserByGoogleId,
+  createUserWithEmail,
+  createUserWithGoogle,
+  setEmailVerificationToken,
+  verifyUserEmail,
+  setPasswordResetToken,
+  resetPassword,
+  updateUserPassword,
+  linkGoogleAccount,
+} from "./db/users";
+
 // Waitlist management
 export {
   getNextWaitlistPosition,
