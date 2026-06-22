@@ -1615,3 +1615,6 @@
 - [x] Use noreply@ologycrew.com for automated notifications (password resets, booking confirmations, reminders)
 - [x] Use info@ologycrew.com for general platform communications (welcome emails, announcements)
 - [x] Use support@ologycrew.com for support-related emails (account issues, disputes)
+
+## Bug Fix: Admin Dashboard Mobile Navigation Overflow
+- [x] Fix admin dashboard tab/nav items overflowing on mobile view (Overview, Subscriptions, Users, Providers, Bookings, Reviews, Documents, Support, Referrals, Push, Team, Audit Log, Partner Split need to fit mobile screen)

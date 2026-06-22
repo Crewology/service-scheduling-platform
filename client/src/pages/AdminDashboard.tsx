@@ -398,48 +398,50 @@ export default function AdminDashboard() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-6">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="subscriptions">
-              <Crown className="h-3.5 w-3.5 mr-1" />
-              Subscriptions
-            </TabsTrigger>
-            <TabsTrigger value="users">Users ({users?.length || 0})</TabsTrigger>
-            <TabsTrigger value="providers">Providers ({providers?.length || 0})</TabsTrigger>
-            <TabsTrigger value="bookings">Bookings ({bookings?.length || 0})</TabsTrigger>
-            <TabsTrigger value="reviews">
-              <Star className="h-3.5 w-3.5 mr-1" />
-              Reviews
-            </TabsTrigger>
-            <TabsTrigger value="documents">
-              <FileText className="h-3.5 w-3.5 mr-1" />
-              Documents
-            </TabsTrigger>
-            <TabsTrigger value="support">
-              <MessageSquare className="h-3.5 w-3.5 mr-1" />
-              Support
-            </TabsTrigger>
-            <TabsTrigger value="referrals">
-              <UserPlus className="h-3.5 w-3.5 mr-1" />
-              Referrals
-            </TabsTrigger>
-            <TabsTrigger value="push">
-              <Bell className="h-3.5 w-3.5 mr-1" />
-              Push
-            </TabsTrigger>
-            <TabsTrigger value="team">
-              <Shield className="h-3.5 w-3.5 mr-1" />
-              Team
-            </TabsTrigger>
-            <TabsTrigger value="audit">
-              <Activity className="h-3.5 w-3.5 mr-1" />
-              Audit Log
-            </TabsTrigger>
-            <TabsTrigger value="partner">
-              <DollarSign className="h-3.5 w-3.5 mr-1" />
-              Partner Split
-            </TabsTrigger>
-          </TabsList>
+          <div className="mb-6 overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
+            <TabsList className="w-max flex-nowrap">
+              <TabsTrigger value="overview" className="whitespace-nowrap text-xs md:text-sm">Overview</TabsTrigger>
+              <TabsTrigger value="subscriptions" className="whitespace-nowrap text-xs md:text-sm">
+                <Crown className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
+                Subscriptions
+              </TabsTrigger>
+              <TabsTrigger value="users" className="whitespace-nowrap text-xs md:text-sm">Users ({users?.length || 0})</TabsTrigger>
+              <TabsTrigger value="providers" className="whitespace-nowrap text-xs md:text-sm">Providers ({providers?.length || 0})</TabsTrigger>
+              <TabsTrigger value="bookings" className="whitespace-nowrap text-xs md:text-sm">Bookings ({bookings?.length || 0})</TabsTrigger>
+              <TabsTrigger value="reviews" className="whitespace-nowrap text-xs md:text-sm">
+                <Star className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
+                Reviews
+              </TabsTrigger>
+              <TabsTrigger value="documents" className="whitespace-nowrap text-xs md:text-sm">
+                <FileText className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
+                Documents
+              </TabsTrigger>
+              <TabsTrigger value="support" className="whitespace-nowrap text-xs md:text-sm">
+                <MessageSquare className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
+                Support
+              </TabsTrigger>
+              <TabsTrigger value="referrals" className="whitespace-nowrap text-xs md:text-sm">
+                <UserPlus className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
+                Referrals
+              </TabsTrigger>
+              <TabsTrigger value="push" className="whitespace-nowrap text-xs md:text-sm">
+                <Bell className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
+                Push
+              </TabsTrigger>
+              <TabsTrigger value="team" className="whitespace-nowrap text-xs md:text-sm">
+                <Shield className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
+                Team
+              </TabsTrigger>
+              <TabsTrigger value="audit" className="whitespace-nowrap text-xs md:text-sm">
+                <Activity className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
+                Audit Log
+              </TabsTrigger>
+              <TabsTrigger value="partner" className="whitespace-nowrap text-xs md:text-sm">
+                <DollarSign className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
+                Partner Split
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Overview Tab */}
           <TabsContent value="overview">
