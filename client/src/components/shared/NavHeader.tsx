@@ -22,6 +22,7 @@ import {
   Coins,
   CreditCard,
   Download,
+  Shield,
 } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useSSE } from "@/hooks/useSSE";
@@ -322,6 +323,19 @@ function UserMenuDropdown({ user }: { user: any }) {
             <Settings className="h-4 w-4 text-muted-foreground" />
             Settings
           </Link>
+          {user?.role === "admin" && (
+            <>
+              <div className="border-t my-1" />
+              <Link
+                href="/admin"
+                className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-blue-50 transition-colors text-blue-700 font-medium"
+                onClick={() => setOpen(false)}
+              >
+                <Shield className="h-4 w-4" />
+                Admin Dashboard
+              </Link>
+            </>
+          )}
           {!isInstalled && (
             <button
               className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors w-full text-left"
@@ -506,7 +520,8 @@ export function NavHeader() {
                 {/* Admin */}
                 {isAdmin && (
                   <Link href="/admin">
-                    <Button variant="outline" size="sm" className="text-xs px-2.5">
+                    <Button variant="outline" size="sm" className="text-xs px-2.5 border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800">
+                      <Shield className="h-3.5 w-3.5 mr-1" />
                       Admin
                     </Button>
                   </Link>
@@ -616,7 +631,10 @@ export function NavHeader() {
                 )}
                 {isAdmin && (
                   <Link href="/admin" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start">Admin</Button>
+                    <Button variant="ghost" className="w-full justify-start text-blue-700 hover:bg-blue-50">
+                      <Shield className="h-4 w-4 mr-2" />
+                      Admin Dashboard
+                    </Button>
                   </Link>
                 )}
                 <Link href="/profile" onClick={() => setMobileMenuOpen(false)}>
