@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useProtectedPage } from "@/hooks/useProtectedPage";
 import { trpc } from "@/lib/trpc";
@@ -54,6 +54,8 @@ import {
   Wifi,
   WifiOff,
   Activity,
+  Calendar,
+  Filter,
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -2293,13 +2295,148 @@ function UsersFilterPanel({ suspendUser, unsuspendUser }: { suspendUser: any; un
 // ============================================================================
 
 function PartnerSplitPanel() {
-  const { data: summary, isLoading: summaryLoading } = trpc.admin.getPartnerTransferSummary.useQuery();
-  const { data: transfers, isLoading: transfersLoading } = trpc.admin.getPartnerTransfers.useQuery({ limit: 50, offset: 0 });
+  const [dateRange, setDateRange] = useState<"all" | "this_month" | "last_month" | "this_quarter" | "last_quarter" | "this_year" | "custom">("all");
+  const [customStart, setCustomStart] = useState("");
+  const [customEnd, setCustomEnd] = useState("");
+
+  const dateFilter = useMemo(() => {
+    const now = new Date();
+    let startDate: string | undefined;
+    let endDate: string | undefined;
+
+    switch (dateRange) {
+      case "this_month":
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
+        break;
+      case "last_month":
+        startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
+        endDate = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59).toISOString();
+        break;
+      case "this_quarter": {
+        const qStart = Math.floor(now.getMonth() / 3) * 3;
+        startDate = new Date(now.getFullYear(), qStart, 1).toISOString();
+        endDate = new Date(now.getFullYear(), qStart + 3, 0, 23, 59, 59).toISOString();
+        break;
+      }
+      case "last_quarter": {
+        const qStart = Math.floor(now.getMonth() / 3) * 3 - 3;
+        startDate = new Date(now.getFullYear(), qStart, 1).toISOString();
+        endDate = new Date(now.getFullYear(), qStart + 3, 0, 23, 59, 59).toISOString();
+        break;
+      }
+      case "this_year":
+        startDate = new Date(now.getFullYear(), 0, 1).toISOString();
+        endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59).toISOString();
+        break;
+      case "custom":
+        startDate = customStart ? new Date(customStart).toISOString() : undefined;
+        endDate = customEnd ? new Date(customEnd + "T23:59:59").toISOString() : undefined;
+        break;
+      default:
+        break;
+    }
+    return { startDate, endDate };
+  }, [dateRange, customStart, customEnd]);
+
+  const { data: summary, isLoading: summaryLoading } = trpc.admin.getPartnerTransferSummary.useQuery({
+    startDate: dateFilter.startDate,
+    endDate: dateFilter.endDate,
+  });
+  const { data: transfers, isLoading: transfersLoading } = trpc.admin.getPartnerTransfers.useQuery({
+    startDate: dateFilter.startDate,
+    endDate: dateFilter.endDate,
+    limit: 50,
+    offset: 0,
+  });
+  const { data: monthlyData } = trpc.admin.getPartnerMonthlyBreakdown.useQuery({ months: 12 });
+
+  const handleExportCSV = async () => {
+    try {
+      const exportData = transfers || [];
+      if (exportData.length === 0) {
+        toast.error("No data to export");
+        return;
+      }
+
+      const headers = ["Date", "Source Type", "Description", "Total Revenue", "Partner Amount (40%)", "Platform Amount (60%)", "Status", "Stripe Transfer ID"];
+      const rows = exportData.map((t: any) => [
+        new Date(t.createdAt).toLocaleDateString(),
+        t.sourceType,
+        `"${(t.sourceDescription || "").replace(/"/g, '""')}"`,
+        parseFloat(t.totalRevenue || "0").toFixed(2),
+        parseFloat(t.amount || "0").toFixed(2),
+        (parseFloat(t.totalRevenue || "0") - parseFloat(t.amount || "0")).toFixed(2),
+        t.status,
+        t.stripeTransferId || "N/A",
+      ]);
+
+      const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `partner-transfers-${dateRange}-${new Date().toISOString().split("T")[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("CSV exported successfully");
+    } catch {
+      toast.error("Failed to export CSV");
+    }
+  };
 
   if (summaryLoading) return <LoadingSpinner />;
 
   return (
     <div className="space-y-6">
+      {/* Date Range Filter + Export */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+          <Select value={dateRange} onValueChange={(v: any) => setDateRange(v)}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Date range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Time</SelectItem>
+              <SelectItem value="this_month">This Month</SelectItem>
+              <SelectItem value="last_month">Last Month</SelectItem>
+              <SelectItem value="this_quarter">This Quarter</SelectItem>
+              <SelectItem value="last_quarter">Last Quarter</SelectItem>
+              <SelectItem value="this_year">This Year</SelectItem>
+              <SelectItem value="custom">Custom Range</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {dateRange === "custom" && (
+          <div className="flex items-center gap-2">
+            <Input
+              type="date"
+              value={customStart}
+              onChange={(e) => setCustomStart(e.target.value)}
+              className="w-[150px]"
+              placeholder="Start date"
+            />
+            <span className="text-muted-foreground">to</span>
+            <Input
+              type="date"
+              value={customEnd}
+              onChange={(e) => setCustomEnd(e.target.value)}
+              className="w-[150px]"
+              placeholder="End date"
+            />
+          </div>
+        )}
+
+        <div className="ml-auto">
+          <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={!transfers || transfers.length === 0}>
+            <Download className="h-4 w-4 mr-2" />
+            Export CSV
+          </Button>
+        </div>
+      </div>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
@@ -2345,6 +2482,26 @@ function PartnerSplitPanel() {
         </Card>
       </div>
 
+      {/* Monthly Revenue Chart */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            Monthly Revenue Breakdown
+          </CardTitle>
+          <CardDescription>Your 60% share vs Partner's 40% share over the last 12 months</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {!monthlyData || monthlyData.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">
+              No monthly data yet. Chart will populate as transactions are processed.
+            </p>
+          ) : (
+            <MonthlyRevenueChart data={monthlyData} />
+          )}
+        </CardContent>
+      </Card>
+
       {/* Revenue Breakdown */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
@@ -2371,8 +2528,12 @@ function PartnerSplitPanel() {
       {/* Transfer History */}
       <Card>
         <CardHeader>
-          <CardTitle>Transfer History</CardTitle>
-          <CardDescription>Recent partner revenue split transfers</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Transfer History</CardTitle>
+              <CardDescription>Partner revenue split transfers{dateRange !== "all" ? " (filtered)" : ""}</CardDescription>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {transfersLoading ? (
@@ -2423,6 +2584,68 @@ function PartnerSplitPanel() {
           )}
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function MonthlyRevenueChart({ data }: { data: Array<{ month: string; totalRevenue: number; platformShare: number; partnerShare: number; transferCount: number }> }) {
+  // Format month labels
+  const chartData = data.map((d) => {
+    const [year, month] = d.month.split("-");
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return {
+      label: `${monthNames[parseInt(month) - 1]} ${year}`,
+      platformShare: d.platformShare,
+      partnerShare: d.partnerShare,
+      total: d.totalRevenue,
+    };
+  });
+
+  const maxValue = Math.max(...chartData.map(d => d.total), 1);
+
+  return (
+    <div className="space-y-4">
+      {/* Legend */}
+      <div className="flex items-center gap-4 text-sm">
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-sm bg-green-500" />
+          <span className="text-muted-foreground">Your Share (60%)</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-sm bg-blue-500" />
+          <span className="text-muted-foreground">Partner Share (40%)</span>
+        </div>
+      </div>
+
+      {/* Bar Chart */}
+      <div className="flex items-end gap-2 h-[200px] border-b border-l pl-1 pb-1">
+        {chartData.map((d, i) => (
+          <div key={i} className="flex-1 flex flex-col items-center gap-1 h-full justify-end group relative">
+            {/* Tooltip */}
+            <div className="absolute bottom-full mb-2 hidden group-hover:block bg-popover text-popover-foreground border rounded-md shadow-md p-2 text-xs z-10 whitespace-nowrap">
+              <p className="font-medium">{d.label}</p>
+              <p className="text-green-600">You: {formatCurrency(d.platformShare)}</p>
+              <p className="text-blue-600">Partner: {formatCurrency(d.partnerShare)}</p>
+              <p className="text-muted-foreground">Total: {formatCurrency(d.total)}</p>
+            </div>
+            {/* Stacked bars */}
+            <div className="w-full flex flex-col justify-end" style={{ height: `${(d.total / maxValue) * 100}%` }}>
+              <div
+                className="w-full bg-blue-500 rounded-t-sm"
+                style={{ height: d.total > 0 ? `${(d.partnerShare / d.total) * 100}%` : "0%" }}
+              />
+              <div
+                className="w-full bg-green-500"
+                style={{ height: d.total > 0 ? `${(d.platformShare / d.total) * 100}%` : "0%" }}
+              />
+            </div>
+            {/* Label */}
+            <span className="text-[10px] text-muted-foreground truncate w-full text-center">
+              {d.label.split(" ")[0]}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

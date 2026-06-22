@@ -511,15 +511,25 @@ export const adminRouter = router({
   // PARTNER REVENUE SPLIT
   // ============================================================================
 
-  getPartnerTransferSummary: adminProcedure.query(async () => {
-    const { getPartnerTransferSummary } = await import("./partnerSplit");
-    return await getPartnerTransferSummary();
-  }),
+  getPartnerTransferSummary: adminProcedure
+    .input(z.object({
+      startDate: z.string().optional(),
+      endDate: z.string().optional(),
+    }).optional())
+    .query(async ({ input }) => {
+      const { getPartnerTransferSummaryFiltered } = await import("./partnerSplit");
+      return await getPartnerTransferSummaryFiltered({
+        startDate: input?.startDate ? new Date(input.startDate) : undefined,
+        endDate: input?.endDate ? new Date(input.endDate) : undefined,
+      });
+    }),
 
   getPartnerTransfers: adminProcedure
     .input(z.object({
       sourceType: z.enum(["provider_subscription", "customer_subscription", "booking_platform_fee"]).optional(),
       status: z.enum(["pending", "completed", "failed"]).optional(),
+      startDate: z.string().optional(),
+      endDate: z.string().optional(),
       limit: z.number().min(1).max(100).default(50),
       offset: z.number().min(0).default(0),
     }).optional())
@@ -528,8 +538,36 @@ export const adminRouter = router({
       return await getPartnerTransfers({
         sourceType: input?.sourceType,
         status: input?.status,
+        startDate: input?.startDate ? new Date(input.startDate) : undefined,
+        endDate: input?.endDate ? new Date(input.endDate) : undefined,
         limit: input?.limit,
         offset: input?.offset,
+      });
+    }),
+
+  getPartnerMonthlyBreakdown: adminProcedure
+    .input(z.object({
+      months: z.number().min(1).max(24).default(12),
+    }).optional())
+    .query(async ({ input }) => {
+      const { getMonthlyRevenueBreakdown } = await import("./partnerSplit");
+      return await getMonthlyRevenueBreakdown({ months: input?.months });
+    }),
+
+  getPartnerTransfersExport: adminProcedure
+    .input(z.object({
+      sourceType: z.enum(["provider_subscription", "customer_subscription", "booking_platform_fee"]).optional(),
+      status: z.enum(["pending", "completed", "failed"]).optional(),
+      startDate: z.string().optional(),
+      endDate: z.string().optional(),
+    }).optional())
+    .query(async ({ input }) => {
+      const { getPartnerTransfersForExport } = await import("./partnerSplit");
+      return await getPartnerTransfersForExport({
+        sourceType: input?.sourceType,
+        status: input?.status,
+        startDate: input?.startDate ? new Date(input.startDate) : undefined,
+        endDate: input?.endDate ? new Date(input.endDate) : undefined,
       });
     }),
 });

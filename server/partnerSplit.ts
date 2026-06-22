@@ -240,6 +240,141 @@ export async function getPartnerTransferSummary() {
   };
 }
 
+/**
+ * Get partner transfer summary with optional date range filter
+ */
+export async function getPartnerTransferSummaryFiltered(options?: {
+  startDate?: Date;
+  endDate?: Date;
+}) {
+  const db = await getDb();
+  if (!db) {
+    return {
+      totalTransferred: 0,
+      totalRevenue: 0,
+      platformShare: 0,
+      totalCount: 0,
+      completedCount: 0,
+      failedCount: 0,
+      subscriptionRevenue: 0,
+      bookingFeeRevenue: 0,
+      splitPercentage: { partner: PARTNER_SPLIT_PERCENTAGE, platform: PLATFORM_SPLIT_PERCENTAGE },
+    };
+  }
+
+  const conditions = [];
+  if (options?.startDate) {
+    conditions.push(gte(partnerTransfers.createdAt, options.startDate));
+  }
+  if (options?.endDate) {
+    conditions.push(lte(partnerTransfers.createdAt, options.endDate));
+  }
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const [totals] = await db
+    .select({
+      totalTransferred: sql<string>`COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0)`,
+      totalRevenue: sql<string>`COALESCE(SUM(CASE WHEN status = 'completed' THEN totalRevenue ELSE 0 END), 0)`,
+      totalCount: sql<number>`COUNT(*)`,
+      completedCount: sql<number>`SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END)`,
+      failedCount: sql<number>`SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END)`,
+      subscriptionRevenue: sql<string>`COALESCE(SUM(CASE WHEN status = 'completed' AND (sourceType = 'provider_subscription' OR sourceType = 'customer_subscription') THEN amount ELSE 0 END), 0)`,
+      bookingFeeRevenue: sql<string>`COALESCE(SUM(CASE WHEN status = 'completed' AND sourceType = 'booking_platform_fee' THEN amount ELSE 0 END), 0)`,
+    })
+    .from(partnerTransfers)
+    .where(whereClause);
+
+  return {
+    totalTransferred: parseFloat(totals?.totalTransferred || "0"),
+    totalRevenue: parseFloat(totals?.totalRevenue || "0"),
+    platformShare: parseFloat(totals?.totalRevenue || "0") - parseFloat(totals?.totalTransferred || "0"),
+    totalCount: Number(totals?.totalCount || 0),
+    completedCount: Number(totals?.completedCount || 0),
+    failedCount: Number(totals?.failedCount || 0),
+    subscriptionRevenue: parseFloat(totals?.subscriptionRevenue || "0"),
+    bookingFeeRevenue: parseFloat(totals?.bookingFeeRevenue || "0"),
+    splitPercentage: { partner: PARTNER_SPLIT_PERCENTAGE, platform: PLATFORM_SPLIT_PERCENTAGE },
+  };
+}
+
+/**
+ * Get monthly revenue breakdown for chart display
+ */
+export async function getMonthlyRevenueBreakdown(options?: {
+  months?: number; // How many months back to show, default 12
+}) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const monthsBack = options?.months || 12;
+  const startDate = new Date();
+  startDate.setMonth(startDate.getMonth() - monthsBack);
+  startDate.setDate(1);
+  startDate.setHours(0, 0, 0, 0);
+
+  const results = await db
+    .select({
+      month: sql<string>`DATE_FORMAT(createdAt, '%Y-%m')`,
+      totalRevenue: sql<string>`COALESCE(SUM(CASE WHEN status = 'completed' THEN totalRevenue ELSE 0 END), 0)`,
+      partnerShare: sql<string>`COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0)`,
+      transferCount: sql<number>`COUNT(*)`,
+    })
+    .from(partnerTransfers)
+    .where(gte(partnerTransfers.createdAt, startDate))
+    .groupBy(sql`DATE_FORMAT(createdAt, '%Y-%m')`)
+    .orderBy(sql`DATE_FORMAT(createdAt, '%Y-%m')`);
+
+  return results.map((row) => {
+    const totalRev = parseFloat(row.totalRevenue || "0");
+    const partnerAmt = parseFloat(row.partnerShare || "0");
+    return {
+      month: row.month,
+      totalRevenue: totalRev,
+      platformShare: totalRev - partnerAmt,
+      partnerShare: partnerAmt,
+      transferCount: Number(row.transferCount || 0),
+    };
+  });
+}
+
+/**
+ * Get all transfers for CSV export (no pagination limit)
+ */
+export async function getPartnerTransfersForExport(options?: {
+  sourceType?: TransferSourceType;
+  status?: "pending" | "completed" | "failed";
+  startDate?: Date;
+  endDate?: Date;
+}) {
+  const conditions = [];
+
+  if (options?.sourceType) {
+    conditions.push(eq(partnerTransfers.sourceType, options.sourceType));
+  }
+  if (options?.status) {
+    conditions.push(eq(partnerTransfers.status, options.status));
+  }
+  if (options?.startDate) {
+    conditions.push(gte(partnerTransfers.createdAt, options.startDate));
+  }
+  if (options?.endDate) {
+    conditions.push(lte(partnerTransfers.createdAt, options.endDate));
+  }
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const db = await getDb();
+  if (!db) return [];
+
+  const transfers = await db
+    .select()
+    .from(partnerTransfers)
+    .where(whereClause)
+    .orderBy(desc(partnerTransfers.createdAt));
+
+  return transfers;
+}
+
 // Export constants for use in tests and other modules
 export const SPLIT_CONFIG = {
   partnerPercentage: PARTNER_SPLIT_PERCENTAGE,

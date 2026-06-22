@@ -1565,3 +1565,11 @@
 - [x] Add Admin Dashboard link in UserMenuDropdown (visible only for admin users)
 - [x] Improve admin button styling in desktop nav for better visibility
 - [x] Add admin link in mobile menu with proper icon
+
+## Feature: Partner Split Tab Enhancements
+- [x] Add date range filter to partner transfers backend query
+- [x] Add CSV export endpoint for partner transfer history
+- [x] Add monthly revenue breakdown data endpoint for chart
+- [x] Build date range filter UI in Partner Split panel
+- [x] Build CSV export button in Partner Split panel
+- [x] Build monthly revenue breakdown chart (60/40 visual)
