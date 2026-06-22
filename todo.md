@@ -1626,3 +1626,9 @@
 - [x] Search input fields text cut off on mobile across tabs
 - [x] Add search bar to Team tab to find team members
 - [x] Add search bars to all admin tabs (Providers, Reviews, Documents) for finding users/providers
+
+## Feature: Delete User + Admin Access Restriction
+- [x] Add delete user procedure to admin router (super admin only, with confirmation, cascading cleanup)
+- [x] Add delete user button with confirmation dialog to admin user detail page (type DELETE to confirm)
+- [x] Restrict admin access to only Gary Chisolm (ID 1) and Winston Williams (ID 2190437)
+- [x] Demoted all other admins and deleted 7,222 test users (keeping Gary, Winston x2, OlogyCrew Official)

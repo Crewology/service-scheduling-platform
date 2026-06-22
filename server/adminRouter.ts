@@ -570,4 +570,33 @@ export const adminRouter = router({
         endDate: input?.endDate ? new Date(input.endDate) : undefined,
       });
     }),
+  deleteUser: superAdminProcedure
+    .input(z.object({ userId: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      const { userId } = input;
+      // Prevent deleting yourself
+      if (userId === ctx.user.id) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "You cannot delete your own account" });
+      }
+      // Prevent deleting other super admins
+      const targetUser = await db.getUserById(userId);
+      if (!targetUser) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      }
+      if (targetUser.role === "admin" && (targetUser as any).adminRole === "super_admin") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Cannot delete a super admin. Demote them first." });
+      }
+      // Perform cascading delete
+      const { deleteUserCascade } = await import("./db/deleteUser");
+      await deleteUserCascade(userId);
+      // Create audit entry
+      await createAuditEntry({
+        action: "delete_user",
+        actorId: ctx.user.id,
+        targetId: userId,
+        targetType: "user",
+        details: { deletedName: targetUser.name, deletedEmail: targetUser.email || 'no email' },
+      });
+      return { success: true, message: `User ${targetUser.name} has been deleted` };
+    }),
 });

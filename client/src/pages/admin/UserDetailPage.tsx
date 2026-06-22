@@ -26,7 +26,10 @@ import {
   MapPin,
   Clock,
   Activity,
+  Trash2,
 } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 export default function UserDetailPage() {
   const { user: currentUser, loading: authLoading } = useAuth();
@@ -57,6 +60,17 @@ export default function UserDetailPage() {
     },
     onError: (err) => toast.error(err.message),
   });
+
+  const deleteUser = trpc.admin.deleteUser.useMutation({
+    onSuccess: (result) => {
+      toast.success(result.message);
+      navigate("/admin");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
   if (authLoading || isLoading) {
     return <LoadingSpinner message="Loading user details..." />;
@@ -194,7 +208,51 @@ export default function UserDetailPage() {
                       </Button>
                     )
                   )}
+                  {user.id !== currentUser?.id && (
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => setShowDeleteDialog(true)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5 mr-1" />
+                      Delete
+                    </Button>
+                  )}
                 </div>
+
+                {/* Delete Confirmation Dialog */}
+                <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Delete User Permanently</DialogTitle>
+                      <DialogDescription>
+                        This will permanently delete <strong>{user.name}</strong> and all their data (bookings, reviews, messages, provider profile, etc.). This action cannot be undone.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Type <strong>DELETE</strong> to confirm:
+                      </p>
+                      <Input
+                        value={deleteConfirmText}
+                        onChange={(e) => setDeleteConfirmText(e.target.value)}
+                        placeholder="Type DELETE to confirm"
+                      />
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => { setShowDeleteDialog(false); setDeleteConfirmText(""); }}>
+                        Cancel
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        disabled={deleteConfirmText !== "DELETE" || deleteUser.isPending}
+                        onClick={() => deleteUser.mutate({ userId: user.id })}
+                      >
+                        {deleteUser.isPending ? "Deleting..." : "Delete User"}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
             </CardContent>
           </Card>
