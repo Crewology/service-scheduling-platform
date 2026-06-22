@@ -127,11 +127,11 @@ router.post("/api/auth/login", async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
-    // Check if user has a password (might be Google-only account)
+    // If user has no password (Google-only account), redirect to Google sign-in automatically
     if (!user.passwordHash) {
-      return res.status(401).json({ 
-        error: "This account uses Google sign-in. Please sign in with Google.",
-        useGoogle: true 
+      return res.status(200).json({ 
+        redirectToGoogle: true,
+        message: "Signing you in with Google..."
       });
     }
 

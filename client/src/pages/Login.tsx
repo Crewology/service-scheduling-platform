@@ -53,6 +53,13 @@ export default function Login() {
         return;
       }
 
+      // If account uses Google sign-in, auto-redirect to Google OAuth
+      if (data.redirectToGoogle) {
+        const origin = window.location.origin;
+        window.location.href = `/api/auth/google?origin=${encodeURIComponent(origin)}`;
+        return;
+      }
+
       // Redirect based on user state
       if (!data.user.hasSelectedRole) {
         window.location.href = "/select-role";

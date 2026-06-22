@@ -1602,3 +1602,6 @@
 - [x] Fix server-side cookie clearing: use both clearCookie AND set cookie to empty with maxAge:0/expires:past
 - [x] Fix client-side cache clearing: useAuth logout now calls queryClient.clear() and removes localStorage
 - [x] Update logout test to verify both clearCookie and empty cookie approaches
+
+## Bug Fix: Allow Login Regardless of Original Auth Method
+- [x] Remove restriction that blocks email/password login for Google-created accounts — users should be able to log in with either method
