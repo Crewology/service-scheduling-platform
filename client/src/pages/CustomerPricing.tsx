@@ -37,6 +37,7 @@ const providerPlans = [
     borderColor: "border-border",
     description: "Get started and list your services — no cost, no commitment.",
     highlights: [
+      { text: "Free Forever", icon: Star },
       { text: "1 service category", icon: Layers },
       { text: "Up to 3 services", icon: Briefcase },
       { text: "1 photo per service", icon: Camera },
@@ -129,6 +130,7 @@ const customerPlans = [
     borderColor: "border-border",
     description: "Perfect for individuals booking personal services occasionally.",
     highlights: [
+      { text: "Free Forever", icon: Star },
       { text: "Save up to 5 providers", icon: Heart },
       { text: "Book any service", icon: Briefcase },
       { text: "Message providers", icon: MessageSquare },
