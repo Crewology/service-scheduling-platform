@@ -15,11 +15,38 @@ function getSiteUrl(): string {
   return "https://servsched-qd7ehrqo.manus.space";
 }
 
+// Email sender addresses by context
+const EMAIL_SENDERS = {
+  noreply: { email: "noreply@ologycrew.com", name: "OlogyCrew" },
+  info: { email: "info@ologycrew.com", name: "OlogyCrew" },
+  support: { email: "support@ologycrew.com", name: "OlogyCrew Support" },
+};
+
 /**
- * Email notification provider using SendGrid API.
- * Automatically generates unsubscribe tokens and includes
- * one-click unsubscribe links in every email footer.
+ * Determine the appropriate sender address based on notification type.
+ * - noreply: automated transactional emails (confirmations, reminders, password resets)
+ * - info: general communications (welcome emails, announcements, referrals)
+ * - support: support-related (payment failures, account issues, disputes)
  */
+function getSenderForType(type?: string): { email: string; name: string } {
+  if (!type) return EMAIL_SENDERS.noreply;
+
+  // Support-related emails
+  const supportTypes = ['payment_failed', 'refund_processed', 'subscription_cancelled'];
+  if (supportTypes.includes(type)) return EMAIL_SENDERS.support;
+
+  // General/informational emails
+  const infoTypes = [
+    'welcome_customer', 'welcome_provider', 'referral_signup',
+    'referral_completed', 'referral_welcome', 'trial_started',
+    'waitlist_spot_available', 'subscription_upgraded', 'subscription_updated',
+  ];
+  if (infoTypes.includes(type)) return EMAIL_SENDERS.info;
+
+  // Everything else is automated/transactional → noreply
+  return EMAIL_SENDERS.noreply;
+}
+
 export class EmailProvider implements NotificationProvider {
   name = "email";
 
@@ -83,10 +110,7 @@ export class EmailProvider implements NotificationProvider {
           personalizations: [{
             to: [{ email: notification.recipient.email }],
           }],
-          from: {
-            email: "garychisolm30@gmail.com",
-            name: "OlogyCrew",
-          },
+          from: getSenderForType(notification.type),
           subject: template.subject,
           content: [
             {
@@ -120,9 +144,10 @@ export class EmailProvider implements NotificationProvider {
 
   /**
    * Send a raw email directly via SendGrid (no user preferences check).
-   * Used for test/preview emails.
+   * Used for password resets, verification emails, etc.
+   * @param senderType - which sender address to use: 'noreply' | 'info' | 'support'
    */
-  static async sendRaw(to: string, subject: string, htmlBody: string, textBody: string): Promise<boolean> {
+  static async sendRaw(to: string, subject: string, htmlBody: string, textBody: string, senderType: 'noreply' | 'info' | 'support' = 'noreply'): Promise<boolean> {
     if (!ENV.sendgridApiKey) {
       console.warn("[EmailProvider] SendGrid API key not configured");
       return false;
@@ -139,10 +164,7 @@ export class EmailProvider implements NotificationProvider {
           personalizations: [{
             to: [{ email: to }],
           }],
-          from: {
-            email: "garychisolm30@gmail.com",
-            name: "OlogyCrew",
-          },
+          from: EMAIL_SENDERS[senderType],
           subject,
           content: [
             { type: "text/plain", value: textBody },

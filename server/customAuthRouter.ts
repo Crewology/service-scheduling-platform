@@ -79,7 +79,8 @@ router.post("/api/auth/register", async (req: Request, res: Response) => {
           <p style="color: #999; font-size: 12px;">If you didn't create this account, you can safely ignore this email.</p>
         </div>
       `,
-      `Welcome to OlogyCrew! Verify your email: ${verifyUrl}`
+      `Welcome to OlogyCrew! Verify your email: ${verifyUrl}`,
+      'info'
     );
 
     // Create session and set cookie (user can use the app while unverified, but with limited access)
@@ -382,7 +383,8 @@ router.post("/api/auth/resend-verification", async (req: Request, res: Response)
           <p style="color: #666; font-size: 14px;">This link expires in 24 hours.</p>
         </div>
       `,
-      `Verify your OlogyCrew email: ${verifyUrl}`
+      `Verify your OlogyCrew email: ${verifyUrl}`,
+      'noreply'
     );
 
     return res.json({ success: true, message: "Verification email sent." });
@@ -436,7 +438,8 @@ router.post("/api/auth/forgot-password", async (req: Request, res: Response) => 
           <p style="color: #999; font-size: 12px;">If you didn't request this, you can safely ignore this email. Your password won't be changed.</p>
         </div>
       `,
-      `Reset your OlogyCrew password: ${resetUrl}`
+      `Reset your OlogyCrew password: ${resetUrl}`,
+      'noreply'
     );
     console.log(`[Auth] Password reset email result: ${emailSent}`);
 

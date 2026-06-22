@@ -1610,3 +1610,8 @@
 - [x] Fix forgot password email not being delivered when user enters their email (was blocking Google-only accounts)
 - [x] Add "Change Password" / "Set Password" section in user profile settings (with strength indicator + eye toggle)
 - [x] Allow Google-only accounts to set a password so they can log in with email/password too
+
+## Feature: Context-Appropriate Email Sender Addresses
+- [x] Use noreply@ologycrew.com for automated notifications (password resets, booking confirmations, reminders)
+- [x] Use info@ologycrew.com for general platform communications (welcome emails, announcements)
+- [x] Use support@ologycrew.com for support-related emails (account issues, disputes)
