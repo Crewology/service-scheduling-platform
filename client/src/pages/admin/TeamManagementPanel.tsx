@@ -30,6 +30,7 @@ export function TeamManagementPanel() {
   const utils = trpc.useUtils();
   const [promoteDialogOpen, setPromoteDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [teamFilter, setTeamFilter] = useState("");
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [selectedRole, setSelectedRole] = useState<string>("support_agent");
   const [confirmDemoteId, setConfirmDemoteId] = useState<number | null>(null);
@@ -78,22 +79,40 @@ export function TeamManagementPanel() {
     <div className="space-y-6">
       {/* Header with Add button */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <CardTitle className="flex items-center gap-2">
               <Shield className="h-5 w-5" />
               Team Management
             </CardTitle>
             <CardDescription className="mt-1">
-              Manage who has admin access to the platform. Only the platform owner and super admins can add or remove team members.
+              Manage admin access. Only owner and super admins can modify team.
             </CardDescription>
           </div>
-          <Button onClick={() => setPromoteDialogOpen(true)}>
+          <Button className="w-full sm:w-auto" onClick={() => setPromoteDialogOpen(true)}>
             <UserPlus className="h-4 w-4 mr-2" />
             Add Team Member
           </Button>
         </CardHeader>
         <CardContent>
+          {/* Team Search Bar */}
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search team members..."
+              value={teamFilter}
+              onChange={(e) => setTeamFilter(e.target.value)}
+              className="pl-9 pr-9 text-sm"
+            />
+            {teamFilter && (
+              <button
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                onClick={() => setTeamFilter("")}
+              >
+                <span className="text-lg leading-none">&times;</span>
+              </button>
+            )}
+          </div>
           {/* Team Members Table */}
           <div className="overflow-x-auto">
             <Table>
@@ -108,7 +127,13 @@ export function TeamManagementPanel() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {teamMembers?.map((member: any) => {
+                {teamMembers?.filter((member: any) => {
+                  if (!teamFilter.trim()) return true;
+                  const q = teamFilter.toLowerCase();
+                  return (member.name || "").toLowerCase().includes(q) ||
+                    (member.email || "").toLowerCase().includes(q) ||
+                    (ADMIN_ROLE_LABELS[member.adminRole] || "").toLowerCase().includes(q);
+                }).map((member: any) => {
                   const isOwner = member.isOwner;
                   const isSelf = member.id === currentUser?.id;
                   return (

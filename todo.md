@@ -1618,3 +1618,11 @@
 
 ## Bug Fix: Admin Dashboard Mobile Navigation Overflow
 - [x] Fix admin dashboard tab/nav items overflowing on mobile view (Overview, Subscriptions, Users, Providers, Bookings, Reviews, Documents, Support, Referrals, Push, Team, Audit Log, Partner Split need to fit mobile screen)
+
+## Bug Fix: Admin Dashboard Mobile Layout Issues + Search
+- [x] Overview tab: Fix pending verifications and reject button cut off on mobile
+- [x] Providers tab: Fix Trust Score Management and Recalculate All button cut off on mobile
+- [x] Reviews tab: Fix stars going off grid on mobile
+- [x] Search input fields text cut off on mobile across tabs
+- [x] Add search bar to Team tab to find team members
+- [x] Add search bars to all admin tabs (Providers, Reviews, Documents) for finding users/providers

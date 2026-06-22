@@ -249,6 +249,8 @@ function SubscriptionAnalyticsPanel() {
 export default function AdminDashboard() {
   const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
+  const [providerSearch, setProviderSearch] = useState("");
+  const [bookingSearch, setBookingSearch] = useState("");
   const utils = trpc.useUtils();
   
   useProtectedPage();
@@ -457,18 +459,18 @@ export default function AdminDashboard() {
                   ) : (
                     <div className="space-y-3">
                       {providers?.filter((p: any) => p.verificationStatus === "pending").slice(0, 5).map((provider: any) => (
-                        <div key={provider.id} className="flex items-center justify-between py-2 border-b last:border-0">
-                          <div>
-                            <p className="text-sm font-medium">{provider.businessName}</p>
+                        <div key={provider.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 py-2 border-b last:border-0">
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">{provider.businessName}</p>
                             <p className="text-xs text-muted-foreground capitalize">{provider.businessType?.replace('_', ' ')}</p>
                           </div>
-                          <div className="flex gap-1">
-                            <Button size="sm" onClick={() => verifyProvider.mutate({ providerId: provider.id })} disabled={verifyProvider.isPending}>
-                              <CheckCircle className="h-3.5 w-3.5 mr-1" />
+                          <div className="flex gap-1 shrink-0">
+                            <Button size="sm" className="text-xs px-2" onClick={() => verifyProvider.mutate({ providerId: provider.id })} disabled={verifyProvider.isPending}>
+                              <CheckCircle className="h-3 w-3 mr-1" />
                               Verify
                             </Button>
-                            <Button size="sm" variant="outline" onClick={() => rejectProvider.mutate({ providerId: provider.id, reason: "Does not meet requirements" })} disabled={rejectProvider.isPending}>
-                              <XCircle className="h-3.5 w-3.5 mr-1" />
+                            <Button size="sm" variant="outline" className="text-xs px-2" onClick={() => rejectProvider.mutate({ providerId: provider.id, reason: "Does not meet requirements" })} disabled={rejectProvider.isPending}>
+                              <XCircle className="h-3 w-3 mr-1" />
                               Reject
                             </Button>
                           </div>
@@ -530,10 +532,10 @@ export default function AdminDashboard() {
           <TabsContent value="providers">
             {/* Bulk Trust Recalculation Card */}
             <Card className="mb-6 border-amber-200 bg-amber-50/50">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                <div>
+              <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3">
+                <div className="min-w-0">
                   <CardTitle className="text-base flex items-center gap-2">
-                    <ShieldCheck className="h-5 w-5 text-amber-600" />
+                    <ShieldCheck className="h-5 w-5 text-amber-600 shrink-0" />
                     Trust Score Management
                   </CardTitle>
                   <CardDescription className="mt-1">Recalculate trust scores for all active providers based on current data</CardDescription>
@@ -541,12 +543,12 @@ export default function AdminDashboard() {
                 <Button
                   onClick={() => recalculateAllTrust.mutate()}
                   disabled={recalculateAllTrust.isPending}
-                  className="bg-amber-600 hover:bg-amber-700"
+                  className="bg-amber-600 hover:bg-amber-700 shrink-0 w-full sm:w-auto text-xs sm:text-sm"
                 >
                   {recalculateAllTrust.isPending ? (
                     <><RefreshCw className="h-4 w-4 mr-2 animate-spin" />Recalculating...</>
                   ) : (
-                    <><RefreshCw className="h-4 w-4 mr-2" />Recalculate All Trust Scores</>
+                    <><RefreshCw className="h-4 w-4 mr-2" />Recalculate All</>
                   )}
                 </Button>
               </CardHeader>
@@ -566,6 +568,24 @@ export default function AdminDashboard() {
                 <CardDescription>Verify and manage service providers</CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Provider Search */}
+                <div className="relative mb-4">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search providers..."
+                    value={providerSearch}
+                    onChange={(e) => setProviderSearch(e.target.value)}
+                    className="pl-9 pr-9 text-sm"
+                  />
+                  {providerSearch && (
+                    <button
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      onClick={() => setProviderSearch("")}
+                    >
+                      <XCircle className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
                 {providersLoading ? (
                   <LoadingSpinner />
                 ) : (
@@ -583,7 +603,14 @@ export default function AdminDashboard() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {providers?.map((provider: any) => (
+                      {providers?.filter((provider: any) => {
+                        if (!providerSearch.trim()) return true;
+                        const q = providerSearch.toLowerCase();
+                        return (provider.businessName || "").toLowerCase().includes(q) ||
+                          (provider.businessType || "").toLowerCase().includes(q) ||
+                          (provider.city || "").toLowerCase().includes(q) ||
+                          (provider.state || "").toLowerCase().includes(q);
+                      }).map((provider: any) => (
                         <TableRow key={provider.id}>
                           <TableCell className="font-medium">{provider.businessName}</TableCell>
                           <TableCell className="capitalize">{provider.businessType?.replace('_', ' ')}</TableCell>
@@ -643,6 +670,24 @@ export default function AdminDashboard() {
                 <CardDescription>Monitor all platform bookings</CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Booking Search */}
+                <div className="relative mb-4">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search bookings..."
+                    value={bookingSearch}
+                    onChange={(e) => setBookingSearch(e.target.value)}
+                    className="pl-9 pr-9 text-sm"
+                  />
+                  {bookingSearch && (
+                    <button
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      onClick={() => setBookingSearch("")}
+                    >
+                      <XCircle className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
                 {bookingsLoading ? (
                   <LoadingSpinner />
                 ) : (
@@ -659,7 +704,14 @@ export default function AdminDashboard() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {bookings?.map((booking: any) => (
+                      {bookings?.filter((booking: any) => {
+                        if (!bookingSearch.trim()) return true;
+                        const q = bookingSearch.toLowerCase();
+                        return (booking.bookingNumber || "").toLowerCase().includes(q) ||
+                          (booking.serviceName || "").toLowerCase().includes(q) ||
+                          (booking.status || "").toLowerCase().includes(q) ||
+                          (booking.bookingDate || "").includes(q);
+                      }).map((booking: any) => (
                         <TableRow key={booking.id}>
                           <TableCell>
                             <p className="font-medium">{booking.serviceName || 'Service'}</p>
@@ -739,6 +791,7 @@ export default function AdminDashboard() {
 // ============================================================================
 function ReviewModerationPanel() {
   const [flaggedOnly, setFlaggedOnly] = useState(false);
+  const [reviewSearch, setReviewSearch] = useState("");
   const [flagDialogOpen, setFlagDialogOpen] = useState(false);
   const [selectedReviewId, setSelectedReviewId] = useState<number | null>(null);
   const [flagReason, setFlagReason] = useState("");
@@ -766,7 +819,7 @@ function ReviewModerationPanel() {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <CardTitle>Review Moderation</CardTitle>
             <CardDescription>Manage and moderate user reviews</CardDescription>
@@ -774,6 +827,7 @@ function ReviewModerationPanel() {
           <Button
             variant={flaggedOnly ? "default" : "outline"}
             size="sm"
+            className="w-full sm:w-auto text-xs sm:text-sm"
             onClick={() => setFlaggedOnly(!flaggedOnly)}
           >
             <Flag className="h-4 w-4 mr-1" />
@@ -782,27 +836,53 @@ function ReviewModerationPanel() {
         </div>
       </CardHeader>
       <CardContent>
+        {/* Review Search */}
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search reviews..."
+            value={reviewSearch}
+            onChange={(e) => setReviewSearch(e.target.value)}
+            className="pl-9 pr-9 text-sm"
+          />
+          {reviewSearch && (
+            <button
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              onClick={() => setReviewSearch("")}
+            >
+              <XCircle className="h-4 w-4" />
+            </button>
+          )}
+        </div>
         {isLoading ? (
           <LoadingSpinner message="Loading reviews..." />
         ) : !reviews || reviews.length === 0 ? (
           <p className="text-muted-foreground text-center py-8">{flaggedOnly ? "No flagged reviews" : "No reviews yet"}</p>
         ) : (
           <div className="space-y-4">
-            {reviews.map((item: any) => (
+            {reviews.filter((item: any) => {
+              if (!reviewSearch.trim()) return true;
+              const q = reviewSearch.toLowerCase();
+              return (item.customerName || "").toLowerCase().includes(q) ||
+                (item.providerName || "").toLowerCase().includes(q) ||
+                (item.review.reviewText || "").toLowerCase().includes(q);
+            }).map((item: any) => (
               <div key={item.review.id} className={`p-4 rounded-lg border ${item.review.isFlagged ? 'border-red-200 bg-red-50/50' : ''}`}>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium">{item.customerName}</span>
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1">
+                      <span className="font-medium text-sm">{item.customerName}</span>
                       <span className="text-muted-foreground">→</span>
-                      <span className="text-sm text-muted-foreground">{item.providerName}</span>
-                      <div className="flex items-center gap-0.5 ml-2">
+                      <span className="text-xs sm:text-sm text-muted-foreground truncate">{item.providerName}</span>
+                    </div>
+                    <div className="flex items-center gap-1 mb-1">
+                      <div className="flex items-center gap-0.5">
                         {Array.from({ length: 5 }).map((_, i) => (
-                          <Star key={i} className={`h-3.5 w-3.5 ${i < item.review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
+                          <Star key={i} className={`h-3 w-3 sm:h-3.5 sm:w-3.5 ${i < item.review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
                         ))}
                       </div>
                       {item.review.isFlagged && (
-                        <Badge variant="destructive" className="text-xs">
+                        <Badge variant="destructive" className="text-xs ml-1">
                           {item.review.flaggedReason === "HIDDEN_BY_ADMIN" ? "Hidden" : "Flagged"}
                         </Badge>
                       )}
@@ -871,6 +951,7 @@ function ReviewModerationPanel() {
 // ============================================================================
 function DocumentReviewPanel() {
   const [statusFilter, setStatusFilter] = useState("all");
+  const [docSearch, setDocSearch] = useState("");
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [selectedDocId, setSelectedDocId] = useState<number | null>(null);
   const [rejectReason, setRejectReason] = useState("");
@@ -901,13 +982,13 @@ function DocumentReviewPanel() {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <CardTitle>Verification Documents</CardTitle>
-            <CardDescription>Review and approve provider verification documents</CardDescription>
+            <CardDescription>Review and approve provider documents</CardDescription>
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-full sm:w-[150px]">
               <SelectValue placeholder="Filter" />
             </SelectTrigger>
             <SelectContent>
@@ -920,6 +1001,24 @@ function DocumentReviewPanel() {
         </div>
       </CardHeader>
       <CardContent>
+        {/* Document Search */}
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search documents..."
+            value={docSearch}
+            onChange={(e) => setDocSearch(e.target.value)}
+            className="pl-9 pr-9 text-sm"
+          />
+          {docSearch && (
+            <button
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              onClick={() => setDocSearch("")}
+            >
+              <XCircle className="h-4 w-4" />
+            </button>
+          )}
+        </div>
         {isLoading ? (
           <LoadingSpinner message="Loading documents..." />
         ) : !documents || documents.length === 0 ? (
@@ -937,7 +1036,12 @@ function DocumentReviewPanel() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {documents.map((item: any) => (
+              {documents.filter((item: any) => {
+                if (!docSearch.trim()) return true;
+                const q = docSearch.toLowerCase();
+                return (item.providerName || "").toLowerCase().includes(q) ||
+                  (item.documentType || "").toLowerCase().includes(q);
+              }).map((item: any) => (
                 <TableRow key={item.document.id}>
                   <TableCell className="font-medium">{item.providerName}</TableCell>
                   <TableCell className="capitalize">{item.document.documentType.replace("_", " ")}</TableCell>
@@ -1274,10 +1378,10 @@ function ContactSubmissionsPanel() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search submissions by name, email, subject, or message..."
+          placeholder="Search by name, email, subject..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
+          className="pl-10 pr-10 text-sm"
         />
         {searchQuery && (
           <button
@@ -2146,13 +2250,13 @@ function UsersFilterPanel({ suspendUser, unsuspendUser }: { suspendUser: any; un
       <CardContent>
         {/* Search & Filters */}
         <div className="flex flex-wrap gap-3 mb-4">
-          <div className="relative flex-1 min-w-[200px]">
+          <div className="relative flex-1 min-w-0 sm:min-w-[200px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by name, email, or phone..."
+              placeholder="Search by name, email..."
               value={userSearch}
               onChange={(e) => { setUserSearch(e.target.value); setUserPage(1); }}
-              className="pl-9"
+              className="pl-9 pr-9 text-sm"
             />
             {userSearch && (
               <button
@@ -2164,7 +2268,7 @@ function UsersFilterPanel({ suspendUser, unsuspendUser }: { suspendUser: any; un
             )}
           </div>
           <Select value={roleFilter} onValueChange={(v) => { setRoleFilter(v); setUserPage(1); }}>
-            <SelectTrigger className="w-[130px]">
+            <SelectTrigger className="w-[110px] sm:w-[130px] text-xs sm:text-sm">
               <SelectValue placeholder="All Roles" />
             </SelectTrigger>
             <SelectContent>
@@ -2175,7 +2279,7 @@ function UsersFilterPanel({ suspendUser, unsuspendUser }: { suspendUser: any; un
             </SelectContent>
           </Select>
           <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setUserPage(1); }}>
-            <SelectTrigger className="w-[130px]">
+            <SelectTrigger className="w-[110px] sm:w-[130px] text-xs sm:text-sm">
               <SelectValue placeholder="All Status" />
             </SelectTrigger>
             <SelectContent>
