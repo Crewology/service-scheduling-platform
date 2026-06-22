@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { User, Mail, Phone, Shield, Camera, Loader2, CheckCircle2, Circle, ArrowRight, Briefcase, AlertTriangle, Trash2 } from "lucide-react";
+import { User, Mail, Phone, Shield, Camera, Loader2, CheckCircle2, Circle, ArrowRight, Briefcase, AlertTriangle, Trash2, Lock, Eye, EyeOff } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -114,6 +114,159 @@ function BecomeProviderCard() {
             </Button>
           </div>
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function PasswordSection() {
+  const { data: passwordStatus, isLoading } = trpc.auth.hasPassword.useQuery();
+  const [showForm, setShowForm] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+
+  const changePassword = trpc.auth.changePassword.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.message);
+      setShowForm(false);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const getPasswordStrength = (pwd: string): { label: string; color: string; width: string } => {
+    if (pwd.length === 0) return { label: "", color: "", width: "0%" };
+    if (pwd.length < 8) return { label: "Too short", color: "bg-red-500", width: "20%" };
+    let score = 0;
+    if (/[a-z]/.test(pwd)) score++;
+    if (/[A-Z]/.test(pwd)) score++;
+    if (/[0-9]/.test(pwd)) score++;
+    if (/[^a-zA-Z0-9]/.test(pwd)) score++;
+    if (pwd.length >= 12) score++;
+    if (score <= 2) return { label: "Weak", color: "bg-orange-500", width: "40%" };
+    if (score <= 3) return { label: "Medium", color: "bg-yellow-500", width: "60%" };
+    if (score <= 4) return { label: "Strong", color: "bg-green-500", width: "80%" };
+    return { label: "Very strong", color: "bg-green-600", width: "100%" };
+  };
+
+  const strength = getPasswordStrength(newPassword);
+  const hasPassword = passwordStatus?.hasPassword;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+    if (newPassword.length < 8) {
+      toast.error("Password must be at least 8 characters");
+      return;
+    }
+    changePassword.mutate({
+      currentPassword: hasPassword ? currentPassword : undefined,
+      newPassword,
+    });
+  };
+
+  if (isLoading) return null;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          <Lock className="h-4 w-4" />
+          {hasPassword ? "Change Password" : "Set Password"}
+        </CardTitle>
+        <CardDescription>
+          {hasPassword
+            ? "Update your password to keep your account secure."
+            : "Set a password to log in with email and password in addition to Google."}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {!showForm ? (
+          <Button variant="outline" onClick={() => setShowForm(true)}>
+            <Lock className="h-4 w-4 mr-2" />
+            {hasPassword ? "Change Password" : "Set Password"}
+          </Button>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {hasPassword && (
+              <div>
+                <Label>Current Password</Label>
+                <div className="relative">
+                  <Input
+                    type={showCurrentPassword ? "text" : "password"}
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="Enter current password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+            )}
+            <div>
+              <Label>New Password</Label>
+              <div className="relative">
+                <Input
+                  type={showNewPassword ? "text" : "password"}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password (min 8 characters)"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {newPassword && (
+                <div className="mt-2">
+                  <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                    <div className={`h-full ${strength.color} transition-all duration-300 rounded-full`} style={{ width: strength.width }} />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">{strength.label}</p>
+                </div>
+              )}
+            </div>
+            <div>
+              <Label>Confirm New Password</Label>
+              <Input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm new password"
+              />
+              {confirmPassword && newPassword !== confirmPassword && (
+                <p className="text-xs text-red-500 mt-1">Passwords do not match</p>
+              )}
+            </div>
+            <div className="flex gap-2 pt-2">
+              <Button type="submit" disabled={changePassword.isPending}>
+                {changePassword.isPending ? "Saving..." : hasPassword ? "Update Password" : "Set Password"}
+              </Button>
+              <Button type="button" variant="outline" onClick={() => {
+                setShowForm(false);
+                setCurrentPassword("");
+                setNewPassword("");
+                setConfirmPassword("");
+              }}>Cancel</Button>
+            </div>
+          </form>
+        )}
       </CardContent>
     </Card>
   );
@@ -518,6 +671,9 @@ export default function UserProfile() {
             )}
           </CardContent>
         </Card>
+
+        {/* Password Management */}
+        <PasswordSection />
 
         {/* Become a Provider CTA — only for customers */}
         {isCustomer && <BecomeProviderCard />}

@@ -128,6 +128,7 @@ router.post("/api/auth/login", async (req: Request, res: Response) => {
     }
 
     // If user has no password (Google-only account), redirect to Google sign-in automatically
+    // They can set a password in their profile to enable email/password login
     if (!user.passwordHash) {
       return res.status(200).json({ 
         redirectToGoogle: true,
@@ -406,7 +407,7 @@ router.post("/api/auth/forgot-password", async (req: Request, res: Response) => 
     const user = await db.getUserByEmail(email.toLowerCase());
     
     // Always return success to prevent email enumeration
-    if (!user || !user.passwordHash) {
+    if (!user) {
       return res.json({ success: true, message: "If an account exists with this email, a reset link has been sent." });
     }
 
@@ -419,7 +420,8 @@ router.post("/api/auth/forgot-password", async (req: Request, res: Response) => 
     const origin = req.headers.origin || req.headers.referer?.replace(/\/$/, "") || "";
     const resetUrl = `${origin}/reset-password?token=${resetToken}`;
 
-    await EmailProvider.sendRaw(
+    console.log(`[Auth] Sending password reset email to ${email.toLowerCase()}, resetUrl: ${resetUrl}`);
+    const emailSent = await EmailProvider.sendRaw(
       email.toLowerCase(),
       "Reset your OlogyCrew password",
       `
@@ -436,6 +438,7 @@ router.post("/api/auth/forgot-password", async (req: Request, res: Response) => 
       `,
       `Reset your OlogyCrew password: ${resetUrl}`
     );
+    console.log(`[Auth] Password reset email result: ${emailSent}`);
 
     return res.json({ success: true, message: "If an account exists with this email, a reset link has been sent." });
   } catch (error) {

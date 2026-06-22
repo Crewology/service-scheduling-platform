@@ -5,6 +5,7 @@ import { z } from "zod";
 import * as db from "../db";
 import { COOKIE_NAME } from "@shared/const";
 import { ENV } from "../_core/env";
+import bcrypt from "bcryptjs";
 
 export const authRouter = router({
   me: publicProcedure.query(opts => opts.ctx.user),
@@ -185,5 +186,39 @@ export const authRouter = router({
       await db.updateUserProfile(ctx.user.id, updateData);
       const updated = await db.getUserById(ctx.user.id);
       return updated!;
+    }),
+
+  // Check if user has a password set (for showing Set vs Change password UI)
+  hasPassword: protectedProcedure.query(async ({ ctx }) => {
+    const user = await db.getUserById(ctx.user.id);
+    return { hasPassword: !!user?.passwordHash };
+  }),
+
+  // Change password (requires current password) or Set password (for Google-only accounts)
+  changePassword: protectedProcedure
+    .input(z.object({
+      currentPassword: z.string().optional(), // Optional for Google-only accounts setting password for first time
+      newPassword: z.string().min(8, "Password must be at least 8 characters"),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const user = await db.getUserById(ctx.user.id);
+      if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+
+      // If user already has a password, require current password
+      if (user.passwordHash) {
+        if (!input.currentPassword) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Current password is required" });
+        }
+        const isValid = await bcrypt.compare(input.currentPassword, user.passwordHash);
+        if (!isValid) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Current password is incorrect" });
+        }
+      }
+
+      // Hash and save new password
+      const passwordHash = await bcrypt.hash(input.newPassword, 12);
+      await db.updateUserPassword(user.id, passwordHash);
+
+      return { success: true, message: user.passwordHash ? "Password changed successfully" : "Password set successfully. You can now log in with email and password." };
     }),
 });

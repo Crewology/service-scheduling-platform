@@ -1605,3 +1605,8 @@
 
 ## Bug Fix: Allow Login Regardless of Original Auth Method
 - [x] Remove restriction that blocks email/password login for Google-created accounts — users should be able to log in with either method
+
+## Bug Fix: Forgot Password Email Not Sending + Profile Password Management
+- [x] Fix forgot password email not being delivered when user enters their email (was blocking Google-only accounts)
+- [x] Add "Change Password" / "Set Password" section in user profile settings (with strength indicator + eye toggle)
+- [x] Allow Google-only accounts to set a password so they can log in with email/password too
