@@ -10,7 +10,7 @@ import {
   FolderHeart, BarChart3, Headphones, Send,
   Star, Shield, Loader2, AlertTriangle,
   Briefcase, Users, Layers, Camera, Search,
-  MessageSquare, Bell, Palette, TrendingUp,
+  MessageSquare, Bell, Palette, TrendingUp, Clock,
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
@@ -66,6 +66,7 @@ const providerPlans = [
     popular: true,
     description: "For providers offering multiple service categories — grow your reach.",
     highlights: [
+      { text: "14 Day Free Trial", icon: Clock },
       { text: "Up to 5 categories", icon: Layers },
       { text: "Up to 10 services", icon: Briefcase },
       { text: "3 photos per service", icon: Camera },
@@ -94,6 +95,7 @@ const providerPlans = [
     borderColor: "border-amber-500/30",
     description: "Unlimited everything for established businesses and full-service pros.",
     highlights: [
+      { text: "14 Day Free Trial", icon: Clock },
       { text: "Unlimited categories", icon: Layers },
       { text: "Unlimited services", icon: Briefcase },
       { text: "5 photos per service", icon: Camera },
@@ -155,6 +157,7 @@ const customerPlans = [
     popular: true,
     description: "For frequent bookers and small event planners managing multiple providers.",
     highlights: [
+      { text: "14 Day Free Trial", icon: Clock },
       { text: "Save up to 50 providers", icon: Heart },
       { text: "Priority booking", icon: Star },
       { text: "Organize into folders", icon: FolderHeart },
@@ -181,6 +184,7 @@ const customerPlans = [
     borderColor: "border-amber-500/30",
     description: "For logistics managers, agencies, and production companies booking large crews.",
     highlights: [
+      { text: "14 Day Free Trial", icon: Clock },
       { text: "Unlimited saved providers", icon: Heart },
       { text: "Bulk quote requests", icon: Send },
       { text: "Booking analytics", icon: BarChart3 },

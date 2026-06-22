@@ -1573,3 +1573,12 @@
 - [x] Build date range filter UI in Partner Split panel
 - [x] Build CSV export button in Partner Split panel
 - [x] Build monthly revenue breakdown chart (60/40 visual)
+
+## Feature: 14-Day Free Trial for Paid Plans
+- [x] Add "14 Day Free Trial" as first bullet on Provider Pro and Business plans (pricing page)
+- [x] Add "14 Day Free Trial" as first bullet on Customer Coordinator and Manager plans (pricing page)
+- [x] Add trial fields to database schema (trialStartDate, trialEndDate, trialActive) — already exists: trialEndsAt + status='trialing'
+- [x] Update subscription signup to set 14-day trial period when user selects paid plan
+- [x] Build trial expiry detection (periodic check) — via checkTrialStatus on page load + heartbeat job
+- [x] Send notification alert when trial ends informing user to add credit card info
+- [x] Gate plan benefits behind trial/active subscription check — already gated via getCustomerTier

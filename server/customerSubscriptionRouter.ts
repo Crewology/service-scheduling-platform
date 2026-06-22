@@ -95,6 +95,7 @@ export const customerSubscriptionRouter = router({
     .input(z.object({
       tier: z.enum(["pro", "business"]),
       interval: z.enum(["month", "year"]).default("month"),
+      withTrial: z.boolean().default(true),
     }))
     .mutation(async ({ ctx, input }) => {
       const currentTier = await db.getCustomerTier(ctx.user.id);
@@ -120,7 +121,11 @@ export const customerSubscriptionRouter = router({
         customerId = customer.id;
       }
 
-      const session = await stripe.checkout.sessions.create({
+      // Check if user has already used a trial (reuse existingSub from above)
+      const hasUsedTrial = existingSub?.trialEndsAt != null;
+      const shouldApplyTrial = input.withTrial && !hasUsedTrial;
+
+      const sessionParams: Stripe.Checkout.SessionCreateParams = {
         customer: customerId,
         payment_method_types: ["card"],
         line_items: [{ price: priceId, quantity: 1 }],
@@ -132,15 +137,29 @@ export const customerSubscriptionRouter = router({
           tier: input.tier,
           type: "customer_subscription",
         },
-        subscription_data: {
+        allow_promotion_codes: true,
+      };
+
+      if (shouldApplyTrial) {
+        sessionParams.subscription_data = {
+          trial_period_days: 14,
           metadata: {
             userId: ctx.user.id.toString(),
             tier: input.tier,
             type: "customer_subscription",
           },
-        },
-        allow_promotion_codes: true,
-      });
+        };
+      } else {
+        sessionParams.subscription_data = {
+          metadata: {
+            userId: ctx.user.id.toString(),
+            tier: input.tier,
+            type: "customer_subscription",
+          },
+        };
+      }
+
+      const session = await stripe.checkout.sessions.create(sessionParams);
 
       return { url: session.url };
     }),
@@ -469,6 +488,132 @@ export const customerSubscriptionRouter = router({
     return {
       success: true,
       message: "Subscription resumed! Your plan is active again.",
+    };
+  }),
+
+  // Start 14-day free trial for customer (Coordinator tier)
+  startTrial: protectedProcedure
+    .input(z.object({
+      tier: z.enum(["pro", "business"]).default("pro"),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Check if already has an active/trialing subscription
+      const existing = await db.getCustomerSubscription(ctx.user.id);
+      if (existing && existing.status === "trialing") {
+        return { tier: existing.tier, status: existing.status, trialEndsAt: existing.trialEndsAt };
+      }
+      if (existing && existing.status === "active" && existing.tier !== "free") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Already have an active paid subscription" });
+      }
+
+      // Start 14-day trial
+      const now = new Date();
+      const trialEnd = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+
+      await db.upsertCustomerSubscription({
+        userId: ctx.user.id,
+        tier: input.tier,
+        status: "trialing",
+        trialEndsAt: trialEnd,
+        currentPeriodStart: now,
+        currentPeriodEnd: trialEnd,
+      });
+
+      // Send trial started notification (fire-and-forget)
+      const tierConfig = CUSTOMER_TIERS[input.tier];
+      if (ctx.user.email) {
+        sendNotification({
+          type: "trial_started",
+          channel: "email",
+          recipient: {
+            userId: ctx.user.id,
+            email: ctx.user.email,
+            name: ctx.user.name || undefined,
+          },
+          data: {
+            providerName: ctx.user.name || "there",
+            trialEndDate: trialEnd.toLocaleDateString("en-US", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            }),
+            dashboardUrl: "/saved-providers",
+            tierName: tierConfig.name,
+          },
+        }).catch(err => console.error("[CustomerTrial] Failed to send trial_started notification:", err));
+      }
+
+      return { tier: input.tier, status: "trialing" as const, trialEndsAt: trialEnd };
+    }),
+
+  // Check and handle customer trial expiry (called on page load)
+  checkTrialStatus: protectedProcedure.query(async ({ ctx }) => {
+    const sub = await db.getCustomerSubscription(ctx.user.id);
+    if (!sub) return null;
+
+    // If trialing, check if expired
+    if (sub.status === "trialing" && sub.trialEndsAt) {
+      const now = new Date();
+      const trialEnd = new Date(sub.trialEndsAt);
+      const daysRemaining = Math.max(0, Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+
+      if (daysRemaining <= 0) {
+        // Trial expired — downgrade to free
+        await db.upsertCustomerSubscription({
+          userId: ctx.user.id,
+          tier: "free",
+          status: "active",
+          trialEndsAt: undefined,
+          currentPeriodStart: undefined,
+          currentPeriodEnd: undefined,
+        });
+
+        // Send trial expired notification (fire-and-forget)
+        if (ctx.user.email) {
+          sendNotification({
+            type: "trial_expired",
+            channel: "email",
+            recipient: {
+              userId: ctx.user.id,
+              email: ctx.user.email,
+              name: ctx.user.name || undefined,
+            },
+            data: {
+              providerName: ctx.user.name || "there",
+              upgradeUrl: "/pricing",
+            },
+          }).catch(err => console.error("[CustomerTrial] Failed to send trial_expired notification:", err));
+        }
+
+        return {
+          isTrialing: false,
+          trialExpired: true,
+          daysRemaining: 0,
+          trialEndsAt: sub.trialEndsAt,
+          currentTier: "free" as const,
+          requiresPayment: true,
+        };
+      }
+
+      return {
+        isTrialing: true,
+        trialExpired: false,
+        daysRemaining,
+        trialEndsAt: sub.trialEndsAt,
+        currentTier: sub.tier,
+        showUrgentNudge: daysRemaining <= 3,
+        requiresPayment: false,
+      };
+    }
+
+    return {
+      isTrialing: false,
+      trialExpired: false,
+      daysRemaining: 0,
+      trialEndsAt: null,
+      currentTier: sub.tier,
+      requiresPayment: false,
     };
   }),
 

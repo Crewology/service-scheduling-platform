@@ -205,6 +205,10 @@ Sitemap: ${baseUrl}/sitemap.xml`;
     res.send(robotsTxt);
   });
 
+  // Scheduled task: trial expiry check (Heartbeat cron)
+  const { handleScheduledTrialExpiry } = await import("../scheduledTrialExpiry");
+  app.post("/api/scheduled/trial-expiry", handleScheduledTrialExpiry);
+
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
   // tRPC API
