@@ -251,24 +251,6 @@ export default function AdminDashboard() {
   
   useProtectedPage();
 
-  if (!authLoading && user?.role !== "admin") {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="max-w-md">
-          <CardHeader>
-            <CardTitle>Access Denied</CardTitle>
-            <CardDescription>You don't have permission to access this page.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link href="/">
-              <Button>Go Home</Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   // Bulk trust recalculation
   const [recalculateResult, setRecalculateResult] = useState<{ updated: number } | null>(null);
   const recalculateAllTrust = trpc.trust.recalculateAll.useMutation({
@@ -280,10 +262,11 @@ export default function AdminDashboard() {
     onError: (err) => toast.error(err.message),
   });
 
-  const { data: stats, isLoading: statsLoading } = trpc.admin.getStats.useQuery();
-  const { data: users, isLoading: usersLoading } = trpc.admin.listUsers.useQuery();
-  const { data: providers, isLoading: providersLoading } = trpc.admin.listProviders.useQuery();
-  const { data: bookings, isLoading: bookingsLoading } = trpc.admin.listBookings.useQuery();
+  const isAdmin = user?.role === "admin";
+  const { data: stats, isLoading: statsLoading } = trpc.admin.getStats.useQuery(undefined, { enabled: isAdmin });
+  const { data: users, isLoading: usersLoading } = trpc.admin.listUsers.useQuery(undefined, { enabled: isAdmin });
+  const { data: providers, isLoading: providersLoading } = trpc.admin.listProviders.useQuery(undefined, { enabled: isAdmin });
+  const { data: bookings, isLoading: bookingsLoading } = trpc.admin.listBookings.useQuery(undefined, { enabled: isAdmin });
 
   const suspendUser = trpc.admin.suspendUser.useMutation({
     onSuccess: () => {
@@ -320,7 +303,29 @@ export default function AdminDashboard() {
     onError: (err) => toast.error(err.message),
   });
 
-  if (authLoading || statsLoading) {
+  if (authLoading) {
+    return <LoadingSpinner message="Loading admin dashboard..." />;
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle>Access Denied</CardTitle>
+            <CardDescription>You don't have permission to access this page.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href="/">
+              <Button>Go Home</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (statsLoading) {
     return <LoadingSpinner message="Loading admin dashboard..." />;
   }
 
