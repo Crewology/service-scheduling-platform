@@ -1597,3 +1597,8 @@
 - [x] Update navigation to use new auth pages instead of Manus OAuth
 - [x] Migrate existing users to work with new auth system — compatible via shared JWT/cookie system
 - [x] Remove/bypass Manus OAuth dependency — getLoginUrl() now redirects to /login
+
+## Bug Fix: Logout Not Working (Users Appear Still Logged In After Logout)
+- [x] Fix server-side cookie clearing: use both clearCookie AND set cookie to empty with maxAge:0/expires:past
+- [x] Fix client-side cache clearing: useAuth logout now calls queryClient.clear() and removes localStorage
+- [x] Update logout test to verify both clearCookie and empty cookie approaches

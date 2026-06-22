@@ -1,6 +1,7 @@
 import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { TRPCClientError } from "@trpc/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo } from "react";
 
 type UseAuthOptions = {
@@ -24,6 +25,8 @@ export function useAuth(options?: UseAuthOptions) {
     },
   });
 
+  const queryClient = useQueryClient();
+
   const logout = useCallback(async () => {
     try {
       await logoutMutation.mutateAsync();
@@ -32,14 +35,17 @@ export function useAuth(options?: UseAuthOptions) {
         error instanceof TRPCClientError &&
         error.data?.code === "UNAUTHORIZED"
       ) {
-        return;
+        // Already logged out, that's fine
+      } else {
+        console.error("[Auth] Logout error:", error);
       }
-      throw error;
-    } finally {
-      utils.auth.me.setData(undefined, null);
-      await utils.auth.me.invalidate();
     }
-  }, [logoutMutation, utils]);
+    // Always clear all client-side state regardless of server response
+    utils.auth.me.setData(undefined, null);
+    localStorage.removeItem("manus-runtime-user-info");
+    // Clear ALL query caches to prevent any stale data
+    queryClient.clear();
+  }, [logoutMutation, utils, queryClient]);
 
   const state = useMemo(() => {
     localStorage.setItem(

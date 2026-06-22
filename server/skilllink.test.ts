@@ -108,6 +108,7 @@ describe("auth", () => {
       req: { protocol: "https", headers: {} } as TrpcContext["req"],
       res: {
         clearCookie: (name: string) => clearedCookies.push(name),
+        cookie: () => {},
       } as unknown as TrpcContext["res"],
     };
     const caller = appRouter.createCaller(ctx);

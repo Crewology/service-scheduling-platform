@@ -45,7 +45,14 @@ export const authRouter = router({
 
   logout: publicProcedure.mutation(({ ctx }) => {
     const cookieOptions = getSessionCookieOptions(ctx.req);
-    ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
+    // Use both clearCookie AND set cookie to empty with expires in the past
+    // This ensures the cookie is removed regardless of browser behavior
+    ctx.res.clearCookie(COOKIE_NAME, cookieOptions);
+    ctx.res.cookie(COOKIE_NAME, "", {
+      ...cookieOptions,
+      maxAge: 0,
+      expires: new Date(0),
+    });
     return { success: true } as const;
   }),
   
@@ -139,7 +146,7 @@ export const authRouter = router({
       // Clear session cookie
       const { getSessionCookieOptions } = await import("../_core/cookies");
       const cookieOptions = getSessionCookieOptions(ctx.req);
-      ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
+      ctx.res.clearCookie(COOKIE_NAME, cookieOptions);
 
       return {
         success: true,
