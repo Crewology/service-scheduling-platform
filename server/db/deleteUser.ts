@@ -20,7 +20,7 @@ export async function deleteUserCascade(userId: number): Promise<void> {
     await db.execute(sql`DELETE FROM reviews WHERE customerId = ${userId}`);
     await db.execute(sql`DELETE FROM customer_favorites WHERE userId = ${userId}`);
     await db.execute(sql`DELETE FROM referral_codes WHERE userId = ${userId}`);
-    await db.execute(sql`DELETE FROM referrals WHERE referrerId = ${userId} OR referredId = ${userId}`);
+    await db.execute(sql`DELETE FROM referrals WHERE referrerId = ${userId} OR refereeId = ${userId}`);
     await db.execute(sql`DELETE FROM quote_requests WHERE customerId = ${userId}`);
     await db.execute(sql`DELETE FROM bookings WHERE customerId = ${userId}`);
 
