@@ -425,20 +425,26 @@ export default function Search() {
                                     {service.name}
                                   </h3>
                                 </Link>
-                                {/* Provider business name */}
+                                {/* Provider business name with photo */}
                                 {service.businessName && (
-                                  <p className="text-sm text-muted-foreground mt-0.5 flex items-center gap-1">
-                                    <Building2 className="h-3.5 w-3.5" />
+                                  <div className="flex items-center gap-2 mt-1">
+                                    {service.providerProfilePhotoUrl ? (
+                                      <img src={service.providerProfilePhotoUrl} alt={service.businessName} className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
+                                    ) : (
+                                      <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                                        <Building2 className="h-3 w-3 text-muted-foreground" />
+                                      </div>
+                                    )}
                                     {service.providerSlug ? (
                                       <Link href={`/p/${service.providerSlug}`}>
-                                        <span className="hover:text-primary hover:underline cursor-pointer">
+                                        <span className="text-sm text-muted-foreground hover:text-primary hover:underline cursor-pointer">
                                           {service.businessName}
                                         </span>
                                       </Link>
                                     ) : (
-                                      <span>{service.businessName}</span>
+                                      <span className="text-sm text-muted-foreground">{service.businessName}</span>
                                     )}
-                                  </p>
+                                  </div>
                                 )}
                                 <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                                   {service.description}

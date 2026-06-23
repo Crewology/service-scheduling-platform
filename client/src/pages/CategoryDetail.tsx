@@ -398,26 +398,41 @@ export default function CategoryDetail() {
           ) : (
             /* Fallback: show services without provider grouping */
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {services.map((service: any) => (
-                <Link key={service.id} href={`/service/${service.id}`}>
-                  <Card className="hover:shadow-medium transition-all cursor-pointer group h-full">
-                    <CardHeader>
-                      <CardTitle className="text-xl group-hover:text-primary transition-colors">
-                        {service.name}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{service.description}</p>
-                      <div className="font-semibold text-primary">
-                        {service.pricingModel === "fixed" && service.basePrice && formatCurrency(service.basePrice)}
-                        {service.pricingModel === "hourly" && service.hourlyRate && `${formatCurrency(service.hourlyRate)}/hr`}
-                        {service.pricingModel === "custom_quote" && "Get Quote"}
-                        {service.pricingModel === "consultation" && "Free Consultation"}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
+              {services.map((service: any) => {
+                const prov = providers?.find((p: any) => p.id === service.providerId);
+                return (
+                  <Link key={service.id} href={`/service/${service.id}`}>
+                    <Card className="hover:shadow-medium transition-all cursor-pointer group h-full">
+                      <CardHeader>
+                        <CardTitle className="text-xl group-hover:text-primary transition-colors">
+                          {service.name}
+                        </CardTitle>
+                        {prov && (
+                          <div className="flex items-center gap-2 mt-1">
+                            {prov.profilePhotoUrl ? (
+                              <img src={prov.profilePhotoUrl} alt={prov.businessName} className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
+                            ) : (
+                              <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                                <User className="h-3 w-3 text-muted-foreground" />
+                              </div>
+                            )}
+                            <span className="text-sm text-muted-foreground">{prov.businessName}</span>
+                          </div>
+                        )}
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{service.description}</p>
+                        <div className="font-semibold text-primary">
+                          {service.pricingModel === "fixed" && service.basePrice && formatCurrency(service.basePrice)}
+                          {service.pricingModel === "hourly" && service.hourlyRate && `${formatCurrency(service.hourlyRate)}/hr`}
+                          {service.pricingModel === "custom_quote" && "Get Quote"}
+                          {service.pricingModel === "consultation" && "Free Consultation"}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </div>

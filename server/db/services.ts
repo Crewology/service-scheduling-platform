@@ -182,11 +182,13 @@ export async function searchServices(searchTerm: string) {
       deletedAt: services.deletedAt,
       businessName: serviceProviders.businessName,
       providerSlug: serviceProviders.profileSlug,
+      providerProfilePhotoUrl: users.profilePhotoUrl,
       trustScore: serviceProviders.trustScore,
       trustLevel: serviceProviders.trustLevel,
     })
     .from(services)
     .innerJoin(serviceProviders, eq(services.providerId, serviceProviders.id))
+    .innerJoin(users, eq(serviceProviders.userId, users.id))
     .leftJoin(providerSubscriptions, eq(serviceProviders.id, providerSubscriptions.providerId))
     .where(and(
       eq(services.isActive, true),

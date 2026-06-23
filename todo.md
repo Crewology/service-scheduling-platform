@@ -1647,3 +1647,4 @@
 - [x] Server-side: reject role selection and onboarding mutations if email not verified
 - [x] Frontend: redirect unverified users to a "verify your email" gate page instead of allowing navigation
 - [x] Admin dashboard shows "Unverified" status badge for users who haven't verified email
+- [x] Show provider name and profile photo/logo on service cards when browsing categories and search results
