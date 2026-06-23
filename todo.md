@@ -1650,3 +1650,4 @@
 - [x] Show provider name and profile photo/logo on service cards when browsing categories and search results
 - [x] Make provider name and photo clickable (link to provider profile) on service cards in browse and search
 - [x] Add favorite/save button to service cards in browse and search results
+- [x] Fix provider.listByCategory returning 0 providers - was mapping .providerId on already-plain number array

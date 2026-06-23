@@ -528,8 +528,7 @@ export const providerRouter = router({
     .input(z.object({ categoryId: z.number() }))
     .query(async ({ input }) => {
       // Get all providers who have this category in their provider_categories
-      const providerCats = await db.getProvidersByCategory(input.categoryId);
-      const providerIds = providerCats.map((pc: any) => pc.providerId);
+      const providerIds = await db.getProvidersByCategory(input.categoryId);
       if (providerIds.length === 0) return [];
       // Fetch full provider details
       const providers = await Promise.all(
