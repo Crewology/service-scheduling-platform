@@ -5,10 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
-import { MapPin, Star, Clock, DollarSign, ArrowLeft, User, SlidersHorizontal, X, Search, CalendarDays } from "lucide-react";
+import { MapPin, Star, Clock, DollarSign, ArrowLeft, User, SlidersHorizontal, X, Search, CalendarDays, Heart } from "lucide-react";
 import { Link, useParams } from "wouter";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { OfficialBadge } from "@/components/OfficialBadge";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { toast } from "sonner";
 
 const CATEGORY_ICONS: Record<number, string> = {
   15: "\ud83c\udfac", 170: "\ud83d\udc88", 7: "\u2702\ufe0f", 126: "\ud83d\udd12", 195: "\ud83d\udc83", 202: "\ud83d\udd28",
@@ -40,6 +42,34 @@ function ResponseTimeBadge({ providerId }: { providerId: number }) {
     <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-blue-50 border-blue-200 text-blue-700">
       Responds in ~{data.label}
     </Badge>
+  );
+}
+
+function FavoriteButton({ providerId }: { providerId: number }) {
+  const { user } = useAuth();
+  const utils = trpc.useUtils();
+  const { data: favData } = trpc.provider.checkFavorite.useQuery(
+    { providerId },
+    { enabled: !!user }
+  );
+  const toggle = trpc.provider.toggleFavorite.useMutation({
+    onSuccess: (result) => {
+      utils.provider.checkFavorite.invalidate({ providerId });
+      utils.provider.myFavorites.invalidate();
+      toast.success(result.favorited ? "Saved to favorites" : "Removed from favorites");
+    },
+  });
+  if (!user) return null;
+  const isFav = favData?.favorited ?? false;
+  return (
+    <button
+      className={`p-1.5 rounded-full transition-colors ${isFav ? "text-red-500 hover:text-red-600" : "text-muted-foreground hover:text-red-500"}`}
+      onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle.mutate({ providerId }); }}
+      disabled={toggle.isPending}
+      title={isFav ? "Remove from favorites" : "Save to favorites"}
+    >
+      <Heart className={`h-4 w-4 ${isFav ? "fill-current" : ""}`} />
+    </button>
   );
 }
 
@@ -308,7 +338,7 @@ export default function CategoryDetail() {
                 <Card key={providerId} className="overflow-hidden">
                   {/* Provider Header */}
                   <CardHeader className="bg-muted/30 border-b">
-                    <Link href={provider.slug ? `/provider/${provider.slug}` : "#"}>
+                    <Link href={provider.profileSlug ? `/p/${provider.profileSlug}` : "#"}>
                       <div className="flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity">
                         <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                           {provider.profilePhotoUrl ? (
@@ -339,6 +369,7 @@ export default function CategoryDetail() {
                             )}
                           </div>
                         </div>
+                        <FavoriteButton providerId={providerId} />
                         <Button variant="outline" size="sm">View Profile</Button>
                       </div>
                     </Link>
@@ -401,14 +432,19 @@ export default function CategoryDetail() {
               {services.map((service: any) => {
                 const prov = providers?.find((p: any) => p.id === service.providerId);
                 return (
-                  <Link key={service.id} href={`/service/${service.id}`}>
-                    <Card className="hover:shadow-medium transition-all cursor-pointer group h-full">
-                      <CardHeader>
-                        <CardTitle className="text-xl group-hover:text-primary transition-colors">
-                          {service.name}
-                        </CardTitle>
-                        {prov && (
-                          <div className="flex items-center gap-2 mt-1">
+                  <Card key={service.id} className="hover:shadow-medium transition-all group h-full">
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <Link href={`/service/${service.id}`}>
+                          <CardTitle className="text-xl group-hover:text-primary transition-colors cursor-pointer">
+                            {service.name}
+                          </CardTitle>
+                        </Link>
+                        {prov && <FavoriteButton providerId={prov.id} />}
+                      </div>
+                      {prov && (
+                        <Link href={prov.profileSlug ? `/p/${prov.profileSlug}` : "#"}>
+                          <div className="flex items-center gap-2 mt-1 cursor-pointer hover:opacity-80 transition-opacity">
                             {prov.profilePhotoUrl ? (
                               <img src={prov.profilePhotoUrl} alt={prov.businessName} className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
                             ) : (
@@ -416,21 +452,23 @@ export default function CategoryDetail() {
                                 <User className="h-3 w-3 text-muted-foreground" />
                               </div>
                             )}
-                            <span className="text-sm text-muted-foreground">{prov.businessName}</span>
+                            <span className="text-sm text-muted-foreground hover:text-primary transition-colors">{prov.businessName}</span>
                           </div>
-                        )}
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{service.description}</p>
+                        </Link>
+                      )}
+                    </CardHeader>
+                    <CardContent>
+                      <Link href={`/service/${service.id}`}>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-4 cursor-pointer">{service.description}</p>
                         <div className="font-semibold text-primary">
                           {service.pricingModel === "fixed" && service.basePrice && formatCurrency(service.basePrice)}
                           {service.pricingModel === "hourly" && service.hourlyRate && `${formatCurrency(service.hourlyRate)}/hr`}
                           {service.pricingModel === "custom_quote" && "Get Quote"}
                           {service.pricingModel === "consultation" && "Free Consultation"}
                         </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
+                      </Link>
+                    </CardContent>
+                  </Card>
                 );
               })}
             </div>

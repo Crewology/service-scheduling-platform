@@ -10,9 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { EmptyState } from "@/components/shared/EmptyState";
-import { Search as SearchIcon, MapPin, DollarSign, Star, X, SlidersHorizontal, Clock, Building2, ArrowRight, BadgeCheck, RefreshCw, AlertCircle } from "lucide-react";
+import { Search as SearchIcon, MapPin, DollarSign, Star, X, SlidersHorizontal, Clock, Building2, ArrowRight, BadgeCheck, RefreshCw, AlertCircle, Heart } from "lucide-react";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { TrustBadge } from "@/components/TrustBadge";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { toast } from "sonner";
 
 /**
  * Inline filter JSX block — extracted as a helper that returns JSX elements
@@ -139,6 +141,34 @@ function renderFilters(opts: {
         </Button>
       )}
     </div>
+  );
+}
+
+function FavoriteButtonSearch({ providerId }: { providerId: number }) {
+  const { user } = useAuth();
+  const utils = trpc.useUtils();
+  const { data: favData } = trpc.provider.checkFavorite.useQuery(
+    { providerId },
+    { enabled: !!user }
+  );
+  const toggle = trpc.provider.toggleFavorite.useMutation({
+    onSuccess: (result) => {
+      utils.provider.checkFavorite.invalidate({ providerId });
+      utils.provider.myFavorites.invalidate();
+      toast.success(result.favorited ? "Saved to favorites" : "Removed from favorites");
+    },
+  });
+  if (!user) return null;
+  const isFav = favData?.favorited ?? false;
+  return (
+    <button
+      className={`p-1.5 rounded-full transition-colors ${isFav ? "text-red-500 hover:text-red-600" : "text-muted-foreground hover:text-red-500"}`}
+      onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle.mutate({ providerId }); }}
+      disabled={toggle.isPending}
+      title={isFav ? "Remove from favorites" : "Save to favorites"}
+    >
+      <Heart className={`h-4 w-4 ${isFav ? "fill-current" : ""}`} />
+    </button>
   );
 }
 
@@ -398,7 +428,10 @@ export default function Search() {
                                     )}
                                   </div>
                                 </div>
-                                <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
+                                <div className="shrink-0 mt-1 flex items-center gap-1">
+                                  <FavoriteButtonSearch providerId={provider.id} />
+                                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                                </div>
                               </div>
                             </CardContent>
                           </Card>
@@ -428,22 +461,20 @@ export default function Search() {
                                 {/* Provider business name with photo */}
                                 {service.businessName && (
                                   <div className="flex items-center gap-2 mt-1">
-                                    {service.providerProfilePhotoUrl ? (
-                                      <img src={service.providerProfilePhotoUrl} alt={service.businessName} className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
-                                    ) : (
-                                      <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                                        <Building2 className="h-3 w-3 text-muted-foreground" />
-                                      </div>
-                                    )}
-                                    {service.providerSlug ? (
-                                      <Link href={`/p/${service.providerSlug}`}>
-                                        <span className="text-sm text-muted-foreground hover:text-primary hover:underline cursor-pointer">
+                                    <Link href={service.providerSlug ? `/p/${service.providerSlug}` : "#"}>
+                                      <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
+                                        {service.providerProfilePhotoUrl ? (
+                                          <img src={service.providerProfilePhotoUrl} alt={service.businessName} className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
+                                        ) : (
+                                          <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                                            <Building2 className="h-3 w-3 text-muted-foreground" />
+                                          </div>
+                                        )}
+                                        <span className="text-sm text-muted-foreground hover:text-primary transition-colors">
                                           {service.businessName}
                                         </span>
-                                      </Link>
-                                    ) : (
-                                      <span className="text-sm text-muted-foreground">{service.businessName}</span>
-                                    )}
+                                      </div>
+                                    </Link>
                                   </div>
                                 )}
                                 <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
@@ -479,8 +510,9 @@ export default function Search() {
                                 </div>
                               </div>
 
-                              {/* Book Now button */}
-                              <div className="sm:shrink-0">
+                              {/* Favorite + Book Now button */}
+                              <div className="sm:shrink-0 flex items-center gap-2">
+                                <FavoriteButtonSearch providerId={service.providerId} />
                                 <Link href={`/service/${service.id}`}>
                                   <Button className="w-full sm:w-auto">Book Now</Button>
                                 </Link>
