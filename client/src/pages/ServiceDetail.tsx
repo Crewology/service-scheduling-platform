@@ -1801,6 +1801,14 @@ export default function ServiceDetail() {
                         You'll be asked to sign in before completing the booking.
                       </p>
                     )}
+                    {isAuthenticated && user && !user.emailVerified && (
+                      <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <p className="text-xs text-amber-800 text-center">
+                          ⚠️ Please verify your email address to complete bookings.{" "}
+                          <a href="/verify-email" className="underline font-medium">Resend verification email</a>
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>

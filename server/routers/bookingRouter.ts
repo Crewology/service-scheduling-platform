@@ -34,6 +34,14 @@ export const bookingRouter = router({
       const service = await db.getServiceById(input.serviceId);
       if (!service) throw new TRPCError({ code: "NOT_FOUND", message: "Service not found" });
 
+      // Require email verification before allowing bookings
+      if (!ctx.user.emailVerified) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Please verify your email address before making a booking. Check your inbox for the verification link.",
+        });
+      }
+
       // PRIORITY 0: Check availability overrides (blocked dates)
       const providerId = input.providerId || service.providerId;
       const overrides = await db.getAvailabilityOverrides(providerId, input.bookingDate, input.bookingDate);
@@ -732,6 +740,14 @@ export const bookingRouter = router({
       const service = await db.getServiceById(input.serviceId);
       if (!service) throw new TRPCError({ code: "NOT_FOUND", message: "Service not found" });
 
+      // Require email verification before allowing bookings
+      if (!ctx.user.emailVerified) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Please verify your email address before making a booking. Check your inbox for the verification link.",
+        });
+      }
+
       const providerId = input.providerId || service.providerId;
 
       // Calculate all dates in the range
@@ -881,6 +897,14 @@ export const bookingRouter = router({
     .mutation(async ({ ctx, input }) => {
       const service = await db.getServiceById(input.serviceId);
       if (!service) throw new TRPCError({ code: "NOT_FOUND", message: "Service not found" });
+
+      // Require email verification before allowing bookings
+      if (!ctx.user.emailVerified) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Please verify your email address before making a booking. Check your inbox for the verification link.",
+        });
+      }
 
       if (input.daysOfWeek.length === 0) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Please select at least one day of the week" });

@@ -7,6 +7,8 @@ import { sdk } from "./_core/sdk";
 import { ENV } from "./_core/env";
 import * as db from "./db";
 import { EmailProvider } from "./notifications/providers/email";
+import { checkRateLimit, getClientIp, RATE_LIMITS } from "./rateLimiter";
+import { isDisposableEmail, getDisposableEmailError } from "./disposableEmails";
 
 const router = Router();
 
@@ -16,16 +18,35 @@ const router = Router();
 
 router.post("/api/auth/register", async (req: Request, res: Response) => {
   try {
-    const { email, password, firstName, lastName } = req.body;
+    const { email, password, firstName, lastName, website } = req.body;
+
+    // Honeypot check: if the hidden "website" field is filled, it's a bot
+    if (website) {
+      // Silently reject — return success to not tip off the bot
+      return res.json({ success: true, user: { id: 0, email: "", name: "", emailVerified: false, hasSelectedRole: false, role: "customer" } });
+    }
 
     if (!email || !password || !firstName || !lastName) {
       return res.status(400).json({ error: "All fields are required" });
+    }
+
+    // Rate limiting
+    const clientIp = getClientIp(req);
+    const rateCheck = checkRateLimit(clientIp, "register", RATE_LIMITS.register);
+    if (rateCheck.limited) {
+      const retryMinutes = Math.ceil((rateCheck.retryAfterMs || 60000) / 60000);
+      return res.status(429).json({ error: `Too many signup attempts. Please try again in ${retryMinutes} minute${retryMinutes > 1 ? "s" : ""}.` });
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({ error: "Invalid email format" });
+    }
+
+    // Block disposable/temporary email addresses
+    if (isDisposableEmail(email)) {
+      return res.status(400).json({ error: getDisposableEmailError() });
     }
 
     // Validate password strength (min 8 chars, 1 uppercase, 1 lowercase, 1 number)
@@ -121,6 +142,14 @@ router.post("/api/auth/login", async (req: Request, res: Response) => {
 
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password are required" });
+    }
+
+    // Rate limiting
+    const clientIp = getClientIp(req);
+    const rateCheck = checkRateLimit(clientIp, "login", RATE_LIMITS.login);
+    if (rateCheck.limited) {
+      const retryMinutes = Math.ceil((rateCheck.retryAfterMs || 60000) / 60000);
+      return res.status(429).json({ error: `Too many login attempts. Please try again in ${retryMinutes} minute${retryMinutes > 1 ? "s" : ""}.` });
     }
 
     const user = await db.getUserByEmail(email.toLowerCase());
@@ -351,6 +380,13 @@ router.post("/api/auth/resend-verification", async (req: Request, res: Response)
       return res.status(400).json({ error: "Email is required" });
     }
 
+    // Rate limiting
+    const clientIp = getClientIp(req);
+    const rateCheck = checkRateLimit(clientIp, "resendVerification", RATE_LIMITS.resendVerification);
+    if (rateCheck.limited) {
+      return res.status(429).json({ error: "Too many verification requests. Please try again later." });
+    }
+
     const user = await db.getUserByEmail(email.toLowerCase());
     if (!user) {
       // Don't reveal if user exists
@@ -404,6 +440,13 @@ router.post("/api/auth/forgot-password", async (req: Request, res: Response) => 
 
     if (!email) {
       return res.status(400).json({ error: "Email is required" });
+    }
+
+    // Rate limiting
+    const clientIp = getClientIp(req);
+    const rateCheck = checkRateLimit(clientIp, "forgotPassword", RATE_LIMITS.forgotPassword);
+    if (rateCheck.limited) {
+      return res.status(429).json({ error: "Too many password reset requests. Please try again later." });
     }
 
     const user = await db.getUserByEmail(email.toLowerCase());

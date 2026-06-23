@@ -1639,3 +1639,7 @@
 - [x] DJ & Music Services: Change service type field options to Public Venue, Private Location, Virtual Stream; add Venue Name input when Public Venue is selected during booking
 - [x] Remove Class & Capacity section from DJ & Music Services (category 20) in Create Service and Edit Service forms
 - [x] Fix delete user failing on referrals table - wrong column name (referredId → refereeId)
+- [x] Anti-spam: Add honeypot field to signup form (hidden field that bots fill, silently reject)
+- [x] Anti-spam: Add rate limiting to signup and login endpoints (per IP)
+- [x] Anti-spam: Block disposable/temporary email domains on registration
+- [x] Anti-spam: Enforce email verification before allowing bookings (already sends verification email, need to gate actions)
