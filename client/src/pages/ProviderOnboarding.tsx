@@ -151,10 +151,20 @@ function AddServiceDialog({
               <Select value={serviceType} onValueChange={setServiceType}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="fixed_location">At My Location</SelectItem>
-                  <SelectItem value="mobile">Mobile (I Travel)</SelectItem>
-                  <SelectItem value="virtual">Virtual / Online</SelectItem>
-                  <SelectItem value="hybrid">Flexible</SelectItem>
+                  {categoryId === 20 ? (
+                    <>
+                      <SelectItem value="fixed_location">Public Venue</SelectItem>
+                      <SelectItem value="mobile">Private Location</SelectItem>
+                      <SelectItem value="virtual">Virtual Stream</SelectItem>
+                    </>
+                  ) : (
+                    <>
+                      <SelectItem value="fixed_location">At My Location</SelectItem>
+                      <SelectItem value="mobile">Mobile (I Travel)</SelectItem>
+                      <SelectItem value="virtual">Virtual / Online</SelectItem>
+                      <SelectItem value="hybrid">Flexible</SelectItem>
+                    </>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -1254,7 +1264,7 @@ export default function ProviderOnboarding() {
                                       <Clock className="h-3 w-3" /> {formatDuration(service.durationMinutes)}
                                     </span>
                                   )}
-                                  <span className="capitalize">{service.serviceType.replace("_", " ")}</span>
+                                  <span className="capitalize">{service.categoryId === 20 ? (service.serviceType === 'fixed_location' ? 'Public Venue' : service.serviceType === 'mobile' ? 'Private Location' : service.serviceType === 'virtual' ? 'Virtual Stream' : service.serviceType.replace('_', ' ')) : service.serviceType.replace("_", " ")}</span>
                                 </div>
                               </div>
                               <div className="text-right">

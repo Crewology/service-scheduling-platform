@@ -213,9 +213,19 @@ export default function CreateService() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="mobile">Mobile (I travel to customer)</SelectItem>
-                    <SelectItem value="fixed_location">Fixed Location (Customer comes to me)</SelectItem>
-                    <SelectItem value="virtual">Virtual (Online/Remote)</SelectItem>
+                    {formData.categoryId === "20" ? (
+                      <>
+                        <SelectItem value="fixed_location">Public Venue</SelectItem>
+                        <SelectItem value="mobile">Private Location</SelectItem>
+                        <SelectItem value="virtual">Virtual Stream</SelectItem>
+                      </>
+                    ) : (
+                      <>
+                        <SelectItem value="mobile">Mobile (I travel to customer)</SelectItem>
+                        <SelectItem value="fixed_location">Fixed Location (Customer comes to me)</SelectItem>
+                        <SelectItem value="virtual">Virtual (Online/Remote)</SelectItem>
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
               </div>

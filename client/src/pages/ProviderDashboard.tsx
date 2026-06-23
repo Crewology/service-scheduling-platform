@@ -1105,6 +1105,8 @@ export default function ProviderDashboard() {
       id: service.id,
       name: service.name || "",
       description: service.description || "",
+      serviceType: service.serviceType || "fixed_location",
+      categoryId: service.categoryId,
       pricingModel: service.pricingModel || "fixed",
       basePrice: service.basePrice || "",
       hourlyRate: service.hourlyRate || "",
@@ -1831,7 +1833,7 @@ export default function ProviderDashboard() {
                                 </div>
                               </div>
                               <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                                <span className="capitalize">{service.serviceType.replace('_', ' ')}</span>
+                                <span className="capitalize">{service.categoryId === 20 ? (service.serviceType === 'fixed_location' ? 'Public Venue' : service.serviceType === 'mobile' ? 'Private Location' : service.serviceType === 'virtual' ? 'Virtual Stream' : service.serviceType.replace('_', ' ')) : service.serviceType.replace('_', ' ')}</span>
                                 {service.durationMinutes && <span>· {formatDuration(service.durationMinutes)}</span>}
                               </div>
                               <div className="flex gap-1 mt-2 pt-2 border-t">
@@ -2449,6 +2451,30 @@ export default function ProviderDashboard() {
             <div>
               <Label>Description</Label>
               <Textarea value={serviceForm.description || ""} onChange={e => setServiceForm({ ...serviceForm, description: e.target.value })} rows={3} />
+            </div>
+            <div>
+              <Label>Service Type</Label>
+              <Select value={serviceForm.serviceType || "fixed_location"} onValueChange={(value) => setServiceForm({ ...serviceForm, serviceType: value })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {serviceForm.categoryId === 20 ? (
+                    <>
+                      <SelectItem value="fixed_location">Public Venue</SelectItem>
+                      <SelectItem value="mobile">Private Location</SelectItem>
+                      <SelectItem value="virtual">Virtual Stream</SelectItem>
+                    </>
+                  ) : (
+                    <>
+                      <SelectItem value="fixed_location">At My Location</SelectItem>
+                      <SelectItem value="mobile">Mobile (I Travel)</SelectItem>
+                      <SelectItem value="virtual">Virtual / Online</SelectItem>
+                      <SelectItem value="hybrid">Flexible</SelectItem>
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label>Pricing Model</Label>

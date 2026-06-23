@@ -498,25 +498,21 @@ export default function ServiceDetail() {
       const startDateStr = selectedDate.toISOString().split("T")[0];
       const endDateStr = endDate.toISOString().split("T")[0];
       const endTime = calculateEndTime(selectedTime, service.durationMinutes || 60);
+      const multiLocType = service.serviceType as "mobile" | "fixed_location" | "virtual";
+      const multiNeedsAddress = multiLocType === "mobile" || multiLocType === "fixed_location";
       const isDJMulti = service.categoryId === 20;
-      const multiLocationType: "mobile" | "fixed_location" | "virtual" = isDJMulti
-        ? (bookingForm.djLocationType === "virtual_stream" ? "virtual" : bookingForm.djLocationType === "public_venue" ? "fixed_location" : "mobile")
-        : service.serviceType as "mobile" | "fixed_location" | "virtual";
-      const multiNeedsAddress = isDJMulti
-        ? (bookingForm.djLocationType === "public_venue" || bookingForm.djLocationType === "private_location")
-        : service.serviceType === "mobile";
       createMultiDay.mutate({
         serviceId: service.id,
         startDate: startDateStr,
         endDate: endDateStr,
         startTime: selectedTime,
         endTime,
-        locationType: multiLocationType,
+        locationType: multiLocType,
         serviceAddressLine1: multiNeedsAddress ? bookingForm.addressLine1 : undefined,
         serviceCity: multiNeedsAddress ? bookingForm.city : undefined,
         serviceState: multiNeedsAddress ? bookingForm.state : undefined,
         servicePostalCode: multiNeedsAddress ? bookingForm.postalCode : undefined,
-        venueName: isDJMulti && bookingForm.djLocationType === "public_venue" ? bookingForm.venueName : undefined,
+        venueName: isDJMulti && multiLocType === "fixed_location" ? bookingForm.venueName : undefined,
         customerNotes: bookingForm.notes || undefined,
         bookingSource: "direct",
       });
@@ -530,13 +526,9 @@ export default function ServiceDetail() {
       }
       const startDateStr = selectedDate.toISOString().split("T")[0];
       const endTime = calculateEndTime(selectedTime, service.durationMinutes || 60);
+      const recurLocType = service.serviceType as "mobile" | "fixed_location" | "virtual";
+      const recurNeedsAddress = recurLocType === "mobile" || recurLocType === "fixed_location";
       const isDJRecurring = service.categoryId === 20;
-      const recurLocationType: "mobile" | "fixed_location" | "virtual" = isDJRecurring
-        ? (bookingForm.djLocationType === "virtual_stream" ? "virtual" : bookingForm.djLocationType === "public_venue" ? "fixed_location" : "mobile")
-        : service.serviceType as "mobile" | "fixed_location" | "virtual";
-      const recurNeedsAddress = isDJRecurring
-        ? (bookingForm.djLocationType === "public_venue" || bookingForm.djLocationType === "private_location")
-        : service.serviceType === "mobile";
       createRecurring.mutate({
         serviceId: service.id,
         startDate: startDateStr,
@@ -545,12 +537,12 @@ export default function ServiceDetail() {
         frequency: recurringFrequency,
         daysOfWeek: recurringDays,
         totalWeeks: recurringWeeks,
-        locationType: recurLocationType,
+        locationType: recurLocType,
         serviceAddressLine1: recurNeedsAddress ? bookingForm.addressLine1 : undefined,
         serviceCity: recurNeedsAddress ? bookingForm.city : undefined,
         serviceState: recurNeedsAddress ? bookingForm.state : undefined,
         servicePostalCode: recurNeedsAddress ? bookingForm.postalCode : undefined,
-        venueName: isDJRecurring && bookingForm.djLocationType === "public_venue" ? bookingForm.venueName : undefined,
+        venueName: isDJRecurring && recurLocType === "fixed_location" ? bookingForm.venueName : undefined,
         customerNotes: bookingForm.notes || undefined,
         bookingSource: "direct",
       });
@@ -566,26 +558,22 @@ export default function ServiceDetail() {
     const dateStr = selectedDate.toISOString().split("T")[0];
     const endTime = calculateEndTime(selectedTime, service.durationMinutes || 60);
 
-    // For DJ & Music (category 20), map djLocationType to standard locationType
+    // Use the service's serviceType directly (DJ services already have the correct type set)
+    const locType = service.serviceType as "mobile" | "fixed_location" | "virtual";
+    const needsAddress = locType === "mobile" || locType === "fixed_location";
     const isDJ = service.categoryId === 20;
-    const effectiveLocationType: "mobile" | "fixed_location" | "virtual" = isDJ
-      ? (bookingForm.djLocationType === "virtual_stream" ? "virtual" : bookingForm.djLocationType === "public_venue" ? "fixed_location" : "mobile")
-      : service.serviceType as "mobile" | "fixed_location" | "virtual";
-    const needsAddress = isDJ
-      ? (bookingForm.djLocationType === "public_venue" || bookingForm.djLocationType === "private_location")
-      : service.serviceType === "mobile";
 
     createBooking.mutate({
       serviceId: service.id,
       bookingDate: dateStr,
       startTime: selectedTime,
       endTime,
-      locationType: effectiveLocationType,
+      locationType: locType,
       serviceAddressLine1: needsAddress ? bookingForm.addressLine1 : undefined,
       serviceCity: needsAddress ? bookingForm.city : undefined,
       serviceState: needsAddress ? bookingForm.state : undefined,
       servicePostalCode: needsAddress ? bookingForm.postalCode : undefined,
-      venueName: isDJ && bookingForm.djLocationType === "public_venue" ? bookingForm.venueName : undefined,
+      venueName: isDJ && locType === "fixed_location" ? bookingForm.venueName : undefined,
       customerNotes: bookingForm.notes || undefined,
       bookingSource: "direct",
       promoCodeId: promoApplied?.valid ? promoApplied.promoCodeId ?? undefined : undefined,
@@ -735,7 +723,7 @@ export default function ServiceDetail() {
                       <p className="text-xs text-muted-foreground">Location</p>
                       <p className="font-semibold capitalize">
                         {service.categoryId === 20
-                          ? "Public Venue / Private / Virtual"
+                          ? (service.serviceType === "fixed_location" ? "Public Venue" : service.serviceType === "mobile" ? "Private Location" : "Virtual Stream")
                           : service.serviceType.replace("_", " ")}
                       </p>
                     </div>
@@ -1251,9 +1239,20 @@ export default function ServiceDetail() {
                       </p>
                     </div>
 
-                    {service.serviceType === "mobile" && service.categoryId !== 20 && (
+                    {/* For DJ & Music (category 20) with fixed_location (Public Venue), show Venue Name */}
+                    {service.categoryId === 20 && service.serviceType === "fixed_location" && (
                       <div className="space-y-3 mb-4">
-                        <p className="text-sm font-medium">Service Address</p>
+                        <p className="text-sm font-medium">Venue Details</p>
+                        <Input
+                          placeholder="Venue Name (e.g., The Grand Ballroom)"
+                          value={bookingForm.venueName}
+                          onChange={(e) =>
+                            setBookingForm({
+                              ...bookingForm,
+                              venueName: e.target.value,
+                            })
+                          }
+                        />
                         <Input
                           placeholder="Street Address"
                           value={bookingForm.addressLine1}
@@ -1299,89 +1298,101 @@ export default function ServiceDetail() {
                       </div>
                     )}
 
-                    {/* DJ & Music Services: Custom location type picker */}
-                    {service.categoryId === 20 && (
+                    {/* For DJ & Music (category 20) with mobile (Private Location), show address */}
+                    {service.categoryId === 20 && service.serviceType === "mobile" && (
                       <div className="space-y-3 mb-4">
-                        <p className="text-sm font-medium">Booking Location</p>
-                        <Select
-                          value={bookingForm.djLocationType}
-                          onValueChange={(val) =>
+                        <p className="text-sm font-medium">Event Address</p>
+                        <Input
+                          placeholder="Street Address"
+                          value={bookingForm.addressLine1}
+                          onChange={(e) =>
                             setBookingForm({
                               ...bookingForm,
-                              djLocationType: val as "public_venue" | "private_location" | "virtual_stream",
-                              venueName: val !== "public_venue" ? "" : bookingForm.venueName,
+                              addressLine1: e.target.value,
                             })
                           }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select location type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="public_venue">Public Venue</SelectItem>
-                            <SelectItem value="private_location">Private Location</SelectItem>
-                            <SelectItem value="virtual_stream">Virtual Stream</SelectItem>
-                          </SelectContent>
-                        </Select>
-
-                        {bookingForm.djLocationType === "public_venue" && (
+                        />
+                        <div className="grid grid-cols-2 gap-2">
                           <Input
-                            placeholder="Venue Name (e.g., The Grand Ballroom)"
-                            value={bookingForm.venueName}
+                            placeholder="City"
+                            value={bookingForm.city}
                             onChange={(e) =>
                               setBookingForm({
                                 ...bookingForm,
-                                venueName: e.target.value,
+                                city: e.target.value,
                               })
                             }
                           />
-                        )}
+                          <Input
+                            placeholder="State"
+                            value={bookingForm.state}
+                            onChange={(e) =>
+                              setBookingForm({
+                                ...bookingForm,
+                                state: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <Input
+                          placeholder="Postal Code"
+                          value={bookingForm.postalCode}
+                          onChange={(e) =>
+                            setBookingForm({
+                              ...bookingForm,
+                              postalCode: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    )}
 
-                        {(bookingForm.djLocationType === "public_venue" || bookingForm.djLocationType === "private_location") && (
-                          <div className="space-y-2">
-                            <Input
-                              placeholder="Street Address"
-                              value={bookingForm.addressLine1}
-                              onChange={(e) =>
-                                setBookingForm({
-                                  ...bookingForm,
-                                  addressLine1: e.target.value,
-                                })
-                              }
-                            />
-                            <div className="grid grid-cols-2 gap-2">
-                              <Input
-                                placeholder="City"
-                                value={bookingForm.city}
-                                onChange={(e) =>
-                                  setBookingForm({
-                                    ...bookingForm,
-                                    city: e.target.value,
-                                  })
-                                }
-                              />
-                              <Input
-                                placeholder="State"
-                                value={bookingForm.state}
-                                onChange={(e) =>
-                                  setBookingForm({
-                                    ...bookingForm,
-                                    state: e.target.value,
-                                  })
-                                }
-                              />
-                            </div>
-                            <Input
-                              placeholder="Postal Code"
-                              value={bookingForm.postalCode}
-                              onChange={(e) =>
-                                setBookingForm({
-                                  ...bookingForm,
-                                  postalCode: e.target.value,
-                                })
-                              }
-                            />
-                          </div>
-                        )}
+                    {/* Standard mobile address for non-DJ services */}
+                    {service.serviceType === "mobile" && service.categoryId !== 20 && (
+                      <div className="space-y-3 mb-4">
+                        <p className="text-sm font-medium">Service Address</p>
+                        <Input
+                          placeholder="Street Address"
+                          value={bookingForm.addressLine1}
+                          onChange={(e) =>
+                            setBookingForm({
+                              ...bookingForm,
+                              addressLine1: e.target.value,
+                            })
+                          }
+                        />
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input
+                            placeholder="City"
+                            value={bookingForm.city}
+                            onChange={(e) =>
+                              setBookingForm({
+                                ...bookingForm,
+                                city: e.target.value,
+                              })
+                            }
+                          />
+                          <Input
+                            placeholder="State"
+                            value={bookingForm.state}
+                            onChange={(e) =>
+                              setBookingForm({
+                                ...bookingForm,
+                                state: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <Input
+                          placeholder="Postal Code"
+                          value={bookingForm.postalCode}
+                          onChange={(e) =>
+                            setBookingForm({
+                              ...bookingForm,
+                              postalCode: e.target.value,
+                            })
+                          }
+                        />
                       </div>
                     )}
 
