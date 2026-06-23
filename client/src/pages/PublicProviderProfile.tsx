@@ -478,6 +478,7 @@ export default function PublicProviderProfile() {
                                 {service.pricingModel === "hourly" && `${formatCurrency(service.hourlyRate)}/hr`}
                                 {service.pricingModel === "package" && formatCurrency(service.basePrice)}
                                 {service.pricingModel === "custom_quote" && "Get Quote"}
+                                {service.pricingModel === "consultation" && "Free"}
                               </div>
                             </div>
                           </CardContent>
@@ -650,6 +651,7 @@ export default function PublicProviderProfile() {
                               {service.pricingModel === "hourly" && `${formatCurrency(service.hourlyRate)}/hr`}
                               {service.pricingModel === "package" && formatCurrency(service.basePrice)}
                               {service.pricingModel === "custom_quote" && "Quote"}
+                              {service.pricingModel === "consultation" && "Free"}
                             </span>
                           </div>
                         </Link>

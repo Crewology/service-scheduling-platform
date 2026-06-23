@@ -1784,6 +1784,7 @@ export default function ProviderDashboard() {
                                     {service.pricingModel === "hourly" && service.hourlyRate && `${formatCurrency(parseFloat(service.hourlyRate))}/hr`}
                                     {service.pricingModel === "package" && service.basePrice && formatCurrency(parseFloat(service.basePrice))}
                                     {service.pricingModel === "custom_quote" && "Quote"}
+                                    {service.pricingModel === "consultation" && "Free"}
                                   </span>
                                 </div>
                               </div>

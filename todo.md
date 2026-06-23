@@ -1633,3 +1633,4 @@
 - [x] Restrict admin access to only Gary Chisolm (ID 1) and Winston Williams (ID 2190437)
 - [x] Demoted all other admins and deleted 7,222 test users (keeping Gary, Winston x2, OlogyCrew Official)
 - [x] Add user profile photos/avatars to admin user list and search results for easier identification
+- [x] Add "Consultation" as a free pricing option to all booking category pricing dropdowns

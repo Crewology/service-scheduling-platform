@@ -153,7 +153,7 @@ export const services = mysqlTable("services", {
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   serviceType: mysqlEnum("serviceType", ["mobile", "fixed_location", "virtual", "hybrid"]).notNull(),
-  pricingModel: mysqlEnum("pricingModel", ["fixed", "hourly", "package", "custom_quote"]).notNull(),
+  pricingModel: mysqlEnum("pricingModel", ["fixed", "hourly", "package", "custom_quote", "consultation"]).notNull(),
   basePrice: decimal("basePrice", { precision: 10, scale: 2 }),
   hourlyRate: decimal("hourlyRate", { precision: 10, scale: 2 }),
   durationMinutes: int("durationMinutes"),

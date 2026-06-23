@@ -58,6 +58,8 @@ export async function generateServiceOgImage(
       priceText = `$${parseFloat(service.hourlyRate).toFixed(0)}/hr`;
     } else if (service.pricingModel === "custom_quote") {
       priceText = "Custom Quote";
+    } else if (service.pricingModel === "consultation") {
+      priceText = "Free Consultation";
     }
 
     // Format duration

@@ -58,7 +58,7 @@ export default function CreateService() {
     name: "",
     description: "",
     serviceType: "fixed_location" as "mobile" | "fixed_location" | "virtual",
-    pricingModel: "fixed" as "fixed" | "hourly" | "package" | "custom_quote",
+    pricingModel: "fixed" as "fixed" | "hourly" | "package" | "custom_quote" | "consultation",
     basePrice: "",
     hourlyRate: "",
     packagePrice: "",
@@ -259,6 +259,7 @@ export default function CreateService() {
                     <SelectItem value="hourly">Hourly Rate</SelectItem>
                     <SelectItem value="package">Package Deal</SelectItem>
                     <SelectItem value="custom_quote">Custom Quote</SelectItem>
+                    <SelectItem value="consultation">Consultation (Free)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

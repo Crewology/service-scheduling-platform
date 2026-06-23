@@ -180,6 +180,7 @@ function AddServiceDialog({
                   <SelectItem value="hourly">Hourly Rate</SelectItem>
                   <SelectItem value="package">Package</SelectItem>
                   <SelectItem value="custom_quote">Custom Quote</SelectItem>
+                  <SelectItem value="consultation">Consultation (Free)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1262,6 +1263,7 @@ export default function ProviderOnboarding() {
                                   {service.pricingModel === "hourly" && `$${parseFloat(service.hourlyRate || "0").toFixed(2)}/hr`}
                                   {service.pricingModel === "package" && `$${parseFloat(service.basePrice || "0").toFixed(2)}`}
                                   {service.pricingModel === "custom_quote" && "Quote"}
+                                  {service.pricingModel === "consultation" && "Free"}
                                 </span>
                               </div>
                             </div>

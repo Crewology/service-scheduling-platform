@@ -1,0 +1,1 @@
+ALTER TABLE `services` MODIFY COLUMN `pricingModel` enum('fixed','hourly','package','custom_quote','consultation') NOT NULL;

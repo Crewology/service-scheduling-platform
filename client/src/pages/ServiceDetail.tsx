@@ -288,7 +288,7 @@ export default function ServiceDetail() {
         // Clear the stored referral code after successful application
         localStorage.removeItem("customer_referral_code");
       }
-      if (service?.depositRequired || service?.pricingModel !== "custom_quote") {
+      if (service?.depositRequired || (service?.pricingModel !== "custom_quote" && service?.pricingModel !== "consultation")) {
         handlePayment(data.id);
       } else {
         setLocation(`/booking/${data.id}`);
@@ -304,7 +304,7 @@ export default function ServiceDetail() {
     onSuccess: (data) => {
       toast.success("Multi-day booking request sent! The provider will confirm your booking.");
       if (!data) return;
-      if (service?.depositRequired || service?.pricingModel !== "custom_quote") {
+      if (service?.depositRequired || (service?.pricingModel !== "custom_quote" && service?.pricingModel !== "consultation")) {
         handlePayment(data.id);
       } else {
         setLocation(`/booking/${data.id}`);
@@ -320,7 +320,7 @@ export default function ServiceDetail() {
     onSuccess: (data) => {
       toast.success("Recurring booking request sent! The provider will confirm your booking.");
       if (!data) return;
-      if (service?.depositRequired || service?.pricingModel !== "custom_quote") {
+      if (service?.depositRequired || (service?.pricingModel !== "custom_quote" && service?.pricingModel !== "consultation")) {
         handlePayment(data.id);
       } else {
         setLocation(`/booking/${data.id}`);
@@ -587,6 +587,9 @@ export default function ServiceDetail() {
     }
     if (service.pricingModel === "custom_quote") {
       return "Custom Quote";
+    }
+    if (service.pricingModel === "consultation") {
+      return "Free";
     }
     return "Contact for pricing";
   };

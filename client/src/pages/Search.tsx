@@ -455,6 +455,7 @@ export default function Search() {
                                       {service.pricingModel === "package" && service.basePrice && `From $${service.basePrice}`}
                                       {service.pricingModel === "package" && !service.basePrice && "Package Pricing"}
                                       {service.pricingModel === "custom_quote" && "Custom Quote"}
+                                      {service.pricingModel === "consultation" && "Free Consultation"}
                                     </span>
                                   </div>
 

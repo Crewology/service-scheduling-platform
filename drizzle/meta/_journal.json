@@ -260,6 +260,13 @@
       "when": 1782150654505,
       "tag": "0036_charming_wind_dancer",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "5",
+      "when": 1782245069797,
+      "tag": "0037_puzzling_hellfire_club",
+      "breakpoints": true
     }
   ]
 }

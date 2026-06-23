@@ -366,6 +366,7 @@ export default function CategoryDetail() {
                                 {service.pricingModel === "hourly" && service.hourlyRate && `${formatCurrency(service.hourlyRate)}/hr`}
                                 {service.pricingModel === "package" && service.basePrice && formatCurrency(service.basePrice)}
                                 {service.pricingModel === "custom_quote" && "Quote"}
+                                {service.pricingModel === "consultation" && "Free"}
                               </span>
                             </div>
                             <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
@@ -411,6 +412,7 @@ export default function CategoryDetail() {
                         {service.pricingModel === "fixed" && service.basePrice && formatCurrency(service.basePrice)}
                         {service.pricingModel === "hourly" && service.hourlyRate && `${formatCurrency(service.hourlyRate)}/hr`}
                         {service.pricingModel === "custom_quote" && "Get Quote"}
+                        {service.pricingModel === "consultation" && "Free Consultation"}
                       </div>
                     </CardContent>
                   </Card>
