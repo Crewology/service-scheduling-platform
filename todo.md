@@ -1637,3 +1637,4 @@
 - [x] Add Pricing Model dropdown to the Edit Service dialog in Provider Dashboard
 - [x] Add ability to delete quote requests from the main dashboard
 - [x] DJ & Music Services: Change service type field options to Public Venue, Private Location, Virtual Stream; add Venue Name input when Public Venue is selected during booking
+- [x] Remove Class & Capacity section from DJ & Music Services (category 20) in Create Service and Edit Service forms

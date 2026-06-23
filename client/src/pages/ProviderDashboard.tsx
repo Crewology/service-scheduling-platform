@@ -2574,7 +2574,8 @@ export default function ProviderDashboard() {
               )}
             </div>
 
-            {/* Group Class / Capacity */}
+            {/* Group Class / Capacity - hidden for DJ & Music Services (category 20) */}
+            {serviceForm.categoryId !== 20 && (
             <div className="space-y-3">
               <Label className="text-sm font-semibold">Group Class / Capacity</Label>
               <div className="flex items-center gap-3">
@@ -2602,6 +2603,7 @@ export default function ProviderDashboard() {
                 </div>
               )}
             </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditingService(null)}>Cancel</Button>

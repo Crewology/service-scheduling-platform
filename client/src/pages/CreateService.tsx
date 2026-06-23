@@ -324,7 +324,8 @@ export default function CreateService() {
             </CardContent>
           </Card>
 
-          {/* Group Class / Capacity */}
+          {/* Group Class / Capacity - hidden for DJ & Music Services (category 20) */}
+          {formData.categoryId !== "20" && (
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
@@ -367,6 +368,7 @@ export default function CreateService() {
               )}
             </CardContent>
           </Card>
+          )}
 
           {/* Deposit Settings */}
           <Card>
