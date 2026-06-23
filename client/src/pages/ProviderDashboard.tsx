@@ -1546,9 +1546,9 @@ export default function ProviderDashboard() {
                           )}
                           {quote.locationType && (
                             <span className="flex items-center gap-1">
-                              {quote.locationType === "mobile" ? "\ud83d\ude97 Mobile" :
-                               quote.locationType === "fixed_location" ? "\ud83c\udfe2 At Location" :
-                               "\ud83d\udcbb Virtual"}
+                              {quote.locationType === "mobile" ? "Mobile" :
+                               quote.locationType === "fixed_location" ? "At Location" :
+                               "Virtual"}
                             </span>
                           )}
                           <span className="flex items-center gap-1">

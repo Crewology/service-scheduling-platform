@@ -883,9 +883,9 @@ export default function PublicProviderProfile() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="mobile">\ud83d\ude97 Mobile (provider comes to you)</SelectItem>
-                  <SelectItem value="fixed_location">\ud83c\udfe2 At provider's location</SelectItem>
-                  <SelectItem value="virtual">\ud83d\udcbb Virtual / Remote</SelectItem>
+                  <SelectItem value="mobile">Mobile (provider comes to you)</SelectItem>
+                  <SelectItem value="fixed_location">At provider's location</SelectItem>
+                  <SelectItem value="virtual">Virtual / Remote</SelectItem>
                 </SelectContent>
               </Select>
             </div>
