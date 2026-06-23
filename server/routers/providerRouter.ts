@@ -1061,6 +1061,25 @@ export const providerRouter = router({
       return db.getQuoteCountByProvider(provider.id);
     }),
 
+  deleteQuote: protectedProcedure
+    .input(z.object({ quoteId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const quote = await db.getQuoteById(input.quoteId);
+      if (!quote) throw new TRPCError({ code: "NOT_FOUND", message: "Quote not found" });
+
+      // Allow deletion by the provider who received it or the customer who sent it
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      const isProvider = provider && quote.providerId === provider.id;
+      const isCustomer = quote.customerId === ctx.user.id;
+
+      if (!isProvider && !isCustomer) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+      }
+
+      await db.deleteQuoteRequest(input.quoteId);
+      return { success: true };
+    }),
+
   // ============================================================================
   // BULK QUOTE REQUESTS (Pro/Business perk)
   // ============================================================================

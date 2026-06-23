@@ -953,6 +953,15 @@ export default function ProviderDashboard() {
     onError: (err) => toast.error(err.message),
   });
 
+  const deleteQuoteRequest = trpc.provider.deleteQuote.useMutation({
+    onSuccess: () => {
+      utils.provider.providerQuotes.invalidate();
+      utils.provider.quoteCount.invalidate();
+      toast.success("Quote request deleted");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
   const updateBookingStatus = trpc.booking.updateStatus.useMutation({
     onSuccess: () => {
       utils.booking.listForProvider.invalidate();
@@ -1584,6 +1593,37 @@ export default function ProviderDashboard() {
                             >
                               <XCircle className="h-4 w-4 mr-1" />
                               Decline
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => {
+                                if (confirm("Are you sure you want to delete this quote request? This cannot be undone.")) {
+                                  deleteQuoteRequest.mutate({ quoteId: quote.id });
+                                }
+                              }}
+                              disabled={deleteQuoteRequest.isPending}
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Delete
+                            </Button>
+                          </div>
+                        )}
+                        {quote.status !== "pending" && (
+                          <div className="flex justify-end mt-2">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => {
+                                if (confirm("Are you sure you want to delete this quote request? This cannot be undone.")) {
+                                  deleteQuoteRequest.mutate({ quoteId: quote.id });
+                                }
+                              }}
+                              disabled={deleteQuoteRequest.isPending}
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Delete
                             </Button>
                           </div>
                         )}

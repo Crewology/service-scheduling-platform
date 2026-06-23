@@ -108,3 +108,9 @@ export async function getQuoteCountByProvider(providerId: number) {
     total: all.length,
   };
 }
+
+export async function deleteQuoteRequest(quoteId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(quoteRequests).where(eq(quoteRequests.id, quoteId));
+}

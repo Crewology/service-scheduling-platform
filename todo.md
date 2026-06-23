@@ -1635,3 +1635,4 @@
 - [x] Add user profile photos/avatars to admin user list and search results for easier identification
 - [x] Add "Consultation" as a free pricing option to all booking category pricing dropdowns
 - [x] Add Pricing Model dropdown to the Edit Service dialog in Provider Dashboard
+- [x] Add ability to delete quote requests from the main dashboard

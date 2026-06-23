@@ -107,6 +107,7 @@ export {
   updateQuoteStatus,
   linkQuoteToBooking,
   getQuoteCountByProvider,
+  deleteQuoteRequest,
 } from "./db/quotes";
 
 // Verification document deletion
