@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { 
@@ -1095,6 +1096,7 @@ export default function ProviderDashboard() {
       id: service.id,
       name: service.name || "",
       description: service.description || "",
+      pricingModel: service.pricingModel || "fixed",
       basePrice: service.basePrice || "",
       hourlyRate: service.hourlyRate || "",
       durationMinutes: service.durationMinutes || 60,
@@ -2408,16 +2410,33 @@ export default function ProviderDashboard() {
               <Label>Description</Label>
               <Textarea value={serviceForm.description || ""} onChange={e => setServiceForm({ ...serviceForm, description: e.target.value })} rows={3} />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <Label>Pricing Model</Label>
+              <Select value={serviceForm.pricingModel || "fixed"} onValueChange={(value) => setServiceForm({ ...serviceForm, pricingModel: value })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="fixed">Fixed Price</SelectItem>
+                  <SelectItem value="hourly">Hourly Rate</SelectItem>
+                  <SelectItem value="package">Package Deal</SelectItem>
+                  <SelectItem value="custom_quote">Custom Quote</SelectItem>
+                  <SelectItem value="consultation">Consultation (Free)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {(serviceForm.pricingModel === "fixed" || serviceForm.pricingModel === "package") && (
               <div>
                 <Label>Base Price ($)</Label>
                 <Input type="number" step="0.01" value={serviceForm.basePrice || ""} onChange={e => setServiceForm({ ...serviceForm, basePrice: e.target.value })} />
               </div>
+            )}
+            {serviceForm.pricingModel === "hourly" && (
               <div>
                 <Label>Hourly Rate ($)</Label>
                 <Input type="number" step="0.01" value={serviceForm.hourlyRate || ""} onChange={e => setServiceForm({ ...serviceForm, hourlyRate: e.target.value })} />
               </div>
-            </div>
+            )}
             <div>
               <Label>Duration</Label>
               <select

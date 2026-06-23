@@ -1634,3 +1634,4 @@
 - [x] Demoted all other admins and deleted 7,222 test users (keeping Gary, Winston x2, OlogyCrew Official)
 - [x] Add user profile photos/avatars to admin user list and search results for easier identification
 - [x] Add "Consultation" as a free pricing option to all booking category pricing dropdowns
+- [x] Add Pricing Model dropdown to the Edit Service dialog in Provider Dashboard
