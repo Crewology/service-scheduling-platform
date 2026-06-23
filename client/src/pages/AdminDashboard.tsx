@@ -60,6 +60,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { Link } from "wouter";
 import { formatCurrency, formatDate } from "@/lib/dateUtils";
@@ -2316,8 +2317,14 @@ function UsersFilterPanel({ suspendUser, unsuspendUser }: { suspendUser: any; un
                   {filteredUsers.users.map((u: any) => (
                     <TableRow key={u.id} className="cursor-pointer hover:bg-muted/50">
                       <TableCell className="font-medium">
-                        <Link href={`/admin/users/${u.id}`} className="text-primary hover:underline">
-                          {u.name || "N/A"}
+                        <Link href={`/admin/users/${u.id}`} className="flex items-center gap-2 text-primary hover:underline">
+                          <Avatar className="h-8 w-8">
+                            {u.profilePhotoUrl && <AvatarImage src={u.profilePhotoUrl} alt={u.name || "User"} />}
+                            <AvatarFallback className="text-xs bg-muted">
+                              {u.name ? u.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase() : "?"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span>{u.name || "N/A"}</span>
                         </Link>
                       </TableCell>
                       <TableCell>{u.email}</TableCell>
