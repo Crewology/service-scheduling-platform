@@ -66,7 +66,9 @@ export default function SignUp() {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      if (!user.hasSelectedRole) {
+      if (!user.emailVerified) {
+        setLocation("/verify-email");
+      } else if (!user.hasSelectedRole) {
         setLocation("/select-role");
       } else if (user.role === "provider") {
         setLocation("/provider/dashboard");
@@ -112,8 +114,8 @@ export default function SignUp() {
         return;
       }
 
-      // Redirect to role selection (new users always go here first)
-      window.location.href = "/select-role";
+      // Redirect to verify email page (new users must verify before selecting role)
+      window.location.href = "/verify-email";
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);

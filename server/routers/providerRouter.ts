@@ -23,6 +23,14 @@ export const providerRouter = router({
       categoryIds: z.array(z.number()).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
+      // Block unverified email users from creating a provider profile
+      if (!ctx.user.emailVerified) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Please verify your email address before setting up your provider profile. Check your inbox for the verification link.",
+        });
+      }
+
       const existing = await db.getProviderByUserId(ctx.user.id);
       if (existing) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Provider profile already exists" });

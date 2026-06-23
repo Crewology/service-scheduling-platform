@@ -330,7 +330,9 @@ router.get("/api/auth/google/callback", async (req: Request, res: Response) => {
 
     // Smart redirect based on user state
     let redirectPath = "/";
-    if (!user.hasSelectedRole) {
+    if (!user.emailVerified) {
+      redirectPath = "/verify-email";
+    } else if (!user.hasSelectedRole) {
       redirectPath = "/select-role";
     } else if (user.role === "provider") {
       redirectPath = "/provider/dashboard";

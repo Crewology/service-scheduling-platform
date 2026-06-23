@@ -15,6 +15,14 @@ export const authRouter = router({
       role: z.enum(["customer", "provider"]),
     }))
     .mutation(async ({ ctx, input }) => {
+      // Block unverified email users from selecting a role
+      if (!ctx.user.emailVerified) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Please verify your email address before setting up your profile. Check your inbox for the verification link.",
+        });
+      }
+
       await db.updateUserProfile(ctx.user.id, {
         role: input.role,
         hasSelectedRole: true,

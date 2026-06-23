@@ -1643,3 +1643,7 @@
 - [x] Anti-spam: Add rate limiting to signup and login endpoints (per IP)
 - [x] Anti-spam: Block disposable/temporary email domains on registration
 - [x] Anti-spam: Enforce email verification before allowing bookings (already sends verification email, need to gate actions)
+- [x] Block unverified email users from role selection and profile setup — redirect to verify-email page
+- [x] Server-side: reject role selection and onboarding mutations if email not verified
+- [x] Frontend: redirect unverified users to a "verify your email" gate page instead of allowing navigation
+- [x] Admin dashboard shows "Unverified" status badge for users who haven't verified email

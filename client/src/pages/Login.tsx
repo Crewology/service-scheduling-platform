@@ -19,7 +19,9 @@ export default function Login() {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      if (!user.hasSelectedRole) {
+      if (!user.emailVerified) {
+        setLocation("/verify-email");
+      } else if (!user.hasSelectedRole) {
         setLocation("/select-role");
       } else if (user.role === "provider") {
         setLocation("/provider/dashboard");
@@ -61,7 +63,9 @@ export default function Login() {
       }
 
       // Redirect based on user state
-      if (!data.user.hasSelectedRole) {
+      if (!data.user.emailVerified) {
+        window.location.href = "/verify-email";
+      } else if (!data.user.hasSelectedRole) {
         window.location.href = "/select-role";
       } else if (data.user.role === "provider") {
         window.location.href = "/provider/dashboard";

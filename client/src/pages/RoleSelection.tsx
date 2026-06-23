@@ -74,6 +74,12 @@ export default function RoleSelection() {
     return null;
   }
 
+  // Redirect unverified users to verify-email page
+  if (!user.emailVerified) {
+    setLocation("/verify-email");
+    return null;
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-amber-50 via-white to-orange-50 px-4">
       {/* Logo */}

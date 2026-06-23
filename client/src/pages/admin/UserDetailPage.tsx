@@ -153,6 +153,8 @@ export default function UserDetailPage() {
                     )}
                     {user.deletedAt ? (
                       <Badge variant="destructive">Suspended</Badge>
+                    ) : !user.emailVerified ? (
+                      <Badge variant="outline" className="text-amber-600 border-amber-600">Unverified</Badge>
                     ) : (
                       <Badge variant="outline" className="text-green-600 border-green-600">Active</Badge>
                     )}

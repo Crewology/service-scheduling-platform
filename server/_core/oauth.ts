@@ -49,7 +49,10 @@ export function registerOAuthRoutes(app: Express) {
       let redirectPath = "/";
 
       if (user) {
-        if (!user.hasSelectedRole) {
+        if (!user.emailVerified) {
+          // Unverified email — send to verification page
+          redirectPath = "/verify-email";
+        } else if (!user.hasSelectedRole) {
           // New user — send to role selection
           redirectPath = "/select-role";
         } else if (user.role === "provider") {
