@@ -400,6 +400,17 @@ export default function CategoryDetail() {
                                 {service.pricingModel === "consultation" && "Free"}
                               </span>
                             </div>
+                            {/* Provider name and photo on each service tile */}
+                            <div className="flex items-center gap-2 mt-2">
+                              {provider.profilePhotoUrl ? (
+                                <img src={provider.profilePhotoUrl} alt={provider.businessName} className="w-5 h-5 rounded-full object-cover flex-shrink-0" />
+                              ) : (
+                                <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                                  <User className="h-2.5 w-2.5 text-muted-foreground" />
+                                </div>
+                              )}
+                              <span className="text-xs text-muted-foreground truncate">{provider.businessName}</span>
+                            </div>
                             <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
                               <Badge variant="outline" className="text-xs capitalize">
                                 {service.serviceType.replace("_", " ")}
