@@ -62,7 +62,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
-import { Link } from "wouter";
+import { Link, useSearch } from "wouter";
 import { formatCurrency, formatDate } from "@/lib/dateUtils";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { TeamManagementPanel } from "./admin/TeamManagementPanel";
@@ -249,7 +249,9 @@ function SubscriptionAnalyticsPanel() {
 
 export default function AdminDashboard() {
   const { user, loading: authLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState("overview");
+  const searchString = useSearch();
+  const urlTab = new URLSearchParams(searchString).get("tab");
+  const [activeTab, setActiveTab] = useState(urlTab || "overview");
   const [providerSearch, setProviderSearch] = useState("");
   const [bookingSearch, setBookingSearch] = useState("");
   const utils = trpc.useUtils();

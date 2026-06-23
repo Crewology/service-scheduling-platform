@@ -1651,3 +1651,4 @@
 - [x] Make provider name and photo clickable (link to provider profile) on service cards in browse and search
 - [x] Add favorite/save button to service cards in browse and search results
 - [x] Fix provider.listByCategory returning 0 providers - was mapping .providerId on already-plain number array
+- [x] Fix "Back to Admin Dashboard" button on user detail page to return to Users tab instead of overview

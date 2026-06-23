@@ -64,7 +64,7 @@ export default function UserDetailPage() {
   const deleteUser = trpc.admin.deleteUser.useMutation({
     onSuccess: (result) => {
       toast.success(result.message);
-      navigate("/admin");
+      navigate("/admin?tab=users");
     },
     onError: (err) => toast.error(err.message),
   });
@@ -120,7 +120,7 @@ export default function UserDetailPage() {
       <NavHeader />
       <div className="container py-8">
         {/* Back Button */}
-        <Button variant="ghost" className="mb-4" onClick={() => navigate("/admin")}>
+        <Button variant="ghost" className="mb-4" onClick={() => navigate("/admin?tab=users")}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Admin Dashboard
         </Button>
