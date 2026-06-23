@@ -331,6 +331,12 @@ export default function BookingDetail() {
                     <p className="text-sm">{booking.customerNotes}</p>
                   </div>
                 )}
+                {(booking as any).venueName && (
+                  <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Venue Name</p>
+                    <p className="text-sm">{(booking as any).venueName}</p>
+                  </div>
+                )}
                 {booking.serviceAddressLine1 && (
                   <div className="mt-4 p-3 bg-muted/50 rounded-lg">
                     <p className="text-sm font-medium text-muted-foreground mb-1">Service Address</p>

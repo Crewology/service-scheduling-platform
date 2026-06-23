@@ -272,6 +272,7 @@ export const bookings = mysqlTable("bookings", {
   serviceCity: varchar("serviceCity", { length: 100 }),
   serviceState: varchar("serviceState", { length: 50 }),
   servicePostalCode: varchar("servicePostalCode", { length: 20 }),
+  venueName: varchar("venueName", { length: 255 }),
   customerNotes: text("customerNotes"),
   providerNotes: text("providerNotes"),
   subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),

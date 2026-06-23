@@ -1636,3 +1636,4 @@
 - [x] Add "Consultation" as a free pricing option to all booking category pricing dropdowns
 - [x] Add Pricing Model dropdown to the Edit Service dialog in Provider Dashboard
 - [x] Add ability to delete quote requests from the main dashboard
+- [x] DJ & Music Services: Change location options to Public Venue, Private Location, Virtual Stream; add Venue Name input when Public Venue is selected during booking

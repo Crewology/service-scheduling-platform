@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -351,6 +352,8 @@ export default function ServiceDetail() {
     city: "",
     state: "",
     postalCode: "",
+    venueName: "",
+    djLocationType: "" as "" | "public_venue" | "private_location" | "virtual_stream",
     notes: "",
   });
 
@@ -495,17 +498,25 @@ export default function ServiceDetail() {
       const startDateStr = selectedDate.toISOString().split("T")[0];
       const endDateStr = endDate.toISOString().split("T")[0];
       const endTime = calculateEndTime(selectedTime, service.durationMinutes || 60);
+      const isDJMulti = service.categoryId === 20;
+      const multiLocationType: "mobile" | "fixed_location" | "virtual" = isDJMulti
+        ? (bookingForm.djLocationType === "virtual_stream" ? "virtual" : bookingForm.djLocationType === "public_venue" ? "fixed_location" : "mobile")
+        : service.serviceType as "mobile" | "fixed_location" | "virtual";
+      const multiNeedsAddress = isDJMulti
+        ? (bookingForm.djLocationType === "public_venue" || bookingForm.djLocationType === "private_location")
+        : service.serviceType === "mobile";
       createMultiDay.mutate({
         serviceId: service.id,
         startDate: startDateStr,
         endDate: endDateStr,
         startTime: selectedTime,
         endTime,
-        locationType: service.serviceType as "mobile" | "fixed_location" | "virtual",
-        serviceAddressLine1: service.serviceType === "mobile" ? bookingForm.addressLine1 : undefined,
-        serviceCity: service.serviceType === "mobile" ? bookingForm.city : undefined,
-        serviceState: service.serviceType === "mobile" ? bookingForm.state : undefined,
-        servicePostalCode: service.serviceType === "mobile" ? bookingForm.postalCode : undefined,
+        locationType: multiLocationType,
+        serviceAddressLine1: multiNeedsAddress ? bookingForm.addressLine1 : undefined,
+        serviceCity: multiNeedsAddress ? bookingForm.city : undefined,
+        serviceState: multiNeedsAddress ? bookingForm.state : undefined,
+        servicePostalCode: multiNeedsAddress ? bookingForm.postalCode : undefined,
+        venueName: isDJMulti && bookingForm.djLocationType === "public_venue" ? bookingForm.venueName : undefined,
         customerNotes: bookingForm.notes || undefined,
         bookingSource: "direct",
       });
@@ -519,6 +530,13 @@ export default function ServiceDetail() {
       }
       const startDateStr = selectedDate.toISOString().split("T")[0];
       const endTime = calculateEndTime(selectedTime, service.durationMinutes || 60);
+      const isDJRecurring = service.categoryId === 20;
+      const recurLocationType: "mobile" | "fixed_location" | "virtual" = isDJRecurring
+        ? (bookingForm.djLocationType === "virtual_stream" ? "virtual" : bookingForm.djLocationType === "public_venue" ? "fixed_location" : "mobile")
+        : service.serviceType as "mobile" | "fixed_location" | "virtual";
+      const recurNeedsAddress = isDJRecurring
+        ? (bookingForm.djLocationType === "public_venue" || bookingForm.djLocationType === "private_location")
+        : service.serviceType === "mobile";
       createRecurring.mutate({
         serviceId: service.id,
         startDate: startDateStr,
@@ -527,11 +545,12 @@ export default function ServiceDetail() {
         frequency: recurringFrequency,
         daysOfWeek: recurringDays,
         totalWeeks: recurringWeeks,
-        locationType: service.serviceType as "mobile" | "fixed_location" | "virtual",
-        serviceAddressLine1: service.serviceType === "mobile" ? bookingForm.addressLine1 : undefined,
-        serviceCity: service.serviceType === "mobile" ? bookingForm.city : undefined,
-        serviceState: service.serviceType === "mobile" ? bookingForm.state : undefined,
-        servicePostalCode: service.serviceType === "mobile" ? bookingForm.postalCode : undefined,
+        locationType: recurLocationType,
+        serviceAddressLine1: recurNeedsAddress ? bookingForm.addressLine1 : undefined,
+        serviceCity: recurNeedsAddress ? bookingForm.city : undefined,
+        serviceState: recurNeedsAddress ? bookingForm.state : undefined,
+        servicePostalCode: recurNeedsAddress ? bookingForm.postalCode : undefined,
+        venueName: isDJRecurring && bookingForm.djLocationType === "public_venue" ? bookingForm.venueName : undefined,
         customerNotes: bookingForm.notes || undefined,
         bookingSource: "direct",
       });
@@ -547,18 +566,26 @@ export default function ServiceDetail() {
     const dateStr = selectedDate.toISOString().split("T")[0];
     const endTime = calculateEndTime(selectedTime, service.durationMinutes || 60);
 
+    // For DJ & Music (category 20), map djLocationType to standard locationType
+    const isDJ = service.categoryId === 20;
+    const effectiveLocationType: "mobile" | "fixed_location" | "virtual" = isDJ
+      ? (bookingForm.djLocationType === "virtual_stream" ? "virtual" : bookingForm.djLocationType === "public_venue" ? "fixed_location" : "mobile")
+      : service.serviceType as "mobile" | "fixed_location" | "virtual";
+    const needsAddress = isDJ
+      ? (bookingForm.djLocationType === "public_venue" || bookingForm.djLocationType === "private_location")
+      : service.serviceType === "mobile";
+
     createBooking.mutate({
       serviceId: service.id,
       bookingDate: dateStr,
       startTime: selectedTime,
       endTime,
-      locationType: service.serviceType as "mobile" | "fixed_location" | "virtual",
-      serviceAddressLine1:
-        service.serviceType === "mobile" ? bookingForm.addressLine1 : undefined,
-      serviceCity: service.serviceType === "mobile" ? bookingForm.city : undefined,
-      serviceState: service.serviceType === "mobile" ? bookingForm.state : undefined,
-      servicePostalCode:
-        service.serviceType === "mobile" ? bookingForm.postalCode : undefined,
+      locationType: effectiveLocationType,
+      serviceAddressLine1: needsAddress ? bookingForm.addressLine1 : undefined,
+      serviceCity: needsAddress ? bookingForm.city : undefined,
+      serviceState: needsAddress ? bookingForm.state : undefined,
+      servicePostalCode: needsAddress ? bookingForm.postalCode : undefined,
+      venueName: isDJ && bookingForm.djLocationType === "public_venue" ? bookingForm.venueName : undefined,
       customerNotes: bookingForm.notes || undefined,
       bookingSource: "direct",
       promoCodeId: promoApplied?.valid ? promoApplied.promoCodeId ?? undefined : undefined,
@@ -705,9 +732,11 @@ export default function ServiceDetail() {
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5">
                     <MapPin className="h-5 w-5 text-primary" />
                     <div>
-                      <p className="text-xs text-muted-foreground">Type</p>
+                      <p className="text-xs text-muted-foreground">Location</p>
                       <p className="font-semibold capitalize">
-                        {service.serviceType.replace("_", " ")}
+                        {service.categoryId === 20
+                          ? "Public Venue / Private / Virtual"
+                          : service.serviceType.replace("_", " ")}
                       </p>
                     </div>
                   </div>
@@ -1222,7 +1251,7 @@ export default function ServiceDetail() {
                       </p>
                     </div>
 
-                    {service.serviceType === "mobile" && (
+                    {service.serviceType === "mobile" && service.categoryId !== 20 && (
                       <div className="space-y-3 mb-4">
                         <p className="text-sm font-medium">Service Address</p>
                         <Input
@@ -1267,6 +1296,92 @@ export default function ServiceDetail() {
                             })
                           }
                         />
+                      </div>
+                    )}
+
+                    {/* DJ & Music Services: Custom location type picker */}
+                    {service.categoryId === 20 && (
+                      <div className="space-y-3 mb-4">
+                        <p className="text-sm font-medium">Booking Location</p>
+                        <Select
+                          value={bookingForm.djLocationType}
+                          onValueChange={(val) =>
+                            setBookingForm({
+                              ...bookingForm,
+                              djLocationType: val as "public_venue" | "private_location" | "virtual_stream",
+                              venueName: val !== "public_venue" ? "" : bookingForm.venueName,
+                            })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select location type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="public_venue">Public Venue</SelectItem>
+                            <SelectItem value="private_location">Private Location</SelectItem>
+                            <SelectItem value="virtual_stream">Virtual Stream</SelectItem>
+                          </SelectContent>
+                        </Select>
+
+                        {bookingForm.djLocationType === "public_venue" && (
+                          <Input
+                            placeholder="Venue Name (e.g., The Grand Ballroom)"
+                            value={bookingForm.venueName}
+                            onChange={(e) =>
+                              setBookingForm({
+                                ...bookingForm,
+                                venueName: e.target.value,
+                              })
+                            }
+                          />
+                        )}
+
+                        {(bookingForm.djLocationType === "public_venue" || bookingForm.djLocationType === "private_location") && (
+                          <div className="space-y-2">
+                            <Input
+                              placeholder="Street Address"
+                              value={bookingForm.addressLine1}
+                              onChange={(e) =>
+                                setBookingForm({
+                                  ...bookingForm,
+                                  addressLine1: e.target.value,
+                                })
+                              }
+                            />
+                            <div className="grid grid-cols-2 gap-2">
+                              <Input
+                                placeholder="City"
+                                value={bookingForm.city}
+                                onChange={(e) =>
+                                  setBookingForm({
+                                    ...bookingForm,
+                                    city: e.target.value,
+                                  })
+                                }
+                              />
+                              <Input
+                                placeholder="State"
+                                value={bookingForm.state}
+                                onChange={(e) =>
+                                  setBookingForm({
+                                    ...bookingForm,
+                                    state: e.target.value,
+                                  })
+                                }
+                              />
+                            </div>
+                            <Input
+                              placeholder="Postal Code"
+                              value={bookingForm.postalCode}
+                              onChange={(e) =>
+                                setBookingForm({
+                                  ...bookingForm,
+                                  postalCode: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                        )}
                       </div>
                     )}
 

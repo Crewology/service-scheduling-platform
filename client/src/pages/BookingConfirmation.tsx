@@ -239,6 +239,16 @@ export default function BookingConfirmation() {
                 </div>
               </div>
 
+              {(booking as any).venueName && (
+                <div className="flex items-start gap-3 md:col-span-2">
+                  <MapPin className="h-5 w-5 text-primary mt-0.5" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Venue</p>
+                    <p className="font-semibold">{(booking as any).venueName}</p>
+                  </div>
+                </div>
+              )}
+
               {booking.locationType === "mobile" && booking.serviceAddressLine1 && (
                 <div className="flex items-start gap-3 md:col-span-2">
                   <MapPin className="h-5 w-5 text-primary mt-0.5" />

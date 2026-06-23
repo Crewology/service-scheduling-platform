@@ -1,0 +1,1 @@
+ALTER TABLE `bookings` ADD `venueName` varchar(255);
