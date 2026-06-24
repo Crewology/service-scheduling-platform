@@ -1668,3 +1668,4 @@
 - [x] Add "Quick Re-book" button on past/completed bookings in MyBookings page
 - [x] Build bulk booking flow for scheduling multiple providers/dates in one session
 - [x] Build monthly planner view for drag-and-drop DJ/provider scheduling
+- [x] Enable Custom Duration for: TV/Film Crew (19), Dance Lessons (195), Fitness Classes (109), Personal Trainer (12), Day Labor (202), Handyman (9), Power Washing (148), Home Cleaning (188), Virtual Events (201), Party & Event Rentals (199)
