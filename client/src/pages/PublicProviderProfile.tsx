@@ -254,9 +254,7 @@ export default function PublicProviderProfile() {
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
         <h1 className="text-2xl font-bold text-foreground">Provider Not Found</h1>
         <p className="text-muted-foreground">This profile doesn't exist or has been removed.</p>
-        <Link href="/">
-          <Button variant="outline"><ArrowLeft className="w-4 h-4 mr-2" /> Back to Home</Button>
-        </Link>
+        <Button variant="outline" onClick={() => window.history.length > 1 ? window.history.back() : setLocation('/')}><ArrowLeft className="w-4 h-4 mr-2" /> Back</Button>
       </div>
     );
   }
@@ -279,11 +277,9 @@ export default function PublicProviderProfile() {
         }} />
 
         <div className="container max-w-5xl py-10 relative">
-          <Link href="/">
-            <Button variant="ghost" size="sm" className="mb-6 text-muted-foreground hover:text-foreground">
-              <ArrowLeft className="w-4 h-4 mr-2" /> Back to OlogyCrew
-            </Button>
-          </Link>
+          <Button variant="ghost" size="sm" className="mb-6 text-muted-foreground hover:text-foreground" onClick={() => window.history.length > 1 ? window.history.back() : setLocation('/')}>
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back
+          </Button>
 
           <div className="flex flex-col md:flex-row gap-6 items-start">
             {/* Profile Photo */}
