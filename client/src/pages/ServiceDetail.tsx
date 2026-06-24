@@ -357,6 +357,31 @@ export default function ServiceDetail() {
     notes: "",
   });
 
+  // Custom duration state (for DJ & Music services category 20)
+  const [useCustomDuration, setUseCustomDuration] = useState(false);
+  const [customStartTime, setCustomStartTime] = useState("");
+  const [customEndTime, setCustomEndTime] = useState("");
+
+  // Calculate custom duration in minutes
+  const customDurationMinutes = useMemo(() => {
+    if (!useCustomDuration || !customStartTime || !customEndTime) return 0;
+    const [startH, startM] = customStartTime.split(":").map(Number);
+    const [endH, endM] = customEndTime.split(":").map(Number);
+    let startTotal = startH * 60 + startM;
+    let endTotal = endH * 60 + endM;
+    // Handle overnight (e.g., 10 PM to 2 AM)
+    if (endTotal <= startTotal) endTotal += 24 * 60;
+    return endTotal - startTotal;
+  }, [useCustomDuration, customStartTime, customEndTime]);
+
+  // Calculate custom duration price based on hourly rate
+  const customDurationPrice = useMemo(() => {
+    if (!service || !useCustomDuration || customDurationMinutes <= 0) return 0;
+    const hourlyRate = service.hourlyRate ? parseFloat(service.hourlyRate) : 0;
+    if (hourlyRate <= 0) return 0;
+    return (hourlyRate * customDurationMinutes) / 60;
+  }, [service, useCustomDuration, customDurationMinutes]);
+
   // Promo code state
   const [promoCode, setPromoCode] = useState("");
 
@@ -409,6 +434,10 @@ export default function ServiceDetail() {
 
   const getNumericPrice = () => {
     if (!service) return 0;
+    // For DJ custom duration, return the calculated price
+    if (useCustomDuration && customDurationPrice > 0 && service.categoryId === 20) {
+      return customDurationPrice;
+    }
     if (service.pricingModel === "fixed" && service.basePrice) return parseFloat(service.basePrice);
     if (service.pricingModel === "hourly" && service.hourlyRate) return parseFloat(service.hourlyRate);
     return 0;
@@ -555,19 +584,41 @@ export default function ServiceDetail() {
       return;
     }
 
+    // For DJ custom duration, validate the end time
+    const isDJ = service.categoryId === 20;
+    if (isDJ && useCustomDuration) {
+      if (!customStartTime || !customEndTime) {
+        toast.error("Please select both start and end times for your custom duration");
+        return;
+      }
+      if (customDurationMinutes <= 0) {
+        toast.error("End time must be after start time");
+        return;
+      }
+    }
+
     const dateStr = selectedDate.toISOString().split("T")[0];
-    const endTime = calculateEndTime(selectedTime, service.durationMinutes || 60);
+    const actualDuration = (isDJ && useCustomDuration && customDurationMinutes > 0)
+      ? customDurationMinutes
+      : (service.durationMinutes || 60);
+    const actualStartTime = (isDJ && useCustomDuration) ? customStartTime : selectedTime;
+    const endTime = calculateEndTime(actualStartTime, actualDuration);
 
     // Use the service's serviceType directly (DJ services already have the correct type set)
     const locType = service.serviceType as "mobile" | "fixed_location" | "virtual";
     const needsAddress = locType === "mobile" || locType === "fixed_location";
-    const isDJ = service.categoryId === 20;
+
+    // Calculate subtotal for custom duration
+    const subtotal = (isDJ && useCustomDuration && customDurationPrice > 0)
+      ? customDurationPrice.toFixed(2)
+      : undefined;
 
     createBooking.mutate({
       serviceId: service.id,
       bookingDate: dateStr,
-      startTime: selectedTime,
+      startTime: actualStartTime,
       endTime,
+      durationMinutes: actualDuration,
       locationType: locType,
       serviceAddressLine1: needsAddress ? bookingForm.addressLine1 : undefined,
       serviceCity: needsAddress ? bookingForm.city : undefined,
@@ -576,6 +627,7 @@ export default function ServiceDetail() {
       venueName: isDJ && locType === "fixed_location" ? bookingForm.venueName : undefined,
       customerNotes: bookingForm.notes || undefined,
       bookingSource: "direct",
+      subtotal,
       promoCodeId: promoApplied?.valid ? promoApplied.promoCodeId ?? undefined : undefined,
       referralCodeId: referralApplied?.valid ? referralApplied.referralCodeId : undefined,
     });
@@ -1108,6 +1160,89 @@ export default function ServiceDetail() {
                       )}
                     </div>
 
+                    {/* Custom Duration option for DJ & Music services */}
+                    {service?.categoryId === 20 && service?.pricingModel === "hourly" && (
+                      <div className="mb-4 border rounded-lg p-3 bg-muted/30">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={useCustomDuration}
+                            onChange={(e) => {
+                              setUseCustomDuration(e.target.checked);
+                              if (!e.target.checked) {
+                                setCustomStartTime("");
+                                setCustomEndTime("");
+                              }
+                            }}
+                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                          />
+                          <span className="text-sm font-medium">Custom Duration</span>
+                          <span className="text-xs text-muted-foreground">(set your own start & end time)</span>
+                        </label>
+
+                        {useCustomDuration && (
+                          <div className="mt-3 space-y-3">
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <Label className="text-xs text-muted-foreground mb-1 block">Start Time</Label>
+                                <input
+                                  type="time"
+                                  value={customStartTime}
+                                  onChange={(e) => setCustomStartTime(e.target.value)}
+                                  className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-xs text-muted-foreground mb-1 block">End Time</Label>
+                                <input
+                                  type="time"
+                                  value={customEndTime}
+                                  onChange={(e) => setCustomEndTime(e.target.value)}
+                                  className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
+                                />
+                              </div>
+                            </div>
+
+                            {customStartTime && customEndTime && customDurationMinutes > 0 && (
+                              <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
+                                <div className="flex items-center justify-between text-sm">
+                                  <span className="text-muted-foreground">Duration</span>
+                                  <span className="font-medium">{formatDuration(customDurationMinutes)}</span>
+                                </div>
+                                <div className="flex items-center justify-between text-sm mt-1">
+                                  <span className="text-muted-foreground">Rate</span>
+                                  <span className="font-medium">${service.hourlyRate}/hr</span>
+                                </div>
+                                <Separator className="my-2" />
+                                <div className="flex items-center justify-between text-sm font-semibold text-primary">
+                                  <span>Estimated Total</span>
+                                  <span>${customDurationPrice.toFixed(2)}</span>
+                                </div>
+                              </div>
+                            )}
+
+                            {customStartTime && customEndTime && customDurationMinutes <= 0 && (
+                              <p className="text-xs text-destructive">End time must be after start time</p>
+                            )}
+
+                            {customStartTime && customEndTime && customDurationMinutes > 0 && (
+                              <Button
+                                className="w-full"
+                                onClick={() => {
+                                  setSelectedTime(customStartTime);
+                                  setBookingStep("details");
+                                }}
+                              >
+                                Continue with Custom Duration
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Standard time slot selection (hidden when custom duration is active) */}
+                    {(!useCustomDuration || service?.categoryId !== 20) && (<>
                     {availableSlots.length === 0 ? (
                       <div className="text-center py-6">
                         <Clock className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
@@ -1192,6 +1327,7 @@ export default function ServiceDetail() {
                         ))}
                       </div>
                     )}
+                    </>)}
                   </div>
                 )}
 
@@ -1228,15 +1364,18 @@ export default function ServiceDetail() {
                       <p className="text-sm">
                         <span className="text-muted-foreground">Time:</span>{" "}
                         <span className="font-medium">
-                          {formatTimeForDisplay(selectedTime)} -{" "}
-                          {formatTimeForDisplay(
-                            calculateEndTime(
-                              selectedTime,
-                              service.durationMinutes || 60
-                            )
-                          )}
+                          {useCustomDuration && service.categoryId === 20
+                            ? `${formatTimeForDisplay(customStartTime)} - ${formatTimeForDisplay(customEndTime)}`
+                            : `${formatTimeForDisplay(selectedTime)} - ${formatTimeForDisplay(calculateEndTime(selectedTime, service.durationMinutes || 60))}`
+                          }
                         </span>
                       </p>
+                      {useCustomDuration && service.categoryId === 20 && customDurationMinutes > 0 && (
+                        <p className="text-sm">
+                          <span className="text-muted-foreground">Duration:</span>{" "}
+                          <span className="font-medium">{formatDuration(customDurationMinutes)}</span>
+                        </p>
+                      )}
                     </div>
 
                     {/* For DJ & Music (category 20) with fixed_location (Public Venue), show Venue Name */}
@@ -1521,13 +1660,19 @@ export default function ServiceDetail() {
                             <div>
                               <p className="text-muted-foreground text-xs">Time</p>
                               <p className="font-medium">
-                                {formatTimeForDisplay(selectedTime)}
+                                {useCustomDuration && service.categoryId === 20
+                                  ? `${formatTimeForDisplay(customStartTime)} - ${formatTimeForDisplay(customEndTime)}`
+                                  : formatTimeForDisplay(selectedTime)
+                                }
                               </p>
                             </div>
                             <div>
                               <p className="text-muted-foreground text-xs">Duration</p>
                               <p className="font-medium">
-                                {formatDuration(service.durationMinutes)}
+                                {useCustomDuration && service.categoryId === 20 && customDurationMinutes > 0
+                                  ? formatDuration(customDurationMinutes)
+                                  : formatDuration(service.durationMinutes)
+                                }
                               </p>
                             </div>
                             <div>
@@ -1710,10 +1855,23 @@ export default function ServiceDetail() {
 
                       {/* Pricing */}
                       <div className="border rounded-lg p-4 space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span>{bookingType === "multi_day" ? `Price per Day` : bookingType === "recurring" ? `Price per Session` : getDurationPricingLabel(service.durationMinutes) === "Day Rate" ? "Day Rate" : `Service Price`}</span>
-                          <span className="font-medium">{getPrice()}</span>
-                        </div>
+                        {useCustomDuration && service.categoryId === 20 && customDurationMinutes > 0 ? (
+                          <>
+                            <div className="flex justify-between text-sm">
+                              <span>Hourly Rate</span>
+                              <span className="font-medium">${service.hourlyRate}/hr</span>
+                            </div>
+                            <div className="flex justify-between text-sm text-muted-foreground">
+                              <span>{formatDuration(customDurationMinutes)} ({(customDurationMinutes / 60).toFixed(1)} hrs)</span>
+                              <span className="font-medium">${customDurationPrice.toFixed(2)}</span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex justify-between text-sm">
+                            <span>{bookingType === "multi_day" ? `Price per Day` : bookingType === "recurring" ? `Price per Session` : getDurationPricingLabel(service.durationMinutes) === "Day Rate" ? "Day Rate" : `Service Price`}</span>
+                            <span className="font-medium">{getPrice()}</span>
+                          </div>
+                        )}
                         {bookingType === "multi_day" && (
                           <div className="flex justify-between text-sm text-muted-foreground">
                             <span>× {multiDayCount} days</span>
@@ -1762,6 +1920,8 @@ export default function ServiceDetail() {
                           <span>
                             {promoApplied?.valid && promoApplied.discountAmount > 0
                               ? `$${promoApplied.finalAmount.toFixed(2)}`
+                              : useCustomDuration && service.categoryId === 20 && customDurationPrice > 0
+                              ? `$${customDurationPrice.toFixed(2)}`
                               : bookingType === "multi_day"
                               ? `$${getMultiDayPrice().toFixed(2)}`
                               : bookingType === "recurring"

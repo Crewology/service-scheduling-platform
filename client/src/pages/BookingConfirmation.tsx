@@ -156,22 +156,32 @@ export default function BookingConfirmation() {
   };
 
   const getPrice = () => {
+    // If booking has a stored totalAmount, use it (covers custom duration bookings)
+    if (booking.totalAmount && parseFloat(booking.totalAmount) > 0) {
+      return `$${parseFloat(booking.totalAmount).toFixed(2)}`;
+    }
     if (service.pricingModel === "fixed" && service.basePrice) {
       return `$${service.basePrice}`;
     }
     if (service.pricingModel === "hourly" && service.hourlyRate) {
-      const hours = (service.durationMinutes || 60) / 60;
+      // Use the actual booked duration, not the service default
+      const hours = (booking.durationMinutes || service.durationMinutes || 60) / 60;
       return `$${(parseFloat(service.hourlyRate) * hours).toFixed(2)}`;
     }
     return "TBD";
   };
 
   const getPriceNum = () => {
+    // If booking has a stored totalAmount, use it (covers custom duration bookings)
+    if (booking.totalAmount && parseFloat(booking.totalAmount) > 0) {
+      return parseFloat(booking.totalAmount);
+    }
     if (service.pricingModel === "fixed" && service.basePrice) {
       return parseFloat(service.basePrice);
     }
     if (service.pricingModel === "hourly" && service.hourlyRate) {
-      const hours = (service.durationMinutes || 60) / 60;
+      // Use the actual booked duration, not the service default
+      const hours = (booking.durationMinutes || service.durationMinutes || 60) / 60;
       return parseFloat(service.hourlyRate) * hours;
     }
     return 0;
