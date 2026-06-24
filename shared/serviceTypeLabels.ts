@@ -31,6 +31,7 @@ const EVENT_LABELS: Record<string, string> = {
   flexible: "Flexible",
   teams: "Microsoft Teams",
   zoom: "Zoom",
+  other: "Other",
 };
 
 const DEFAULT_LABELS: Record<string, string> = {
@@ -41,6 +42,7 @@ const DEFAULT_LABELS: Record<string, string> = {
   flexible: "Flexible",
   teams: "Microsoft Teams",
   zoom: "Zoom",
+  other: "Other",
 };
 
 /**

@@ -15,7 +15,7 @@ export async function createQuoteRequest(data: {
   description: string;
   preferredDate?: string;
   preferredTime?: string;
-  locationType?: "mobile" | "fixed_location" | "virtual" | "hybrid" | "flexible" | "teams" | "zoom";
+  locationType?: "mobile" | "fixed_location" | "virtual" | "hybrid" | "flexible" | "teams" | "zoom" | "other";
   location?: string;
   attachmentUrls?: string;
   batchId?: string;

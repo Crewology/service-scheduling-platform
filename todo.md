@@ -1662,3 +1662,4 @@
 - [x] Ensure provider card location label aligns exactly with the location type selected from the dropdown list
 - [x] Add "Flexible", "Teams", and "Zoom" as location type options for services (schema, dropdowns, labels, filters)
 - [x] Update ServiceDetail breadcrumb to include provider profile as intermediate step when navigating from provider's profile page
+- [x] Add Flexible, Teams, Zoom, and Other to service creation and edit dropdowns (ProviderOnboarding + ProviderDashboard), plus update schema/validation for "other"

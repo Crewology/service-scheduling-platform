@@ -160,16 +160,17 @@ function AddServiceDialog({
                       <SelectItem value="flexible">Flexible</SelectItem>
                       <SelectItem value="teams">Microsoft Teams</SelectItem>
                       <SelectItem value="zoom">Zoom</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
                     </>
                   ) : (
                     <>
                       <SelectItem value="fixed_location">At My Location</SelectItem>
                       <SelectItem value="mobile">Mobile (I Travel)</SelectItem>
                       <SelectItem value="virtual">Virtual / Online</SelectItem>
-                      <SelectItem value="hybrid">Flexible</SelectItem>
                       <SelectItem value="flexible">Flexible</SelectItem>
                       <SelectItem value="teams">Microsoft Teams</SelectItem>
                       <SelectItem value="zoom">Zoom</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
                     </>
                   )}
                 </SelectContent>

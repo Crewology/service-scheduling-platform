@@ -1,0 +1,1 @@
+ALTER TABLE `services` MODIFY COLUMN `serviceType` enum('mobile','fixed_location','virtual','hybrid','flexible','teams','zoom','other') NOT NULL;
