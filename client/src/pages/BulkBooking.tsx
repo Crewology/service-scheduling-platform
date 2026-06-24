@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +26,9 @@ import {
   ChevronDown,
   ChevronUp,
   X,
+  Save,
+  DollarSign,
+  FileText,
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -43,6 +46,10 @@ interface ServiceSlot {
   notes: string;
   status: "pending" | "booked" | "error";
   errorMsg?: string;
+  // Price info (populated when service is selected)
+  pricingModel?: string;
+  basePrice?: string | null;
+  hourlyRate?: string | null;
 }
 
 const EVENT_TYPES = [
@@ -66,6 +73,280 @@ function generateId() {
   return Math.random().toString(36).substring(2, 9);
 }
 
+// ─── Cost Calculation Helper ─────────────────────────────────────────────────
+
+function calculateSlotCost(slot: ServiceSlot): number | null {
+  if (!slot.serviceId || !slot.startTime || !slot.endTime) return null;
+
+  if (slot.pricingModel === "fixed" && slot.basePrice) {
+    return parseFloat(slot.basePrice);
+  }
+
+  if (slot.pricingModel === "hourly" && slot.hourlyRate) {
+    const [startH, startM] = slot.startTime.split(":").map(Number);
+    const [endH, endM] = slot.endTime.split(":").map(Number);
+    let durationMinutes = (endH * 60 + endM) - (startH * 60 + startM);
+    if (durationMinutes <= 0) durationMinutes += 24 * 60;
+    const hours = durationMinutes / 60;
+    return parseFloat(slot.hourlyRate) * hours;
+  }
+
+  if (slot.pricingModel === "package" && slot.basePrice) {
+    return parseFloat(slot.basePrice);
+  }
+
+  return null; // custom_quote or consultation
+}
+
+function formatCurrency(amount: number): string {
+  return `$${amount.toFixed(2)}`;
+}
+
+// ─── Visual Timeline Component ───────────────────────────────────────────────
+
+function VisualTimeline({ slots }: { slots: ServiceSlot[] }) {
+  // Only show slots that have times set
+  const timedSlots = slots.filter((s) => s.startTime && s.endTime && s.providerName);
+
+  if (timedSlots.length === 0) return null;
+
+  // Find the earliest and latest times to set the timeline range
+  let minHour = 24;
+  let maxHour = 0;
+
+  timedSlots.forEach((slot) => {
+    const [startH] = slot.startTime.split(":").map(Number);
+    const [endH, endM] = slot.endTime.split(":").map(Number);
+    if (startH < minHour) minHour = startH;
+    const endHour = endM > 0 ? endH + 1 : endH;
+    if (endHour > maxHour) maxHour = endHour;
+  });
+
+  // Add padding
+  minHour = Math.max(0, minHour - 1);
+  maxHour = Math.min(24, maxHour + 1);
+  const totalHours = maxHour - minHour;
+
+  if (totalHours <= 0) return null;
+
+  // Color palette for slots
+  const colors = [
+    "bg-blue-500",
+    "bg-emerald-500",
+    "bg-purple-500",
+    "bg-amber-500",
+    "bg-rose-500",
+    "bg-cyan-500",
+    "bg-indigo-500",
+    "bg-orange-500",
+  ];
+
+  return (
+    <Card className="mb-6">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-medium flex items-center gap-2">
+          <Clock className="h-4 w-4 text-muted-foreground" />
+          Event Timeline
+        </CardTitle>
+        <p className="text-xs text-muted-foreground">Visual overview of all provider schedules for your event</p>
+      </CardHeader>
+      <CardContent>
+        {/* Time axis */}
+        <div className="relative">
+          {/* Hour markers */}
+          <div className="flex justify-between text-xs text-muted-foreground mb-2 px-0">
+            {Array.from({ length: totalHours + 1 }, (_, i) => {
+              const hour = minHour + i;
+              const h12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+              const ampm = hour >= 12 ? "PM" : "AM";
+              return (
+                <span key={hour} className="text-center" style={{ width: `${100 / (totalHours + 1)}%` }}>
+                  {h12}{ampm}
+                </span>
+              );
+            })}
+          </div>
+
+          {/* Grid lines */}
+          <div className="relative border-t border-b border-gray-200">
+            <div className="absolute inset-0 flex">
+              {Array.from({ length: totalHours }, (_, i) => (
+                <div key={i} className="flex-1 border-r border-gray-100 last:border-r-0" />
+              ))}
+            </div>
+
+            {/* Slot bars */}
+            <div className="relative space-y-1.5 py-2">
+              {timedSlots.map((slot, idx) => {
+                const [startH, startM] = slot.startTime.split(":").map(Number);
+                const [endH, endM] = slot.endTime.split(":").map(Number);
+                const startMinutes = (startH - minHour) * 60 + startM;
+                const endMinutes = (endH - minHour) * 60 + endM;
+                const totalMinutes = totalHours * 60;
+                const leftPercent = (startMinutes / totalMinutes) * 100;
+                const widthPercent = ((endMinutes - startMinutes) / totalMinutes) * 100;
+
+                return (
+                  <div key={slot.id} className="relative h-7 flex items-center">
+                    <div
+                      className={`absolute h-6 rounded-md ${colors[idx % colors.length]} text-white text-xs flex items-center px-2 overflow-hidden shadow-sm`}
+                      style={{
+                        left: `${leftPercent}%`,
+                        width: `${Math.max(widthPercent, 5)}%`,
+                      }}
+                      title={`${slot.providerName}: ${slot.startTime} – ${slot.endTime}`}
+                    >
+                      <span className="truncate font-medium">{slot.providerName}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Legend */}
+          <div className="flex flex-wrap gap-2 mt-3">
+            {timedSlots.map((slot, idx) => (
+              <div key={slot.id} className="flex items-center gap-1.5">
+                <div className={`h-2.5 w-2.5 rounded-sm ${colors[idx % colors.length]}`} />
+                <span className="text-xs text-muted-foreground">{slot.providerName} ({slot.categoryName})</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Cost Summary Component ──────────────────────────────────────────────────
+
+function CostSummary({ slots }: { slots: ServiceSlot[] }) {
+  const costs = slots.map((slot) => ({
+    slot,
+    cost: calculateSlotCost(slot),
+  }));
+
+  const calculableCosts = costs.filter((c) => c.cost !== null);
+  const unknownCosts = costs.filter((c) => c.cost === null && c.slot.serviceId);
+  const totalEstimate = calculableCosts.reduce((sum, c) => sum + (c.cost || 0), 0);
+
+  if (slots.length === 0 || !slots.some((s) => s.serviceId)) return null;
+
+  return (
+    <Card className="mb-6">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-medium flex items-center gap-2">
+          <DollarSign className="h-4 w-4 text-muted-foreground" />
+          Estimated Cost Breakdown
+        </CardTitle>
+        <p className="text-xs text-muted-foreground">Costs are estimates based on listed rates. Final pricing may vary.</p>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          {costs.map(({ slot, cost }) => {
+            if (!slot.serviceId) return null;
+            return (
+              <div key={slot.id} className="flex items-center justify-between text-sm py-1 border-b border-gray-50 last:border-b-0">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="font-medium truncate">{slot.providerName}</span>
+                  <span className="text-muted-foreground text-xs">({slot.serviceName})</span>
+                </div>
+                <div className="shrink-0 ml-2">
+                  {cost !== null ? (
+                    <span className="font-medium">{formatCurrency(cost)}</span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground italic">Quote needed</span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Total */}
+          <div className="flex items-center justify-between pt-2 border-t border-gray-200 mt-2">
+            <span className="font-semibold text-sm">Estimated Total</span>
+            <div className="text-right">
+              <span className="font-bold text-lg">{formatCurrency(totalEstimate)}</span>
+              {unknownCosts.length > 0 && (
+                <p className="text-xs text-muted-foreground">+ {unknownCosts.length} service{unknownCosts.length > 1 ? "s" : ""} requiring quotes</p>
+              )}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Drafts Panel Component ──────────────────────────────────────────────────
+
+function DraftsPanel({
+  onLoadDraft,
+}: {
+  onLoadDraft: (draft: any) => void;
+}) {
+  const { data: drafts, isLoading } = trpc.bulkDraft.list.useQuery();
+  const deleteDraft = trpc.bulkDraft.delete.useMutation();
+  const utils = trpc.useUtils();
+
+  if (isLoading) return null;
+  if (!drafts || drafts.length === 0) return null;
+
+  return (
+    <Card className="mb-6">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-medium flex items-center gap-2">
+          <FileText className="h-4 w-4 text-muted-foreground" />
+          Saved Drafts
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          {drafts.map((draft: any) => (
+            <div key={draft.id} className="flex items-center justify-between p-2.5 rounded-lg border hover:bg-gray-50 transition-colors">
+              <div className="min-w-0">
+                <p className="text-sm font-medium truncate">
+                  {draft.name || `${draft.eventType || "Event"} at ${draft.eventVenue || "TBD"}`}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {draft.eventDate ? new Date(draft.eventDate + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "No date set"}
+                  {" • "}
+                  {Array.isArray(draft.slots) ? draft.slots.length : 0} provider{(Array.isArray(draft.slots) ? draft.slots.length : 0) !== 1 ? "s" : ""}
+                  {" • "}
+                  Updated {new Date(draft.updatedAt).toLocaleDateString()}
+                </p>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => onLoadDraft(draft)}
+                >
+                  Load
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+                  onClick={async () => {
+                    await deleteDraft.mutateAsync({ id: draft.id });
+                    utils.bulkDraft.list.invalidate();
+                    toast.success("Draft deleted");
+                  }}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ─── Main Component ──────────────────────────────────────────────────────────
 
 export default function BulkBooking() {
@@ -81,6 +362,10 @@ export default function BulkBooking() {
   // Service slots (Step 2)
   const [slots, setSlots] = useState<ServiceSlot[]>([]);
 
+  // Draft state
+  const [currentDraftId, setCurrentDraftId] = useState<number | null>(null);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [completedCount, setCompletedCount] = useState(0);
@@ -90,6 +375,10 @@ export default function BulkBooking() {
 
   // Create booking mutation
   const createBooking = trpc.booking.create.useMutation();
+
+  // Save draft mutation
+  const saveDraft = trpc.bulkDraft.save.useMutation();
+  const utils = trpc.useUtils();
 
   const eventDetailsComplete = eventDate && eventVenue && eventType;
 
@@ -131,6 +420,65 @@ export default function BulkBooking() {
       )
     );
   }, [eventDetailsComplete, slots]);
+
+  const handleSaveDraft = async () => {
+    setIsSavingDraft(true);
+    try {
+      const result = await saveDraft.mutateAsync({
+        id: currentDraftId || undefined,
+        name: eventType ? `${eventType} at ${eventVenue || "TBD"}` : undefined,
+        eventDate: eventDate || undefined,
+        eventType: eventType || undefined,
+        eventVenue: eventVenue || undefined,
+        slots: slots.map((s) => ({
+          id: s.id,
+          categoryId: s.categoryId,
+          categoryName: s.categoryName,
+          providerId: s.providerId,
+          providerName: s.providerName,
+          serviceId: s.serviceId,
+          serviceName: s.serviceName,
+          startTime: s.startTime,
+          endTime: s.endTime,
+          notes: s.notes,
+          pricingModel: s.pricingModel,
+          basePrice: s.basePrice,
+          hourlyRate: s.hourlyRate,
+        })),
+      });
+      setCurrentDraftId(result.id);
+      utils.bulkDraft.list.invalidate();
+      toast.success(currentDraftId ? "Draft updated!" : "Draft saved! You can resume this later.");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save draft");
+    }
+    setIsSavingDraft(false);
+  };
+
+  const handleLoadDraft = (draft: any) => {
+    setCurrentDraftId(draft.id);
+    setEventDate(draft.eventDate || "");
+    setEventType(draft.eventType || "");
+    setEventVenue(draft.eventVenue || "");
+    const loadedSlots: ServiceSlot[] = (Array.isArray(draft.slots) ? draft.slots : []).map((s: any) => ({
+      id: s.id || generateId(),
+      categoryId: s.categoryId || null,
+      categoryName: s.categoryName || "",
+      providerId: s.providerId || null,
+      providerName: s.providerName || "",
+      serviceId: s.serviceId || null,
+      serviceName: s.serviceName || "",
+      startTime: s.startTime || "",
+      endTime: s.endTime || "",
+      notes: s.notes || "",
+      status: "pending" as const,
+      pricingModel: s.pricingModel,
+      basePrice: s.basePrice,
+      hourlyRate: s.hourlyRate,
+    }));
+    setSlots(loadedSlots);
+    toast.success("Draft loaded!");
+  };
 
   const handleSubmitAll = async () => {
     if (!canSubmit) {
@@ -216,17 +564,39 @@ export default function BulkBooking() {
       <NavHeader />
       <div className="container py-6 max-w-4xl">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <Button variant="ghost" size="sm" onClick={() => window.history.back()}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">Bulk Booking</h1>
-            <p className="text-sm text-muted-foreground">
-              Plan your event and book all service providers at once
-            </p>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={() => window.history.back()}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold">Bulk Booking</h1>
+              <p className="text-sm text-muted-foreground">
+                Plan your event and book all service providers at once
+              </p>
+            </div>
           </div>
+          {/* Save as Draft button in header */}
+          {(eventDate || eventVenue || eventType || slots.length > 0) && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSaveDraft}
+              disabled={isSavingDraft || isSubmitting}
+              className="gap-1.5"
+            >
+              {isSavingDraft ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+              {currentDraftId ? "Update Draft" : "Save Draft"}
+            </Button>
+          )}
         </div>
+
+        {/* Saved Drafts */}
+        <DraftsPanel onLoadDraft={handleLoadDraft} />
 
         {/* Step 1: Event Details */}
         <Card className="mb-6">
@@ -323,6 +693,12 @@ export default function BulkBooking() {
           </CardContent>
         </Card>
 
+        {/* Visual Timeline */}
+        <VisualTimeline slots={slots} />
+
+        {/* Cost Summary */}
+        <CostSummary slots={slots} />
+
         {/* Step 2: Service Providers */}
         <Card className="mb-6">
           <CardHeader className="pb-3">
@@ -417,7 +793,22 @@ export default function BulkBooking() {
                   </div>
                 )}
 
-                <div className="flex items-center justify-end pt-2">
+                <div className="flex items-center justify-between pt-2">
+                  {/* Save Draft button */}
+                  <Button
+                    variant="outline"
+                    onClick={handleSaveDraft}
+                    disabled={isSavingDraft || isSubmitting}
+                    className="gap-1.5"
+                  >
+                    {isSavingDraft ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4" />
+                    )}
+                    {currentDraftId ? "Update Draft" : "Save as Draft"}
+                  </Button>
+
                   <Button
                     size="lg"
                     onClick={handleSubmitAll}
@@ -495,7 +886,6 @@ function ServiceSlotCard({
   // Filter search results to show providers in the selected category
   const filteredProviders = useMemo(() => {
     if (debouncedSearch.length >= 2 && searchResults) {
-      // If searching, filter by category
       if (slot.categoryId) {
         return searchResults.filter((p: any) =>
           p.categories?.some((c: any) => c.id === slot.categoryId)
@@ -574,6 +964,18 @@ function ServiceSlotCard({
           <span className="text-sm font-medium">
             {slot.categoryName || "Select a service type"}
           </span>
+          {/* Inline cost */}
+          {slot.serviceId && (
+            <span className="text-xs text-muted-foreground ml-2">
+              {(() => {
+                const cost = calculateSlotCost(slot);
+                if (cost !== null) return `≈ ${formatCurrency(cost)}`;
+                if (slot.pricingModel === "custom_quote") return "(Quote needed)";
+                if (slot.pricingModel === "consultation") return "(Free consultation)";
+                return "";
+              })()}
+            </span>
+          )}
         </div>
         <Button
           variant="ghost"
@@ -711,6 +1113,9 @@ function ServiceSlotCard({
                   providerName: "",
                   serviceId: null,
                   serviceName: "",
+                  pricingModel: undefined,
+                  basePrice: undefined,
+                  hourlyRate: undefined,
                 });
               }}
               disabled={isSubmitting}
@@ -730,16 +1135,24 @@ function ServiceSlotCard({
                       key={svc.id}
                       className="text-left p-2.5 rounded-lg border text-sm hover:border-primary hover:bg-primary/5 transition-all"
                       onClick={() => {
-                        onUpdate({ serviceId: svc.id, serviceName: svc.name });
+                        onUpdate({
+                          serviceId: svc.id,
+                          serviceName: svc.name,
+                          pricingModel: svc.pricingModel,
+                          basePrice: svc.basePrice,
+                          hourlyRate: svc.hourlyRate,
+                        });
                       }}
                       disabled={isSubmitting}
                     >
                       <div className="font-medium text-xs">{svc.name}</div>
-                      {svc.price && (
-                        <div className="text-muted-foreground text-xs mt-0.5">
-                          ${(svc.price / 100).toFixed(0)}/{svc.pricingType === "hourly" ? "hr" : "flat"}
-                        </div>
-                      )}
+                      <div className="text-muted-foreground text-xs mt-0.5">
+                        {svc.pricingModel === "fixed" && svc.basePrice && `$${parseFloat(svc.basePrice).toFixed(0)} flat`}
+                        {svc.pricingModel === "hourly" && svc.hourlyRate && `$${parseFloat(svc.hourlyRate).toFixed(0)}/hr`}
+                        {svc.pricingModel === "package" && svc.basePrice && `$${parseFloat(svc.basePrice).toFixed(0)} package`}
+                        {svc.pricingModel === "custom_quote" && "Custom quote"}
+                        {svc.pricingModel === "consultation" && "Free consultation"}
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -752,22 +1165,30 @@ function ServiceSlotCard({
                         key={svc.id}
                         className="text-left p-2.5 rounded-lg border text-sm hover:border-primary hover:bg-primary/5 transition-all"
                         onClick={() => {
-                          onUpdate({ serviceId: svc.id, serviceName: svc.name });
+                          onUpdate({
+                            serviceId: svc.id,
+                            serviceName: svc.name,
+                            pricingModel: svc.pricingModel,
+                            basePrice: svc.basePrice,
+                            hourlyRate: svc.hourlyRate,
+                          });
                         }}
                         disabled={isSubmitting}
                       >
                         <div className="font-medium text-xs">{svc.name}</div>
-                        {svc.price && (
-                          <div className="text-muted-foreground text-xs mt-0.5">
-                            ${(svc.price / 100).toFixed(0)}/{svc.pricingType === "hourly" ? "hr" : "flat"}
-                          </div>
-                        )}
+                        <div className="text-muted-foreground text-xs mt-0.5">
+                          {svc.pricingModel === "fixed" && svc.basePrice && `$${parseFloat(svc.basePrice).toFixed(0)} flat`}
+                          {svc.pricingModel === "hourly" && svc.hourlyRate && `$${parseFloat(svc.hourlyRate).toFixed(0)}/hr`}
+                          {svc.pricingModel === "package" && svc.basePrice && `$${parseFloat(svc.basePrice).toFixed(0)} package`}
+                          {svc.pricingModel === "custom_quote" && "Custom quote"}
+                          {svc.pricingModel === "consultation" && "Free consultation"}
+                        </div>
                       </button>
                     ))}
                   </div>
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground">No services found for this provider.</p>
+                <p className="text-xs text-muted-foreground py-2">Loading services...</p>
               )}
             </div>
           )}
@@ -781,7 +1202,7 @@ function ServiceSlotCard({
                 </Badge>
                 <button
                   className="text-xs text-primary hover:underline"
-                  onClick={() => onUpdate({ serviceId: null, serviceName: "" })}
+                  onClick={() => onUpdate({ serviceId: null, serviceName: "", pricingModel: undefined, basePrice: undefined, hourlyRate: undefined })}
                   disabled={isSubmitting}
                 >
                   Change service
@@ -826,11 +1247,24 @@ function ServiceSlotCard({
                 />
               </div>
 
-              {/* Completion indicator */}
+              {/* Completion indicator with cost */}
               {slot.startTime && slot.endTime && (
-                <div className="flex items-center gap-1.5 text-green-600">
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                  <span className="text-xs font-medium">Ready — {slot.startTime} to {slot.endTime}</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-green-600">
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    <span className="text-xs font-medium">Ready — {slot.startTime} to {slot.endTime}</span>
+                  </div>
+                  {(() => {
+                    const cost = calculateSlotCost(slot);
+                    if (cost !== null) {
+                      return (
+                        <span className="text-xs font-medium text-primary">
+                          Est. {formatCurrency(cost)}
+                        </span>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
               )}
             </div>

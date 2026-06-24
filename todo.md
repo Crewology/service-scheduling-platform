@@ -1680,3 +1680,8 @@
 - [x] Service type selector to filter providers by category
 - [x] Individual provider selection per service type with custom start/end time for each
 - [x] Summary view showing all providers grouped by service type with their times
+
+## Bulk Booking Enhancements
+- [x] Add visual timeline showing all providers' time slots on a horizontal bar for the event day
+- [x] Add dynamic cost calculation (estimated total based on selected services/durations)
+- [x] Add "Save as Draft" button to save incomplete bulk bookings for later

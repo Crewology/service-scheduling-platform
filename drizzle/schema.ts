@@ -10,7 +10,8 @@ import {
   date,
   time,
   index,
-  unique
+  unique,
+  json
 } from "drizzle-orm/mysql-core";
 
 /**
@@ -986,3 +987,22 @@ export const partnerTransfers = mysqlTable("partner_transfers", {
 ]);
 export type PartnerTransfer = typeof partnerTransfers.$inferSelect;
 export type InsertPartnerTransfer = typeof partnerTransfers.$inferInsert;
+
+/**
+ * Bulk Booking Drafts — allows users to save incomplete bulk booking plans
+ */
+export const bulkBookingDrafts = mysqlTable("bulk_booking_drafts", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id),
+  name: varchar("name", { length: 255 }),
+  eventDate: varchar("eventDate", { length: 20 }),
+  eventType: varchar("eventType", { length: 100 }),
+  eventVenue: text("eventVenue"),
+  slots: json("slots").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => [
+  index("bulk_draft_user_idx").on(table.userId),
+]);
+export type BulkBookingDraft = typeof bulkBookingDrafts.$inferSelect;
+export type InsertBulkBookingDraft = typeof bulkBookingDrafts.$inferInsert;

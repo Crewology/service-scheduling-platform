@@ -30,6 +30,7 @@ import { customerSubscriptionRouter } from "./customerSubscriptionRouter";
 import { foldersRouter } from "./foldersRouter";
 import { contactRouter } from "./contactRouter";
 import { pushRouter } from "./pushRouter";
+import { bulkDraftRouter } from "./bulkDraftRouter";
 import { trustRouter } from "./trustRouter";
 import { waitlistRouter } from "./routers/waitlistRouter";
 
@@ -58,6 +59,7 @@ export const appRouter = router({
   push: pushRouter,
   trust: trustRouter,
   waitlist: waitlistRouter,
+  bulkDraft: bulkDraftRouter,
 });
 
 export type AppRouter = typeof appRouter;

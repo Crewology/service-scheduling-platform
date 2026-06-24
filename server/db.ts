@@ -235,6 +235,15 @@ export {
   linkGoogleAccount,
 } from "./db/users";
 
+// Bulk booking drafts
+export {
+  createBulkDraft,
+  updateBulkDraft,
+  getBulkDraftsByUser,
+  getBulkDraftById,
+  deleteBulkDraft,
+} from "./db/bulkDrafts";
+
 // Waitlist management
 export {
   getNextWaitlistPosition,
