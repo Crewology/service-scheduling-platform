@@ -12,7 +12,7 @@ export default function TermsOfService() {
           backHref="/"
           breadcrumbs={[{ label: "Terms of Service" }]}
         />
-        <p className="text-muted-foreground mb-8 mt-4">Last updated: June 18, 2026</p>
+        <p className="text-muted-foreground mb-8 mt-4">Last updated: June 24, 2026</p>
 
         <div className="prose prose-neutral dark:prose-invert max-w-none space-y-6">
           <section>
@@ -25,7 +25,10 @@ export default function TermsOfService() {
           <section>
             <h2 className="text-xl font-semibold mt-8 mb-3">2. Description of Service</h2>
             <p className="text-muted-foreground leading-relaxed">
-              OlogyCrew is a service scheduling platform that connects customers with service providers across various categories. The platform facilitates booking, payment processing, communication, and review management between customers and providers. OlogyCrew acts as an intermediary and does not directly provide any of the listed services.
+              OlogyCrew is a service scheduling platform that connects customers with service providers across 42+ categories. The platform facilitates booking, payment processing, communication, and review management between customers and providers. OlogyCrew acts as an intermediary and does not directly provide any of the listed services.
+            </p>
+            <p className="text-muted-foreground leading-relaxed mt-2">
+              The platform supports multiple booking types including single bookings, multi-day bookings, recurring bookings, custom duration bookings (hourly rate-based with user-selected start/end times), bulk bookings (scheduling multiple providers in one session), and calendar-based monthly planning. Services may be delivered in-person, at a provider's location, virtually (including via Microsoft Teams or Zoom), or through flexible arrangements as agreed between the parties.
             </p>
           </section>
 
@@ -54,8 +57,33 @@ export default function TermsOfService() {
             <p className="text-muted-foreground leading-relaxed">
               All bookings made through the platform are agreements between the customer and the service provider. OlogyCrew facilitates payment processing through Stripe. A platform fee of 1% applies to transactions processed through the platform.
             </p>
-            <p className="text-muted-foreground leading-relaxed mt-2">
-              Cancellation policies are set by individual service providers. Refunds, when applicable, will be processed according to the provider's cancellation policy and may take 5-10 business days to appear on your statement.
+            <h3 className="text-lg font-medium mt-4 mb-2">Booking Types</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              The platform supports the following booking methods:
+            </p>
+            <ul className="list-disc pl-6 text-muted-foreground space-y-1 mt-2">
+              <li><strong>Single Bookings</strong> — one-time service appointments at a specific date and time</li>
+              <li><strong>Custom Duration Bookings</strong> — for hourly-rate services, customers select their own start and end times; the total cost is calculated as the provider's hourly rate multiplied by the number of hours</li>
+              <li><strong>Multi-Day Bookings</strong> — for projects spanning multiple consecutive days (e.g., AV crews, event planning, renovations)</li>
+              <li><strong>Recurring Bookings</strong> — weekly or bi-weekly sessions over a defined period (e.g., fitness training, dance lessons, cleaning)</li>
+              <li><strong>Bulk Bookings</strong> — scheduling multiple providers across different dates in a single session</li>
+              <li><strong>Monthly Planner</strong> — visual calendar-based scheduling for planning multiple bookings across a month</li>
+            </ul>
+            <h3 className="text-lg font-medium mt-4 mb-2">Duration Modifications</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              Customers may edit the duration of pending or confirmed hourly bookings from the Booking Detail page. Duration changes trigger an automatic recalculation of the booking total, including subtotal, platform fee, deposit, and remaining balance. Both parties are notified of any changes.
+            </p>
+            <h3 className="text-lg font-medium mt-4 mb-2">Quick Re-booking</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              Customers may re-book previously completed services using the Quick Re-book feature, which pre-populates the booking form with the same provider and service. A new date and time must be selected, and standard booking and payment terms apply to the new booking.
+            </p>
+            <h3 className="text-lg font-medium mt-4 mb-2">Location Types</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              Services may be offered under the following location types: Mobile (provider travels to customer), At Provider's Location/Public Venue, Virtual (online), Flexible (mutually agreed), Microsoft Teams, Zoom, or Other. The selected location type determines address requirements during booking. Virtual, Teams, and Zoom bookings do not require a physical address.
+            </p>
+            <h3 className="text-lg font-medium mt-4 mb-2">Cancellations and Refunds</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              Cancellation policies are set by individual service providers. Refunds, when applicable, will be processed according to the provider's cancellation policy and may take 5-10 business days to appear on your statement. For bulk bookings, each individual booking within the batch is subject to the respective provider's cancellation policy.
             </p>
           </section>
 
@@ -166,7 +194,10 @@ export default function TermsOfService() {
             </p>
             <p className="text-muted-foreground mt-2">
               <strong>OlogyCrew</strong><br />
-              Email: info@ologycrew.com
+              Email: info@ologycrew.com<br />
+              Phone: (678) 525-0891<br />
+              Website: <a href="https://www.ologycrew.com" className="text-primary hover:underline">www.ologycrew.com</a><br />
+              Help Center: <a href="/help" className="text-primary hover:underline">ologycrew.com/help</a>
             </p>
           </section>
         </div>

@@ -166,6 +166,42 @@ const guideSections: GuideSection[] = [
         linkText: "View My Waitlist",
       },
       {
+        title: "Custom Duration Bookings",
+        content:
+          "For services that charge by the hour — such as DJs, photographers, event planners, AV crews, TV/film crews, dance instructors, fitness trainers, personal trainers, day labor, handymen, power washing, home cleaning, virtual events, and party & event rentals — you can set a custom duration instead of choosing a preset time slot. Toggle on 'Custom Duration' during booking, then pick your start and end times. The system automatically calculates the total cost based on the provider's hourly rate multiplied by the number of hours. Overnight bookings (e.g., 8 PM to 2 AM) are fully supported.",
+      },
+      {
+        title: "Bulk Booking",
+        content:
+          "Need to book multiple providers across different dates? Use Bulk Booking to schedule several providers in one session. Go to My Bookings and click the 'Bulk Book' button in the header. On the Bulk Booking page: search for a provider by name or category, select a date and time, and add them to your booking list. Repeat for as many providers as you need, then submit all bookings at once. This is ideal for scheduling multiple DJs, photographers, or crew members across different weekends in a month.",
+        link: "/bulk-booking",
+        linkText: "Start Bulk Booking",
+      },
+      {
+        title: "Monthly Planner",
+        content:
+          "The Monthly Planner gives you a visual calendar-based approach to scheduling. Go to My Bookings and click the 'Monthly Planner' button. You'll see a full month grid — click on any date to add a provider or event for that day. Search and select providers, see all your planned events as colored markers on the calendar, navigate between months to plan ahead, and confirm all bookings at once when you're ready. Perfect for logistics managers or anyone who thinks in terms of 'which dates need coverage.'",
+        link: "/monthly-planner",
+        linkText: "Open Monthly Planner",
+      },
+      {
+        title: "Quick Re-book",
+        content:
+          "Had a great experience with a provider? Use Quick Re-book to schedule them again with minimal effort. On your My Bookings page, completed and past bookings show a 'Re-book' button. Click it to jump straight into a new booking with the same provider and service pre-selected — just pick a new date and time.",
+        link: "/my-bookings",
+        linkText: "View My Bookings",
+      },
+      {
+        title: "Editing Booking Duration",
+        content:
+          "Need to extend or shorten a booking? For pending or confirmed hourly bookings, you can edit the duration directly from the Booking Detail page. Click 'Edit Duration', adjust your start and end times, and the system recalculates the total cost in real-time based on the provider's hourly rate. The updated amount is reflected immediately.",
+      },
+      {
+        title: "Location Types",
+        content:
+          "OlogyCrew supports multiple location types for services: Mobile (provider comes to you), At My Location (you go to the provider), Virtual (online session), Flexible (either party can host), Microsoft Teams, Zoom, and Other. When booking, the location type determines whether you need to provide an address. Virtual, Teams, and Zoom bookings don't require a physical address.",
+      },
+      {
         title: "Booking Analytics",
         content:
           "Manager-tier customers have access to a detailed analytics dashboard showing spending trends, booking history, category breakdowns, and top providers. You can also export your booking history as CSV, JSON, or a branded PDF report with charts.",
@@ -493,13 +529,49 @@ const faqItems: FAQItem[] = [
   {
     question: "What types of bookings are supported?",
     answer:
-      "OlogyCrew supports single bookings, multi-day bookings (for projects spanning multiple days), and recurring bookings (weekly, bi-weekly, or monthly sessions). The booking type depends on what the provider has configured for each service.",
+      "OlogyCrew supports single bookings, multi-day bookings (for projects spanning multiple days), recurring bookings (weekly, bi-weekly, or monthly sessions), custom duration bookings (pick your own start/end times for hourly services), bulk bookings (schedule multiple providers at once), and monthly planner bookings (visual calendar-based scheduling). The booking type depends on the service category and what the provider has configured.",
     category: "Bookings",
+  },
+  {
+    question: "What is Custom Duration and how does it work?",
+    answer:
+      "Custom Duration lets you set your own start and end times for services that charge by the hour. Instead of choosing a preset time slot, toggle on 'Custom Duration' during booking, pick your start time and end time, and the system calculates the total cost automatically (hourly rate × hours). This is available for 14 service categories including DJs, photographers, event planners, AV crews, TV/film crews, dance instructors, fitness trainers, personal trainers, day labor, handymen, power washing, home cleaning, virtual events, and party & event rentals. Overnight bookings (e.g., 8 PM to 2 AM) are fully supported.",
+    category: "Bookings",
+  },
+  {
+    question: "How does Bulk Booking work?",
+    answer:
+      "Bulk Booking lets you schedule multiple providers across different dates in one session. Go to My Bookings and click 'Bulk Book' in the header. Search for a provider by name or category, select a date and time, and add them to your list. Repeat for as many providers as you need, then submit all bookings at once. This is ideal for scheduling several DJs, photographers, or crew members across different weekends in a month.",
+    category: "Bookings",
+  },
+  {
+    question: "What is the Monthly Planner?",
+    answer:
+      "The Monthly Planner is a visual calendar-based scheduling tool. Go to My Bookings and click 'Monthly Planner'. You'll see a full month grid — click any date to add a provider or event. Search and select providers, see planned events as colored markers, navigate between months, and confirm all bookings at once. It's perfect for anyone who plans by thinking 'which dates need coverage' rather than 'which providers do I need.'",
+    category: "Bookings",
+  },
+  {
+    question: "How do I re-book a provider I've used before?",
+    answer:
+      "On your My Bookings page, completed and past bookings show a 'Re-book' button. Click it to jump straight into a new booking with the same provider and service pre-selected — just pick a new date and time. No need to search for them again.",
+    category: "Bookings",
+  },
+  {
+    question: "Can I change the duration of an existing booking?",
+    answer:
+      "Yes! For pending or confirmed hourly bookings, you can edit the duration from the Booking Detail page. Click 'Edit Duration', adjust your start and end times, and the system recalculates the total cost in real-time. This is useful if your event runs longer or shorter than originally planned.",
+    category: "Bookings",
+  },
+  {
+    question: "What location types are available for services?",
+    answer:
+      "OlogyCrew supports seven location types: Mobile (provider comes to you), At My Location/Public Venue (you go to the provider), Virtual (online session), Flexible (either party can host), Microsoft Teams, Zoom, and Other. The location type determines whether you need to provide an address during booking. Virtual, Teams, and Zoom bookings don't require a physical address.",
+    category: "General",
   },
   {
     question: "How do notifications work?",
     answer:
-      "You'll receive real-time in-app notifications (shown in the bell icon in the navigation bar) for booking updates, new messages, and quote responses. You also receive email notifications. You can customize your notification preferences in Settings.",
+      "You'll receive real-time in-app notifications (shown in the bell icon in the navigation bar) for booking updates, new messages, and quote responses. Click any notification to mark it as read and navigate to the relevant page. Use the 'Clear All' button in the notification dropdown to dismiss all notifications at once. You also receive email notifications. Customize your notification preferences in Settings.",
     category: "General",
   },
   {
