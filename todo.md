@@ -1722,3 +1722,10 @@
 
 ## Bug Fix: Rate Exceeded on Google Sign-In
 - [x] Fix "Rate exceeded" blank page when clicking Sign In with Google button
+
+## Bulk Booking UX Improvements
+- [x] Activate Legacy provider (isActive = 0 → 1)
+- [x] Quick Category Stacking: Show category checklist upfront, user checks multiple categories, then fills in providers/times for each
+- [x] Personal Service Bundles: Save common combos as reusable templates with preferred providers pre-selected
+- [x] Smart Time Suggestions: Auto-suggest non-overlapping times based on service duration
+- [x] Favorite Providers Auto-Fill: Auto-suggest favorited providers when their category is selected

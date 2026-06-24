@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { trpc } from "@/lib/trpc";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { useLocation } from "wouter";
@@ -36,6 +37,9 @@ import {
   Zap,
   BookmarkPlus,
   FolderOpen,
+  Heart,
+  Sparkles,
+  ListChecks,
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -51,11 +55,10 @@ interface ProviderSlot {
   notes: string;
   status: "pending" | "booked" | "error";
   errorMsg?: string;
-  // Price info
   pricingModel?: string;
   basePrice?: string | null;
   hourlyRate?: string | null;
-  // Service-specific options
+  durationMinutes?: number | null;
   serviceOptions?: Record<string, string>;
 }
 
@@ -93,195 +96,65 @@ interface ServiceFieldDef {
   placeholder?: string;
 }
 
-// Map category IDs to their specific fields
 const SERVICE_SPECIFIC_FIELDS: Record<number, ServiceFieldDef[]> = {
-  // DJ & MUSIC SERVICES (ID: 20)
   20: [
-    {
-      key: "genre",
-      label: "Music Genre",
-      type: "select",
-      options: ["Hip Hop", "R&B", "EDM", "House", "Pop", "Latin", "Reggae", "Afrobeats", "Jazz", "Rock", "Country", "Top 40", "Open Format", "Other"],
-    },
-    {
-      key: "equipment",
-      label: "Equipment Needed",
-      type: "select",
-      options: ["Full Setup (Speakers + Mixer)", "DJ Only (Venue has PA)", "Wireless/Portable", "Custom"],
-    },
+    { key: "genre", label: "Music Genre", type: "select", options: ["Hip Hop", "R&B", "EDM", "House", "Pop", "Latin", "Reggae", "Afrobeats", "Jazz", "Rock", "Country", "Top 40", "Open Format", "Other"] },
+    { key: "equipment", label: "Equipment Needed", type: "select", options: ["Full Setup (Speakers + Mixer)", "DJ Only (Venue has PA)", "Wireless/Portable", "Custom"] },
   ],
-  // BARBER SHOP (ID: 7)
   7: [
-    {
-      key: "serviceStyle",
-      label: "Style Preference",
-      type: "select",
-      options: ["Fade", "Taper", "Line Up", "Buzz Cut", "Beard Trim", "Full Service", "Kids Cut", "Other"],
-    },
+    { key: "serviceStyle", label: "Style Preference", type: "select", options: ["Fade", "Taper", "Line Up", "Buzz Cut", "Beard Trim", "Full Service", "Kids Cut", "Other"] },
   ],
-  // BARBER MOBILE (ID: 170)
   170: [
-    {
-      key: "serviceStyle",
-      label: "Style Preference",
-      type: "select",
-      options: ["Fade", "Taper", "Line Up", "Buzz Cut", "Beard Trim", "Full Service", "Kids Cut", "Other"],
-    },
-    {
-      key: "headCount",
-      label: "Number of Clients",
-      type: "text",
-      placeholder: "How many people need cuts?",
-    },
+    { key: "serviceStyle", label: "Style Preference", type: "select", options: ["Fade", "Taper", "Line Up", "Buzz Cut", "Beard Trim", "Full Service", "Kids Cut", "Other"] },
+    { key: "headCount", label: "Number of Clients", type: "text", placeholder: "How many people need cuts?" },
   ],
-  // SALON MOBILE (ID: 8)
   8: [
-    {
-      key: "serviceStyle",
-      label: "Service Type",
-      type: "select",
-      options: ["Blowout", "Color", "Cut & Style", "Updo", "Extensions", "Braids", "Bridal", "Other"],
-    },
-    {
-      key: "headCount",
-      label: "Number of Clients",
-      type: "text",
-      placeholder: "How many people need styling?",
-    },
+    { key: "serviceStyle", label: "Service Type", type: "select", options: ["Blowout", "Color", "Cut & Style", "Updo", "Extensions", "Braids", "Bridal", "Other"] },
+    { key: "headCount", label: "Number of Clients", type: "text", placeholder: "How many people need styling?" },
   ],
-  // IN-SALON SERVICES (ID: 171)
   171: [
-    {
-      key: "serviceStyle",
-      label: "Service Type",
-      type: "select",
-      options: ["Blowout", "Color", "Cut & Style", "Updo", "Extensions", "Braids", "Bridal", "Other"],
-    },
+    { key: "serviceStyle", label: "Service Type", type: "select", options: ["Blowout", "Color", "Cut & Style", "Updo", "Extensions", "Braids", "Bridal", "Other"] },
   ],
-  // PHOTOGRAPHY SERVICES (ID: 17)
   17: [
-    {
-      key: "shootType",
-      label: "Photography Style",
-      type: "select",
-      options: ["Event Coverage", "Portrait", "Product", "Real Estate", "Wedding", "Fashion", "Sports", "Documentary", "Other"],
-    },
-    {
-      key: "deliverables",
-      label: "Deliverables",
-      type: "select",
-      options: ["Digital Only", "Digital + Prints", "Album Package", "Custom"],
-    },
+    { key: "shootType", label: "Photography Style", type: "select", options: ["Event Coverage", "Portrait", "Product", "Real Estate", "Wedding", "Fashion", "Sports", "Documentary", "Other"] },
+    { key: "deliverables", label: "Deliverables", type: "select", options: ["Digital Only", "Digital + Prints", "Album Package", "Custom"] },
   ],
-  // TV/FILM CREW (ID: 19)
   19: [
-    {
-      key: "crewRole",
-      label: "Crew Role Needed",
-      type: "select",
-      options: ["Director", "Cinematographer", "Sound Engineer", "Gaffer", "Grip", "PA", "Editor", "Full Crew", "Other"],
-    },
+    { key: "crewRole", label: "Crew Role Needed", type: "select", options: ["Director", "Cinematographer", "Sound Engineer", "Gaffer", "Grip", "PA", "Editor", "Full Crew", "Other"] },
   ],
-  // AUDIO VISUAL CREW (ID: 15)
   15: [
-    {
-      key: "avNeeds",
-      label: "AV Requirements",
-      type: "select",
-      options: ["Sound System", "Lighting", "Projection", "Full AV Package", "Live Streaming", "Recording", "Other"],
-    },
+    { key: "avNeeds", label: "AV Requirements", type: "select", options: ["Sound System", "Lighting", "Projection", "Full AV Package", "Live Streaming", "Recording", "Other"] },
   ],
-  // MASSAGE THERAPIST (ID: 10)
   10: [
-    {
-      key: "massageType",
-      label: "Massage Type",
-      type: "select",
-      options: ["Swedish", "Deep Tissue", "Sports", "Hot Stone", "Couples", "Chair Massage", "Prenatal", "Other"],
-    },
-    {
-      key: "headCount",
-      label: "Number of Clients",
-      type: "text",
-      placeholder: "How many people need massages?",
-    },
+    { key: "massageType", label: "Massage Type", type: "select", options: ["Swedish", "Deep Tissue", "Sports", "Hot Stone", "Couples", "Chair Massage", "Prenatal", "Other"] },
+    { key: "headCount", label: "Number of Clients", type: "text", placeholder: "How many people need massages?" },
   ],
-  // FITNESS CLASSES & TRAINERS (ID: 109)
   109: [
-    {
-      key: "classType",
-      label: "Class Type",
-      type: "select",
-      options: ["Yoga", "HIIT", "Pilates", "Spin", "Boxing", "Dance Fitness", "Strength Training", "Stretching", "Other"],
-    },
-    {
-      key: "groupSize",
-      label: "Group Size",
-      type: "text",
-      placeholder: "Expected number of participants",
-    },
+    { key: "classType", label: "Class Type", type: "select", options: ["Yoga", "HIIT", "Pilates", "Spin", "Boxing", "Dance Fitness", "Strength Training", "Stretching", "Other"] },
+    { key: "groupSize", label: "Group Size", type: "text", placeholder: "Expected number of participants" },
   ],
-  // PERSONAL TRAINER (ID: 12)
   12: [
-    {
-      key: "focusArea",
-      label: "Focus Area",
-      type: "select",
-      options: ["Weight Loss", "Muscle Building", "Flexibility", "Sports Performance", "Rehabilitation", "General Fitness", "Other"],
-    },
+    { key: "focusArea", label: "Focus Area", type: "select", options: ["Weight Loss", "Muscle Building", "Flexibility", "Sports Performance", "Rehabilitation", "General Fitness", "Other"] },
   ],
-  // EVENT PLANNING & MANAGEMENT (ID: 177)
   177: [
-    {
-      key: "planningScope",
-      label: "Planning Scope",
-      type: "select",
-      options: ["Full Planning", "Day-of Coordination", "Partial Planning", "Vendor Management", "Decor Only", "Other"],
-    },
-    {
-      key: "guestCount",
-      label: "Expected Guests",
-      type: "text",
-      placeholder: "Approximate guest count",
-    },
+    { key: "planningScope", label: "Planning Scope", type: "select", options: ["Full Planning", "Day-of Coordination", "Partial Planning", "Vendor Management", "Decor Only", "Other"] },
+    { key: "guestCount", label: "Expected Guests", type: "text", placeholder: "Approximate guest count" },
   ],
-  // HOME CLEANING (ID: 188)
   188: [
-    {
-      key: "cleaningType",
-      label: "Cleaning Type",
-      type: "select",
-      options: ["Standard Clean", "Deep Clean", "Move-in/Move-out", "Post-Construction", "Office Clean", "Other"],
-    },
-    {
-      key: "sqft",
-      label: "Approximate Sq Ft",
-      type: "text",
-      placeholder: "e.g., 1500",
-    },
+    { key: "cleaningType", label: "Cleaning Type", type: "select", options: ["Standard Clean", "Deep Clean", "Move-in/Move-out", "Post-Construction", "Office Clean", "Other"] },
+    { key: "sqft", label: "Approximate Sq Ft", type: "text", placeholder: "e.g., 1500" },
   ],
-  // DANCE LESSONS & INSTRUCTORS (ID: 195)
   195: [
-    {
-      key: "danceStyle",
-      label: "Dance Style",
-      type: "select",
-      options: ["Salsa", "Bachata", "Hip Hop", "Ballet", "Contemporary", "Ballroom", "Wedding First Dance", "Other"],
-    },
-    {
-      key: "groupSize",
-      label: "Group Size",
-      type: "text",
-      placeholder: "Number of dancers",
-    },
+    { key: "danceStyle", label: "Dance Style", type: "select", options: ["Salsa", "Bachata", "Hip Hop", "Ballet", "Contemporary", "Ballroom", "Wedding First Dance", "Other"] },
+    { key: "groupSize", label: "Group Size", type: "text", placeholder: "Number of dancers" },
   ],
 };
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function generateId() {
   return Math.random().toString(36).substring(2, 9);
 }
-
-// ─── Cost Calculation ────────────────────────────────────────────────────────
 
 function calculateSlotCost(slot: ProviderSlot): number | null {
   if (!slot.serviceId || !slot.startTime || !slot.endTime) return null;
@@ -301,11 +174,66 @@ function formatCurrency(amount: number): string {
   return `$${amount.toFixed(2)}`;
 }
 
+// Smart time suggestion: given existing slots and a service duration, suggest next available time
+function suggestNextTime(existingSlots: ProviderSlot[], durationMinutes: number | null | undefined): { start: string; end: string } {
+  const duration = durationMinutes || 60; // default 1 hour
+  const bufferMinutes = 15; // 15-min buffer between services
+
+  if (existingSlots.length === 0) {
+    // Default start at 10:00 AM
+    const startH = 10;
+    const endMinutes = startH * 60 + duration;
+    const endH = Math.floor(endMinutes / 60);
+    const endM = endMinutes % 60;
+    return {
+      start: `${String(startH).padStart(2, "0")}:00`,
+      end: `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`,
+    };
+  }
+
+  // Find the latest end time among existing slots
+  let latestEndMinutes = 0;
+  for (const slot of existingSlots) {
+    if (slot.endTime) {
+      const [h, m] = slot.endTime.split(":").map(Number);
+      const endMin = h * 60 + m;
+      if (endMin > latestEndMinutes) latestEndMinutes = endMin;
+    }
+  }
+
+  // Suggest start after latest end + buffer
+  const suggestedStartMinutes = latestEndMinutes + bufferMinutes;
+  const suggestedEndMinutes = suggestedStartMinutes + duration;
+
+  // Cap at 11:59 PM
+  if (suggestedEndMinutes > 23 * 60 + 59) {
+    return { start: "", end: "" }; // Can't fit, let user choose
+  }
+
+  const startH = Math.floor(suggestedStartMinutes / 60);
+  const startM = suggestedStartMinutes % 60;
+  const endH = Math.floor(suggestedEndMinutes / 60);
+  const endM = suggestedEndMinutes % 60;
+
+  return {
+    start: `${String(startH).padStart(2, "0")}:${String(startM).padStart(2, "0")}`,
+    end: `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`,
+  };
+}
+
+function formatTime12h(time24: string): string {
+  if (!time24) return "";
+  const [h, m] = time24.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return `${h12}:${String(m).padStart(2, "0")} ${period}`;
+}
+
 // ─── Visual Timeline ─────────────────────────────────────────────────────────
 
 function VisualTimeline({ groups }: { groups: ServiceGroup[] }) {
   const allSlots = groups.flatMap((g) =>
-    g.providers.filter((p) => p.startTime && p.endTime && p.providerName).map((p) => ({
+    g.providers.filter((p) => p.startTime && p.endTime).map((p) => ({
       ...p,
       categoryName: g.categoryName,
     }))
@@ -313,86 +241,70 @@ function VisualTimeline({ groups }: { groups: ServiceGroup[] }) {
 
   if (allSlots.length === 0) return null;
 
-  let minHour = 24;
-  let maxHour = 0;
-  allSlots.forEach((slot) => {
-    const [startH] = slot.startTime.split(":").map(Number);
-    const [endH, endM] = slot.endTime.split(":").map(Number);
+  // Find time range
+  let minHour = 24, maxHour = 0;
+  for (const slot of allSlots) {
+    const startH = parseInt(slot.startTime.split(":")[0]);
+    const endH = parseInt(slot.endTime.split(":")[0]);
     if (startH < minHour) minHour = startH;
-    const endHour = endM > 0 ? endH + 1 : endH;
-    if (endHour > maxHour) maxHour = endHour;
-  });
-
+    if (endH > maxHour) maxHour = endH;
+    if (parseInt(slot.endTime.split(":")[1]) > 0) maxHour = endH + 1;
+  }
   minHour = Math.max(0, minHour - 1);
   maxHour = Math.min(24, maxHour + 1);
   const totalHours = maxHour - minHour;
   if (totalHours <= 0) return null;
 
-  const colors = [
-    "bg-blue-500", "bg-emerald-500", "bg-purple-500", "bg-amber-500",
-    "bg-rose-500", "bg-cyan-500", "bg-indigo-500", "bg-orange-500",
-  ];
+  const colors = ["bg-blue-400", "bg-emerald-400", "bg-purple-400", "bg-amber-400", "bg-rose-400", "bg-cyan-400", "bg-indigo-400", "bg-orange-400"];
 
   return (
     <Card className="mb-6">
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <Clock className="h-4 w-4 text-muted-foreground" />
+        <CardTitle className="text-sm flex items-center gap-2">
+          <Clock className="h-4 w-4" />
           Event Timeline
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="relative">
-          <div className="flex justify-between text-xs text-muted-foreground mb-2">
+        {/* Hour markers */}
+        <div className="relative mb-1">
+          <div className="flex justify-between text-xs text-muted-foreground">
             {Array.from({ length: totalHours + 1 }, (_, i) => {
               const hour = minHour + i;
-              const h12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-              const ampm = hour >= 12 ? "PM" : "AM";
-              return (
-                <span key={hour} className="text-center" style={{ width: `${100 / (totalHours + 1)}%` }}>
-                  {h12}{ampm}
-                </span>
-              );
+              return <span key={hour}>{hour === 0 ? "12a" : hour <= 12 ? `${hour}${hour === 12 ? "p" : "a"}` : `${hour - 12}p`}</span>;
             })}
           </div>
-          <div className="relative border-t border-b border-gray-200">
-            <div className="absolute inset-0 flex">
-              {Array.from({ length: totalHours }, (_, i) => (
-                <div key={i} className="flex-1 border-r border-gray-100 last:border-r-0" />
-              ))}
-            </div>
-            <div className="relative space-y-1.5 py-2">
-              {allSlots.map((slot, idx) => {
-                const [startH, startM] = slot.startTime.split(":").map(Number);
-                const [endH, endM] = slot.endTime.split(":").map(Number);
-                const startMinutes = (startH - minHour) * 60 + startM;
-                const endMinutes = (endH - minHour) * 60 + endM;
-                const totalMinutes = totalHours * 60;
-                const leftPercent = (startMinutes / totalMinutes) * 100;
-                const widthPercent = ((endMinutes - startMinutes) / totalMinutes) * 100;
-                return (
-                  <div key={slot.id} className="relative h-7 flex items-center">
-                    <div
-                      className={`absolute h-6 rounded-md ${colors[idx % colors.length]} text-white text-xs flex items-center px-2 overflow-hidden shadow-sm`}
-                      style={{ left: `${leftPercent}%`, width: `${Math.max(widthPercent, 5)}%` }}
-                      title={`${slot.providerName} (${slot.categoryName}): ${slot.startTime} – ${slot.endTime}`}
-                    >
-                      <span className="truncate font-medium">{slot.providerName}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          {/* Legend */}
-          <div className="flex flex-wrap gap-2 mt-3">
-            {allSlots.map((slot, idx) => (
-              <div key={slot.id} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <div className={`h-2.5 w-2.5 rounded-sm ${colors[idx % colors.length]}`} />
-                <span>{slot.providerName} ({slot.categoryName})</span>
+        </div>
+        {/* Timeline bars */}
+        <div className="space-y-1.5">
+          {allSlots.map((slot, idx) => {
+            const [startH, startM] = slot.startTime.split(":").map(Number);
+            const [endH, endM] = slot.endTime.split(":").map(Number);
+            const startPos = ((startH * 60 + startM) - minHour * 60) / (totalHours * 60) * 100;
+            const endPos = ((endH * 60 + endM) - minHour * 60) / (totalHours * 60) * 100;
+            const width = endPos - startPos;
+            return (
+              <div key={slot.id + idx} className="relative h-7 bg-gray-100 rounded">
+                <div
+                  className={`absolute h-full rounded ${colors[idx % colors.length]} flex items-center px-2 overflow-hidden`}
+                  style={{ left: `${startPos}%`, width: `${Math.max(width, 2)}%` }}
+                >
+                  <span className="text-xs text-white font-medium truncate">
+                    {slot.providerName || slot.categoryName}
+                  </span>
+                </div>
               </div>
-            ))}
-          </div>
+            );
+          })}
+        </div>
+        {/* Legend */}
+        <div className="flex flex-wrap gap-2 mt-3">
+          {allSlots.map((slot, idx) => (
+            <div key={slot.id + idx} className="flex items-center gap-1.5 text-xs">
+              <div className={`h-2.5 w-2.5 rounded-sm ${colors[idx % colors.length]}`} />
+              <span className="text-muted-foreground">{slot.providerName || "TBD"} ({formatTime12h(slot.startTime)} – {formatTime12h(slot.endTime)})</span>
+            </div>
+          ))}
         </div>
       </CardContent>
     </Card>
@@ -404,25 +316,25 @@ function VisualTimeline({ groups }: { groups: ServiceGroup[] }) {
 function CostSummary({ groups }: { groups: ServiceGroup[] }) {
   const allSlots = groups.flatMap((g) => g.providers);
   const costs = allSlots.map(calculateSlotCost);
-  const totalEstimate = costs.reduce((sum, c) => (c !== null ? (sum || 0) + c : sum), null as number | null);
-  const quoteCount = allSlots.filter((s) => s.pricingModel === "custom_quote").length;
+  const knownCosts = costs.filter((c): c is number => c !== null);
+  const unknownCount = costs.filter((c) => c === null && allSlots[costs.indexOf(c)]?.serviceId).length;
 
-  if (allSlots.length === 0 || (!totalEstimate && quoteCount === 0)) return null;
+  if (knownCosts.length === 0 && unknownCount === 0) return null;
+
+  const total = knownCosts.reduce((sum, c) => sum + c, 0);
 
   return (
     <Card className="mb-6 border-green-200 bg-green-50/30">
-      <CardContent className="pt-4 pb-4">
+      <CardContent className="pt-4 pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <DollarSign className="h-4 w-4 text-green-600" />
             <span className="text-sm font-medium text-green-800">Estimated Total</span>
           </div>
           <div className="text-right">
-            {totalEstimate !== null && (
-              <span className="text-lg font-bold text-green-700">{formatCurrency(totalEstimate)}</span>
-            )}
-            {quoteCount > 0 && (
-              <span className="text-xs text-muted-foreground ml-2">+ {quoteCount} quote{quoteCount > 1 ? "s" : ""} TBD</span>
+            <span className="text-lg font-bold text-green-700">{formatCurrency(total)}</span>
+            {unknownCount > 0 && (
+              <p className="text-xs text-green-600">{unknownCount} service{unknownCount > 1 ? "s" : ""} require custom quote</p>
             )}
           </div>
         </div>
@@ -431,7 +343,7 @@ function CostSummary({ groups }: { groups: ServiceGroup[] }) {
   );
 }
 
-// ─── Service-Specific Fields Component ───────────────────────────────────────
+// ─── Service-Specific Fields ─────────────────────────────────────────────────
 
 function ServiceSpecificFields({
   categoryId,
@@ -446,7 +358,6 @@ function ServiceSpecificFields({
 }) {
   const fields = SERVICE_SPECIFIC_FIELDS[categoryId];
   if (!fields) return null;
-
   return (
     <div className="space-y-2 p-3 bg-blue-50/50 rounded-md border border-blue-100">
       <p className="text-xs font-medium text-blue-700 flex items-center gap-1">
@@ -483,69 +394,153 @@ function ServiceSpecificFields({
   );
 }
 
+// ─── Quick Category Stacking Modal ──────────────────────────────────────────
+
+function QuickCategoryStackingModal({
+  categories,
+  existingCategoryIds,
+  onConfirm,
+  onClose,
+}: {
+  categories: any[];
+  existingCategoryIds: Set<number>;
+  onConfirm: (selectedIds: number[]) => void;
+  onClose: () => void;
+}) {
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredCategories = useMemo(() => {
+    if (!searchTerm) return categories;
+    return categories.filter((c: any) =>
+      c.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [categories, searchTerm]);
+
+  const toggleCategory = (id: number) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+      <div className="bg-white rounded-lg w-full max-w-lg shadow-xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="p-5 border-b">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <ListChecks className="h-5 w-5 text-primary" />
+            Quick Category Stacking
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Select multiple service categories at once to quickly build your event crew.
+          </p>
+          <div className="relative mt-3">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search categories..."
+              className="pl-9"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto p-4">
+          <div className="grid grid-cols-1 gap-1">
+            {filteredCategories.map((cat: any) => {
+              const alreadyAdded = existingCategoryIds.has(cat.id);
+              const isSelected = selected.has(cat.id);
+              return (
+                <button
+                  key={cat.id}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-left transition-colors ${
+                    alreadyAdded
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : isSelected
+                      ? "bg-primary/10 border border-primary/30"
+                      : "hover:bg-gray-50 border border-transparent"
+                  }`}
+                  onClick={() => !alreadyAdded && toggleCategory(cat.id)}
+                  disabled={alreadyAdded}
+                >
+                  <Checkbox
+                    checked={isSelected || alreadyAdded}
+                    disabled={alreadyAdded}
+                    className="pointer-events-none"
+                  />
+                  <span className="text-sm font-medium flex-1">{cat.name}</span>
+                  {alreadyAdded && (
+                    <Badge variant="secondary" className="text-xs">Already added</Badge>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div className="p-4 border-t flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">
+            {selected.size} categor{selected.size === 1 ? "y" : "ies"} selected
+          </span>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onClose}>Cancel</Button>
+            <Button onClick={() => { onConfirm(Array.from(selected)); onClose(); }} disabled={selected.size === 0}>
+              <Plus className="h-4 w-4 mr-1" />
+              Add {selected.size} Service{selected.size > 1 ? "s" : ""}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Templates Panel ─────────────────────────────────────────────────────────
 
 function TemplatesPanel({ onLoadTemplate }: { onLoadTemplate: (template: any) => void }) {
   const { data: templates } = trpc.eventTemplate.list.useQuery();
   const deleteTemplate = trpc.eventTemplate.delete.useMutation();
   const utils = trpc.useUtils();
-  const [expanded, setExpanded] = useState(false);
 
   if (!templates || templates.length === 0) return null;
 
   return (
-    <Card className="mb-4 border-purple-200 bg-purple-50/30">
-      <CardContent className="pt-4 pb-3">
-        <button
-          className="w-full flex items-center justify-between"
-          onClick={() => setExpanded(!expanded)}
-        >
-          <div className="flex items-center gap-2">
-            <FolderOpen className="h-4 w-4 text-purple-600" />
-            <span className="text-sm font-medium text-purple-800">
-              Saved Templates ({templates.length})
-            </span>
-          </div>
-          {expanded ? <ChevronUp className="h-4 w-4 text-purple-500" /> : <ChevronDown className="h-4 w-4 text-purple-500" />}
-        </button>
-        {expanded && (
-          <div className="mt-3 space-y-2">
-            {templates.map((t: any) => (
-              <div key={t.id} className="flex items-center justify-between p-2 bg-white rounded-md border text-sm">
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium truncate">{t.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {t.eventType && <span>{t.eventType}</span>}
-                    {t.usageCount > 0 && <span className="ml-2">• Used {t.usageCount}x</span>}
-                  </p>
-                </div>
-                <div className="flex items-center gap-1 shrink-0 ml-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs text-purple-600 hover:text-purple-700"
-                    onClick={() => onLoadTemplate(t)}
-                  >
-                    <Copy className="h-3 w-3 mr-1" />
-                    Use
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 w-7 p-0 text-destructive hover:text-destructive"
-                    onClick={async () => {
-                      await deleteTemplate.mutateAsync({ id: t.id });
-                      utils.eventTemplate.list.invalidate();
-                      toast.success("Template deleted");
-                    }}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+    <Card className="mb-4 border-purple-200 bg-purple-50/20">
+      <CardHeader className="pb-2 pt-3">
+        <CardTitle className="text-sm flex items-center gap-2 text-purple-700">
+          <BookmarkPlus className="h-4 w-4" />
+          My Templates (Personal Service Bundles)
+          <Badge variant="secondary" className="text-xs ml-auto">{templates.length}</Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pb-3">
+        <div className="flex flex-wrap gap-2">
+          {templates.map((t: any) => (
+            <div key={t.id} className="flex items-center gap-1 bg-white border border-purple-200 rounded-md px-2.5 py-1.5 text-sm group">
+              <button
+                className="font-medium text-purple-700 hover:text-purple-900"
+                onClick={() => onLoadTemplate(t)}
+              >
+                {t.name}
+              </button>
+              {t.eventType && <Badge variant="outline" className="text-xs py-0 ml-1">{t.eventType}</Badge>}
+              <span className="text-xs text-muted-foreground ml-1">
+                ({(t.serviceGroups as any[])?.length || 0} services)
+              </span>
+              <button
+                className="ml-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={async () => {
+                  await deleteTemplate.mutateAsync({ id: t.id });
+                  utils.eventTemplate.list.invalidate();
+                  toast.success("Template deleted");
+                }}
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );
@@ -557,62 +552,42 @@ function DraftsPanel({ onLoadDraft }: { onLoadDraft: (draft: any) => void }) {
   const { data: drafts } = trpc.bulkDraft.list.useQuery();
   const deleteDraft = trpc.bulkDraft.delete.useMutation();
   const utils = trpc.useUtils();
-  const [expanded, setExpanded] = useState(false);
 
   if (!drafts || drafts.length === 0) return null;
 
   return (
-    <Card className="mb-4 border-amber-200 bg-amber-50/30">
-      <CardContent className="pt-4 pb-3">
-        <button
-          className="w-full flex items-center justify-between"
-          onClick={() => setExpanded(!expanded)}
-        >
-          <div className="flex items-center gap-2">
-            <FileText className="h-4 w-4 text-amber-600" />
-            <span className="text-sm font-medium text-amber-800">
-              Saved Drafts ({drafts.length})
-            </span>
-          </div>
-          {expanded ? <ChevronUp className="h-4 w-4 text-amber-500" /> : <ChevronDown className="h-4 w-4 text-amber-500" />}
-        </button>
-        {expanded && (
-          <div className="mt-3 space-y-2">
-            {drafts.map((d: any) => (
-              <div key={d.id} className="flex items-center justify-between p-2 bg-white rounded-md border text-sm">
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium truncate">{d.name || "Untitled Draft"}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {d.eventType && <span>{d.eventType}</span>}
-                    {d.eventDate && <span className="ml-2">• {d.eventDate}</span>}
-                  </p>
-                </div>
-                <div className="flex items-center gap-1 shrink-0 ml-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs text-amber-600 hover:text-amber-700"
-                    onClick={() => onLoadDraft(d)}
-                  >
-                    Resume
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 w-7 p-0 text-destructive hover:text-destructive"
-                    onClick={async () => {
-                      await deleteDraft.mutateAsync({ id: d.id });
-                      utils.bulkDraft.list.invalidate();
-                      toast.success("Draft deleted");
-                    }}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+    <Card className="mb-4 border-amber-200 bg-amber-50/20">
+      <CardHeader className="pb-2 pt-3">
+        <CardTitle className="text-sm flex items-center gap-2 text-amber-700">
+          <FolderOpen className="h-4 w-4" />
+          Saved Drafts
+          <Badge variant="secondary" className="text-xs ml-auto">{drafts.length}</Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pb-3">
+        <div className="flex flex-wrap gap-2">
+          {drafts.map((d: any) => (
+            <div key={d.id} className="flex items-center gap-1 bg-white border border-amber-200 rounded-md px-2.5 py-1.5 text-sm group">
+              <button
+                className="font-medium text-amber-700 hover:text-amber-900"
+                onClick={() => onLoadDraft(d)}
+              >
+                {d.name || "Untitled Draft"}
+              </button>
+              {d.eventDate && <span className="text-xs text-muted-foreground ml-1">{new Date(d.eventDate + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>}
+              <button
+                className="ml-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={async () => {
+                  await deleteDraft.mutateAsync({ id: d.id });
+                  utils.bulkDraft.list.invalidate();
+                  toast.success("Draft deleted");
+                }}
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );
@@ -624,6 +599,8 @@ function ProviderSlotCard({
   slot,
   categoryId,
   categoryName,
+  allSlots,
+  favorites,
   onUpdate,
   onRemove,
   isSubmitting,
@@ -631,6 +608,8 @@ function ProviderSlotCard({
   slot: ProviderSlot;
   categoryId: number;
   categoryName: string;
+  allSlots: ProviderSlot[];
+  favorites: any[];
   onUpdate: (updates: Partial<ProviderSlot>) => void;
   onRemove: () => void;
   isSubmitting: boolean;
@@ -657,20 +636,34 @@ function ProviderSlotCard({
     { enabled: !!slot.providerId && !slot.serviceId }
   );
 
+  // Filter favorites that match this category
+  const categoryFavorites = useMemo(() => {
+    if (!favorites || !categoryId) return [];
+    return favorites.filter((f: any) =>
+      f.categories?.some((c: any) => c.id === categoryId)
+    );
+  }, [favorites, categoryId]);
+
   const filteredProviders = useMemo(() => {
     if (debouncedSearch.length >= 2 && searchResults) {
-      // If we have category providers loaded, filter search results to that category
-      // Otherwise show all search results
       if (categoryProviders && categoryProviders.length > 0) {
         const catProviderIds = new Set((categoryProviders || []).map((p: any) => p.id));
         const filtered = searchResults.filter((p: any) => catProviderIds.has(p.id));
-        // If no matches in category, still show all search results so user can find providers
         return filtered.length > 0 ? filtered : searchResults;
       }
       return searchResults;
     }
     return categoryProviders || [];
   }, [searchResults, categoryProviders, debouncedSearch]);
+
+  // Combine favorites at top + rest of providers
+  const sortedProviders = useMemo(() => {
+    if (categoryFavorites.length === 0) return filteredProviders;
+    const favoriteIds = new Set(categoryFavorites.map((f: any) => f.providerId));
+    const favs = filteredProviders.filter((p: any) => favoriteIds.has(p.id));
+    const rest = filteredProviders.filter((p: any) => !favoriteIds.has(p.id));
+    return [...favs, ...rest];
+  }, [filteredProviders, categoryFavorites]);
 
   const handleSearchChange = (value: string) => {
     setProviderSearch(value);
@@ -691,12 +684,19 @@ function ProviderSlotCard({
   };
 
   const selectService = (service: any) => {
+    // Smart time suggestion when selecting a service
+    const otherSlots = allSlots.filter((s) => s.id !== slot.id);
+    const suggested = suggestNextTime(otherSlots, service.durationMinutes);
+
     onUpdate({
       serviceId: service.id,
       serviceName: service.name,
       pricingModel: service.pricingModel,
       basePrice: service.basePrice,
       hourlyRate: service.hourlyRate,
+      durationMinutes: service.durationMinutes,
+      startTime: slot.startTime || suggested.start,
+      endTime: slot.endTime || suggested.end,
     });
   };
 
@@ -707,7 +707,7 @@ function ProviderSlotCard({
         <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
         <div className="min-w-0 flex-1">
           <p className="font-medium text-sm text-green-800">{slot.providerName}</p>
-          <p className="text-xs text-green-600">{slot.serviceName} • {slot.startTime} – {slot.endTime}</p>
+          <p className="text-xs text-green-600">{slot.serviceName} • {formatTime12h(slot.startTime)} – {formatTime12h(slot.endTime)}</p>
         </div>
         <Badge className="bg-green-100 text-green-700 border-green-200 text-xs">Booked</Badge>
       </div>
@@ -733,6 +733,33 @@ function ProviderSlotCard({
       {/* Provider not selected yet */}
       {!slot.providerId && (
         <div className="space-y-2">
+          {/* Favorite providers suggestion */}
+          {categoryFavorites.length > 0 && !debouncedSearch && (
+            <div className="p-2 bg-pink-50/50 rounded-md border border-pink-100">
+              <p className="text-xs font-medium text-pink-700 flex items-center gap-1 mb-1.5">
+                <Heart className="h-3 w-3 fill-pink-400 text-pink-400" />
+                Your Favorites in {categoryName}
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {categoryFavorites.slice(0, 5).map((fav: any) => (
+                  <button
+                    key={fav.providerId}
+                    className="flex items-center gap-1.5 px-2 py-1 bg-white border border-pink-200 rounded-md text-xs hover:bg-pink-50 transition-colors"
+                    onClick={() => selectProvider({ id: fav.providerId, businessName: fav.businessName, name: fav.userName })}
+                  >
+                    <div className="h-5 w-5 rounded-full bg-pink-100 flex items-center justify-center text-[10px] font-bold text-pink-600">
+                      {(fav.businessName || fav.userName || "?")[0].toUpperCase()}
+                    </div>
+                    <span className="font-medium">{fav.businessName || fav.userName}</span>
+                    {fav.averageRating && parseFloat(fav.averageRating) > 0 && (
+                      <span className="text-amber-500">★{parseFloat(fav.averageRating).toFixed(1)}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
@@ -744,25 +771,31 @@ function ProviderSlotCard({
             />
           </div>
           <div className="max-h-72 overflow-y-auto border rounded-md">
-            {filteredProviders.length > 0 ? (
-              filteredProviders.map((p: any) => (
-                <button
-                  key={p.id}
-                  className="w-full text-left px-3 py-2.5 hover:bg-gray-50 text-sm border-b last:border-b-0 flex items-center gap-2"
-                  onClick={() => selectProvider(p)}
-                >
-                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
-                    {(p.businessName || p.name || "?")[0].toUpperCase()}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-sm">{p.businessName || p.name}</p>
-                    {p.city && <p className="text-xs text-muted-foreground">{p.city}, {p.state}</p>}
-                  </div>
-                  {p.averageRating && parseFloat(p.averageRating) > 0 && (
-                    <span className="text-xs text-amber-600 shrink-0">★ {parseFloat(p.averageRating).toFixed(1)}</span>
-                  )}
-                </button>
-              ))
+            {sortedProviders.length > 0 ? (
+              sortedProviders.map((p: any) => {
+                const isFav = categoryFavorites.some((f: any) => f.providerId === p.id);
+                return (
+                  <button
+                    key={p.id}
+                    className="w-full text-left px-3 py-2.5 hover:bg-gray-50 text-sm border-b last:border-b-0 flex items-center gap-2"
+                    onClick={() => selectProvider(p)}
+                  >
+                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
+                      {(p.businessName || p.name || "?")[0].toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-sm flex items-center gap-1">
+                        {p.businessName || p.name}
+                        {isFav && <Heart className="h-3 w-3 fill-pink-400 text-pink-400 inline" />}
+                      </p>
+                      {p.city && <p className="text-xs text-muted-foreground">{p.city}, {p.state}</p>}
+                    </div>
+                    {p.averageRating && parseFloat(p.averageRating) > 0 && (
+                      <span className="text-xs text-amber-600 shrink-0">★ {parseFloat(p.averageRating).toFixed(1)}</span>
+                    )}
+                  </button>
+                );
+              })
             ) : (
               <p className="text-sm text-muted-foreground text-center py-4">
                 {isLoadingProviders ? "Loading providers..." : debouncedSearch.length >= 2 ? "No providers found for this search" : "No providers available in this category"}
@@ -786,7 +819,7 @@ function ProviderSlotCard({
             <div className="flex items-center gap-1">
               <button
                 className="text-xs text-primary hover:underline"
-                onClick={() => onUpdate({ providerId: null, providerName: "", serviceId: null, serviceName: "", pricingModel: undefined, basePrice: undefined, hourlyRate: undefined })}
+                onClick={() => onUpdate({ providerId: null, providerName: "", serviceId: null, serviceName: "", pricingModel: undefined, basePrice: undefined, hourlyRate: undefined, durationMinutes: undefined })}
                 disabled={isSubmitting}
               >
                 Change
@@ -806,11 +839,14 @@ function ProviderSlotCard({
                   (providerServices as any[]).filter((s: any) => s.categoryId === categoryId).map((s: any) => (
                     <button
                       key={s.id}
-                      className="w-full text-left px-3 py-2 hover:bg-gray-50 text-sm border-b last:border-b-0"
+                      className="w-full text-left px-3 py-2 hover:bg-gray-50 text-sm border-b last:border-b-0 flex items-center justify-between"
                       onClick={() => selectService(s)}
                     >
-                      <span className="font-medium">{s.name}</span>
-                      {s.basePrice && <span className="text-xs text-muted-foreground ml-2">${s.basePrice}</span>}
+                      <div>
+                        <span className="font-medium">{s.name}</span>
+                        {s.durationMinutes && <span className="text-xs text-muted-foreground ml-2">({s.durationMinutes} min)</span>}
+                      </div>
+                      {s.basePrice && <span className="text-xs text-green-600 font-medium">${s.basePrice}</span>}
                     </button>
                   ))
                 ) : (
@@ -825,6 +861,7 @@ function ProviderSlotCard({
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Badge variant="outline" className="text-xs py-0">{slot.serviceName}</Badge>
+                {slot.durationMinutes && <span className="text-muted-foreground">({slot.durationMinutes} min)</span>}
                 {(() => {
                   const cost = calculateSlotCost(slot);
                   if (cost !== null) return <span className="text-green-600 font-medium">≈ {formatCurrency(cost)}</span>;
@@ -832,7 +869,7 @@ function ProviderSlotCard({
                 })()}
               </div>
 
-              {/* Time selection */}
+              {/* Time selection with smart suggestion */}
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <Label className="text-xs text-muted-foreground">Start</Label>
@@ -855,6 +892,15 @@ function ProviderSlotCard({
                   />
                 </div>
               </div>
+
+              {/* Smart time suggestion hint */}
+              {slot.startTime && slot.endTime && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Sparkles className="h-3 w-3 text-amber-500" />
+                  {formatTime12h(slot.startTime)} – {formatTime12h(slot.endTime)}
+                  {slot.durationMinutes && ` (${slot.durationMinutes} min service)`}
+                </p>
+              )}
 
               {/* Service-specific fields */}
               {categoryId && SERVICE_SPECIFIC_FIELDS[categoryId] && (
@@ -897,12 +943,16 @@ function ProviderSlotCard({
 function ServiceGroupCard({
   group,
   categories,
+  allSlots,
+  favorites,
   onUpdate,
   onRemove,
   isSubmitting,
 }: {
   group: ServiceGroup;
   categories: any[];
+  allSlots: ProviderSlot[];
+  favorites: any[];
   onUpdate: (updates: Partial<ServiceGroup>) => void;
   onRemove: () => void;
   isSubmitting: boolean;
@@ -941,7 +991,6 @@ function ServiceGroupCard({
     });
   };
 
-  // Get category icon
   const getCategoryIcon = (catId: number | null) => {
     if (!catId) return <Users className="h-4 w-4" />;
     if ([20].includes(catId)) return <Music className="h-4 w-4" />;
@@ -1063,6 +1112,8 @@ function ServiceGroupCard({
                 slot={slot}
                 categoryId={group.categoryId!}
                 categoryName={group.categoryName}
+                allSlots={allSlots}
+                favorites={favorites}
                 onUpdate={(updates) => updateProvider(slot.id, updates)}
                 onRemove={() => removeProvider(slot.id)}
                 isSubmitting={isSubmitting}
@@ -1090,6 +1141,9 @@ export default function BulkBooking() {
   // Service groups (each group = one category with multiple providers)
   const [serviceGroups, setServiceGroups] = useState<ServiceGroup[]>([]);
 
+  // Quick Category Stacking modal
+  const [showCategoryStacking, setShowCategoryStacking] = useState(false);
+
   // Draft/template state
   const [currentDraftId, setCurrentDraftId] = useState<number | null>(null);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
@@ -1104,6 +1158,12 @@ export default function BulkBooking() {
   // Categories
   const { data: categories } = trpc.category.list.useQuery();
 
+  // Favorites (for auto-fill)
+  const { data: favorites } = trpc.provider.myFavorites.useQuery(undefined, {
+    enabled: isAuthenticated,
+    staleTime: 5 * 60 * 1000,
+  });
+
   // Mutations
   const createBooking = trpc.booking.create.useMutation();
   const saveDraft = trpc.bulkDraft.save.useMutation();
@@ -1112,6 +1172,14 @@ export default function BulkBooking() {
   const utils = trpc.useUtils();
 
   const eventDetailsComplete = eventDate && eventVenue && eventType;
+
+  const allProviderSlots = useMemo(() => {
+    return serviceGroups.flatMap((g) => g.providers);
+  }, [serviceGroups]);
+
+  const existingCategoryIds = useMemo(() => {
+    return new Set(serviceGroups.filter((g) => g.categoryId).map((g) => g.categoryId!));
+  }, [serviceGroups]);
 
   const addServiceGroup = () => {
     setServiceGroups((prev) => [
@@ -1125,6 +1193,56 @@ export default function BulkBooking() {
     ]);
   };
 
+  // Quick Category Stacking: add multiple categories at once
+  const addMultipleServiceGroups = (categoryIds: number[]) => {
+    const newGroups: ServiceGroup[] = categoryIds.map((catId) => {
+      const cat = (categories || []).find((c: any) => c.id === catId);
+      // Check if user has favorites in this category for auto-fill
+      const catFavorites = (favorites || []).filter((f: any) =>
+        f.categories?.some((c: any) => c.id === catId)
+      );
+      // Auto-fill first favorite provider if available
+      const autoProvider: ProviderSlot = catFavorites.length > 0
+        ? {
+            id: generateId(),
+            providerId: catFavorites[0].providerId,
+            providerName: catFavorites[0].businessName || catFavorites[0].userName || "",
+            serviceId: null,
+            serviceName: "",
+            startTime: "",
+            endTime: "",
+            notes: "",
+            status: "pending",
+            serviceOptions: {},
+          }
+        : {
+            id: generateId(),
+            providerId: null,
+            providerName: "",
+            serviceId: null,
+            serviceName: "",
+            startTime: "",
+            endTime: "",
+            notes: "",
+            status: "pending",
+            serviceOptions: {},
+          };
+      return {
+        id: generateId(),
+        categoryId: catId,
+        categoryName: cat?.name || "",
+        providers: [autoProvider],
+      };
+    });
+    setServiceGroups((prev) => [...prev, ...newGroups]);
+    const autoFilled = newGroups.filter((g) => g.providers[0]?.providerId).length;
+    if (autoFilled > 0) {
+      toast.success(`Added ${categoryIds.length} services! ${autoFilled} auto-filled with your favorite providers.`);
+    } else {
+      toast.success(`Added ${categoryIds.length} service categories!`);
+    }
+  };
+
   const updateServiceGroup = (groupId: string, updates: Partial<ServiceGroup>) => {
     setServiceGroups((prev) =>
       prev.map((g) => (g.id === groupId ? { ...g, ...updates } : g))
@@ -1134,10 +1252,6 @@ export default function BulkBooking() {
   const removeServiceGroup = (groupId: string) => {
     setServiceGroups((prev) => prev.filter((g) => g.id !== groupId));
   };
-
-  const allProviderSlots = useMemo(() => {
-    return serviceGroups.flatMap((g) => g.providers);
-  }, [serviceGroups]);
 
   const canSubmit = useMemo(() => {
     return (
@@ -1175,6 +1289,7 @@ export default function BulkBooking() {
             pricingModel: p.pricingModel,
             basePrice: p.basePrice,
             hourlyRate: p.hourlyRate,
+            durationMinutes: p.durationMinutes,
             serviceOptions: p.serviceOptions,
           })),
         })),
@@ -1188,7 +1303,7 @@ export default function BulkBooking() {
     setIsSavingDraft(false);
   };
 
-  // ─── Save as Template ────────────────────────────────────────────────────
+  // ─── Save as Template (Personal Service Bundle) ──────────────────────────
 
   const handleSaveTemplate = async () => {
     if (!templateName.trim()) {
@@ -1219,7 +1334,7 @@ export default function BulkBooking() {
       utils.eventTemplate.list.invalidate();
       setShowSaveTemplate(false);
       setTemplateName("");
-      toast.success("Template saved! You can reuse this configuration for future events.");
+      toast.success("Personal Service Bundle saved! Reuse this configuration for future bookings.");
     } catch (err: any) {
       toast.error(err.message || "Failed to save template");
     }
@@ -1234,10 +1349,8 @@ export default function BulkBooking() {
     setEventType(draft.eventType || "");
     setEventVenue(draft.eventVenue || "");
 
-    // Parse the new group-based format or legacy flat format
     const slots = Array.isArray(draft.slots) ? draft.slots : [];
     if (slots.length > 0 && slots[0].groupId) {
-      // New format: groups with providers
       const groups: ServiceGroup[] = slots.map((g: any) => ({
         id: g.groupId || generateId(),
         categoryId: g.categoryId || null,
@@ -1255,17 +1368,18 @@ export default function BulkBooking() {
           pricingModel: p.pricingModel,
           basePrice: p.basePrice,
           hourlyRate: p.hourlyRate,
+          durationMinutes: p.durationMinutes,
           serviceOptions: p.serviceOptions || {},
         })),
       }));
       setServiceGroups(groups);
     } else {
-      // Legacy format: flat array of slots → convert to single group per slot
-      const groups: ServiceGroup[] = slots.map((s: any) => ({
+      // Legacy flat format
+      const group: ServiceGroup = {
         id: generateId(),
-        categoryId: s.categoryId || null,
-        categoryName: s.categoryName || "",
-        providers: [{
+        categoryId: null,
+        categoryName: "",
+        providers: slots.map((s: any) => ({
           id: s.id || generateId(),
           providerId: s.providerId || null,
           providerName: s.providerName || "",
@@ -1278,10 +1392,10 @@ export default function BulkBooking() {
           pricingModel: s.pricingModel,
           basePrice: s.basePrice,
           hourlyRate: s.hourlyRate,
-          serviceOptions: {},
-        }],
-      }));
-      setServiceGroups(groups);
+          serviceOptions: s.serviceOptions || {},
+        })),
+      };
+      setServiceGroups([group]);
     }
     toast.success("Draft loaded!");
   };
@@ -1293,11 +1407,9 @@ export default function BulkBooking() {
       await useTemplate.mutateAsync({ id: template.id });
       utils.eventTemplate.list.invalidate();
     } catch {}
-
     setEventType(template.eventType || "");
     setEventVenue(template.defaultVenue || "");
     setCurrentDraftId(null);
-
     const groups: ServiceGroup[] = (Array.isArray(template.serviceGroups) ? template.serviceGroups : []).map((g: any) => ({
       id: generateId(),
       categoryId: g.categoryId || null,
@@ -1329,7 +1441,6 @@ export default function BulkBooking() {
       toast.error("Please fill in all required fields for each provider.");
       return;
     }
-
     setIsSubmitting(true);
     setCompletedCount(0);
 
@@ -1340,36 +1451,24 @@ export default function BulkBooking() {
     for (let i = 0; i < allSlots.length; i++) {
       const slot = allSlots[i];
       try {
-        const [startH, startM] = slot.startTime.split(":").map(Number);
-        const [endH, endM] = slot.endTime.split(":").map(Number);
-        let durationMinutes = (endH * 60 + endM) - (startH * 60 + startM);
-        if (durationMinutes <= 0) durationMinutes += 24 * 60;
-
-        // Build notes with service options
-        let notes = `[${eventType} at ${eventVenue}]`;
-        if (slot.serviceOptions && Object.keys(slot.serviceOptions).length > 0) {
-          const optStr = Object.entries(slot.serviceOptions)
-            .filter(([, v]) => v)
-            .map(([k, v]) => `${k}: ${v}`)
-            .join(", ");
-          if (optStr) notes += ` [${optStr}]`;
-        }
-        if (slot.notes) notes += ` ${slot.notes}`;
-
         await createBooking.mutateAsync({
-          serviceId: slot.serviceId!,
           providerId: slot.providerId!,
+          serviceId: slot.serviceId!,
           bookingDate: eventDate,
           startTime: slot.startTime,
           endTime: slot.endTime,
-          durationMinutes,
-          locationType: "flexible",
+          locationType: "flexible" as const,
           venueName: eventVenue,
           serviceAddressLine1: eventVenue,
-          customerNotes: notes,
+          customerNotes: [
+            slot.notes,
+            slot.serviceOptions && Object.keys(slot.serviceOptions).length > 0
+              ? `Options: ${Object.entries(slot.serviceOptions).map(([k, v]) => `${k}: ${v}`).join(", ")}`
+              : "",
+            `Event Type: ${eventType}`,
+          ].filter(Boolean).join("\n"),
         });
-
-        // Update status in the group
+        // Mark as booked
         setServiceGroups((prev) =>
           prev.map((g) => ({
             ...g,
@@ -1378,35 +1477,35 @@ export default function BulkBooking() {
             ),
           }))
         );
-        setCompletedCount((c) => c + 1);
+        setCompletedCount(i + 1);
       } catch (err: any) {
         setServiceGroups((prev) =>
           prev.map((g) => ({
             ...g,
             providers: g.providers.map((p) =>
-              p.id === slot.id ? { ...p, status: "error" as const, errorMsg: err.message || "Failed" } : p
+              p.id === slot.id ? { ...p, status: "error" as const, errorMsg: err.message } : p
             ),
           }))
         );
+        setCompletedCount(i + 1);
       }
     }
 
     setIsSubmitting(false);
-    const totalSlots = allSlots.length;
-    const bookedCount = serviceGroups.flatMap((g) => g.providers).filter((p) => p.status === "booked").length;
-    if (bookedCount >= totalSlots) {
-      toast.success(`All ${totalSlots} bookings created successfully!`);
-    } else {
-      toast.info(`${bookedCount} of ${totalSlots} bookings created. Check errors below.`);
-    }
+    const booked = allSlots.filter((_, i) => i < allSlots.length).length;
+    toast.success(`Bulk booking complete! Check individual statuses below.`);
   };
 
-  // ─── Loading / Auth States ─────────────────────────────────────────────────
+  // ─── Auth Guard ──────────────────────────────────────────────────────────
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-gray-50">
+        <NavHeader />
+        <div className="container py-12 text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+          <p className="text-sm text-muted-foreground mt-3">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -1416,15 +1515,18 @@ export default function BulkBooking() {
       <div className="min-h-screen bg-gray-50">
         <NavHeader />
         <div className="container py-12 text-center">
-          <h1 className="text-2xl font-bold mb-4">Bulk Booking</h1>
-          <p className="text-muted-foreground mb-6">Please sign in to create bulk bookings.</p>
-          <Button onClick={() => (window.location.href = getLoginUrl("/bulk-booking"))}>
+          <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Sign in to use Bulk Booking</h2>
+          <p className="text-muted-foreground mb-4">You need to be signed in to book multiple providers at once.</p>
+          <Button onClick={() => { window.location.href = getLoginUrl("/bulk-booking"); }}>
             Sign In
           </Button>
         </div>
       </div>
     );
   }
+
+  // ─── Main UI ─────────────────────────────────────────────────────────────
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -1453,7 +1555,7 @@ export default function BulkBooking() {
                   className="gap-1.5"
                 >
                   <BookmarkPlus className="h-4 w-4" />
-                  Save Template
+                  Save Bundle
                 </Button>
                 <Button
                   variant="outline"
@@ -1568,10 +1670,22 @@ export default function BulkBooking() {
                 </p>
               </div>
               {eventDetailsComplete && (
-                <Button size="sm" onClick={addServiceGroup} disabled={isSubmitting}>
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add Service
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowCategoryStacking(true)}
+                    disabled={isSubmitting}
+                    className="gap-1.5"
+                  >
+                    <ListChecks className="h-4 w-4" />
+                    Quick Stack
+                  </Button>
+                  <Button size="sm" onClick={addServiceGroup} disabled={isSubmitting}>
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Service
+                  </Button>
+                </div>
               )}
             </div>
           </CardHeader>
@@ -1585,12 +1699,18 @@ export default function BulkBooking() {
               <div className="text-center py-8">
                 <Users className="h-10 w-10 mx-auto mb-3 text-muted-foreground opacity-40" />
                 <p className="text-sm text-muted-foreground mb-4">
-                  No services added yet. Add a service category to start building your event crew.
+                  No services added yet. Use <strong>Quick Stack</strong> to add multiple categories at once, or add them one by one.
                 </p>
-                <Button variant="outline" onClick={addServiceGroup}>
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add Your First Service
-                </Button>
+                <div className="flex items-center justify-center gap-3">
+                  <Button variant="outline" onClick={() => setShowCategoryStacking(true)}>
+                    <ListChecks className="h-4 w-4 mr-1" />
+                    Quick Stack Categories
+                  </Button>
+                  <Button variant="outline" onClick={addServiceGroup}>
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Single Service
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="space-y-4">
@@ -1599,6 +1719,8 @@ export default function BulkBooking() {
                     key={group.id}
                     group={group}
                     categories={categories || []}
+                    allSlots={allProviderSlots}
+                    favorites={favorites || []}
                     onUpdate={(updates) => updateServiceGroup(group.id, updates)}
                     onRemove={() => removeServiceGroup(group.id)}
                     isSubmitting={isSubmitting}
@@ -1681,30 +1803,53 @@ export default function BulkBooking() {
         {showSaveTemplate && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowSaveTemplate(false)}>
             <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl" onClick={(e) => e.stopPropagation()}>
-              <h3 className="text-lg font-semibold mb-2">Save as Reusable Template</h3>
+              <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                <BookmarkPlus className="h-5 w-5 text-purple-600" />
+                Save as Personal Service Bundle
+              </h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Save this event configuration to quickly set up similar events in the future. The template stores your service selections, providers, and their default times.
+                Save this combination of services and providers as a reusable bundle. Next time, just load it, pick a date, and you're ready to book!
               </p>
               <div className="space-y-3">
                 <div>
-                  <Label className="text-sm">Template Name</Label>
+                  <Label className="text-sm">Bundle Name</Label>
                   <Input
-                    placeholder="e.g., Monthly DJ Night, Wedding Package"
+                    placeholder="e.g., My Saturday Self-Care, Monthly DJ Night, Wedding Package"
                     value={templateName}
                     onChange={(e) => setTemplateName(e.target.value)}
                     autoFocus
                   />
                 </div>
+                <div className="text-xs text-muted-foreground bg-gray-50 rounded-md p-3">
+                  <p className="font-medium mb-1">This bundle will save:</p>
+                  <ul className="space-y-0.5">
+                    <li>• {serviceGroups.length} service categor{serviceGroups.length > 1 ? "ies" : "y"}</li>
+                    <li>• {allProviderSlots.filter((p) => p.providerId).length} preferred provider{allProviderSlots.filter((p) => p.providerId).length > 1 ? "s" : ""}</li>
+                    <li>• Default time slots for each provider</li>
+                    {eventType && <li>• Event type: {eventType}</li>}
+                    {eventVenue && <li>• Default venue: {eventVenue}</li>}
+                  </ul>
+                </div>
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={() => setShowSaveTemplate(false)}>Cancel</Button>
                   <Button onClick={handleSaveTemplate} disabled={isSavingTemplate || !templateName.trim()}>
                     {isSavingTemplate ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <BookmarkPlus className="h-4 w-4 mr-1" />}
-                    Save Template
+                    Save Bundle
                   </Button>
                 </div>
               </div>
             </div>
           </div>
+        )}
+
+        {/* Quick Category Stacking Modal */}
+        {showCategoryStacking && categories && (
+          <QuickCategoryStackingModal
+            categories={categories}
+            existingCategoryIds={existingCategoryIds}
+            onConfirm={addMultipleServiceGroups}
+            onClose={() => setShowCategoryStacking(false)}
+          />
         )}
       </div>
     </div>
