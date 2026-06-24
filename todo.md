@@ -1697,3 +1697,7 @@
 - [x] Display draft cards with event name, date, venue, event type, provider count, and last modified
 - [x] Add "Resume" button to navigate to Bulk Booking page with draft loaded
 - [x] Add "Delete" button to remove drafts
+
+## Enhancement: Saved Drafts Filtering & Sorting
+- [x] Add sort options to Saved Drafts tab (by event date, last modified, name)
+- [x] Add filter by event type dropdown

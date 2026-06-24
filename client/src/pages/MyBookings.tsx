@@ -17,7 +17,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { trpc } from "@/lib/trpc";
-import { Calendar, Clock, MapPin, DollarSign, MessageSquare, XCircle, AlertTriangle, Loader2, Download, FileText, FileSpreadsheet, WifiOff, RefreshCw, Briefcase, ShoppingBag, Search, X, Trash2, RotateCcw, CalendarDays, Layers, Archive, Users, Play } from "lucide-react";
+import { Calendar, Clock, MapPin, DollarSign, MessageSquare, XCircle, AlertTriangle, Loader2, Download, FileText, FileSpreadsheet, WifiOff, RefreshCw, Briefcase, ShoppingBag, Search, X, Trash2, RotateCcw, CalendarDays, Layers, Archive, Users, Play, ArrowUpDown, ListFilter } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
@@ -722,6 +723,8 @@ function SavedDraftsTab() {
   const { data: drafts, isLoading } = trpc.bulkDraft.list.useQuery();
   const deleteDraft = trpc.bulkDraft.delete.useMutation();
   const utils = trpc.useUtils();
+  const [sortBy, setSortBy] = useState<"modified" | "eventDate" | "name">("modified");
+  const [filterType, setFilterType] = useState<string>("all");
 
   const handleDelete = async (id: number, name: string) => {
     if (!confirm(`Delete draft "${name || "Untitled"}"? This cannot be undone.`)) return;
@@ -762,6 +765,51 @@ function SavedDraftsTab() {
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
+  // Get unique event types for the filter dropdown
+  const eventTypes = useMemo(() => {
+    if (!drafts) return [];
+    const types = new Set<string>();
+    drafts.forEach((d: any) => {
+      if (d.eventType) types.add(d.eventType);
+    });
+    return Array.from(types).sort();
+  }, [drafts]);
+
+  // Filter and sort drafts
+  const filteredAndSortedDrafts = useMemo(() => {
+    if (!drafts) return [];
+    let result = [...drafts];
+
+    // Filter by event type
+    if (filterType !== "all") {
+      result = result.filter((d: any) => d.eventType === filterType);
+    }
+
+    // Sort
+    result.sort((a: any, b: any) => {
+      switch (sortBy) {
+        case "eventDate": {
+          const dateA = a.eventDate ? new Date(a.eventDate).getTime() : 0;
+          const dateB = b.eventDate ? new Date(b.eventDate).getTime() : 0;
+          return dateB - dateA; // Newest event date first
+        }
+        case "name": {
+          const nameA = (a.name || "Untitled").toLowerCase();
+          const nameB = (b.name || "Untitled").toLowerCase();
+          return nameA.localeCompare(nameB);
+        }
+        case "modified":
+        default: {
+          const modA = new Date(a.updatedAt).getTime();
+          const modB = new Date(b.updatedAt).getTime();
+          return modB - modA; // Most recently modified first
+        }
+      }
+    });
+
+    return result;
+  }, [drafts, filterType, sortBy]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -790,9 +838,10 @@ function SavedDraftsTab() {
 
   return (
     <div className="space-y-4">
+      {/* Header with count + New button */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          {drafts.length} saved draft{drafts.length !== 1 ? "s" : ""}
+          {filteredAndSortedDrafts.length} of {drafts.length} draft{drafts.length !== 1 ? "s" : ""}
         </p>
         <Button variant="outline" size="sm" onClick={() => setLocation("/bulk-booking")}>
           <Layers className="h-4 w-4 mr-2" />
@@ -800,69 +849,114 @@ function SavedDraftsTab() {
         </Button>
       </div>
 
-      {drafts.map((draft: any) => {
-        const slots = Array.isArray(draft.slots) ? draft.slots : [];
-        const providerCount = slots.length;
+      {/* Filter & Sort Controls */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2">
+          <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+          <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+            <SelectTrigger className="w-[160px] h-9 text-sm">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="modified">Last Modified</SelectItem>
+              <SelectItem value="eventDate">Event Date</SelectItem>
+              <SelectItem value="name">Name (A-Z)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        {eventTypes.length > 0 && (
+          <div className="flex items-center gap-2">
+            <ListFilter className="h-4 w-4 text-muted-foreground" />
+            <Select value={filterType} onValueChange={setFilterType}>
+              <SelectTrigger className="w-[170px] h-9 text-sm">
+                <SelectValue placeholder="Event type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Event Types</SelectItem>
+                {eventTypes.map((type) => (
+                  <SelectItem key={type} value={type}>{type}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+      </div>
 
-        return (
-          <Card key={draft.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-5">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-base truncate">
-                      {draft.name || "Untitled Draft"}
-                    </h3>
-                    {draft.eventType && (
-                      <Badge variant="secondary" className="text-xs shrink-0">
-                        {draft.eventType}
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="h-3.5 w-3.5" />
-                      {formatDate(draft.eventDate)}
-                    </span>
-                    {draft.eventVenue && (
-                      <span className="flex items-center gap-1 truncate max-w-[200px]">
-                        <MapPin className="h-3.5 w-3.5 shrink-0" />
-                        {draft.eventVenue}
+      {/* Draft Cards */}
+      {filteredAndSortedDrafts.length === 0 ? (
+        <Card>
+          <CardContent className="py-8 text-center">
+            <p className="text-muted-foreground">No drafts match the selected filter.</p>
+            <Button variant="link" size="sm" onClick={() => setFilterType("all")} className="mt-2">
+              Clear filter
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        filteredAndSortedDrafts.map((draft: any) => {
+          const slots = Array.isArray(draft.slots) ? draft.slots : [];
+          const providerCount = slots.length;
+
+          return (
+            <Card key={draft.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold text-base truncate">
+                        {draft.name || "Untitled Draft"}
+                      </h3>
+                      {draft.eventType && (
+                        <Badge variant="secondary" className="text-xs shrink-0">
+                          {draft.eventType}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3.5 w-3.5" />
+                        {formatDate(draft.eventDate)}
                       </span>
-                    )}
-                    <span className="flex items-center gap-1">
-                      <Users className="h-3.5 w-3.5" />
-                      {providerCount} provider{providerCount !== 1 ? "s" : ""}
-                    </span>
-                    <span className="text-xs text-muted-foreground/70">
-                      Updated {formatUpdatedAt(draft.updatedAt)}
-                    </span>
+                      {draft.eventVenue && (
+                        <span className="flex items-center gap-1 truncate max-w-[200px]">
+                          <MapPin className="h-3.5 w-3.5 shrink-0" />
+                          {draft.eventVenue}
+                        </span>
+                      )}
+                      <span className="flex items-center gap-1">
+                        <Users className="h-3.5 w-3.5" />
+                        {providerCount} provider{providerCount !== 1 ? "s" : ""}
+                      </span>
+                      <span className="text-xs text-muted-foreground/70">
+                        Updated {formatUpdatedAt(draft.updatedAt)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button
+                      size="sm"
+                      onClick={() => setLocation(`/bulk-booking?draft=${draft.id}`)}
+                      className="gap-1.5"
+                    >
+                      <Play className="h-3.5 w-3.5" />
+                      Resume
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => handleDelete(draft.id, draft.name)}
+                      disabled={deleteDraft.isPending}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <Button
-                    size="sm"
-                    onClick={() => setLocation(`/bulk-booking?draft=${draft.id}`)}
-                    className="gap-1.5"
-                  >
-                    <Play className="h-3.5 w-3.5" />
-                    Resume
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                    onClick={() => handleDelete(draft.id, draft.name)}
-                    disabled={deleteDraft.isPending}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
+              </CardContent>
+            </Card>
+          );
+        })
+      )}
     </div>
   );
 }
