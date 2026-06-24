@@ -66,7 +66,7 @@ export default function TermsOfService() {
               <li><strong>Custom Duration Bookings</strong> — for hourly-rate services, customers select their own start and end times; the total cost is calculated as the provider's hourly rate multiplied by the number of hours</li>
               <li><strong>Multi-Day Bookings</strong> — for projects spanning multiple consecutive days (e.g., AV crews, event planning, renovations)</li>
               <li><strong>Recurring Bookings</strong> — weekly or bi-weekly sessions over a defined period (e.g., fitness training, dance lessons, cleaning)</li>
-              <li><strong>Bulk Bookings</strong> — scheduling multiple providers across different dates in a single session</li>
+              <li><strong>Bulk Bookings</strong> — event-centric planning tool for scheduling multiple providers for a single event, with event type selection, venue details, per-provider time slots, visual timeline, and dynamic cost estimation</li>
               <li><strong>Monthly Planner</strong> — visual calendar-based scheduling for planning multiple bookings across a month</li>
             </ul>
             <h3 className="text-lg font-medium mt-4 mb-2">Duration Modifications</h3>
@@ -80,6 +80,14 @@ export default function TermsOfService() {
             <h3 className="text-lg font-medium mt-4 mb-2">Location Types</h3>
             <p className="text-muted-foreground leading-relaxed">
               Services may be offered under the following location types: Mobile (provider travels to customer), At Provider's Location/Public Venue, Virtual (online), Flexible (mutually agreed), Microsoft Teams, Zoom, or Other. The selected location type determines address requirements during booking. Virtual, Teams, and Zoom bookings do not require a physical address.
+            </p>
+            <h3 className="text-lg font-medium mt-4 mb-2">Bulk Booking Drafts</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              Users may save incomplete bulk booking plans as drafts. Drafts are stored on OlogyCrew's servers and associated with the user's account. Drafts do not constitute a booking or reservation and do not guarantee provider availability. OlogyCrew reserves the right to delete drafts that have been inactive for more than 90 days. Cost estimates shown in drafts are approximations based on current provider pricing and may change by the time the booking is submitted.
+            </p>
+            <h3 className="text-lg font-medium mt-4 mb-2">Cost Estimates</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              Dynamic cost calculations displayed during the bulk booking process and on draft summaries are estimates only. Final pricing is determined at the time of booking submission based on the provider's current rates and any applicable fees. OlogyCrew is not responsible for discrepancies between estimated and final costs.
             </p>
             <h3 className="text-lg font-medium mt-4 mb-2">Cancellations and Refunds</h3>
             <p className="text-muted-foreground leading-relaxed">

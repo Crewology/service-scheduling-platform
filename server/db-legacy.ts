@@ -28,6 +28,7 @@ import {
   type PromoCode,
   promoRedemptions,
   type PromoRedemption,
+  bulkBookingDrafts,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -766,6 +767,7 @@ export async function getAdminStats() {
     totalProviders: 0, pendingVerifications: 0,
     totalBookings: 0, bookingsThisMonth: 0,
     totalRevenue: 0, revenueThisMonth: 0,
+    totalBulkDrafts: 0, bulkDraftsThisMonth: 0,
   };
 
   const now = new Date();
@@ -780,6 +782,8 @@ export async function getAdminStats() {
     bookingsMonthResult,
     totalRevenueResult,
     revenueMonthResult,
+    totalBulkDraftsResult,
+    bulkDraftsMonthResult,
   ] = await Promise.all([
     db.select({ count: sql<number>`COUNT(*)` }).from(users),
     db.select({ count: sql<number>`COUNT(*)` }).from(users).where(gte(users.createdAt, firstOfMonth)),
@@ -789,6 +793,8 @@ export async function getAdminStats() {
     db.select({ count: sql<number>`COUNT(*)` }).from(bookings).where(gte(bookings.createdAt, firstOfMonth)),
     db.select({ total: sql<number>`COALESCE(SUM(CAST(${bookings.totalAmount} AS DECIMAL(10,2))), 0)` }).from(bookings).where(eq(bookings.status, "completed" as any)),
     db.select({ total: sql<number>`COALESCE(SUM(CAST(${bookings.totalAmount} AS DECIMAL(10,2))), 0)` }).from(bookings).where(and(eq(bookings.status, "completed" as any), gte(bookings.createdAt, firstOfMonth))),
+    db.select({ count: sql<number>`COUNT(*)` }).from(bulkBookingDrafts),
+    db.select({ count: sql<number>`COUNT(*)` }).from(bulkBookingDrafts).where(gte(bulkBookingDrafts.createdAt, firstOfMonth)),
   ]);
 
   return {
@@ -800,6 +806,8 @@ export async function getAdminStats() {
     bookingsThisMonth: bookingsMonthResult[0]?.count ?? 0,
     totalRevenue: totalRevenueResult[0]?.total ?? 0,
     revenueThisMonth: revenueMonthResult[0]?.total ?? 0,
+    totalBulkDrafts: totalBulkDraftsResult[0]?.count ?? 0,
+    bulkDraftsThisMonth: bulkDraftsMonthResult[0]?.count ?? 0,
   };
 }
 

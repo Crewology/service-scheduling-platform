@@ -520,6 +520,28 @@ export default function AdminDashboard() {
                   )}
                 </CardContent>
               </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    Bulk Booking Activity
+                  </CardTitle>
+                  <CardDescription>Event planning drafts and bulk bookings</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-3 bg-muted/50 rounded-lg">
+                      <p className="text-2xl font-bold">{stats?.totalBulkDrafts || 0}</p>
+                      <p className="text-xs text-muted-foreground">Total Drafts Saved</p>
+                    </div>
+                    <div className="text-center p-3 bg-muted/50 rounded-lg">
+                      <p className="text-2xl font-bold">{stats?.bulkDraftsThisMonth || 0}</p>
+                      <p className="text-xs text-muted-foreground">New This Month</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-3">Users can save event plans as drafts with multiple providers, timelines, and cost estimates before submitting.</p>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 

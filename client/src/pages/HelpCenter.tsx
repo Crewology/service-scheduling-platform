@@ -173,7 +173,7 @@ const guideSections: GuideSection[] = [
       {
         title: "Bulk Booking",
         content:
-          "Need to book multiple providers across different dates? Use Bulk Booking to schedule several providers in one session. Go to My Bookings and click the 'Bulk Book' button in the header. On the Bulk Booking page: search for a provider by name or category, select a date and time, and add them to your booking list. Repeat for as many providers as you need, then submit all bookings at once. This is ideal for scheduling multiple DJs, photographers, or crew members across different weekends in a month.",
+          "Plan entire events with multiple providers in one session. Go to My Bookings and click 'Bulk Book'. Step 1: Enter your event details \u2014 select the event date, choose an event type (Wedding, Corporate Event, Birthday Party, Concert, Festival, Private Party, etc.), and enter the venue name and address. Step 2: Add service providers \u2014 select a service category (e.g., DJ & Music, Photography, AV Crew), choose a specific provider, pick their service, and set individual start/end times for each. Add as many providers across different categories as you need. The Visual Timeline shows all providers' time slots as colored bars across the day so you can instantly see overlaps and gaps. The Dynamic Cost Calculator displays estimated totals based on each provider's pricing model (fixed, hourly, or package). Use 'Save as Draft' to save your event plan and return later \u2014 drafts are stored in your account and can be loaded, edited, or deleted anytime.",
         link: "/bulk-booking",
         linkText: "Start Bulk Booking",
       },
@@ -541,7 +541,25 @@ const faqItems: FAQItem[] = [
   {
     question: "How does Bulk Booking work?",
     answer:
-      "Bulk Booking lets you schedule multiple providers across different dates in one session. Go to My Bookings and click 'Bulk Book' in the header. Search for a provider by name or category, select a date and time, and add them to your list. Repeat for as many providers as you need, then submit all bookings at once. This is ideal for scheduling several DJs, photographers, or crew members across different weekends in a month.",
+      "Bulk Booking is an event-centric planning tool. Go to My Bookings and click 'Bulk Book'. First, enter your event details: select the date, choose an event type (Wedding, Corporate Event, Birthday, Concert, etc.), and enter the venue. Then add providers: pick a service category, choose a provider, select their service, and set their individual start/end times. Add as many providers as you need. The page includes a Visual Timeline showing all providers' time slots as colored bars, a Dynamic Cost Calculator with estimated totals, and a 'Save as Draft' option to save your plan for later.",
+    category: "Bookings",
+  },
+  {
+    question: "What is the Visual Timeline in Bulk Booking?",
+    answer:
+      "The Visual Timeline is a horizontal bar chart that appears as you add providers to your bulk booking. Each provider's time slot is shown as a colored bar across the event day, with hour markers from the earliest start to the latest end time. It helps you instantly see scheduling overlaps, gaps, and the overall flow of your event. The timeline updates in real-time as you add, remove, or adjust provider times.",
+    category: "Bookings",
+  },
+  {
+    question: "How does the cost estimate work in Bulk Booking?",
+    answer:
+      "The Dynamic Cost Calculator automatically estimates your total event cost based on each provider's pricing model. For hourly services, it multiplies the rate by the duration. For fixed-price services, it shows the flat fee. Package-based services display the package price. Services requiring custom quotes are flagged separately. The estimate updates in real-time as you add or remove providers.",
+    category: "Bookings",
+  },
+  {
+    question: "Can I save a bulk booking as a draft?",
+    answer:
+      "Yes! Click 'Save Draft' at any point during your bulk booking planning. Your event details, selected providers, and time slots are all saved to your account. You can name your drafts for easy identification. When you return to the Bulk Booking page, your saved drafts appear at the top — click 'Load' to resume where you left off, or 'Delete' to remove drafts you no longer need.",
     category: "Bookings",
   },
   {

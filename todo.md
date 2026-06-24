@@ -1685,3 +1685,9 @@
 - [x] Add visual timeline showing all providers' time slots on a horizontal bar for the event day
 - [x] Add dynamic cost calculation (estimated total based on selected services/durations)
 - [x] Add "Save as Draft" button to save incomplete bulk bookings for later
+
+## Content & Admin Updates for Bulk Booking Enhancements
+- [x] Add bulk booking/draft stats to admin dashboard (draft count, popular event types, bulk vs individual booking ratio)
+- [x] Update Help Center guide article for Bulk Booking with new event-centric flow, timeline, cost estimates, save as draft
+- [x] Update FAQs with questions about Visual Timeline, Cost Estimates, and Save as Draft
+- [x] Update Terms of Service with draft storage and estimated pricing disclaimers
