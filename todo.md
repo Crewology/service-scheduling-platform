@@ -1661,3 +1661,4 @@
 - [x] Allow customers to edit/change booking duration after initial booking (from My Bookings or Booking Detail page)
 - [x] Ensure provider card location label aligns exactly with the location type selected from the dropdown list
 - [x] Add "Flexible", "Teams", and "Zoom" as location type options for services (schema, dropdowns, labels, filters)
+- [x] Update ServiceDetail breadcrumb to include provider profile as intermediate step when navigating from provider's profile page

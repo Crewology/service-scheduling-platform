@@ -449,7 +449,7 @@ export default function PublicProviderProfile() {
                   {filteredServices.map((service: any) => {
                     const cat = categories?.find((c: any) => c.id === service.categoryId);
                     return (
-                      <Link key={service.id} href={`/service/${service.id}`}>
+                      <Link key={service.id} href={`/service/${service.id}?from_provider=${provider.id}`}>
                         <Card className="hover:border-primary/30 hover:shadow-md transition-all cursor-pointer overflow-hidden h-full">
                           <ServiceCardPhoto serviceId={service.id} />
                           <CardContent className="p-4">
@@ -644,8 +644,8 @@ export default function PublicProviderProfile() {
                     </p>
                     <div className="space-y-2">
                       {services.slice(0, 3).map((service: any) => (
-                        <Link key={service.id} href={`/service/${service.id}`}>
-                          <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer">
+<Link key={service.id} href={`/service/${service.id}?from_provider=${provider.id}`}>
+                           <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer">
                             <span className="text-sm font-medium truncate flex-1">{service.name}</span>
                             <span className="text-sm font-semibold text-primary ml-2">
                               {service.pricingModel === "fixed" && formatCurrency(service.basePrice)}

@@ -11,7 +11,7 @@ import { trpc } from "@/lib/trpc";
 import { formatDuration, getDurationPricingLabel } from "../../../shared/duration";
 import { getServiceTypeLabel } from "../../../shared/serviceTypeLabels";
 import { useState, useEffect, useMemo } from "react";
-import { useLocation, useParams, Link } from "wouter";
+import { useLocation, useParams, useSearch, Link } from "wouter";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
 import { Calendar } from "@/components/ui/calendar";
@@ -98,6 +98,8 @@ export default function ServiceDetail() {
   const { id } = useParams<{ id: string }>();
   const { user, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
+  const searchString = useSearch();
+  const fromProvider = new URLSearchParams(searchString).get("from_provider");
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState("");
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
@@ -696,6 +698,14 @@ export default function ServiceDetail() {
             <Link href="/browse" className="hover:text-foreground transition-colors">
               Browse
             </Link>
+            {(fromProvider || provider) && (
+              <>
+                <ChevronRight className="h-3.5 w-3.5" />
+                <Link href={`/provider/${fromProvider || provider?.id}`} className="hover:text-foreground transition-colors truncate max-w-[180px]">
+                  {provider?.businessName || "Provider"}
+                </Link>
+              </>
+            )}
             <ChevronRight className="h-3.5 w-3.5" />
             <span className="text-foreground font-medium truncate max-w-[200px]">
               {service.name}
