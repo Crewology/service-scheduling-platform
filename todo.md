@@ -1691,3 +1691,9 @@
 - [x] Update Help Center guide article for Bulk Booking with new event-centric flow, timeline, cost estimates, save as draft
 - [x] Update FAQs with questions about Visual Timeline, Cost Estimates, and Save as Draft
 - [x] Update Terms of Service with draft storage and estimated pricing disclaimers
+
+## Feature: Saved Drafts Tab in User Dashboard
+- [x] Add "Saved Drafts" tab to user profile/dashboard showing all saved bulk booking drafts
+- [x] Display draft cards with event name, date, venue, event type, provider count, and last modified
+- [x] Add "Resume" button to navigate to Bulk Booking page with draft loaded
+- [x] Add "Delete" button to remove drafts

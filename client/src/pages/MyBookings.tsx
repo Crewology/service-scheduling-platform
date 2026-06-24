@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { trpc } from "@/lib/trpc";
-import { Calendar, Clock, MapPin, DollarSign, MessageSquare, XCircle, AlertTriangle, Loader2, Download, FileText, FileSpreadsheet, WifiOff, RefreshCw, Briefcase, ShoppingBag, Search, X, Trash2, RotateCcw, CalendarDays, Layers } from "lucide-react";
+import { Calendar, Clock, MapPin, DollarSign, MessageSquare, XCircle, AlertTriangle, Loader2, Download, FileText, FileSpreadsheet, WifiOff, RefreshCw, Briefcase, ShoppingBag, Search, X, Trash2, RotateCcw, CalendarDays, Layers, Archive, Users, Play } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
@@ -287,6 +287,10 @@ export default function MyBookings() {
             <TabsTrigger value="all">
               All ({filteredBookings?.length || 0})
             </TabsTrigger>
+            <TabsTrigger value="drafts">
+              <Archive className="h-3.5 w-3.5 mr-1" />
+              Saved Drafts
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="upcoming" className="space-y-4">
@@ -376,6 +380,10 @@ export default function MyBookings() {
                 );
               })
             )}
+          </TabsContent>
+
+          <TabsContent value="drafts" className="space-y-4">
+            <SavedDraftsTab />
           </TabsContent>
         </Tabs>
       </div>
@@ -706,5 +714,155 @@ function BookingCard({
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+function SavedDraftsTab() {
+  const [, setLocation] = useLocation();
+  const { data: drafts, isLoading } = trpc.bulkDraft.list.useQuery();
+  const deleteDraft = trpc.bulkDraft.delete.useMutation();
+  const utils = trpc.useUtils();
+
+  const handleDelete = async (id: number, name: string) => {
+    if (!confirm(`Delete draft "${name || "Untitled"}"? This cannot be undone.`)) return;
+    try {
+      await deleteDraft.mutateAsync({ id });
+      utils.bulkDraft.list.invalidate();
+      toast.success("Draft deleted");
+    } catch {
+      toast.error("Failed to delete draft");
+    }
+  };
+
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return "No date set";
+    try {
+      return new Date(dateStr).toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const formatUpdatedAt = (ts: string | Date) => {
+    const date = new Date(ts);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!drafts || drafts.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <Archive className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <p className="text-lg font-medium mb-2">No saved drafts</p>
+          <p className="text-muted-foreground mb-4">
+            When you save a bulk booking as a draft, it will appear here so you can resume it later.
+          </p>
+          <Button onClick={() => setLocation("/bulk-booking")}>
+            <Layers className="h-4 w-4 mr-2" />
+            Start Bulk Booking
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {drafts.length} saved draft{drafts.length !== 1 ? "s" : ""}
+        </p>
+        <Button variant="outline" size="sm" onClick={() => setLocation("/bulk-booking")}>
+          <Layers className="h-4 w-4 mr-2" />
+          New Bulk Booking
+        </Button>
+      </div>
+
+      {drafts.map((draft: any) => {
+        const slots = Array.isArray(draft.slots) ? draft.slots : [];
+        const providerCount = slots.length;
+
+        return (
+          <Card key={draft.id} className="hover:shadow-md transition-shadow">
+            <CardContent className="p-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold text-base truncate">
+                      {draft.name || "Untitled Draft"}
+                    </h3>
+                    {draft.eventType && (
+                      <Badge variant="secondary" className="text-xs shrink-0">
+                        {draft.eventType}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Calendar className="h-3.5 w-3.5" />
+                      {formatDate(draft.eventDate)}
+                    </span>
+                    {draft.eventVenue && (
+                      <span className="flex items-center gap-1 truncate max-w-[200px]">
+                        <MapPin className="h-3.5 w-3.5 shrink-0" />
+                        {draft.eventVenue}
+                      </span>
+                    )}
+                    <span className="flex items-center gap-1">
+                      <Users className="h-3.5 w-3.5" />
+                      {providerCount} provider{providerCount !== 1 ? "s" : ""}
+                    </span>
+                    <span className="text-xs text-muted-foreground/70">
+                      Updated {formatUpdatedAt(draft.updatedAt)}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button
+                    size="sm"
+                    onClick={() => setLocation(`/bulk-booking?draft=${draft.id}`)}
+                    className="gap-1.5"
+                  >
+                    <Play className="h-3.5 w-3.5" />
+                    Resume
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => handleDelete(draft.id, draft.name)}
+                    disabled={deleteDraft.isPending}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
   );
 }
