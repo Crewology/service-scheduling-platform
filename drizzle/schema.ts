@@ -1006,3 +1006,21 @@ export const bulkBookingDrafts = mysqlTable("bulk_booking_drafts", {
 ]);
 export type BulkBookingDraft = typeof bulkBookingDrafts.$inferSelect;
 export type InsertBulkBookingDraft = typeof bulkBookingDrafts.$inferInsert;
+
+// ─── Event Templates (Reusable Configurations) ─────────────────────────────
+export const eventTemplates = mysqlTable("event_templates", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id),
+  name: varchar("name", { length: 255 }).notNull(),
+  eventType: varchar("eventType", { length: 100 }),
+  defaultVenue: text("defaultVenue"),
+  // JSON: array of service group configs (category, provider preferences, service-specific options)
+  serviceGroups: json("serviceGroups").notNull(),
+  usageCount: int("usageCount").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => [
+  index("event_template_user_idx").on(table.userId),
+]);
+export type EventTemplate = typeof eventTemplates.$inferSelect;
+export type InsertEventTemplate = typeof eventTemplates.$inferInsert;

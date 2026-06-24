@@ -244,6 +244,16 @@ export {
   deleteBulkDraft,
 } from "./db/bulkDrafts";
 
+// Event templates (reusable configurations)
+export {
+  getEventTemplatesByUser,
+  getEventTemplateById,
+  createEventTemplate,
+  updateEventTemplate,
+  incrementTemplateUsage as incrementEventTemplateUsage,
+  deleteEventTemplate,
+} from "./db/eventTemplates";
+
 // Waitlist management
 export {
   getNextWaitlistPosition,

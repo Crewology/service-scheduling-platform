@@ -31,6 +31,7 @@ import { foldersRouter } from "./foldersRouter";
 import { contactRouter } from "./contactRouter";
 import { pushRouter } from "./pushRouter";
 import { bulkDraftRouter } from "./bulkDraftRouter";
+import { eventTemplateRouter } from "./eventTemplateRouter";
 import { trustRouter } from "./trustRouter";
 import { waitlistRouter } from "./routers/waitlistRouter";
 
@@ -60,6 +61,7 @@ export const appRouter = router({
   trust: trustRouter,
   waitlist: waitlistRouter,
   bulkDraft: bulkDraftRouter,
+  eventTemplate: eventTemplateRouter,
 });
 
 export type AppRouter = typeof appRouter;
