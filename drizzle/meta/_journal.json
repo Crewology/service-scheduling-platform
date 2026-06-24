@@ -274,6 +274,20 @@
       "when": 1782248244428,
       "tag": "0038_careless_praxagora",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "5",
+      "when": 1782309149115,
+      "tag": "0039_dapper_lilith",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "5",
+      "when": 1782309259596,
+      "tag": "0040_unknown_thena",
+      "breakpoints": true
     }
   ]
 }

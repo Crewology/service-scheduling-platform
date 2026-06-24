@@ -1,0 +1,3 @@
+ALTER TABLE `availability_schedules` MODIFY COLUMN `locationType` enum('mobile','fixed_location','virtual','hybrid','flexible','teams','zoom');--> statement-breakpoint
+ALTER TABLE `bookings` MODIFY COLUMN `locationType` enum('mobile','fixed_location','virtual','hybrid','flexible','teams','zoom') NOT NULL;--> statement-breakpoint
+ALTER TABLE `quote_requests` MODIFY COLUMN `quoteLocationType` enum('mobile','fixed_location','virtual','hybrid','flexible','teams','zoom');

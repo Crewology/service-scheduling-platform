@@ -1660,3 +1660,4 @@
 - [x] Extend 'Custom Duration' feature to Audio Visual Crew (category 15)
 - [x] Allow customers to edit/change booking duration after initial booking (from My Bookings or Booking Detail page)
 - [x] Ensure provider card location label aligns exactly with the location type selected from the dropdown list
+- [x] Add "Flexible", "Teams", and "Zoom" as location type options for services (schema, dropdowns, labels, filters)

@@ -157,6 +157,9 @@ function AddServiceDialog({
                       <SelectItem value="fixed_location">Public Venue</SelectItem>
                       <SelectItem value="mobile">Private Location</SelectItem>
                       <SelectItem value="virtual">Virtual Stream</SelectItem>
+                      <SelectItem value="flexible">Flexible</SelectItem>
+                      <SelectItem value="teams">Microsoft Teams</SelectItem>
+                      <SelectItem value="zoom">Zoom</SelectItem>
                     </>
                   ) : (
                     <>
@@ -164,6 +167,9 @@ function AddServiceDialog({
                       <SelectItem value="mobile">Mobile (I Travel)</SelectItem>
                       <SelectItem value="virtual">Virtual / Online</SelectItem>
                       <SelectItem value="hybrid">Flexible</SelectItem>
+                      <SelectItem value="flexible">Flexible</SelectItem>
+                      <SelectItem value="teams">Microsoft Teams</SelectItem>
+                      <SelectItem value="zoom">Zoom</SelectItem>
                     </>
                   )}
                 </SelectContent>

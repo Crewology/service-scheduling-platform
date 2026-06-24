@@ -290,6 +290,9 @@ export default function CategoryDetail() {
                   <option value="mobile">Mobile</option>
                   <option value="virtual">Virtual</option>
                   <option value="hybrid">Flexible</option>
+                  <option value="flexible">Flexible</option>
+                  <option value="teams">Microsoft Teams</option>
+                  <option value="zoom">Zoom</option>
                 </select>
               </div>
               <div>

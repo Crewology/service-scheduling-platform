@@ -152,7 +152,7 @@ export const services = mysqlTable("services", {
   categoryId: int("categoryId").notNull().references(() => serviceCategories.id),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
-  serviceType: mysqlEnum("serviceType", ["mobile", "fixed_location", "virtual", "hybrid"]).notNull(),
+  serviceType: mysqlEnum("serviceType", ["mobile", "fixed_location", "virtual", "hybrid", "flexible", "teams", "zoom"]).notNull(),
   pricingModel: mysqlEnum("pricingModel", ["fixed", "hourly", "package", "custom_quote", "consultation"]).notNull(),
   basePrice: decimal("basePrice", { precision: 10, scale: 2 }),
   hourlyRate: decimal("hourlyRate", { precision: 10, scale: 2 }),
@@ -212,7 +212,7 @@ export const availabilitySchedules = mysqlTable("availability_schedules", {
   startTime: time("startTime").notNull(),
   endTime: time("endTime").notNull(),
   isAvailable: boolean("isAvailable").default(true).notNull(),
-  locationType: mysqlEnum("locationType", ["mobile", "fixed_location", "virtual"]),
+  locationType: mysqlEnum("locationType", ["mobile", "fixed_location", "virtual", "hybrid", "flexible", "teams", "zoom"]),
   maxConcurrentBookings: int("maxConcurrentBookings").default(1).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -266,7 +266,7 @@ export const bookings = mysqlTable("bookings", {
   recurrenceTotalWeeks: int("recurrenceTotalWeeks"), // How many weeks the recurrence runs
   recurrenceTotalSessions: int("recurrenceTotalSessions"), // Total number of sessions generated
   parentBookingId: int("parentBookingId"), // Self-reference for recurring child sessions
-  locationType: mysqlEnum("locationType", ["mobile", "fixed_location", "virtual"]).notNull(),
+  locationType: mysqlEnum("locationType", ["mobile", "fixed_location", "virtual", "hybrid", "flexible", "teams", "zoom"]).notNull(),
   serviceAddressLine1: varchar("serviceAddressLine1", { length: 255 }),
   serviceAddressLine2: varchar("serviceAddressLine2", { length: 255 }),
   serviceCity: varchar("serviceCity", { length: 100 }),
@@ -783,7 +783,7 @@ export const quoteRequests = mysqlTable("quote_requests", {
   // Optional details
   preferredDate: date("preferredDate"),
   preferredTime: varchar("preferredTime", { length: 20 }),
-  locationType: mysqlEnum("quoteLocationType", ["mobile", "fixed_location", "virtual"]),
+  locationType: mysqlEnum("quoteLocationType", ["mobile", "fixed_location", "virtual", "hybrid", "flexible", "teams", "zoom"]),
   location: text("location"),
   attachmentUrls: text("attachmentUrls"), // JSON array of image URLs
   

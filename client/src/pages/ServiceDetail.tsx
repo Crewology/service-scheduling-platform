@@ -528,8 +528,8 @@ export default function ServiceDetail() {
       const startDateStr = selectedDate.toISOString().split("T")[0];
       const endDateStr = endDate.toISOString().split("T")[0];
       const endTime = calculateEndTime(selectedTime, service.durationMinutes || 60);
-      const multiLocType = service.serviceType as "mobile" | "fixed_location" | "virtual";
-      const multiNeedsAddress = multiLocType === "mobile" || multiLocType === "fixed_location";
+      const multiLocType = service.serviceType as "mobile" | "fixed_location" | "virtual" | "hybrid" | "flexible" | "teams" | "zoom";
+      const multiNeedsAddress = multiLocType === "mobile" || multiLocType === "fixed_location" || multiLocType === "flexible" || multiLocType === "hybrid";
       const isDJMulti = [20, 17, 177, 15].includes(service.categoryId);
       createMultiDay.mutate({
         serviceId: service.id,
@@ -556,8 +556,8 @@ export default function ServiceDetail() {
       }
       const startDateStr = selectedDate.toISOString().split("T")[0];
       const endTime = calculateEndTime(selectedTime, service.durationMinutes || 60);
-      const recurLocType = service.serviceType as "mobile" | "fixed_location" | "virtual";
-      const recurNeedsAddress = recurLocType === "mobile" || recurLocType === "fixed_location";
+      const recurLocType = service.serviceType as "mobile" | "fixed_location" | "virtual" | "hybrid" | "flexible" | "teams" | "zoom";
+      const recurNeedsAddress = recurLocType === "mobile" || recurLocType === "fixed_location" || recurLocType === "flexible" || recurLocType === "hybrid";
       const isDJRecurring = [20, 17, 177, 15].includes(service.categoryId);
       createRecurring.mutate({
         serviceId: service.id,
@@ -606,8 +606,8 @@ export default function ServiceDetail() {
     const endTime = calculateEndTime(actualStartTime, actualDuration);
 
     // Use the service's serviceType directly (DJ services already have the correct type set)
-    const locType = service.serviceType as "mobile" | "fixed_location" | "virtual";
-    const needsAddress = locType === "mobile" || locType === "fixed_location";
+    const locType = service.serviceType as "mobile" | "fixed_location" | "virtual" | "hybrid" | "flexible" | "teams" | "zoom";
+    const needsAddress = locType === "mobile" || locType === "fixed_location" || locType === "flexible" || locType === "hybrid";
 
     // Calculate subtotal for custom duration
     const subtotal = (isCustomDurationCategory && useCustomDuration && customDurationPrice > 0)
@@ -1486,7 +1486,7 @@ export default function ServiceDetail() {
                     )}
 
                     {/* Standard mobile address for non-DJ services */}
-                    {service.serviceType === "mobile" && service.categoryId !== 20 && (
+                    {(service.serviceType === "mobile" || service.serviceType === "flexible" || service.serviceType === "hybrid") && ![20, 17, 177, 15].includes(service.categoryId) && (
                       <div className="space-y-3 mb-4">
                         <p className="text-sm font-medium">Service Address</p>
                         <Input

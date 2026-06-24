@@ -13,7 +13,7 @@ export const bookingRouter = router({
       startTime: z.string(),
       endTime: z.string(),
       durationMinutes: z.number().optional(),
-      locationType: z.enum(["mobile", "fixed_location", "virtual"]),
+      locationType: z.enum(["mobile", "fixed_location", "virtual", "hybrid", "flexible", "teams", "zoom"]),
       serviceAddressLine1: z.string().optional(),
       serviceAddressLine2: z.string().optional(),
       serviceCity: z.string().optional(),
@@ -726,7 +726,7 @@ export const bookingRouter = router({
       startTime: z.string(), // HH:MM
       endTime: z.string(),   // HH:MM
       durationMinutes: z.number().optional(),
-      locationType: z.enum(["mobile", "fixed_location", "virtual"]),
+      locationType: z.enum(["mobile", "fixed_location", "virtual", "hybrid", "flexible", "teams", "zoom"]),
       serviceAddressLine1: z.string().optional(),
       serviceAddressLine2: z.string().optional(),
       serviceCity: z.string().optional(),
@@ -884,7 +884,7 @@ export const bookingRouter = router({
       frequency: z.enum(["weekly", "biweekly"]),
       daysOfWeek: z.array(z.number().min(0).max(6)), // 0=Sun, 1=Mon, ..., 6=Sat
       totalWeeks: z.number().min(1).max(52),
-      locationType: z.enum(["mobile", "fixed_location", "virtual"]),
+      locationType: z.enum(["mobile", "fixed_location", "virtual", "hybrid", "flexible", "teams", "zoom"]),
       serviceAddressLine1: z.string().optional(),
       serviceAddressLine2: z.string().optional(),
       serviceCity: z.string().optional(),
