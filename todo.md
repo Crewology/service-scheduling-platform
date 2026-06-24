@@ -1712,3 +1712,7 @@
 - [x] All providers share the same event date but have individual time slots
 - [x] Create reusable event templates (save entire configurations for reuse on new dates)
 - [x] Template management UI (save, load, edit, delete templates)
+
+## Bug Fix: Bulk Booking Provider Field Issues
+- [x] Fix provider dropdown not displaying all available providers from database
+- [x] Fix provider dropdown being hidden/clipped inside bounding box

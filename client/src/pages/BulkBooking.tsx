@@ -640,9 +640,9 @@ function ProviderSlotCard({
   const [searchTimeout, setSearchTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   // Providers for the category
-  const { data: categoryProviders } = trpc.provider.listByCategory.useQuery(
+  const { data: categoryProviders, isLoading: isLoadingProviders } = trpc.provider.listByCategory.useQuery(
     { categoryId },
-    { enabled: !!categoryId && !slot.providerId }
+    { enabled: !!categoryId, staleTime: 5 * 60 * 1000 }
   );
 
   // Provider search
@@ -659,8 +659,15 @@ function ProviderSlotCard({
 
   const filteredProviders = useMemo(() => {
     if (debouncedSearch.length >= 2 && searchResults) {
-      const catProviderIds = new Set((categoryProviders || []).map((p: any) => p.id));
-      return searchResults.filter((p: any) => catProviderIds.has(p.id));
+      // If we have category providers loaded, filter search results to that category
+      // Otherwise show all search results
+      if (categoryProviders && categoryProviders.length > 0) {
+        const catProviderIds = new Set((categoryProviders || []).map((p: any) => p.id));
+        const filtered = searchResults.filter((p: any) => catProviderIds.has(p.id));
+        // If no matches in category, still show all search results so user can find providers
+        return filtered.length > 0 ? filtered : searchResults;
+      }
+      return searchResults;
     }
     return categoryProviders || [];
   }, [searchResults, categoryProviders, debouncedSearch]);
@@ -736,7 +743,7 @@ function ProviderSlotCard({
               disabled={isSubmitting}
             />
           </div>
-          <div className="max-h-48 overflow-y-auto border rounded-md">
+          <div className="max-h-72 overflow-y-auto border rounded-md">
             {filteredProviders.length > 0 ? (
               filteredProviders.map((p: any) => (
                 <button
@@ -758,7 +765,7 @@ function ProviderSlotCard({
               ))
             ) : (
               <p className="text-sm text-muted-foreground text-center py-4">
-                {debouncedSearch.length >= 2 ? "No providers found" : "Loading providers..."}
+                {isLoadingProviders ? "Loading providers..." : debouncedSearch.length >= 2 ? "No providers found for this search" : "No providers available in this category"}
               </p>
             )}
           </div>
@@ -794,7 +801,7 @@ function ProviderSlotCard({
           {!slot.serviceId && providerServices && (
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Select service</Label>
-              <div className="max-h-32 overflow-y-auto border rounded-md">
+              <div className="max-h-56 overflow-y-auto border rounded-md">
                 {(providerServices as any[]).filter((s: any) => s.categoryId === categoryId).length > 0 ? (
                   (providerServices as any[]).filter((s: any) => s.categoryId === categoryId).map((s: any) => (
                     <button
@@ -1002,7 +1009,7 @@ function ServiceGroupCard({
               <ChevronDown className="h-4 w-4 text-muted-foreground" />
             </button>
             {categoryOpen && (
-              <div className="absolute z-30 top-full mt-1 w-full bg-white border rounded-lg shadow-lg max-h-56 overflow-y-auto">
+              <div className="absolute z-30 top-full mt-1 w-full bg-white border rounded-lg shadow-lg max-h-72 overflow-y-auto">
                 {categories.map((cat: any) => (
                   <button
                     key={cat.id}
@@ -1529,7 +1536,7 @@ export default function BulkBooking() {
                     {eventTypeOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                   </button>
                   {eventTypeOpen && (
-                    <div className="absolute z-30 top-full mt-1 w-full bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                    <div className="absolute z-30 top-full mt-1 w-full bg-white border rounded-lg shadow-lg max-h-64 overflow-y-auto">
                       {EVENT_TYPES.map((type) => (
                         <button
                           key={type}

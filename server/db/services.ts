@@ -258,7 +258,7 @@ export async function searchProviders(searchTerm: string) {
       desc(rankScore),
       desc(serviceProviders.averageRating)
     )
-    .limit(10);
+    .limit(50);
   return rows;
 }
 
