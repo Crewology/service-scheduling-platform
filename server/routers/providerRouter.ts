@@ -788,7 +788,7 @@ export const providerRouter = router({
       description: z.string().min(20, "Please describe your needs in at least 20 characters"),
       preferredDate: z.string().optional(),
       preferredTime: z.string().optional(),
-      locationType: z.enum(["mobile", "fixed_location", "virtual"]).optional(),
+      locationType: z.enum(["mobile", "fixed_location", "virtual", "hybrid", "flexible", "teams", "zoom"]).optional(),
       location: z.string().optional(),
       attachmentUrls: z.array(z.string()).optional(),
     }))
@@ -1100,7 +1100,7 @@ export const providerRouter = router({
       description: z.string().min(20, "Please describe your needs in at least 20 characters"),
       preferredDate: z.string().optional(),
       preferredTime: z.string().optional(),
-      locationType: z.enum(["mobile", "fixed_location", "virtual"]).optional(),
+      locationType: z.enum(["mobile", "fixed_location", "virtual", "hybrid", "flexible", "teams", "zoom"]).optional(),
       location: z.string().optional(),
       attachmentUrls: z.array(z.string()).optional(),
     }))

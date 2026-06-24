@@ -16,7 +16,7 @@ export const availabilityRouter = router({
       startTime: z.string(),
       endTime: z.string(),
       isAvailable: z.boolean().default(true),
-      locationType: z.enum(["mobile", "fixed_location", "virtual"]).optional(),
+      locationType: z.enum(["mobile", "fixed_location", "virtual", "hybrid", "flexible", "teams", "zoom"]).optional(),
       maxConcurrentBookings: z.number().default(1),
     }))
     .mutation(async ({ ctx, input }) => {
