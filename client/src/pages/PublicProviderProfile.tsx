@@ -3,6 +3,7 @@ import { NavHeader } from "@/components/shared/NavHeader";
 import { useParams, Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { formatDuration } from "../../../shared/duration";
+import { getServiceTypeLabel } from "../../../shared/serviceTypeLabels";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -469,8 +470,8 @@ export default function PublicProviderProfile() {
                                     <Clock className="w-3 h-3" /> {formatDuration(service.durationMinutes)}
                                   </span>
                                 )}
-                                <Badge variant="outline" className="text-xs capitalize">
-                                  {service.serviceType.replace("_", " ")}
+                                <Badge variant="outline" className="text-xs">
+                                  {getServiceTypeLabel(service.serviceType, service.categoryId)}
                                 </Badge>
                               </div>
                               <div className="font-bold text-primary">

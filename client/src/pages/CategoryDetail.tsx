@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { formatDuration } from "../../../shared/duration";
+import { getServiceTypeLabel } from "../../../shared/serviceTypeLabels";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -285,10 +286,10 @@ export default function CategoryDetail() {
                   onChange={(e) => setServiceTypeFilter(e.target.value)}
                 >
                   <option value="all">All Types</option>
-                  <option value="in_person">In Person</option>
+                  <option value="fixed_location">At My Location</option>
                   <option value="mobile">Mobile</option>
                   <option value="virtual">Virtual</option>
-                  <option value="hybrid">Hybrid</option>
+                  <option value="hybrid">Flexible</option>
                 </select>
               </div>
               <div>
@@ -329,7 +330,7 @@ export default function CategoryDetail() {
               {locationFilter && <Badge variant="secondary" className="text-xs">Near \"{locationFilter}\"</Badge>}
               {minRating > 0 && <Badge variant="secondary" className="text-xs"><Star className="w-3 h-3 mr-0.5 fill-amber-400 text-amber-400" /> {minRating}+</Badge>}
               {maxPrice !== null && <Badge variant="secondary" className="text-xs">Under ${maxPrice}</Badge>}
-              {serviceTypeFilter !== "all" && <Badge variant="secondary" className="text-xs capitalize">{serviceTypeFilter.replace("_", " ")}</Badge>}
+              {serviceTypeFilter !== "all" && <Badge variant="secondary" className="text-xs">{getServiceTypeLabel(serviceTypeFilter, category?.id)}</Badge>}
             </div>
           )}
           {servicesByProvider.size > 0 ? (
@@ -412,8 +413,8 @@ export default function CategoryDetail() {
                               <span className="text-xs text-muted-foreground truncate">{provider.businessName}</span>
                             </div>
                             <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                              <Badge variant="outline" className="text-xs capitalize">
-                                {service.serviceType.replace("_", " ")}
+                              <Badge variant="outline" className="text-xs">
+                                {getServiceTypeLabel(service.serviceType, service.categoryId)}
                               </Badge>
                               {service.durationMinutes && (
                                 <span className="flex items-center gap-1">

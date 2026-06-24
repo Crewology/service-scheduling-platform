@@ -3,6 +3,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { useProtectedPage } from "@/hooks/useProtectedPage";
 import { trpc } from "@/lib/trpc";
 import { formatDuration, DURATION_PRESETS } from "../../../shared/duration";
+import { getServiceTypeLabel } from "../../../shared/serviceTypeLabels";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -1264,7 +1265,7 @@ export default function ProviderOnboarding() {
                                       <Clock className="h-3 w-3" /> {formatDuration(service.durationMinutes)}
                                     </span>
                                   )}
-                                  <span className="capitalize">{service.categoryId === 20 ? (service.serviceType === 'fixed_location' ? 'Public Venue' : service.serviceType === 'mobile' ? 'Private Location' : service.serviceType === 'virtual' ? 'Virtual Stream' : service.serviceType.replace('_', ' ')) : service.serviceType.replace("_", " ")}</span>
+                                  <span>{getServiceTypeLabel(service.serviceType, service.categoryId)}</span>
                                 </div>
                               </div>
                               <div className="text-right">

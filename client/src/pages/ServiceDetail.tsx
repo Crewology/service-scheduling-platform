@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { trpc } from "@/lib/trpc";
 import { formatDuration, getDurationPricingLabel } from "../../../shared/duration";
+import { getServiceTypeLabel } from "../../../shared/serviceTypeLabels";
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, useParams, Link } from "wouter";
 import { toast } from "sonner";
@@ -773,10 +774,8 @@ export default function ServiceDetail() {
                     <MapPin className="h-5 w-5 text-primary" />
                     <div>
                       <p className="text-xs text-muted-foreground">Location</p>
-                      <p className="font-semibold capitalize">
-                        {[20, 17, 177, 15].includes(service.categoryId)
-                          ? (service.serviceType === "fixed_location" ? "Public Venue" : service.serviceType === "mobile" ? "Private Location" : "Virtual Stream")
-                          : service.serviceType.replace("_", " ")}
+                      <p className="font-semibold">
+                        {getServiceTypeLabel(service.serviceType, service.categoryId)}
                       </p>
                     </div>
                   </div>
@@ -1677,8 +1676,8 @@ export default function ServiceDetail() {
                             </div>
                             <div>
                               <p className="text-muted-foreground text-xs">Type</p>
-                              <p className="font-medium capitalize">
-                                {service.serviceType.replace("_", " ")}
+                              <p className="font-medium">
+                                {getServiceTypeLabel(service.serviceType, service.categoryId)}
                               </p>
                             </div>
                           </div>

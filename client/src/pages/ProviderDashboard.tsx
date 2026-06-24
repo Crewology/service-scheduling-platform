@@ -68,6 +68,7 @@ import { NavHeader } from "@/components/shared/NavHeader";
 import { ShareProfile } from "@/components/ShareProfile";
 import { formatCurrency } from "@/lib/dateUtils";
 import { formatDuration, DURATION_PRESETS } from "../../../shared/duration";
+import { getServiceTypeLabel } from "../../../shared/serviceTypeLabels";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { Checkbox } from "@/components/ui/checkbox";
 import { UpgradePrompt, UpgradeBanner } from "@/components/UpgradePrompt";
@@ -1833,7 +1834,7 @@ export default function ProviderDashboard() {
                                 </div>
                               </div>
                               <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                                <span className="capitalize">{service.categoryId === 20 ? (service.serviceType === 'fixed_location' ? 'Public Venue' : service.serviceType === 'mobile' ? 'Private Location' : service.serviceType === 'virtual' ? 'Virtual Stream' : service.serviceType.replace('_', ' ')) : service.serviceType.replace('_', ' ')}</span>
+                                <span>{getServiceTypeLabel(service.serviceType, service.categoryId)}</span>
                                 {service.durationMinutes && <span>· {formatDuration(service.durationMinutes)}</span>}
                               </div>
                               <div className="flex gap-1 mt-2 pt-2 border-t">

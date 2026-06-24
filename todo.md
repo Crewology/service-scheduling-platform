@@ -1659,3 +1659,4 @@
 - [x] Extend 'Custom Duration' feature to Photography (category 17) and Event Planning (category 177) services
 - [x] Extend 'Custom Duration' feature to Audio Visual Crew (category 15)
 - [x] Allow customers to edit/change booking duration after initial booking (from My Bookings or Booking Detail page)
+- [x] Ensure provider card location label aligns exactly with the location type selected from the dropdown list
