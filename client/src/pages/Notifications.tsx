@@ -245,8 +245,12 @@ export default function Notifications() {
                 className={`group cursor-pointer transition-all hover:shadow-sm ${
                   !n.isRead ? "border-primary/20 bg-primary/[0.02]" : ""
                 }`}
-                onClick={() => {
-                  if (!n.isRead) markRead.mutate({ notificationId: n.id });
+                onClick={async () => {
+                  if (!n.isRead) {
+                    try {
+                      await markRead.mutateAsync({ notificationId: n.id });
+                    } catch {}
+                  }
                   if (n.actionUrl) window.location.href = n.actionUrl;
                 }}
               >

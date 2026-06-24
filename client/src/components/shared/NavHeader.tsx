@@ -197,8 +197,12 @@ function NotificationDropdown() {
                   className={`flex gap-3 px-4 py-3 border-b last:border-0 hover:bg-gray-50 cursor-pointer transition-colors ${
                     !n.isRead ? "bg-blue-50/50" : ""
                   }`}
-                  onClick={() => {
-                    if (!n.isRead) markRead.mutate({ notificationId: n.id });
+                  onClick={async () => {
+                    if (!n.isRead) {
+                      try {
+                        await markRead.mutateAsync({ notificationId: n.id });
+                      } catch {}
+                    }
                     if (n.actionUrl) {
                       window.location.href = n.actionUrl;
                       setOpen(false);
