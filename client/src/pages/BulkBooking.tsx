@@ -599,7 +599,7 @@ export default function BulkBooking() {
         <DraftsPanel onLoadDraft={handleLoadDraft} />
 
         {/* Step 1: Event Details */}
-        <Card className="mb-6">
+        <Card className="mb-6 overflow-visible">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <span className="h-7 w-7 rounded-full bg-primary text-white text-xs flex items-center justify-center font-bold">1</span>
@@ -700,7 +700,7 @@ export default function BulkBooking() {
         <CostSummary slots={slots} />
 
         {/* Step 2: Service Providers */}
-        <Card className="mb-6">
+        <Card className="mb-6 overflow-visible">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div>
@@ -1063,30 +1063,30 @@ function ServiceSlotCard({
             />
           </div>
           {/* Provider List */}
-          <div className="max-h-40 overflow-y-auto border rounded-md">
+          <div className="max-h-72 overflow-y-auto border rounded-md">
             {filteredProviders.length > 0 ? (
               filteredProviders.map((p: any) => (
                 <button
                   key={p.id}
-                  className="w-full text-left px-3 py-2 hover:bg-gray-50 text-sm border-b last:border-b-0 flex items-center gap-2"
+                  className="w-full text-left px-4 py-3 hover:bg-gray-50 text-sm border-b last:border-b-0 flex items-center gap-3"
                   onClick={() => selectProvider(p)}
                 >
-                  <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
+                  <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary shrink-0">
                     {(p.businessName || p.name || "?")[0].toUpperCase()}
                   </div>
-                  <div className="min-w-0">
-                    <p className="font-medium truncate">{p.businessName || p.name}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-sm">{p.businessName || p.name}</p>
                     {p.city && (
-                      <p className="text-xs text-muted-foreground">{p.city}, {p.state}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{p.city}, {p.state}</p>
                     )}
                   </div>
                   {p.averageRating && parseFloat(p.averageRating) > 0 && (
-                    <span className="ml-auto text-xs text-amber-600 shrink-0">★ {parseFloat(p.averageRating).toFixed(1)}</span>
+                    <span className="ml-auto text-xs text-amber-600 shrink-0 flex items-center gap-0.5">★ {parseFloat(p.averageRating).toFixed(1)}</span>
                   )}
                 </button>
               ))
             ) : (
-              <p className="text-sm text-muted-foreground text-center py-4">
+              <p className="text-sm text-muted-foreground text-center py-6">
                 {debouncedSearch.length >= 2 ? "No providers found" : "Loading providers..."}
               </p>
             )}

@@ -1701,3 +1701,6 @@
 ## Enhancement: Saved Drafts Filtering & Sorting
 - [x] Add sort options to Saved Drafts tab (by event date, last modified, name)
 - [x] Add filter by event type dropdown
+
+## Bug Fix: Provider Card Display in Bulk Booking
+- [x] Fix provider card not fully showing when selecting a provider in Bulk Booking
