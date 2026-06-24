@@ -395,7 +395,7 @@ export const adminRouter = router({
       query: z.string().optional(),
       verificationStatus: z.enum(["pending", "verified", "rejected"]).optional(),
       page: z.number().default(1),
-      limit: z.number().default(25),
+      limit: z.number().default(20),
     }))
     .query(async ({ input }) => {
       const allProviders = await db.getAllProviders();

@@ -252,7 +252,6 @@ export default function AdminDashboard() {
   const searchString = useSearch();
   const urlTab = new URLSearchParams(searchString).get("tab");
   const [activeTab, setActiveTab] = useState(urlTab || "overview");
-  const [providerSearch, setProviderSearch] = useState("");
   const [bookingSearch, setBookingSearch] = useState("");
   const utils = trpc.useUtils();
   
@@ -411,7 +410,7 @@ export default function AdminDashboard() {
                 Subscriptions
               </TabsTrigger>
               <TabsTrigger value="users" className="whitespace-nowrap text-xs md:text-sm">Users ({users?.length || 0})</TabsTrigger>
-              <TabsTrigger value="providers" className="whitespace-nowrap text-xs md:text-sm">Providers ({providers?.length || 0})</TabsTrigger>
+              <TabsTrigger value="providers" className="whitespace-nowrap text-xs md:text-sm">Providers ({stats?.totalProviders || providers?.length || 0})</TabsTrigger>
               <TabsTrigger value="bookings" className="whitespace-nowrap text-xs md:text-sm">Bookings ({bookings?.length || 0})</TabsTrigger>
               <TabsTrigger value="reviews" className="whitespace-nowrap text-xs md:text-sm">
                 <Star className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
@@ -565,104 +564,7 @@ export default function AdminDashboard() {
               )}
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Provider Management</CardTitle>
-                <CardDescription>Verify and manage service providers</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {/* Provider Search */}
-                <div className="relative mb-4">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search providers..."
-                    value={providerSearch}
-                    onChange={(e) => setProviderSearch(e.target.value)}
-                    className="pl-9 pr-9 text-sm"
-                  />
-                  {providerSearch && (
-                    <button
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      onClick={() => setProviderSearch("")}
-                    >
-                      <XCircle className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-                {providersLoading ? (
-                  <LoadingSpinner />
-                ) : (
-                  <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Business Name</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Location</TableHead>
-                        <TableHead>Verification</TableHead>
-                        <TableHead>Rating</TableHead>
-                        <TableHead>Joined</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {providers?.filter((provider: any) => {
-                        if (!providerSearch.trim()) return true;
-                        const q = providerSearch.toLowerCase();
-                        return (provider.businessName || "").toLowerCase().includes(q) ||
-                          (provider.businessType || "").toLowerCase().includes(q) ||
-                          (provider.city || "").toLowerCase().includes(q) ||
-                          (provider.state || "").toLowerCase().includes(q);
-                      }).map((provider: any) => (
-                        <TableRow key={provider.id}>
-                          <TableCell className="font-medium">{provider.businessName}</TableCell>
-                          <TableCell className="capitalize">{provider.businessType?.replace('_', ' ')}</TableCell>
-                          <TableCell>{provider.city ? `${provider.city}, ${provider.state}` : "N/A"}</TableCell>
-                          <TableCell>
-                            <Badge 
-                              variant={
-                                provider.verificationStatus === "verified" ? "default" :
-                                provider.verificationStatus === "pending" ? "secondary" :
-                                "destructive"
-                              }
-                            >
-                              {provider.verificationStatus === "verified" ? "approved" : provider.verificationStatus}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-1">
-                              <span className="text-yellow-500">★</span>
-                              <span>{provider.averageRating ? parseFloat(provider.averageRating).toFixed(1) : "N/A"}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>{formatDate(provider.createdAt)}</TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              {provider.verificationStatus === "pending" && (
-                                <>
-                                  <Button size="sm" onClick={() => verifyProvider.mutate({ providerId: provider.id })} disabled={verifyProvider.isPending}>
-                                    Verify
-                                  </Button>
-                                  <Button size="sm" variant="outline" onClick={() => rejectProvider.mutate({ providerId: provider.id, reason: "Does not meet requirements" })} disabled={rejectProvider.isPending}>
-                                    Reject
-                                  </Button>
-                                </>
-                              )}
-                              {provider.verificationStatus === "rejected" && (
-                                <Button size="sm" variant="outline" onClick={() => verifyProvider.mutate({ providerId: provider.id })} disabled={verifyProvider.isPending}>
-                                  Re-verify
-                                </Button>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <ProvidersFilterPanel verifyProvider={verifyProvider} rejectProvider={rejectProvider} />
           </TabsContent>
 
           {/* Bookings Tab */}
@@ -2203,6 +2105,188 @@ function PushAnalyticsPanel() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+
+// ============================================================================
+// PROVIDERS FILTER PANEL
+// ============================================================================
+function ProvidersFilterPanel({ verifyProvider, rejectProvider }: { verifyProvider: any; rejectProvider: any }) {
+  const [providerSearch, setProviderSearch] = useState("");
+  const [verificationFilter, setVerificationFilter] = useState("all");
+  const [providerPage, setProviderPage] = useState(1);
+  const utils = trpc.useUtils();
+
+  const { data: filteredProviders, isLoading } = trpc.admin.searchProvidersFiltered.useQuery({
+    query: providerSearch || undefined,
+    verificationStatus: verificationFilter !== "all" ? verificationFilter as any : undefined,
+    page: providerPage,
+    limit: 20,
+  });
+
+  const clearFilters = () => {
+    setProviderSearch("");
+    setVerificationFilter("all");
+    setProviderPage(1);
+  };
+
+  const hasFilters = providerSearch || verificationFilter !== "all";
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Provider Management</CardTitle>
+            <CardDescription>Search, filter, and manage service providers. Verify or reject pending applications.</CardDescription>
+          </div>
+          {hasFilters && (
+            <Button variant="outline" size="sm" onClick={clearFilters}>
+              <XCircle className="h-3.5 w-3.5 mr-1" />
+              Clear All
+            </Button>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent>
+        {/* Search & Filters */}
+        <div className="flex flex-wrap gap-3 mb-4">
+          <div className="relative flex-1 min-w-0 sm:min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by business name, city..."
+              value={providerSearch}
+              onChange={(e) => { setProviderSearch(e.target.value); setProviderPage(1); }}
+              className="pl-9 pr-9 text-sm"
+            />
+            {providerSearch && (
+              <button
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                onClick={() => { setProviderSearch(""); setProviderPage(1); }}
+              >
+                <XCircle className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          <Select value={verificationFilter} onValueChange={(v) => { setVerificationFilter(v); setProviderPage(1); }}>
+            <SelectTrigger className="w-[130px] sm:w-[150px] text-xs sm:text-sm">
+              <SelectValue placeholder="All Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="verified">Verified</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Results */}
+        {isLoading ? (
+          <LoadingSpinner />
+        ) : !filteredProviders || filteredProviders.providers.length === 0 ? (
+          <div className="text-center py-8">
+            <Briefcase className="h-10 w-10 text-muted-foreground/30 mx-auto mb-2" />
+            <p className="text-muted-foreground">No providers found matching your criteria</p>
+          </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Business Name</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead>Verification</TableHead>
+                    <TableHead>Rating</TableHead>
+                    <TableHead>Joined</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredProviders.providers.map((provider: any) => (
+                    <TableRow key={provider.id}>
+                      <TableCell className="font-medium">{provider.businessName}</TableCell>
+                      <TableCell className="capitalize">{provider.businessType?.replace('_', ' ')}</TableCell>
+                      <TableCell>{provider.city ? `${provider.city}, ${provider.state}` : "N/A"}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            provider.verificationStatus === "verified" ? "default" :
+                            provider.verificationStatus === "pending" ? "secondary" :
+                            "destructive"
+                          }
+                        >
+                          {provider.verificationStatus === "verified" ? "approved" : provider.verificationStatus}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <span className="text-yellow-500">\u2605</span>
+                          <span>{provider.averageRating ? parseFloat(provider.averageRating).toFixed(1) : "N/A"}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>{formatDate(provider.createdAt)}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          {provider.verificationStatus === "pending" && (
+                            <>
+                              <Button size="sm" onClick={() => { verifyProvider.mutate({ providerId: provider.id }); utils.admin.searchProvidersFiltered.invalidate(); }} disabled={verifyProvider.isPending}>
+                                Verify
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={() => { rejectProvider.mutate({ providerId: provider.id, reason: "Does not meet requirements" }); utils.admin.searchProvidersFiltered.invalidate(); }} disabled={rejectProvider.isPending}>
+                                Reject
+                              </Button>
+                            </>
+                          )}
+                          {provider.verificationStatus === "rejected" && (
+                            <Button size="sm" variant="outline" onClick={() => { verifyProvider.mutate({ providerId: provider.id }); utils.admin.searchProvidersFiltered.invalidate(); }} disabled={verifyProvider.isPending}>
+                              Re-verify
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Pagination */}
+            <div className="flex items-center justify-between mt-4 pt-4 border-t">
+              <p className="text-sm text-muted-foreground">
+                Showing {((filteredProviders.page - 1) * 20) + 1}\u2013{Math.min(filteredProviders.page * 20, filteredProviders.total)} of {filteredProviders.total} providers
+              </p>
+              {filteredProviders.totalPages > 1 && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setProviderPage(p => Math.max(1, p - 1))}
+                    disabled={providerPage <= 1}
+                  >
+                    Previous
+                  </Button>
+                  <span className="text-sm text-muted-foreground px-2">
+                    Page {filteredProviders.page} of {filteredProviders.totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setProviderPage(p => p + 1)}
+                    disabled={providerPage >= filteredProviders.totalPages}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 

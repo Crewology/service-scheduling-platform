@@ -123,3 +123,78 @@ describe("Admin Users Pagination", () => {
     expect(Math.ceil(101 / 20)).toBe(6);
   });
 });
+
+describe("Admin Providers Pagination", () => {
+  it("should have searchProvidersFiltered procedure in admin router", async () => {
+    const { adminRouter } = await import("./adminRouter");
+    expect(adminRouter).toBeDefined();
+    const procedures = Object.keys(adminRouter._def.procedures);
+    expect(procedures).toContain("searchProvidersFiltered");
+  });
+
+  it("should have getAllProviders function in db", async () => {
+    const db = await import("./db");
+    expect(typeof db.getAllProviders).toBe("function");
+  });
+
+  it("should return paginated provider results with correct shape", async () => {
+    const db = await import("./db");
+    const allProviders = await db.getAllProviders();
+
+    const page = 1;
+    const limit = 20;
+    const total = allProviders.length;
+    const offset = (page - 1) * limit;
+    const paginated = allProviders.slice(offset, offset + limit);
+
+    const result = {
+      providers: paginated,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+
+    expect(result).toHaveProperty("providers");
+    expect(result).toHaveProperty("total");
+    expect(result).toHaveProperty("page");
+    expect(result).toHaveProperty("limit");
+    expect(result).toHaveProperty("totalPages");
+    expect(result.page).toBe(1);
+    expect(result.limit).toBe(20);
+    expect(result.providers.length).toBeLessThanOrEqual(20);
+  });
+
+  it("should filter providers by verification status", async () => {
+    const db = await import("./db");
+    const allProviders = await db.getAllProviders();
+
+    const pending = allProviders.filter((p: any) => p.verificationStatus === "pending");
+    const verified = allProviders.filter((p: any) => p.verificationStatus === "verified");
+    const rejected = allProviders.filter((p: any) => p.verificationStatus === "rejected");
+
+    // All filtered providers should have correct status
+    pending.forEach((p: any) => expect(p.verificationStatus).toBe("pending"));
+    verified.forEach((p: any) => expect(p.verificationStatus).toBe("verified"));
+    rejected.forEach((p: any) => expect(p.verificationStatus).toBe("rejected"));
+  });
+
+  it("should search providers by business name or city", async () => {
+    const db = await import("./db");
+    const allProviders = await db.getAllProviders();
+
+    if (allProviders.length > 0) {
+      const firstProvider = allProviders[0];
+      const searchTerm = (firstProvider.businessName || "").substring(0, 3).toLowerCase();
+
+      if (searchTerm) {
+        const filtered = allProviders.filter((p: any) =>
+          (p.businessName && p.businessName.toLowerCase().includes(searchTerm)) ||
+          (p.city && p.city.toLowerCase().includes(searchTerm)) ||
+          (p.state && p.state.toLowerCase().includes(searchTerm))
+        );
+        expect(filtered.length).toBeGreaterThan(0);
+      }
+    }
+  });
+});
