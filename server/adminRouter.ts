@@ -348,7 +348,7 @@ export const adminRouter = router({
       role: z.enum(["customer", "provider", "admin"]).optional(),
       status: z.enum(["active", "suspended"]).optional(),
       page: z.number().default(1),
-      limit: z.number().default(25),
+      limit: z.number().default(20),
     }))
     .query(async ({ input }) => {
       const allUsers = await db.getAllUsers();

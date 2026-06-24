@@ -2222,7 +2222,7 @@ function UsersFilterPanel({ suspendUser, unsuspendUser }: { suspendUser: any; un
     role: roleFilter !== "all" ? roleFilter as any : undefined,
     status: statusFilter !== "all" ? statusFilter as any : undefined,
     page: userPage,
-    limit: 25,
+    limit: 20,
   });
 
   const clearFilters = () => {
@@ -2374,12 +2374,12 @@ function UsersFilterPanel({ suspendUser, unsuspendUser }: { suspendUser: any; un
             </div>
 
             {/* Pagination */}
-            {filteredUsers.totalPages > 1 && (
-              <div className="flex items-center justify-between mt-4">
-                <p className="text-sm text-muted-foreground">
-                  Page {filteredUsers.page} of {filteredUsers.totalPages} ({filteredUsers.total} users)
-                </p>
-                <div className="flex gap-2">
+            <div className="flex items-center justify-between mt-4 pt-4 border-t">
+              <p className="text-sm text-muted-foreground">
+                Showing {((filteredUsers.page - 1) * 20) + 1}–{Math.min(filteredUsers.page * 20, filteredUsers.total)} of {filteredUsers.total} users
+              </p>
+              {filteredUsers.totalPages > 1 && (
+                <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
@@ -2388,6 +2388,9 @@ function UsersFilterPanel({ suspendUser, unsuspendUser }: { suspendUser: any; un
                   >
                     Previous
                   </Button>
+                  <span className="text-sm text-muted-foreground px-2">
+                    Page {filteredUsers.page} of {filteredUsers.totalPages}
+                  </span>
                   <Button
                     variant="outline"
                     size="sm"
@@ -2397,8 +2400,8 @@ function UsersFilterPanel({ suspendUser, unsuspendUser }: { suspendUser: any; un
                     Next
                   </Button>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </>
         )}
       </CardContent>
