@@ -90,6 +90,28 @@ export default function Login() {
   // Check for error params from Google OAuth callback
   const urlParams = new URLSearchParams(window.location.search);
   const callbackError = urlParams.get("error");
+  const callbackMessage = urlParams.get("message");
+
+  const getErrorMessage = () => {
+    if (error) return error;
+    if (callbackMessage) return decodeURIComponent(callbackMessage);
+    switch (callbackError) {
+      case "rate_limited":
+        return "Google sign-in is temporarily unavailable due to too many attempts. Please wait a moment and try again.";
+      case "token_exchange_failed":
+        return "Sign in failed. Please try again. If the issue persists, try clearing your browser cookies.";
+      case "user_info_failed":
+        return "Could not retrieve your Google account information. Please try again.";
+      case "account_creation_failed":
+        return "Failed to create your account. Please try again.";
+      case "no_code":
+        return "Sign in was cancelled or interrupted. Please try again.";
+      case "callback_failed":
+        return "Sign in failed due to a server error. Please try again later.";
+      default:
+        return "Sign in failed. Please try again.";
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 px-4 py-12">
@@ -108,7 +130,7 @@ export default function Login() {
             {(error || callbackError) && (
               <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
                 <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{error || "Sign in failed. Please try again."}</span>
+                <span>{getErrorMessage()}</span>
               </div>
             )}
 

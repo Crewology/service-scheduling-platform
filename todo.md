@@ -1719,3 +1719,6 @@
 
 ## Bug Fix: Notification Bell Clear
 - [x] Fix "Clear All" notifications not working in notification bell dropdown
+
+## Bug Fix: Rate Exceeded on Google Sign-In
+- [x] Fix "Rate exceeded" blank page when clicking Sign In with Google button

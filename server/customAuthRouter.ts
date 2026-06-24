@@ -263,7 +263,12 @@ router.get("/api/auth/google/callback", async (req: Request, res: Response) => {
     });
 
     if (!tokenResponse.ok) {
-      console.error("[Google Auth] Token exchange failed:", await tokenResponse.text());
+      const errorText = await tokenResponse.text();
+      console.error("[Google Auth] Token exchange failed:", tokenResponse.status, errorText);
+      // Handle rate limiting from Google
+      if (tokenResponse.status === 429 || errorText.toLowerCase().includes("rate")) {
+        return res.redirect("/login?error=rate_limited&message=Google+sign-in+is+temporarily+unavailable.+Please+wait+a+moment+and+try+again.");
+      }
       return res.redirect("/login?error=token_exchange_failed");
     }
 

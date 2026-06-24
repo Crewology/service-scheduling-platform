@@ -56,15 +56,19 @@ async function startServer() {
   // PRIORITY 2: Rate limiting
   const generalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 300, // 300 requests per 15 min per IP
+    max: 600, // 600 requests per 15 min per IP
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: "Too many requests, please try again later." },
     validate: { xForwardedForHeader: false },
+    skip: (req) => {
+      // Skip rate limiting for auth routes - they have their own per-action rate limiting
+      return req.path.startsWith("/api/auth/");
+    },
   });
   const sensitiveLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 100, // 100 requests per 15 min for sensitive endpoints (increased for testing)
+    max: 100, // 100 requests per 15 min for sensitive endpoints
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: "Too many attempts, please try again later." },
