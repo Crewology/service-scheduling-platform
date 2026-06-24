@@ -528,7 +528,7 @@ export const bookingRouter = router({
         try {
           const Stripe = (await import("stripe")).default;
           const { ENV } = await import("../_core/env");
-          const stripe = new Stripe(ENV.stripeSecretKey, { apiVersion: "2025-12-18.acacia" as any });
+          const stripe = new Stripe(ENV.stripeSecretKey, { apiVersion: "2026-01-28.clover" as any });
           const refund = await stripe.refunds.create({
             payment_intent: payment.stripePaymentIntentId,
             amount: Math.round(parseFloat(refundAmount) * 100),

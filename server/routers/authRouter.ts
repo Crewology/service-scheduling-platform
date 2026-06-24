@@ -100,7 +100,7 @@ export const authRouter = router({
       // Cancel Stripe subscriptions if any
       try {
         const Stripe = (await import("stripe")).default;
-        const stripe = new Stripe(ENV.stripeSecretKey, { apiVersion: "2025-12-18.acacia" as any });
+        const stripe = new Stripe(ENV.stripeSecretKey, { apiVersion: "2026-01-28.clover" as any });
 
         // Check customer subscriptions
         const custSub = await db.getCustomerSubscription?.(userId).catch(() => null);
