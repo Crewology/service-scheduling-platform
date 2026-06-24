@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { trpc } from "@/lib/trpc";
-import { Calendar, Clock, MapPin, DollarSign, MessageSquare, XCircle, AlertTriangle, Loader2, Download, FileText, FileSpreadsheet, WifiOff, RefreshCw, Briefcase, ShoppingBag, Search, X, Trash2 } from "lucide-react";
+import { Calendar, Clock, MapPin, DollarSign, MessageSquare, XCircle, AlertTriangle, Loader2, Download, FileText, FileSpreadsheet, WifiOff, RefreshCw, Briefcase, ShoppingBag, Search, X, Trash2, RotateCcw, CalendarDays, Layers } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
@@ -208,6 +208,15 @@ export default function MyBookings() {
                 : "Manage and track all your service bookings"}
             </p>
           </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => setLocation("/bulk-booking")}>
+              <Layers className="h-4 w-4" />
+              Bulk Book
+            </Button>
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => setLocation("/monthly-planner")}>
+              <CalendarDays className="h-4 w-4" />
+              Monthly Planner
+            </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="gap-2" disabled={isOffline}>
@@ -236,6 +245,7 @@ export default function MyBookings() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          </div>
         </div>
 
         {/* Search Bar */}
@@ -596,6 +606,16 @@ function BookingCard({
                 onClick={() => setLocation(`/booking/${booking.id}/review`)}
               >
                 Leave Review
+              </Button>
+            )}
+            {!isOffline && ["completed", "cancelled", "no_show"].includes(booking.status) && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setLocation(`/service/${booking.serviceId}`)}
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Book Again
               </Button>
             )}
           </div>

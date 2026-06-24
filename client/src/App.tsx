@@ -28,6 +28,8 @@ import ProviderOnboarding from "./pages/ProviderOnboarding";
 
 // Booking flow
 import BookingConfirmation from "./pages/BookingConfirmation";
+import BulkBooking from "./pages/BulkBooking";
+import MonthlyPlanner from "./pages/MonthlyPlanner";
 import BookingDetail from "./pages/BookingDetail";
 import MyBookings from "./pages/MyBookings";
 import MyQuotes from "./pages/MyQuotes";
@@ -98,6 +100,8 @@ function Router() {
       <Route path="/provider/calendar" component={ProviderCalendar} />
       <Route path="/service/:id" component={ServiceDetail} />
       <Route path="/booking/:id" component={BookingConfirmation} />
+      <Route path="/bulk-booking" component={BulkBooking} />
+      <Route path="/monthly-planner" component={MonthlyPlanner} />
       <Route path="/my-bookings" component={MyBookings} />
       <Route path="/messages" component={Conversations} />
       <Route path="/messages/:bookingId" component={Messages} />

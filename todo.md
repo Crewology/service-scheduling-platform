@@ -1664,3 +1664,7 @@
 - [x] Update ServiceDetail breadcrumb to include provider profile as intermediate step when navigating from provider's profile page
 - [x] Add Flexible, Teams, Zoom, and Other to service creation and edit dropdowns (ProviderOnboarding + ProviderDashboard), plus update schema/validation for "other"
 - [x] Mark notification as read when user clicks on an unread message/notification
+- [x] Add "Clear All" button to notification bell dropdown in NavHeader
+- [x] Add "Quick Re-book" button on past/completed bookings in MyBookings page
+- [x] Build bulk booking flow for scheduling multiple providers/dates in one session
+- [x] Build monthly planner view for drag-and-drop DJ/provider scheduling

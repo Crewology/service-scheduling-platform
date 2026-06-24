@@ -24,6 +24,7 @@ import {
   CreditCard,
   Download,
   Shield,
+  Trash2,
 } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useSSE } from "@/hooks/useSSE";
@@ -94,6 +95,16 @@ function NotificationDropdown() {
     onSuccess: () => {
       utils.notification.list.invalidate();
       utils.notification.unreadCount.invalidate();
+    },
+  });
+  const clearAll = trpc.notification.clearAll.useMutation({
+    onSuccess: () => {
+      utils.notification.list.invalidate();
+      utils.notification.unreadCount.invalidate();
+      toast.success("All notifications cleared");
+    },
+    onError: () => {
+      toast.error("Failed to clear notifications");
     },
   });
 
@@ -178,6 +189,15 @@ function NotificationDropdown() {
                 >
                   <CheckCheck className="h-3 w-3" />
                   Mark all read
+                </button>
+              )}
+              {notifications.length > 0 && (
+                <button
+                  className="text-xs text-destructive hover:underline flex items-center gap-1"
+                  onClick={() => clearAll.mutate()}
+                >
+                  <Trash2 className="h-3 w-3" />
+                  Clear all
                 </button>
               )}
             </div>
