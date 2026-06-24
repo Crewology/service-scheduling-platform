@@ -110,4 +110,77 @@ export const availabilityRouter = router({
       await db.deleteAvailabilityOverride(input.overrideId);
       return { success: true };
     }),
+
+  // ─── Block Out Dates ─────────────────────────────────────────────────────
+
+  getBlockOutDates: protectedProcedure
+    .input(z.object({
+      startDate: z.string().optional(),
+      endDate: z.string().optional(),
+    }).optional())
+    .query(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) return [];
+      const start = input?.startDate || new Date().toISOString().split('T')[0];
+      const end = input?.endDate || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const overrides = await db.getAvailabilityOverrides(provider.id, start, end);
+      // Only return block-outs (isAvailable = false)
+      return overrides.filter((o: any) => !o.isAvailable);
+    }),
+
+  createBlockOutDates: protectedProcedure
+    .input(z.object({
+      dates: z.array(z.string()).min(1).max(365),
+      reason: z.string().max(255).optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+
+      // Validate all dates are in the future
+      const today = new Date().toISOString().split('T')[0];
+      const invalidDates = input.dates.filter(d => d < today);
+      if (invalidDates.length > 0) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Cannot block out past dates" });
+      }
+
+      // Get existing overrides to avoid duplicates
+      const minDate = input.dates.reduce((a, b) => a < b ? a : b);
+      const maxDate = input.dates.reduce((a, b) => a > b ? a : b);
+      const existing = await db.getAvailabilityOverrides(provider.id, minDate, maxDate);
+      const existingDates = new Set(existing.map((o: any) => o.overrideDate));
+
+      // Create overrides for dates that don't already exist
+      const newDates = input.dates.filter(d => !existingDates.has(d));
+      for (const date of newDates) {
+        await db.createAvailabilityOverride({
+          providerId: provider.id,
+          overrideDate: date,
+          isAvailable: false,
+          reason: input.reason || undefined,
+        });
+      }
+
+      return { created: newDates.length, skipped: input.dates.length - newDates.length };
+    }),
+
+  deleteBlockOutDates: protectedProcedure
+    .input(z.object({
+      overrideIds: z.array(z.number()).min(1),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+
+      let deleted = 0;
+      for (const id of input.overrideIds) {
+        try {
+          await db.deleteAvailabilityOverride(id);
+          deleted++;
+        } catch (e) {
+          // Skip if already deleted
+        }
+      }
+      return { deleted };
+    }),
 });

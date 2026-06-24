@@ -1744,3 +1744,12 @@
 - [x] Hide Date/Venue for categories that don't need them (Barbershop, Salon, Massage, etc.)
 - [x] Update submission logic to use per-group date/venue instead of global fields
 - [x] Update draft save/load to work with per-group date/venue
+
+## Feature: Provider Block Out Dates
+- [x] Backend: block-out date procedures (create single/range, list, delete) using date overrides with isAvailable=false
+- [x] Provider dashboard UI: Block Out Dates section in Schedule tab with visual calendar
+- [x] Calendar UI: tap/click dates to block, drag/shift-click for date ranges
+- [x] Optional reason/label for each block-out (vacation, holiday, personal, etc.)
+- [x] Blocked dates shown as red/unavailable on the provider's calendar
+- [x] Booking flow respects blocked dates (grayed out, cannot be selected by customers)
+- [x] Bulk delete support for removing block-out dates
