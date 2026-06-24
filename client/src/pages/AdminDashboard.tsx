@@ -2224,7 +2224,7 @@ function ProvidersFilterPanel({ verifyProvider, rejectProvider }: { verifyProvid
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
-                          <span className="text-yellow-500">\u2605</span>
+                          <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
                           <span>{provider.averageRating ? parseFloat(provider.averageRating).toFixed(1) : "N/A"}</span>
                         </div>
                       </TableCell>
@@ -2257,7 +2257,7 @@ function ProvidersFilterPanel({ verifyProvider, rejectProvider }: { verifyProvid
             {/* Pagination */}
             <div className="flex items-center justify-between mt-4 pt-4 border-t">
               <p className="text-sm text-muted-foreground">
-                Showing {((filteredProviders.page - 1) * 20) + 1}\u2013{Math.min(filteredProviders.page * 20, filteredProviders.total)} of {filteredProviders.total} providers
+                Showing {((filteredProviders.page - 1) * 20) + 1}–{Math.min(filteredProviders.page * 20, filteredProviders.total)} of {filteredProviders.total} providers
               </p>
               {filteredProviders.totalPages > 1 && (
                 <div className="flex items-center gap-2">
