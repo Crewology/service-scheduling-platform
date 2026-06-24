@@ -92,18 +92,54 @@ function NotificationDropdown() {
     },
   });
   const markAllRead = trpc.notification.markAllRead.useMutation({
+    onMutate: async () => {
+      await utils.notification.list.cancel();
+      await utils.notification.unreadCount.cancel();
+      const prevList = utils.notification.list.getData({ unreadOnly: false });
+      // Optimistically mark all as read
+      if (prevList) {
+        utils.notification.list.setData({ unreadOnly: false }, prevList.map((n: any) => ({ ...n, isRead: true })));
+      }
+      utils.notification.unreadCount.setData(undefined, { count: 0 });
+      return { prevList };
+    },
     onSuccess: () => {
       utils.notification.list.invalidate();
       utils.notification.unreadCount.invalidate();
     },
+    onError: (_err, _vars, context) => {
+      if (context?.prevList) {
+        utils.notification.list.setData({ unreadOnly: false }, context.prevList);
+      }
+      toast.error("Failed to mark notifications as read");
+    },
   });
   const clearAll = trpc.notification.clearAll.useMutation({
+    onMutate: async () => {
+      // Cancel outgoing refetches so they don't overwrite our optimistic update
+      await utils.notification.list.cancel();
+      await utils.notification.unreadCount.cancel();
+      // Snapshot previous values
+      const prevList = utils.notification.list.getData({ unreadOnly: false });
+      const prevCount = utils.notification.unreadCount.getData();
+      // Optimistically clear
+      utils.notification.list.setData({ unreadOnly: false }, []);
+      utils.notification.unreadCount.setData(undefined, { count: 0 });
+      return { prevList, prevCount };
+    },
     onSuccess: () => {
       utils.notification.list.invalidate();
       utils.notification.unreadCount.invalidate();
       toast.success("All notifications cleared");
     },
-    onError: () => {
+    onError: (_err, _vars, context) => {
+      // Rollback on error
+      if (context?.prevList) {
+        utils.notification.list.setData({ unreadOnly: false }, context.prevList);
+      }
+      if (context?.prevCount) {
+        utils.notification.unreadCount.setData(undefined, context.prevCount);
+      }
       toast.error("Failed to clear notifications");
     },
   });
@@ -184,20 +220,22 @@ function NotificationDropdown() {
             <div className="flex items-center gap-2">
               {unreadCount > 0 && (
                 <button
-                  className="text-xs text-primary hover:underline flex items-center gap-1"
+                  className="text-xs text-primary hover:underline flex items-center gap-1 disabled:opacity-50"
                   onClick={() => markAllRead.mutate()}
+                  disabled={markAllRead.isPending}
                 >
                   <CheckCheck className="h-3 w-3" />
-                  Mark all read
+                  {markAllRead.isPending ? "Marking..." : "Mark all read"}
                 </button>
               )}
               {notifications.length > 0 && (
                 <button
-                  className="text-xs text-destructive hover:underline flex items-center gap-1"
+                  className="text-xs text-destructive hover:underline flex items-center gap-1 disabled:opacity-50"
                   onClick={() => clearAll.mutate()}
+                  disabled={clearAll.isPending}
                 >
                   <Trash2 className="h-3 w-3" />
-                  Clear all
+                  {clearAll.isPending ? "Clearing..." : "Clear all"}
                 </button>
               )}
             </div>

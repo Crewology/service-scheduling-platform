@@ -1716,3 +1716,6 @@
 ## Bug Fix: Bulk Booking Provider Field Issues
 - [x] Fix provider dropdown not displaying all available providers from database
 - [x] Fix provider dropdown being hidden/clipped inside bounding box
+
+## Bug Fix: Notification Bell Clear
+- [x] Fix "Clear All" notifications not working in notification bell dropdown
