@@ -89,6 +89,30 @@ export async function updateBookingStatus(bookingId: number, status: string, add
   await db.update(bookings).set(updateData).where(eq(bookings.id, bookingId));
 }
 
+export async function updateBookingTiming(bookingId: number, data: {
+  startTime: string;
+  endTime: string;
+  durationMinutes: number;
+  subtotal: string;
+  platformFee: string;
+  totalAmount: string;
+  depositAmount: string;
+  remainingAmount: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(bookings).set({
+    startTime: data.startTime,
+    endTime: data.endTime,
+    durationMinutes: data.durationMinutes,
+    subtotal: data.subtotal,
+    platformFee: data.platformFee,
+    totalAmount: data.totalAmount,
+    depositAmount: data.depositAmount,
+    remainingAmount: data.remainingAmount,
+  } as any).where(eq(bookings.id, bookingId));
+}
+
 // ============================================================================
 // CANCELLATION & REFUND HELPERS
 // ============================================================================

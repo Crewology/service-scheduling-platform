@@ -272,7 +272,7 @@ export const bookingRouter = router({
       return {
         booking,
         customer: customer ? { id: customer.id, name: customer.name, email: customer.email, phone: customer.phone } : null,
-        service: service ? { id: service.id, name: service.name, categoryId: service.categoryId } : null,
+        service: service ? { id: service.id, name: service.name, categoryId: service.categoryId, pricingModel: service.pricingModel, hourlyRate: service.hourlyRate } : null,
         provider: providerInfo ? { id: providerInfo.id, businessName: providerInfo.businessName } : null,
         payment: payment || null,
         messages: messages || [],
@@ -1223,6 +1223,82 @@ export const bookingRouter = router({
       }
 
       return { success: true, newSessionId };
+    }),
+
+  // Edit booking duration (for custom duration categories)
+  editDuration: protectedProcedure
+    .input(z.object({
+      bookingId: z.number(),
+      newStartTime: z.string(),
+      newEndTime: z.string(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const booking = await db.getBookingById(input.bookingId);
+      if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
+
+      // Only the customer who made the booking can edit duration
+      if (booking.customerId !== ctx.user.id) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Only the customer can edit booking duration" });
+      }
+
+      // Only allow editing for pending or confirmed bookings
+      if (!['pending', 'confirmed'].includes(booking.status)) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Can only edit duration for pending or confirmed bookings" });
+      }
+
+      // Only allow for single bookings
+      if (booking.bookingType !== 'single') {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Duration editing is only available for single bookings. Use reschedule for multi-session bookings." });
+      }
+
+      // Calculate new duration
+      const [startH, startM] = input.newStartTime.split(":").map(Number);
+      const [endH, endM] = input.newEndTime.split(":").map(Number);
+      let durationMinutes = (endH * 60 + endM) - (startH * 60 + startM);
+      if (durationMinutes <= 0) durationMinutes += 24 * 60; // overnight
+
+      // Get the service to recalculate pricing
+      const service = await db.getServiceById(booking.serviceId);
+      if (!service) throw new TRPCError({ code: "NOT_FOUND", message: "Service not found" });
+
+      // Recalculate pricing based on hourly rate
+      let subtotalNum: number;
+      if (service.pricingModel === 'hourly' && service.hourlyRate) {
+        subtotalNum = (durationMinutes / 60) * parseFloat(service.hourlyRate);
+      } else {
+        subtotalNum = parseFloat(service.basePrice || '0');
+      }
+
+      const platformFee = (subtotalNum * 0.01).toFixed(2);
+      const totalAmount = (subtotalNum + parseFloat(platformFee)).toFixed(2);
+      const depositAmount = service.depositRequired
+        ? (service.depositType === 'fixed'
+            ? (service.depositAmount || '0.00')
+            : (parseFloat(totalAmount) * (parseFloat(service.depositPercentage || '0') / 100)).toFixed(2))
+        : '0.00';
+      const remainingAmount = (parseFloat(totalAmount) - parseFloat(depositAmount)).toFixed(2);
+
+      // Calculate end time string
+      const endTimeStr = `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}:00`;
+      const startTimeStr = `${String(startH).padStart(2, '0')}:${String(startM).padStart(2, '0')}:00`;
+
+      await db.updateBookingTiming(input.bookingId, {
+        startTime: startTimeStr,
+        endTime: endTimeStr,
+        durationMinutes,
+        subtotal: subtotalNum.toFixed(2),
+        platformFee,
+        totalAmount,
+        depositAmount,
+        remainingAmount,
+      });
+
+      return {
+        success: true,
+        newDurationMinutes: durationMinutes,
+        newSubtotal: subtotalNum.toFixed(2),
+        newTotalAmount: totalAmount,
+      };
     }),
 
   // ============================================================================

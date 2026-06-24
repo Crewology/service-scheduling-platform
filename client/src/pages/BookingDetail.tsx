@@ -64,6 +64,9 @@ export default function BookingDetail() {
   const [rescheduleStartTime, setRescheduleStartTime] = useState("");
   const [rescheduleEndTime, setRescheduleEndTime] = useState("");
   const [sessionNotes, setSessionNotes] = useState("");
+  const [showEditDuration, setShowEditDuration] = useState(false);
+  const [editStartTime, setEditStartTime] = useState("");
+  const [editEndTime, setEditEndTime] = useState("");
   const utils = trpc.useUtils();
 
   const bookingId = parseInt(id || "0");
@@ -104,6 +107,17 @@ export default function BookingDetail() {
       setRescheduleStartTime("");
       setRescheduleEndTime("");
       utils.booking.getSessions.invalidate({ bookingId });
+      utils.booking.getDetail.invalidate({ id: bookingId });
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const editDuration = trpc.booking.editDuration.useMutation({
+    onSuccess: (result) => {
+      toast.success(`Duration updated! New total: $${result.newTotalAmount}`);
+      setShowEditDuration(false);
+      setEditStartTime("");
+      setEditEndTime("");
       utils.booking.getDetail.invalidate({ id: bookingId });
     },
     onError: (e) => toast.error(e.message),
@@ -351,7 +365,7 @@ export default function BookingDetail() {
                 )}
                 {/* Add to Calendar / Download .ics */}
                 {booking.status !== "cancelled" && (
-                  <div className="mt-4 flex gap-2">
+                  <div className="mt-4 flex gap-2 flex-wrap">
                     <Button
                       variant="outline"
                       size="sm"
@@ -380,6 +394,105 @@ export default function BookingDetail() {
                       <CalendarPlus className="h-4 w-4 mr-1" />
                       Add to Google Calendar
                     </Button>
+                    {/* Edit Duration button - only for customer, pending/confirmed single bookings with hourly pricing */}
+                    {booking.customerId === user?.id && ['pending', 'confirmed'].includes(booking.status) && booking.bookingType === 'single' && service?.pricingModel === 'hourly' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setShowEditDuration(!showEditDuration);
+                          if (!showEditDuration) {
+                            // Pre-fill with current times
+                            setEditStartTime(booking.startTime?.slice(0, 5) || "");
+                            setEditEndTime(booking.endTime?.slice(0, 5) || "");
+                          }
+                        }}
+                      >
+                        <Clock className="h-4 w-4 mr-1" />
+                        {showEditDuration ? "Cancel Edit" : "Edit Duration"}
+                      </Button>
+                    )}
+                  </div>
+                )}
+
+                {/* Edit Duration Form */}
+                {showEditDuration && (
+                  <div className="mt-4 border rounded-lg p-4 bg-muted/30 space-y-3">
+                    <p className="text-sm font-medium">Change Service Duration</p>
+                    <p className="text-xs text-muted-foreground">Adjust the start and end time. The total will be recalculated based on the provider's hourly rate ({service?.hourlyRate ? `$${service.hourlyRate}/hr` : 'N/A'}).</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-1 block">Start Time</label>
+                        <Input
+                          type="time"
+                          value={editStartTime}
+                          onChange={(e) => setEditStartTime(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-1 block">End Time</label>
+                        <Input
+                          type="time"
+                          value={editEndTime}
+                          onChange={(e) => setEditEndTime(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    {editStartTime && editEndTime && (() => {
+                      const [sH, sM] = editStartTime.split(":").map(Number);
+                      const [eH, eM] = editEndTime.split(":").map(Number);
+                      let mins = (eH * 60 + eM) - (sH * 60 + sM);
+                      if (mins <= 0) mins += 24 * 60;
+                      const hours = mins / 60;
+                      const rate = parseFloat(service?.hourlyRate || "0");
+                      const newTotal = hours * rate;
+                      return (
+                        <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">New Duration</span>
+                            <span className="font-medium">{formatDuration(mins)}</span>
+                          </div>
+                          <div className="flex justify-between text-sm mt-1">
+                            <span className="text-muted-foreground">Rate</span>
+                            <span className="font-medium">${service?.hourlyRate}/hr</span>
+                          </div>
+                          <div className="flex justify-between text-sm mt-1 font-semibold text-primary">
+                            <span>New Estimated Total</span>
+                            <span>${newTotal.toFixed(2)}</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          if (!editStartTime || !editEndTime) {
+                            toast.error("Please select both start and end times");
+                            return;
+                          }
+                          editDuration.mutate({
+                            bookingId: booking.id,
+                            newStartTime: editStartTime,
+                            newEndTime: editEndTime,
+                          });
+                        }}
+                        disabled={editDuration.isPending || !editStartTime || !editEndTime}
+                      >
+                        {editDuration.isPending ? "Updating..." : "Save New Duration"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setShowEditDuration(false);
+                          setEditStartTime("");
+                          setEditEndTime("");
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
                   </div>
                 )}
               </CardContent>

@@ -1657,3 +1657,5 @@
 - [x] Add sorting functionality to Rating column in Providers tab (toggle between highest-to-lowest, lowest-to-highest, and default)
 - [x] Add 'Custom Duration' option to service duration dropdown for DJ & Music services (start/end time pickers, calculate cost from provider's hourly rate)
 - [x] Extend 'Custom Duration' feature to Photography (category 17) and Event Planning (category 177) services
+- [x] Extend 'Custom Duration' feature to Audio Visual Crew (category 15)
+- [x] Allow customers to edit/change booking duration after initial booking (from My Bookings or Booking Detail page)
