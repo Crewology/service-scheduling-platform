@@ -22,10 +22,8 @@ import {
   Loader2,
   ArrowLeft,
   MapPin,
-  PartyPopper,
   Users,
   ChevronDown,
-  ChevronUp,
   X,
   Save,
   DollarSign,
@@ -67,24 +65,24 @@ interface ServiceGroup {
   categoryId: number | null;
   categoryName: string;
   providers: ProviderSlot[];
+  eventDate?: string;
+  eventVenue?: string;
 }
 
-const EVENT_TYPES = [
-  "Wedding",
-  "Corporate Event",
-  "Birthday Party",
-  "Concert",
-  "Festival",
-  "Conference",
-  "Private Party",
-  "Fundraiser",
-  "Community Event",
-  "Sports Event",
-  "Holiday Party",
-  "Graduation",
-  "Anniversary",
-  "Other",
-];
+// Categories that require Date & Venue fields (event-oriented services)
+const EVENT_CATEGORIES = new Set([
+  15,  // AUDIO VISUAL CREW
+  19,  // TV/FILM CREW
+  20,  // DJ & MUSIC SERVICES
+  22,  // DRIVER and FREIGHT SERVICES
+  177, // EVENT PLANNING & MANAGEMENT
+  199, // PARTY & EVENT RENTALS
+  201, // VIRTUAL EVENTS MANAGEMENT
+  202, // DAY LABOR
+  17,  // PHOTOGRAPHY SERVICES
+  148, // POWER WASHING & EXTERIOR CLEANING
+  179, // HOME RENOVATION and REMODELING
+]);
 
 // ─── Service-Specific Field Definitions ──────────────────────────────────────
 
@@ -1146,9 +1144,45 @@ function ServiceGroupCard({
         </div>
       )}
 
+      {/* Date & Venue fields (shown after category selection) */}
+      {group.categoryId && (
+        <div className="px-4 pt-4 pb-2">
+          <div className={`grid gap-3 ${EVENT_CATEGORIES.has(group.categoryId) ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1 md:grid-cols-1"}`}>
+            {/* Date - always shown */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                <Calendar className="h-3 w-3" /> Service Date
+              </Label>
+              <Input
+                type="date"
+                value={group.eventDate || ""}
+                onChange={(e) => onUpdate({ eventDate: e.target.value })}
+                min={new Date().toISOString().split("T")[0]}
+                disabled={isSubmitting}
+              />
+            </div>
+
+            {/* Venue - only for event-oriented categories */}
+            {EVENT_CATEGORIES.has(group.categoryId) && (
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                  <MapPin className="h-3 w-3" /> Venue / Location
+                </Label>
+                <Input
+                  placeholder="Enter venue name or address"
+                  value={group.eventVenue || ""}
+                  onChange={(e) => onUpdate({ eventVenue: e.target.value })}
+                  disabled={isSubmitting}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Step B: Category-Specific Fields (shown immediately after category selection) */}
       {group.categoryId && SERVICE_SPECIFIC_FIELDS[group.categoryId] && (
-        <div className="px-4 pt-4 pb-2">
+        <div className="px-4 pt-2 pb-2">
           <ServiceSpecificFields
             categoryId={group.categoryId}
             options={groupOptions}
@@ -1200,11 +1234,7 @@ export default function BulkBooking() {
   const { user, isAuthenticated, loading } = useAuth();
   const [, setLocation] = useLocation();
 
-  // Event details
-  const [eventDate, setEventDate] = useState("");
-  const [eventVenue, setEventVenue] = useState("");
-  const [eventType, setEventType] = useState("");
-  const [eventTypeOpen, setEventTypeOpen] = useState(false);
+  // Legacy event fields removed - date/venue now per-group
 
   // Service groups (each group = one category with multiple providers)
   const [serviceGroups, setServiceGroups] = useState<ServiceGroup[]>([]);
@@ -1239,7 +1269,7 @@ export default function BulkBooking() {
   const useTemplate = trpc.eventTemplate.use.useMutation();
   const utils = trpc.useUtils();
 
-  const eventDetailsComplete = eventDate && eventVenue && eventType;
+
 
   const allProviderSlots = useMemo(() => {
     return serviceGroups.flatMap((g) => g.providers);
@@ -1322,29 +1352,32 @@ export default function BulkBooking() {
   };
 
   const canSubmit = useMemo(() => {
-    return (
-      eventDetailsComplete &&
-      serviceGroups.length > 0 &&
-      allProviderSlots.length > 0 &&
-      allProviderSlots.every((s) => s.providerId && s.serviceId && s.startTime && s.endTime)
-    );
-  }, [eventDetailsComplete, serviceGroups, allProviderSlots]);
+    if (serviceGroups.length === 0 || allProviderSlots.length === 0) return false;
+    // All providers must have required fields
+    if (!allProviderSlots.every((s) => s.providerId && s.serviceId && s.startTime && s.endTime)) return false;
+    // All groups must have a date set
+    if (!serviceGroups.every((g) => g.eventDate)) return false;
+    return true;
+  }, [serviceGroups, allProviderSlots]);
 
   // ─── Save Draft ──────────────────────────────────────────────────────────
 
   const handleSaveDraft = async () => {
     setIsSavingDraft(true);
     try {
+      const firstGroup = serviceGroups[0];
       const result = await saveDraft.mutateAsync({
         id: currentDraftId || undefined,
-        name: eventType ? `${eventType} at ${eventVenue || "TBD"}` : undefined,
-        eventDate: eventDate || undefined,
-        eventType: eventType || undefined,
-        eventVenue: eventVenue || undefined,
+        name: firstGroup?.categoryName ? `${firstGroup.categoryName}${serviceGroups.length > 1 ? ` + ${serviceGroups.length - 1} more` : ""}` : undefined,
+        eventDate: firstGroup?.eventDate || undefined,
+        eventType: undefined,
+        eventVenue: firstGroup?.eventVenue || undefined,
         slots: serviceGroups.map((g) => ({
           groupId: g.id,
           categoryId: g.categoryId,
           categoryName: g.categoryName,
+          eventDate: g.eventDate,
+          eventVenue: g.eventVenue,
           providers: g.providers.map((p) => ({
             id: p.id,
             providerId: p.providerId,
@@ -1382,11 +1415,12 @@ export default function BulkBooking() {
     try {
       await saveTemplate.mutateAsync({
         name: templateName.trim(),
-        eventType: eventType || undefined,
-        defaultVenue: eventVenue || undefined,
+        eventType: undefined,
+        defaultVenue: undefined,
         serviceGroups: serviceGroups.map((g) => ({
           categoryId: g.categoryId,
           categoryName: g.categoryName,
+          eventVenue: g.eventVenue,
           providerCount: g.providers.length,
           providers: g.providers.map((p) => ({
             providerId: p.providerId,
@@ -1413,9 +1447,6 @@ export default function BulkBooking() {
 
   const handleLoadDraft = (draft: any) => {
     setCurrentDraftId(draft.id);
-    setEventDate(draft.eventDate || "");
-    setEventType(draft.eventType || "");
-    setEventVenue(draft.eventVenue || "");
 
     const slots = Array.isArray(draft.slots) ? draft.slots : [];
     if (slots.length > 0 && slots[0].groupId) {
@@ -1423,6 +1454,8 @@ export default function BulkBooking() {
         id: g.groupId || generateId(),
         categoryId: g.categoryId || null,
         categoryName: g.categoryName || "",
+        eventDate: g.eventDate || draft.eventDate || "",
+        eventVenue: g.eventVenue || draft.eventVenue || "",
         providers: (g.providers || []).map((p: any) => ({
           id: p.id || generateId(),
           providerId: p.providerId || null,
@@ -1447,6 +1480,8 @@ export default function BulkBooking() {
         id: generateId(),
         categoryId: null,
         categoryName: "",
+        eventDate: draft.eventDate || "",
+        eventVenue: draft.eventVenue || "",
         providers: slots.map((s: any) => ({
           id: s.id || generateId(),
           providerId: s.providerId || null,
@@ -1475,13 +1510,13 @@ export default function BulkBooking() {
       await useTemplate.mutateAsync({ id: template.id });
       utils.eventTemplate.list.invalidate();
     } catch {}
-    setEventType(template.eventType || "");
-    setEventVenue(template.defaultVenue || "");
     setCurrentDraftId(null);
     const groups: ServiceGroup[] = (Array.isArray(template.serviceGroups) ? template.serviceGroups : []).map((g: any) => ({
       id: generateId(),
       categoryId: g.categoryId || null,
       categoryName: g.categoryName || "",
+      eventDate: "",
+      eventVenue: g.eventVenue || template.defaultVenue || "",
       providers: (g.providers || []).map((p: any) => ({
         id: generateId(),
         providerId: p.providerId || null,
@@ -1513,7 +1548,7 @@ export default function BulkBooking() {
     setCompletedCount(0);
 
     const allSlots = serviceGroups.flatMap((g) =>
-      g.providers.map((p) => ({ ...p, categoryName: g.categoryName }))
+      g.providers.map((p) => ({ ...p, categoryName: g.categoryName, groupDate: g.eventDate || "", groupVenue: g.eventVenue || "" }))
     );
 
     for (let i = 0; i < allSlots.length; i++) {
@@ -1522,18 +1557,17 @@ export default function BulkBooking() {
         await createBooking.mutateAsync({
           providerId: slot.providerId!,
           serviceId: slot.serviceId!,
-          bookingDate: eventDate,
+          bookingDate: slot.groupDate,
           startTime: slot.startTime,
           endTime: slot.endTime,
           locationType: "flexible" as const,
-          venueName: eventVenue,
-          serviceAddressLine1: eventVenue,
+          venueName: slot.groupVenue || undefined,
+          serviceAddressLine1: slot.groupVenue || undefined,
           customerNotes: [
             slot.notes,
             slot.serviceOptions && Object.keys(slot.serviceOptions).length > 0
               ? `Options: ${Object.entries(slot.serviceOptions).map(([k, v]) => `${k}: ${v}`).join(", ")}`
               : "",
-            `Event Type: ${eventType}`,
           ].filter(Boolean).join("\n"),
         });
         // Mark as booked
@@ -1560,7 +1594,6 @@ export default function BulkBooking() {
     }
 
     setIsSubmitting(false);
-    const booked = allSlots.filter((_, i) => i < allSlots.length).length;
     toast.success(`Bulk booking complete! Check individual statuses below.`);
   };
 
@@ -1609,12 +1642,12 @@ export default function BulkBooking() {
             <div>
               <h1 className="text-2xl font-bold">Bulk Booking</h1>
               <p className="text-sm text-muted-foreground">
-                Book multiple providers across multiple services for your event
+                Book multiple providers across different service categories
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {(eventDate || eventVenue || eventType || serviceGroups.length > 0) && (
+            {serviceGroups.length > 0 && (
               <>
                 <Button
                   variant="outline"
@@ -1650,120 +1683,39 @@ export default function BulkBooking() {
         {/* Cost Summary */}
         <CostSummary groups={serviceGroups} />
 
-        {/* Step 1: Event Details */}
-        <Card className="mb-6 overflow-visible">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <span className="h-7 w-7 rounded-full bg-primary text-white text-xs flex items-center justify-center font-bold">1</span>
-              Event Details
-            </CardTitle>
-            <p className="text-sm text-muted-foreground ml-9">Set the shared date, venue, and event type for all bookings</p>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Date */}
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                  <Calendar className="h-3 w-3" /> Event Date
-                </Label>
-                <Input
-                  type="date"
-                  value={eventDate}
-                  onChange={(e) => setEventDate(e.target.value)}
-                  min={new Date().toISOString().split("T")[0]}
-                  disabled={isSubmitting}
-                />
-              </div>
-
-              {/* Venue */}
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                  <MapPin className="h-3 w-3" /> Venue / Location
-                </Label>
-                <Input
-                  placeholder="Enter venue name or address"
-                  value={eventVenue}
-                  onChange={(e) => setEventVenue(e.target.value)}
-                  disabled={isSubmitting}
-                />
-              </div>
-
-              {/* Event Type */}
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                  <PartyPopper className="h-3 w-3" /> Event Type
-                </Label>
-                <div className="relative">
-                  <button
-                    type="button"
-                    className="w-full flex items-center justify-between px-3 py-2 border rounded-md text-sm bg-white hover:bg-gray-50"
-                    onClick={() => setEventTypeOpen(!eventTypeOpen)}
-                    disabled={isSubmitting}
-                  >
-                    <span className={eventType ? "text-foreground" : "text-muted-foreground"}>
-                      {eventType || "Select event type..."}
-                    </span>
-                    {eventTypeOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </button>
-                  {eventTypeOpen && (
-                    <div className="absolute z-30 top-full mt-1 w-full bg-white border rounded-lg shadow-lg max-h-64 overflow-y-auto">
-                      {EVENT_TYPES.map((type) => (
-                        <button
-                          key={type}
-                          className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${eventType === type ? "bg-primary/5 text-primary font-medium" : ""}`}
-                          onClick={() => { setEventType(type); setEventTypeOpen(false); }}
-                        >
-                          {type}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Step 2: Service Groups */}
+        {/* Service Groups */}
         <Card className="mb-6 overflow-visible">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <span className={`h-7 w-7 rounded-full text-xs flex items-center justify-center font-bold ${eventDetailsComplete ? "bg-primary text-white" : "bg-gray-200 text-gray-500"}`}>2</span>
-                  Service Groups
+                  <Users className="h-5 w-5" />
+                  Your Services
                 </CardTitle>
-                <p className="text-sm text-muted-foreground ml-9 mt-1">
-                  Add service categories and assign multiple providers to each. Each provider gets their own time slot.
+                <p className="text-sm text-muted-foreground ml-7 mt-1">
+                  Select categories, pick providers, and set your schedule. Date and venue appear for event-type services.
                 </p>
               </div>
-              {eventDetailsComplete && (
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowCategoryStacking(true)}
-                    disabled={isSubmitting}
-                    className="gap-1.5"
-                  >
-                    <ListChecks className="h-4 w-4" />
-                    Quick Stack
-                  </Button>
-                  <Button size="sm" onClick={addServiceGroup} disabled={isSubmitting}>
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add Service
-                  </Button>
-                </div>
-              )}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowCategoryStacking(true)}
+                  disabled={isSubmitting}
+                  className="gap-1.5"
+                >
+                  <ListChecks className="h-4 w-4" />
+                  Quick Stack
+                </Button>
+                <Button size="sm" onClick={addServiceGroup} disabled={isSubmitting}>
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Service
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
-            {!eventDetailsComplete ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Calendar className="h-10 w-10 mx-auto mb-3 opacity-40" />
-                <p className="text-sm">Complete the event details above to start adding services.</p>
-              </div>
-            ) : serviceGroups.length === 0 ? (
+            {serviceGroups.length === 0 ? (
               <div className="text-center py-8">
                 <Users className="h-10 w-10 mx-auto mb-3 text-muted-foreground opacity-40" />
                 <p className="text-sm text-muted-foreground mb-4">
@@ -1807,21 +1759,15 @@ export default function BulkBooking() {
                 {/* Summary badges */}
                 <div className="flex flex-wrap items-center gap-2 text-sm">
                   <Badge variant="secondary" className="gap-1">
-                    <Calendar className="h-3 w-3" />
-                    {eventDate ? new Date(eventDate + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) : "No date"}
-                  </Badge>
-                  <Badge variant="secondary" className="gap-1">
-                    <MapPin className="h-3 w-3" />
-                    {eventVenue || "No venue"}
-                  </Badge>
-                  <Badge variant="secondary" className="gap-1">
-                    <PartyPopper className="h-3 w-3" />
-                    {eventType || "No type"}
-                  </Badge>
-                  <Badge variant="secondary" className="gap-1">
                     <Users className="h-3 w-3" />
                     {serviceGroups.length} service{serviceGroups.length > 1 ? "s" : ""}, {allProviderSlots.length} provider{allProviderSlots.length > 1 ? "s" : ""}
                   </Badge>
+                  {serviceGroups.filter(g => g.eventDate).length > 0 && (
+                    <Badge variant="secondary" className="gap-1">
+                      <Calendar className="h-3 w-3" />
+                      {Array.from(new Set(serviceGroups.filter(g => g.eventDate).map(g => g.eventDate))).length} date{Array.from(new Set(serviceGroups.filter(g => g.eventDate).map(g => g.eventDate))).length > 1 ? "s" : ""}
+                    </Badge>
+                  )}
                 </div>
 
                 {completedCount > 0 && (
@@ -1894,8 +1840,7 @@ export default function BulkBooking() {
                     <li>• {serviceGroups.length} service categor{serviceGroups.length > 1 ? "ies" : "y"}</li>
                     <li>• {allProviderSlots.filter((p) => p.providerId).length} preferred provider{allProviderSlots.filter((p) => p.providerId).length > 1 ? "s" : ""}</li>
                     <li>• Default time slots for each provider</li>
-                    {eventType && <li>• Event type: {eventType}</li>}
-                    {eventVenue && <li>• Default venue: {eventVenue}</li>}
+                    {serviceGroups.some(g => g.eventVenue) && <li>• Default venue(s) saved</li>}
                   </ul>
                 </div>
                 <div className="flex justify-end gap-2">

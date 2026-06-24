@@ -1735,3 +1735,12 @@
 - [x] Step 2 = Choose Provider based on selected category, then show that provider's specific services
 - [x] Provider selection shows only providers in the chosen category
 - [x] Service list updates to show only the selected provider's services for that category
+
+## Bulk Booking: Remove Event Details, Move Date/Venue to Service Groups
+- [x] Remove the global "Event Details" section (Step 1 card)
+- [x] Delete the event type field entirely
+- [x] Move Date and Venue fields into each service group card
+- [x] Only show Date/Venue for relevant categories (DJ, AV Crew, Event Planning, TV/Film, Party Rentals, etc.)
+- [x] Hide Date/Venue for categories that don't need them (Barbershop, Salon, Massage, etc.)
+- [x] Update submission logic to use per-group date/venue instead of global fields
+- [x] Update draft save/load to work with per-group date/venue
