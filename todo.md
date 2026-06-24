@@ -1672,3 +1672,11 @@
 - [x] Update site contact page to include all new features
 - [x] Update FAQs page with questions about new features (Custom Duration, Bulk Booking, Monthly Planner, Quick Re-book, new location types)
 - [x] Update Terms of Service to cover new features and booking types
+
+## Redesign: Event-Centric Bulk Booking
+- [x] Redesign Bulk Booking page with event-centric flow: Step 1 = Event Details (date, venue, event type), Step 2 = Add service types with individual providers and their specific start/end times
+- [x] Add event type selector (wedding, corporate, birthday, concert, etc.)
+- [x] Add venue/location input for the event
+- [x] Service type selector to filter providers by category
+- [x] Individual provider selection per service type with custom start/end time for each
+- [x] Summary view showing all providers grouped by service type with their times
