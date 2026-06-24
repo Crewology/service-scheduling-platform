@@ -1656,3 +1656,4 @@
 - [x] Add pagination controls to Providers tab in admin dashboard (page size 20, Previous/Next buttons, page indicator, reset to page 1 on search/filter change)
 - [x] Add sorting functionality to Rating column in Providers tab (toggle between highest-to-lowest, lowest-to-highest, and default)
 - [x] Add 'Custom Duration' option to service duration dropdown for DJ & Music services (start/end time pickers, calculate cost from provider's hourly rate)
+- [x] Extend 'Custom Duration' feature to Photography (category 17) and Event Planning (category 177) services

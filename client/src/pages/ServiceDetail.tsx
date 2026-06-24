@@ -434,8 +434,8 @@ export default function ServiceDetail() {
 
   const getNumericPrice = () => {
     if (!service) return 0;
-    // For DJ custom duration, return the calculated price
-    if (useCustomDuration && customDurationPrice > 0 && service.categoryId === 20) {
+    // For custom duration (DJ, Photography, Event Planning), return the calculated price
+    if (useCustomDuration && customDurationPrice > 0 && [20, 17, 177].includes(service.categoryId)) {
       return customDurationPrice;
     }
     if (service.pricingModel === "fixed" && service.basePrice) return parseFloat(service.basePrice);
@@ -529,7 +529,7 @@ export default function ServiceDetail() {
       const endTime = calculateEndTime(selectedTime, service.durationMinutes || 60);
       const multiLocType = service.serviceType as "mobile" | "fixed_location" | "virtual";
       const multiNeedsAddress = multiLocType === "mobile" || multiLocType === "fixed_location";
-      const isDJMulti = service.categoryId === 20;
+      const isDJMulti = [20, 17, 177].includes(service.categoryId);
       createMultiDay.mutate({
         serviceId: service.id,
         startDate: startDateStr,
@@ -557,7 +557,7 @@ export default function ServiceDetail() {
       const endTime = calculateEndTime(selectedTime, service.durationMinutes || 60);
       const recurLocType = service.serviceType as "mobile" | "fixed_location" | "virtual";
       const recurNeedsAddress = recurLocType === "mobile" || recurLocType === "fixed_location";
-      const isDJRecurring = service.categoryId === 20;
+      const isDJRecurring = [20, 17, 177].includes(service.categoryId);
       createRecurring.mutate({
         serviceId: service.id,
         startDate: startDateStr,
@@ -584,9 +584,9 @@ export default function ServiceDetail() {
       return;
     }
 
-    // For DJ custom duration, validate the end time
-    const isDJ = service.categoryId === 20;
-    if (isDJ && useCustomDuration) {
+    // For custom duration categories, validate the end time
+    const isCustomDurationCategory = [20, 17, 177].includes(service.categoryId);
+    if (isCustomDurationCategory && useCustomDuration) {
       if (!customStartTime || !customEndTime) {
         toast.error("Please select both start and end times for your custom duration");
         return;
@@ -598,10 +598,10 @@ export default function ServiceDetail() {
     }
 
     const dateStr = selectedDate.toISOString().split("T")[0];
-    const actualDuration = (isDJ && useCustomDuration && customDurationMinutes > 0)
+    const actualDuration = (isCustomDurationCategory && useCustomDuration && customDurationMinutes > 0)
       ? customDurationMinutes
       : (service.durationMinutes || 60);
-    const actualStartTime = (isDJ && useCustomDuration) ? customStartTime : selectedTime;
+    const actualStartTime = (isCustomDurationCategory && useCustomDuration) ? customStartTime : selectedTime;
     const endTime = calculateEndTime(actualStartTime, actualDuration);
 
     // Use the service's serviceType directly (DJ services already have the correct type set)
@@ -609,7 +609,7 @@ export default function ServiceDetail() {
     const needsAddress = locType === "mobile" || locType === "fixed_location";
 
     // Calculate subtotal for custom duration
-    const subtotal = (isDJ && useCustomDuration && customDurationPrice > 0)
+    const subtotal = (isCustomDurationCategory && useCustomDuration && customDurationPrice > 0)
       ? customDurationPrice.toFixed(2)
       : undefined;
 
@@ -624,7 +624,7 @@ export default function ServiceDetail() {
       serviceCity: needsAddress ? bookingForm.city : undefined,
       serviceState: needsAddress ? bookingForm.state : undefined,
       servicePostalCode: needsAddress ? bookingForm.postalCode : undefined,
-      venueName: isDJ && locType === "fixed_location" ? bookingForm.venueName : undefined,
+      venueName: [20, 17, 177].includes(service.categoryId) && locType === "fixed_location" ? bookingForm.venueName : undefined,
       customerNotes: bookingForm.notes || undefined,
       bookingSource: "direct",
       subtotal,
@@ -774,7 +774,7 @@ export default function ServiceDetail() {
                     <div>
                       <p className="text-xs text-muted-foreground">Location</p>
                       <p className="font-semibold capitalize">
-                        {service.categoryId === 20
+                        {[20, 17, 177].includes(service.categoryId)
                           ? (service.serviceType === "fixed_location" ? "Public Venue" : service.serviceType === "mobile" ? "Private Location" : "Virtual Stream")
                           : service.serviceType.replace("_", " ")}
                       </p>
@@ -1160,8 +1160,8 @@ export default function ServiceDetail() {
                       )}
                     </div>
 
-                    {/* Custom Duration option for DJ & Music services */}
-                    {service?.categoryId === 20 && service?.pricingModel === "hourly" && (
+                    {/* Custom Duration option for DJ & Music, Photography, Event Planning services */}
+                    {[20, 17, 177].includes(service?.categoryId) && service?.pricingModel === "hourly" && (
                       <div className="mb-4 border rounded-lg p-3 bg-muted/30">
                         <label className="flex items-center gap-2 cursor-pointer">
                           <input
@@ -1242,7 +1242,7 @@ export default function ServiceDetail() {
                     )}
 
                     {/* Standard time slot selection (hidden when custom duration is active) */}
-                    {(!useCustomDuration || service?.categoryId !== 20) && (<>
+                    {(!useCustomDuration || ![20, 17, 177].includes(service?.categoryId)) && (<>
                     {availableSlots.length === 0 ? (
                       <div className="text-center py-6">
                         <Clock className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
@@ -1364,13 +1364,13 @@ export default function ServiceDetail() {
                       <p className="text-sm">
                         <span className="text-muted-foreground">Time:</span>{" "}
                         <span className="font-medium">
-                          {useCustomDuration && service.categoryId === 20
+                          {useCustomDuration && [20, 17, 177].includes(service.categoryId)
                             ? `${formatTimeForDisplay(customStartTime)} - ${formatTimeForDisplay(customEndTime)}`
                             : `${formatTimeForDisplay(selectedTime)} - ${formatTimeForDisplay(calculateEndTime(selectedTime, service.durationMinutes || 60))}`
                           }
                         </span>
                       </p>
-                      {useCustomDuration && service.categoryId === 20 && customDurationMinutes > 0 && (
+                      {useCustomDuration && [20, 17, 177].includes(service.categoryId) && customDurationMinutes > 0 && (
                         <p className="text-sm">
                           <span className="text-muted-foreground">Duration:</span>{" "}
                           <span className="font-medium">{formatDuration(customDurationMinutes)}</span>
@@ -1378,8 +1378,8 @@ export default function ServiceDetail() {
                       )}
                     </div>
 
-                    {/* For DJ & Music (category 20) with fixed_location (Public Venue), show Venue Name */}
-                    {service.categoryId === 20 && service.serviceType === "fixed_location" && (
+                    {/* For DJ & Music, Photography, Event Planning with fixed_location (Public Venue), show Venue Name */}
+                    {[20, 17, 177].includes(service.categoryId) && service.serviceType === "fixed_location" && (
                       <div className="space-y-3 mb-4">
                         <p className="text-sm font-medium">Venue Details</p>
                         <Input
@@ -1437,8 +1437,8 @@ export default function ServiceDetail() {
                       </div>
                     )}
 
-                    {/* For DJ & Music (category 20) with mobile (Private Location), show address */}
-                    {service.categoryId === 20 && service.serviceType === "mobile" && (
+                    {/* For DJ & Music, Photography, Event Planning with mobile (Private Location), show address */}
+                    {[20, 17, 177].includes(service.categoryId) && service.serviceType === "mobile" && (
                       <div className="space-y-3 mb-4">
                         <p className="text-sm font-medium">Event Address</p>
                         <Input
@@ -1660,7 +1660,7 @@ export default function ServiceDetail() {
                             <div>
                               <p className="text-muted-foreground text-xs">Time</p>
                               <p className="font-medium">
-                                {useCustomDuration && service.categoryId === 20
+                                {useCustomDuration && [20, 17, 177].includes(service.categoryId)
                                   ? `${formatTimeForDisplay(customStartTime)} - ${formatTimeForDisplay(customEndTime)}`
                                   : formatTimeForDisplay(selectedTime)
                                 }
@@ -1669,7 +1669,7 @@ export default function ServiceDetail() {
                             <div>
                               <p className="text-muted-foreground text-xs">Duration</p>
                               <p className="font-medium">
-                                {useCustomDuration && service.categoryId === 20 && customDurationMinutes > 0
+                                {useCustomDuration && [20, 17, 177].includes(service.categoryId) && customDurationMinutes > 0
                                   ? formatDuration(customDurationMinutes)
                                   : formatDuration(service.durationMinutes)
                                 }
@@ -1855,7 +1855,7 @@ export default function ServiceDetail() {
 
                       {/* Pricing */}
                       <div className="border rounded-lg p-4 space-y-2">
-                        {useCustomDuration && service.categoryId === 20 && customDurationMinutes > 0 ? (
+                        {useCustomDuration && [20, 17, 177].includes(service.categoryId) && customDurationMinutes > 0 ? (
                           <>
                             <div className="flex justify-between text-sm">
                               <span>Hourly Rate</span>
@@ -1920,7 +1920,7 @@ export default function ServiceDetail() {
                           <span>
                             {promoApplied?.valid && promoApplied.discountAmount > 0
                               ? `$${promoApplied.finalAmount.toFixed(2)}`
-                              : useCustomDuration && service.categoryId === 20 && customDurationPrice > 0
+                              : useCustomDuration && [20, 17, 177].includes(service.categoryId) && customDurationPrice > 0
                               ? `$${customDurationPrice.toFixed(2)}`
                               : bookingType === "multi_day"
                               ? `$${getMultiDayPrice().toFixed(2)}`
