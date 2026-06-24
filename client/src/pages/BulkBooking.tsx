@@ -958,6 +958,16 @@ function ServiceGroupCard({
   isSubmitting: boolean;
 }) {
   const [categoryOpen, setCategoryOpen] = useState(false);
+  const [categorySearch, setCategorySearch] = useState("");
+  // Group-level service options (category-specific fields shared across all providers in this group)
+  const [groupOptions, setGroupOptions] = useState<Record<string, string>>({});
+
+  const filteredCats = useMemo(() => {
+    if (!categorySearch) return categories;
+    return categories.filter((c: any) =>
+      c.name.toLowerCase().includes(categorySearch.toLowerCase())
+    );
+  }, [categories, categorySearch]);
 
   const addProvider = () => {
     onUpdate({
@@ -973,7 +983,7 @@ function ServiceGroupCard({
           endTime: "",
           notes: "",
           status: "pending",
-          serviceOptions: {},
+          serviceOptions: { ...groupOptions },
         },
       ],
     });
@@ -999,6 +1009,18 @@ function ServiceGroupCard({
     return <Users className="h-4 w-4" />;
   };
 
+  // When group options change, propagate to all providers that don't have custom overrides
+  const handleGroupOptionsChange = (newOptions: Record<string, string>) => {
+    setGroupOptions(newOptions);
+    // Apply to all existing providers
+    onUpdate({
+      providers: group.providers.map((p) => ({
+        ...p,
+        serviceOptions: { ...p.serviceOptions, ...newOptions },
+      })),
+    });
+  };
+
   return (
     <div className="rounded-lg border bg-white overflow-visible">
       {/* Group Header */}
@@ -1007,9 +1029,21 @@ function ServiceGroupCard({
           <div className="flex items-center gap-2">
             {getCategoryIcon(group.categoryId)}
             {group.categoryId ? (
-              <span className="font-medium text-sm">{group.categoryName}</span>
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-sm">{group.categoryName}</span>
+                <button
+                  className="text-xs text-primary hover:underline"
+                  onClick={() => {
+                    onUpdate({ categoryId: null, categoryName: "", providers: [] });
+                    setGroupOptions({});
+                  }}
+                  disabled={isSubmitting}
+                >
+                  Change
+                </button>
+              </div>
             ) : (
-              <span className="text-sm text-muted-foreground">Select service type</span>
+              <span className="text-sm text-muted-foreground">Select a category to get started</span>
             )}
             {group.providers.length > 0 && group.categoryId && (
               <Badge variant="secondary" className="text-xs">
@@ -1018,7 +1052,7 @@ function ServiceGroupCard({
             )}
           </div>
           <div className="flex items-center gap-1">
-            {group.categoryId && (
+            {group.categoryId && group.providers.length > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -1043,10 +1077,10 @@ function ServiceGroupCard({
         </div>
       </div>
 
-      {/* Category Selection */}
+      {/* Step A: Category Selection */}
       {!group.categoryId && (
         <div className="p-4 space-y-2">
-          <Label className="text-xs font-medium text-muted-foreground">What type of service do you need?</Label>
+          <Label className="text-xs font-medium text-muted-foreground">Step 1: What type of service do you need?</Label>
           <div className="relative">
             <button
               type="button"
@@ -1058,45 +1092,79 @@ function ServiceGroupCard({
               <ChevronDown className="h-4 w-4 text-muted-foreground" />
             </button>
             {categoryOpen && (
-              <div className="absolute z-30 top-full mt-1 w-full bg-white border rounded-lg shadow-lg max-h-72 overflow-y-auto">
-                {categories.map((cat: any) => (
-                  <button
-                    key={cat.id}
-                    className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
-                    onClick={() => {
-                      onUpdate({
-                        categoryId: cat.id,
-                        categoryName: cat.name,
-                        providers: group.providers.length === 0
-                          ? [{
-                              id: generateId(),
-                              providerId: null,
-                              providerName: "",
-                              serviceId: null,
-                              serviceName: "",
-                              startTime: "",
-                              endTime: "",
-                              notes: "",
-                              status: "pending",
-                              serviceOptions: {},
-                            }]
-                          : group.providers,
-                      });
-                      setCategoryOpen(false);
-                    }}
-                  >
-                    {cat.name}
-                  </button>
-                ))}
+              <div className="absolute z-30 top-full mt-1 w-full bg-white border rounded-lg shadow-lg max-h-80 overflow-hidden flex flex-col">
+                <div className="p-2 border-b">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                    <Input
+                      placeholder="Search categories..."
+                      className="pl-8 h-8 text-sm"
+                      value={categorySearch}
+                      onChange={(e) => setCategorySearch(e.target.value)}
+                      autoFocus
+                    />
+                  </div>
+                </div>
+                <div className="overflow-y-auto max-h-64">
+                  {filteredCats.map((cat: any) => (
+                    <button
+                      key={cat.id}
+                      className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 border-b last:border-b-0"
+                      onClick={() => {
+                        onUpdate({
+                          categoryId: cat.id,
+                          categoryName: cat.name,
+                          providers: group.providers.length === 0
+                            ? [{
+                                id: generateId(),
+                                providerId: null,
+                                providerName: "",
+                                serviceId: null,
+                                serviceName: "",
+                                startTime: "",
+                                endTime: "",
+                                notes: "",
+                                status: "pending",
+                                serviceOptions: {},
+                              }]
+                            : group.providers,
+                        });
+                        setCategoryOpen(false);
+                        setCategorySearch("");
+                      }}
+                    >
+                      {cat.name}
+                    </button>
+                  ))}
+                  {filteredCats.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-4">No categories found</p>
+                  )}
+                </div>
               </div>
             )}
           </div>
         </div>
       )}
 
-      {/* Provider Slots */}
+      {/* Step B: Category-Specific Fields (shown immediately after category selection) */}
+      {group.categoryId && SERVICE_SPECIFIC_FIELDS[group.categoryId] && (
+        <div className="px-4 pt-4 pb-2">
+          <ServiceSpecificFields
+            categoryId={group.categoryId}
+            options={groupOptions}
+            onChange={handleGroupOptionsChange}
+            disabled={isSubmitting}
+          />
+          <p className="text-xs text-muted-foreground mt-1.5 ml-1">
+            These preferences apply to all providers in this category.
+          </p>
+        </div>
+      )}
+
+      {/* Step C: Provider Slots (choose provider → see their services) */}
       {group.categoryId && (
         <div className="p-4 space-y-3">
+          <Label className="text-xs font-medium text-muted-foreground">Step 2: Choose your provider(s)</Label>
           {group.providers.length === 0 ? (
             <div className="text-center py-4">
               <p className="text-sm text-muted-foreground mb-2">No providers added yet</p>

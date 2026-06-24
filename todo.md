@@ -1729,3 +1729,9 @@
 - [x] Personal Service Bundles: Save common combos as reusable templates with preferred providers pre-selected
 - [x] Smart Time Suggestions: Auto-suggest non-overlapping times based on service duration
 - [x] Favorite Providers Auto-Fill: Auto-suggest favorited providers when their category is selected
+
+## Bulk Booking Flow Restructure
+- [x] Restructure service group flow: Step 1 = Select Category first, then show category-specific fields
+- [x] Step 2 = Choose Provider based on selected category, then show that provider's specific services
+- [x] Provider selection shows only providers in the chosen category
+- [x] Service list updates to show only the selected provider's services for that category
