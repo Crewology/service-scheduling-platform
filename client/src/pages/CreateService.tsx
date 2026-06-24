@@ -218,12 +218,20 @@ export default function CreateService() {
                         <SelectItem value="fixed_location">Public Venue</SelectItem>
                         <SelectItem value="mobile">Private Location</SelectItem>
                         <SelectItem value="virtual">Virtual Stream</SelectItem>
+                        <SelectItem value="flexible">Flexible</SelectItem>
+                        <SelectItem value="teams">Microsoft Teams</SelectItem>
+                        <SelectItem value="zoom">Zoom</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
                       </>
                     ) : (
                       <>
-                        <SelectItem value="mobile">Mobile (I travel to customer)</SelectItem>
-                        <SelectItem value="fixed_location">Fixed Location (Customer comes to me)</SelectItem>
-                        <SelectItem value="virtual">Virtual (Online/Remote)</SelectItem>
+                        <SelectItem value="fixed_location">At My Location</SelectItem>
+                        <SelectItem value="mobile">Mobile (I Travel)</SelectItem>
+                        <SelectItem value="virtual">Virtual / Online</SelectItem>
+                        <SelectItem value="flexible">Flexible</SelectItem>
+                        <SelectItem value="teams">Microsoft Teams</SelectItem>
+                        <SelectItem value="zoom">Zoom</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
                       </>
                     )}
                   </SelectContent>

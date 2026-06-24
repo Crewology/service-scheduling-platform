@@ -883,6 +883,10 @@ export default function PublicProviderProfile() {
                   <SelectItem value="mobile">Mobile (provider comes to you)</SelectItem>
                   <SelectItem value="fixed_location">At provider's location</SelectItem>
                   <SelectItem value="virtual">Virtual / Remote</SelectItem>
+                  <SelectItem value="flexible">Flexible</SelectItem>
+                  <SelectItem value="teams">Microsoft Teams</SelectItem>
+                  <SelectItem value="zoom">Zoom</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>
