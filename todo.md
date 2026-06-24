@@ -1654,3 +1654,4 @@
 - [x] Fix "Back to Admin Dashboard" button on user detail page to return to Users tab instead of overview
 - [x] Add pagination controls to Users tab in admin dashboard (page size 20, Previous/Next buttons, page indicator, reset to page 1 on search/filter change)
 - [x] Add pagination controls to Providers tab in admin dashboard (page size 20, Previous/Next buttons, page indicator, reset to page 1 on search/filter change)
+- [x] Add sorting functionality to Rating column in Providers tab (toggle between highest-to-lowest, lowest-to-highest, and default)

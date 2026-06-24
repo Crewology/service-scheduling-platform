@@ -394,6 +394,8 @@ export const adminRouter = router({
     .input(z.object({
       query: z.string().optional(),
       verificationStatus: z.enum(["pending", "verified", "rejected"]).optional(),
+      sortBy: z.enum(["rating", "joined"]).optional(),
+      sortOrder: z.enum(["asc", "desc"]).optional(),
       page: z.number().default(1),
       limit: z.number().default(20),
     }))
@@ -414,6 +416,23 @@ export const adminRouter = router({
       // Verification status filter
       if (input.verificationStatus) {
         filtered = filtered.filter((p: any) => p.verificationStatus === input.verificationStatus);
+      }
+
+      // Sorting
+      if (input.sortBy) {
+        filtered = [...filtered].sort((a: any, b: any) => {
+          if (input.sortBy === "rating") {
+            const ratingA = parseFloat(a.averageRating || "0");
+            const ratingB = parseFloat(b.averageRating || "0");
+            return input.sortOrder === "asc" ? ratingA - ratingB : ratingB - ratingA;
+          }
+          if (input.sortBy === "joined") {
+            const dateA = new Date(a.createdAt).getTime();
+            const dateB = new Date(b.createdAt).getTime();
+            return input.sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+          }
+          return 0;
+        });
       }
 
       const total = filtered.length;

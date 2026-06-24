@@ -56,6 +56,9 @@ import {
   Activity,
   Calendar,
   Filter,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -2116,22 +2119,41 @@ function ProvidersFilterPanel({ verifyProvider, rejectProvider }: { verifyProvid
   const [providerSearch, setProviderSearch] = useState("");
   const [verificationFilter, setVerificationFilter] = useState("all");
   const [providerPage, setProviderPage] = useState(1);
+  const [sortBy, setSortBy] = useState<"rating" | "joined" | undefined>(undefined);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc" | undefined>(undefined);
   const utils = trpc.useUtils();
 
   const { data: filteredProviders, isLoading } = trpc.admin.searchProvidersFiltered.useQuery({
     query: providerSearch || undefined,
     verificationStatus: verificationFilter !== "all" ? verificationFilter as any : undefined,
+    sortBy,
+    sortOrder,
     page: providerPage,
     limit: 20,
   });
 
-  const clearFilters = () => {
-    setProviderSearch("");
-    setVerificationFilter("all");
+  const toggleSort = (column: "rating" | "joined") => {
+    if (sortBy !== column) {
+      setSortBy(column);
+      setSortOrder("desc");
+    } else if (sortOrder === "desc") {
+      setSortOrder("asc");
+    } else {
+      setSortBy(undefined);
+      setSortOrder(undefined);
+    }
     setProviderPage(1);
   };
 
-  const hasFilters = providerSearch || verificationFilter !== "all";
+  const clearFilters = () => {
+    setProviderSearch("");
+    setVerificationFilter("all");
+    setSortBy(undefined);
+    setSortOrder(undefined);
+    setProviderPage(1);
+  };
+
+  const hasFilters = providerSearch || verificationFilter !== "all" || sortBy;
 
   return (
     <Card>
@@ -2200,8 +2222,34 @@ function ProvidersFilterPanel({ verifyProvider, rejectProvider }: { verifyProvid
                     <TableHead>Type</TableHead>
                     <TableHead>Location</TableHead>
                     <TableHead>Verification</TableHead>
-                    <TableHead>Rating</TableHead>
-                    <TableHead>Joined</TableHead>
+                    <TableHead>
+                      <button
+                        className="flex items-center gap-1 hover:text-foreground transition-colors"
+                        onClick={() => toggleSort("rating")}
+                        title="Click to sort by rating"
+                      >
+                        Rating
+                        {sortBy === "rating" ? (
+                          sortOrder === "desc" ? <ArrowDown className="h-3.5 w-3.5" /> : <ArrowUp className="h-3.5 w-3.5" />
+                        ) : (
+                          <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/50" />
+                        )}
+                      </button>
+                    </TableHead>
+                    <TableHead>
+                      <button
+                        className="flex items-center gap-1 hover:text-foreground transition-colors"
+                        onClick={() => toggleSort("joined")}
+                        title="Click to sort by join date"
+                      >
+                        Joined
+                        {sortBy === "joined" ? (
+                          sortOrder === "desc" ? <ArrowDown className="h-3.5 w-3.5" /> : <ArrowUp className="h-3.5 w-3.5" />
+                        ) : (
+                          <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/50" />
+                        )}
+                      </button>
+                    </TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
