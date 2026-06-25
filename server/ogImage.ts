@@ -1,5 +1,6 @@
 import satori from "satori";
 import { Resvg } from "@resvg/resvg-js";
+import sharp from "sharp";
 import * as db from "./db";
 import { storagePut } from "./storage";
 import { nanoid } from "nanoid";
@@ -403,7 +404,26 @@ export async function generateProviderOgImage(
     if (!provider) return null;
 
     const user = await db.getUserById(provider.userId);
-    const profilePhotoUrl = user?.profilePhotoUrl || null;
+    // Pre-fetch profile photo, resize to 360x360, and convert to base64 data URI for satori
+    // Satori cannot reliably fetch remote URLs during SVG generation
+    let profilePhotoUrl: string | null = null;
+    if (user?.profilePhotoUrl) {
+      try {
+        const photoResponse = await fetch(user.profilePhotoUrl);
+        if (photoResponse.ok) {
+          const photoBuffer = Buffer.from(await photoResponse.arrayBuffer());
+          // Resize to 360x360 (2x the display size) to keep the data URI small
+          const resizedBuffer = await sharp(photoBuffer)
+            .resize(360, 360, { fit: 'cover' })
+            .jpeg({ quality: 80 })
+            .toBuffer();
+          const base64 = resizedBuffer.toString('base64');
+          profilePhotoUrl = `data:image/jpeg;base64,${base64}`;
+        }
+      } catch (e) {
+        console.error('[OG Image] Failed to fetch/resize profile photo:', e);
+      }
+    }
     const businessName = provider.businessName || "Provider";
     const description = provider.description
       ? provider.description.length > 120

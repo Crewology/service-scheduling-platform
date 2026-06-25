@@ -1784,3 +1784,7 @@
 - [x] Remove or deactivate test providers so only real providers appear
 - [x] Fix category page counts to only reflect active, visible providers
 - [x] Verify Barber Shop category shows accurate provider/service counts
+
+## Fix: OG Share Card Missing Profile Photo + Add "My Page" Link
+- [x] Fix OG image generation to include provider profile photo in share preview card
+- [x] Add "My Page" quick link to provider dropdown menu (top right user menu)
