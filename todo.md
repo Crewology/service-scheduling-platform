@@ -1778,3 +1778,9 @@
 - [x] Activate Winston's provider profile (isActive = 1)
 - [x] Add activate/deactivate provider toggle in Admin dashboard
 - [x] Show dual roles in admin user list (e.g., "Admin + Provider" if user has both)
+
+## Fix: Category Page Showing Incorrect Provider/Service Counts
+- [x] Audit all providers in database — identify test vs real providers
+- [x] Remove or deactivate test providers so only real providers appear
+- [x] Fix category page counts to only reflect active, visible providers
+- [x] Verify Barber Shop category shows accurate provider/service counts

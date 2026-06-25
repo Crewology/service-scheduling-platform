@@ -139,9 +139,31 @@ export async function getServicesByProviderId(providerId: number) {
 export async function getServicesByCategory(categoryId: number) {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(services)
-    .where(and(eq(services.categoryId, categoryId), eq(services.isActive, true)))
+  // Only return services from active providers
+  const rows = await db.select({
+    id: services.id,
+    providerId: services.providerId,
+    categoryId: services.categoryId,
+    name: services.name,
+    description: services.description,
+    serviceType: services.serviceType,
+    pricingModel: services.pricingModel,
+    basePrice: services.basePrice,
+    hourlyRate: services.hourlyRate,
+    durationMinutes: services.durationMinutes,
+    isActive: services.isActive,
+    createdAt: services.createdAt,
+    updatedAt: services.updatedAt,
+  })
+    .from(services)
+    .innerJoin(serviceProviders, eq(services.providerId, serviceProviders.id))
+    .where(and(
+      eq(services.categoryId, categoryId),
+      eq(services.isActive, true),
+      eq(serviceProviders.isActive, true)
+    ))
     .orderBy(services.name);
+  return rows;
 }
 
 export async function searchServices(searchTerm: string) {
