@@ -6,6 +6,8 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { PWAInstallBanner } from "./components/PWAInstallBanner";
 import { OfflineBanner } from "./components/OfflineBanner";
 import { RoleGuard } from "./components/RoleGuard";
+import { Footer } from "./components/shared/Footer";
+import { useLocation } from "wouter";
 
 // ─── Page Imports ───────────────────────────────────────────────────────────
 
@@ -140,6 +142,22 @@ function Router() {
 }
 
 // ─── App Shell ───────────────────────────────────────────────────────────────
+function AppContent() {
+  const [location] = useLocation();
+  // Hide footer on embed pages and admin dashboard
+  const hideFooter = location.startsWith("/embed") || location.startsWith("/admin");
+
+  return (
+    <>
+      <RoleGuard>
+        <Router />
+      </RoleGuard>
+      {!hideFooter && <Footer />}
+      <PWAInstallBanner />
+    </>
+  );
+}
+
 function App() {
   return (
     <ErrorBoundary>
@@ -147,10 +165,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <OfflineBanner />
-          <RoleGuard>
-            <Router />
-          </RoleGuard>
-          <PWAInstallBanner />
+          <AppContent />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
