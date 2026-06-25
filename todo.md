@@ -1760,3 +1760,10 @@
 - [x] Add Platform Settings tab/section in Admin Dashboard for managing contact info
 - [x] Update HelpCenter Contact Us section to pull contact info from platform settings (dynamic, not hardcoded)
 - [x] Verify booking email notifications are working end-to-end
+
+## Fix: Skip Plan Step for Subscribed Providers in Onboarding
+- [x] If provider already has an active subscription, skip/hide Step 4 (Your Plan) in onboarding
+- [x] Update step navigation: Step 3 goes directly to Step 5 if plan exists
+- [x] Step 5 back button goes to Step 3 if plan exists
+- [x] Stepper shows step 4 as complete and grayed/skipped for subscribed providers
+- [x] Dashboard links to onboarding?step=4 should redirect to step 2 (manage categories) if already subscribed

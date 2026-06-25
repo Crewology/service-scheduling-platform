@@ -57,7 +57,7 @@ const CATEGORY_ICONS: Record<number, string> = {
   198: "💻", 19: "🎥", 155: "📱", 201: "🖥️", 205: "🌐",
 };
 
-const STEPS = [
+const ALL_STEPS = [
   { id: 1, title: "Your Profile", icon: User, description: "Photo, name & location" },
   { id: 2, title: "Your Skills", icon: Grid3X3, description: "Choose your categories" },
   { id: 3, title: "Your Services", icon: Wrench, description: "Add services & pricing" },
@@ -609,6 +609,7 @@ export default function ProviderOnboarding() {
     const step = parseInt(params.get("step") || "1", 10);
     return step >= 1 && step <= 5 ? step : 1;
   });
+
   const utils = trpc.useUtils();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -770,15 +771,33 @@ export default function ProviderOnboarding() {
   const [selectedTier, setSelectedTier] = useState<"free" | "basic" | "premium" | null>(null);
   const [billingInterval, setBillingInterval] = useState<"month" | "year">("month");
 
+  // Check if provider already has an active subscription (skip plan step)
+  const hasActivePlan = !!currentSubscription?.subscription && currentSubscription.currentTier !== "free";
+  
+  // Derive visible steps: skip step 4 if already subscribed to a paid plan
+  const STEPS = useMemo(() => {
+    if (hasActivePlan) {
+      return ALL_STEPS.filter(s => s.id !== 4);
+    }
+    return ALL_STEPS;
+  }, [hasActivePlan]);
+
+  // If provider already has a plan and lands on step 4, redirect to step 2 (manage categories)
+  useEffect(() => {
+    if (hasActivePlan && currentStep === 4) {
+      setCurrentStep(2);
+    }
+  }, [hasActivePlan, currentStep]);
+
   // Step completion tracking
   const tierSelected = !!currentSubscription?.subscription || selectedTier !== null;
   const stepComplete = useMemo(() => ({
     1: !!existingProvider,
     2: (myCategories?.length ?? 0) > 0,
     3: (myServices?.length ?? 0) > 0,
-    4: tierSelected,
+    4: tierSelected || hasActivePlan,
     5: existingProvider?.payoutEnabled === true,
-  }), [existingProvider, myCategories, myServices, tierSelected]);
+  }), [existingProvider, myCategories, myServices, tierSelected, hasActivePlan]);
 
   // Initialize selected categories from existing data
   useMemo(() => {
@@ -1306,10 +1325,10 @@ export default function ProviderOnboarding() {
                   <ChevronLeft className="h-4 w-4 mr-1" /> Back
                 </Button>
                 <Button
-                  onClick={() => setCurrentStep(4)}
+                  onClick={() => setCurrentStep(hasActivePlan ? 5 : 4)}
                   disabled={(myServices?.length ?? 0) === 0}
                 >
-                  Choose Your Plan
+                  {hasActivePlan ? "Connect Payments" : "Choose Your Plan"}
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               </div>
@@ -1654,7 +1673,7 @@ export default function ProviderOnboarding() {
               )}
 
               <div className="flex justify-between">
-                <Button variant="outline" onClick={() => setCurrentStep(4)}>
+                <Button variant="outline" onClick={() => setCurrentStep(hasActivePlan ? 3 : 4)}>
                   <ChevronLeft className="h-4 w-4 mr-1" /> Back
                 </Button>
                 <div className="flex gap-2">
