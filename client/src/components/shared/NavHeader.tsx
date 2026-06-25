@@ -572,11 +572,11 @@ export function NavHeader() {
                 {/* View Mode Switcher for providers */}
                 <ViewModeSwitcher />
 
-                {/* Provider Dashboard — show for providers and admins with provider profiles */}
+                {/* My Dashboard — show for providers and admins with provider profiles */}
                 {isProvider && (isProviderView || isAdmin) && (
                   <Link href="/provider/dashboard">
                     <Button variant="outline" size="sm" className="text-xs px-2.5">
-                      Provider
+                      My Dashboard
                     </Button>
                   </Link>
                 )}
@@ -689,7 +689,7 @@ export function NavHeader() {
                   <Link href="/provider/dashboard" onClick={() => setMobileMenuOpen(false)}>
                     <Button variant="ghost" className="w-full justify-start">
                       <Briefcase className="h-4 w-4 mr-2" />
-                      Provider Dashboard
+                      My Dashboard
                     </Button>
                   </Link>
                 )}

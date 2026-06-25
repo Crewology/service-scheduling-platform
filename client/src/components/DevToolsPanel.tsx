@@ -37,7 +37,7 @@ const TEST_ACCOUNTS = [
     description: "Manage services, availability, and bookings",
     color: "bg-orange-500",
     quickLinks: [
-      { label: "Provider Dashboard", path: "/provider/dashboard" },
+      { label: "My Dashboard", path: "/provider/dashboard" },
       { label: "Create Service", path: "/provider/services/new" },
       { label: "Manage Availability", path: "/provider/availability" },
       { label: "My Reviews", path: "/provider/reviews" },
