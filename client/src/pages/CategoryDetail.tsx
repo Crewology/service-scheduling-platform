@@ -112,6 +112,7 @@ export default function CategoryDetail() {
   const [minRating, setMinRating] = useState(0);
   const [maxPrice, setMaxPrice] = useState<number | null>(null);
   const [serviceTypeFilter, setServiceTypeFilter] = useState<string>("all");
+  const [visibleCount, setVisibleCount] = useState(12);
 
   const hasActiveFilters = locationFilter || minRating > 0 || maxPrice !== null || serviceTypeFilter !== "all";
 
@@ -337,8 +338,15 @@ export default function CategoryDetail() {
             </div>
           )}
           {servicesByProvider.size > 0 ? (
+            <>
+            {/* Provider count */}
+            <div className="mb-4 flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Showing {Math.min(visibleCount, servicesByProvider.size)} of {servicesByProvider.size} provider{servicesByProvider.size !== 1 ? "s" : ""}
+              </p>
+            </div>
             <div className="space-y-8">
-              {Array.from(servicesByProvider.entries()).map(([providerId, { provider, services: provServices }]) => (
+              {Array.from(servicesByProvider.entries()).slice(0, visibleCount).map(([providerId, { provider, services: provServices }]) => (
                 <Card key={providerId} className="overflow-hidden">
                   {/* Provider Header */}
                   <CardHeader className="bg-muted/30 border-b">
@@ -433,6 +441,20 @@ export default function CategoryDetail() {
                 </Card>
               ))}
             </div>
+            {/* Load More button */}
+            {visibleCount < servicesByProvider.size && (
+              <div className="mt-8 text-center">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => setVisibleCount(prev => prev + 12)}
+                  className="px-8"
+                >
+                  Load More Providers ({servicesByProvider.size - visibleCount} remaining)
+                </Button>
+              </div>
+            )}
+            </>
           ) : !services || services.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">

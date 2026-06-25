@@ -1767,3 +1767,9 @@
 - [x] Step 5 back button goes to Step 3 if plan exists
 - [x] Stepper shows step 4 as complete and grayed/skipped for subscribed providers
 - [x] Dashboard links to onboarding?step=4 should redirect to step 2 (manage categories) if already subscribed
+
+## Category Page: Show All Providers with Pagination
+- [x] Show all providers in a category (no hard limit - backend returns all)
+- [x] Add "Load More" button pagination (12 providers per page)
+- [x] Show count: "Showing X of Y providers"
+- [x] Backend already returns all providers (no limit needed)
