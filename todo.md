@@ -1773,3 +1773,8 @@
 - [x] Add "Load More" button pagination (12 providers per page)
 - [x] Show count: "Showing X of Y providers"
 - [x] Backend already returns all providers (no limit needed)
+
+## Fix: Admin Provider Management & Role Display
+- [x] Activate Winston's provider profile (isActive = 1)
+- [x] Add activate/deactivate provider toggle in Admin dashboard
+- [x] Show dual roles in admin user list (e.g., "Admin + Provider" if user has both)

@@ -269,3 +269,8 @@ export {
   getProviderWaitlistEntries,
   providerRemoveFromWaitlist,
 } from "./db/waitlist";
+
+// Provider activation
+export {
+  setProviderActive,
+} from "./db/providers";

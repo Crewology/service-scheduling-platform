@@ -114,6 +114,15 @@ export const adminRouter = router({
       return { success: true };
     }),
 
+  // Toggle provider active/inactive status
+  toggleProviderActive: adminProcedure
+    .input(z.object({ providerId: z.number(), isActive: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      await db.setProviderActive(input.providerId, input.isActive);
+      await createAuditEntry({ actorId: ctx.user.id, action: input.isActive ? "activate_provider" : "deactivate_provider", targetType: "provider", targetId: input.providerId });
+      return { success: true };
+    }),
+
   // Get subscription analytics
   getSubscriptionAnalytics: adminProcedure.query(async () => {
     return await db.getSubscriptionAnalytics();

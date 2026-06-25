@@ -18,7 +18,9 @@ export type AuditAction =
   | "reject_document"
   | "trigger_reminders"
   | "trigger_review_reminders"
-  | "delete_user";
+  | "delete_user"
+  | "activate_provider"
+  | "deactivate_provider";
 
 export type TargetType = "user" | "provider" | "review" | "booking" | "document" | "system";
 

@@ -313,6 +313,14 @@ export default function AdminDashboard() {
     onError: (err) => toast.error(err.message),
   });
 
+  const toggleProviderActive = trpc.admin.toggleProviderActive.useMutation({
+    onSuccess: (_data, variables) => {
+      utils.admin.listProviders.invalidate();
+      toast.success(variables.isActive ? "Provider activated" : "Provider deactivated");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
   if (authLoading) {
     return <LoadingSpinner message="Loading admin dashboard..." />;
   }
@@ -594,7 +602,7 @@ export default function AdminDashboard() {
               )}
             </Card>
 
-            <ProvidersFilterPanel verifyProvider={verifyProvider} rejectProvider={rejectProvider} />
+            <ProvidersFilterPanel verifyProvider={verifyProvider} rejectProvider={rejectProvider} toggleProviderActive={toggleProviderActive} />
           </TabsContent>
 
           {/* Bookings Tab */}
@@ -2147,7 +2155,7 @@ function PushAnalyticsPanel() {
 // ============================================================================
 // PROVIDERS FILTER PANEL
 // ============================================================================
-function ProvidersFilterPanel({ verifyProvider, rejectProvider }: { verifyProvider: any; rejectProvider: any }) {
+function ProvidersFilterPanel({ verifyProvider, rejectProvider, toggleProviderActive }: { verifyProvider: any; rejectProvider: any; toggleProviderActive: any }) {
   const [providerSearch, setProviderSearch] = useState("");
   const [verificationFilter, setVerificationFilter] = useState("all");
   const [providerPage, setProviderPage] = useState(1);
@@ -2282,6 +2290,7 @@ function ProvidersFilterPanel({ verifyProvider, rejectProvider }: { verifyProvid
                         )}
                       </button>
                     </TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -2310,7 +2319,12 @@ function ProvidersFilterPanel({ verifyProvider, rejectProvider }: { verifyProvid
                       </TableCell>
                       <TableCell>{formatDate(provider.createdAt)}</TableCell>
                       <TableCell>
-                        <div className="flex gap-1">
+                        <Badge variant={provider.isActive ? "default" : "destructive"} className={provider.isActive ? "bg-green-600 hover:bg-green-700" : ""}>
+                          {provider.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1 flex-wrap">
                           {provider.verificationStatus === "pending" && (
                             <>
                               <Button size="sm" onClick={() => { verifyProvider.mutate({ providerId: provider.id }); utils.admin.searchProvidersFiltered.invalidate(); }} disabled={verifyProvider.isPending}>
@@ -2326,6 +2340,16 @@ function ProvidersFilterPanel({ verifyProvider, rejectProvider }: { verifyProvid
                               Re-verify
                             </Button>
                           )}
+                          <Button
+                            size="sm"
+                            variant={provider.isActive ? "outline" : "default"}
+                            className={provider.isActive ? "text-red-600 border-red-300 hover:bg-red-50" : "bg-green-600 hover:bg-green-700"}
+                            onClick={() => { toggleProviderActive.mutate({ providerId: provider.id, isActive: !provider.isActive }); utils.admin.searchProvidersFiltered.invalidate(); }}
+                            disabled={toggleProviderActive.isPending}
+                            title={provider.isActive ? "Deactivate this provider's profile" : "Activate this provider's profile"}
+                          >
+                            {provider.isActive ? "Deactivate" : "Activate"}
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -2495,9 +2519,16 @@ function UsersFilterPanel({ suspendUser, unsuspendUser }: { suspendUser: any; un
                       </TableCell>
                       <TableCell>{u.email}</TableCell>
                       <TableCell>
-                        <Badge variant={u.role === "admin" ? "default" : "secondary"}>
-                          {u.role}
-                        </Badge>
+                        <div className="flex gap-1 flex-wrap">
+                          <Badge variant={u.role === "admin" ? "default" : "secondary"}>
+                            {u.role}
+                          </Badge>
+                          {u.hasProviderProfile && u.role !== "provider" && (
+                            <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-200">
+                              Provider
+                            </Badge>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="text-muted-foreground">{formatDate(u.createdAt)}</TableCell>
                       <TableCell>

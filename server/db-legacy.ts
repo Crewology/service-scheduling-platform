@@ -159,7 +159,33 @@ export async function getAllUsers() {
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(users).orderBy(users.createdAt);
+  const results = await db
+    .select({
+      id: users.id,
+      openId: users.openId,
+      name: users.name,
+      email: users.email,
+      loginMethod: users.loginMethod,
+      role: users.role,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      phone: users.phone,
+      profilePhotoUrl: users.profilePhotoUrl,
+      emailVerified: users.emailVerified,
+      hasSelectedRole: users.hasSelectedRole,
+      createdAt: users.createdAt,
+      updatedAt: users.updatedAt,
+      lastSignedIn: users.lastSignedIn,
+      deletedAt: users.deletedAt,
+      adminRole: users.adminRole,
+      authProvider: users.authProvider,
+      hasProviderProfile: sql<boolean>`CASE WHEN ${serviceProviders.id} IS NOT NULL THEN true ELSE false END`.as('hasProviderProfile'),
+    })
+    .from(users)
+    .leftJoin(serviceProviders, eq(users.id, serviceProviders.userId))
+    .orderBy(users.createdAt);
+
+  return results;
 }
 
 // ============================================================================

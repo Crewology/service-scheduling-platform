@@ -72,6 +72,14 @@ export async function updateProviderVerification(providerId: number, status: "pe
     .where(eq(serviceProviders.id, providerId));
 }
 
+export async function setProviderActive(providerId: number, isActive: boolean) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(serviceProviders)
+    .set({ isActive })
+    .where(eq(serviceProviders.id, providerId));
+}
+
 // ============================================================================
 // PROVIDER PROFILE UPDATE
 // ============================================================================
