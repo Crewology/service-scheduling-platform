@@ -7,6 +7,17 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { NavHeader } from "@/components/shared/NavHeader";
 
+// Category emoji map for visual consistency
+const CATEGORY_ICONS: Record<number, string> = {
+  15: "🎬", 170: "💈", 7: "✂️", 126: "🔒", 195: "💃", 202: "🔨",
+  23: "🦷", 20: "🎵", 22: "🚛", 177: "🎉", 196: "👁️", 178: "💰",
+  109: "🏋️", 197: "📋", 9: "🔧", 193: "🧘", 188: "🧹", 200: "⚡",
+  179: "🏠", 171: "💇", 174: "🚗", 176: "🔩", 111: "🔗", 10: "💆",
+  168: "🚙", 169: "🛠️", 199: "🎪", 158: "🎯", 73: "🍽️", 12: "💪",
+  11: "🐾", 17: "📸", 148: "💦", 26: "📅", 8: "💅", 194: "☀️",
+  198: "💻", 19: "🎥", 155: "📱", 201: "🖥️", 205: "🌐",
+};
+
 export default function Browse() {
   const [searchTerm, setSearchTerm] = useState("");
   const { data: categories, isLoading, isError, error, refetch, isRefetching } = trpc.category.list.useQuery(
@@ -91,32 +102,16 @@ export default function Browse() {
               {filteredCategories.map((category) => (
                 <Link key={category.id} href={`/category/${category.slug}`}>
                   <Card className="hover:shadow-medium transition-all cursor-pointer group h-full">
-                    <CardHeader>
-                      <CardTitle className="text-lg group-hover:text-primary transition-colors">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg group-hover:text-primary transition-colors flex items-center gap-2">
+                        <span className="text-2xl">{CATEGORY_ICONS[category.id] || "📋"}</span>
                         {category.name}
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
+                      <p className="text-sm text-muted-foreground line-clamp-3">
                         {category.description}
                       </p>
-                      <div className="flex flex-wrap gap-2">
-                        {category.isMobileEnabled && (
-                          <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
-                            Mobile
-                          </span>
-                        )}
-                        {category.isFixedLocationEnabled && (
-                          <span className="text-xs bg-accent/10 text-accent px-2 py-1 rounded-full">
-                            In-Shop
-                          </span>
-                        )}
-                        {category.isVirtualEnabled && (
-                          <span className="text-xs bg-success/10 text-success px-2 py-1 rounded-full">
-                            Virtual
-                          </span>
-                        )}
-                      </div>
                     </CardContent>
                   </Card>
                 </Link>
