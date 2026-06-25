@@ -14,6 +14,17 @@ import { NavHeader } from "@/components/shared/NavHeader";
 
 
 
+// Category emoji map for visual pop
+const CATEGORY_ICONS: Record<number, string> = {
+  15: "🎬", 170: "💈", 7: "✂️", 126: "🔒", 195: "💃", 202: "🔨",
+  23: "🦷", 20: "🎵", 22: "🚛", 177: "🎉", 196: "👁️", 178: "💰",
+  109: "🏋️", 197: "📋", 9: "🔧", 193: "🧘", 188: "🧹", 200: "⚡",
+  179: "🏠", 171: "💇", 174: "🚗", 176: "🔩", 111: "🔗", 10: "💆",
+  168: "🚙", 169: "🛠️", 199: "🎪", 158: "🎯", 73: "🍽️", 12: "💪",
+  11: "🐾", 17: "📸", 148: "💦", 26: "📅", 8: "💅", 194: "☀️",
+  198: "💻", 19: "🎥", 155: "📱", 201: "🖥️", 205: "🌐",
+};
+
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
@@ -169,7 +180,8 @@ export default function Home() {
               <Link key={category.id} href={`/category/${category.slug}`}>
                 <Card className="hover:shadow-medium transition-all cursor-pointer group">
                   <CardContent className="p-6">
-                    <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors">
+                    <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors flex items-center gap-2">
+                      <span className="text-2xl">{CATEGORY_ICONS[category.id] || "📋"}</span>
                       {category.name}
                     </h3>
                     <p className="text-sm text-muted-foreground line-clamp-2">
