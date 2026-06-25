@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { trpc } from "@/lib/trpc";
 import { useLocation } from "wouter";
 
 export type ViewMode = "customer" | "provider";
@@ -11,12 +12,14 @@ interface ViewModeContextValue {
   toggleViewMode: () => void;
   /** Set a specific view mode */
   setViewMode: (mode: ViewMode) => void;
-  /** Whether the user can switch views (only providers can) */
+  /** Whether the user can switch views (providers and admins with provider profiles) */
   canSwitch: boolean;
   /** Whether the user is currently in provider view */
   isProviderView: boolean;
   /** Whether the user is currently in customer view */
   isCustomerView: boolean;
+  /** Whether the user is an admin */
+  isAdmin: boolean;
 }
 
 const ViewModeContext = createContext<ViewModeContextValue | null>(null);
@@ -24,8 +27,14 @@ const ViewModeContext = createContext<ViewModeContextValue | null>(null);
 const STORAGE_KEY = "ologycrew-view-mode";
 
 export function ViewModeProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
-  const isProvider = user?.role === "provider";
+  const { user, isAuthenticated } = useAuth();
+  const isAdmin = user?.role === "admin";
+  // Check if admin also has a provider profile
+  const { data: providerProfile } = trpc.provider.getMyProfile.useQuery(undefined, {
+    enabled: isAuthenticated && isAdmin,
+  });
+  // A user can act as provider if their role is provider OR if they're admin with a provider profile
+  const isProvider = user?.role === "provider" || (isAdmin && !!providerProfile);
 
   // Initialize from localStorage, defaulting to provider view for providers
   const [viewMode, setViewModeState] = useState<ViewMode>(() => {
@@ -91,6 +100,7 @@ export function ViewModeProvider({ children }: { children: ReactNode }) {
     canSwitch: !!isProvider,
     isProviderView: isProvider && viewMode === "provider",
     isCustomerView: !isProvider || viewMode === "customer",
+    isAdmin: !!isAdmin,
   };
 
   return (

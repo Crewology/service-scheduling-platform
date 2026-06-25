@@ -572,16 +572,16 @@ export function NavHeader() {
                 {/* View Mode Switcher for providers */}
                 <ViewModeSwitcher />
 
-                {/* Provider Dashboard — show when in provider view */}
-                {isProvider && isProviderView && (
+                {/* Provider Dashboard — show for providers and admins with provider profiles */}
+                {isProvider && (isProviderView || isAdmin) && (
                   <Link href="/provider/dashboard">
                     <Button variant="outline" size="sm" className="text-xs px-2.5">
-                      Dashboard
+                      Provider
                     </Button>
                   </Link>
                 )}
 
-                {/* Admin */}
+                {/* Admin Dashboard */}
                 {isAdmin && (
                   <Link href="/admin">
                     <Button variant="outline" size="sm" className="text-xs px-2.5 border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800">
@@ -685,7 +685,7 @@ export function NavHeader() {
                     Referral Credits
                   </Button>
                 </Link>
-                {isProvider && isProviderView && (
+                {isProvider && (isProviderView || isAdmin) && (
                   <Link href="/provider/dashboard" onClick={() => setMobileMenuOpen(false)}>
                     <Button variant="ghost" className="w-full justify-start">
                       <Briefcase className="h-4 w-4 mr-2" />
