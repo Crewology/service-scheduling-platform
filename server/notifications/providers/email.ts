@@ -12,7 +12,7 @@ const SITE_LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/
  * In production the custom domain is used; in dev we fall back to the dev-server origin.
  */
 function getSiteUrl(): string {
-  return "https://servsched-qd7ehrqo.manus.space";
+  return "https://www.ologycrew.com";
 }
 
 // Email sender addresses by context

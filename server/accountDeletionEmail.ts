@@ -1,7 +1,7 @@
 import { ENV } from "./_core/env";
 
 const LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png";
-const SITE_URL = "https://servsched-qd7ehrqo.manus.space";
+const SITE_URL = "https://www.ologycrew.com";
 
 /**
  * Sends a confirmation email when a user deletes their account.

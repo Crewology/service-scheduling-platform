@@ -8,7 +8,7 @@
  * 
  * Usage:
  *   getShareUrl("provider", "chisolm-audio", origin)
- *   → "https://servsched-qd7ehrqo.manus.space/api/og/provider/chisolm-audio"
+ *   → "https://www.ologycrew.com/api/og/provider/chisolm-audio"
  */
 
 export type ShareEntityType = "provider" | "service" | "category";
@@ -17,7 +17,7 @@ export type ShareEntityType = "provider" | "service" | "category";
  * Build a share URL that goes through the /api/og route for proper OG tag rendering.
  * @param type - Entity type: "provider", "service", or "category"
  * @param id - Entity identifier (slug for provider/category, numeric id for service)
- * @param origin - The window.location.origin (e.g., "https://servsched-qd7ehrqo.manus.space")
+ * @param origin - The window.location.origin (e.g., "https://www.ologycrew.com")
  */
 export function getShareUrl(type: ShareEntityType, id: string | number, origin: string): string {
   return `${origin}/api/og/${type}/${id}`;
