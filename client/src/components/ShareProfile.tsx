@@ -32,19 +32,17 @@ export function ShareProfile({
   const [activeTab, setActiveTab] = useState<"share" | "qr">("share");
   const qrRef = useRef<HTMLDivElement>(null);
 
-  // The canonical URL (what users see and copy)
+  // The canonical URL (what users see, copy, and share)
   const fullUrl = url.startsWith("http") ? url : `${window.location.origin}${url}`;
-  // The share URL for social media (goes through /api/og/ for proper OG tags)
-  const socialUrl = shareUrl
-    ? (shareUrl.startsWith("http") ? shareUrl : `${window.location.origin}${shareUrl}`)
-    : fullUrl;
+  // Use the clean canonical URL for all sharing — /p/slug already has OG tags via SSR
+  const socialUrl = fullUrl;
   const encodedUrl = encodeURIComponent(socialUrl);
   const encodedTitle = encodeURIComponent(title);
   const encodedDesc = encodeURIComponent(description || title);
 
   const handleCopyLink = async () => {
-    // Copy the social URL (with OG tags) so pasting in Messenger/social apps shows the right preview
-    const copyTarget = socialUrl;
+    // Copy the clean canonical URL — OG tags are served via SSR on the /p/ route
+    const copyTarget = fullUrl;
     try {
       await navigator.clipboard.writeText(copyTarget);
       toast.success("Link copied! Paste it anywhere to share with a rich preview.");

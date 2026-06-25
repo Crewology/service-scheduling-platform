@@ -342,7 +342,7 @@ function PublicProfileSection({ provider }: { provider: any }) {
     : null;
   // Use the /api/og/ URL for sharing — this serves proper OG meta tags for social media previews
   const shareableUrl = provider.profileSlug
-    ? `${window.location.origin}/api/og/provider/${provider.profileSlug}`
+    ? `${window.location.origin}/p/${provider.profileSlug}`
     : null;
 
   const copyUrl = () => {
@@ -413,7 +413,7 @@ function PublicProfileSection({ provider }: { provider: any }) {
             </Link>
             <ShareProfile
               url={profileUrl!}
-              shareUrl={`/api/og/provider/${provider.profileSlug}`}
+              
               title={provider.businessName}
               description={provider.description || `Book services from ${provider.businessName} on OlogyCrew`}
               size="icon"

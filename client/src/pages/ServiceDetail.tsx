@@ -745,7 +745,6 @@ export default function ServiceDetail() {
                     )}
                     <ShareProfile
                       url={`${window.location.origin}/service/${id}`}
-                      shareUrl={`${window.location.origin}/api/og/service/${id}`}
                       title={`${service.name} — ${provider?.businessName || 'OlogyCrew'}`}
                       description={service.description || `Book ${service.name} on OlogyCrew`}
                       trigger={
