@@ -260,7 +260,7 @@ Your OlogyCrew subscription has been cancelled.
 
 **Business:** Gary's Wellness Studio
 
-Your account has been downgraded to the Starter tier. You can resubscribe at any time from your provider dashboard.
+Your account has been downgraded to the Starter tier. You can resubscribe at any time from My Dashboard.
 
 Best regards,
 OlogyCrew Team`,
@@ -318,7 +318,7 @@ You have a new quote request from Marcus Williams!
 **Preferred Time:** Morning
 **Location:** 456 Oak Ave, Atlanta, GA 30302
 
-Please respond with your pricing in your provider dashboard.
+Please respond with your pricing in My Dashboard.
 
 Best regards,
 OlogyCrew Team`,

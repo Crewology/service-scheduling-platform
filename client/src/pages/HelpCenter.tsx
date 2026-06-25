@@ -233,7 +233,7 @@ const guideSections: GuideSection[] = [
       {
         title: "Managing Your Services",
         content:
-          "From your Provider Dashboard, you can add, edit, or remove services at any time. Each service includes a name, description, category, pricing (fixed, hourly, or custom), duration, and location type (mobile, in-shop, or virtual). Your tier determines your limits: Starter gets 1 category and up to 3 services, Pro gets up to 5 categories and 10 services, and Business gets unlimited categories and services.",
+          "From My Dashboard, you can add, edit, or remove services at any time. Each service includes a name, description, category, pricing (fixed, hourly, or custom), duration, and location type (mobile, in-shop, or virtual). Your tier determines your limits: Starter gets 1 category and up to 3 services, Pro gets up to 5 categories and 10 services, and Business gets unlimited categories and services.",
       },
       {
         title: "Setting Your Availability",
@@ -264,7 +264,7 @@ const guideSections: GuideSection[] = [
       {
         title: "Viewing Your Waitlist",
         content:
-          "When your group classes are full, customers can join a waitlist for specific time slots. You can view all waitlist entries from the Waitlist section in your Provider Dashboard. Entries are grouped by service and date, showing each customer's name, position in line, and status. When a booking is cancelled, the next person on the waitlist is automatically notified that a spot has opened. You can also manually remove entries if needed. A healthy waitlist is a great sign — it means demand for your classes is high!",
+          "When your group classes are full, customers can join a waitlist for specific time slots. You can view all waitlist entries from the Waitlist section in My Dashboard. Entries are grouped by service and date, showing each customer's name, position in line, and status. When a booking is cancelled, the next person on the waitlist is automatically notified that a spot has opened. You can also manually remove entries if needed. A healthy waitlist is a great sign — it means demand for your classes is high!",
       },
       {
         title: "Handling Bookings",
@@ -279,7 +279,7 @@ const guideSections: GuideSection[] = [
       {
         title: "Building Your Portfolio",
         content:
-          "Showcase your best work by uploading photos to your portfolio from the Provider Dashboard. You can add single photos or before/after comparisons. A strong portfolio helps attract more customers and build trust.",
+          "Showcase your best work by uploading photos to your portfolio from My Dashboard. You can add single photos or before/after comparisons. A strong portfolio helps attract more customers and build trust.",
       },
       {
         title: "Your Public Profile",
@@ -301,7 +301,7 @@ const guideSections: GuideSection[] = [
       {
         title: "Trust Badges & Reputation",
         content:
-          "OlogyCrew uses an automated Trust Score system to help customers identify reliable providers. Your trust level is calculated from five factors:\n\n\u2022 Profile Completeness (25%) \u2014 Photo, bio, contact info, and business details\n\u2022 Stripe Verification (20%) \u2014 Having a connected and verified Stripe account\n\u2022 Booking History (25%) \u2014 Number of completed bookings and completion rate\n\u2022 Customer Reviews (20%) \u2014 Average rating and number of reviews\n\u2022 Account Age (10%) \u2014 How long you've been on the platform\n\nBased on your score, you earn one of four trust levels:\n\u2022 New \u2014 Just getting started (score 0-29)\n\u2022 Rising \u2014 Building your reputation (score 30-59)\n\u2022 Trusted \u2014 Established provider (score 60-84)\n\u2022 Top Pro \u2014 Elite provider status (score 85-100)\n\nYour trust badge appears on your profile and in search results. Higher trust levels rank you higher in search. Check your Trust Score breakdown and improvement tips on your Provider Dashboard.",
+          "OlogyCrew uses an automated Trust Score system to help customers identify reliable providers. Your trust level is calculated from five factors:\n\n\u2022 Profile Completeness (25%) \u2014 Photo, bio, contact info, and business details\n\u2022 Stripe Verification (20%) \u2014 Having a connected and verified Stripe account\n\u2022 Booking History (25%) \u2014 Number of completed bookings and completion rate\n\u2022 Customer Reviews (20%) \u2014 Average rating and number of reviews\n\u2022 Account Age (10%) \u2014 How long you've been on the platform\n\nBased on your score, you earn one of four trust levels:\n\u2022 New \u2014 Just getting started (score 0-29)\n\u2022 Rising \u2014 Building your reputation (score 30-59)\n\u2022 Trusted \u2014 Established provider (score 60-84)\n\u2022 Top Pro \u2014 Elite provider status (score 85-100)\n\nYour trust badge appears on your profile and in search results. Higher trust levels rank you higher in search. Check your Trust Score breakdown and improvement tips on My Dashboard.",
         link: "/provider/dashboard",
         linkText: "View Your Trust Score",
       },
@@ -625,7 +625,7 @@ const faqItems: FAQItem[] = [
   {
     question: "What are Trust Badges and how do I earn one?",
     answer:
-      "Trust Badges are automatically earned based on your Trust Score, which is calculated from your profile completeness, Stripe verification, booking history, customer reviews, and account age. There are four levels: New (0-29), Rising (30-59), Trusted (60-84), and Top Pro (85-100). Your badge appears on your profile and in search results. Higher trust levels also rank you higher in search. Check your Trust Score breakdown and improvement tips on your Provider Dashboard.",
+      "Trust Badges are automatically earned based on your Trust Score, which is calculated from your profile completeness, Stripe verification, booking history, customer reviews, and account age. There are four levels: New (0-29), Rising (30-59), Trusted (60-84), and Top Pro (85-100). Your badge appears on your profile and in search results. Higher trust levels also rank you higher in search. Check your Trust Score breakdown and improvement tips on My Dashboard.",
     category: "Providers",
   },
   {
@@ -667,7 +667,7 @@ const faqItems: FAQItem[] = [
   {
     question: "How do I see who's on my waitlist? (Providers)",
     answer:
-      "Go to your Provider Dashboard and look for the Waitlist section. You'll see all customers waiting for your group classes, organized by service and date. Each entry shows the customer's name, their position in line, the date/time they're waiting for, and their current status. When a booking is cancelled, the system automatically notifies the next person in line.",
+      "Go to My Dashboard and look for the Waitlist section. You'll see all customers waiting for your group classes, organized by service and date. Each entry shows the customer's name, their position in line, the date/time they're waiting for, and their current status. When a booking is cancelled, the system automatically notifies the next person in line.",
     category: "Providers",
   },
 ];
