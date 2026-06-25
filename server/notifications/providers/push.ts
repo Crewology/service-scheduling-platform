@@ -67,17 +67,18 @@ function formatPushPayload(notification: Notification) {
     review_reminder: `How was your recent service? Leave a review to help others.`,
   };
 
+  const bookingDetailUrl = data.bookingId ? `/booking/${data.bookingId}/detail` : `/my-bookings`;
   const urlMap: Record<string, string> = {
-    booking_created: `/my-bookings`,
-    booking_confirmed: `/my-bookings`,
-    booking_cancelled: `/my-bookings`,
-    booking_completed: `/my-bookings`,
-    payment_received: `/my-bookings`,
-    payment_failed: `/my-bookings`,
+    booking_created: bookingDetailUrl,
+    booking_confirmed: bookingDetailUrl,
+    booking_cancelled: bookingDetailUrl,
+    booking_completed: bookingDetailUrl,
+    payment_received: bookingDetailUrl,
+    payment_failed: bookingDetailUrl,
     message_received: `/messages`,
     review_received: `/provider/dashboard`,
-    reminder_24h: `/my-bookings`,
-    reminder_1h: `/my-bookings`,
+    reminder_24h: bookingDetailUrl,
+    reminder_1h: bookingDetailUrl,
     quote_request_new: `/provider/dashboard`,
     quote_response_received: `/my-quotes`,
     quote_accepted: `/provider/dashboard`,

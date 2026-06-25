@@ -222,7 +222,7 @@ export const bookingRouter = router({
             notificationType: "booking_created",
             title: "New Booking Request",
             message: `${ctx.user.name || "A customer"} booked ${service.name} for ${input.bookingDate} at ${formatTimeForDisplay(input.startTime)}`,
-            actionUrl: `/provider/dashboard`,
+            actionUrl: `/booking/${bookingId}/detail`,
             relatedBookingId: bookingId,
           });
         }
@@ -424,7 +424,7 @@ export const bookingRouter = router({
             notificationType: statusMsg.type,
             title: statusMsg.title,
             message: `Booking ${booking.bookingNumber} status changed to ${input.status}`,
-            actionUrl: `/provider/dashboard`,
+            actionUrl: `/booking/${booking.id}/detail`,
             relatedBookingId: booking.id,
           });
         }
@@ -614,7 +614,7 @@ export const bookingRouter = router({
             notificationType: "booking_cancelled",
             title: "Booking Cancelled by Customer",
             message: `${customer?.name || "Customer"} cancelled booking ${booking.bookingNumber} for ${service?.name || "Service"}`,
-            actionUrl: `/provider/dashboard`,
+            actionUrl: `/booking/${booking.id}/detail`,
             relatedBookingId: booking.id,
           });
         }
