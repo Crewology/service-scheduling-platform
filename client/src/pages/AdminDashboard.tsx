@@ -66,6 +66,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { Link, useSearch } from "wouter";
+import { Settings } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/dateUtils";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { TeamManagementPanel } from "./admin/TeamManagementPanel";
@@ -447,6 +448,10 @@ export default function AdminDashboard() {
                 <DollarSign className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
                 Partner Split
               </TabsTrigger>
+              <TabsTrigger value="settings" className="whitespace-nowrap text-xs md:text-sm">
+                <Settings className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
+                Settings
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -709,6 +714,11 @@ export default function AdminDashboard() {
           {/* Partner Revenue Split Tab */}
           <TabsContent value="partner">
             <PartnerSplitPanel />
+          </TabsContent>
+
+          {/* Platform Settings Tab */}
+          <TabsContent value="settings">
+            <PlatformSettingsPanel />
           </TabsContent>
         </Tabs>
       </div>
@@ -2920,6 +2930,121 @@ function MonthlyRevenueChart({ data }: { data: Array<{ month: string; totalReven
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+
+// ============================================================================
+// PLATFORM SETTINGS PANEL
+// ============================================================================
+function PlatformSettingsPanel() {
+  const { data: settings, isLoading } = trpc.platformSettings.getAll.useQuery();
+  const utils = trpc.useUtils();
+
+  const [form, setForm] = useState({
+    contact_phone: "",
+    contact_email: "",
+    contact_address: "",
+    business_hours: "",
+    support_email: "",
+  });
+  const [hasLoaded, setHasLoaded] = useState(false);
+
+  // Populate form when settings load
+  if (settings && !hasLoaded) {
+    setForm({
+      contact_phone: settings.contact_phone || "",
+      contact_email: settings.contact_email || "",
+      contact_address: settings.contact_address || "",
+      business_hours: settings.business_hours || "",
+      support_email: settings.support_email || "",
+    });
+    setHasLoaded(true);
+  }
+
+  const updateSettings = trpc.platformSettings.update.useMutation({
+    onSuccess: () => {
+      toast.success("Platform settings updated");
+      utils.platformSettings.getAll.invalidate();
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const handleSave = () => {
+    updateSettings.mutate({ settings: form });
+  };
+
+  if (isLoading) return <LoadingSpinner />;
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings className="h-5 w-5" />
+            Platform Contact Information
+          </CardTitle>
+          <CardDescription>
+            Manage the contact details displayed on the Help Center and Contact Us page. Changes take effect immediately.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Phone Number</label>
+              <Input
+                value={form.contact_phone}
+                onChange={(e) => setForm({ ...form, contact_phone: e.target.value })}
+                placeholder="(678) 525-0891"
+              />
+              <p className="text-xs text-muted-foreground">Displayed on the Contact Us page</p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Contact Email</label>
+              <Input
+                value={form.contact_email}
+                onChange={(e) => setForm({ ...form, contact_email: e.target.value })}
+                placeholder="info@ologycrew.com"
+              />
+              <p className="text-xs text-muted-foreground">General contact email shown to users</p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Support Email</label>
+              <Input
+                value={form.support_email}
+                onChange={(e) => setForm({ ...form, support_email: e.target.value })}
+                placeholder="support@ologycrew.com"
+              />
+              <p className="text-xs text-muted-foreground">Used in confirmation emails and support replies</p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Business Hours</label>
+              <Input
+                value={form.business_hours}
+                onChange={(e) => setForm({ ...form, business_hours: e.target.value })}
+                placeholder="Mon-Fri 9:00 AM - 6:00 PM EST"
+              />
+              <p className="text-xs text-muted-foreground">Displayed alongside phone support info</p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Business Address</label>
+            <Textarea
+              value={form.contact_address}
+              onChange={(e) => setForm({ ...form, contact_address: e.target.value })}
+              placeholder="123 Main St, Suite 100, Atlanta, GA 30301"
+              rows={2}
+            />
+            <p className="text-xs text-muted-foreground">Physical address (optional, shown on Contact page if provided)</p>
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={handleSave} disabled={updateSettings.isPending}>
+              {updateSettings.isPending ? "Saving..." : "Save Settings"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

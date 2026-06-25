@@ -1753,3 +1753,10 @@
 - [x] Blocked dates shown as red/unavailable on the provider's calendar
 - [x] Booking flow respects blocked dates (grayed out, cannot be selected by customers)
 - [x] Bulk delete support for removing block-out dates
+
+## Admin-Managed Contact Info / Platform Settings
+- [x] Create platform_settings table in schema (key-value store for site-wide settings like phone, email, address, hours)
+- [x] Add admin procedures to get/update platform settings
+- [x] Add Platform Settings tab/section in Admin Dashboard for managing contact info
+- [x] Update HelpCenter Contact Us section to pull contact info from platform settings (dynamic, not hardcoded)
+- [x] Verify booking email notifications are working end-to-end

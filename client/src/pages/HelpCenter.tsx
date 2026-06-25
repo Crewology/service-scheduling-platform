@@ -955,6 +955,13 @@ export default function HelpCenter() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("all");
 
+  // Fetch platform contact info from admin settings
+  const { data: platformContactInfo } = trpc.platformSettings.getAll.useQuery();
+  const contactPhone = platformContactInfo?.contact_phone || "(678) 525-0891";
+  const contactEmail = platformContactInfo?.contact_email || "info@ologycrew.com";
+  const businessHours = platformContactInfo?.business_hours || "Mon-Fri 9:00 AM - 6:00 PM EST";
+  const contactAddress = platformContactInfo?.contact_address || "";
+
   // Filter FAQ items based on search and category
   const filteredFAQ = useMemo(() => {
     return faqItems.filter((item) => {
@@ -1143,7 +1150,7 @@ export default function HelpCenter() {
           <ContactForm />
 
           {/* Direct Contact Info */}
-          <div className="mt-6 grid grid-cols-1 gap-4">
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card className="border-primary/20">
               <CardContent className="py-6">
                 <div className="flex items-start gap-4">
@@ -1153,19 +1160,58 @@ export default function HelpCenter() {
                   <div>
                     <h3 className="font-semibold text-lg mb-1">Phone Support</h3>
                     <p className="text-sm text-muted-foreground mb-3">
-                      Call us during business hours for urgent matters.
+                      {businessHours}
                     </p>
                     <a
-                      href="tel:+16785250891"
+                      href={`tel:${contactPhone.replace(/[^+\d]/g, "")}`}
                       className="inline-flex items-center gap-2 text-primary font-medium text-sm hover:underline"
                     >
-                      (678) 525-0891
+                      {contactPhone}
                       <ExternalLink className="h-3 w-3" />
                     </a>
                   </div>
                 </div>
               </CardContent>
             </Card>
+            <Card className="border-primary/20">
+              <CardContent className="py-6">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-xl bg-primary/10 text-primary shrink-0">
+                    <MessageSquare className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg mb-1">Email Support</h3>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      We typically respond within 24 hours.
+                    </p>
+                    <a
+                      href={`mailto:${contactEmail}`}
+                      className="inline-flex items-center gap-2 text-primary font-medium text-sm hover:underline"
+                    >
+                      {contactEmail}
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            {contactAddress && (
+              <Card className="border-primary/20 md:col-span-2">
+                <CardContent className="py-6">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-xl bg-primary/10 text-primary shrink-0">
+                      <MapPin className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg mb-1">Our Location</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {contactAddress}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Additional Resources */}

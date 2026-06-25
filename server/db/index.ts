@@ -35,3 +35,4 @@ export * from "./verification";
 export * from "./messages";
 export * from "./referrals";
 export * from "./waitlist";
+export * from "./platformSettings";

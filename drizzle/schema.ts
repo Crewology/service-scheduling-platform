@@ -1024,3 +1024,13 @@ export const eventTemplates = mysqlTable("event_templates", {
 ]);
 export type EventTemplate = typeof eventTemplates.$inferSelect;
 export type InsertEventTemplate = typeof eventTemplates.$inferInsert;
+
+// ─── Platform Settings (Admin-managed key-value store) ──────────────────────
+export const platformSettings = mysqlTable("platform_settings", {
+  id: int("id").autoincrement().primaryKey(),
+  settingKey: varchar("settingKey", { length: 100 }).notNull().unique(),
+  settingValue: text("settingValue").notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type PlatformSetting = typeof platformSettings.$inferSelect;
+export type InsertPlatformSetting = typeof platformSettings.$inferInsert;
