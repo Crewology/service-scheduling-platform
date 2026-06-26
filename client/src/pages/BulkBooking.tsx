@@ -428,7 +428,7 @@ function QuickCategoryStackingModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-lg w-full max-w-lg shadow-xl max-h-[75vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white rounded-lg w-full max-w-lg shadow-xl max-h-[85vh] flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
         <div className="p-5 border-b">
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <ListChecks className="h-5 w-5 text-primary" />
@@ -447,7 +447,7 @@ function QuickCategoryStackingModal({
             />
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4">
           <div className="grid grid-cols-1 gap-1">
             {filteredCategories.map((cat: any) => {
               const alreadyAdded = existingCategoryIds.has(cat.id);
@@ -479,7 +479,7 @@ function QuickCategoryStackingModal({
             })}
           </div>
         </div>
-        <div className="p-3 sm:p-4 border-t flex flex-wrap items-center justify-between gap-2">
+        <div className="shrink-0 p-3 sm:p-4 border-t flex flex-wrap items-center justify-between gap-2">
           <span className="text-sm text-muted-foreground">
             {selected.size} selected
           </span>
