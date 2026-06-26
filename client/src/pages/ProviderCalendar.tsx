@@ -416,7 +416,7 @@ export default function ProviderCalendar() {
 
   const renderWeekView = () => {
     const weekDates = getWeekDates(currentDate);
-    const hours = Array.from({ length: 14 }, (_, i) => i + 7);
+    const hours = Array.from({ length: 24 }, (_, i) => i);
 
     return (
       <div className="border rounded-lg overflow-hidden">
