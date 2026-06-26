@@ -1904,3 +1904,8 @@
 ## UX: Search Page Mobile - Move Search Bar Out of Filter Panel
 
 - [x] Move the search input out of the filter drawer and place it prominently at the top of the page on mobile for easy access
+
+## Fix: Quick Category Stacking Modal Vertical Centering
+
+- [x] Center modal vertically on both mobile and desktop (items-center on all breakpoints)
+- [x] Reduce max-height to 75vh to ensure footer buttons always stay within viewport

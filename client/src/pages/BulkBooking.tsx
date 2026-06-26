@@ -427,8 +427,8 @@ function QuickCategoryStackingModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-3 sm:p-4" onClick={onClose}>
-      <div className="bg-white rounded-lg w-full max-w-lg shadow-xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-lg w-full max-w-lg shadow-xl max-h-[75vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="p-5 border-b">
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <ListChecks className="h-5 w-5 text-primary" />
