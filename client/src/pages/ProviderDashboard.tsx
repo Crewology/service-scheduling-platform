@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Legend, Area, AreaChart, PieChart, Pie, Cell
@@ -63,6 +63,7 @@ import {
   BellRing,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
+import { useViewMode } from "@/contexts/ViewModeContext";
 import { getLoginUrl } from "@/const";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { ShareProfile } from "@/components/ShareProfile";
@@ -809,6 +810,14 @@ function VerificationDocumentsTab() {
 export default function ProviderDashboard() {
   const { user, isAuthenticated, loading } = useAuth();
   const [, setLocation] = useLocation();
+  const { isProviderView } = useViewMode();
+
+  // Redirect to My Bookings if user switches to customer view
+  useEffect(() => {
+    if (!isProviderView) {
+      setLocation("/my-bookings");
+    }
+  }, [isProviderView, setLocation]);
 
   const utils = trpc.useUtils();
 
