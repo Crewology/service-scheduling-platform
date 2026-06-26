@@ -100,7 +100,19 @@ export const bookingRouter = router({
 
       const bookingNumber = `OC-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
       
-      let subtotal = input.subtotal || (service.basePrice ? service.basePrice : "0.00");
+      // Calculate subtotal: prefer input.subtotal, then basePrice, then hourly rate × duration
+      let subtotal: string;
+      if (input.subtotal) {
+        subtotal = input.subtotal;
+      } else if (service.basePrice && parseFloat(service.basePrice) > 0) {
+        subtotal = service.basePrice;
+      } else if (service.hourlyRate && parseFloat(service.hourlyRate) > 0) {
+        // For hourly-rate services without a fixed basePrice, calculate from duration
+        const durationMins = input.durationMinutes || service.durationMinutes || 60;
+        subtotal = ((parseFloat(service.hourlyRate) * durationMins) / 60).toFixed(2);
+      } else {
+        subtotal = "0.00";
+      }
       let subtotalNum = parseFloat(subtotal);
 
       // Apply promo code discount if provided
@@ -786,8 +798,16 @@ export const bookingRouter = router({
         });
       }
 
-      // Calculate pricing
-      const perDayPrice = parseFloat(service.basePrice || service.hourlyRate || "0");
+      // Calculate pricing: for hourly services, multiply rate by duration per session
+      let perDayPrice: number;
+      if (service.basePrice && parseFloat(service.basePrice) > 0) {
+        perDayPrice = parseFloat(service.basePrice);
+      } else if (service.hourlyRate && parseFloat(service.hourlyRate) > 0) {
+        const durationMins = input.durationMinutes || service.durationMinutes || 60;
+        perDayPrice = (parseFloat(service.hourlyRate) * durationMins) / 60;
+      } else {
+        perDayPrice = 0;
+      }
       const subtotal = (perDayPrice * totalDays).toFixed(2);
       const platformFee = (parseFloat(subtotal) * 0.01).toFixed(2);
       const totalAmount = (parseFloat(subtotal) + parseFloat(platformFee)).toFixed(2);
@@ -962,8 +982,16 @@ export const bookingRouter = router({
         });
       }
 
-      // Calculate pricing
-      const perSessionPrice = parseFloat(service.basePrice || service.hourlyRate || "0");
+      // Calculate pricing: for hourly services, multiply rate by duration per session
+      let perSessionPrice: number;
+      if (service.basePrice && parseFloat(service.basePrice) > 0) {
+        perSessionPrice = parseFloat(service.basePrice);
+      } else if (service.hourlyRate && parseFloat(service.hourlyRate) > 0) {
+        const durationMins = input.durationMinutes || service.durationMinutes || 60;
+        perSessionPrice = (parseFloat(service.hourlyRate) * durationMins) / 60;
+      } else {
+        perSessionPrice = 0;
+      }
       const totalSessions = uniqueDates.length;
       const subtotal = (perSessionPrice * totalSessions).toFixed(2);
       const platformFee = (parseFloat(subtotal) * 0.01).toFixed(2);

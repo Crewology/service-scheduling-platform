@@ -1824,3 +1824,8 @@
 - [x] Update SubscriptionManagement.tsx yearly billing caption
 - [x] TypeScript compiles cleanly (0 errors)
 - [x] Kept API payloads (Stripe, CSV exports, mutation data) at full precision
+
+## Bug Fix: "Invalid payment amount" for hourly-rate services (DJ & Music)
+- [x] Fix backend booking creation to calculate subtotal from hourly rate when basePrice is null
+- [x] Fix multi-day and recurring booking pricing to properly calculate hourly rate × duration
+- [x] Frontend already passes subtotal for custom duration; backend now handles standard duration fallback
