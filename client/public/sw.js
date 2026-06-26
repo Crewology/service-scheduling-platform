@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ologycrew-v2';
+const CACHE_NAME = 'ologycrew-v3';
 const DATA_CACHE_NAME = 'ologycrew-data-v1';
 const STATIC_ASSETS = [
   '/',
@@ -43,6 +43,17 @@ self.addEventListener('fetch', (event) => {
     url.pathname.startsWith('/oauth') ||
     url.pathname.startsWith('/api/auth/') ||
     request.headers.get('accept')?.includes('text/event-stream')
+  ) {
+    return;
+  }
+
+  // Skip Vite dev server assets — never cache these as they change on every rebuild
+  if (
+    url.pathname.startsWith('/@fs/') ||
+    url.pathname.startsWith('/@vite/') ||
+    url.pathname.startsWith('/node_modules/') ||
+    url.pathname.includes('.vite/deps/') ||
+    url.pathname.startsWith('/src/')
   ) {
     return;
   }
