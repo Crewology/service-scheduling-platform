@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { trpc } from "@/lib/trpc";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { useLocation } from "wouter";
+import { useViewMode } from "@/contexts/ViewModeContext";
 import { getLoginUrl } from "@/const";
 import { toast } from "sonner";
 import {
@@ -1234,6 +1235,14 @@ function ServiceGroupCard({
 export default function BulkBooking() {
   const { user, isAuthenticated, loading } = useAuth();
   const [, setLocation] = useLocation();
+  const { isProviderView } = useViewMode();
+
+  // Redirect to My Bookings if user switches to provider view
+  useEffect(() => {
+    if (isProviderView) {
+      setLocation("/my-bookings");
+    }
+  }, [isProviderView, setLocation]);
 
   // Legacy event fields removed - date/venue now per-group
 
