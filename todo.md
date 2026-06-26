@@ -1788,3 +1788,10 @@
 ## Fix: OG Share Card Missing Profile Photo + Add "My Page" Link
 - [x] Fix OG image generation to include provider profile photo in share preview card
 - [x] Add "My Page" quick link to provider dropdown menu (top right user menu)
+
+## Feature: OlogyCrew AI Help Assistant Chatbot
+- [x] Create system prompt with full platform knowledge (features, how-tos, best practices)
+- [x] Create backend tRPC endpoint for chat (invokeLLM with conversation history)
+- [x] Build floating chat widget UI (bottom-right bubble, expandable chat panel)
+- [x] Add suggested starter questions for quick access
+- [x] Integrate widget into app layout (available on all pages)

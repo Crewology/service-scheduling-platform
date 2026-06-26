@@ -7,6 +7,7 @@ import { PWAInstallBanner } from "./components/PWAInstallBanner";
 import { OfflineBanner } from "./components/OfflineBanner";
 import { RoleGuard } from "./components/RoleGuard";
 import { Footer } from "./components/shared/Footer";
+import { HelpChatWidget } from "./components/HelpChatWidget";
 import { useLocation } from "wouter";
 
 // ─── Page Imports ───────────────────────────────────────────────────────────
@@ -154,6 +155,7 @@ function AppContent() {
       </RoleGuard>
       {!hideFooter && <Footer />}
       <PWAInstallBanner />
+      {!location.startsWith("/embed") && <HelpChatWidget />}
     </>
   );
 }
