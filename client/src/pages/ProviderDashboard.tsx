@@ -2505,89 +2505,94 @@ export default function ProviderDashboard() {
 
       {/* Edit Service Dialog */}
       <Dialog open={!!editingService} onOpenChange={() => setEditingService(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Edit Service</DialogTitle>
             <DialogDescription>Update service details</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 overflow-y-auto flex-1 pr-2">
             <div>
               <Label>Service Name</Label>
               <Input value={serviceForm.name || ""} onChange={e => setServiceForm({ ...serviceForm, name: e.target.value })} />
             </div>
             <div>
               <Label>Description</Label>
-              <Textarea value={serviceForm.description || ""} onChange={e => setServiceForm({ ...serviceForm, description: e.target.value })} rows={3} />
+              <Textarea value={serviceForm.description || ""} onChange={e => setServiceForm({ ...serviceForm, description: e.target.value })} rows={2} />
             </div>
-            <div>
-              <Label>Service Type</Label>
-              <Select value={serviceForm.serviceType || "fixed_location"} onValueChange={(value) => setServiceForm({ ...serviceForm, serviceType: value })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {serviceForm.categoryId === 20 ? (
-                    <>
-                      <SelectItem value="fixed_location">Public Venue</SelectItem>
-                      <SelectItem value="mobile">Private Location</SelectItem>
-                      <SelectItem value="virtual">Virtual Stream</SelectItem>
-                      <SelectItem value="flexible">Flexible</SelectItem>
-                      <SelectItem value="teams">Microsoft Teams</SelectItem>
-                      <SelectItem value="zoom">Zoom</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </>
-                  ) : (
-                    <>
-                      <SelectItem value="fixed_location">At My Location</SelectItem>
-                      <SelectItem value="mobile">Mobile (I Travel)</SelectItem>
-                      <SelectItem value="virtual">Virtual / Online</SelectItem>
-                      <SelectItem value="flexible">Flexible</SelectItem>
-                      <SelectItem value="teams">Microsoft Teams</SelectItem>
-                      <SelectItem value="zoom">Zoom</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Pricing Model</Label>
-              <Select value={serviceForm.pricingModel || "fixed"} onValueChange={(value) => setServiceForm({ ...serviceForm, pricingModel: value })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="fixed">Fixed Price</SelectItem>
-                  <SelectItem value="hourly">Hourly Rate</SelectItem>
-                  <SelectItem value="package">Package Deal</SelectItem>
-                  <SelectItem value="custom_quote">Custom Quote</SelectItem>
-                  <SelectItem value="consultation">Consultation (Free)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {(serviceForm.pricingModel === "fixed" || serviceForm.pricingModel === "package") && (
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Base Price ($)</Label>
-                <Input type="number" step="0.01" value={serviceForm.basePrice || ""} onChange={e => setServiceForm({ ...serviceForm, basePrice: e.target.value })} />
+                <Label>Service Type</Label>
+                <Select value={serviceForm.serviceType || "fixed_location"} onValueChange={(value) => setServiceForm({ ...serviceForm, serviceType: value })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {serviceForm.categoryId === 20 ? (
+                      <>
+                        <SelectItem value="fixed_location">Public Venue</SelectItem>
+                        <SelectItem value="mobile">Private Location</SelectItem>
+                        <SelectItem value="virtual">Virtual Stream</SelectItem>
+                        <SelectItem value="flexible">Flexible</SelectItem>
+                        <SelectItem value="teams">Microsoft Teams</SelectItem>
+                        <SelectItem value="zoom">Zoom</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </>
+                    ) : (
+                      <>
+                        <SelectItem value="fixed_location">At My Location</SelectItem>
+                        <SelectItem value="mobile">Mobile (I Travel)</SelectItem>
+                        <SelectItem value="virtual">Virtual / Online</SelectItem>
+                        <SelectItem value="flexible">Flexible</SelectItem>
+                        <SelectItem value="teams">Microsoft Teams</SelectItem>
+                        <SelectItem value="zoom">Zoom</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </>
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
-            )}
-            {serviceForm.pricingModel === "hourly" && (
               <div>
-                <Label>Hourly Rate ($)</Label>
-                <Input type="number" step="0.01" value={serviceForm.hourlyRate || ""} onChange={e => setServiceForm({ ...serviceForm, hourlyRate: e.target.value })} />
+                <Label>Duration</Label>
+                <select
+                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                  value={serviceForm.durationMinutes || 60}
+                  onChange={e => setServiceForm({ ...serviceForm, durationMinutes: parseInt(e.target.value) || 60 })}
+                >
+                  {DURATION_PRESETS.map(p => (
+                    <option key={p.value} value={p.value}>{p.label}</option>
+                  ))}
+                </select>
               </div>
-            )}
-            <div>
-              <Label>Duration</Label>
-              <select
-                className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-                value={serviceForm.durationMinutes || 60}
-                onChange={e => setServiceForm({ ...serviceForm, durationMinutes: parseInt(e.target.value) || 60 })}
-              >
-                {DURATION_PRESETS.map(p => (
-                  <option key={p.value} value={p.value}>{p.label}</option>
-                ))}
-              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Pricing Model</Label>
+                <Select value={serviceForm.pricingModel || "fixed"} onValueChange={(value) => setServiceForm({ ...serviceForm, pricingModel: value })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="fixed">Fixed Price</SelectItem>
+                    <SelectItem value="hourly">Hourly Rate</SelectItem>
+                    <SelectItem value="package">Package Deal</SelectItem>
+                    <SelectItem value="custom_quote">Custom Quote</SelectItem>
+                    <SelectItem value="consultation">Consultation (Free)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {(serviceForm.pricingModel === "fixed" || serviceForm.pricingModel === "package") && (
+                <div>
+                  <Label>Base Price ($)</Label>
+                  <Input type="number" step="0.01" value={serviceForm.basePrice || ""} onChange={e => setServiceForm({ ...serviceForm, basePrice: e.target.value })} />
+                </div>
+              )}
+              {serviceForm.pricingModel === "hourly" && (
+                <div>
+                  <Label>Hourly Rate ($)</Label>
+                  <Input type="number" step="0.01" value={serviceForm.hourlyRate || ""} onChange={e => setServiceForm({ ...serviceForm, hourlyRate: e.target.value })} />
+                </div>
+              )}
+              {serviceForm.pricingModel === "custom_quote" || serviceForm.pricingModel === "consultation" ? <div /> : null}
             </div>
             <div>
               <Label>Cancellation Policy</Label>
