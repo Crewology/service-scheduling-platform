@@ -1915,3 +1915,8 @@
 - [x] Make OlogyCrew text visible on mobile (was hidden with hidden lg:inline)
 - [x] Increase text size to text-xl (20px) on all viewports for easy readability
 - [x] Increase logo icon to h-9 w-9 on mobile for better visibility
+
+## Fix: PWA Splash Screen OlogyCrew Text Too Small
+
+- [x] Regenerate all 9 iOS splash screen images with larger OlogyCrew text (~5% of screen width vs previous ~2%)
+- [x] Upload new splash images and update index.html references
