@@ -1909,3 +1909,9 @@
 
 - [x] Center modal vertically on both mobile and desktop (items-center on all breakpoints)
 - [x] Reduce max-height to 75vh to ensure footer buttons always stay within viewport
+
+## Fix: OlogyCrew Logo Text Size on Mobile
+
+- [x] Make OlogyCrew text visible on mobile (was hidden with hidden lg:inline)
+- [x] Increase text size to text-xl (20px) on all viewports for easy readability
+- [x] Increase logo icon to h-9 w-9 on mobile for better visibility
