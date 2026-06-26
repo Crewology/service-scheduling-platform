@@ -314,7 +314,7 @@ export default function MyBookings() {
               </Card>
             ) : (
               upcomingBookings.map((booking: any) => (
-                <BookingCard key={booking.id} booking={booking} setLocation={setLocation} isOffline={isOffline} />
+                <BookingCard key={booking.id} booking={booking} setLocation={setLocation} isOffline={isOffline} isProviderView={bookingView === "provider"} />
               ))
             )}
           </TabsContent>
@@ -337,6 +337,7 @@ export default function MyBookings() {
                   booking={booking}
                   setLocation={setLocation}
                   isOffline={isOffline}
+                  isProviderView={bookingView === "provider"}
                   canDelete
                   onDelete={(id, label) => {
                     setDeleteBookingId(id);
@@ -373,6 +374,7 @@ export default function MyBookings() {
                     booking={booking}
                     setLocation={setLocation}
                     isOffline={isOffline}
+                    isProviderView={bookingView === "provider"}
                     canDelete={isPast}
                     onDelete={(id, label) => {
                       setDeleteBookingId(id);
@@ -423,12 +425,14 @@ function BookingCard({
   isOffline,
   canDelete,
   onDelete,
+  isProviderView,
 }: {
   booking: any;
   setLocation: (path: string) => void;
   isOffline: boolean;
   canDelete?: boolean;
   onDelete?: (id: number, label: string) => void;
+  isProviderView?: boolean;
 }) {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
@@ -521,7 +525,7 @@ function BookingCard({
             </div>
             <div className="flex items-center gap-2">
               {getStatusBadge(booking.status)}
-              {booking.status === "confirmed" && !(booking as any).paidAt && parseFloat(booking.totalAmount || "0") > 0 && (
+              {!isProviderView && booking.status === "confirmed" && !(booking as any).paidAt && parseFloat(booking.totalAmount || "0") > 0 && (
                 <Badge variant="outline" className="border-blue-300 text-blue-600 text-xs">Payment Due</Badge>
               )}
               {canDelete && onDelete && (
@@ -583,7 +587,7 @@ function BookingCard({
           </div>
 
           <div className="flex flex-wrap gap-2 pt-2">
-            {booking.status === "confirmed" && !(booking as any).paidAt && parseFloat(booking.totalAmount || "0") > 0 && (
+            {!isProviderView && booking.status === "confirmed" && !(booking as any).paidAt && parseFloat(booking.totalAmount || "0") > 0 && (
               <Button 
                 variant="default" 
                 size="sm"
