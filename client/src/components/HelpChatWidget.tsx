@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { MessageCircleQuestion, X, Minimize2 } from "lucide-react";
+import { MessageCircleQuestion, X, Minimize2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AIChatBox, type Message } from "@/components/AIChatBox";
 import { trpc } from "@/lib/trpc";
@@ -182,7 +182,7 @@ export function HelpChatWidget() {
         {isOpen && !isMinimized ? (
           <X className="h-6 w-6" />
         ) : (
-          <MessageCircleQuestion className="h-6 w-6" />
+          <Sparkles className="h-6 w-6" />
         )}
       </button>
     </>
