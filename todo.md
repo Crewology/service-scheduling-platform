@@ -1926,3 +1926,9 @@
 - [x] Move AI assistant button into the mobile header (left of hamburger menu) instead of floating bottom-right
 - [x] Place notification bell next to hamburger menu on mobile
 - [x] Hide the floating AI assistant button on mobile (keep it on desktop)
+
+## Fix: Messaging Page Mobile Layout
+
+- [x] Make text input box always visible on screen on mobile (no scrolling past it)
+- [x] Make conversation area scrollable within its container
+- [x] Apply same fix to DirectMessage page

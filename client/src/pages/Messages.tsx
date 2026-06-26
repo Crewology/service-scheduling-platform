@@ -326,10 +326,10 @@ export default function Messages() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-screen flex flex-col bg-background">
       <NavHeader />
 
-      <div className="container py-8 max-w-4xl">
+      <div className="container py-4 sm:py-8 max-w-4xl flex-1 flex flex-col min-h-0">
         {/* Conversation Header */}
         <Card className="mb-4">
           <CardHeader>
@@ -364,7 +364,7 @@ export default function Messages() {
         </Card>
 
         {/* Messages */}
-        <Card className="h-[calc(100vh-16rem)] sm:h-[600px] flex flex-col">
+        <Card className="flex-1 min-h-0 flex flex-col">
           <ScrollArea className="flex-1 p-4" ref={scrollRef}>
             <div className="space-y-4">
               {!messagesList || messagesList.length === 0 ? (
