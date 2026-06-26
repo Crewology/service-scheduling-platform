@@ -1940,3 +1940,12 @@
 - [x] Group menu items into sections (Browse, My Account, Provider, Admin)
 - [x] Use large tap targets with icons and labels
 - [x] Add slide-in animation
+
+## Fix: Messaging Pages - Input Pushed Off Screen After 5+ Messages (Mobile)
+
+- [x] Replace h-screen with h-[100dvh] for proper mobile viewport (accounts for browser chrome/address bar)
+- [x] Replace Radix ScrollArea with native overflow-y-auto div for reliable height constraint
+- [x] Add overflow-hidden on all parent containers to prevent content escaping
+- [x] Add shrink-0 on input section to guarantee it never compresses
+- [x] Reduce container padding on mobile (py-2 vs py-4) to maximize message area
+- [x] Applied to both Messages.tsx and DirectMessage.tsx

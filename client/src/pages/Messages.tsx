@@ -326,10 +326,10 @@ export default function Messages() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-background">
+    <div className="h-[100dvh] flex flex-col bg-background overflow-hidden">
       <NavHeader />
 
-      <div className="container py-4 sm:py-8 max-w-4xl flex-1 flex flex-col min-h-0">
+      <div className="container py-2 sm:py-8 max-w-4xl flex-1 flex flex-col min-h-0 overflow-hidden">
         {/* Conversation Header */}
         <Card className="mb-4">
           <CardHeader>
@@ -364,8 +364,8 @@ export default function Messages() {
         </Card>
 
         {/* Messages */}
-        <Card className="flex-1 min-h-0 flex flex-col">
-          <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+        <Card className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <div className="flex-1 min-h-0 overflow-y-auto p-4" ref={scrollRef}>
             <div className="space-y-4">
               {!messagesList || messagesList.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
@@ -468,7 +468,7 @@ export default function Messages() {
                 </div>
               )}
             </div>
-          </ScrollArea>
+          </div>
 
           {/* Pending attachment preview */}
           {pendingAttachment && (
@@ -504,7 +504,7 @@ export default function Messages() {
           )}
 
           {/* Message Input */}
-          <div className="border-t p-4">
+          <div className="border-t p-4 shrink-0">
             <div className="flex gap-2 items-end">
               <input
                 ref={fileInputRef}
