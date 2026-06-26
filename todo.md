@@ -1839,3 +1839,10 @@
 - [x] Updated subscriptionRouter.ts from "2025-12-18.acacia" to "2026-01-28.clover"
 - [x] Updated customerSubscriptionRouter.ts from "2025-02-24.acacia" to "2026-01-28.clover"
 - [x] All Stripe instances now use "2026-01-28.clover" matching installed stripe@20.3.1 SDK
+
+## UX: Conditional Location Type Picker for Flexible Services
+- [x] Show location type picker (Public Venue / Private Location / Virtual Stream) only when service type is "flexible"
+- [x] Show venue name + address fields for Public Venue selection
+- [x] Show address fields for Private Location selection
+- [x] Show no additional fields for Virtual Stream selection
+- [x] Apply to all categories that support flexible services (not just DJ & Music)
