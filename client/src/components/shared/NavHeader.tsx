@@ -12,6 +12,7 @@ import {
   Menu,
   X,
   MessageCircleQuestion,
+  Sparkles,
   User,
   Briefcase,
   CheckCheck,
@@ -640,7 +641,7 @@ export function NavHeader() {
               onClick={() => window.dispatchEvent(new Event('toggle-help-chat'))}
               title="AI Assistant"
             >
-              <MessageCircleQuestion className="h-5 w-5" />
+              <Sparkles className="h-5 w-5" />
             </Button>
 
             {/* Notification bell (mobile only) */}
