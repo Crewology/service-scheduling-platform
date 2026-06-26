@@ -708,10 +708,10 @@ export function NavHeader() {
               <div className="flex-1 px-5 py-5 overflow-y-auto">
                 {/* Discover Grid */}
                 <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">Discover</p>
-                <div className="grid grid-cols-3 gap-3 mb-6">
+                <div className="grid grid-cols-4 gap-2 mb-6">
                   <Link href="/browse" onClick={() => setMobileMenuOpen(false)}>
                     <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                      <div className="h-12 w-12 rounded-2xl bg-blue-50 flex items-center justify-center">
+                      <div className="h-11 w-11 rounded-2xl bg-blue-50 flex items-center justify-center">
                         <Grid3X3 className="h-6 w-6 text-blue-600" />
                       </div>
                       <span className="text-[11px] font-medium text-center leading-tight">Browse</span>
@@ -719,7 +719,7 @@ export function NavHeader() {
                   </Link>
                   <Link href="/search" onClick={() => setMobileMenuOpen(false)}>
                     <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                      <div className="h-12 w-12 rounded-2xl bg-purple-50 flex items-center justify-center">
+                      <div className="h-11 w-11 rounded-2xl bg-purple-50 flex items-center justify-center">
                         <Search className="h-6 w-6 text-purple-600" />
                       </div>
                       <span className="text-[11px] font-medium text-center leading-tight">Search</span>
@@ -727,7 +727,7 @@ export function NavHeader() {
                   </Link>
                   <Link href="/pricing" onClick={() => setMobileMenuOpen(false)}>
                     <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                      <div className="h-12 w-12 rounded-2xl bg-green-50 flex items-center justify-center">
+                      <div className="h-11 w-11 rounded-2xl bg-green-50 flex items-center justify-center">
                         <CreditCard className="h-6 w-6 text-green-600" />
                       </div>
                       <span className="text-[11px] font-medium text-center leading-tight">Plans</span>
@@ -735,7 +735,7 @@ export function NavHeader() {
                   </Link>
                   <Link href="/help" onClick={() => setMobileMenuOpen(false)}>
                     <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                      <div className="h-12 w-12 rounded-2xl bg-amber-50 flex items-center justify-center">
+                      <div className="h-11 w-11 rounded-2xl bg-amber-50 flex items-center justify-center">
                         <HelpCircle className="h-6 w-6 text-amber-600" />
                       </div>
                       <span className="text-[11px] font-medium text-center leading-tight">Help</span>
@@ -747,10 +747,10 @@ export function NavHeader() {
                   <>
                     {/* My Account Grid */}
                     <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">My Account</p>
-                    <div className="grid grid-cols-3 gap-3 mb-6">
+                    <div className="grid grid-cols-4 gap-2 mb-6">
                       <Link href="/my-bookings" onClick={() => setMobileMenuOpen(false)}>
                         <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                          <div className="h-12 w-12 rounded-2xl bg-indigo-50 flex items-center justify-center">
+                          <div className="h-11 w-11 rounded-2xl bg-indigo-50 flex items-center justify-center">
                             <Calendar className="h-6 w-6 text-indigo-600" />
                           </div>
                           <span className="text-[11px] font-medium text-center leading-tight">Bookings</span>
@@ -758,7 +758,7 @@ export function NavHeader() {
                       </Link>
                       <Link href="/messages" onClick={() => setMobileMenuOpen(false)}>
                         <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all relative">
-                          <div className="h-12 w-12 rounded-2xl bg-sky-50 flex items-center justify-center relative">
+                          <div className="h-11 w-11 rounded-2xl bg-sky-50 flex items-center justify-center relative">
                             <MessageSquare className="h-6 w-6 text-sky-600" />
                             {unreadMessages > 0 && (
                               <span className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
@@ -771,7 +771,7 @@ export function NavHeader() {
                       </Link>
                       <Link href="/saved-providers" onClick={() => setMobileMenuOpen(false)}>
                         <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                          <div className="h-12 w-12 rounded-2xl bg-rose-50 flex items-center justify-center">
+                          <div className="h-11 w-11 rounded-2xl bg-rose-50 flex items-center justify-center">
                             <Heart className="h-6 w-6 text-rose-500" />
                           </div>
                           <span className="text-[11px] font-medium text-center leading-tight">Saved</span>
@@ -779,7 +779,7 @@ export function NavHeader() {
                       </Link>
                       <Link href="/my-quotes" onClick={() => setMobileMenuOpen(false)}>
                         <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                          <div className="h-12 w-12 rounded-2xl bg-teal-50 flex items-center justify-center">
+                          <div className="h-11 w-11 rounded-2xl bg-teal-50 flex items-center justify-center">
                             <FileText className="h-6 w-6 text-teal-600" />
                           </div>
                           <span className="text-[11px] font-medium text-center leading-tight">Quotes</span>
@@ -787,7 +787,7 @@ export function NavHeader() {
                       </Link>
                       <Link href="/my-waitlist" onClick={() => setMobileMenuOpen(false)}>
                         <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                          <div className="h-12 w-12 rounded-2xl bg-orange-50 flex items-center justify-center">
+                          <div className="h-11 w-11 rounded-2xl bg-orange-50 flex items-center justify-center">
                             <Clock className="h-6 w-6 text-orange-500" />
                           </div>
                           <span className="text-[11px] font-medium text-center leading-tight">Waitlist</span>
@@ -795,7 +795,7 @@ export function NavHeader() {
                       </Link>
                       <Link href="/notifications" onClick={() => setMobileMenuOpen(false)}>
                         <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                          <div className="h-12 w-12 rounded-2xl bg-yellow-50 flex items-center justify-center">
+                          <div className="h-11 w-11 rounded-2xl bg-yellow-50 flex items-center justify-center">
                             <Bell className="h-6 w-6 text-yellow-600" />
                           </div>
                           <span className="text-[11px] font-medium text-center leading-tight">Alerts</span>
@@ -803,7 +803,7 @@ export function NavHeader() {
                       </Link>
                       <Link href="/referrals" onClick={() => setMobileMenuOpen(false)}>
                         <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                          <div className="h-12 w-12 rounded-2xl bg-emerald-50 flex items-center justify-center">
+                          <div className="h-11 w-11 rounded-2xl bg-emerald-50 flex items-center justify-center">
                             <Coins className="h-6 w-6 text-emerald-600" />
                           </div>
                           <span className="text-[11px] font-medium text-center leading-tight">Referrals</span>
@@ -811,7 +811,7 @@ export function NavHeader() {
                       </Link>
                       <Link href="/profile" onClick={() => setMobileMenuOpen(false)}>
                         <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                          <div className="h-12 w-12 rounded-2xl bg-slate-100 flex items-center justify-center">
+                          <div className="h-11 w-11 rounded-2xl bg-slate-100 flex items-center justify-center">
                             <Settings className="h-6 w-6 text-slate-600" />
                           </div>
                           <span className="text-[11px] font-medium text-center leading-tight">Settings</span>
@@ -823,10 +823,10 @@ export function NavHeader() {
                     {isProvider && (isProviderView || isAdmin) && (
                       <>
                         <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">Provider</p>
-                        <div className="grid grid-cols-3 gap-3 mb-6">
+                        <div className="grid grid-cols-4 gap-2 mb-6">
                           <Link href="/provider/dashboard" onClick={() => setMobileMenuOpen(false)}>
                             <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                              <div className="h-12 w-12 rounded-2xl bg-violet-50 flex items-center justify-center">
+                              <div className="h-11 w-11 rounded-2xl bg-violet-50 flex items-center justify-center">
                                 <LayoutDashboard className="h-6 w-6 text-violet-600" />
                               </div>
                               <span className="text-[11px] font-medium text-center leading-tight">Dashboard</span>
@@ -840,10 +840,10 @@ export function NavHeader() {
                     {isAdmin && (
                       <>
                         <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">Admin</p>
-                        <div className="grid grid-cols-3 gap-3 mb-6">
+                        <div className="grid grid-cols-4 gap-2 mb-6">
                           <Link href="/admin" onClick={() => setMobileMenuOpen(false)}>
                             <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                              <div className="h-12 w-12 rounded-2xl bg-blue-100 flex items-center justify-center">
+                              <div className="h-11 w-11 rounded-2xl bg-blue-100 flex items-center justify-center">
                                 <Shield className="h-6 w-6 text-blue-700" />
                               </div>
                               <span className="text-[11px] font-medium text-center leading-tight text-blue-700">Admin</span>
