@@ -3,6 +3,7 @@ import { useParams, useLocation, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { formatDuration } from "../../../shared/duration";
 import { formatTimeForDisplay } from "@shared/timeSlots";
+import { formatPrice } from "@shared/formatPrice";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -458,7 +459,7 @@ export default function BookingDetail() {
                           </div>
                           <div className="flex justify-between text-sm mt-1 font-semibold text-primary">
                             <span>New Estimated Total</span>
-                            <span>${newTotal.toFixed(2)}</span>
+                            <span>{formatPrice(newTotal)}</span>
                           </div>
                         </div>
                       );

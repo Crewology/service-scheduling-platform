@@ -21,6 +21,7 @@ import { ReviewList } from "@/components/shared/ReviewList";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { ShareProfile } from "@/components/ShareProfile";
 import { HelpTip, HelpBanner } from "@/components/shared/HelpTip";
+import { formatPrice } from "@shared/formatPrice";
 
 
 type BookingStep = "date" | "time" | "details" | "confirm";
@@ -464,7 +465,7 @@ export default function ServiceDetail() {
       if (result) {
         setPromoApplied(result as any);
         if (result.valid) {
-          toast.success(`Promo code applied! You save $${result.discountAmount.toFixed(2)}`);
+          toast.success(`Promo code applied! You save ${formatPrice(result.discountAmount)}`);
         } else {
           toast.error((result as any).error || "Invalid promo code");
           setPromoApplied(null);
@@ -999,7 +1000,7 @@ export default function ServiceDetail() {
                             </p>
                             {getNumericPrice() > 0 && (
                               <p className="text-sm font-semibold text-primary mt-1">
-                                Estimated Total: ${getMultiDayPrice().toFixed(2)}
+                                Estimated Total: {formatPrice(getMultiDayPrice())}
                               </p>
                             )}
                           </div>
@@ -1094,7 +1095,7 @@ export default function ServiceDetail() {
                             </p>
                             {getNumericPrice() > 0 && (
                               <p className="text-sm font-semibold text-primary mt-1">
-                                Estimated Total: ${getRecurringPrice().toFixed(2)}
+                                Estimated Total: {formatPrice(getRecurringPrice())}
                               </p>
                             )}
                           </div>
@@ -1224,7 +1225,7 @@ export default function ServiceDetail() {
                                 <Separator className="my-2" />
                                 <div className="flex items-center justify-between text-sm font-semibold text-primary">
                                   <span>Estimated Total</span>
-                                  <span>${customDurationPrice.toFixed(2)}</span>
+                                  <span>{formatPrice(customDurationPrice)}</span>
                                 </div>
                               </div>
                             )}
@@ -1821,7 +1822,7 @@ export default function ServiceDetail() {
                                   {promoApplied.code}
                                 </p>
                                 <p className="text-xs text-green-600">
-                                  {promoApplied.description || `You save $${promoApplied.discountAmount.toFixed(2)}`}
+                                  {promoApplied.description || `You save ${formatPrice(promoApplied.discountAmount)}`}
                                 </p>
                               </div>
                             </div>
@@ -1871,7 +1872,7 @@ export default function ServiceDetail() {
                             </div>
                             <div className="flex justify-between text-sm text-muted-foreground">
                               <span>{formatDuration(customDurationMinutes)} ({(customDurationMinutes / 60).toFixed(1)} hrs)</span>
-                              <span className="font-medium">${customDurationPrice.toFixed(2)}</span>
+                              <span className="font-medium">{formatPrice(customDurationPrice)}</span>
                             </div>
                           </>
                         ) : (
@@ -1883,13 +1884,13 @@ export default function ServiceDetail() {
                         {bookingType === "multi_day" && (
                           <div className="flex justify-between text-sm text-muted-foreground">
                             <span>× {multiDayCount} days</span>
-                            <span className="font-medium">${getMultiDayPrice().toFixed(2)}</span>
+                            <span className="font-medium">{formatPrice(getMultiDayPrice())}</span>
                           </div>
                         )}
                         {bookingType === "recurring" && (
                           <div className="flex justify-between text-sm text-muted-foreground">
                             <span>× {recurringSessionCount} sessions</span>
-                            <span className="font-medium">${getRecurringPrice().toFixed(2)}</span>
+                            <span className="font-medium">{formatPrice(getRecurringPrice())}</span>
                           </div>
                         )}
                         {referralApplied?.valid && (
@@ -1899,7 +1900,7 @@ export default function ServiceDetail() {
                               Referral Discount ({referralApplied.refereeDiscountPercent}%)
                             </span>
                             <span className="font-medium">
-                              -${(getNumericPrice() * referralApplied.refereeDiscountPercent / 100).toFixed(2)}
+                              -{formatPrice(getNumericPrice() * referralApplied.refereeDiscountPercent / 100)}
                             </span>
                           </div>
                         )}
@@ -1909,7 +1910,7 @@ export default function ServiceDetail() {
                               <Tag className="h-3 w-3" />
                               Promo Discount
                             </span>
-                            <span className="font-medium">-${promoApplied.discountAmount.toFixed(2)}</span>
+                            <span className="font-medium">-{formatPrice(promoApplied.discountAmount)}</span>
                           </div>
                         )}
                         {service.depositRequired && (
@@ -1927,19 +1928,19 @@ export default function ServiceDetail() {
                           <span>Total</span>
                           <span>
                             {promoApplied?.valid && promoApplied.discountAmount > 0
-                              ? `$${promoApplied.finalAmount.toFixed(2)}`
+                              ? `${formatPrice(promoApplied.finalAmount)}`
                               : useCustomDuration && [20, 17, 177, 15, 19, 195, 109, 12, 202, 9, 148, 188, 201, 199].includes(service.categoryId) && customDurationPrice > 0
-                              ? `$${customDurationPrice.toFixed(2)}`
+                              ? `${formatPrice(customDurationPrice)}`
                               : bookingType === "multi_day"
-                              ? `$${getMultiDayPrice().toFixed(2)}`
+                              ? `${formatPrice(getMultiDayPrice())}`
                               : bookingType === "recurring"
-                              ? `$${getRecurringPrice().toFixed(2)}`
+                              ? `${formatPrice(getRecurringPrice())}`
                               : getPrice()}
                           </span>
                         </div>
                         {promoApplied?.valid && promoApplied.discountAmount > 0 && (
                           <p className="text-xs text-green-600 text-right">
-                            You save ${promoApplied.discountAmount.toFixed(2)}!
+                            You save {formatPrice(promoApplied.discountAmount)}!
                           </p>
                         )}
                       </div>

@@ -25,7 +25,8 @@ const CATEGORY_ICONS: Record<number, string> = {
 
 function formatCurrency(value: string | number | null | undefined): string {
   const num = typeof value === "string" ? parseFloat(value) : (value ?? 0);
-  return `$${num.toFixed(2)}`;
+  const hasRealCents = num % 1 !== 0;
+  return hasRealCents ? `$${num.toFixed(2)}` : `$${Math.round(num)}`;
 }
 
 function formatTime12(time: string): string {

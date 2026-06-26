@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatPrice } from "@shared/formatPrice";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { NavHeader } from "@/components/shared/NavHeader";
@@ -401,11 +402,11 @@ export default function CustomerPricing() {
                           <div className="text-3xl font-bold">Free</div>
                         ) : (
                           <div>
-                            <span className="text-3xl font-bold">${price.toFixed(2)}</span>
+                            <span className="text-3xl font-bold">{formatPrice(price)}</span>
                             <span className="text-muted-foreground">/mo</span>
                             {yearly && (
                               <div className="text-xs text-muted-foreground mt-1">
-                                Billed ${(price * 12).toFixed(2)}/year
+                                Billed {formatPrice(price * 12)}/year
                               </div>
                             )}
                           </div>
@@ -563,11 +564,11 @@ export default function CustomerPricing() {
                           <div className="text-3xl font-bold">Free</div>
                         ) : (
                           <div>
-                            <span className="text-3xl font-bold">${price.toFixed(2)}</span>
+                            <span className="text-3xl font-bold">{formatPrice(price)}</span>
                             <span className="text-muted-foreground">/mo</span>
                             {yearly && (
                               <div className="text-xs text-muted-foreground mt-1">
-                                Billed ${(price * 12).toFixed(2)}/year
+                                Billed {formatPrice(price * 12)}/year
                               </div>
                             )}
                           </div>

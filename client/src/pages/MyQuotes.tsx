@@ -1,6 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { formatDuration } from "../../../shared/duration";
+import { formatPrice } from "@shared/formatPrice";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -165,7 +166,7 @@ export default function MyQuotes() {
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-2">
                           <span className="font-semibold text-blue-800 dark:text-blue-300">Provider's Quote</span>
                           <span className="text-xl sm:text-2xl font-bold text-blue-900 dark:text-blue-200">
-                            ${parseFloat(quote.quotedAmount).toFixed(2)}
+                            {formatPrice(parseFloat(quote.quotedAmount))}
                           </span>
                         </div>
                         {quote.quotedDurationMinutes && (
@@ -215,7 +216,7 @@ export default function MyQuotes() {
                               {quote.status === "booked" ? "Booking Created" : "Quote Accepted"}
                             </p>
                             <p className="text-sm text-green-700 dark:text-green-400 mt-1">
-                              Amount: ${parseFloat(quote.quotedAmount).toFixed(2)}
+                              Amount: {formatPrice(parseFloat(quote.quotedAmount))}
                               {quote.quotedDurationMinutes && ` • ${quote.quotedDurationMinutes} min`}
                             </p>
                           </div>

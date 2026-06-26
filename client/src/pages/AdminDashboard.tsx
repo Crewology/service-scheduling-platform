@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { formatPrice } from "@shared/formatPrice";
 import { useProtectedPage } from "@/hooks/useProtectedPage";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -1919,11 +1920,11 @@ function ReferralAnalyticsPanel() {
             <div className="grid grid-cols-2 gap-4">
               <div className="p-4 bg-green-50 dark:bg-green-950/30 rounded-lg">
                 <p className="text-sm font-medium text-green-700 dark:text-green-400 mb-1">Credits Earned</p>
-                <p className="text-2xl font-bold text-green-600">${parseFloat(refStats.totalCreditsEarned).toFixed(2)}</p>
+                <p className="text-2xl font-bold text-green-600">{formatPrice(parseFloat(refStats.totalCreditsEarned))}</p>
               </div>
               <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
                 <p className="text-sm font-medium text-blue-700 dark:text-blue-400 mb-1">Credits Spent</p>
-                <p className="text-2xl font-bold text-blue-600">${parseFloat(refStats.totalCreditsSpent).toFixed(2)}</p>
+                <p className="text-2xl font-bold text-blue-600">{formatPrice(parseFloat(refStats.totalCreditsSpent))}</p>
               </div>
             </div>
             <div className="mt-4 pt-4 border-t">
@@ -2018,7 +2019,7 @@ function ReferralAnalyticsPanel() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right font-semibold text-green-600">
-                      ${parseFloat(r.totalEarned || "0").toFixed(2)}
+                      {formatPrice(parseFloat(r.totalEarned || "0"))}
                     </TableCell>
                   </TableRow>
                 ))}

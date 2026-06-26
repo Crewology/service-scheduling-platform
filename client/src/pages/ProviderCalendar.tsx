@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { formatPrice } from "@shared/formatPrice";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -540,7 +541,7 @@ export default function ProviderCalendar() {
             )}
             {selectedEvent.totalAmount && (
               <div className="text-sm font-medium">
-                Total: ${parseFloat(selectedEvent.totalAmount).toFixed(2)}
+                Total: ${formatPrice(parseFloat(selectedEvent.totalAmount))}
               </div>
             )}
             <div className="flex gap-2 pt-2">

@@ -75,6 +75,7 @@ import { UpgradePrompt, UpgradeBanner } from "@/components/UpgradePrompt";
 import { TrustBadge, TrustScoreProgress } from "@/components/TrustBadge";
 import { TrialStatusBanner } from "@/components/TrialBanner";
 import { HelpTip, HelpBanner } from "@/components/shared/HelpTip";
+import { formatPrice } from "@shared/formatPrice";
 
 // ============================================================================
 // SERVICE PHOTOS MANAGER
@@ -1564,7 +1565,7 @@ export default function ProviderDashboard() {
                             <div className="flex items-center justify-between">
                               <span className="text-sm font-medium text-blue-800 dark:text-blue-300">Your Quote</span>
                               <span className="text-lg font-bold text-blue-900 dark:text-blue-200">
-                                ${parseFloat(quote.quotedAmount).toFixed(2)}
+                                {formatPrice(parseFloat(quote.quotedAmount))}
                               </span>
                             </div>
                             {quote.quotedDurationMinutes && (
@@ -2184,7 +2185,7 @@ export default function ProviderDashboard() {
                         <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `$${v}`} />
                         <Tooltip
                           contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }}
-                          formatter={(value: number) => [`$${value.toFixed(2)}`, "Revenue"]}
+                          formatter={(value: number) => [`${formatPrice(value)}`, "Revenue"]}
                         />
                         <Area type="monotone" dataKey="revenue" stroke="#6366f1" fill="url(#revenueGradient)" strokeWidth={2} />
                       </AreaChart>
@@ -2931,8 +2932,8 @@ export default function ProviderDashboard() {
                 const savings = total - Number(packagePrice || 0);
                 return total > 0 ? (
                   <p className="text-xs text-muted-foreground mt-1">
-                    Individual total: ${total.toFixed(2)}
-                    {savings > 0 && <span className="text-green-600 ml-1">(Customer saves ${savings.toFixed(2)})</span>}
+                    Individual total: {formatPrice(total)}
+                    {savings > 0 && <span className="text-green-600 ml-1">(Customer saves {formatPrice(savings)})</span>}
                   </p>
                 ) : null;
               })()}
@@ -2955,7 +2956,7 @@ export default function ProviderDashboard() {
                       className="rounded"
                     />
                     <span className="text-sm flex-1">{service.name}</span>
-                    <span className="text-xs text-muted-foreground">${Number(service.price || 0).toFixed(2)}</span>
+                    <span className="text-xs text-muted-foreground">{formatPrice(Number(service.price || 0))}</span>
                   </label>
                 )) : (
                   <p className="text-sm text-muted-foreground text-center py-2">No services available. Add services first.</p>
@@ -3565,9 +3566,9 @@ function PackagesList() {
               <h4 className="font-semibold">{pkg.name}</h4>
               {pkg.description && <p className="text-sm text-muted-foreground mt-1">{pkg.description}</p>}
               <div className="flex items-baseline gap-2 mt-2">
-                <span className="text-lg font-bold text-primary">${Number(pkg.price).toFixed(2)}</span>
+                <span className="text-lg font-bold text-primary">{formatPrice(Number(pkg.price))}</span>
                 {pkg.originalPrice && Number(pkg.originalPrice) > Number(pkg.price) && (
-                  <span className="text-sm text-muted-foreground line-through">${Number(pkg.originalPrice).toFixed(2)}</span>
+                  <span className="text-sm text-muted-foreground line-through">{formatPrice(Number(pkg.originalPrice))}</span>
                 )}
               </div>
               {pkg.services && pkg.services.length > 0 && (

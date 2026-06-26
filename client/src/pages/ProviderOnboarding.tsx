@@ -43,6 +43,7 @@ import {
 import { NavHeader } from "@/components/shared/NavHeader";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { MessageSquareQuote, HelpCircle, ChevronDown } from "lucide-react";
+import { formatPrice } from "@shared/formatPrice";
 
 // ============================================================================
 // CATEGORY ICON MAP — visual icons for each category
@@ -1296,9 +1297,9 @@ export default function ProviderOnboarding() {
                               </div>
                               <div className="text-right">
                                 <span className="font-semibold text-sm text-primary">
-                                  {service.pricingModel === "fixed" && `$${parseFloat(service.basePrice || "0").toFixed(2)}`}
-                                  {service.pricingModel === "hourly" && `$${parseFloat(service.hourlyRate || "0").toFixed(2)}/hr`}
-                                  {service.pricingModel === "package" && `$${parseFloat(service.basePrice || "0").toFixed(2)}`}
+                                  {service.pricingModel === "fixed" && `${formatPrice(parseFloat(service.basePrice || "0"))}`}
+                                  {service.pricingModel === "hourly" && `${formatPrice(parseFloat(service.hourlyRate || "0"))}/hr`}
+                                  {service.pricingModel === "package" && `${formatPrice(parseFloat(service.basePrice || "0"))}`}
                                   {service.pricingModel === "custom_quote" && "Quote"}
                                   {service.pricingModel === "consultation" && "Free"}
                                 </span>

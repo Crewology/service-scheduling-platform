@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import { NavHeader } from "@/components/shared/NavHeader";
+import { formatPrice as formatPriceUtil } from "@shared/formatPrice";
 import {
   Dialog,
   DialogContent,
@@ -201,10 +202,10 @@ export default function SubscriptionManagement() {
   const formatPrice = (plan: typeof PLANS[0]) => {
     if (plan.tier === "free") return { main: "$0", sub: "forever" };
     if (billingInterval === "year") {
-      const monthly = (plan.yearlyPrice / 12).toFixed(2);
-      return { main: `$${monthly}`, sub: "/mo" };
+      const monthly = plan.yearlyPrice / 12;
+      return { main: formatPriceUtil(monthly), sub: "/mo" };
     }
-    return { main: `$${plan.monthlyPrice.toFixed(2)}`, sub: "/mo" };
+    return { main: formatPriceUtil(plan.monthlyPrice), sub: "/mo" };
   };
 
   const getAnnualSavings = (plan: typeof PLANS[0]) => {
@@ -459,7 +460,7 @@ export default function SubscriptionManagement() {
                   {billingInterval === "year" && plan.tier !== "free" && (
                     <div className="mt-2 space-y-1">
                       <p className="text-xs text-muted-foreground">
-                        Billed as ${plan.yearlyPrice.toFixed(2)}/year
+                        Billed as {formatPriceUtil(plan.yearlyPrice)}/year
                       </p>
                       <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 border-0">
                         Save ${savings}/year

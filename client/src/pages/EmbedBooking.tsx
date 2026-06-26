@@ -158,7 +158,9 @@ export default function EmbedBooking() {
 
   const formatPrice = (price: string | number | null) => {
     if (!price) return "Contact for pricing";
-    return `$${parseFloat(String(price)).toFixed(2)}`;
+    const num = parseFloat(String(price));
+    const hasRealCents = num % 1 !== 0;
+    return hasRealCents ? `$${num.toFixed(2)}` : `$${Math.round(num)}`;
   };
 
   const handleBooking = () => {

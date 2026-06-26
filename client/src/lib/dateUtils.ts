@@ -55,8 +55,11 @@ export function formatDateForInput(date: string | Date): string {
 }
 
 export function formatCurrency(amount: number): string {
+  const hasRealCents = amount % 1 !== 0;
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
+    minimumFractionDigits: hasRealCents ? 2 : 0,
+    maximumFractionDigits: hasRealCents ? 2 : 0,
   }).format(amount);
 }

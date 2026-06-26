@@ -28,6 +28,7 @@ import { toast } from "sonner";
 import { useOfflineBookings } from "@/hooks/useOfflineBookings";
 import { useViewMode } from "@/contexts/ViewModeContext";
 import { HelpTip } from "@/components/shared/HelpTip";
+import { formatPrice } from "@shared/formatPrice";
 
 export default function MyBookings() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -446,7 +447,7 @@ function BookingCard({
         data.refundStatus === "full_refund" 
           ? "Booking cancelled. Full refund will be processed." 
           : data.refundStatus === "partial_refund"
-          ? `Booking cancelled. Partial refund of $${(data.refundAmount / 100).toFixed(2)} will be processed.`
+          ? `Booking cancelled. Partial refund of ${formatPrice((data.refundAmount / 100))} will be processed.`
           : "Booking cancelled. No refund applicable per the cancellation policy."
       );
       utils.booking.listMine.invalidate();

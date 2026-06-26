@@ -11,6 +11,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { formatTimeForDisplay } from "@shared/timeSlots";
 import { toast } from "sonner";
 import { NavHeader } from "@/components/shared/NavHeader";
+import { formatPrice } from "@shared/formatPrice";
 
 function ShareReferralLink() {
   const { data: myCode } = trpc.referral.getMyCode.useQuery();
@@ -158,7 +159,7 @@ export default function BookingConfirmation() {
   const getPrice = () => {
     // If booking has a stored totalAmount, use it (covers custom duration bookings)
     if (booking.totalAmount && parseFloat(booking.totalAmount) > 0) {
-      return `$${parseFloat(booking.totalAmount).toFixed(2)}`;
+      return `${formatPrice(parseFloat(booking.totalAmount))}`;
     }
     if (service.pricingModel === "fixed" && service.basePrice) {
       return `$${service.basePrice}`;
@@ -166,7 +167,7 @@ export default function BookingConfirmation() {
     if (service.pricingModel === "hourly" && service.hourlyRate) {
       // Use the actual booked duration, not the service default
       const hours = (booking.durationMinutes || service.durationMinutes || 60) / 60;
-      return `$${(parseFloat(service.hourlyRate) * hours).toFixed(2)}`;
+      return `${formatPrice((parseFloat(service.hourlyRate) * hours))}`;
     }
     return "TBD";
   };
@@ -319,7 +320,7 @@ export default function BookingConfirmation() {
             {depositAmount && (
               <div className="flex justify-between items-center text-primary">
                 <span>Deposit Required</span>
-                <span className="font-semibold">${depositAmount.toFixed(2)}</span>
+                <span className="font-semibold">{formatPrice(depositAmount)}</span>
               </div>
             )}
 
@@ -340,12 +341,12 @@ export default function BookingConfirmation() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-emerald-600">Available balance</span>
-                  <span className="font-semibold text-emerald-600">${availableCredits.toFixed(2)}</span>
+                  <span className="font-semibold text-emerald-600">{formatPrice(availableCredits)}</span>
                 </div>
                 {useCredits && creditDiscount > 0 && (
                   <div className="flex justify-between text-sm pt-2 border-t border-emerald-200">
                     <span className="text-emerald-700 font-medium">Credit discount</span>
-                    <span className="font-bold text-emerald-700">-${creditDiscount.toFixed(2)}</span>
+                    <span className="font-bold text-emerald-700">-{formatPrice(creditDiscount)}</span>
                   </div>
                 )}
                 {useCredits && creditPreview?.coversFullAmount && (
@@ -366,11 +367,11 @@ export default function BookingConfirmation() {
                   <div className="text-right">
                     {useCredits && creditDiscount > 0 && (
                       <span className="text-sm text-muted-foreground line-through mr-2">
-                        ${depositAmount.toFixed(2)}
+                        {formatPrice(depositAmount)}
                       </span>
                     )}
                     <span className="font-bold text-lg">
-                      ${Math.max(0, depositAmount - creditDiscount).toFixed(2)}
+                      {formatPrice(Math.max(0, depositAmount - creditDiscount))}
                     </span>
                   </div>
                 </div>
@@ -388,7 +389,7 @@ export default function BookingConfirmation() {
                         {getPrice()}
                       </span>
                       <span className="font-bold text-lg">
-                        ${Math.max(0, getPriceNum() - creditDiscount).toFixed(2)}
+                        {formatPrice(Math.max(0, getPriceNum() - creditDiscount))}
                       </span>
                     </div>
                   </div>
@@ -518,7 +519,7 @@ export default function BookingConfirmation() {
               ) : useCredits && creditPreview?.coversFullAmount ? (
                 <>Pay with Credits</>
               ) : (
-                <>Pay Deposit (${Math.max(0, depositAmount - (useCredits ? creditDiscount : 0)).toFixed(2)})</>
+                <>Pay Deposit ({formatPrice(Math.max(0, depositAmount - (useCredits ? creditDiscount : 0)))})</>
               )}
             </Button>
           )}
@@ -533,7 +534,7 @@ export default function BookingConfirmation() {
               ) : useCredits && creditPreview?.coversFullAmount ? (
                 <>Pay with Credits</>
               ) : (
-                <>Pay Now (${Math.max(0, getPriceNum() - (useCredits ? creditDiscount : 0)).toFixed(2)})</>
+                <>Pay Now ({formatPrice(Math.max(0, getPriceNum() - (useCredits ? creditDiscount : 0)))})</>
               )}
             </Button>
           )}

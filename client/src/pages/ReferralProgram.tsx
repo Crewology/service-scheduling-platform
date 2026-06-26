@@ -1,4 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
+import { formatPrice } from "@shared/formatPrice";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -231,7 +232,7 @@ export default function ReferralProgram() {
                   <div className="text-sm text-muted-foreground mt-1">Completed</div>
                 </div>
                 <div className="text-center p-4 rounded-xl bg-amber-50">
-                  <div className="text-2xl sm:text-3xl font-bold text-amber-700">${creditAmount.toFixed(2)}</div>
+                  <div className="text-2xl sm:text-3xl font-bold text-amber-700">{formatPrice(creditAmount)}</div>
                   <div className="text-sm text-muted-foreground mt-1">Credits Earned</div>
                 </div>
                 <div className="text-center p-4 rounded-xl bg-violet-50">

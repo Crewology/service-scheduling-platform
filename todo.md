@@ -1811,3 +1811,16 @@
 - [x] Ensure confirmed bookings display as events on the calendar
 - [x] Ensure blocked time (date overrides) shows as greyed-out slots
 - [x] Update AI Help Assistant knowledge base with open messaging and calendar sync features
+
+## Feature: Automatic Price Formatting (Hide .00 Cents)
+- [x] Create shared/formatPrice.ts utility (hides .00, shows real cents like .50)
+- [x] Update formatCurrency in dateUtils.ts to use same logic
+- [x] Update BookingAnalytics.tsx, CategoryDetail.tsx, PublicProviderProfile.tsx
+- [x] Update BulkBooking.tsx, EmbedBooking.tsx, BookingConfirmation.tsx
+- [x] Update MyBookings.tsx, ProviderDashboard.tsx, ProviderOnboarding.tsx
+- [x] Update ServiceDetail.tsx, BookingDetail.tsx, MyQuotes.tsx
+- [x] Update ProviderCalendar.tsx, ReferralProgram.tsx, CustomerPricing.tsx
+- [x] Update AdminDashboard.tsx (display-only; CSV export keeps toFixed(2) for data accuracy)
+- [x] Update SubscriptionManagement.tsx yearly billing caption
+- [x] TypeScript compiles cleanly (0 errors)
+- [x] Kept API payloads (Stripe, CSV exports, mutation data) at full precision

@@ -39,7 +39,13 @@ import {
 
 function formatCurrency(amount: string | number): string {
   const num = typeof amount === "string" ? parseFloat(amount) : amount;
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(num);
+  const hasRealCents = num % 1 !== 0;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: hasRealCents ? 2 : 0,
+    maximumFractionDigits: hasRealCents ? 2 : 0,
+  }).format(num);
 }
 
 function formatDate(dateStr: string): string {

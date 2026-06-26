@@ -169,7 +169,8 @@ function calculateSlotCost(slot: ProviderSlot): number | null {
 }
 
 function formatCurrency(amount: number): string {
-  return `$${amount.toFixed(2)}`;
+  const hasRealCents = amount % 1 !== 0;
+  return hasRealCents ? `$${amount.toFixed(2)}` : `$${Math.round(amount)}`;
 }
 
 // Smart time suggestion: given existing slots and a service duration, suggest next available time
