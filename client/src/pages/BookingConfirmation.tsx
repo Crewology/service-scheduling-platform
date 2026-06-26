@@ -522,7 +522,7 @@ export default function BookingConfirmation() {
 
         {/* Action Buttons */}
         <div className="flex gap-4">
-          {depositAmount && !(booking as any).depositPaidAt && (
+          {user && booking.customerId === user.id && depositAmount && !(booking as any).depositPaidAt && (
             <Button
               onClick={() => handlePayment()}
               disabled={createCheckout.isPending}
@@ -537,7 +537,7 @@ export default function BookingConfirmation() {
               )}
             </Button>
           )}
-          {!depositAmount && !(booking as any).paidAt && booking.status === "confirmed" && (
+          {user && booking.customerId === user.id && !depositAmount && !(booking as any).paidAt && booking.status === "confirmed" && (
             <Button
               onClick={() => handlePayment()}
               disabled={createCheckout.isPending}
