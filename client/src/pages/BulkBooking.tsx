@@ -267,8 +267,8 @@ function VisualTimeline({ groups }: { groups: ServiceGroup[] }) {
       </CardHeader>
       <CardContent>
         {/* Hour markers */}
-        <div className="relative mb-1">
-          <div className="flex justify-between text-xs text-muted-foreground">
+        <div className="relative mb-1 overflow-x-auto">
+          <div className="flex justify-between text-xs text-muted-foreground min-w-[280px]">
             {Array.from({ length: totalHours + 1 }, (_, i) => {
               const hour = minHour + i;
               return <span key={hour}>{hour === 0 ? "12a" : hour <= 12 ? `${hour}${hour === 12 ? "p" : "a"}` : `${hour - 12}p`}</span>;
@@ -427,7 +427,7 @@ function QuickCategoryStackingModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-3 sm:p-4" onClick={onClose}>
       <div className="bg-white rounded-lg w-full max-w-lg shadow-xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="p-5 border-b">
           <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -479,15 +479,15 @@ function QuickCategoryStackingModal({
             })}
           </div>
         </div>
-        <div className="p-4 border-t flex items-center justify-between">
+        <div className="p-3 sm:p-4 border-t flex flex-wrap items-center justify-between gap-2">
           <span className="text-sm text-muted-foreground">
-            {selected.size} categor{selected.size === 1 ? "y" : "ies"} selected
+            {selected.size} selected
           </span>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={onClose}>Cancel</Button>
-            <Button onClick={() => { onConfirm(Array.from(selected)); onClose(); }} disabled={selected.size === 0}>
+            <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
+            <Button size="sm" onClick={() => { onConfirm(Array.from(selected)); onClose(); }} disabled={selected.size === 0}>
               <Plus className="h-4 w-4 mr-1" />
-              Add {selected.size} Service{selected.size > 1 ? "s" : ""}
+              Add ({selected.size})
             </Button>
           </div>
         </div>
@@ -809,14 +809,14 @@ function ProviderSlotCard({
       {slot.providerId && (
         <div className="space-y-2">
           {/* Provider header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
                 {slot.providerName[0]?.toUpperCase()}
               </div>
-              <span className="text-sm font-medium">{slot.providerName}</span>
+              <span className="text-sm font-medium truncate">{slot.providerName}</span>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 shrink-0">
               <button
                 className="text-xs text-primary hover:underline"
                 onClick={() => onUpdate({ providerId: null, providerName: "", serviceId: null, serviceName: "", pricingModel: undefined, basePrice: undefined, hourlyRate: undefined, durationMinutes: undefined })}
@@ -1024,15 +1024,15 @@ function ServiceGroupCard({
   return (
     <div className="rounded-lg border bg-white overflow-visible">
       {/* Group Header */}
-      <div className="p-4 border-b bg-gray-50/50">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+      <div className="p-3 sm:p-4 border-b bg-gray-50/50">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             {getCategoryIcon(group.categoryId)}
             {group.categoryId ? (
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-sm">{group.categoryName}</span>
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="font-medium text-sm truncate">{group.categoryName}</span>
                 <button
-                  className="text-xs text-primary hover:underline"
+                  className="text-xs text-primary hover:underline shrink-0"
                   onClick={() => {
                     onUpdate({ categoryId: null, categoryName: "", providers: [] });
                     setGroupOptions({});
@@ -1046,12 +1046,12 @@ function ServiceGroupCard({
               <span className="text-sm text-muted-foreground">Select a category to get started</span>
             )}
             {group.providers.length > 0 && group.categoryId && (
-              <Badge variant="secondary" className="text-xs">
+              <Badge variant="secondary" className="text-xs shrink-0 hidden sm:inline-flex">
                 {group.providers.length} provider{group.providers.length > 1 ? "s" : ""}
               </Badge>
             )}
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 shrink-0">
             {group.categoryId && group.providers.length > 0 && (
               <Button
                 variant="ghost"
@@ -1060,8 +1060,8 @@ function ServiceGroupCard({
                 onClick={addProvider}
                 disabled={isSubmitting}
               >
-                <Plus className="h-3 w-3 mr-1" />
-                Add Provider
+                <Plus className="h-3 w-3 sm:mr-1" />
+                <span className="hidden sm:inline">Add Provider</span>
               </Button>
             )}
             <Button
@@ -1642,45 +1642,45 @@ export default function BulkBooking() {
   return (
     <div className="min-h-screen bg-gray-50">
       <NavHeader />
-      <div className="container py-6 max-w-4xl">
+      <div className="container py-6 max-w-4xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={() => window.history.back()}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold">Bulk Booking</h1>
-              <p className="text-sm text-muted-foreground">
+              <h1 className="text-xl sm:text-2xl font-bold">Bulk Booking</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Book multiple providers across different service categories
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {serviceGroups.length > 0 && (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowSaveTemplate(true)}
-                  className="gap-1.5"
-                >
-                  <BookmarkPlus className="h-4 w-4" />
-                  Save Bundle
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSaveDraft}
-                  disabled={isSavingDraft || isSubmitting}
-                  className="gap-1.5"
-                >
-                  {isSavingDraft ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                  {currentDraftId ? "Update Draft" : "Save Draft"}
-                </Button>
-              </>
-            )}
-          </div>
+          {serviceGroups.length > 0 && (
+            <div className="flex items-center gap-2 ml-11 sm:ml-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowSaveTemplate(true)}
+                className="gap-1.5"
+              >
+                <BookmarkPlus className="h-4 w-4" />
+                <span className="hidden sm:inline">Save Bundle</span>
+                <span className="sm:hidden">Bundle</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSaveDraft}
+                disabled={isSavingDraft || isSubmitting}
+                className="gap-1.5"
+              >
+                {isSavingDraft ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                <span className="hidden sm:inline">{currentDraftId ? "Update Draft" : "Save Draft"}</span>
+                <span className="sm:hidden">{currentDraftId ? "Update" : "Draft"}</span>
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Templates & Drafts */}
@@ -1696,17 +1696,17 @@ export default function BulkBooking() {
         {/* Service Groups */}
         <Card className="mb-6 overflow-visible">
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Users className="h-5 w-5" />
                   Your Services
                 </CardTitle>
-                <p className="text-sm text-muted-foreground ml-7 mt-1">
-                  Select categories, pick providers, and set your schedule. Date and venue appear for event-type services.
+                <p className="text-xs sm:text-sm text-muted-foreground ml-7 mt-1">
+                  Select categories, pick providers, and set your schedule.
                 </p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 ml-7 sm:ml-0 shrink-0">
                 <Button
                   variant="outline"
                   size="sm"
@@ -1715,11 +1715,13 @@ export default function BulkBooking() {
                   className="gap-1.5"
                 >
                   <ListChecks className="h-4 w-4" />
-                  Quick Stack
+                  <span className="hidden sm:inline">Quick Stack</span>
+                  <span className="sm:hidden">Stack</span>
                 </Button>
                 <Button size="sm" onClick={addServiceGroup} disabled={isSubmitting}>
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add Service
+                  <Plus className="h-4 w-4 sm:mr-1" />
+                  <span className="hidden sm:inline">Add Service</span>
+                  <span className="sm:hidden">Add</span>
                 </Button>
               </div>
             </div>
@@ -1731,14 +1733,14 @@ export default function BulkBooking() {
                 <p className="text-sm text-muted-foreground mb-4">
                   No services added yet. Use <strong>Quick Stack</strong> to add multiple categories at once, or add them one by one.
                 </p>
-                <div className="flex items-center justify-center gap-3">
-                  <Button variant="outline" onClick={() => setShowCategoryStacking(true)}>
+                <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+                  <Button variant="outline" size="sm" onClick={() => setShowCategoryStacking(true)}>
                     <ListChecks className="h-4 w-4 mr-1" />
-                    Quick Stack Categories
+                    Quick Stack
                   </Button>
-                  <Button variant="outline" onClick={addServiceGroup}>
+                  <Button variant="outline" size="sm" onClick={addServiceGroup}>
                     <Plus className="h-4 w-4 mr-1" />
-                    Add Single Service
+                    Add Service
                   </Button>
                 </div>
               </div>
@@ -1787,33 +1789,33 @@ export default function BulkBooking() {
                   </div>
                 )}
 
-                <div className="flex items-center justify-between pt-2">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={handleSaveDraft}
-                      disabled={isSavingDraft || isSubmitting}
-                      className="gap-1.5"
-                    >
-                      {isSavingDraft ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                      {currentDraftId ? "Update Draft" : "Save Draft"}
-                    </Button>
-                  </div>
+                <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSaveDraft}
+                    disabled={isSavingDraft || isSubmitting}
+                    className="gap-1.5"
+                  >
+                    {isSavingDraft ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    {currentDraftId ? "Update Draft" : "Save Draft"}
+                  </Button>
 
                   <Button
-                    size="lg"
+                    size="default"
                     onClick={handleSubmitAll}
                     disabled={!canSubmit || isSubmitting}
+                    className="sm:text-base"
                   >
                     {isSubmitting ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Booking {completedCount + 1} of {allProviderSlots.length}...
+                        Booking {completedCount + 1}/{allProviderSlots.length}...
                       </>
                     ) : (
                       <>
                         <CheckCircle2 className="h-4 w-4 mr-2" />
-                        Book All ({allProviderSlots.length} Provider{allProviderSlots.length > 1 ? "s" : ""})
+                        Book All ({allProviderSlots.length})
                       </>
                     )}
                   </Button>
@@ -1825,8 +1827,8 @@ export default function BulkBooking() {
 
         {/* Save Template Modal */}
         {showSaveTemplate && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowSaveTemplate(false)}>
-            <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-4" onClick={() => setShowSaveTemplate(false)}>
+            <div className="bg-white rounded-lg p-5 sm:p-6 w-full max-w-md shadow-xl" onClick={(e) => e.stopPropagation()}>
               <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
                 <BookmarkPlus className="h-5 w-5 text-purple-600" />
                 Save as Personal Service Bundle

@@ -1887,3 +1887,16 @@
 - [x] Calendar: wrap in overflow-x-auto container to prevent horizontal page scroll
 - [x] Custom Hours override rows: add min-w-0 to content div, shrink-0 to delete button
 - [x] Main container: add overflow-hidden to prevent any child from causing horizontal scroll
+
+## Fix: Bulk Booking Page Mobile Overflow
+
+- [x] Page header: stack title and action buttons vertically on mobile (flex-col sm:flex-row), shorten button labels
+- [x] ServiceGroupCard header: add flex-wrap, min-w-0, truncate category name, hide provider badge on mobile, icon-only "Add Provider" on mobile
+- [x] "Your Services" card header: stack vertically on mobile, shorten button labels (Stack/Add)
+- [x] Empty state buttons: add flex-wrap, use size="sm"
+- [x] Summary action row: stack buttons vertically on mobile (flex-col-reverse sm:flex-row), shorten "Book All" text
+- [x] Save Template modal: bottom-sheet style on mobile (items-end sm:items-center), add padding
+- [x] Quick Category Stacking modal: bottom-sheet style on mobile, compact footer
+- [x] VisualTimeline: add overflow-x-auto with min-w-[280px] for hour markers
+- [x] ProviderSlotCard header: add min-w-0, truncate provider name, shrink-0 on actions
+- [x] Main container: add overflow-hidden safety net
