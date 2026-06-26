@@ -232,6 +232,7 @@ export async function getProviderCalendarBookings(providerId: number) {
     serviceCity: bookings.serviceCity,
     serviceState: bookings.serviceState,
     servicePostalCode: bookings.servicePostalCode,
+    venueName: bookings.venueName,
     serviceName: services.name,
     customerName: users.name,
   }).from(bookings)

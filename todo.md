@@ -1856,3 +1856,6 @@
 - [x] Update BookingConfirmation page to show "Pay Now" button for confirmed bookings awaiting payment
 - [x] Update MyBookings page with "Payment Due" badge and "Pay Now" button for confirmed-unpaid bookings
 - [x] Free/consultation/custom-quote services skip payment options entirely
+
+## UX: Show Venue Name in Provider Calendar
+- [x] Display venue/location name alongside time in Provider Calendar for fixed-location bookings

@@ -43,6 +43,7 @@ interface CalendarEvent {
   customerName: string | null;
   locationType: string | null;
   totalAmount: string | null;
+  venueName?: string | null;
   isSession?: boolean;
   sessionNumber?: number;
   totalSessions?: number;
@@ -195,6 +196,7 @@ export default function ProviderCalendar() {
         customerName: booking.customerName,
         locationType: booking.locationType,
         totalAmount: booking.totalAmount,
+        venueName: (booking as any).venueName || null,
       });
     }
 
@@ -214,6 +216,7 @@ export default function ProviderCalendar() {
         customerName: parent?.customerName || null,
         locationType: parent?.locationType || null,
         totalAmount: parent?.totalAmount || null,
+        venueName: (parent as any)?.venueName || null,
         isSession: true,
         sessionNumber: session.sessionNumber,
         totalSessions: session.totalSessions || undefined,
@@ -391,6 +394,9 @@ export default function ProviderCalendar() {
                       >
                         <span className="font-medium">{formatTime(event.startTime)}</span>{" "}
                         {event.serviceName || event.bookingNumber}
+                        {event.venueName && event.locationType === "fixed_location" && (
+                          <span className="opacity-70"> · {event.venueName}</span>
+                        )}
                       </button>
                     );
                   })}
@@ -485,6 +491,9 @@ export default function ProviderCalendar() {
                             {formatTime(event.startTime)} - {formatTime(event.endTime)}
                           </div>
                           <div className="truncate">{event.serviceName || event.bookingNumber}</div>
+                          {event.venueName && event.locationType === "fixed_location" && (
+                            <div className="truncate opacity-70">{event.venueName}</div>
+                          )}
                         </button>
                       );
                     })}
@@ -536,7 +545,12 @@ export default function ProviderCalendar() {
             {selectedEvent.locationType && (
               <div className="flex items-center gap-2 text-sm">
                 <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span className="capitalize">{selectedEvent.locationType.replace("_", " ")}</span>
+                <span className="capitalize">
+                  {selectedEvent.locationType.replace("_", " ")}
+                  {selectedEvent.venueName && selectedEvent.locationType === "fixed_location" && (
+                    <> — {selectedEvent.venueName}</>
+                  )}
+                </span>
               </div>
             )}
             {selectedEvent.totalAmount && (
