@@ -203,7 +203,7 @@ function NotificationDropdown() {
         className="relative"
         onClick={() => setOpen(!open)}
       >
-        <Bell className="h-4 w-4" />
+        <Bell className="h-5 w-5 lg:h-4 lg:w-4" />
         {unreadCount > 0 && (
           <Badge
             variant="destructive"
@@ -507,7 +507,7 @@ export function NavHeader() {
             <img
               src="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png"
               alt="OlogyCrew"
-              className="h-8 w-8 object-contain rounded-lg"
+              className="h-9 w-9 lg:h-8 lg:w-8 object-contain rounded-lg"
             />
             <span className="hidden lg:inline text-xl font-bold gradient-text whitespace-nowrap">OlogyCrew</span>
           </Link>
@@ -637,11 +637,11 @@ export function NavHeader() {
             <Button
               variant="ghost"
               size="icon"
-              className="relative h-9 w-9"
+              className="relative h-10 w-10"
               onClick={() => window.dispatchEvent(new Event('toggle-help-chat'))}
               title="AI Assistant"
             >
-              <Sparkles className="h-5 w-5" />
+              <Sparkles className="h-6 w-6" />
             </Button>
 
             {/* Notification bell (mobile only) */}
@@ -651,9 +651,10 @@ export function NavHeader() {
             <Button
               variant="ghost"
               size="icon"
+              className="h-10 w-10"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
           </div>
         </div>
