@@ -27,7 +27,13 @@ import {
   Download,
   Shield,
   Trash2,
+  Search,
+  Grid3X3,
+  HelpCircle,
+  Clock,
+  LayoutDashboard,
 } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useSSE } from "@/hooks/useSSE";
 import { toast } from "sonner";
@@ -457,10 +463,9 @@ function UserMenuDropdown({ user }: { user: any }) {
 
 function MobileLogoutButton({ onClose }: { onClose: () => void }) {
   return (
-    <div className="border-t pt-2 mt-2">
-      <Button
-        variant="ghost"
-        className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+    <div>
+      <button
+        className="flex items-center gap-3 w-full px-3 py-3 rounded-lg hover:bg-red-50 active:bg-red-100 transition-colors"
         onClick={() => {
           onClose();
           // Navigate directly to the logout endpoint - this guarantees
@@ -468,9 +473,9 @@ function MobileLogoutButton({ onClose }: { onClose: () => void }) {
           window.location.href = "/api/auth/logout";
         }}
       >
-        <LogOut className="h-4 w-4 mr-2" />
-        Log Out
-      </Button>
+        <LogOut className="h-5 w-5 text-red-500" />
+        <span className="text-[15px] font-medium text-red-600">Log Out</span>
+      </button>
     </div>
   );
 }
@@ -659,119 +664,186 @@ export function NavHeader() {
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Full-Screen App Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden border-t py-4 space-y-2">
-            {/* Mobile View Switcher */}
-            <div className="px-2 pb-2">
-              <ViewModeSwitcherMobile />
-            </div>
-            <Link href="/browse" onClick={() => setMobileMenuOpen(false)}>
-              <Button variant="ghost" className="w-full justify-start">Browse Services</Button>
-            </Link>
-            <Link href="/search" onClick={() => setMobileMenuOpen(false)}>
-              <Button variant="ghost" className="w-full justify-start">Search</Button>
-            </Link>
-            <Link href="/pricing" onClick={() => setMobileMenuOpen(false)}>
-              <Button variant="ghost" className="w-full justify-start">Plans</Button>
-            </Link>
-            <Link href="/help" onClick={() => setMobileMenuOpen(false)}>
-              <Button variant="ghost" className="w-full justify-start">Help</Button>
-            </Link>
-            {isAuthenticated ? (
-              <>
-                <Link href="/my-bookings" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start relative">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    My Bookings
-                  </Button>
+          <div className="lg:hidden fixed inset-0 top-[57px] z-50 bg-background animate-in slide-in-from-right-full duration-200 overflow-y-auto">
+            <div className="flex flex-col h-full">
+              {/* User Profile Summary */}
+              {isAuthenticated && user ? (
+                <div className="px-6 py-5 border-b bg-muted/30">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-12 w-12">
+                      {user.profilePhotoUrl ? (
+                        <AvatarImage src={user.profilePhotoUrl} alt={user.name || ""} className="object-cover" />
+                      ) : null}
+                      <AvatarFallback className="text-lg font-semibold bg-primary/10 text-primary">
+                        {(user.name || user.email || "?")[0].toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-base truncate">{user.name || "User"}</p>
+                      <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                      {(isProvider || isAdmin) && (
+                        <div className="flex gap-1.5 mt-1">
+                          {isProvider && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Provider</Badge>}
+                          {isAdmin && <Badge variant="default" className="text-[10px] px-1.5 py-0">Admin</Badge>}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {/* View Mode Switcher */}
+                  <div className="mt-3">
+                    <ViewModeSwitcherMobile />
+                  </div>
+                </div>
+              ) : (
+                <div className="px-6 py-5 border-b">
+                  <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                    <Button className="w-full h-12 text-base">Sign In to Get Started</Button>
+                  </Link>
+                </div>
+              )}
+
+              {/* Navigation Sections */}
+              <div className="flex-1 px-4 py-3 space-y-1">
+                {/* Browse Section */}
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 pt-2 pb-1">Discover</p>
+                <Link href="/browse" onClick={() => setMobileMenuOpen(false)}>
+                  <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors">
+                    <Grid3X3 className="h-5 w-5 text-muted-foreground" />
+                    <span className="text-[15px] font-medium">Browse Services</span>
+                  </div>
                 </Link>
-                <Link href="/saved-providers" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start">
-                    <Heart className="h-4 w-4 mr-2" />
-                    Saved Providers
-                  </Button>
+                <Link href="/search" onClick={() => setMobileMenuOpen(false)}>
+                  <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors">
+                    <Search className="h-5 w-5 text-muted-foreground" />
+                    <span className="text-[15px] font-medium">Search</span>
+                  </div>
                 </Link>
-                <Link href="/my-quotes" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start">
-                    <FileText className="h-4 w-4 mr-2" />
-                    My Quotes
-                  </Button>
+                <Link href="/pricing" onClick={() => setMobileMenuOpen(false)}>
+                  <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors">
+                    <CreditCard className="h-5 w-5 text-muted-foreground" />
+                    <span className="text-[15px] font-medium">Plans</span>
+                  </div>
                 </Link>
-                <Link href="/my-waitlist" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start">
-                    <Bell className="h-4 w-4 mr-2" />
-                    My Waitlist
-                  </Button>
+                <Link href="/help" onClick={() => setMobileMenuOpen(false)}>
+                  <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors">
+                    <HelpCircle className="h-5 w-5 text-muted-foreground" />
+                    <span className="text-[15px] font-medium">Help</span>
+                  </div>
                 </Link>
-                <Link href="/messages" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start relative">
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Messages
-                    {unreadMessages > 0 && (
-                      <Badge variant="destructive" className="ml-2 text-[10px] h-5">
-                        {unreadMessages}
-                      </Badge>
+
+                {isAuthenticated && (
+                  <>
+                    {/* My Account Section */}
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 pt-4 pb-1">My Account</p>
+                    <Link href="/my-bookings" onClick={() => setMobileMenuOpen(false)}>
+                      <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors">
+                        <Calendar className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-[15px] font-medium">My Bookings</span>
+                      </div>
+                    </Link>
+                    <Link href="/messages" onClick={() => setMobileMenuOpen(false)}>
+                      <div className="flex items-center justify-between gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors">
+                        <div className="flex items-center gap-3">
+                          <MessageSquare className="h-5 w-5 text-muted-foreground" />
+                          <span className="text-[15px] font-medium">Messages</span>
+                        </div>
+                        {unreadMessages > 0 && (
+                          <Badge variant="destructive" className="text-[11px] h-5 min-w-[20px] justify-center">
+                            {unreadMessages}
+                          </Badge>
+                        )}
+                      </div>
+                    </Link>
+                    <Link href="/saved-providers" onClick={() => setMobileMenuOpen(false)}>
+                      <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors">
+                        <Heart className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-[15px] font-medium">Saved Providers</span>
+                      </div>
+                    </Link>
+                    <Link href="/my-quotes" onClick={() => setMobileMenuOpen(false)}>
+                      <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors">
+                        <FileText className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-[15px] font-medium">My Quotes</span>
+                      </div>
+                    </Link>
+                    <Link href="/my-waitlist" onClick={() => setMobileMenuOpen(false)}>
+                      <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors">
+                        <Clock className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-[15px] font-medium">My Waitlist</span>
+                      </div>
+                    </Link>
+                    <Link href="/notifications" onClick={() => setMobileMenuOpen(false)}>
+                      <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors">
+                        <Bell className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-[15px] font-medium">Notifications</span>
+                      </div>
+                    </Link>
+                    <Link href="/referrals" onClick={() => setMobileMenuOpen(false)}>
+                      <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors">
+                        <Coins className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-[15px] font-medium">Referral Credits</span>
+                      </div>
+                    </Link>
+
+                    {/* Provider Section */}
+                    {isProvider && (isProviderView || isAdmin) && (
+                      <>
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 pt-4 pb-1">Provider</p>
+                        <Link href="/provider/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                          <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors">
+                            <LayoutDashboard className="h-5 w-5 text-muted-foreground" />
+                            <span className="text-[15px] font-medium">My Dashboard</span>
+                          </div>
+                        </Link>
+                      </>
                     )}
-                  </Button>
-                </Link>
-                <Link href="/notifications" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start relative">
-                    <Bell className="h-4 w-4 mr-2" />
-                    Notifications
-                  </Button>
-                </Link>
-                <Link href="/referrals" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start">
-                    <Coins className="h-4 w-4 mr-2" />
-                    Referral Credits
-                  </Button>
-                </Link>
-                {isProvider && (isProviderView || isAdmin) && (
-                  <Link href="/provider/dashboard" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start">
-                      <Briefcase className="h-4 w-4 mr-2" />
-                      My Dashboard
-                    </Button>
-                  </Link>
+
+                    {/* Admin Section */}
+                    {isAdmin && (
+                      <>
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 pt-4 pb-1">Admin</p>
+                        <Link href="/admin" onClick={() => setMobileMenuOpen(false)}>
+                          <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-blue-50 active:bg-blue-100 transition-colors">
+                            <Shield className="h-5 w-5 text-blue-600" />
+                            <span className="text-[15px] font-medium text-blue-700">Admin Dashboard</span>
+                          </div>
+                        </Link>
+                      </>
+                    )}
+
+                    {/* Account Section */}
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 pt-4 pb-1">Settings</p>
+                    <Link href="/profile" onClick={() => setMobileMenuOpen(false)}>
+                      <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors">
+                        <User className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-[15px] font-medium">My Profile</span>
+                      </div>
+                    </Link>
+                  </>
                 )}
-                {isAdmin && (
-                  <Link href="/admin" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start text-blue-700 hover:bg-blue-50">
-                      <Shield className="h-4 w-4 mr-2" />
-                      Admin Dashboard
-                    </Button>
-                  </Link>
-                )}
-                <Link href="/profile" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start">
-                    <User className="h-4 w-4 mr-2" />
-                    My Profile
-                  </Button>
-                </Link>
-                <MobileLogoutButton onClose={() => setMobileMenuOpen(false)} />
-              </>
-            ) : (
-              <Link href="/login">
-                <Button className="w-full">Sign In</Button>
-              </Link>
-            )}
-            {/* Install App - always visible if not already installed */}
-            {!pwaInstalled && (
-              <div className="border-t pt-2 mt-2">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    pwaInstall();
-                  }}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Install App
-                </Button>
               </div>
-            )}
+
+              {/* Footer Actions */}
+              <div className="px-4 py-4 border-t mt-auto space-y-2">
+                {!pwaInstalled && (
+                  <button
+                    className="flex items-center gap-3 w-full px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      pwaInstall();
+                    }}
+                  >
+                    <Download className="h-5 w-5 text-muted-foreground" />
+                    <span className="text-[15px] font-medium">Install App</span>
+                  </button>
+                )}
+                {isAuthenticated && (
+                  <MobileLogoutButton onClose={() => setMobileMenuOpen(false)} />
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>

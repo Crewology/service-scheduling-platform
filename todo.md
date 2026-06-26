@@ -1932,3 +1932,11 @@
 - [x] Make text input box always visible on screen on mobile (no scrolling past it)
 - [x] Make conversation area scrollable within its container
 - [x] Apply same fix to DirectMessage page
+
+## UX: Redesign Mobile Hamburger Menu as Full-Screen App Navigation
+
+- [x] Convert mobile hamburger dropdown to full-screen overlay panel
+- [x] Add user profile summary at top (avatar, name, role badge)
+- [x] Group menu items into sections (Browse, My Account, Provider, Admin)
+- [x] Use large tap targets with icons and labels
+- [x] Add slide-in animation
