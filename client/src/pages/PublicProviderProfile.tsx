@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useCallback } from "react";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { useParams, Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
@@ -131,6 +131,67 @@ function FavoriteButton({ providerId }: { providerId: number }) {
     >
       <Heart className={`h-5 w-5 ${isFav ? "fill-current" : ""}`} />
     </Button>
+  );
+}
+
+function PortfolioGrid({ portfolio, categories }: { portfolio: any[]; categories: any[] }) {
+  const [brokenImages, setBrokenImages] = useState<Set<number>>(new Set());
+  const handleImageError = useCallback((id: number) => {
+    setBrokenImages(prev => {
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+  }, []);
+
+  const visibleItems = portfolio.filter(item => !brokenImages.has(item.id));
+
+  if (visibleItems.length === 0) return null;
+
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+      {visibleItems.map((item: any) => (
+        <div key={item.id} className="group relative rounded-lg overflow-hidden border bg-card aspect-square cursor-pointer">
+          {item.mediaType === "before_after" && item.beforeImageUrl ? (
+            <div className="w-full h-full">
+              <BeforeAfterCard beforeUrl={item.beforeImageUrl} afterUrl={item.imageUrl} />
+              {/* Hidden images to detect load errors for before/after items */}
+              <img
+                src={item.imageUrl}
+                alt=""
+                className="hidden"
+                onError={() => handleImageError(item.id)}
+              />
+              <img
+                src={item.beforeImageUrl}
+                alt=""
+                className="hidden"
+                onError={() => handleImageError(item.id)}
+              />
+            </div>
+          ) : (
+            <img
+              src={item.imageUrl}
+              alt={item.title || "Work sample"}
+              className="w-full h-full object-cover transition-transform group-hover:scale-105"
+              onError={() => handleImageError(item.id)}
+            />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
+            {item.mediaType === "before_after" && (
+              <Badge className="absolute top-2 left-2 text-[10px] bg-blue-500">Before & After</Badge>
+            )}
+            {item.title && <p className="text-white text-sm font-medium">{item.title}</p>}
+            {item.description && <p className="text-white/70 text-xs line-clamp-2">{item.description}</p>}
+            {item.categoryId && (
+              <span className="text-white/50 text-[10px] mt-1">
+                {CATEGORY_ICONS[item.categoryId] || ""} {categories?.find((c: any) => c.id === item.categoryId)?.name?.split(" ").map((w: string) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ") || ""}
+              </span>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -492,29 +553,7 @@ export default function PublicProviderProfile() {
             {portfolio && portfolio.length > 0 && (
               <div>
                 <h2 className="text-xl font-semibold text-foreground mb-4">Portfolio & Work Samples</h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {portfolio.map((item: any) => (
-                    <div key={item.id} className="group relative rounded-lg overflow-hidden border bg-card aspect-square cursor-pointer">
-                      {item.mediaType === "before_after" && item.beforeImageUrl ? (
-                        <BeforeAfterCard beforeUrl={item.beforeImageUrl} afterUrl={item.imageUrl} />
-                      ) : (
-                        <img src={item.imageUrl} alt={item.title || "Work sample"} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
-                        {item.mediaType === "before_after" && (
-                          <Badge className="absolute top-2 left-2 text-[10px] bg-blue-500">Before & After</Badge>
-                        )}
-                        {item.title && <p className="text-white text-sm font-medium">{item.title}</p>}
-                        {item.description && <p className="text-white/70 text-xs line-clamp-2">{item.description}</p>}
-                        {item.categoryId && (
-                          <span className="text-white/50 text-[10px] mt-1">
-                            {CATEGORY_ICONS[item.categoryId] || ""} {categories?.find((c: any) => c.id === item.categoryId)?.name?.split(" ").map((w: string) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ") || ""}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <PortfolioGrid portfolio={portfolio} categories={categories} />
               </div>
             )}
 

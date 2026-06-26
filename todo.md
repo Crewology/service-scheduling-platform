@@ -1864,3 +1864,9 @@
 - [x] Remove in-page "Bookings I Made" / "Bookings I Received" toggle from MyBookings
 - [x] Use global role view (Provider/Customer) to determine which bookings are shown automatically
 - [x] Hide Pay Now button and Payment Due badge from provider's view of received bookings
+## Fix: Portfolio Image Error Handling
+- [x] Extract PortfolioGrid component in PublicProviderProfile with image error handling
+- [x] Track broken images via useState<Set<number>> and onError handlers on img tags
+- [x] Automatically hide portfolio items whose images fail to load (no broken image icons)
+- [x] Handle both regular images and before/after image pairs (hidden probe images for error detection)
+- [x] Return null if all items have broken images (graceful empty state)
