@@ -1,0 +1,1 @@
+ALTER TABLE `services` ADD `requireUpfrontPayment` boolean DEFAULT false NOT NULL;

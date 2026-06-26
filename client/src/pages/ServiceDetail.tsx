@@ -15,7 +15,7 @@ import { useLocation, useParams, useSearch, Link } from "wouter";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
 import { Calendar } from "@/components/ui/calendar";
-import { MapPin, Clock, DollarSign, Star, ChevronRight, CheckCircle2, ArrowLeft, Info, Image as ImageIcon, Tag, X, Loader2, Gift, CalendarRange, Repeat, CalendarDays, Share2, Bell, BellOff } from "lucide-react";
+import { MapPin, Clock, DollarSign, Star, ChevronRight, CheckCircle2, ArrowLeft, Info, Image as ImageIcon, Tag, X, Loader2, Gift, CalendarRange, Repeat, CalendarDays, Share2, Bell, BellOff, CreditCard, ShieldCheck } from "lucide-react";
 import { generateTimeSlots, formatTimeForDisplay, type TimeSlot } from "@shared/timeSlots";
 import { ReviewList } from "@/components/shared/ReviewList";
 import { NavHeader } from "@/components/shared/NavHeader";
@@ -281,7 +281,6 @@ export default function ServiceDetail() {
 
   const createBooking = trpc.booking.create.useMutation({
     onSuccess: (data) => {
-      toast.success("Booking request sent! The provider will confirm your booking.");
       // Record referral if a referral code was applied
       if (referralApplied?.valid) {
         applyReferral.mutate({
@@ -290,12 +289,14 @@ export default function ServiceDetail() {
           bookingId: data.id,
           discountAmount: (getNumericPrice() * referralApplied.refereeDiscountPercent / 100).toFixed(2),
         });
-        // Clear the stored referral code after successful application
         localStorage.removeItem("customer_referral_code");
       }
-      if (service?.depositRequired || (service?.pricingModel !== "custom_quote" && service?.pricingModel !== "consultation")) {
+      const isPriced = service?.pricingModel !== "custom_quote" && service?.pricingModel !== "consultation";
+      if (isPriced && (service?.requireUpfrontPayment || paymentChoice === "pay_now")) {
+        toast.success("Booking created! Redirecting to payment...");
         handlePayment(data.id);
       } else {
+        toast.success("Booking request sent! The provider will confirm your booking.");
         setLocation(`/booking/${data.id}`);
       }
     },
@@ -307,11 +308,13 @@ export default function ServiceDetail() {
   // Multi-day booking mutation
   const createMultiDay = trpc.booking.createMultiDay.useMutation({
     onSuccess: (data) => {
-      toast.success("Multi-day booking request sent! The provider will confirm your booking.");
       if (!data) return;
-      if (service?.depositRequired || (service?.pricingModel !== "custom_quote" && service?.pricingModel !== "consultation")) {
+      const isPriced = service?.pricingModel !== "custom_quote" && service?.pricingModel !== "consultation";
+      if (isPriced && (service?.requireUpfrontPayment || paymentChoice === "pay_now")) {
+        toast.success("Multi-day booking created! Redirecting to payment...");
         handlePayment(data.id);
       } else {
+        toast.success("Multi-day booking request sent! The provider will confirm your booking.");
         setLocation(`/booking/${data.id}`);
       }
     },
@@ -323,11 +326,13 @@ export default function ServiceDetail() {
   // Recurring booking mutation
   const createRecurring = trpc.booking.createRecurring.useMutation({
     onSuccess: (data) => {
-      toast.success("Recurring booking request sent! The provider will confirm your booking.");
       if (!data) return;
-      if (service?.depositRequired || (service?.pricingModel !== "custom_quote" && service?.pricingModel !== "consultation")) {
+      const isPriced = service?.pricingModel !== "custom_quote" && service?.pricingModel !== "consultation";
+      if (isPriced && (service?.requireUpfrontPayment || paymentChoice === "pay_now")) {
+        toast.success("Recurring booking created! Redirecting to payment...");
         handlePayment(data.id);
       } else {
+        toast.success("Recurring booking request sent! The provider will confirm your booking.");
         setLocation(`/booking/${data.id}`);
       }
     },
@@ -655,6 +660,9 @@ export default function ServiceDetail() {
 
   const isBookingPending = createBooking.isPending || createMultiDay.isPending || createRecurring.isPending;
   const isBookingSuccess = createBooking.isSuccess || createMultiDay.isSuccess || createRecurring.isSuccess;
+
+  // Payment timing choice: "pay_now" or "pay_after_confirmation"
+  const [paymentChoice, setPaymentChoice] = useState<"pay_now" | "pay_after_confirmation">("pay_now");
 
   const calculateEndTime = (startTime: string, durationMinutes: number): string => {
     const [hours, minutes] = startTime.split(":").map(Number);
@@ -1996,24 +2004,73 @@ export default function ServiceDetail() {
                       </div>
                     </div>
 
-                    <Button
-                      onClick={handleBooking}
-                      disabled={isBookingPending || isBookingSuccess}
-                      className={`w-full ${isBookingSuccess ? 'bg-green-600 hover:bg-green-600 cursor-default' : ''}`}
-                      size="lg"
-                    >
-                      {isBookingSuccess
-                        ? "✓ Request Sent"
-                        : isBookingPending
-                        ? "Processing..."
-                        : service.depositRequired
-                        ? "Pay Deposit & Book"
-                        : bookingType === "multi_day"
-                        ? `Confirm ${multiDayCount}-Day Booking`
-                        : bookingType === "recurring"
-                        ? `Confirm ${recurringSessionCount} Sessions`
-                        : "Confirm Booking"}
-                    </Button>
+                    {/* Payment timing choice - only for priced services */}
+                    {service.pricingModel !== "custom_quote" && service.pricingModel !== "consultation" && getNumericPrice() > 0 && !service.requireUpfrontPayment ? (
+                      <div className="space-y-3">
+                        <p className="text-sm font-medium text-center text-muted-foreground">How would you like to pay?</p>
+                        <div className="grid grid-cols-2 gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setPaymentChoice("pay_now")}
+                            className={`p-3 rounded-lg border-2 text-left transition-all ${
+                              paymentChoice === "pay_now"
+                                ? "border-primary bg-primary/5"
+                                : "border-muted hover:border-muted-foreground/30"
+                            }`}
+                          >
+                            <CreditCard className={`h-5 w-5 mb-1 ${paymentChoice === "pay_now" ? "text-primary" : "text-muted-foreground"}`} />
+                            <p className="text-sm font-medium">Pay Now</p>
+                            <p className="text-xs text-muted-foreground">Secure your spot instantly</p>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setPaymentChoice("pay_after_confirmation")}
+                            className={`p-3 rounded-lg border-2 text-left transition-all ${
+                              paymentChoice === "pay_after_confirmation"
+                                ? "border-primary bg-primary/5"
+                                : "border-muted hover:border-muted-foreground/30"
+                            }`}
+                          >
+                            <ShieldCheck className={`h-5 w-5 mb-1 ${paymentChoice === "pay_after_confirmation" ? "text-primary" : "text-muted-foreground"}`} />
+                            <p className="text-sm font-medium">Pay Later</p>
+                            <p className="text-xs text-muted-foreground">Pay after provider confirms</p>
+                          </button>
+                        </div>
+                        <Button
+                          onClick={handleBooking}
+                          disabled={isBookingPending || isBookingSuccess}
+                          className={`w-full ${isBookingSuccess ? 'bg-green-600 hover:bg-green-600 cursor-default' : ''}`}
+                          size="lg"
+                        >
+                          {isBookingSuccess
+                            ? "✓ Request Sent"
+                            : isBookingPending
+                            ? "Processing..."
+                            : paymentChoice === "pay_now"
+                            ? (service.depositRequired ? "Pay Deposit & Book" : "Pay & Book")
+                            : "Submit Booking Request"}
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        onClick={handleBooking}
+                        disabled={isBookingPending || isBookingSuccess}
+                        className={`w-full ${isBookingSuccess ? 'bg-green-600 hover:bg-green-600 cursor-default' : ''}`}
+                        size="lg"
+                      >
+                        {isBookingSuccess
+                          ? "✓ Request Sent"
+                          : isBookingPending
+                          ? "Processing..."
+                          : service.requireUpfrontPayment
+                          ? (service.depositRequired ? "Pay Deposit & Book" : "Pay & Book")
+                          : bookingType === "multi_day"
+                          ? `Confirm ${multiDayCount}-Day Booking`
+                          : bookingType === "recurring"
+                          ? `Confirm ${recurringSessionCount} Sessions`
+                          : "Confirm Booking"}
+                      </Button>
+                    )}
 
                     {!isAuthenticated && (
                       <p className="text-xs text-center text-muted-foreground mt-2">

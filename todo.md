@@ -1846,3 +1846,13 @@
 - [x] Show address fields for Private Location selection
 - [x] Show no additional fields for Virtual Stream selection
 - [x] Apply to all categories that support flexible services (not just DJ & Music)
+
+## Feature: Hybrid Payment Timing (Pay Now / Pay After Confirmation)
+- [x] Add requireUpfrontPayment boolean field to services schema
+- [x] Add provider toggle in service settings to require upfront payment
+- [x] Update booking form confirm step to show "Pay Now" and "Pay After Confirmation" buttons (for priced services)
+- [x] When provider requires upfront: only show "Pay Now"
+- [x] Update booking submission to handle "pay after confirmation" path (skip Stripe redirect)
+- [x] Update BookingConfirmation page to show "Pay Now" button for confirmed bookings awaiting payment
+- [x] Update MyBookings page with "Payment Due" badge and "Pay Now" button for confirmed-unpaid bookings
+- [x] Free/consultation/custom-quote services skip payment options entirely

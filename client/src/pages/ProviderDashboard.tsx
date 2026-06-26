@@ -1120,6 +1120,7 @@ export default function ProviderDashboard() {
       depositType: service.depositType || "fixed",
       depositAmount: service.depositAmount || "",
       depositPercentage: service.depositPercentage || "",
+      requireUpfrontPayment: service.requireUpfrontPayment ?? false,
       isGroupClass: service.isGroupClass ?? false,
       maxCapacity: service.maxCapacity || 1,
     });
@@ -2645,6 +2646,25 @@ export default function ProviderDashboard() {
                   )}
                 </div>
               )}
+            </div>
+
+            {/* Require Upfront Payment toggle */}
+            <div className="border rounded-lg p-4 space-y-2 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="edit-require-upfront"
+                  checked={serviceForm.requireUpfrontPayment || false}
+                  onChange={e => setServiceForm({ ...serviceForm, requireUpfrontPayment: e.target.checked })}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+                <Label htmlFor="edit-require-upfront" className="mb-0 cursor-pointer">Require Upfront Payment</Label>
+              </div>
+              <p className="text-xs text-muted-foreground pl-7">
+                {serviceForm.requireUpfrontPayment
+                  ? "Customers must pay immediately when booking. They will not have the option to pay after confirmation."
+                  : "Customers can choose to pay now or pay after you confirm the booking."}
+              </p>
             </div>
 
             {/* Group Class / Capacity - hidden for DJ & Music Services (category 20) */}

@@ -212,12 +212,26 @@ export default function BookingConfirmation() {
       <div className="container py-12 max-w-3xl">
         {/* Success Message */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
-            <CheckCircle className="h-8 w-8 text-green-600" />
+          <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${
+            (booking as any).paidAt ? 'bg-green-100' : booking.status === 'confirmed' ? 'bg-blue-100' : 'bg-green-100'
+          }`}>
+            <CheckCircle className={`h-8 w-8 ${
+              (booking as any).paidAt ? 'text-green-600' : booking.status === 'confirmed' ? 'text-blue-600' : 'text-green-600'
+            }`} />
           </div>
-          <h1 className="text-3xl font-bold mb-2">Booking Confirmed!</h1>
+          <h1 className="text-3xl font-bold mb-2">
+            {(booking as any).paidAt
+              ? "Booking Confirmed & Paid!"
+              : booking.status === "confirmed"
+              ? "Booking Confirmed — Payment Required"
+              : "Booking Request Submitted!"}
+          </h1>
           <p className="text-muted-foreground">
-            Your booking has been submitted and is pending provider confirmation.
+            {(booking as any).paidAt
+              ? "Your booking is fully confirmed and paid."
+              : booking.status === "confirmed"
+              ? "The provider has confirmed your booking. Please complete payment to secure your spot."
+              : "Your booking has been submitted and is pending provider confirmation."}
           </p>
           <p className="text-sm text-muted-foreground mt-2">
             Booking Number: <span className="font-mono font-semibold">{booking.bookingNumber}</span>

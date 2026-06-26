@@ -168,6 +168,7 @@ export const serviceRouter = router({
       }),
       cancellationPolicy: z.string().optional(),
       specialRequirements: z.string().optional(),
+      requireUpfrontPayment: z.boolean().optional(),
       isActive: z.boolean().optional(),
       isGroupClass: z.boolean().optional(),
       maxCapacity: z.number().min(1).optional(),

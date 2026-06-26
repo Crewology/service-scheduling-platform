@@ -170,6 +170,8 @@ export const services = mysqlTable("services", {
   cancellationPolicy: text("cancellationPolicy"),
   specialRequirements: text("specialRequirements"),
   equipmentNeeded: text("equipmentNeeded"),
+  // Payment timing
+  requireUpfrontPayment: boolean("requireUpfrontPayment").default(false).notNull(),
   // Group class / capacity settings
   isGroupClass: boolean("isGroupClass").default(false).notNull(),
   maxCapacity: int("maxCapacity").default(1).notNull(), // 1 = individual, >1 = group class
