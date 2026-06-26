@@ -505,9 +505,9 @@ export function NavHeader() {
             <img
               src="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png"
               alt="OlogyCrew"
-              className="h-9 w-9 sm:h-8 sm:w-8 object-contain rounded-lg"
+              className="h-8 w-8 object-contain rounded-lg"
             />
-            <span className="text-xl sm:text-xl font-bold gradient-text whitespace-nowrap">OlogyCrew</span>
+            <span className="hidden lg:inline text-xl font-bold gradient-text whitespace-nowrap">OlogyCrew</span>
           </Link>
 
           {/* Desktop Nav */}
