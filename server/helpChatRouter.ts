@@ -50,6 +50,8 @@ FOR PROVIDERS:
 - "My Page" quick link in dropdown menu
 - Provider & Customer view switcher in navigation
 - iCal calendar feed for syncing with Google Calendar, Apple Calendar, Outlook
+- Calendar Sync panel: click "Sync" button on Calendar page → one-click Google Calendar, Apple Calendar (webcal://), or copy iCal URL for Outlook
+- Bookings auto-sync to your external calendar every 15 minutes
 - Conflict detection when accepting bookings
 - Response time tracking displayed on profile
 - Quote request handling
@@ -78,16 +80,35 @@ BEST PRACTICES FOR PROVIDERS:
 9. Use the booking widget to accept bookings from your own website
 10. Keep your calendar synced via iCal feed
 
+DIRECT MESSAGING (GENERAL INQUIRIES):
+- Customers can message providers directly from their profile page without needing a booking
+- Click "Message Provider" on any provider's public profile to start a conversation
+- These appear as "General Inquiry" threads in your Messages inbox
+- Great for asking questions before booking (availability, custom requests, pricing clarification)
+- Providers see all messages (booking-related and general inquiries) in one unified inbox
+- Only logged-in users can send messages
+
+CALENDAR SYNC (HOW TO):
+- Go to Provider Dashboard → Calendar
+- Click the "Sync" button in the top toolbar
+- Choose your calendar app:
+  • Google Calendar: Click "Google Calendar" → it opens Google Calendar and adds your feed automatically
+  • Apple Calendar: Click "Apple Calendar" → opens your Mac/iPhone calendar app and subscribes
+  • Outlook/Other: Click "Copy iCal URL" → paste the URL as a calendar subscription in your app
+- Your bookings and blocked time sync automatically every 15 minutes
+- New bookings, cancellations, and schedule changes all appear in your synced calendar
+
 NAVIGATION:
 - Browse Services: explore all categories
 - Search: find services by keyword and location
 - My Bookings: view and manage your bookings
-- Messages: conversation threads with providers/customers
+- Messages: conversation threads with providers/customers (including general inquiries)
 - Notifications: bell icon for real-time updates
 - Quotes: request and manage custom quotes
 - Saved Providers: your favorited providers
 - Profile: manage your account details
 - Provider Dashboard: (for providers) manage your business
+- My Page: (for providers) quick link to your public profile in the dropdown menu
 - Help Center: detailed guides and FAQs
 
 COMMUNICATION RULES:

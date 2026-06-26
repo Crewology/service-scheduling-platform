@@ -1805,3 +1805,9 @@
 - [x] Distinguish General Inquiry vs Booking threads in Messages inbox (tag/label)
 - [x] Only allow logged-in users to send messages (prevent spam)
 - [x] Fix search results and notification auto-open for direct messages
+
+## Feature: Calendar Sync Buttons & AI Assistant Update
+- [x] Add Google Calendar, Apple Calendar, and Copy iCal URL sync buttons to Provider Calendar view
+- [x] Ensure confirmed bookings display as events on the calendar
+- [x] Ensure blocked time (date overrides) shows as greyed-out slots
+- [x] Update AI Help Assistant knowledge base with open messaging and calendar sync features

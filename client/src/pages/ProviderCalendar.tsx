@@ -23,6 +23,10 @@ import {
   Ban,
   Trash2,
   Plus,
+  ExternalLink,
+  Copy,
+  Check,
+  RefreshCw,
 } from "lucide-react";
 
 type ViewMode = "month" | "week";
@@ -123,9 +127,15 @@ export default function ProviderCalendar() {
     reason: "",
   });
 
+  const [copied, setCopied] = useState(false);
+  const [showSyncPanel, setShowSyncPanel] = useState(false);
   const utils = trpc.useUtils();
 
   const { data: calendarData, isLoading } = trpc.booking.calendarEvents.useQuery(undefined, {
+    enabled: !!user,
+  });
+
+  const { data: feedData } = trpc.provider.getCalendarFeedUrl.useQuery(undefined, {
     enabled: !!user,
   });
 
@@ -566,6 +576,10 @@ export default function ProviderCalendar() {
             <p className="text-muted-foreground text-sm mt-1">View all your bookings and sessions at a glance</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
+            <Button variant="outline" size="sm" onClick={() => setShowSyncPanel(!showSyncPanel)}>
+              <RefreshCw className="h-4 w-4 mr-1" />
+              Sync
+            </Button>
             <Button variant="outline" size="sm" onClick={() => openBlockDialog()}>
               <Ban className="h-4 w-4 mr-1" />
               Block Time
@@ -577,6 +591,70 @@ export default function ProviderCalendar() {
             </div>
           </div>
         </div>
+
+        {/* Calendar Sync Panel */}
+        {showSyncPanel && feedData && (
+          <Card className="mb-6 border-primary/20 bg-primary/5">
+            <CardContent className="py-4 px-5">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold flex items-center gap-2">
+                  <RefreshCw className="h-4 w-4 text-primary" />
+                  Sync Your Calendar
+                </h3>
+                <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setShowSyncPanel(false)}>
+                  Close
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mb-4">
+                Keep your bookings in sync with your personal calendar. Changes update automatically every 15 minutes.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => window.open(feedData.googleCalUrl, '_blank')}
+                >
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none">
+                    <path d="M18 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2z" stroke="currentColor" strokeWidth="2" />
+                    <path d="M16 2v4M8 2v4M4 10h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                  Google Calendar
+                  <ExternalLink className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => {
+                    const webcalUrl = feedData.feedUrl.replace(/^https?:/, 'webcal:');
+                    window.location.href = webcalUrl;
+                  }}
+                >
+                  <CalendarIcon className="h-4 w-4" />
+                  Apple Calendar
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => {
+                    navigator.clipboard.writeText(feedData.feedUrl);
+                    setCopied(true);
+                    toast.success("iCal feed URL copied! Paste it into any calendar app.");
+                    setTimeout(() => setCopied(false), 3000);
+                  }}
+                >
+                  {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                  {copied ? "Copied!" : "Copy iCal URL"}
+                </Button>
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-3">
+                For Outlook: Copy the iCal URL and add it as a calendar subscription.
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
           <Card><CardContent className="py-3 px-4"><div className="text-2xl font-bold">{stats.total}</div><div className="text-xs text-muted-foreground">Total Bookings</div></CardContent></Card>
