@@ -41,6 +41,7 @@ import MyWaitlist from "./pages/MyWaitlist";
 // Messaging
 import Conversations from "./pages/Conversations";
 import Messages from "./pages/Messages";
+import DirectMessage from "./pages/DirectMessage";
 
 // Provider dashboard & tools
 import ProviderDashboard from "./pages/ProviderDashboard";
@@ -108,6 +109,7 @@ function Router() {
       <Route path="/my-bookings" component={MyBookings} />
       <Route path="/messages" component={Conversations} />
       <Route path="/messages/:bookingId" component={Messages} />
+      <Route path="/dm/:conversationId" component={DirectMessage} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/users/:id" component={UserDetailPage} />
       <Route path="/admin/email-preview" component={EmailPreview} />

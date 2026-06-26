@@ -96,6 +96,8 @@ export default function Conversations() {
       const match = conversations.find((c: any) => c.conversationId === convId);
       if (match?.bookingId) {
         setLocation(`/messages/${match.bookingId}`);
+      } else if (match) {
+        setLocation(`/dm/${match.conversationId}`);
       }
     }
   }, [conversations, setLocation]);
@@ -278,7 +280,7 @@ export default function Conversations() {
                             if (msg.bookingId) {
                               setLocation(`/messages/${msg.bookingId}`);
                             } else {
-                              toast.info("This message is from a direct conversation.");
+                              setLocation(`/dm/${msg.conversationId}`);
                             }
                           }}
                         >
@@ -361,7 +363,7 @@ export default function Conversations() {
                         if (conv.bookingId) {
                           setLocation(`/messages/${conv.bookingId}`);
                         } else {
-                          toast.info("This conversation doesn't have a linked booking yet. Messages will appear once a booking is created.");
+                          setLocation(`/dm/${conv.conversationId}`);
                         }
                       }}
                     >
@@ -388,9 +390,13 @@ export default function Conversations() {
                               </h4>
                               <span className="text-xs text-muted-foreground shrink-0">{timeStr}</span>
                             </div>
-                            {conv.bookingLabel && (
+                            {conv.bookingLabel ? (
                               <p className="text-xs text-muted-foreground truncate">
                                 {conv.bookingLabel}
+                              </p>
+                            ) : (
+                              <p className="text-xs text-blue-500 truncate">
+                                General Inquiry
                               </p>
                             )}
                             <p className={`text-sm truncate mt-0.5 ${isUnread ? "text-foreground" : "text-muted-foreground"}`}>

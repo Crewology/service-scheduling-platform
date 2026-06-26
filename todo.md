@@ -1795,3 +1795,13 @@
 - [x] Build floating chat widget UI (bottom-right bubble, expandable chat panel)
 - [x] Add suggested starter questions for quick access
 - [x] Integrate widget into app layout (available on all pages)
+
+## Feature: Open Messaging (General Inquiries)
+- [x] Add general inquiry thread type to messaging schema (not tied to a booking)
+- [x] Create backend endpoint to start/find a general inquiry thread with a provider
+- [x] Create DirectMessage page for conversation-based (non-booking) threads
+- [x] Add /dm/:conversationId route
+- [x] Update "Message Provider" button on public profile to open general inquiry thread
+- [x] Distinguish General Inquiry vs Booking threads in Messages inbox (tag/label)
+- [x] Only allow logged-in users to send messages (prevent spam)
+- [x] Fix search results and notification auto-open for direct messages

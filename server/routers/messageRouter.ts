@@ -259,6 +259,40 @@ export const messageRouter = router({
       }));
     }),
   
+  listByConversation: protectedProcedure
+    .input(z.object({ conversationId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // Verify the user is part of this conversation
+      const parts = input.conversationId.replace("conv-", "").split("-");
+      const userIds = parts.map(Number);
+      if (!userIds.includes(ctx.user.id)) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+      }
+      const msgs = await db.getConversationMessages(input.conversationId);
+      // Enrich with sender photos and names
+      const senderIds = Array.from(new Set(msgs.map((m: any) => m.senderId)));
+      const senderPhotos: Record<number, string | null> = {};
+      const senderNames: Record<number, string | null> = {};
+      await Promise.all(senderIds.map(async (sid) => {
+        try {
+          const u = await db.getUserById(sid);
+          senderPhotos[sid] = u?.profilePhotoUrl || null;
+          senderNames[sid] = u?.name || u?.firstName || null;
+          // Check if they have a provider profile for business name
+          const prov = await db.getProviderByUserId(sid);
+          if (prov) senderNames[sid] = prov.businessName || senderNames[sid];
+        } catch {
+          senderPhotos[sid] = null;
+          senderNames[sid] = null;
+        }
+      }));
+      return msgs.map((m: any) => ({
+        ...m,
+        senderPhotoUrl: senderPhotos[m.senderId] || null,
+        senderName: senderNames[m.senderId] || null,
+      }));
+    }),
+
   startConversation: protectedProcedure
     .input(z.object({
       recipientId: z.number(),

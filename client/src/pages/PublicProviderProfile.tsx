@@ -156,11 +156,11 @@ export default function PublicProviderProfile() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const startConversation = trpc.message.startConversation.useMutation({
-    onSuccess: () => {
-      toast.success("Message sent! Redirecting to your conversations...");
+    onSuccess: (data) => {
+      toast.success("Message sent!");
       setShowMessageDialog(false);
       setDirectMessage("");
-      setTimeout(() => setLocation("/messages"), 500);
+      setTimeout(() => setLocation(`/dm/${data.conversationId}`), 500);
     },
     onError: (err) => toast.error(err.message),
   });
