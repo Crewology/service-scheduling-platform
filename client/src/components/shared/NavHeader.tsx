@@ -383,6 +383,16 @@ function UserMenuDropdown({ user }: { user: any }) {
               My Page
             </Link>
           )}
+          {providerProfile && (
+            <Link
+              href="/provider/calendar"
+              className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors"
+              onClick={() => setOpen(false)}
+            >
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              My Calendar
+            </Link>
+          )}
           <Link
             href="/account/subscription"
             className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors"
