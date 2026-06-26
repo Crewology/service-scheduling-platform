@@ -1829,3 +1829,6 @@
 - [x] Fix backend booking creation to calculate subtotal from hourly rate when basePrice is null
 - [x] Fix multi-day and recurring booking pricing to properly calculate hourly rate × duration
 - [x] Frontend already passes subtotal for custom duration; backend now handles standard duration fallback
+
+## UX: Quick-Edit Bio on Provider Dashboard
+- [x] Add inline bio/description preview card below the welcome section with a quick edit button

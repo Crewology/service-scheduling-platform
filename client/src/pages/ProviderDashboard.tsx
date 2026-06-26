@@ -814,6 +814,8 @@ export default function ProviderDashboard() {
 
   const [editingService, setEditingService] = useState<any>(null);
   const [editingProfile, setEditingProfile] = useState(false);
+  const [editingBio, setEditingBio] = useState(false);
+  const [bioText, setBioText] = useState("");
   const [profileForm, setProfileForm] = useState<any>({});
   const [serviceForm, setServiceForm] = useState<any>({});
   const [deletingServiceId, setDeletingServiceId] = useState<number | null>(null);
@@ -1151,6 +1153,68 @@ export default function ProviderDashboard() {
             Edit Profile
           </Button>
         </div>
+
+        {/* Quick Bio Card */}
+        <Card className="mb-6">
+          <CardContent className="py-4">
+            {editingBio ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium">Bio / Description</Label>
+                  <span className="text-xs text-muted-foreground">{bioText.length}/500</span>
+                </div>
+                <Textarea
+                  value={bioText}
+                  onChange={(e) => setBioText(e.target.value.slice(0, 500))}
+                  rows={4}
+                  placeholder="Tell customers about your experience, skills, and what makes your services unique..."
+                  autoFocus
+                  className="resize-none"
+                />
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      updateProvider.mutate({ description: bioText }, {
+                        onSuccess: () => {
+                          setEditingBio(false);
+                          toast.success("Bio updated!");
+                        }
+                      });
+                    }}
+                    disabled={updateProvider.isPending}
+                  >
+                    {updateProvider.isPending ? "Saving..." : "Save"}
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setEditingBio(false)}>Cancel</Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Your Bio</p>
+                  {provider.description ? (
+                    <p className="text-sm line-clamp-2">{provider.description}</p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic">No bio yet — add one so customers know what you're about.</p>
+                  )}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="shrink-0"
+                  onClick={() => {
+                    setBioText(provider.description || "");
+                    setEditingBio(true);
+                  }}
+                >
+                  <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                  Edit
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Trial Status Banner */}
         <TrialStatusBanner />
