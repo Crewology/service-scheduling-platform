@@ -704,123 +704,154 @@ export function NavHeader() {
                 </div>
               )}
 
-              {/* Navigation Sections */}
-              <div className="flex-1 px-4 py-3 space-y-1">
-                {/* Browse Section */}
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 pt-2 pb-1">Discover</p>
-                <Link href="/browse" onClick={() => setMobileMenuOpen(false)}>
-                  <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors">
-                    <Grid3X3 className="h-5 w-5 text-muted-foreground" />
-                    <span className="text-[15px] font-medium">Browse Services</span>
-                  </div>
-                </Link>
-                <Link href="/search" onClick={() => setMobileMenuOpen(false)}>
-                  <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors">
-                    <Search className="h-5 w-5 text-muted-foreground" />
-                    <span className="text-[15px] font-medium">Search</span>
-                  </div>
-                </Link>
-                <Link href="/pricing" onClick={() => setMobileMenuOpen(false)}>
-                  <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors">
-                    <CreditCard className="h-5 w-5 text-muted-foreground" />
-                    <span className="text-[15px] font-medium">Plans</span>
-                  </div>
-                </Link>
-                <Link href="/help" onClick={() => setMobileMenuOpen(false)}>
-                  <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors">
-                    <HelpCircle className="h-5 w-5 text-muted-foreground" />
-                    <span className="text-[15px] font-medium">Help</span>
-                  </div>
-                </Link>
+              {/* App-Style Grid Navigation */}
+              <div className="flex-1 px-5 py-5 overflow-y-auto">
+                {/* Discover Grid */}
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">Discover</p>
+                <div className="grid grid-cols-3 gap-3 mb-6">
+                  <Link href="/browse" onClick={() => setMobileMenuOpen(false)}>
+                    <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
+                      <div className="h-12 w-12 rounded-2xl bg-blue-50 flex items-center justify-center">
+                        <Grid3X3 className="h-6 w-6 text-blue-600" />
+                      </div>
+                      <span className="text-[11px] font-medium text-center leading-tight">Browse</span>
+                    </div>
+                  </Link>
+                  <Link href="/search" onClick={() => setMobileMenuOpen(false)}>
+                    <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
+                      <div className="h-12 w-12 rounded-2xl bg-purple-50 flex items-center justify-center">
+                        <Search className="h-6 w-6 text-purple-600" />
+                      </div>
+                      <span className="text-[11px] font-medium text-center leading-tight">Search</span>
+                    </div>
+                  </Link>
+                  <Link href="/pricing" onClick={() => setMobileMenuOpen(false)}>
+                    <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
+                      <div className="h-12 w-12 rounded-2xl bg-green-50 flex items-center justify-center">
+                        <CreditCard className="h-6 w-6 text-green-600" />
+                      </div>
+                      <span className="text-[11px] font-medium text-center leading-tight">Plans</span>
+                    </div>
+                  </Link>
+                  <Link href="/help" onClick={() => setMobileMenuOpen(false)}>
+                    <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
+                      <div className="h-12 w-12 rounded-2xl bg-amber-50 flex items-center justify-center">
+                        <HelpCircle className="h-6 w-6 text-amber-600" />
+                      </div>
+                      <span className="text-[11px] font-medium text-center leading-tight">Help</span>
+                    </div>
+                  </Link>
+                </div>
 
                 {isAuthenticated && (
                   <>
-                    {/* My Account Section */}
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 pt-4 pb-1">My Account</p>
-                    <Link href="/my-bookings" onClick={() => setMobileMenuOpen(false)}>
-                      <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors">
-                        <Calendar className="h-5 w-5 text-muted-foreground" />
-                        <span className="text-[15px] font-medium">My Bookings</span>
-                      </div>
-                    </Link>
-                    <Link href="/messages" onClick={() => setMobileMenuOpen(false)}>
-                      <div className="flex items-center justify-between gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors">
-                        <div className="flex items-center gap-3">
-                          <MessageSquare className="h-5 w-5 text-muted-foreground" />
-                          <span className="text-[15px] font-medium">Messages</span>
+                    {/* My Account Grid */}
+                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">My Account</p>
+                    <div className="grid grid-cols-3 gap-3 mb-6">
+                      <Link href="/my-bookings" onClick={() => setMobileMenuOpen(false)}>
+                        <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
+                          <div className="h-12 w-12 rounded-2xl bg-indigo-50 flex items-center justify-center">
+                            <Calendar className="h-6 w-6 text-indigo-600" />
+                          </div>
+                          <span className="text-[11px] font-medium text-center leading-tight">Bookings</span>
                         </div>
-                        {unreadMessages > 0 && (
-                          <Badge variant="destructive" className="text-[11px] h-5 min-w-[20px] justify-center">
-                            {unreadMessages}
-                          </Badge>
-                        )}
-                      </div>
-                    </Link>
-                    <Link href="/saved-providers" onClick={() => setMobileMenuOpen(false)}>
-                      <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors">
-                        <Heart className="h-5 w-5 text-muted-foreground" />
-                        <span className="text-[15px] font-medium">Saved Providers</span>
-                      </div>
-                    </Link>
-                    <Link href="/my-quotes" onClick={() => setMobileMenuOpen(false)}>
-                      <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors">
-                        <FileText className="h-5 w-5 text-muted-foreground" />
-                        <span className="text-[15px] font-medium">My Quotes</span>
-                      </div>
-                    </Link>
-                    <Link href="/my-waitlist" onClick={() => setMobileMenuOpen(false)}>
-                      <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors">
-                        <Clock className="h-5 w-5 text-muted-foreground" />
-                        <span className="text-[15px] font-medium">My Waitlist</span>
-                      </div>
-                    </Link>
-                    <Link href="/notifications" onClick={() => setMobileMenuOpen(false)}>
-                      <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors">
-                        <Bell className="h-5 w-5 text-muted-foreground" />
-                        <span className="text-[15px] font-medium">Notifications</span>
-                      </div>
-                    </Link>
-                    <Link href="/referrals" onClick={() => setMobileMenuOpen(false)}>
-                      <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors">
-                        <Coins className="h-5 w-5 text-muted-foreground" />
-                        <span className="text-[15px] font-medium">Referral Credits</span>
-                      </div>
-                    </Link>
+                      </Link>
+                      <Link href="/messages" onClick={() => setMobileMenuOpen(false)}>
+                        <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all relative">
+                          <div className="h-12 w-12 rounded-2xl bg-sky-50 flex items-center justify-center relative">
+                            <MessageSquare className="h-6 w-6 text-sky-600" />
+                            {unreadMessages > 0 && (
+                              <span className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                                {unreadMessages}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[11px] font-medium text-center leading-tight">Messages</span>
+                        </div>
+                      </Link>
+                      <Link href="/saved-providers" onClick={() => setMobileMenuOpen(false)}>
+                        <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
+                          <div className="h-12 w-12 rounded-2xl bg-rose-50 flex items-center justify-center">
+                            <Heart className="h-6 w-6 text-rose-500" />
+                          </div>
+                          <span className="text-[11px] font-medium text-center leading-tight">Saved</span>
+                        </div>
+                      </Link>
+                      <Link href="/my-quotes" onClick={() => setMobileMenuOpen(false)}>
+                        <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
+                          <div className="h-12 w-12 rounded-2xl bg-teal-50 flex items-center justify-center">
+                            <FileText className="h-6 w-6 text-teal-600" />
+                          </div>
+                          <span className="text-[11px] font-medium text-center leading-tight">Quotes</span>
+                        </div>
+                      </Link>
+                      <Link href="/my-waitlist" onClick={() => setMobileMenuOpen(false)}>
+                        <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
+                          <div className="h-12 w-12 rounded-2xl bg-orange-50 flex items-center justify-center">
+                            <Clock className="h-6 w-6 text-orange-500" />
+                          </div>
+                          <span className="text-[11px] font-medium text-center leading-tight">Waitlist</span>
+                        </div>
+                      </Link>
+                      <Link href="/notifications" onClick={() => setMobileMenuOpen(false)}>
+                        <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
+                          <div className="h-12 w-12 rounded-2xl bg-yellow-50 flex items-center justify-center">
+                            <Bell className="h-6 w-6 text-yellow-600" />
+                          </div>
+                          <span className="text-[11px] font-medium text-center leading-tight">Alerts</span>
+                        </div>
+                      </Link>
+                      <Link href="/referrals" onClick={() => setMobileMenuOpen(false)}>
+                        <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
+                          <div className="h-12 w-12 rounded-2xl bg-emerald-50 flex items-center justify-center">
+                            <Coins className="h-6 w-6 text-emerald-600" />
+                          </div>
+                          <span className="text-[11px] font-medium text-center leading-tight">Referrals</span>
+                        </div>
+                      </Link>
+                      <Link href="/profile" onClick={() => setMobileMenuOpen(false)}>
+                        <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
+                          <div className="h-12 w-12 rounded-2xl bg-slate-100 flex items-center justify-center">
+                            <Settings className="h-6 w-6 text-slate-600" />
+                          </div>
+                          <span className="text-[11px] font-medium text-center leading-tight">Settings</span>
+                        </div>
+                      </Link>
+                    </div>
 
-                    {/* Provider Section */}
+                    {/* Provider Grid */}
                     {isProvider && (isProviderView || isAdmin) && (
                       <>
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 pt-4 pb-1">Provider</p>
-                        <Link href="/provider/dashboard" onClick={() => setMobileMenuOpen(false)}>
-                          <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors">
-                            <LayoutDashboard className="h-5 w-5 text-muted-foreground" />
-                            <span className="text-[15px] font-medium">My Dashboard</span>
-                          </div>
-                        </Link>
+                        <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">Provider</p>
+                        <div className="grid grid-cols-3 gap-3 mb-6">
+                          <Link href="/provider/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                            <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
+                              <div className="h-12 w-12 rounded-2xl bg-violet-50 flex items-center justify-center">
+                                <LayoutDashboard className="h-6 w-6 text-violet-600" />
+                              </div>
+                              <span className="text-[11px] font-medium text-center leading-tight">Dashboard</span>
+                            </div>
+                          </Link>
+                        </div>
                       </>
                     )}
 
-                    {/* Admin Section */}
+                    {/* Admin Grid */}
                     {isAdmin && (
                       <>
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 pt-4 pb-1">Admin</p>
-                        <Link href="/admin" onClick={() => setMobileMenuOpen(false)}>
-                          <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-blue-50 active:bg-blue-100 transition-colors">
-                            <Shield className="h-5 w-5 text-blue-600" />
-                            <span className="text-[15px] font-medium text-blue-700">Admin Dashboard</span>
-                          </div>
-                        </Link>
+                        <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">Admin</p>
+                        <div className="grid grid-cols-3 gap-3 mb-6">
+                          <Link href="/admin" onClick={() => setMobileMenuOpen(false)}>
+                            <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
+                              <div className="h-12 w-12 rounded-2xl bg-blue-100 flex items-center justify-center">
+                                <Shield className="h-6 w-6 text-blue-700" />
+                              </div>
+                              <span className="text-[11px] font-medium text-center leading-tight text-blue-700">Admin</span>
+                            </div>
+                          </Link>
+                        </div>
                       </>
                     )}
-
-                    {/* Account Section */}
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 pt-4 pb-1">Settings</p>
-                    <Link href="/profile" onClick={() => setMobileMenuOpen(false)}>
-                      <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors">
-                        <User className="h-5 w-5 text-muted-foreground" />
-                        <span className="text-[15px] font-medium">My Profile</span>
-                      </div>
-                    </Link>
                   </>
                 )}
               </div>
