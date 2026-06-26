@@ -1870,3 +1870,11 @@
 - [x] Automatically hide portfolio items whose images fail to load (no broken image icons)
 - [x] Handle both regular images and before/after image pairs (hidden probe images for error detection)
 - [x] Return null if all items have broken images (graceful empty state)
+
+## Fix: Category Page Provider Card Overflow on Mobile
+- [x] Hide "View Profile" button on mobile (hidden sm:inline-flex) — card is already a clickable link
+- [x] Add min-w-0 to flex containers to prevent text overflow
+- [x] Reduce avatar size on mobile (w-10 h-10 → w-12 h-12 on sm+)
+- [x] Add truncate to provider name CardTitle for long names
+- [x] Add overflow-hidden to AvailabilityQuickView container
+- [x] Reduce gap from gap-4 to gap-3 on mobile for tighter layout

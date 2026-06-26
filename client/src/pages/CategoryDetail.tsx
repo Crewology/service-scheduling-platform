@@ -80,9 +80,9 @@ function AvailabilityQuickView({ providerId }: { providerId: number }) {
   if (!data || !data.hasAvailability) return null;
 
   return (
-    <div className="mt-3 pt-3 border-t">
+    <div className="mt-3 pt-3 border-t overflow-hidden">
       <p className="text-xs font-medium text-muted-foreground flex items-center gap-1 mb-2">
-        <CalendarDays className="w-3.5 h-3.5" /> Next Available
+        <CalendarDays className="w-3.5 h-3.5 shrink-0" /> Next Available
       </p>
       <div className="flex flex-wrap gap-1.5">
         {data.slots.map((slot, i) => (
@@ -352,17 +352,17 @@ export default function CategoryDetail() {
                   {/* Provider Header */}
                   <CardHeader className="bg-muted/30 border-b">
                     <Link href={provider.profileSlug ? `/p/${provider.profileSlug}` : "#"}>
-                      <div className="flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity">
-                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                      <div className="flex items-center gap-3 sm:gap-4 cursor-pointer hover:opacity-80 transition-opacity min-w-0">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                           {provider.profilePhotoUrl ? (
                             <img src={provider.profilePhotoUrl} alt={provider.businessName} className="w-full h-full rounded-xl object-cover" />
                           ) : (
-                            <User className="w-6 h-6 text-primary" />
+                            <User className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                           )}
                         </div>
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <CardTitle className="text-lg hover:text-primary transition-colors">
+                            <CardTitle className="text-base sm:text-lg hover:text-primary transition-colors truncate">
                               {provider.businessName}
                             </CardTitle>
                             {provider.isOfficial && <OfficialBadge size="sm" />}
@@ -383,7 +383,7 @@ export default function CategoryDetail() {
                           </div>
                         </div>
                         <FavoriteButton providerId={providerId} />
-                        <Button variant="outline" size="sm">View Profile</Button>
+                        <Button variant="outline" size="sm" className="hidden sm:inline-flex">View Profile</Button>
                       </div>
                     </Link>
                     <div className="flex items-center gap-2 mt-2 px-4">
