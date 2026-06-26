@@ -675,10 +675,10 @@ export default function ServiceDetail() {
   const getPrice = () => {
     if (!service) return null;
     if (service.pricingModel === "fixed" && service.basePrice) {
-      return `$${service.basePrice}`;
+      return `${formatPrice(parseFloat(service.basePrice))}`;
     }
     if (service.pricingModel === "hourly" && service.hourlyRate) {
-      return `$${service.hourlyRate}/hour`;
+      return `${formatPrice(parseFloat(service.hourlyRate))}/hour`;
     }
     if (service.pricingModel === "custom_quote") {
       return "Custom Quote";
@@ -822,7 +822,7 @@ export default function ServiceDetail() {
                       <p className="text-sm font-medium text-amber-900">Deposit Required</p>
                       <p className="text-sm text-amber-700">
                         {service.depositType === "fixed"
-                          ? `A $${service.depositAmount} deposit is required at booking.`
+                          ? `A ${formatPrice(parseFloat(service.depositAmount || "0"))} deposit is required at booking.`
                           : `A ${service.depositPercentage}% deposit is required at booking.`}
                       </p>
                     </div>
@@ -1244,7 +1244,7 @@ export default function ServiceDetail() {
                                 </div>
                                 <div className="flex items-center justify-between text-sm mt-1">
                                   <span className="text-muted-foreground">Rate</span>
-                                  <span className="font-medium">${service.hourlyRate}/hr</span>
+                                  <span className="font-medium">{formatPrice(parseFloat(service.hourlyRate || "0"))}/hr</span>
                                 </div>
                                 <Separator className="my-2" />
                                 <div className="flex items-center justify-between text-sm font-semibold text-primary">
@@ -1926,7 +1926,7 @@ export default function ServiceDetail() {
                           <>
                             <div className="flex justify-between text-sm">
                               <span>Hourly Rate</span>
-                              <span className="font-medium">${service.hourlyRate}/hr</span>
+                              <span className="font-medium">{formatPrice(parseFloat(service.hourlyRate || "0"))}/hr</span>
                             </div>
                             <div className="flex justify-between text-sm text-muted-foreground">
                               <span>{formatDuration(customDurationMinutes)} ({(customDurationMinutes / 60).toFixed(1)} hrs)</span>
@@ -1976,7 +1976,7 @@ export default function ServiceDetail() {
                             <span>Deposit Due Now</span>
                             <span className="font-medium">
                               {service.depositType === "fixed"
-                                ? `$${service.depositAmount}`
+                                ? `${formatPrice(parseFloat(service.depositAmount || "0"))}`
                                 : `${service.depositPercentage}%`}
                             </span>
                           </div>

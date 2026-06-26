@@ -162,7 +162,7 @@ export default function BookingConfirmation() {
       return `${formatPrice(parseFloat(booking.totalAmount))}`;
     }
     if (service.pricingModel === "fixed" && service.basePrice) {
-      return `$${service.basePrice}`;
+      return `${formatPrice(parseFloat(service.basePrice))}`;
     }
     if (service.pricingModel === "hourly" && service.hourlyRate) {
       // Use the actual booked duration, not the service default
