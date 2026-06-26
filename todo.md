@@ -1859,3 +1859,8 @@
 
 ## UX: Show Venue Name in Provider Calendar
 - [x] Display venue/location name alongside time in Provider Calendar for fixed-location bookings
+
+## UX: Role-based Bookings View
+- [x] Remove in-page "Bookings I Made" / "Bookings I Received" toggle from MyBookings
+- [x] Use global role view (Provider/Customer) to determine which bookings are shown automatically
+- [x] Hide Pay Now button and Payment Due badge from provider's view of received bookings

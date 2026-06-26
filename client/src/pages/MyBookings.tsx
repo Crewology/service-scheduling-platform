@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { trpc } from "@/lib/trpc";
-import { Calendar, Clock, MapPin, DollarSign, MessageSquare, XCircle, AlertTriangle, Loader2, Download, FileText, FileSpreadsheet, WifiOff, RefreshCw, Briefcase, ShoppingBag, Search, X, Trash2, RotateCcw, CalendarDays, Layers, Archive, Users, Play, ArrowUpDown, ListFilter } from "lucide-react";
+import { Calendar, Clock, MapPin, DollarSign, MessageSquare, XCircle, AlertTriangle, Loader2, Download, FileText, FileSpreadsheet, WifiOff, RefreshCw, Search, X, Trash2, RotateCcw, CalendarDays, Layers, Archive, Users, Play, ArrowUpDown, ListFilter } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useLocation } from "wouter";
@@ -34,7 +34,7 @@ export default function MyBookings() {
   const { user, isAuthenticated, loading } = useAuth();
   const [, setLocation] = useLocation();
   const { canSwitch, isProviderView } = useViewMode();
-  const [bookingView, setBookingView] = useState<"customer" | "provider">(isProviderView ? "provider" : "customer");
+  const bookingView = isProviderView ? "provider" : "customer";
 
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
@@ -168,33 +168,7 @@ export default function MyBookings() {
           </div>
         )}
 
-        {/* Provider/Customer booking view toggle */}
-        {canSwitch && (
-          <div className="mb-6 flex items-center gap-1 p-1 bg-muted rounded-lg w-fit">
-            <button
-              onClick={() => setBookingView("customer")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                bookingView === "customer"
-                  ? "bg-white shadow-sm text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <ShoppingBag className="h-4 w-4" />
-              Bookings I Made
-            </button>
-            <button
-              onClick={() => setBookingView("provider")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                bookingView === "provider"
-                  ? "bg-white shadow-sm text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Briefcase className="h-4 w-4" />
-              Bookings I Received
-            </button>
-          </div>
-        )}
+
 
         <div className="mb-8 flex flex-col sm:flex-row items-start justify-between gap-4">
           <div>
