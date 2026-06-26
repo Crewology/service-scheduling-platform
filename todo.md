@@ -1900,3 +1900,7 @@
 - [x] VisualTimeline: add overflow-x-auto with min-w-[280px] for hour markers
 - [x] ProviderSlotCard header: add min-w-0, truncate provider name, shrink-0 on actions
 - [x] Main container: add overflow-hidden safety net
+
+## UX: Search Page Mobile - Move Search Bar Out of Filter Panel
+
+- [x] Move the search input out of the filter drawer and place it prominently at the top of the page on mobile for easy access

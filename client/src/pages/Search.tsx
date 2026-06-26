@@ -35,31 +35,34 @@ function renderFilters(opts: {
   categories: { id: number; name: string }[] | undefined;
   hasActiveFilters: boolean;
   clearAllFilters: () => void;
+  hideSearch?: boolean;
 }) {
   return (
     <div className="space-y-6">
-      {/* Keyword Search */}
-      <div>
-        <label className="text-sm font-medium mb-2 block">Search</label>
-        <div className="relative">
-          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Service or provider name..."
-            value={opts.keyword}
-            onChange={(e) => opts.setKeyword(e.target.value)}
-            className="pl-10 pr-8"
-          />
-          {opts.keyword && (
-            <button
-              onClick={() => opts.setKeyword("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-muted transition-colors"
-              aria-label="Clear keyword"
-            >
-              <X className="h-3.5 w-3.5 text-muted-foreground" />
-            </button>
-          )}
+      {/* Keyword Search - only shown in desktop sidebar, hidden in mobile drawer */}
+      {!opts.hideSearch && (
+        <div>
+          <label className="text-sm font-medium mb-2 block">Search</label>
+          <div className="relative">
+            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Service or provider name..."
+              value={opts.keyword}
+              onChange={(e) => opts.setKeyword(e.target.value)}
+              className="pl-10 pr-8"
+            />
+            {opts.keyword && (
+              <button
+                onClick={() => opts.setKeyword("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-muted transition-colors"
+                aria-label="Clear keyword"
+              >
+                <X className="h-3.5 w-3.5 text-muted-foreground" />
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Category Filter */}
       <div>
@@ -265,13 +268,13 @@ export default function Search() {
   return (
     <div className="min-h-screen bg-gray-50">
       <NavHeader />
-      {/* Page Title */}
+      {/* Page Title + Mobile Search Bar */}
       <div className="bg-white border-b">
-        <div className="container py-6 sm:py-8">
-          <div className="flex items-center justify-between">
+        <div className="container py-4 sm:py-6 md:py-8">
+          <div className="flex items-center justify-between mb-3 sm:mb-0">
             <div>
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 sm:mb-2">Search Services</h1>
-              <p className="text-sm sm:text-base text-muted-foreground">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-0.5 sm:mb-2">Search Services</h1>
+              <p className="text-xs sm:text-sm md:text-base text-muted-foreground hidden sm:block">
                 {keyword
                   ? `Results for "${keyword}"`
                   : "Find the perfect service provider for your needs"}
@@ -291,10 +294,32 @@ export default function Search() {
               )}
             </Button>
           </div>
+
+          {/* Mobile Search Bar - always visible on mobile, outside the filter drawer */}
+          <div className="lg:hidden">
+            <div className="relative">
+              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search services or providers..."
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                className="pl-10 pr-8 h-11 text-base rounded-full border-gray-300 shadow-sm"
+              />
+              {keyword && (
+                <button
+                  onClick={() => setKeyword("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-muted transition-colors"
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4 text-muted-foreground" />
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Mobile Filters Drawer */}
+      {/* Mobile Filters Drawer - search is excluded here since it's now above */}
       {showMobileFilters && (
         <div className="lg:hidden bg-white border-b shadow-sm">
           <div className="container py-4">
@@ -307,7 +332,7 @@ export default function Search() {
                 <X className="h-4 w-4" />
               </button>
             </div>
-            {renderFilters(filterProps)}
+            {renderFilters({ ...filterProps, hideSearch: true })}
             <Button
               className="w-full mt-4"
               onClick={() => setShowMobileFilters(false)}
