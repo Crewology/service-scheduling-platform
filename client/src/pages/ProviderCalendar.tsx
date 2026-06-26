@@ -228,6 +228,29 @@ export default function ProviderCalendar() {
     return map;
   }, [calendarData]);
 
+  const stats = useMemo(() => {
+    if (!calendarData) return { total: 0, pending: 0, confirmed: 0, completed: 0, blocked: 0 };
+    const bookings = calendarData.bookings || [];
+    const blockedCount = calendarData.overrides?.filter((o: any) => !o.isAvailable).length || 0;
+    return {
+      total: bookings.length,
+      pending: bookings.filter((b: any) => b.status === "pending").length,
+      confirmed: bookings.filter((b: any) => b.status === "confirmed").length,
+      completed: bookings.filter((b: any) => b.status === "completed").length,
+      blocked: blockedCount,
+    };
+  }, [calendarData]);
+
+  // Upcoming blocked dates for sidebar
+  const upcomingBlocks = useMemo(() => {
+    if (!calendarData?.overrides) return [];
+    const today = formatDateKey(new Date());
+    return calendarData.overrides
+      .filter((o: any) => !o.isAvailable && o.overrideDate >= today)
+      .sort((a: any, b: any) => a.overrideDate.localeCompare(b.overrideDate))
+      .slice(0, 5);
+  }, [calendarData]);
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -533,29 +556,6 @@ export default function ProviderCalendar() {
       </div>
     );
   };
-
-  const stats = useMemo(() => {
-    if (!calendarData) return { total: 0, pending: 0, confirmed: 0, completed: 0, blocked: 0 };
-    const bookings = calendarData.bookings || [];
-    const blockedCount = calendarData.overrides?.filter((o: any) => !o.isAvailable).length || 0;
-    return {
-      total: bookings.length,
-      pending: bookings.filter((b: any) => b.status === "pending").length,
-      confirmed: bookings.filter((b: any) => b.status === "confirmed").length,
-      completed: bookings.filter((b: any) => b.status === "completed").length,
-      blocked: blockedCount,
-    };
-  }, [calendarData]);
-
-  // Upcoming blocked dates for sidebar
-  const upcomingBlocks = useMemo(() => {
-    if (!calendarData?.overrides) return [];
-    const today = formatDateKey(new Date());
-    return calendarData.overrides
-      .filter((o: any) => !o.isAvailable && o.overrideDate >= today)
-      .sort((a: any, b: any) => a.overrideDate.localeCompare(b.overrideDate))
-      .slice(0, 5);
-  }, [calendarData]);
 
   return (
     <div className="min-h-screen bg-background">
