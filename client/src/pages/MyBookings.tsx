@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,6 +38,11 @@ export default function MyBookings() {
 
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Reset search/filters when role view changes
+  useEffect(() => {
+    setSearchQuery("");
+  }, [bookingView]);
 
   // Hidden (deleted) bookings state — stored locally
   const [hiddenBookingIds, setHiddenBookingIds] = useState<Set<number>>(() => {
@@ -185,14 +190,18 @@ export default function MyBookings() {
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <Button variant="outline" size="sm" className="gap-2" onClick={() => setLocation("/bulk-booking")}>
-              <Layers className="h-4 w-4" />
-              Bulk Book
-            </Button>
-            <Button variant="outline" size="sm" className="gap-2" onClick={() => setLocation("/monthly-planner")}>
-              <CalendarDays className="h-4 w-4" />
-              Monthly Planner
-            </Button>
+            {bookingView === "customer" && (
+              <>
+                <Button variant="outline" size="sm" className="gap-2" onClick={() => setLocation("/bulk-booking")}>
+                  <Layers className="h-4 w-4" />
+                  Bulk Book
+                </Button>
+                <Button variant="outline" size="sm" className="gap-2" onClick={() => setLocation("/monthly-planner")}>
+                  <CalendarDays className="h-4 w-4" />
+                  Monthly Planner
+                </Button>
+              </>
+            )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="gap-2" disabled={isOffline}>
