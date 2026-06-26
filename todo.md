@@ -1920,3 +1920,9 @@
 
 - [x] Regenerate all 9 iOS splash screen images with larger OlogyCrew text (~5% of screen width vs previous ~2%)
 - [x] Upload new splash images and update index.html references
+
+## UX: Move AI Assistant and Notification Bell to Mobile Header
+
+- [x] Move AI assistant button into the mobile header (left of hamburger menu) instead of floating bottom-right
+- [x] Place notification bell next to hamburger menu on mobile
+- [x] Hide the floating AI assistant button on mobile (keep it on desktop)

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { MessageCircleQuestion, X, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AIChatBox, type Message } from "@/components/AIChatBox";
@@ -50,13 +50,13 @@ export function HelpChatWidget() {
     [messages, chatMutation]
   );
 
-  const handleToggle = () => {
+  const handleToggle = useCallback(() => {
     if (isMinimized) {
       setIsMinimized(false);
     } else {
       setIsOpen(!isOpen);
     }
-  };
+  }, [isMinimized, isOpen]);
 
   const handleMinimize = () => {
     setIsMinimized(true);
@@ -67,16 +67,25 @@ export function HelpChatWidget() {
     setIsMinimized(false);
   };
 
+  // Listen for external toggle events (from mobile header button)
+  useEffect(() => {
+    const handler = () => handleToggle();
+    window.addEventListener("toggle-help-chat", handler);
+    return () => window.removeEventListener("toggle-help-chat", handler);
+  }, [handleToggle]);
+
   return (
     <>
       {/* Chat Panel */}
       {isOpen && !isMinimized && (
         <div
           className={cn(
-            "fixed bottom-20 right-4 z-50 w-[380px] max-w-[calc(100vw-2rem)]",
+            "fixed z-50 w-[380px] max-w-[calc(100vw-2rem)]",
             "rounded-2xl border border-border bg-background shadow-2xl",
             "flex flex-col overflow-hidden",
-            "animate-in slide-in-from-bottom-4 fade-in duration-300"
+            "animate-in slide-in-from-bottom-4 fade-in duration-300",
+            // On mobile: position from top to avoid bottom overlap
+            "bottom-20 right-4 lg:bottom-20 lg:right-4"
           )}
           style={{ height: "min(600px, calc(100vh - 8rem))" }}
         >
@@ -156,12 +165,12 @@ export function HelpChatWidget() {
         </div>
       )}
 
-      {/* Floating Action Button */}
+      {/* Floating Action Button — hidden on mobile (lg:flex), shown on desktop only */}
       <button
         onClick={handleToggle}
         className={cn(
           "fixed bottom-4 right-4 z-50",
-          "flex h-14 w-14 items-center justify-center rounded-full",
+          "hidden lg:flex h-14 w-14 items-center justify-center rounded-full",
           "bg-primary text-primary-foreground shadow-lg",
           "hover:scale-105 hover:shadow-xl active:scale-95",
           "transition-all duration-200",

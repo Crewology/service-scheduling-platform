@@ -11,6 +11,7 @@ import {
   Bell,
   Menu,
   X,
+  MessageCircleQuestion,
   User,
   Briefcase,
   CheckCheck,
@@ -629,15 +630,31 @@ export function NavHeader() {
             )}
           </div>
 
-          {/* Mobile menu toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
+          {/* Mobile actions: AI Assistant + Notifications + Hamburger */}
+          <div className="flex lg:hidden items-center gap-1">
+            {/* AI Assistant button (mobile only) */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative h-9 w-9"
+              onClick={() => window.dispatchEvent(new Event('toggle-help-chat'))}
+              title="AI Assistant"
+            >
+              <MessageCircleQuestion className="h-5 w-5" />
+            </Button>
+
+            {/* Notification bell (mobile only) */}
+            {isAuthenticated && <NotificationDropdown />}
+
+            {/* Hamburger menu */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+          </div>
         </div>
 
         {/* Mobile Menu */}
