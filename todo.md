@@ -1832,3 +1832,10 @@
 
 ## UX: Quick-Edit Bio on Provider Dashboard
 - [x] Add inline bio/description preview card below the welcome section with a quick edit button
+
+## Bug Fix: Invalid Stripe API version error
+- [x] Updated stripeConnectRouter.ts from "2025-12-18.acacia" to "2026-01-28.clover"
+- [x] Updated stripeRouter.ts from "2025-12-18.acacia" to "2026-01-28.clover"
+- [x] Updated subscriptionRouter.ts from "2025-12-18.acacia" to "2026-01-28.clover"
+- [x] Updated customerSubscriptionRouter.ts from "2025-02-24.acacia" to "2026-01-28.clover"
+- [x] All Stripe instances now use "2026-01-28.clover" matching installed stripe@20.3.1 SDK

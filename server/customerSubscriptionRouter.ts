@@ -7,7 +7,7 @@ import { CUSTOMER_TIERS, CUSTOMER_STRIPE_PRODUCT_NAME, type CustomerTier } from 
 import { ENV } from "./_core/env";
 import { sendNotification } from "./notifications";
 
-const stripe = new Stripe(ENV.stripeSecretKey, { apiVersion: "2025-02-24.acacia" as any });
+const stripe = new Stripe(ENV.stripeSecretKey, { apiVersion: "2026-01-28.clover" as any });
 
 // Cache for Stripe price IDs
 const priceCache = new Map<string, string>();

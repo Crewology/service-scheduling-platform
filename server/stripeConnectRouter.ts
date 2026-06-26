@@ -6,7 +6,7 @@ import * as db from "./db";
 import { TRPCError } from "@trpc/server";
 
 const stripe = new Stripe(ENV.stripeSecretKey!, {
-  apiVersion: "2025-12-18.acacia" as any,
+  apiVersion: "2026-01-28.clover" as any,
 });
 
 export const stripeConnectRouter = router({

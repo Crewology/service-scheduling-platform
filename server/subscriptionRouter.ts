@@ -9,7 +9,7 @@ import { sendTrialStartedNotification, checkAndSendTrialMilestoneNotification } 
 import { sendNotification } from "./notifications";
 
 const stripe = new Stripe(ENV.stripeSecretKey, {
-  apiVersion: "2025-12-18.acacia" as any,
+  apiVersion: "2026-01-28.clover" as any,
 });
 
 // Cache for Stripe price IDs (created on first use)
