@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
 import { NavHeader } from "@/components/shared/NavHeader";
+import LoggedInHome from "@/pages/LoggedInHome";
 
 
 
@@ -48,6 +49,11 @@ export default function Home() {
   const { data: myProviderProfile } = trpc.provider.getMyProfile.useQuery(undefined, {
     enabled: isAuthenticated,
   });
+
+  // Show Launchpad for logged-in users
+  if (isAuthenticated && user) {
+    return <LoggedInHome />;
+  }
 
   const featuredCategories = categories?.slice(0, 8) || [];
 

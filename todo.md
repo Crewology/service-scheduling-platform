@@ -1949,3 +1949,14 @@
 - [x] Add shrink-0 on input section to guarantee it never compresses
 - [x] Reduce container padding on mobile (py-2 vs py-4) to maximize message area
 - [x] Applied to both Messages.tsx and DirectMessage.tsx
+
+## Feature: Logged-In Launchpad Homepage (Apple-style Grid)
+
+- [x] Create LoggedInHome component with role-based icon grids
+- [x] Quick stats banner at top (unread messages, notifications)
+- [x] Provider grid: Bookings, Services, Calendar, Messages, Analytics, Payouts, Portfolio, Promo Codes, Quotes, My Page, Widgets, Settings
+- [x] Customer grid: Browse, Search, My Bookings, Messages, Saved, Quotes, Waitlist, Referrals, Alerts, Reviews, Plans, Settings
+- [x] Large icons (56-64px) with labels beneath in 4-column grid
+- [x] Conditionally render in Home.tsx when user is authenticated
+- [x] Keep NavHeader on desktop for role switching, alerts, and navigation
+- [x] Keep public marketing homepage for non-logged-in visitors unchanged
