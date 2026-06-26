@@ -331,7 +331,7 @@ export default function ManageAvailability() {
         />
       </div>
 
-      <div className="container py-8 max-w-6xl">
+      <div className="container py-8 max-w-6xl overflow-hidden">
         <div className="grid lg:grid-cols-2 gap-6">
           {/* LEFT COLUMN: Weekly Schedule */}
           <div className="space-y-6">
@@ -343,7 +343,7 @@ export default function ManageAvailability() {
               <CardContent className="space-y-4">
                 {DAYS_OF_WEEK.map((day) => (
                   <div key={day.value} className="space-y-2">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <input
                         type="checkbox"
                         id={`${day.value}-enabled`}
@@ -357,14 +357,15 @@ export default function ManageAvailability() {
                             },
                           })
                         }
-                        className="h-4 w-4"
+                        className="h-4 w-4 shrink-0"
                       />
-                      <Label htmlFor={`${day.value}-enabled`} className="font-medium w-24">
-                        {day.label}
+                      <Label htmlFor={`${day.value}-enabled`} className="font-medium w-16 sm:w-24 text-sm sm:text-base">
+                        {day.short}
+                        <span className="hidden sm:inline">{'\u00A0'}{day.label.slice(3)}</span>
                       </Label>
 
                       {weeklySchedule[day.value]?.enabled && (
-                        <div className="flex items-center gap-2 flex-1">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
                           <Input
                             type="time"
                             value={weeklySchedule[day.value]?.startTime}
@@ -377,9 +378,9 @@ export default function ManageAvailability() {
                                 },
                               })
                             }
-                            className="flex-1"
+                            className="flex-1 min-w-0"
                           />
-                          <span className="text-muted-foreground">to</span>
+                          <span className="text-muted-foreground shrink-0">to</span>
                           <Input
                             type="time"
                             value={weeklySchedule[day.value]?.endTime}
@@ -392,7 +393,7 @@ export default function ManageAvailability() {
                                 },
                               })
                             }
-                            className="flex-1"
+                            className="flex-1 min-w-0"
                           />
                         </div>
                       )}
@@ -426,14 +427,15 @@ export default function ManageAvailability() {
                       const slots = scheduleByDay.get(day.dayNum);
                       const isAvailable = slots && slots.length > 0;
                       return (
-                        <div key={day.value} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
-                          <span className={`font-medium text-sm w-28 ${isAvailable ? "text-foreground" : "text-muted-foreground"}`}>
-                            {day.label}
+                        <div key={day.value} className="flex items-center justify-between gap-2 py-3 first:pt-0 last:pb-0">
+                          <span className={`font-medium text-sm shrink-0 w-16 sm:w-28 ${isAvailable ? "text-foreground" : "text-muted-foreground"}`}>
+                            <span className="sm:hidden">{day.short}</span>
+                            <span className="hidden sm:inline">{day.label}</span>
                           </span>
                           {isAvailable ? (
-                            <div className="flex items-center gap-2">
-                              <Check className="h-4 w-4 text-emerald-500" />
-                              <span className="text-sm">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <Check className="h-4 w-4 text-emerald-500 shrink-0" />
+                              <span className="text-sm truncate">
                                 {slots.map((s, i) => (
                                   <span key={i}>
                                     {i > 0 && ", "}
@@ -467,8 +469,8 @@ export default function ManageAvailability() {
                 <CardContent>
                   <div className="space-y-3">
                     {customHoursOverrides.map((override: any) => (
-                      <div key={override.id} className="flex justify-between items-center text-sm border-b pb-2">
-                        <div>
+                      <div key={override.id} className="flex justify-between items-center text-sm border-b pb-2 gap-2">
+                        <div className="min-w-0">
                           <p className="font-medium">
                             {new Date(override.overrideDate + "T12:00:00").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
                           </p>
@@ -482,7 +484,7 @@ export default function ManageAvailability() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-destructive hover:text-destructive"
+                          className="text-destructive hover:text-destructive shrink-0"
                           onClick={() => deleteOverride.mutate({ overrideId: override.id })}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -527,28 +529,30 @@ export default function ManageAvailability() {
                 </div>
 
                 {/* Calendar */}
-                {selectionMode === "single" ? (
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    disabled={{ before: new Date() }}
-                    modifiers={{ blocked: (date: Date) => blockedDatesSet.has(date.toISOString().split("T")[0]) }}
-                    modifiersClassNames={{ blocked: "bg-red-100 text-red-700 font-bold" }}
-                    className="rounded-md border"
-                  />
-                ) : (
-                  <Calendar
-                    mode="range"
-                    selected={selectedRange}
-                    onSelect={setSelectedRange}
-                    disabled={{ before: new Date() }}
-                    modifiers={{ blocked: (date: Date) => blockedDatesSet.has(date.toISOString().split("T")[0]) }}
-                    modifiersClassNames={{ blocked: "bg-red-100 text-red-700 font-bold" }}
-                    className="rounded-md border"
-                    numberOfMonths={1}
-                  />
-                )}
+                <div className="overflow-x-auto -mx-1 px-1">
+                  {selectionMode === "single" ? (
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={setSelectedDate}
+                      disabled={{ before: new Date() }}
+                      modifiers={{ blocked: (date: Date) => blockedDatesSet.has(date.toISOString().split("T")[0]) }}
+                      modifiersClassNames={{ blocked: "bg-red-100 text-red-700 font-bold" }}
+                      className="rounded-md border mx-auto"
+                    />
+                  ) : (
+                    <Calendar
+                      mode="range"
+                      selected={selectedRange}
+                      onSelect={setSelectedRange}
+                      disabled={{ before: new Date() }}
+                      modifiers={{ blocked: (date: Date) => blockedDatesSet.has(date.toISOString().split("T")[0]) }}
+                      modifiersClassNames={{ blocked: "bg-red-100 text-red-700 font-bold" }}
+                      className="rounded-md border mx-auto"
+                      numberOfMonths={1}
+                    />
+                  )}
+                </div>
 
                 {/* Selection Summary */}
                 {(selectedDate || (selectedRange?.from)) && (
@@ -656,8 +660,8 @@ export default function ManageAvailability() {
             {/* Current Block-Out Dates List */}
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div className="min-w-0">
                     <CardTitle className="flex items-center gap-2">
                       Blocked Dates
                       {blockOutDates && (blockOutDates as any[]).length > 0 && (
@@ -669,9 +673,9 @@ export default function ManageAvailability() {
                     <CardDescription className="mt-1">Dates you've marked as unavailable</CardDescription>
                   </div>
                   {blockOutDates && (blockOutDates as any[]).length > 0 && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
                       <Button variant="outline" size="sm" onClick={selectAllBlocks}>
-                        {selectedBlockIds.size === (blockOutDates as any[]).length ? "Deselect All" : "Select All"}
+                        {selectedBlockIds.size === (blockOutDates as any[]).length ? "Deselect" : "Select All"}
                       </Button>
                       {selectedBlockIds.size > 0 && (
                         <Button

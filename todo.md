@@ -1878,3 +1878,12 @@
 - [x] Add truncate to provider name CardTitle for long names
 - [x] Add overflow-hidden to AvailabilityQuickView container
 - [x] Reduce gap from gap-4 to gap-3 on mobile for tighter layout
+
+## Fix: Manage Availability Page Mobile Overflow
+
+- [x] Weekly schedule row: use flex-wrap, shorter day labels (Sun/Mon/Tue) on mobile, min-w-0 on time inputs
+- [x] Current schedule display: use abbreviated day names on mobile, add truncate to time text, add min-w-0
+- [x] Blocked Dates card header: stack title and action buttons vertically on mobile (flex-col sm:flex-row)
+- [x] Calendar: wrap in overflow-x-auto container to prevent horizontal page scroll
+- [x] Custom Hours override rows: add min-w-0 to content div, shrink-0 to delete button
+- [x] Main container: add overflow-hidden to prevent any child from causing horizontal scroll
