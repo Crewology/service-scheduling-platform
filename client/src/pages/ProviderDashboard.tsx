@@ -836,7 +836,10 @@ export default function ProviderDashboard() {
   const [portfolioMediaType, setPortfolioMediaType] = useState<"image" | "before_after">("image");
   const [portfolioBeforeUrl, setPortfolioBeforeUrl] = useState("");
   const [portfolioAfterUrl, setPortfolioAfterUrl] = useState("");
-  const [activeTab, setActiveTab] = useState("bookings");
+  const [activeTab, setActiveTab] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("tab") || "bookings";
+  });
   const [showPackageDialog, setShowPackageDialog] = useState(false);
   const [conflictBookingId, setConflictBookingId] = useState<number | null>(null);
   const [deletingBookingId, setDeletingBookingId] = useState<number | null>(null);
