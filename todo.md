@@ -1983,3 +1983,12 @@
 - [x] Individual shareable provider promotion cards with deep links to provider profiles
 - [x] Add "Featured" link to public navigation (Browse Services area)
 - [x] Mobile-responsive grid layout with provider cards, ratings, categories, and AI-generated headlines
+
+## Feature: Individual Shareable Promotion Pages for Providers
+
+- [x] Backend: getPromotionById public endpoint for single promotion lookup
+- [x] Frontend: /featured/promo/:id individual promotion landing page with Book Now CTA
+- [x] Social sharing buttons on individual promotion page (Copy Link, Twitter/X, Facebook)
+- [x] OG meta tags for rich social media previews when shared
+- [x] "Share My Promotion" button on provider's Promotions dashboard for active promotions
+- [x] Route registration in App.tsx

@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Rocket, Star, Crown, Zap, Eye, MousePointerClick, Clock, CheckCircle2, Loader2, ArrowRight, RefreshCw } from "lucide-react";
+import { Sparkles, Rocket, Star, Crown, Zap, Eye, MousePointerClick, Clock, CheckCircle2, Loader2, ArrowRight, RefreshCw, Share2, Copy } from "lucide-react";
+import { toast } from "sonner";
 import { useLocation } from "wouter";
 
 const TIER_ICONS: Record<string, React.ReactNode> = {
@@ -325,9 +326,38 @@ export default function Promotions() {
                   </div>
                   <h3 className="font-semibold mb-1">{promo.headline}</h3>
                   <p className="text-sm text-muted-foreground mb-3">{promo.description}</p>
-                  <div className="flex gap-4 text-xs text-muted-foreground">
+                  <div className="flex gap-4 text-xs text-muted-foreground mb-3">
                     <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {promo.impressions} views</span>
                     <span className="flex items-center gap-1"><MousePointerClick className="h-3 w-3" /> {promo.clicks} clicks</span>
+                  </div>
+                  {/* Share My Promotion */}
+                  <div className="flex items-center gap-2 pt-3 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5 flex-1"
+                      onClick={() => {
+                        const url = `${window.location.origin}/featured/promo/${promo.id}`;
+                        navigator.clipboard.writeText(url);
+                        toast.success("Promotion link copied! Share it on social media.");
+                      }}
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                      Copy Share Link
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => {
+                        const url = encodeURIComponent(`${window.location.origin}/featured/promo/${promo.id}`);
+                        const text = encodeURIComponent(`${promo.headline} — Check out my promotion on OlogyCrew!`);
+                        window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank");
+                      }}
+                    >
+                      <Share2 className="h-3.5 w-3.5" />
+                      Share
+                    </Button>
                   </div>
                 </CardContent>
               </Card>

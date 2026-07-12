@@ -167,6 +167,28 @@ Be specific, action-oriented, and highlight what makes this service special. Do 
       return await promotionDb.getActivePromotions(input?.tier);
     }),
 
+  // Get a single promotion with provider and service details (public, for shareable pages)
+  getById: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .query(async ({ input }) => {
+      const promotion = await promotionDb.getPromotionById(input.id);
+      if (!promotion) throw new TRPCError({ code: "NOT_FOUND", message: "Promotion not found" });
+      if (promotion.status !== "active") throw new TRPCError({ code: "NOT_FOUND", message: "Promotion is not active" });
+
+      // Get provider details
+      const { getProviderById } = await import("./db/providers");
+      const provider = await getProviderById(promotion.providerId);
+      if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider not found" });
+
+      // Get service details if linked
+      let service = null;
+      if (promotion.serviceId) {
+        service = await getServiceById(promotion.serviceId);
+      }
+
+      return { promotion, provider, service };
+    }),
+
   // Track a click on a promotion
   trackClick: publicProcedure
     .input(z.object({ promotionId: z.number() }))
