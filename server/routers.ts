@@ -36,6 +36,7 @@ import { trustRouter } from "./trustRouter";
 import { waitlistRouter } from "./routers/waitlistRouter";
 import { platformSettingsRouter } from "./routers/platformSettingsRouter";
 import { helpChatRouter } from "./helpChatRouter";
+import { promotionRouter } from "./promotionRouter";
 
 export const appRouter = router({
   system: systemRouter,
@@ -66,6 +67,7 @@ export const appRouter = router({
   eventTemplate: eventTemplateRouter,
   platformSettings: platformSettingsRouter,
   helpChat: helpChatRouter,
+  promotion: promotionRouter,
 });
 
 export type AppRouter = typeof appRouter;

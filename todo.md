@@ -1960,3 +1960,18 @@
 - [x] Conditionally render in Home.tsx when user is authenticated
 - [x] Keep NavHeader on desktop for role switching, alerts, and navigation
 - [x] Keep public marketing homepage for non-logged-in visitors unchanged
+
+## Feature: AI-Assisted Ad Promotions ("Boost Your Business")
+
+- [x] Database schema: promotions table (id, providerId, serviceId, tier, status, headline, description, startDate, endDate, stripePaymentId, createdAt)
+- [x] Backend tRPC routes: createPromotion, getMyPromotions, getActivePromotions, generateAdCopy
+- [x] AI copy generation: auto-generate headline + description from service details
+- [x] Stripe payment flow: one-time charge for each promotion tier ($4.99 / $14.99 / $29.99 / $39.99 bundle)
+- [x] Frontend: Boost Your Business page with tier selection, AI copy preview, and payment
+- [x] Frontend: My Promotions management page (active, expired, stats)
+- [x] Display logic: "Promoted" / "Featured" badges on provider cards in search/browse
+- [x] Display logic: Priority sort for promoted listings in search results and category pages
+- [x] Display logic: "Featured Providers" section on homepage for homepage-tier promotions
+- [x] Add Boost link to provider Launchpad and hamburger menu
+- [x] Stripe webhook handler activates promotions after successful payment
+- [x] 11 tests for promotion feature (all passing)

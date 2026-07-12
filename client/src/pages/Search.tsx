@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { EmptyState } from "@/components/shared/EmptyState";
-import { Search as SearchIcon, MapPin, DollarSign, Star, X, SlidersHorizontal, Clock, Building2, ArrowRight, BadgeCheck, RefreshCw, AlertCircle, Heart } from "lucide-react";
+import { Search as SearchIcon, MapPin, DollarSign, Star, X, SlidersHorizontal, Clock, Building2, ArrowRight, BadgeCheck, RefreshCw, AlertCircle, Heart, Sparkles } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { TrustBadge } from "@/components/TrustBadge";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -234,6 +235,13 @@ export default function Search() {
     }
   );
 
+  // Fetch active promotions for badge display
+  const { data: activePromotions } = trpc.promotion.getActiveForDisplay.useQuery();
+  const promotedProviderIds = useMemo(() => {
+    if (!activePromotions) return new Set<number>();
+    return new Set(activePromotions.map((p: any) => p.promotion.providerId));
+  }, [activePromotions]);
+
   const isLoading = (hasSearchIntent && servicesLoading) || (trimmedKeyword.length >= 2 && providersLoading);
   const hasActiveFilters = keyword || categoryId || location || priceRange[0] > 0 || priceRange[1] < 500;
   const hasProviderResults = providers && providers.length > 0;
@@ -425,6 +433,11 @@ export default function Search() {
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-1.5">
                                     <h3 className="font-semibold text-sm truncate">{provider.businessName}</h3>
+                                    {promotedProviderIds.has(provider.id) && (
+                                      <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10px] px-1.5 py-0 gap-0.5 shrink-0">
+                                        <Sparkles className="h-2.5 w-2.5" /> Promoted
+                                      </Badge>
+                                    )}
                                     {provider.trustLevel && provider.trustLevel !== "new" && (
                                       <TrustBadge level={provider.trustLevel} size="sm" showLabel={false} />
                                     )}

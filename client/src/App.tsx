@@ -52,6 +52,7 @@ import ProviderReviews from "./pages/ProviderReviews";
 import WidgetGenerator from "./pages/WidgetGenerator";
 import PromoCodes from "./pages/PromoCodes";
 import BookingAnalytics from "./pages/BookingAnalytics";
+import Promotions from "./pages/Promotions";
 
 // User features
 import UserProfile from "./pages/UserProfile";
@@ -126,6 +127,7 @@ function Router() {
       <Route path="/embed/provider/:providerId" component={EmbedBooking} />
       <Route path="/provider/widgets" component={WidgetGenerator} />
       <Route path="/provider/promo-codes" component={PromoCodes} />
+      <Route path="/provider/promotions" component={Promotions} />
       <Route path="/booking/:id/detail" component={BookingDetail} />
       <Route path="/referrals" component={Referrals} />
       <Route path="/saved-providers" component={SavedProviders} />

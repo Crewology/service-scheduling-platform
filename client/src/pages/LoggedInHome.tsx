@@ -7,7 +7,7 @@ import {
   Search, Calendar, MessageSquare, Heart, FileText, Users,
   BarChart3, CreditCard, Image, Tag, Settings, Bell,
   Grid3X3, Gift, Clock, Briefcase, Star, ShieldCheck,
-  LayoutDashboard, UserCircle, Compass, BookOpen
+  LayoutDashboard, UserCircle, Compass, BookOpen, Rocket
 } from "lucide-react";
 
 // Launchpad tile definition
@@ -28,7 +28,7 @@ const PROVIDER_TILES: LaunchpadTile[] = [
   { label: "Analytics", icon: <BarChart3 className="h-7 w-7" />, href: "/provider/dashboard?tab=analytics", color: "bg-amber-100", iconColor: "text-amber-600" },
   { label: "Payouts", icon: <CreditCard className="h-7 w-7" />, href: "/provider/dashboard?tab=payments", color: "bg-emerald-100", iconColor: "text-emerald-600" },
   { label: "Portfolio", icon: <Image className="h-7 w-7" />, href: "/provider/dashboard?tab=services", color: "bg-pink-100", iconColor: "text-pink-600" },
-  { label: "Promo Codes", icon: <Tag className="h-7 w-7" />, href: "/provider/dashboard?tab=more", color: "bg-orange-100", iconColor: "text-orange-600" },
+  { label: "Boost", icon: <Rocket className="h-7 w-7" />, href: "/provider/promotions", color: "bg-gradient-to-br from-purple-100 to-pink-100", iconColor: "text-purple-600" },
   { label: "Quotes", icon: <FileText className="h-7 w-7" />, href: "/provider/dashboard?tab=bookings", color: "bg-indigo-100", iconColor: "text-indigo-600" },
   { label: "My Page", icon: <UserCircle className="h-7 w-7" />, href: "/provider/dashboard?tab=page", color: "bg-teal-100", iconColor: "text-teal-600" },
   { label: "Widgets", icon: <Grid3X3 className="h-7 w-7" />, href: "/provider/dashboard?tab=more", color: "bg-rose-100", iconColor: "text-rose-600" },

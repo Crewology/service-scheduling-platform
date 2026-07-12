@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
-import { MapPin, Star, Clock, DollarSign, ArrowLeft, User, SlidersHorizontal, X, Search, CalendarDays, Heart } from "lucide-react";
+import { MapPin, Star, Clock, DollarSign, ArrowLeft, User, SlidersHorizontal, X, Search, CalendarDays, Heart, Sparkles } from "lucide-react";
 import { Link, useParams } from "wouter";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { OfficialBadge } from "@/components/OfficialBadge";
@@ -106,6 +106,11 @@ export default function CategoryDetail() {
     { categoryId: category?.id! },
     { enabled: !!category?.id }
   );
+  const { data: activePromotions } = trpc.promotion.getActiveForDisplay.useQuery();
+  const promotedProviderIds = useMemo(() => {
+    if (!activePromotions) return new Set<number>();
+    return new Set(activePromotions.map((p: any) => p.promotion.providerId));
+  }, [activePromotions]);
 
   // Filter state
   const [showFilters, setShowFilters] = useState(false);
@@ -160,8 +165,22 @@ export default function CategoryDetail() {
       }
       filtered.set(id, entry);
     }
-    return filtered;
-  }, [services, providers, locationFilter, minRating, maxPrice, serviceTypeFilter]);
+    // Sort promoted providers to the top
+    const sorted = new Map<number, { provider: any; services: any[] }>();
+    const promoted: [number, { provider: any; services: any[] }][] = [];
+    const regular: [number, { provider: any; services: any[] }][] = [];
+    for (const [id, entry] of Array.from(filtered.entries())) {
+      if (promotedProviderIds.has(id)) {
+        promoted.push([id, entry]);
+      } else {
+        regular.push([id, entry]);
+      }
+    }
+    for (const [id, entry] of [...promoted, ...regular]) {
+      sorted.set(id, entry);
+    }
+    return sorted;
+  }, [services, providers, locationFilter, minRating, maxPrice, serviceTypeFilter, promotedProviderIds]);
 
   if (!category) {
     return (
@@ -366,6 +385,11 @@ export default function CategoryDetail() {
                               {provider.businessName}
                             </CardTitle>
                             {provider.isOfficial && <OfficialBadge size="sm" />}
+                            {promotedProviderIds.has(providerId) && (
+                              <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10px] px-1.5 py-0 gap-0.5 shrink-0">
+                                <Sparkles className="h-2.5 w-2.5" /> Promoted
+                              </Badge>
+                            )}
                           </div>
                           <div className="flex items-center gap-3 text-sm text-muted-foreground mt-0.5">
                             {(provider.city || provider.state) && (

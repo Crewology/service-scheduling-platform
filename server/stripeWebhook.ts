@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import Stripe from "stripe";
 import { ENV } from "./_core/env";
 import * as db from "./db";
+import * as promotionDb from "./db/promotions";
 import { sendNotification } from "./notifications";
 import { sendPushNotification } from "./notifications/pushHelper";
 import { executePartnerTransfer } from "./partnerSplit";
@@ -102,6 +103,12 @@ export async function handleStripeWebhook(req: Request, res: Response) {
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   console.log("[Stripe] Checkout completed:", session.id);
+
+  // Handle promotion payments
+  if (session.metadata?.type === "promotion") {
+    await handlePromotionPayment(session);
+    return;
+  }
 
   const bookingId = session.metadata?.bookingId;
   const paymentType = session.metadata?.paymentType;
@@ -523,4 +530,41 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
   } else {
     console.error(`[Partner Split] Failed for invoice ${invoice.id}: ${result.error}`);
   }
+}
+
+// --- Promotion Payment Handler ---
+
+const TIER_DURATION_HOURS: Record<string, number> = {
+  quick_boost: 24,
+  category_spotlight: 168,
+  homepage_feature: 168,
+  smart_bundle: 168,
+};
+
+async function handlePromotionPayment(session: Stripe.Checkout.Session) {
+  const promotionId = session.metadata?.promotionId;
+  const tier = session.metadata?.tier;
+
+  if (!promotionId) {
+    console.error("[Stripe Promotion] No promotionId in session metadata");
+    return;
+  }
+
+  console.log(`[Stripe Promotion] Activating promotion ${promotionId} (tier: ${tier})`);
+
+  const durationHours = TIER_DURATION_HOURS[tier || ""] || 168;
+  const startDate = new Date();
+  const endDate = new Date(startDate.getTime() + durationHours * 60 * 60 * 1000);
+
+  await promotionDb.activatePromotion(parseInt(promotionId), startDate, endDate);
+
+  // Store payment intent ID if available
+  if (session.payment_intent) {
+    await promotionDb.updatePromotionPaymentIntent(
+      parseInt(promotionId),
+      session.payment_intent as string
+    );
+  }
+
+  console.log(`[Stripe Promotion] Promotion ${promotionId} activated: ${startDate.toISOString()} → ${endDate.toISOString()}`);
 }

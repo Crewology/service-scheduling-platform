@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
-import { Search, Calendar, Shield, Star, ArrowRight, CheckCircle2, User, Gift, Trophy, TrendingUp, Users, Award, ShieldCheck } from "lucide-react";
+import { Search, Calendar, Shield, Star, ArrowRight, CheckCircle2, User, Gift, Trophy, TrendingUp, Users, Award, ShieldCheck, Sparkles, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
@@ -211,6 +211,9 @@ export default function Home() {
       </section>
 
 
+      {/* Featured Providers Section */}
+      <FeaturedProviders />
+
       {/* Refer & Earn Section */}
       <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
         <div className="container">
@@ -336,5 +339,70 @@ export default function Home() {
 
 
     </div>
+  );
+}
+
+/** Featured Providers section — shows providers with active homepage_feature promotions */
+function FeaturedProviders() {
+  const { data: featured } = trpc.promotion.getActiveForDisplay.useQuery({ tier: "homepage_feature" });
+  if (!featured || featured.length === 0) return null;
+
+  return (
+    <section className="py-12 sm:py-16 md:py-20">
+      <div className="container">
+        <div className="text-center mb-10 sm:mb-14">
+          <div className="inline-flex items-center gap-2 bg-purple-100 text-purple-800 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
+            <Sparkles className="h-4 w-4" />
+            Featured Professionals
+          </div>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3">Top-Rated & Promoted</h2>
+          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
+            Discover hand-picked service professionals ready to help you today
+          </p>
+        </div>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {featured.slice(0, 6).map((item: any) => (
+            <Link key={item.promotion.id} href={item.provider.profileSlug ? `/p/${item.provider.profileSlug}` : `/provider/${item.provider.id}`}>
+              <Card className="hover:shadow-lg transition-all cursor-pointer group overflow-hidden">
+                <div className="h-1.5 bg-gradient-to-r from-purple-500 to-pink-500" />
+                <CardContent className="p-5">
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
+                      {item.provider.profilePhotoUrl ? (
+                        <img src={item.provider.profilePhotoUrl} alt={item.provider.businessName} className="w-full h-full object-cover" />
+                      ) : (
+                        <User className="h-6 w-6 text-primary" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-base group-hover:text-primary transition-colors truncate">
+                        {item.provider.businessName}
+                      </h3>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                        {item.provider.city && (
+                          <span className="flex items-center gap-0.5">
+                            <MapPin className="h-3 w-3" />
+                            {item.provider.city}{item.provider.state ? `, ${item.provider.state}` : ""}
+                          </span>
+                        )}
+                        {parseFloat(item.provider.averageRating || "0") > 0 && (
+                          <span className="flex items-center gap-0.5">
+                            <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                            {parseFloat(item.provider.averageRating).toFixed(1)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-sm font-medium mb-1">{item.promotion.headline}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-2">{item.promotion.description}</p>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }

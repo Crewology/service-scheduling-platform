@@ -1036,3 +1036,30 @@ export const platformSettings = mysqlTable("platform_settings", {
 });
 export type PlatformSetting = typeof platformSettings.$inferSelect;
 export type InsertPlatformSetting = typeof platformSettings.$inferInsert;
+
+// ─── Ad Promotions ("Boost Your Business") ──────────────────────────────────
+export const promotions = mysqlTable("promotions", {
+  id: int("id").autoincrement().primaryKey(),
+  providerId: int("providerId").notNull().references(() => serviceProviders.id),
+  serviceId: int("serviceId").references(() => services.id),
+  tier: mysqlEnum("tier", ["quick_boost", "category_spotlight", "homepage_feature", "smart_bundle"]).notNull(),
+  status: mysqlEnum("status", ["pending", "active", "expired", "cancelled"]).default("pending").notNull(),
+  headline: varchar("headline", { length: 200 }).notNull(),
+  description: text("description").notNull(),
+  aiGenerated: boolean("aiGenerated").default(false).notNull(),
+  startDate: timestamp("startDate"),
+  endDate: timestamp("endDate"),
+  amountPaid: int("amountPaid").notNull(), // cents
+  stripePaymentIntentId: varchar("stripePaymentIntentId", { length: 255 }),
+  stripeSessionId: varchar("stripeSessionId", { length: 255 }),
+  impressions: int("impressions").default(0).notNull(),
+  clicks: int("clicks").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => [
+  index("promotion_provider_idx").on(table.providerId),
+  index("promotion_status_idx").on(table.status),
+  index("promotion_end_date_idx").on(table.endDate),
+]);
+export type Promotion = typeof promotions.$inferSelect;
+export type InsertPromotion = typeof promotions.$inferInsert;
