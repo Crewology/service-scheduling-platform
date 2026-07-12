@@ -76,6 +76,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import HelpCenter from "./pages/HelpCenter";
 import ReferralProgram from "./pages/ReferralProgram";
+import FeaturedProfessionals from "./pages/FeaturedProfessionals";
 
 // Admin
 import AdminDashboard from "./pages/AdminDashboard";
@@ -97,6 +98,7 @@ function Router() {
       <Route path="/select-role" component={RoleSelection} />
       <Route path="/" component={Home} />
       <Route path="/browse" component={Browse} />
+      <Route path="/featured" component={FeaturedProfessionals} />
       <Route path="/search" component={Search} />
       <Route path="/category/:slug" component={CategoryDetail} />
       <Route path="/provider/dashboard" component={ProviderDashboard} />

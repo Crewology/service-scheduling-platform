@@ -528,6 +528,14 @@ export function NavHeader() {
               Browse Services
             </Link>
             <Link
+              href="/featured"
+              className={`text-sm font-medium transition-colors ${
+                location === "/featured" ? "text-primary" : "hover:text-primary"
+              }`}
+            >
+              Featured
+            </Link>
+            <Link
               href="/search"
               className={`text-sm font-medium transition-colors ${
                 location === "/search" ? "text-primary" : "hover:text-primary"
@@ -715,6 +723,14 @@ export function NavHeader() {
                         <Grid3X3 className="h-6 w-6 text-blue-600" />
                       </div>
                       <span className="text-[11px] font-medium text-center leading-tight">Browse</span>
+                    </div>
+                  </Link>
+                  <Link href="/featured" onClick={() => setMobileMenuOpen(false)}>
+                    <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
+                      <div className="h-11 w-11 rounded-2xl bg-pink-50 flex items-center justify-center">
+                        <Sparkles className="h-6 w-6 text-pink-600" />
+                      </div>
+                      <span className="text-[11px] font-medium text-center leading-tight">Featured</span>
                     </div>
                   </Link>
                   <Link href="/search" onClick={() => setMobileMenuOpen(false)}>
