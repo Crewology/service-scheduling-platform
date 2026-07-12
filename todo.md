@@ -1992,3 +1992,10 @@
 - [x] OG meta tags for rich social media previews when shared
 - [x] "Share My Promotion" button on provider's Promotions dashboard for active promotions
 - [x] Route registration in App.tsx
+
+## Feature: Promotion View Counter & QR Code
+
+- [x] Track page views on /featured/promo/:id (increment impressions on visit)
+- [x] Display view count prominently on provider's active promotion cards
+- [x] Generate downloadable QR code for each promotion link
+- [x] QR code download button on provider's Promotions dashboard

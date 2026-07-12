@@ -1,4 +1,5 @@
 import { useState } from "react";
+import QRCode from "qrcode";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Rocket, Star, Crown, Zap, Eye, MousePointerClick, Clock, CheckCircle2, Loader2, ArrowRight, RefreshCw, Share2, Copy } from "lucide-react";
+import { Sparkles, Rocket, Star, Crown, Zap, Eye, MousePointerClick, Clock, CheckCircle2, Loader2, ArrowRight, RefreshCw, Share2, Copy, QrCode, Download } from "lucide-react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 
@@ -326,12 +327,13 @@ export default function Promotions() {
                   </div>
                   <h3 className="font-semibold mb-1">{promo.headline}</h3>
                   <p className="text-sm text-muted-foreground mb-3">{promo.description}</p>
-                  <div className="flex gap-4 text-xs text-muted-foreground mb-3">
-                    <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {promo.impressions} views</span>
-                    <span className="flex items-center gap-1"><MousePointerClick className="h-3 w-3" /> {promo.clicks} clicks</span>
+                  {/* View & Click Stats */}
+                  <div className="flex gap-4 text-sm mb-3 p-2.5 bg-muted/50 rounded-lg">
+                    <span className="flex items-center gap-1.5 font-medium"><Eye className="h-4 w-4 text-blue-500" /> {promo.impressions} <span className="text-muted-foreground font-normal">page views</span></span>
+                    <span className="flex items-center gap-1.5 font-medium"><MousePointerClick className="h-4 w-4 text-green-500" /> {promo.clicks} <span className="text-muted-foreground font-normal">clicks</span></span>
                   </div>
-                  {/* Share My Promotion */}
-                  <div className="flex items-center gap-2 pt-3 border-t">
+                  {/* Share & QR Code */}
+                  <div className="flex items-center gap-2 pt-3 border-t flex-wrap">
                     <Button
                       variant="outline"
                       size="sm"
@@ -343,7 +345,7 @@ export default function Promotions() {
                       }}
                     >
                       <Copy className="h-3.5 w-3.5" />
-                      Copy Share Link
+                      Copy Link
                     </Button>
                     <Button
                       variant="outline"
@@ -357,6 +359,31 @@ export default function Promotions() {
                     >
                       <Share2 className="h-3.5 w-3.5" />
                       Share
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={async () => {
+                        try {
+                          const url = `${window.location.origin}/featured/promo/${promo.id}`;
+                          const dataUrl = await QRCode.toDataURL(url, {
+                            width: 512,
+                            margin: 2,
+                            color: { dark: "#000000", light: "#ffffff" },
+                          });
+                          const link = document.createElement("a");
+                          link.download = `promotion-${promo.id}-qr.png`;
+                          link.href = dataUrl;
+                          link.click();
+                          toast.success("QR code downloaded! Print it for your store or flyers.");
+                        } catch {
+                          toast.error("Failed to generate QR code");
+                        }
+                      }}
+                    >
+                      <QrCode className="h-3.5 w-3.5" />
+                      QR Code
                     </Button>
                   </div>
                 </CardContent>

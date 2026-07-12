@@ -189,6 +189,14 @@ Be specific, action-oriented, and highlight what makes this service special. Do 
       return { promotion, provider, service };
     }),
 
+  // Track a page view on a promotion (when someone visits the shareable page)
+  trackView: publicProcedure
+    .input(z.object({ promotionId: z.number() }))
+    .mutation(async ({ input }) => {
+      await promotionDb.incrementImpressions([input.promotionId]);
+      return { success: true };
+    }),
+
   // Track a click on a promotion
   trackClick: publicProcedure
     .input(z.object({ promotionId: z.number() }))

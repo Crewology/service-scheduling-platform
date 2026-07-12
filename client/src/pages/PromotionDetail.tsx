@@ -100,12 +100,14 @@ export default function PromotionDetail() {
   );
 
   const trackClick = trpc.promotion.trackClick.useMutation();
+  const trackView = trpc.promotion.trackView.useMutation();
 
-  // Track impression on load
+  // Track page view on load
   useEffect(() => {
     if (data?.promotion?.id) {
-      // We could track impressions here if needed
+      trackView.mutate({ promotionId: data.promotion.id });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.promotion?.id]);
 
   const pageUrl = typeof window !== "undefined" ? `${window.location.origin}/featured/promo/${promotionId}` : "";
