@@ -93,6 +93,16 @@ export default function TermsOfService() {
             <p className="text-muted-foreground leading-relaxed">
               Cancellation policies are set by individual service providers. Refunds, when applicable, will be processed according to the provider's cancellation policy and may take 5-10 business days to appear on your statement. For bulk bookings, each individual booking within the batch is subject to the respective provider's cancellation policy.
             </p>
+            <h3 className="text-lg font-medium mt-4 mb-2">Invoicing & Receipts</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              Service providers may create and send invoices to customers for services rendered through the platform. Invoices are generated with sequential numbering and may include multiple line items, applicable taxes, due dates, and notes. Customers will receive invoice notifications via email and can view, download, and pay outstanding invoices directly through the platform.
+            </p>
+            <p className="text-muted-foreground leading-relaxed mt-2">
+              Receipts are automatically generated upon successful payment for bookings, packages, and promotions. Both providers and customers can access their full invoice and receipt history, including downloadable PDF documents. Credit notes are automatically issued when refunds are processed.
+            </p>
+            <p className="text-muted-foreground leading-relaxed mt-2">
+              Invoicing and receipt functionality is available to all subscription tiers, including the Starter (free) plan. OlogyCrew does not guarantee the legal sufficiency of generated invoices for tax or accounting purposes — providers are responsible for ensuring compliance with applicable local tax and business regulations.
+            </p>
           </section>
 
           <section>

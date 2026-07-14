@@ -47,6 +47,7 @@ export const SUBSCRIPTION_TIERS: Record<SubscriptionTier, TierConfig> = {
       "Standard search placement",
       "Booking management",
       "Customer messaging",
+      "Invoicing & receipts",
     ],
     limits: {
       maxServices: 3,
@@ -74,6 +75,7 @@ export const SUBSCRIPTION_TIERS: Record<SubscriptionTier, TierConfig> = {
       "Business analytics dashboard",
       "Booking management",
       "Customer messaging",
+      "Invoicing & receipts",
       "Email notifications",
     ],
     limits: {
@@ -105,6 +107,7 @@ export const SUBSCRIPTION_TIERS: Record<SubscriptionTier, TierConfig> = {
       "Priority customer support",
       "Booking management",
       "Customer messaging",
+      "Invoicing & receipts",
       "Email & SMS notifications",
     ],
     limits: {

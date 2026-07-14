@@ -2020,3 +2020,7 @@
 
 ## Bug Fix: 404 on Back Navigation from Invoices Page
 - [x] Fix 404 error when clicking browser back button from /provider/invoices — back button was linking to /launchpad (non-existent route), changed to /
+
+## Feature: Update Subscriptions & Terms for Invoicing
+- [x] Update subscription plan features/content to include invoicing & receipts for all tiers
+- [x] Update Terms of Service to reflect invoicing and receipt functionality
