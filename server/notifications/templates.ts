@@ -802,6 +802,66 @@ OlogyCrew Team
       `.trim(),
       smsBody: `A spot opened up for ${data.serviceName} on ${data.date} at ${data.time}! Book now on OlogyCrew before it fills up.`,
     },
+    invoice_sent: {
+      subject: `Invoice ${data.invoiceNumber || ''} from ${data.providerName || 'Your Provider'}`,
+      body: `
+Hello ${data.customerName},
+
+${data.providerName} has sent you an invoice.
+
+**Invoice:** ${data.invoiceNumber}
+**Amount Due:** $${data.amount}
+${data.dueDate ? `**Due Date:** ${data.dueDate}` : ''}
+
+You can view and pay this invoice from your Receipts & Invoices page on OlogyCrew.
+
+[View Invoice](/receipts)
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `You have a new invoice (${data.invoiceNumber}) for $${data.amount} from ${data.providerName}. Pay it on OlogyCrew.`,
+    },
+    invoice_paid: {
+      subject: `Payment Received - Invoice ${data.invoiceNumber || ''}`,
+      body: `
+Hello ${data.providerName},
+
+Great news! Your invoice has been paid.
+
+**Invoice:** ${data.invoiceNumber}
+**Amount:** $${data.amount}
+**Paid by:** ${data.customerName}
+
+The payment has been processed and will be available in your account.
+
+[View Invoices](/invoices)
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `Invoice ${data.invoiceNumber} for $${data.amount} has been paid by ${data.customerName}.`,
+    },
+    invoice_overdue: {
+      subject: `Reminder: Invoice ${data.invoiceNumber || ''} is Overdue`,
+      body: `
+Hello ${data.customerName},
+
+This is a friendly reminder that your invoice is now overdue.
+
+**Invoice:** ${data.invoiceNumber}
+**Amount Due:** $${data.amount}
+**Due Date:** ${data.dueDate}
+
+Please pay at your earliest convenience to avoid any service interruptions.
+
+[Pay Now](/receipts)
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `Reminder: Invoice ${data.invoiceNumber} for $${data.amount} is overdue. Please pay on OlogyCrew.`,
+    },
   };
 
   return templates[type] || {

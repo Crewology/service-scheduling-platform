@@ -1063,3 +1063,65 @@ export const promotions = mysqlTable("promotions", {
 ]);
 export type Promotion = typeof promotions.$inferSelect;
 export type InsertPromotion = typeof promotions.$inferInsert;
+
+
+/**
+ * Invoices & Receipts
+ * type: 'invoice' (provider-created), 'receipt' (auto-generated on payment), 'credit_note' (refund)
+ * status flow: draft -> sent -> viewed -> paid -> cancelled | overdue
+ */
+export const invoices = mysqlTable("invoices", {
+  id: int("id").autoincrement().primaryKey(),
+  invoiceNumber: varchar("invoiceNumber", { length: 30 }).notNull().unique(),
+  type: mysqlEnum("invoiceType", ["invoice", "receipt", "credit_note"]).notNull(),
+  providerId: int("providerId").notNull(),
+  customerId: int("customerId").notNull(),
+  // For receipts linked to bookings/promotions
+  bookingId: int("bookingId"),
+  promotionId: int("promotionId"),
+  paymentId: int("paymentId"),
+  // Status
+  status: mysqlEnum("invoiceStatus", ["draft", "sent", "viewed", "paid", "overdue", "cancelled"]).default("draft").notNull(),
+  // Amounts in cents
+  subtotal: int("subtotal").notNull().default(0),
+  taxRate: decimal("taxRate", { precision: 5, scale: 2 }).default("0"),
+  taxAmount: int("taxAmount").notNull().default(0),
+  total: int("total").notNull().default(0),
+  // Dates
+  issueDate: timestamp("issueDate").defaultNow().notNull(),
+  dueDate: timestamp("dueDate"),
+  paidAt: timestamp("paidAt"),
+  // Payment
+  stripePaymentIntentId: varchar("stripePaymentIntentId", { length: 255 }),
+  stripeCheckoutSessionId: varchar("stripeCheckoutSessionId", { length: 255 }),
+  // PDF
+  pdfUrl: varchar("pdfUrl", { length: 500 }),
+  // Notes
+  notes: text("notes"),
+  customerEmail: varchar("customerEmail", { length: 320 }),
+  // For credit notes, reference the original invoice
+  originalInvoiceId: int("originalInvoiceId"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => [
+  index("invoice_provider_idx").on(table.providerId),
+  index("invoice_customer_idx").on(table.customerId),
+  index("invoice_status_idx").on(table.status),
+  index("invoice_number_idx").on(table.invoiceNumber),
+]);
+export type Invoice = typeof invoices.$inferSelect;
+export type InsertInvoice = typeof invoices.$inferInsert;
+
+export const invoiceLineItems = mysqlTable("invoice_line_items", {
+  id: int("id").autoincrement().primaryKey(),
+  invoiceId: int("invoiceId").notNull(),
+  description: varchar("description", { length: 500 }).notNull(),
+  quantity: decimal("quantity", { precision: 10, scale: 2 }).default("1").notNull(),
+  unitPrice: int("unitPrice").notNull(), // cents
+  amount: int("amount").notNull(), // cents (quantity * unitPrice)
+  serviceId: int("serviceId"), // optional link to a service
+}, (table) => [
+  index("line_item_invoice_idx").on(table.invoiceId),
+]);
+export type InvoiceLineItem = typeof invoiceLineItems.$inferSelect;
+export type InsertInvoiceLineItem = typeof invoiceLineItems.$inferInsert;

@@ -41,7 +41,10 @@ export type NotificationType =
   | 'trial_expired'
   | 'welcome_customer'
   | 'welcome_provider'
-  | 'waitlist_spot_available';
+  | 'waitlist_spot_available'
+  | 'invoice_sent'
+  | 'invoice_paid'
+  | 'invoice_overdue';
 
 export interface NotificationRecipient {
   userId: number;

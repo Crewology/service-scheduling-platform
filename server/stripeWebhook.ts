@@ -3,9 +3,11 @@ import Stripe from "stripe";
 import { ENV } from "./_core/env";
 import * as db from "./db";
 import * as promotionDb from "./db/promotions";
+import * as invoiceDb from "./db/invoices";
 import { sendNotification } from "./notifications";
 import { sendPushNotification } from "./notifications/pushHelper";
 import { executePartnerTransfer } from "./partnerSplit";
+import { generateInvoicePdf } from "./services/invoicePdf";
 
 const stripe = new Stripe(ENV.stripeSecretKey, {
   apiVersion: "2026-01-28.clover",
@@ -110,6 +112,12 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     return;
   }
 
+  // Handle invoice payments
+  if (session.metadata?.type === "invoice_payment") {
+    await handleInvoicePayment(session);
+    return;
+  }
+
   const bookingId = session.metadata?.bookingId;
   const paymentType = session.metadata?.paymentType;
 
@@ -179,6 +187,13 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         time: booking.startTime,
       }
     );
+  }
+
+  // Auto-generate receipt for booking payment
+  try {
+    await generateBookingReceipt(booking, session, customer, provider, service, paymentType);
+  } catch (err: any) {
+    console.error(`[Receipt] Failed to generate receipt for booking ${bookingId}:`, err.message);
   }
 
   // Partner revenue split: transfer 40% of the platform fee to partner
@@ -322,6 +337,57 @@ async function handleRefund(charge: Stripe.Charge) {
         },
       });
     }
+  }
+
+  // Auto-generate credit note for the refund
+  try {
+    if (booking) {
+      const provider = await db.getProviderById(booking.providerId);
+      const customer = await db.getUserById(booking.customerId);
+      
+      // Find the original receipt/invoice for this booking
+      const existingInvoices = await invoiceDb.getInvoicesByBookingId(booking.id);
+      const originalInvoice = existingInvoices.find((i: any) => i.type === "receipt" || i.type === "invoice");
+
+      const creditNoteNumber = await invoiceDb.getNextInvoiceNumber(booking.providerId);
+      const refundAmountCents = charge.amount_refunded;
+
+      await invoiceDb.createInvoice(
+        {
+          invoiceNumber: creditNoteNumber,
+          type: "credit_note",
+          providerId: booking.providerId,
+          customerId: booking.customerId,
+          bookingId: booking.id,
+          promotionId: null,
+          paymentId: payment.id,
+          status: "paid",
+          subtotal: refundAmountCents,
+          taxRate: "0",
+          taxAmount: 0,
+          total: refundAmountCents,
+          issueDate: new Date(),
+          dueDate: null,
+          paidAt: new Date(),
+          stripePaymentIntentId: paymentIntentId,
+          stripeCheckoutSessionId: null,
+          pdfUrl: null,
+          notes: `Refund for Booking #${booking.bookingNumber}${originalInvoice ? ` (ref: ${originalInvoice.invoiceNumber})` : ""}`,
+          customerEmail: customer?.email || null,
+          originalInvoiceId: originalInvoice?.id || null,
+        },
+        [{
+          description: `Refund - Booking #${booking.bookingNumber}`,
+          quantity: "1",
+          unitPrice: refundAmountCents,
+          amount: refundAmountCents,
+          serviceId: booking.serviceId || null,
+        }]
+      );
+      console.log(`[Credit Note] Generated ${creditNoteNumber} for refund on booking ${booking.bookingNumber}`);
+    }
+  } catch (err: any) {
+    console.error(`[Credit Note] Failed to generate credit note for refund:`, err.message);
   }
 
   console.log(`[Stripe] Refund confirmed for payment_intent: ${paymentIntentId}, amount: $${refundAmountDollars}`);
@@ -567,4 +633,148 @@ async function handlePromotionPayment(session: Stripe.Checkout.Session) {
   }
 
   console.log(`[Stripe Promotion] Promotion ${promotionId} activated: ${startDate.toISOString()} → ${endDate.toISOString()}`);
+}
+
+
+async function handleInvoicePayment(session: Stripe.Checkout.Session) {
+  const invoiceId = session.metadata?.invoiceId;
+  if (!invoiceId) {
+    console.error("[Stripe] No invoiceId in invoice_payment session metadata");
+    return;
+  }
+
+  const invoice = await invoiceDb.getInvoiceById(parseInt(invoiceId));
+  if (!invoice) {
+    console.error("[Stripe] Invoice not found:", invoiceId);
+    return;
+  }
+
+  // Mark invoice as paid
+  await invoiceDb.updateInvoiceStatus(parseInt(invoiceId), "paid", {
+    paidAt: new Date(),
+    stripePaymentIntentId: session.payment_intent as string,
+  });
+
+  // Generate receipt PDF if not already generated
+  if (!invoice.pdfUrl) {
+    try {
+      const provider = await db.getProviderById(invoice.providerId);
+      const customer = await db.getUserById(invoice.customerId);
+      const providerUser = provider ? await db.getUserById(provider.userId) : null;
+      const customerName = customer ? `${customer.firstName || ""} ${customer.lastName || ""}`.trim() || customer.name || "Customer" : "Customer";
+      const providerAddress = provider ? [provider.addressLine1, provider.city, provider.state, provider.postalCode].filter(Boolean).join(", ") || undefined : undefined;
+
+      const pdfUrl = await generateInvoicePdf({
+        invoice: { ...invoice, status: "paid", paidAt: new Date() },
+        providerName: provider?.businessName || "Provider",
+        providerEmail: providerUser?.email || undefined,
+        providerPhone: providerUser?.phone || undefined,
+        providerAddress,
+        customerName,
+        customerEmail: invoice.customerEmail || customer?.email || undefined,
+      });
+      await invoiceDb.updateInvoicePdfUrl(parseInt(invoiceId), pdfUrl);
+    } catch (err: any) {
+      console.error(`[Receipt] Failed to generate PDF for invoice ${invoiceId}:`, err.message);
+    }
+  }
+
+  // Send email notification to provider that invoice was paid
+  const provider = await db.getProviderById(invoice.providerId);
+  if (provider) {
+    const providerUser = await db.getUserById(provider.userId);
+    if (providerUser?.email) {
+      await sendNotification({
+        type: "payment_received",
+        channel: "email",
+        recipient: {
+          userId: providerUser.id,
+          email: providerUser.email,
+          name: providerUser.name || "Provider",
+        },
+        data: {
+          invoiceNumber: invoice.invoiceNumber,
+          amount: (invoice.total / 100).toFixed(2),
+          providerName: provider.businessName,
+        },
+      });
+    }
+  }
+
+  console.log(`[Stripe] Invoice ${invoice.invoiceNumber} marked as paid`);
+}
+
+async function generateBookingReceipt(
+  booking: any,
+  session: Stripe.Checkout.Session,
+  customer: any,
+  provider: any,
+  service: any,
+  paymentType: string | undefined
+) {
+  const invoiceNumber = await invoiceDb.getNextInvoiceNumber(booking.providerId);
+  const amount = paymentType === "deposit"
+    ? Math.round(parseFloat(booking.depositAmount || "0") * 100)
+    : Math.round(parseFloat(booking.totalAmount || "0") * 100);
+
+  if (amount <= 0) return;
+
+  const description = paymentType === "deposit"
+    ? `Deposit for ${service?.name || "Service"} - Booking #${booking.bookingNumber}`
+    : `${service?.name || "Service"} - Booking #${booking.bookingNumber}`;
+
+  // Create the receipt invoice record
+  const result = await invoiceDb.createInvoice(
+    {
+      invoiceNumber,
+      type: "receipt",
+      providerId: booking.providerId,
+      customerId: booking.customerId,
+      bookingId: booking.id,
+      promotionId: null,
+      paymentId: null,
+      status: "paid",
+      subtotal: amount,
+      taxRate: "0",
+      taxAmount: 0,
+      total: amount,
+      issueDate: new Date(),
+      dueDate: null,
+      paidAt: new Date(),
+      stripePaymentIntentId: session.payment_intent as string || null,
+      stripeCheckoutSessionId: session.id,
+      pdfUrl: null,
+      notes: null,
+      customerEmail: customer?.email || null,
+      originalInvoiceId: null,
+    },
+    [{
+      description,
+      quantity: "1",
+      unitPrice: amount,
+      amount,
+      serviceId: booking.serviceId || null,
+    }]
+  );
+
+  // Generate PDF
+  const customerName = customer ? `${customer.firstName || ""} ${customer.lastName || ""}`.trim() || customer.name || "Customer" : "Customer";
+  const providerUser = provider ? await db.getUserById(provider.userId) : null;
+  const providerAddress = provider ? [provider.addressLine1, provider.city, provider.state, provider.postalCode].filter(Boolean).join(", ") || undefined : undefined;
+
+  const invoice = await invoiceDb.getInvoiceById(result.id);
+  if (invoice) {
+    const pdfUrl = await generateInvoicePdf({
+      invoice,
+      providerName: provider?.businessName || "Provider",
+      providerEmail: providerUser?.email || undefined,
+      providerPhone: providerUser?.phone || undefined,
+      providerAddress,
+      customerName,
+      customerEmail: customer?.email || undefined,
+    });
+    await invoiceDb.updateInvoicePdfUrl(result.id, pdfUrl);
+  }
+
+  console.log(`[Receipt] Auto-generated receipt ${invoiceNumber} for booking ${booking.bookingNumber}`);
 }

@@ -1,0 +1,537 @@
+import { useState, useMemo } from "react";
+import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  FileText,
+  Plus,
+  Send,
+  Download,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Eye,
+  Trash2,
+  ArrowLeft,
+} from "lucide-react";
+import { Link } from "wouter";
+import { toast } from "sonner";
+
+function formatCents(cents: number): string {
+  return `$${(cents / 100).toFixed(2)}`;
+}
+
+function formatDate(date: string | Date | null): string {
+  if (!date) return "—";
+  return new Date(date).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
+  draft: { label: "Draft", color: "bg-gray-100 text-gray-700", icon: FileText },
+  sent: { label: "Sent", color: "bg-blue-100 text-blue-700", icon: Send },
+  viewed: { label: "Viewed", color: "bg-purple-100 text-purple-700", icon: Eye },
+  paid: { label: "Paid", color: "bg-green-100 text-green-700", icon: CheckCircle },
+  overdue: { label: "Overdue", color: "bg-red-100 text-red-700", icon: Clock },
+  cancelled: { label: "Cancelled", color: "bg-gray-100 text-gray-500", icon: XCircle },
+};
+
+export default function Invoices() {
+  const { user } = useAuth();
+  const [showCreate, setShowCreate] = useState(false);
+  const [filter, setFilter] = useState<string>("all");
+
+  const { data: invoices, refetch } = trpc.invoice.getMyInvoices.useQuery();
+  const { data: provider } = trpc.provider.getMyProfile.useQuery();
+  const { data: bookings } = trpc.booking.providerBookings.useQuery(
+    { status: "completed" },
+    { enabled: !!provider }
+  );
+
+  const sendMutation = trpc.invoice.send.useMutation({
+    onSuccess: () => {
+      toast.success("Invoice sent to customer");
+      refetch();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const cancelMutation = trpc.invoice.cancel.useMutation({
+    onSuccess: () => {
+      toast.success("Invoice cancelled");
+      refetch();
+    },
+  });
+
+  const markPaidMutation = trpc.invoice.markPaid.useMutation({
+    onSuccess: () => {
+      toast.success("Invoice marked as paid");
+      refetch();
+    },
+  });
+
+  const generatePdfMutation = trpc.invoice.generatePdf.useMutation({
+    onSuccess: (data) => {
+      window.open(data.pdfUrl, "_blank");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const filteredInvoices = useMemo(() => {
+    if (!invoices) return [];
+    if (filter === "all") return invoices;
+    return invoices.filter((inv) => inv.status === filter);
+  }, [invoices, filter]);
+
+  // Get unique customers from bookings for the create form
+  const customers = useMemo(() => {
+    if (!bookings) return [];
+    const seen = new Map<number, { id: number; name: string; email: string }>();
+    for (const b of bookings) {
+      if (!seen.has(b.customerId)) {
+        seen.set(b.customerId, {
+          id: b.customerId,
+          name: (b as any).customerName || `Customer #${b.customerId}`,
+          email: (b as any).customerEmail || "",
+        });
+      }
+    }
+    return Array.from(seen.values());
+  }, [bookings]);
+
+  const stats = useMemo(() => {
+    if (!invoices) return { total: 0, paid: 0, outstanding: 0, overdue: 0 };
+    return {
+      total: invoices.length,
+      paid: invoices.filter((i) => i.status === "paid").length,
+      outstanding: invoices.filter((i) => ["sent", "viewed"].includes(i.status)).length,
+      overdue: invoices.filter((i) => i.status === "overdue").length,
+    };
+  }, [invoices]);
+
+  return (
+    <div className="container max-w-5xl py-8">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <Link href="/launchpad">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold">Invoices</h1>
+            <p className="text-muted-foreground text-sm">Create and manage invoices for your customers</p>
+          </div>
+        </div>
+        <Dialog open={showCreate} onOpenChange={setShowCreate}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              New Invoice
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Create Invoice</DialogTitle>
+            </DialogHeader>
+            <CreateInvoiceForm
+              customers={customers}
+              onSuccess={() => {
+                setShowCreate(false);
+                refetch();
+              }}
+            />
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold">{stats.total}</div>
+            <div className="text-xs text-muted-foreground">Total</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-green-600">{stats.paid}</div>
+            <div className="text-xs text-muted-foreground">Paid</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-blue-600">{stats.outstanding}</div>
+            <div className="text-xs text-muted-foreground">Outstanding</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-red-600">{stats.overdue}</div>
+            <div className="text-xs text-muted-foreground">Overdue</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filter */}
+      <div className="flex gap-2 mb-4 flex-wrap">
+        {["all", "draft", "sent", "viewed", "paid", "overdue", "cancelled"].map((s) => (
+          <Button
+            key={s}
+            variant={filter === s ? "default" : "outline"}
+            size="sm"
+            onClick={() => setFilter(s)}
+          >
+            {s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1)}
+          </Button>
+        ))}
+      </div>
+
+      {/* Invoice list */}
+      {filteredInvoices.length === 0 ? (
+        <Card>
+          <CardContent className="p-12 text-center">
+            <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-1">No invoices yet</h3>
+            <p className="text-muted-foreground text-sm">
+              Create your first invoice to get started billing your customers.
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          {filteredInvoices.map((inv) => {
+            const config = statusConfig[inv.status] || statusConfig.draft;
+            const StatusIcon = config.icon;
+            return (
+              <Card key={inv.id} className="hover:shadow-sm transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-mono text-sm font-medium">{inv.invoiceNumber}</span>
+                        <Badge className={`${config.color} text-xs`}>
+                          <StatusIcon className="h-3 w-3 mr-1" />
+                          {config.label}
+                        </Badge>
+                        {inv.type === "receipt" && (
+                          <Badge variant="outline" className="text-xs">Receipt</Badge>
+                        )}
+                        {inv.type === "credit_note" && (
+                          <Badge variant="outline" className="text-xs text-orange-600">Credit Note</Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <span>Customer #{inv.customerId}</span>
+                        <span>{formatDate(inv.createdAt)}</span>
+                        {inv.dueDate && <span>Due: {formatDate(inv.dueDate)}</span>}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-semibold">{formatCents(inv.total)}</div>
+                      <div className="flex gap-1 mt-1">
+                        {inv.status === "draft" && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="default"
+                              onClick={() => sendMutation.mutate({ invoiceId: inv.id })}
+                              disabled={sendMutation.isPending}
+                            >
+                              <Send className="h-3 w-3 mr-1" />
+                              Send
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => cancelMutation.mutate({ invoiceId: inv.id })}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </>
+                        )}
+                        {["sent", "viewed", "overdue"].includes(inv.status) && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => markPaidMutation.mutate({ invoiceId: inv.id })}
+                          >
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Mark Paid
+                          </Button>
+                        )}
+                        {inv.pdfUrl ? (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => window.open(inv.pdfUrl!, "_blank")}
+                          >
+                            <Download className="h-3 w-3" />
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => generatePdfMutation.mutate({ invoiceId: inv.id })}
+                            disabled={generatePdfMutation.isPending}
+                          >
+                            <FileText className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Create Invoice Form Component
+function CreateInvoiceForm({
+  customers,
+  onSuccess,
+}: {
+  customers: { id: number; name: string; email: string }[];
+  onSuccess: () => void;
+}) {
+
+  const [customerId, setCustomerId] = useState<string>("");
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [taxRate, setTaxRate] = useState("0");
+  const [dueDate, setDueDate] = useState("");
+  const [notes, setNotes] = useState("");
+  const [lineItems, setLineItems] = useState([
+    { description: "", quantity: "1", unitPrice: "" },
+  ]);
+
+  const createMutation = trpc.invoice.create.useMutation({
+    onSuccess: () => {
+      toast.success("Invoice created as draft");
+      onSuccess();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const addLineItem = () => {
+    setLineItems([...lineItems, { description: "", quantity: "1", unitPrice: "" }]);
+  };
+
+  const removeLineItem = (index: number) => {
+    if (lineItems.length <= 1) return;
+    setLineItems(lineItems.filter((_, i) => i !== index));
+  };
+
+  const updateLineItem = (index: number, field: string, value: string) => {
+    const updated = [...lineItems];
+    (updated[index] as any)[field] = value;
+    setLineItems(updated);
+  };
+
+  const subtotal = lineItems.reduce((sum, item) => {
+    const qty = parseFloat(item.quantity) || 0;
+    const price = parseFloat(item.unitPrice) || 0;
+    return sum + Math.round(qty * price * 100);
+  }, 0);
+
+  const taxAmount = Math.round(subtotal * (parseFloat(taxRate) || 0) / 100);
+  const total = subtotal + taxAmount;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customerId) {
+      toast.error("Select a customer");
+      return;
+    }
+
+    const items = lineItems
+      .filter((item) => item.description && item.unitPrice)
+      .map((item) => ({
+        description: item.description,
+        quantity: parseFloat(item.quantity) || 1,
+        unitPrice: Math.round((parseFloat(item.unitPrice) || 0) * 100),
+      }));
+
+    if (items.length === 0) {
+      toast.error("Add at least one line item");
+      return;
+    }
+
+    createMutation.mutate({
+      customerId: parseInt(customerId),
+      lineItems: items,
+      taxRate: parseFloat(taxRate) || 0,
+      dueDate: dueDate || undefined,
+      notes: notes || undefined,
+      customerEmail: customerEmail || undefined,
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Customer selection */}
+      <div>
+        <Label>Customer</Label>
+        {customers.length > 0 ? (
+          <Select value={customerId} onValueChange={(val) => {
+            setCustomerId(val);
+            const c = customers.find((c) => String(c.id) === val);
+            if (c?.email) setCustomerEmail(c.email);
+          }}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a customer" />
+            </SelectTrigger>
+            <SelectContent>
+              {customers.map((c) => (
+                <SelectItem key={c.id} value={String(c.id)}>
+                  {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <Input
+            type="number"
+            placeholder="Customer ID"
+            value={customerId}
+            onChange={(e) => setCustomerId(e.target.value)}
+          />
+        )}
+      </div>
+
+      <div>
+        <Label>Customer Email (for invoice delivery)</Label>
+        <Input
+          type="email"
+          placeholder="customer@email.com"
+          value={customerEmail}
+          onChange={(e) => setCustomerEmail(e.target.value)}
+        />
+      </div>
+
+      {/* Line items */}
+      <div>
+        <Label className="mb-2 block">Line Items</Label>
+        <div className="space-y-2">
+          {lineItems.map((item, i) => (
+            <div key={i} className="flex gap-2 items-start">
+              <Input
+                placeholder="Description"
+                value={item.description}
+                onChange={(e) => updateLineItem(i, "description", e.target.value)}
+                className="flex-1"
+              />
+              <Input
+                type="number"
+                placeholder="Qty"
+                value={item.quantity}
+                onChange={(e) => updateLineItem(i, "quantity", e.target.value)}
+                className="w-16"
+                min="0.01"
+                step="0.01"
+              />
+              <Input
+                type="number"
+                placeholder="Price"
+                value={item.unitPrice}
+                onChange={(e) => updateLineItem(i, "unitPrice", e.target.value)}
+                className="w-24"
+                min="0"
+                step="0.01"
+              />
+              {lineItems.length > 1 && (
+                <Button type="button" variant="ghost" size="icon" onClick={() => removeLineItem(i)}>
+                  <XCircle className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          ))}
+        </div>
+        <Button type="button" variant="outline" size="sm" className="mt-2" onClick={addLineItem}>
+          <Plus className="h-3 w-3 mr-1" /> Add Line
+        </Button>
+      </div>
+
+      {/* Tax and due date */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label>Tax Rate (%)</Label>
+          <Input
+            type="number"
+            value={taxRate}
+            onChange={(e) => setTaxRate(e.target.value)}
+            min="0"
+            max="100"
+            step="0.01"
+          />
+        </div>
+        <div>
+          <Label>Due Date</Label>
+          <Input
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div>
+        <Label>Notes (optional)</Label>
+        <Textarea
+          placeholder="Payment terms, thank you note, etc."
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          rows={2}
+        />
+      </div>
+
+      {/* Totals */}
+      <div className="border-t pt-3 space-y-1 text-sm">
+        <div className="flex justify-between">
+          <span>Subtotal</span>
+          <span>{formatCents(subtotal)}</span>
+        </div>
+        {taxAmount > 0 && (
+          <div className="flex justify-between text-muted-foreground">
+            <span>Tax ({taxRate}%)</span>
+            <span>{formatCents(taxAmount)}</span>
+          </div>
+        )}
+        <div className="flex justify-between font-bold text-base">
+          <span>Total</span>
+          <span>{formatCents(total)}</span>
+        </div>
+      </div>
+
+      <Button type="submit" className="w-full" disabled={createMutation.isPending}>
+        {createMutation.isPending ? "Creating..." : "Create Invoice (Draft)"}
+      </Button>
+    </form>
+  );
+}

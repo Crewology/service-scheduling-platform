@@ -1999,3 +1999,21 @@
 - [x] Display view count prominently on provider's active promotion cards
 - [x] Generate downloadable QR code for each promotion link
 - [x] QR code download button on provider's Promotions dashboard
+
+## Feature: Complete Invoicing & Receipt System
+
+- [x] Database schema: invoices table (id, invoiceNumber, type, providerId, customerId, status, subtotal, tax, total, dueDate, paidAt, stripePaymentIntentId, pdfUrl, notes, createdAt, updatedAt)
+- [x] Database schema: invoice_line_items table (id, invoiceId, description, quantity, unitPrice, amount)
+- [x] DB helpers: createInvoice, getInvoiceById, getInvoicesByProvider, getInvoicesByCustomer, updateInvoiceStatus, getNextInvoiceNumber
+- [x] Server-side PDF generation with branded template (provider name, logo, line items, totals)
+- [x] tRPC router: createInvoice, getMyInvoices (provider), getMyReceipts (customer), getInvoiceById, sendInvoice, markAsPaid
+- [x] Auto-receipt generation on Stripe webhook (checkout.session.completed) for bookings, packages, promotions
+- [x] Pay-from-invoice flow: generate Stripe checkout link for unpaid invoices
+- [x] Provider UI: Invoices page (create invoice, add line items, send to customer, track status)
+- [x] Customer UI: Receipts & Invoices page (view history, download PDFs, pay unpaid invoices)
+- [x] Email delivery: send invoice PDF to customer when provider sends it; send receipt after payment
+- [x] Refund credit notes: generate credit note PDF when refund is processed
+- [x] Sequential invoice numbering (INV-2026-0001 format)
+- [x] Add Invoices link to provider Launchpad and navigation
+- [x] Add Receipts link to customer navigation
+- [x] 15 vitest tests for invoicing feature (all passing)

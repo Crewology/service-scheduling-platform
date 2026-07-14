@@ -37,6 +37,7 @@ import { waitlistRouter } from "./routers/waitlistRouter";
 import { platformSettingsRouter } from "./routers/platformSettingsRouter";
 import { helpChatRouter } from "./helpChatRouter";
 import { promotionRouter } from "./promotionRouter";
+import { invoiceRouter } from "./invoiceRouter";
 
 export const appRouter = router({
   system: systemRouter,
@@ -68,6 +69,7 @@ export const appRouter = router({
   platformSettings: platformSettingsRouter,
   helpChat: helpChatRouter,
   promotion: promotionRouter,
+  invoice: invoiceRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -53,6 +53,8 @@ import WidgetGenerator from "./pages/WidgetGenerator";
 import PromoCodes from "./pages/PromoCodes";
 import BookingAnalytics from "./pages/BookingAnalytics";
 import Promotions from "./pages/Promotions";
+import Invoices from "./pages/Invoices";
+import Receipts from "./pages/Receipts";
 
 // User features
 import UserProfile from "./pages/UserProfile";
@@ -132,6 +134,8 @@ function Router() {
       <Route path="/provider/widgets" component={WidgetGenerator} />
       <Route path="/provider/promo-codes" component={PromoCodes} />
       <Route path="/provider/promotions" component={Promotions} />
+      <Route path="/provider/invoices" component={Invoices} />
+      <Route path="/receipts" component={Receipts} />
       <Route path="/booking/:id/detail" component={BookingDetail} />
       <Route path="/referrals" component={Referrals} />
       <Route path="/saved-providers" component={SavedProviders} />
