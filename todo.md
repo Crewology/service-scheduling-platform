@@ -90,11 +90,11 @@
 ---
 
 ## Known Future Enhancements (Not Blocking)
-- [ ] Additional OAuth providers (Google, Apple)
+- [ ] Additional OAuth providers (Google, Apple) — user has credentials, awaiting implementation
 - [ ] Profile photo upload for customers
 - [ ] System health monitoring in admin dashboard
 - [ ] Frontend component tests (currently server-only)
-- [ ] Payment receipt PDF generation
+- [x] Payment receipt PDF generation — implemented in invoicing system
 - [ ] Real-time WebSocket messaging (currently 5s polling)
 - [ ] Upgrade prompts when subscription limits are reached
 - [ ] Service editing flow improvements
@@ -2017,3 +2017,6 @@
 - [x] Add Invoices link to provider Launchpad and navigation
 - [x] Add Receipts link to customer navigation
 - [x] 15 vitest tests for invoicing feature (all passing)
+
+## Bug Fix: 404 on Back Navigation from Invoices Page
+- [x] Fix 404 error when clicking browser back button from /provider/invoices — back button was linking to /launchpad (non-existent route), changed to /
