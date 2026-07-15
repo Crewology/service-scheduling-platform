@@ -1865,7 +1865,7 @@ export default function ProviderDashboard() {
                   179: "🏠", 171: "💇", 174: "🚗", 176: "🔩", 111: "🔗", 10: "💆",
                   168: "🚙", 169: "🛠️", 199: "🎪", 158: "🎯", 73: "🍽️", 12: "💪",
                   11: "🐾", 17: "📸", 148: "💦", 26: "📅", 8: "💅", 194: "☀️",
-                  198: "💻", 19: "🎥", 155: "📱", 201: "🖥️", 205: "🌐",
+                  198: "💻", 19: "🎥", 155: "📱", 201: "🖥️", 205: "🌐", 211: "🌿",
                 };
                 return (
                   <Card key={cat.id}>
@@ -3581,7 +3581,7 @@ function PortfolioGallery({ categories }: { categories: any[] | undefined }) {
     179: "\uD83C\uDFE0", 171: "\uD83D\uDC87", 174: "\uD83D\uDE97", 176: "\uD83D\uDD29", 111: "\uD83D\uDD17", 10: "\uD83D\uDC86",
     168: "\uD83D\uDE99", 169: "\uD83D\uDEE0\uFE0F", 199: "\uD83C\uDFAA", 158: "\uD83C\uDFAF", 73: "\uD83C\uDF7D\uFE0F", 12: "\uD83D\uDCAA",
     11: "\uD83D\uDC3E", 17: "\uD83D\uDCF8", 148: "\uD83D\uDCA6", 26: "\uD83D\uDCC5", 8: "\uD83D\uDC85", 194: "\u2600\uFE0F",
-    198: "\uD83D\uDCBB", 19: "\uD83C\uDFA5", 155: "\uD83D\uDCF1", 201: "\uD83D\uDDA5\uFE0F", 205: "\uD83C\uDF10",
+    198: "\uD83D\uDCBB", 19: "\uD83C\uDFA5", 155: "\uD83D\uDCF1", 201: "\uD83D\uDDA5\uFE0F", 205: "\uD83C\uDF10", 211: "\uD83C\uDF3F",
   };
 
   return (
