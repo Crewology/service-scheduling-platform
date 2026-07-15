@@ -23,7 +23,7 @@ const CATEGORY_ICONS: Record<number, string> = {
   179: "🏠", 171: "💇", 174: "🚗", 176: "🔩", 111: "🔗", 10: "💆",
   168: "🚙", 169: "🛠️", 199: "🎪", 158: "🎯", 73: "🍽️", 12: "💪",
   11: "🐾", 17: "📸", 148: "💦", 26: "📅", 8: "💅", 194: "☀️",
-  198: "💻", 19: "🎥", 155: "📱", 201: "🖥️", 205: "🌐",
+  198: "💻", 19: "🎥", 155: "📱", 201: "🖥️", 205: "🌐", 211: "🌿",
 };
 
 export default function Home() {
@@ -78,7 +78,7 @@ export default function Home() {
               <span className="gradient-text">Near You</span>
             </h1>
             <p className="text-base sm:text-lg md:text-2xl text-muted-foreground mb-8 md:mb-10 text-balance">
-              Connect with skilled providers across 42+ service categories. Book instantly, pay securely, and get the job done right.
+              Connect with skilled providers across 43+ service categories. Book instantly, pay securely, and get the job done right.
             </p>
             
             {/* Search Bar */}
@@ -177,7 +177,7 @@ export default function Home() {
           <div className="text-center mb-10 sm:mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4">Explore Service Categories</h2>
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Browse our 42+ professional service categories
+              Browse our 43+ professional service categories
             </p>
           </div>
           

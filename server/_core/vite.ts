@@ -72,13 +72,13 @@ async function injectOgTags(url: string, template: string, origin: string): Prom
   if (!ogTags && url.startsWith("/signup")) {
     ogTags = [
       `<meta property="og:title" content="Join OlogyCrew — Book Trusted Service Professionals" />`,
-      `<meta property="og:description" content="Sign up for OlogyCrew and get access to 42+ service categories. Book trusted professionals, pay securely, and get the job done right." />`,
+      `<meta property="og:description" content="Sign up for OlogyCrew and get access to 43+ service categories. Book trusted professionals, pay securely, and get the job done right." />`,
       `<meta property="og:url" content="${origin}/signup" />`,
       `<meta property="og:type" content="website" />`,
       `<meta property="og:site_name" content="OlogyCrew" />`,
       `<meta name="twitter:card" content="summary_large_image" />`,
       `<meta name="twitter:title" content="Join OlogyCrew — Book Trusted Service Professionals" />`,
-      `<meta name="twitter:description" content="Sign up for OlogyCrew and get access to 42+ service categories. Book trusted professionals, pay securely, and get the job done right." />`,
+      `<meta name="twitter:description" content="Sign up for OlogyCrew and get access to 43+ service categories. Book trusted professionals, pay securely, and get the job done right." />`,
       `<meta property="og:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-compressed_d69712f3.jpg" />`,
       `<meta property="og:image:width" content="1200" />`,
       `<meta property="og:image:height" content="630" />`,
@@ -95,13 +95,13 @@ async function injectOgTags(url: string, template: string, origin: string): Prom
   if (!ogTags) {
     ogTags = [
       `<meta property="og:title" content="OlogyCrew — Service Scheduling Platform" />`,
-      `<meta property="og:description" content="Find and book trusted service professionals near you. 42+ categories, instant booking, secure payments." />`,
+      `<meta property="og:description" content="Find and book trusted service professionals near you. 43+ categories, instant booking, secure payments." />`,
       `<meta property="og:url" content="${origin}${url.split('?')[0]}" />`,
       `<meta property="og:type" content="website" />`,
       `<meta property="og:site_name" content="OlogyCrew" />`,
       `<meta name="twitter:card" content="summary_large_image" />`,
       `<meta name="twitter:title" content="OlogyCrew — Service Scheduling Platform" />`,
-      `<meta name="twitter:description" content="Find and book trusted service professionals near you. 42+ categories, instant booking, secure payments." />`,
+      `<meta name="twitter:description" content="Find and book trusted service professionals near you. 43+ categories, instant booking, secure payments." />`,
       `<meta property="og:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-compressed_d69712f3.jpg" />`,
       `<meta property="og:image:width" content="1200" />`,
       `<meta property="og:image:height" content="630" />`,

@@ -15,7 +15,7 @@ const CATEGORY_ICONS: Record<number, string> = {
   179: "🏠", 171: "💇", 174: "🚗", 176: "🔩", 111: "🔗", 10: "💆",
   168: "🚙", 169: "🛠️", 199: "🎪", 158: "🎯", 73: "🍽️", 12: "💪",
   11: "🐾", 17: "📸", 148: "💦", 26: "📅", 8: "💅", 194: "☀️",
-  198: "💻", 19: "🎥", 155: "📱", 201: "🖥️", 205: "🌐",
+  198: "💻", 19: "🎥", 155: "📱", 201: "🖥️", 205: "🌐", 211: "🌿",
 };
 
 export default function Browse() {
@@ -43,7 +43,7 @@ export default function Browse() {
         <div className="container">
           <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4">Browse All Services</h1>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 md:mb-8">
-            Explore 42+ professional service categories
+            Explore 43+ professional service categories
           </p>
           
           {/* Search Bar */}
