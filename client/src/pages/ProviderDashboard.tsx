@@ -63,6 +63,8 @@ import {
   ArrowRight,
   BellRing,
   Heart,
+  User,
+  Loader2,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useViewMode } from "@/contexts/ViewModeContext";
@@ -1059,6 +1061,15 @@ export default function ProviderDashboard() {
   const handleProviderCropComplete = (croppedBase64: string, contentType: string) => {
     uploadProfilePhoto.mutate({ photoData: croppedBase64, contentType });
   };
+
+  const removeProviderPhoto = trpc.provider.removeProfilePhoto.useMutation({
+    onSuccess: () => {
+      utils.provider.getMyProfile.invalidate();
+      utils.auth.me.invalidate();
+      toast.success("Profile photo removed");
+    },
+    onError: (err) => toast.error(err.message || "Failed to remove photo"),
+  });
 
   const { data: provider } = trpc.provider.getMyProfile.useQuery(undefined, {
     enabled: isAuthenticated,
@@ -2646,6 +2657,33 @@ export default function ProviderDashboard() {
             <DialogDescription>Update your business information</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            {/* Profile Photo */}
+            <div className="flex items-center gap-4">
+              <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden shrink-0">
+                {provider?.profilePhotoUrl ? (
+                  <img src={provider.profilePhotoUrl} alt="Profile" className="h-full w-full object-cover" />
+                ) : (
+                  <User className="h-7 w-7 text-primary" />
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => profilePhotoInputRef.current?.click()}>
+                  Change Photo
+                </Button>
+                {provider?.profilePhotoUrl && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => removeProviderPhoto.mutate()}
+                    disabled={removeProviderPhoto.isPending}
+                  >
+                    {removeProviderPhoto.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Remove"}
+                  </Button>
+                )}
+              </div>
+            </div>
             <div>
               <Label>Business Name</Label>
               <Input value={profileForm.businessName || ""} onChange={e => setProfileForm({ ...profileForm, businessName: e.target.value })} />

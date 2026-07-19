@@ -279,6 +279,14 @@ export const providerRouter = router({
       return { url };
     }),
 
+  removeProfilePhoto: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      await db.updateUserProfile(ctx.user.id, { profilePhotoUrl: null });
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (provider?.profileSlug) invalidateOgImageCache(provider.profileSlug);
+      return { success: true };
+    }),
+
   // ============================================================================
   // MULTI-CATEGORY MANAGEMENT
   // ============================================================================

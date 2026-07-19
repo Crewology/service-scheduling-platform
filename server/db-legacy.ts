@@ -845,7 +845,7 @@ export async function updateUserProfile(userId: number, data: {
   firstName?: string;
   lastName?: string;
   phone?: string;
-  profilePhotoUrl?: string;
+  profilePhotoUrl?: string | null;
   email?: string;
   name?: string;
   role?: "admin" | "customer" | "provider";

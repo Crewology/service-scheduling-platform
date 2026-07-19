@@ -148,7 +148,7 @@ export async function updateUserProfile(userId: number, data: {
   phone?: string;
   firstName?: string;
   lastName?: string;
-  profilePhotoUrl?: string;
+  profilePhotoUrl?: string | null;
   role?: "admin" | "customer" | "provider";
 }) {
   const db = await getDb();

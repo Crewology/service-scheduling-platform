@@ -245,4 +245,10 @@ export const authRouter = router({
       await db.updateUserProfile(ctx.user.id, { profilePhotoUrl: url });
       return { url };
     }),
+
+  removeProfilePhoto: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      await db.updateUserProfile(ctx.user.id, { profilePhotoUrl: null });
+      return { success: true };
+    }),
 });

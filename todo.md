@@ -2054,3 +2054,11 @@
 - [x] Create reusable ImageCropper dialog component (circular crop, preview, confirm/cancel)
 - [x] Integrate cropper into customer profile photo upload (UserProfile.tsx)
 - [x] Integrate cropper into provider profile photo upload (ProviderDashboard.tsx)
+
+## Feature: Image Cropper Enhancements & Remove Photo
+- [x] Add zoom slider to ImageCropper component
+- [x] Add rotate button to ImageCropper component
+- [x] Add 'Remove Photo' button to customer profile (UserProfile.tsx)
+- [x] Add 'Remove Photo' button to provider profile (ProviderDashboard.tsx)
+- [x] Backend: Add removeProfilePhoto endpoint for customers (auth router)
+- [x] Backend: Add removeProfilePhoto endpoint for providers (provider router)

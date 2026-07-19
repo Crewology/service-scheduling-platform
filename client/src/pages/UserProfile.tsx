@@ -487,6 +487,14 @@ export default function UserProfile() {
     uploadPhoto.mutate({ photoData: croppedBase64, contentType });
   };
 
+  const removePhoto = trpc.auth.removeProfilePhoto.useMutation({
+    onSuccess: () => {
+      utils.auth.me.invalidate();
+      toast.success("Profile photo removed");
+    },
+    onError: (err) => toast.error(err.message || "Failed to remove photo"),
+  });
+
   const isCustomer = user?.role === "customer";
 
   if (loading) {
@@ -562,9 +570,26 @@ export default function UserProfile() {
                   <Badge variant="secondary" className="capitalize shrink-0">{user?.role}</Badge>
                   <span className="text-xs">Member since {user?.createdAt ? formatDate(user.createdAt) : "N/A"}</span>
                 </CardDescription>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Tap photo to change it
-                </p>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-xs text-muted-foreground">
+                    Tap photo to change it
+                  </p>
+                  {user?.profilePhotoUrl && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => removePhoto.mutate()}
+                      disabled={removePhoto.isPending}
+                    >
+                      {removePhoto.isPending ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        "Remove Photo"
+                      )}
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
             {/* Edit button on its own row for clean mobile layout */}
