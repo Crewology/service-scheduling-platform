@@ -91,7 +91,7 @@
 
 ## Known Future Enhancements (Not Blocking)
 - [ ] Additional OAuth providers (Google, Apple) — user has credentials, awaiting implementation
-- [ ] Profile photo upload for customers
+- [x] Profile photo upload for customers — implemented with auth.uploadProfilePhoto endpoint
 - [ ] System health monitoring in admin dashboard
 - [ ] Frontend component tests (currently server-only)
 - [x] Payment receipt PDF generation — implemented in invoicing system
@@ -2048,3 +2048,9 @@
 - [x] Customer Profile UI: Add hover-to-upload photo on profile/settings page — already existed, now uses auth endpoint
 - [x] Display customer photo in nav avatar, messages, reviews, and booking cards — already wired throughout app
 - [x] Tests for customer photo upload — included in tipping.test.ts
+
+## Feature: Profile Photo Cropping & Preview
+- [x] Install react-image-crop library
+- [x] Create reusable ImageCropper dialog component (circular crop, preview, confirm/cancel)
+- [x] Integrate cropper into customer profile photo upload (UserProfile.tsx)
+- [x] Integrate cropper into provider profile photo upload (ProviderDashboard.tsx)

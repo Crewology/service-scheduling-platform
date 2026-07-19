@@ -79,6 +79,7 @@ import { TrustBadge, TrustScoreProgress } from "@/components/TrustBadge";
 import { TrialStatusBanner } from "@/components/TrialBanner";
 import { HelpTip, HelpBanner } from "@/components/shared/HelpTip";
 import { formatPrice } from "@shared/formatPrice";
+import { ImageCropper } from "@/components/ImageCropper";
 
 // ============================================================================
 // SERVICE PHOTOS MANAGER
@@ -1021,11 +1022,15 @@ export default function ProviderDashboard() {
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const [upgradeReason, setUpgradeReason] = useState<"service_limit" | "photo_limit" | "general">("general");
   const profilePhotoInputRef = useRef<HTMLInputElement>(null);
+  const [providerCropSrc, setProviderCropSrc] = useState<string | null>(null);
+  const [showProviderCropper, setShowProviderCropper] = useState(false);
   
   const uploadProfilePhoto = trpc.provider.uploadProfilePhoto.useMutation({
     onSuccess: () => {
       utils.provider.getMyProfile.invalidate();
       utils.auth.me.invalidate();
+      setShowProviderCropper(false);
+      setProviderCropSrc(null);
       toast.success("Profile photo updated!");
     },
     onError: (err) => toast.error(err.message || "Failed to upload photo"),
@@ -1044,11 +1049,15 @@ export default function ProviderDashboard() {
     }
     const reader = new FileReader();
     reader.onload = () => {
-      const base64 = (reader.result as string).split(",")[1];
-      uploadProfilePhoto.mutate({ photoData: base64, contentType: file.type });
+      setProviderCropSrc(reader.result as string);
+      setShowProviderCropper(true);
     };
     reader.readAsDataURL(file);
     e.target.value = "";
+  };
+
+  const handleProviderCropComplete = (croppedBase64: string, contentType: string) => {
+    uploadProfilePhoto.mutate({ photoData: croppedBase64, contentType });
   };
 
   const { data: provider } = trpc.provider.getMyProfile.useQuery(undefined, {
@@ -1503,6 +1512,15 @@ export default function ProviderDashboard() {
           accept="image/*"
           className="hidden"
           onChange={handleProfilePhotoUpload}
+        />
+
+        {/* Image Cropper Dialog */}
+        <ImageCropper
+          open={showProviderCropper}
+          imageSrc={providerCropSrc}
+          onClose={() => { setShowProviderCropper(false); setProviderCropSrc(null); }}
+          onCropComplete={handleProviderCropComplete}
+          isUploading={uploadProfilePhoto.isPending}
         />
 
         {/* Main Content Tabs - Consolidated from 12 to 6 */}

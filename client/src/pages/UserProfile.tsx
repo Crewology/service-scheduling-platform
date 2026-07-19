@@ -23,6 +23,7 @@ import { formatDate } from "@/lib/dateUtils";
 import { useLocation } from "wouter";
 import { Building2 } from "lucide-react";
 import { HelpBanner } from "@/components/shared/HelpTip";
+import { ImageCropper } from "@/components/ImageCropper";
 
 // Profile completion fields definition
 interface CompletionField {
@@ -449,9 +450,14 @@ export default function UserProfile() {
     onError: (err) => toast.error(err.message),
   });
 
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [showCropper, setShowCropper] = useState(false);
+
   const uploadPhoto = trpc.auth.uploadProfilePhoto.useMutation({
-    onSuccess: (result) => {
+    onSuccess: () => {
       utils.auth.me.invalidate();
+      setShowCropper(false);
+      setCropImageSrc(null);
       toast.success("Profile photo updated!");
     },
     onError: (err) => toast.error(err.message || "Failed to upload photo"),
@@ -470,14 +476,15 @@ export default function UserProfile() {
     }
     const reader = new FileReader();
     reader.onload = () => {
-      const base64 = (reader.result as string).split(",")[1];
-      uploadPhoto.mutate({
-        photoData: base64,
-        contentType: file.type,
-      });
+      setCropImageSrc(reader.result as string);
+      setShowCropper(true);
     };
     reader.readAsDataURL(file);
     e.target.value = "";
+  };
+
+  const handleCropComplete = (croppedBase64: string, contentType: string) => {
+    uploadPhoto.mutate({ photoData: croppedBase64, contentType });
   };
 
   const isCustomer = user?.role === "customer";
@@ -681,6 +688,15 @@ export default function UserProfile() {
         {/* Delete Account Section */}
         {user?.role !== "admin" && <DeleteAccountSection />}
       </div>
+
+      {/* Image Cropper Dialog */}
+      <ImageCropper
+        open={showCropper}
+        imageSrc={cropImageSrc}
+        onClose={() => { setShowCropper(false); setCropImageSrc(null); }}
+        onCropComplete={handleCropComplete}
+        isUploading={uploadPhoto.isPending}
+      />
     </div>
   );
 }
