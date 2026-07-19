@@ -213,7 +213,7 @@ function TipCard({ providerId, providerName }: { providerId: number; providerNam
           <h3 className="font-semibold">Leave a Tip</h3>
         </div>
         <p className="text-sm text-muted-foreground">
-          Show {providerName} some appreciation — 100% goes directly to them, zero fees.
+          {tipInfo.tipThankYouMessage || `Show ${providerName} some appreciation — 100% goes directly to them, zero fees.`}
         </p>
         {!showTip ? (
           <Button

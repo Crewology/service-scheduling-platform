@@ -2034,3 +2034,17 @@
 - [x] Add tipping to subscription features list, terms of service, and marketing copy
 - [x] Helper notes explaining zero-fee tipping to providers in settings
 - [x] Vitest tests for tipping endpoints (9 tests passing)
+
+## Feature: Personalized Thank-You Message on Tip Cards
+- [x] Schema: Add tipThankYouMessage text field to serviceProviders table
+- [x] Backend: Update getTipSettings, updateTipSettings, getPublicTipInfo to include thankYouMessage
+- [x] Provider Settings UI: Add textarea for custom thank-you message in TipSettingsSection
+- [x] Customer-facing: Display custom message on TipCard (public profile) and BookingTipCard (completed booking)
+- [x] Tests for thank-you message and customer photo upload (12 tests passing)
+
+## Feature: Customer Profile Photo Upload
+- [x] Schema: Add profilePhotoUrl field to users table (if not already present) — already existed
+- [x] Backend: Upload endpoint for customer profile photo (S3 storage) — added auth.uploadProfilePhoto
+- [x] Customer Profile UI: Add hover-to-upload photo on profile/settings page — already existed, now uses auth endpoint
+- [x] Display customer photo in nav avatar, messages, reviews, and booking cards — already wired throughout app
+- [x] Tests for customer photo upload — included in tipping.test.ts

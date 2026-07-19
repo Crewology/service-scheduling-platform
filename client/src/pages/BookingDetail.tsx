@@ -69,7 +69,7 @@ function BookingTipCard({ providerId, providerName }: { providerId: number; prov
           Leave a Tip for {providerName}
         </CardTitle>
         <CardDescription>
-          100% goes directly to them — zero platform fees
+          {tipInfo.tipThankYouMessage || "100% goes directly to them — zero platform fees"}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">

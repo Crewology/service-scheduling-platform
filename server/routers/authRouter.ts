@@ -229,4 +229,20 @@ export const authRouter = router({
 
       return { success: true, message: user.passwordHash ? "Password changed successfully" : "Password set successfully. You can now log in with email and password." };
     }),
+
+  uploadProfilePhoto: protectedProcedure
+    .input(z.object({
+      photoData: z.string(), // base64
+      contentType: z.string().default("image/jpeg"),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const { storagePut } = await import("../storage");
+      const buffer = Buffer.from(input.photoData, "base64");
+      const ext = input.contentType.split("/")[1] || "jpg";
+      const suffix = Math.random().toString(36).substring(2, 10);
+      const fileKey = `profile-photos/${ctx.user.id}/${Date.now()}-${suffix}.${ext}`;
+      const { url } = await storagePut(fileKey, buffer, input.contentType);
+      await db.updateUserProfile(ctx.user.id, { profilePhotoUrl: url });
+      return { url };
+    }),
 });

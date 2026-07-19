@@ -449,7 +449,7 @@ export default function UserProfile() {
     onError: (err) => toast.error(err.message),
   });
 
-  const uploadPhoto = trpc.provider.uploadProfilePhoto.useMutation({
+  const uploadPhoto = trpc.auth.uploadProfilePhoto.useMutation({
     onSuccess: (result) => {
       utils.auth.me.invalidate();
       toast.success("Profile photo updated!");

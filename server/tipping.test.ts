@@ -5,6 +5,13 @@ vi.mock("./db", () => ({
   getProviderByUserId: vi.fn(),
   getTipSettings: vi.fn(),
   updateTipSettings: vi.fn(),
+  updateUserProfile: vi.fn(),
+  getUserById: vi.fn(),
+}));
+
+// Mock storage
+vi.mock("./storage", () => ({
+  storagePut: vi.fn().mockResolvedValue({ url: "https://s3.example.com/photo.jpg", key: "profile-photos/1/test.jpg" }),
 }));
 
 import { appRouter } from "./routers";
@@ -34,6 +41,28 @@ function createAuthContext(userId = 1): TrpcContext {
   };
 }
 
+function createCustomerContext(userId = 2): TrpcContext {
+  const user: AuthenticatedUser = {
+    id: userId,
+    openId: "test-customer-open-id",
+    email: "customer@test.com",
+    name: "Test Customer",
+    loginMethod: "manus",
+    role: "customer",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    lastSignedIn: new Date(),
+  };
+  return {
+    user,
+    req: { protocol: "https", headers: {} } as TrpcContext["req"],
+    res: {
+      clearCookie: vi.fn(),
+      cookie: vi.fn(),
+    } as unknown as TrpcContext["res"],
+  };
+}
+
 function createPublicContext(): TrpcContext {
   return {
     user: null,
@@ -47,7 +76,7 @@ function createPublicContext(): TrpcContext {
 
 describe("Tipping Feature", () => {
   describe("provider.getTipSettings", () => {
-    it("returns tip settings for authenticated provider", async () => {
+    it("returns tip settings including thankYouMessage for authenticated provider", async () => {
       const db = await import("./db");
       (db.getProviderByUserId as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 10, userId: 1, businessName: "Test Biz" });
       (db.getTipSettings as ReturnType<typeof vi.fn>).mockResolvedValue({
@@ -55,6 +84,7 @@ describe("Tipping Feature", () => {
         tipZelleHandle: "provider@zelle.com",
         tipCashAppHandle: "$providerCash",
         tipVenmoHandle: "@providerVenmo",
+        tipThankYouMessage: "Thanks for choosing me!",
       });
 
       const ctx = createAuthContext(1);
@@ -66,6 +96,7 @@ describe("Tipping Feature", () => {
         tipZelleHandle: "provider@zelle.com",
         tipCashAppHandle: "$providerCash",
         tipVenmoHandle: "@providerVenmo",
+        tipThankYouMessage: "Thanks for choosing me!",
       });
       expect(db.getProviderByUserId).toHaveBeenCalledWith(1);
       expect(db.getTipSettings).toHaveBeenCalledWith(10);
@@ -83,7 +114,7 @@ describe("Tipping Feature", () => {
   });
 
   describe("provider.updateTipSettings", () => {
-    it("updates tip settings for authenticated provider", async () => {
+    it("updates tip settings including thankYouMessage", async () => {
       const db = await import("./db");
       (db.getProviderByUserId as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 10, userId: 1, businessName: "Test Biz" });
       (db.updateTipSettings as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
@@ -95,6 +126,7 @@ describe("Tipping Feature", () => {
         tipZelleHandle: "newemail@zelle.com",
         tipCashAppHandle: "$newcash",
         tipVenmoHandle: null,
+        tipThankYouMessage: "Your support means everything!",
       });
 
       expect(result).toEqual({ success: true });
@@ -103,7 +135,23 @@ describe("Tipping Feature", () => {
         tipZelleHandle: "newemail@zelle.com",
         tipCashAppHandle: "$newcash",
         tipVenmoHandle: null,
+        tipThankYouMessage: "Your support means everything!",
       });
+    });
+
+    it("rejects thankYouMessage over 200 characters", async () => {
+      const db = await import("./db");
+      (db.getProviderByUserId as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 10, userId: 1, businessName: "Test Biz" });
+
+      const ctx = createAuthContext(1);
+      const caller = appRouter.createCaller(ctx);
+
+      await expect(
+        caller.provider.updateTipSettings({
+          tippingEnabled: true,
+          tipThankYouMessage: "x".repeat(201),
+        })
+      ).rejects.toThrow();
     });
 
     it("throws NOT_FOUND if user has no provider profile", async () => {
@@ -121,7 +169,7 @@ describe("Tipping Feature", () => {
       ).rejects.toThrow("Provider profile not found");
     });
 
-    it("allows disabling tipping with all handles cleared", async () => {
+    it("allows disabling tipping with all handles and message cleared", async () => {
       const db = await import("./db");
       (db.getProviderByUserId as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 10, userId: 1, businessName: "Test Biz" });
       (db.updateTipSettings as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
@@ -133,6 +181,7 @@ describe("Tipping Feature", () => {
         tipZelleHandle: null,
         tipCashAppHandle: null,
         tipVenmoHandle: null,
+        tipThankYouMessage: null,
       });
 
       expect(result).toEqual({ success: true });
@@ -141,18 +190,20 @@ describe("Tipping Feature", () => {
         tipZelleHandle: null,
         tipCashAppHandle: null,
         tipVenmoHandle: null,
+        tipThankYouMessage: null,
       });
     });
   });
 
   describe("provider.getPublicTipInfo", () => {
-    it("returns tip handles when tipping is enabled", async () => {
+    it("returns tip handles and thankYouMessage when tipping is enabled", async () => {
       const db = await import("./db");
       (db.getTipSettings as ReturnType<typeof vi.fn>).mockResolvedValue({
         tippingEnabled: true,
         tipZelleHandle: "provider@zelle.com",
         tipCashAppHandle: "$providerCash",
         tipVenmoHandle: "@providerVenmo",
+        tipThankYouMessage: "Thanks for the love!",
       });
 
       const ctx = createPublicContext();
@@ -163,6 +214,7 @@ describe("Tipping Feature", () => {
         tipZelleHandle: "provider@zelle.com",
         tipCashAppHandle: "$providerCash",
         tipVenmoHandle: "@providerVenmo",
+        tipThankYouMessage: "Thanks for the love!",
       });
     });
 
@@ -173,6 +225,7 @@ describe("Tipping Feature", () => {
         tipZelleHandle: "provider@zelle.com",
         tipCashAppHandle: "$providerCash",
         tipVenmoHandle: null,
+        tipThankYouMessage: "Thanks!",
       });
 
       const ctx = createPublicContext();
@@ -193,13 +246,14 @@ describe("Tipping Feature", () => {
       expect(result).toBeNull();
     });
 
-    it("only returns handles that are set (partial configuration)", async () => {
+    it("returns null thankYouMessage when not set", async () => {
       const db = await import("./db");
       (db.getTipSettings as ReturnType<typeof vi.fn>).mockResolvedValue({
         tippingEnabled: true,
         tipZelleHandle: "provider@zelle.com",
         tipCashAppHandle: null,
         tipVenmoHandle: null,
+        tipThankYouMessage: null,
       });
 
       const ctx = createPublicContext();
@@ -210,7 +264,38 @@ describe("Tipping Feature", () => {
         tipZelleHandle: "provider@zelle.com",
         tipCashAppHandle: null,
         tipVenmoHandle: null,
+        tipThankYouMessage: null,
       });
+    });
+  });
+
+  describe("auth.uploadProfilePhoto", () => {
+    it("uploads a photo and returns the URL for a customer", async () => {
+      const db = await import("./db");
+      (db.updateUserProfile as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+
+      const ctx = createCustomerContext(2);
+      const caller = appRouter.createCaller(ctx);
+      const result = await caller.auth.uploadProfilePhoto({
+        photoData: Buffer.from("fake-image-data").toString("base64"),
+        contentType: "image/png",
+      });
+
+      expect(result).toHaveProperty("url");
+      expect(result.url).toContain("https://");
+      expect(db.updateUserProfile).toHaveBeenCalledWith(2, { profilePhotoUrl: expect.any(String) });
+    });
+
+    it("requires authentication", async () => {
+      const ctx = createPublicContext();
+      const caller = appRouter.createCaller(ctx);
+
+      await expect(
+        caller.auth.uploadProfilePhoto({
+          photoData: Buffer.from("fake-image-data").toString("base64"),
+          contentType: "image/jpeg",
+        })
+      ).rejects.toThrow();
     });
   });
 });

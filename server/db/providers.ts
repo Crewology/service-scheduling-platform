@@ -120,6 +120,7 @@ export async function updateTipSettings(providerId: number, data: {
   tipZelleHandle?: string | null;
   tipCashAppHandle?: string | null;
   tipVenmoHandle?: string | null;
+  tipThankYouMessage?: string | null;
 }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -128,6 +129,7 @@ export async function updateTipSettings(providerId: number, data: {
     tipZelleHandle: data.tipZelleHandle ?? null,
     tipCashAppHandle: data.tipCashAppHandle ?? null,
     tipVenmoHandle: data.tipVenmoHandle ?? null,
+    tipThankYouMessage: data.tipThankYouMessage ?? null,
   }).where(eq(serviceProviders.id, providerId));
 }
 
@@ -139,6 +141,7 @@ export async function getTipSettings(providerId: number) {
     tipZelleHandle: serviceProviders.tipZelleHandle,
     tipCashAppHandle: serviceProviders.tipCashAppHandle,
     tipVenmoHandle: serviceProviders.tipVenmoHandle,
+    tipThankYouMessage: serviceProviders.tipThankYouMessage,
   }).from(serviceProviders).where(eq(serviceProviders.id, providerId)).limit(1);
   return rows[0] || null;
 }

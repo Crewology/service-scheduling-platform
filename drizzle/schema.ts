@@ -89,6 +89,7 @@ export const serviceProviders = mysqlTable("service_providers", {
   tipZelleHandle: varchar("tipZelleHandle", { length: 255 }),
   tipCashAppHandle: varchar("tipCashAppHandle", { length: 255 }),
   tipVenmoHandle: varchar("tipVenmoHandle", { length: 255 }),
+  tipThankYouMessage: varchar("tipThankYouMessage", { length: 200 }),
   // Automated trust score system (0-100)
   trustScore: int("trustScore").default(0).notNull(),
   trustLevel: mysqlEnum("trustLevel", ["new", "rising", "trusted", "top_pro"]).default("new").notNull(),

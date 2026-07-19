@@ -1206,6 +1206,7 @@ export const providerRouter = router({
       tipZelleHandle: z.string().nullable().optional(),
       tipCashAppHandle: z.string().nullable().optional(),
       tipVenmoHandle: z.string().nullable().optional(),
+      tipThankYouMessage: z.string().max(200).nullable().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const provider = await db.getProviderByUserId(ctx.user.id);
@@ -1223,6 +1224,7 @@ export const providerRouter = router({
         tipZelleHandle: settings.tipZelleHandle,
         tipCashAppHandle: settings.tipCashAppHandle,
         tipVenmoHandle: settings.tipVenmoHandle,
+        tipThankYouMessage: settings.tipThankYouMessage,
       };
     }),
 });

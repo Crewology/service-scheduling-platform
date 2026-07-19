@@ -488,6 +488,7 @@ function TipSettingsSection() {
   const [zelleHandle, setZelleHandle] = useState("");
   const [cashAppHandle, setCashAppHandle] = useState("");
   const [venmoHandle, setVenmoHandle] = useState("");
+  const [thankYouMessage, setThankYouMessage] = useState("");
   const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
@@ -496,6 +497,7 @@ function TipSettingsSection() {
       setZelleHandle(tipSettings.tipZelleHandle || "");
       setCashAppHandle(tipSettings.tipCashAppHandle || "");
       setVenmoHandle(tipSettings.tipVenmoHandle || "");
+      setThankYouMessage(tipSettings.tipThankYouMessage || "");
     }
   }, [tipSettings]);
 
@@ -514,6 +516,7 @@ function TipSettingsSection() {
       tipZelleHandle: zelleHandle || null,
       tipCashAppHandle: cashAppHandle || null,
       tipVenmoHandle: venmoHandle || null,
+      tipThankYouMessage: thankYouMessage || null,
     });
   };
 
@@ -593,6 +596,24 @@ function TipSettingsSection() {
                     />
                   </div>
                 </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <Label className="flex items-center gap-2 text-base font-medium">
+                  <span className="text-lg">✍️</span> Personalized Thank-You Message
+                </Label>
+                <p className="text-sm text-muted-foreground mt-0.5 mb-2">
+                  Write a short message that appears on your tip card. Make it personal!
+                </p>
+                <textarea
+                  placeholder="e.g., Thanks for choosing me! Your support means the world."
+                  value={thankYouMessage}
+                  onChange={(e) => { setThankYouMessage(e.target.value.slice(0, 200)); setHasChanges(true); }}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                  rows={3}
+                  maxLength={200}
+                />
+                <p className="text-xs text-muted-foreground text-right mt-1">{thankYouMessage.length}/200</p>
               </div>
 
               <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground">

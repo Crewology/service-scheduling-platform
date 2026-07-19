@@ -1,0 +1,1 @@
+ALTER TABLE `service_providers` ADD `tipThankYouMessage` varchar(200);
