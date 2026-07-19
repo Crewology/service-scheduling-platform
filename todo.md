@@ -2024,3 +2024,13 @@
 ## Feature: Update Subscriptions & Terms for Invoicing
 - [x] Update subscription plan features/content to include invoicing & receipts for all tiers
 - [x] Update Terms of Service to reflect invoicing and receipt functionality
+
+## Feature: Provider Tipping (External Payment Links, Zero Platform Fees)
+- [x] Schema: Add tipping fields to service_providers (tippingEnabled, zelleHandle, cashAppHandle, venmoHandle)
+- [x] Backend: tRPC endpoints for updating tip settings and fetching public tip info
+- [x] Provider Settings UI: Toggle tipping on/off, add Zelle/Cash App/Venmo handles
+- [x] Customer-facing: "Tip Your Provider" card on completed booking detail page
+- [x] Customer-facing: Tip button on public provider profile page
+- [x] Add tipping to subscription features list, terms of service, and marketing copy
+- [x] Helper notes explaining zero-fee tipping to providers in settings
+- [x] Vitest tests for tipping endpoints (9 tests passing)

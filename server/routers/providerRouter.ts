@@ -1189,4 +1189,40 @@ export const providerRouter = router({
       // For now, return all quotes (the frontend will filter by batchId)
       return allQuotes;
     }),
+
+  // ============================================================================
+  // TIPPING SETTINGS
+  // ============================================================================
+
+  getTipSettings: protectedProcedure.query(async ({ ctx }) => {
+    const provider = await db.getProviderByUserId(ctx.user.id);
+    if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider profile not found" });
+    return await db.getTipSettings(provider.id);
+  }),
+
+  updateTipSettings: protectedProcedure
+    .input(z.object({
+      tippingEnabled: z.boolean(),
+      tipZelleHandle: z.string().nullable().optional(),
+      tipCashAppHandle: z.string().nullable().optional(),
+      tipVenmoHandle: z.string().nullable().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider profile not found" });
+      await db.updateTipSettings(provider.id, input);
+      return { success: true };
+    }),
+
+  getPublicTipInfo: publicProcedure
+    .input(z.object({ providerId: z.number() }))
+    .query(async ({ input }) => {
+      const settings = await db.getTipSettings(input.providerId);
+      if (!settings || !settings.tippingEnabled) return null;
+      return {
+        tipZelleHandle: settings.tipZelleHandle,
+        tipCashAppHandle: settings.tipCashAppHandle,
+        tipVenmoHandle: settings.tipVenmoHandle,
+      };
+    }),
 });

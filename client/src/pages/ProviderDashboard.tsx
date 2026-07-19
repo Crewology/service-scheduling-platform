@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -61,6 +62,7 @@ import {
   Sparkles,
   ArrowRight,
   BellRing,
+  Heart,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useViewMode } from "@/contexts/ViewModeContext";
@@ -470,6 +472,147 @@ function PublicProfileSection({ provider }: { provider: any }) {
             <li>Location and service area</li>
             <li>Direct booking links for each service</li>
           </ul>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ============================================================================
+// TIPPING SETTINGS SECTION
+// ============================================================================
+function TipSettingsSection() {
+  const { data: tipSettings, isLoading } = trpc.provider.getTipSettings.useQuery();
+  const utils = trpc.useUtils();
+  const [enabled, setEnabled] = useState(false);
+  const [zelleHandle, setZelleHandle] = useState("");
+  const [cashAppHandle, setCashAppHandle] = useState("");
+  const [venmoHandle, setVenmoHandle] = useState("");
+  const [hasChanges, setHasChanges] = useState(false);
+
+  useEffect(() => {
+    if (tipSettings) {
+      setEnabled(tipSettings.tippingEnabled);
+      setZelleHandle(tipSettings.tipZelleHandle || "");
+      setCashAppHandle(tipSettings.tipCashAppHandle || "");
+      setVenmoHandle(tipSettings.tipVenmoHandle || "");
+    }
+  }, [tipSettings]);
+
+  const updateMutation = trpc.provider.updateTipSettings.useMutation({
+    onSuccess: () => {
+      toast.success("Tip settings saved!");
+      utils.provider.getTipSettings.invalidate();
+      setHasChanges(false);
+    },
+    onError: () => toast.error("Failed to save tip settings"),
+  });
+
+  const handleSave = () => {
+    updateMutation.mutate({
+      tippingEnabled: enabled,
+      tipZelleHandle: zelleHandle || null,
+      tipCashAppHandle: cashAppHandle || null,
+      tipVenmoHandle: venmoHandle || null,
+    });
+  };
+
+  if (isLoading) return <Card><CardContent className="py-8 text-center"><p className="text-muted-foreground">Loading tip settings...</p></CardContent></Card>;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <Heart className="h-6 w-6 text-pink-500" />
+            Tipping
+          </h2>
+          <p className="text-muted-foreground mt-1">
+            Let customers show appreciation directly — zero platform fees, 100% goes to you
+          </p>
+        </div>
+      </div>
+
+      <Card>
+        <CardContent className="pt-6 space-y-6">
+          {/* Enable toggle */}
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-base font-medium">Enable Tipping</Label>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                When enabled, customers will see a "Leave a Tip" option on your profile and after completed bookings
+              </p>
+            </div>
+            <Switch
+              checked={enabled}
+              onCheckedChange={(val) => { setEnabled(val); setHasChanges(true); }}
+            />
+          </div>
+
+          {enabled && (
+            <>
+              <div className="border-t pt-4">
+                <p className="text-sm text-muted-foreground mb-4">
+                  Add your payment handles below. Customers will choose how to send their tip directly to you — no fees, no middleman.
+                </p>
+
+                <div className="space-y-4">
+                  <div>
+                    <Label className="flex items-center gap-2">
+                      <span className="text-lg">💲</span> Zelle (email or phone)
+                    </Label>
+                    <Input
+                      placeholder="your@email.com or (555) 123-4567"
+                      value={zelleHandle}
+                      onChange={(e) => { setZelleHandle(e.target.value); setHasChanges(true); }}
+                      className="mt-1.5"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="flex items-center gap-2">
+                      <span className="text-lg">💵</span> Cash App ($Cashtag)
+                    </Label>
+                    <Input
+                      placeholder="$YourCashTag"
+                      value={cashAppHandle}
+                      onChange={(e) => { setCashAppHandle(e.target.value); setHasChanges(true); }}
+                      className="mt-1.5"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="flex items-center gap-2">
+                      <span className="text-lg">🔵</span> Venmo (@username)
+                    </Label>
+                    <Input
+                      placeholder="@YourVenmoUsername"
+                      value={venmoHandle}
+                      onChange={(e) => { setVenmoHandle(e.target.value); setHasChanges(true); }}
+                      className="mt-1.5"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground">
+                <p className="font-medium text-foreground mb-1">How it works:</p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>Customers see your tip options after a completed booking and on your public profile</li>
+                  <li>They tap their preferred method and send directly — OlogyCrew never touches your tips</li>
+                  <li>You keep 100% of every tip, always</li>
+                </ul>
+              </div>
+            </>
+          )}
+
+          {hasChanges && (
+            <div className="flex justify-end pt-2">
+              <Button onClick={handleSave} disabled={updateMutation.isPending}>
+                {updateMutation.isPending ? "Saving..." : "Save Tip Settings"}
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
@@ -2436,6 +2579,11 @@ export default function ProviderDashboard() {
                 </CardContent>
               </Card>
             </div>
+            </div>
+
+            {/* Tipping Settings sub-section */}
+            <div className="border-t pt-6">
+              <TipSettingsSection />
             </div>
 
             {/* Refer a Provider sub-section */}

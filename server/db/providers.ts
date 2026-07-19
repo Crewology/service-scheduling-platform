@@ -96,6 +96,10 @@ export async function updateProviderProfile(providerId: number, data: {
   acceptsMobile?: boolean;
   acceptsFixedLocation?: boolean;
   acceptsVirtual?: boolean;
+  tippingEnabled?: boolean;
+  tipZelleHandle?: string | null;
+  tipCashAppHandle?: string | null;
+  tipVenmoHandle?: string | null;
 }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -105,6 +109,38 @@ export async function updateProviderProfile(providerId: number, data: {
   }
   if (Object.keys(updateData).length === 0) return;
   await db.update(serviceProviders).set(updateData).where(eq(serviceProviders.id, providerId));
+}
+
+// ============================================================================
+// TIPPING SETTINGS
+// ============================================================================
+
+export async function updateTipSettings(providerId: number, data: {
+  tippingEnabled: boolean;
+  tipZelleHandle?: string | null;
+  tipCashAppHandle?: string | null;
+  tipVenmoHandle?: string | null;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(serviceProviders).set({
+    tippingEnabled: data.tippingEnabled,
+    tipZelleHandle: data.tipZelleHandle ?? null,
+    tipCashAppHandle: data.tipCashAppHandle ?? null,
+    tipVenmoHandle: data.tipVenmoHandle ?? null,
+  }).where(eq(serviceProviders.id, providerId));
+}
+
+export async function getTipSettings(providerId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select({
+    tippingEnabled: serviceProviders.tippingEnabled,
+    tipZelleHandle: serviceProviders.tipZelleHandle,
+    tipCashAppHandle: serviceProviders.tipCashAppHandle,
+    tipVenmoHandle: serviceProviders.tipVenmoHandle,
+  }).from(serviceProviders).where(eq(serviceProviders.id, providerId)).limit(1);
+  return rows[0] || null;
 }
 
 // ============================================================================

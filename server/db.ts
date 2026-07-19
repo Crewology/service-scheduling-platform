@@ -273,4 +273,6 @@ export {
 // Provider activation
 export {
   setProviderActive,
+  updateTipSettings,
+  getTipSettings,
 } from "./db/providers";

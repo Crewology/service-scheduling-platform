@@ -84,6 +84,11 @@ export const serviceProviders = mysqlTable("service_providers", {
   isFeatured: boolean("isFeatured").default(false).notNull(),
   isOfficial: boolean("isOfficial").default(false).notNull(),
   isActive: boolean("isActive").default(true).notNull(),
+  // Tipping (external payment links, zero platform fees)
+  tippingEnabled: boolean("tippingEnabled").default(false).notNull(),
+  tipZelleHandle: varchar("tipZelleHandle", { length: 255 }),
+  tipCashAppHandle: varchar("tipCashAppHandle", { length: 255 }),
+  tipVenmoHandle: varchar("tipVenmoHandle", { length: 255 }),
   // Automated trust score system (0-100)
   trustScore: int("trustScore").default(0).notNull(),
   trustLevel: mysqlEnum("trustLevel", ["new", "rising", "trusted", "top_pro"]).default("new").notNull(),

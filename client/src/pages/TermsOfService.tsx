@@ -103,6 +103,16 @@ export default function TermsOfService() {
             <p className="text-muted-foreground leading-relaxed mt-2">
               Invoicing and receipt functionality is available to all subscription tiers, including the Starter (free) plan. OlogyCrew does not guarantee the legal sufficiency of generated invoices for tax or accounting purposes — providers are responsible for ensuring compliance with applicable local tax and business regulations.
             </p>
+            <h3 className="text-lg font-medium mt-4 mb-2">Gratuity & Tipping</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              OlogyCrew provides an opt-in tipping feature that allows customers to show appreciation to service providers after a completed booking. Tipping is entirely voluntary and handled through external payment applications (Zelle, Cash App, and Venmo) — OlogyCrew does not process, collect, or take any percentage of tips.
+            </p>
+            <p className="text-muted-foreground leading-relaxed mt-2">
+              Providers may enable or disable tipping at any time through their account settings. When enabled, providers supply their own payment handles for one or more supported platforms. OlogyCrew displays these handles to customers but is not a party to the tip transaction and assumes no liability for disputes, errors, or failed transfers between customers and providers on external payment platforms.
+            </p>
+            <p className="text-muted-foreground leading-relaxed mt-2">
+              Tipping functionality is available to all subscription tiers, including the Starter (free) plan. OlogyCrew does not mandate, suggest, or enforce any tip amount — customers tip at their sole discretion.
+            </p>
           </section>
 
           <section>

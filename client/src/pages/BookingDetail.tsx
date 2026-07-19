@@ -35,6 +35,7 @@ import {
   RefreshCw,
   RotateCcw,
   ListChecks,
+  Heart,
 } from "lucide-react";
 
 const statusColors: Record<string, string> = {
@@ -54,6 +55,73 @@ const sessionStatusColors: Record<string, string> = {
   rescheduled: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
   no_show: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300",
 };
+
+function BookingTipCard({ providerId, providerName }: { providerId: number; providerName: string }) {
+  const { data: tipInfo } = trpc.provider.getPublicTipInfo.useQuery({ providerId });
+
+  if (!tipInfo) return null;
+
+  return (
+    <Card className="border-pink-200 bg-gradient-to-br from-pink-50/50 to-white dark:from-pink-950/20 dark:to-background">
+      <CardHeader>
+        <CardTitle className="text-lg flex items-center gap-2">
+          <Heart className="h-5 w-5 text-pink-500 fill-pink-500" />
+          Leave a Tip for {providerName}
+        </CardTitle>
+        <CardDescription>
+          100% goes directly to them — zero platform fees
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {tipInfo.tipZelleHandle && (
+          <div className="flex items-center justify-between p-3 rounded-lg bg-white dark:bg-muted border">
+            <div className="flex items-center gap-2">
+              <span>💲</span>
+              <div>
+                <p className="text-xs text-muted-foreground">Zelle</p>
+                <p className="text-sm font-medium">{tipInfo.tipZelleHandle}</p>
+              </div>
+            </div>
+            <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(tipInfo.tipZelleHandle!); toast.success("Copied Zelle info!"); }}>
+              Copy
+            </Button>
+          </div>
+        )}
+        {tipInfo.tipCashAppHandle && (
+          <div className="flex items-center justify-between p-3 rounded-lg bg-white dark:bg-muted border">
+            <div className="flex items-center gap-2">
+              <span>💵</span>
+              <div>
+                <p className="text-xs text-muted-foreground">Cash App</p>
+                <p className="text-sm font-medium">{tipInfo.tipCashAppHandle}</p>
+              </div>
+            </div>
+            <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(tipInfo.tipCashAppHandle!); toast.success("Copied Cash App tag!"); }}>
+              Copy
+            </Button>
+          </div>
+        )}
+        {tipInfo.tipVenmoHandle && (
+          <div className="flex items-center justify-between p-3 rounded-lg bg-white dark:bg-muted border">
+            <div className="flex items-center gap-2">
+              <span>🔵</span>
+              <div>
+                <p className="text-xs text-muted-foreground">Venmo</p>
+                <p className="text-sm font-medium">{tipInfo.tipVenmoHandle}</p>
+              </div>
+            </div>
+            <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(tipInfo.tipVenmoHandle!); toast.success("Copied Venmo username!"); }}>
+              Copy
+            </Button>
+          </div>
+        )}
+        <p className="text-xs text-center text-muted-foreground pt-2">
+          Open your preferred app and send directly to show your appreciation
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();
@@ -864,6 +932,11 @@ export default function BookingDetail() {
                   </p>
                 </CardContent>
               </Card>
+            )}
+
+            {/* Tip Provider - shown to customers on completed bookings */}
+            {isCustomer && booking.status === "completed" && provider && (
+              <BookingTipCard providerId={provider.id} providerName={provider.businessName} />
             )}
 
             {/* Status Timeline */}

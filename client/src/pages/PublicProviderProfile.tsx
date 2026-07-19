@@ -195,6 +195,82 @@ function PortfolioGrid({ portfolio, categories }: { portfolio: any[]; categories
   );
 }
 
+function TipCard({ providerId, providerName }: { providerId: number; providerName: string }) {
+  const { data: tipInfo } = trpc.provider.getPublicTipInfo.useQuery({ providerId });
+  const [showTip, setShowTip] = useState(false);
+
+  if (!tipInfo) return null;
+
+  const hasZelle = !!tipInfo.tipZelleHandle;
+  const hasCashApp = !!tipInfo.tipCashAppHandle;
+  const hasVenmo = !!tipInfo.tipVenmoHandle;
+
+  return (
+    <Card className="border-pink-200 bg-gradient-to-br from-pink-50/50 to-white dark:from-pink-950/20 dark:to-background">
+      <CardContent className="p-5 space-y-3">
+        <div className="flex items-center gap-2">
+          <Heart className="w-5 h-5 text-pink-500 fill-pink-500" />
+          <h3 className="font-semibold">Leave a Tip</h3>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Show {providerName} some appreciation — 100% goes directly to them, zero fees.
+        </p>
+        {!showTip ? (
+          <Button
+            variant="outline"
+            className="w-full border-pink-300 text-pink-700 hover:bg-pink-50 dark:border-pink-800 dark:text-pink-300 dark:hover:bg-pink-950/30"
+            onClick={() => setShowTip(true)}
+          >
+            <Heart className="w-4 h-4 mr-2" /> Send a Tip
+          </Button>
+        ) : (
+          <div className="space-y-2">
+            {hasZelle && (
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-white dark:bg-muted border">
+                <span className="text-lg">💲</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-muted-foreground">Zelle</p>
+                  <p className="text-sm font-medium truncate">{tipInfo.tipZelleHandle}</p>
+                </div>
+                <Button size="sm" variant="ghost" onClick={() => { navigator.clipboard.writeText(tipInfo.tipZelleHandle!); toast.success("Copied!"); }}>
+                  Copy
+                </Button>
+              </div>
+            )}
+            {hasCashApp && (
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-white dark:bg-muted border">
+                <span className="text-lg">💵</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-muted-foreground">Cash App</p>
+                  <p className="text-sm font-medium truncate">{tipInfo.tipCashAppHandle}</p>
+                </div>
+                <Button size="sm" variant="ghost" onClick={() => { navigator.clipboard.writeText(tipInfo.tipCashAppHandle!); toast.success("Copied!"); }}>
+                  Copy
+                </Button>
+              </div>
+            )}
+            {hasVenmo && (
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-white dark:bg-muted border">
+                <span className="text-lg">🔵</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-muted-foreground">Venmo</p>
+                  <p className="text-sm font-medium truncate">{tipInfo.tipVenmoHandle}</p>
+                </div>
+                <Button size="sm" variant="ghost" onClick={() => { navigator.clipboard.writeText(tipInfo.tipVenmoHandle!); toast.success("Copied!"); }}>
+                  Copy
+                </Button>
+              </div>
+            )}
+            <p className="text-xs text-center text-muted-foreground pt-1">
+              Open your preferred app and send directly
+            </p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function PublicProviderProfile() {
   const params = useParams<{ slug: string }>();
   const { data, isLoading, error } = trpc.provider.getBySlug.useQuery(
@@ -781,6 +857,9 @@ export default function PublicProviderProfile() {
                 ) : null}
               </CardContent>
             </Card>
+
+            {/* Tip This Provider */}
+            <TipCard providerId={provider.id} providerName={provider.businessName} />
 
             {/* Categories Served */}
             {categories && categories.length > 0 && (
