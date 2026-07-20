@@ -2062,3 +2062,6 @@
 - [x] Add 'Remove Photo' button to provider profile (ProviderDashboard.tsx)
 - [x] Backend: Add removeProfilePhoto endpoint for customers (auth router)
 - [x] Backend: Add removeProfilePhoto endpoint for providers (provider router)
+
+## Bug Fix: 504 Gateway Timeout on /my-bookings (batched tRPC query too large)
+- [x] Fix: Added maxURLLength: 2048 to httpBatchLink — tRPC now auto-splits oversized batches into multiple smaller requests
