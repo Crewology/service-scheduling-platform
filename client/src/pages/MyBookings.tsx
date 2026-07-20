@@ -29,6 +29,9 @@ import { useOfflineBookings } from "@/hooks/useOfflineBookings";
 import { useViewMode } from "@/contexts/ViewModeContext";
 import { HelpTip } from "@/components/shared/HelpTip";
 import { formatPrice } from "@shared/formatPrice";
+import { BookingsSkeleton } from "@/components/DashboardSkeleton";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext, PaginationEllipsis } from "@/components/ui/pagination";
+import SectionErrorBoundary from "@/components/SectionErrorBoundary";
 
 export default function MyBookings() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -101,10 +104,22 @@ export default function MyBookings() {
     toast.success("Booking removed from your list");
   };
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, bookingView]);
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
+      <div className="min-h-screen bg-background">
+        <NavHeader />
+        <div className="container py-8 max-w-5xl">
+          <BookingsSkeleton />
+        </div>
       </div>
     );
   }
@@ -122,6 +137,14 @@ export default function MyBookings() {
 
   const upcomingBookings = filterBookings(["pending", "confirmed"]);
   const pastBookings = filterBookings(["completed", "cancelled", "no_show", "refunded"]);
+
+  // Pagination helper
+  const paginateList = (list: any[]) => {
+    const totalPages = Math.ceil(list.length / ITEMS_PER_PAGE);
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const paginated = list.slice(start, start + ITEMS_PER_PAGE);
+    return { paginated, totalPages, total: list.length };
+  };
 
   const formatCacheAge = (ms: number | null) => {
     if (!ms) return "";
@@ -261,6 +284,7 @@ export default function MyBookings() {
           )}
         </div>
 
+        <SectionErrorBoundary fallbackTitle="Bookings couldn't load">
         <Tabs defaultValue="upcoming" className="space-y-6">
           <TabsList>
             <TabsTrigger value="upcoming">
@@ -280,7 +304,7 @@ export default function MyBookings() {
 
           <TabsContent value="upcoming" className="space-y-4">
             {isLoading && !isUsingCache ? (
-              <p className="text-center text-muted-foreground py-12">Loading bookings...</p>
+              <BookingsSkeleton />
             ) : upcomingBookings.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
@@ -296,15 +320,24 @@ export default function MyBookings() {
                 </CardContent>
               </Card>
             ) : (
-              upcomingBookings.map((booking: any) => (
-                <BookingCard key={booking.id} booking={booking} setLocation={setLocation} isOffline={isOffline} isProviderView={bookingView === "provider"} />
-              ))
+              <>
+                {paginateList(upcomingBookings).paginated.map((booking: any) => (
+                  <BookingCard key={booking.id} booking={booking} setLocation={setLocation} isOffline={isOffline} isProviderView={bookingView === "provider"} />
+                ))}
+                <BookingPagination
+                  currentPage={currentPage}
+                  totalPages={paginateList(upcomingBookings).totalPages}
+                  total={paginateList(upcomingBookings).total}
+                  perPage={ITEMS_PER_PAGE}
+                  onPageChange={setCurrentPage}
+                />
+              </>
             )}
           </TabsContent>
 
           <TabsContent value="past" className="space-y-4">
             {isLoading && !isUsingCache ? (
-              <p className="text-center text-muted-foreground py-12">Loading bookings...</p>
+              <BookingsSkeleton />
             ) : pastBookings.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
@@ -314,26 +347,35 @@ export default function MyBookings() {
                 </CardContent>
               </Card>
             ) : (
-              pastBookings.map((booking: any) => (
-                <BookingCard
-                  key={booking.id}
-                  booking={booking}
-                  setLocation={setLocation}
-                  isOffline={isOffline}
-                  isProviderView={bookingView === "provider"}
-                  canDelete
-                  onDelete={(id, label) => {
-                    setDeleteBookingId(id);
-                    setDeleteBookingLabel(label);
-                  }}
+              <>
+                {paginateList(pastBookings).paginated.map((booking: any) => (
+                  <BookingCard
+                    key={booking.id}
+                    booking={booking}
+                    setLocation={setLocation}
+                    isOffline={isOffline}
+                    isProviderView={bookingView === "provider"}
+                    canDelete
+                    onDelete={(id, label) => {
+                      setDeleteBookingId(id);
+                      setDeleteBookingLabel(label);
+                    }}
+                  />
+                ))}
+                <BookingPagination
+                  currentPage={currentPage}
+                  totalPages={paginateList(pastBookings).totalPages}
+                  total={paginateList(pastBookings).total}
+                  perPage={ITEMS_PER_PAGE}
+                  onPageChange={setCurrentPage}
                 />
-              ))
+              </>
             )}
           </TabsContent>
 
           <TabsContent value="all" className="space-y-4">
             {isLoading && !isUsingCache ? (
-              <p className="text-center text-muted-foreground py-12">Loading bookings...</p>
+              <BookingsSkeleton />
             ) : !filteredBookings || filteredBookings.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
@@ -349,23 +391,32 @@ export default function MyBookings() {
                 </CardContent>
               </Card>
             ) : (
-              filteredBookings.map((booking: any) => {
-                const isPast = ["completed", "cancelled", "no_show", "refunded"].includes(booking.status);
-                return (
-                  <BookingCard
-                    key={booking.id}
-                    booking={booking}
-                    setLocation={setLocation}
-                    isOffline={isOffline}
-                    isProviderView={bookingView === "provider"}
-                    canDelete={isPast}
-                    onDelete={(id, label) => {
-                      setDeleteBookingId(id);
-                      setDeleteBookingLabel(label);
-                    }}
-                  />
-                );
-              })
+              <>
+                {paginateList(filteredBookings).paginated.map((booking: any) => {
+                  const isPast = ["completed", "cancelled", "no_show", "refunded"].includes(booking.status);
+                  return (
+                    <BookingCard
+                      key={booking.id}
+                      booking={booking}
+                      setLocation={setLocation}
+                      isOffline={isOffline}
+                      isProviderView={bookingView === "provider"}
+                      canDelete={isPast}
+                      onDelete={(id, label) => {
+                        setDeleteBookingId(id);
+                        setDeleteBookingLabel(label);
+                      }}
+                    />
+                  );
+                })}
+                <BookingPagination
+                  currentPage={currentPage}
+                  totalPages={paginateList(filteredBookings).totalPages}
+                  total={paginateList(filteredBookings).total}
+                  perPage={ITEMS_PER_PAGE}
+                  onPageChange={setCurrentPage}
+                />
+              </>
             )}
           </TabsContent>
 
@@ -373,6 +424,7 @@ export default function MyBookings() {
             <SavedDraftsTab />
           </TabsContent>
         </Tabs>
+        </SectionErrorBoundary>
       </div>
 
       {/* Delete (Hide) Booking Confirmation */}
@@ -958,6 +1010,84 @@ function SavedDraftsTab() {
           );
         })
       )}
+    </div>
+  );
+}
+
+
+function BookingPagination({
+  currentPage,
+  totalPages,
+  total,
+  perPage,
+  onPageChange,
+}: {
+  currentPage: number;
+  totalPages: number;
+  total: number;
+  perPage: number;
+  onPageChange: (page: number) => void;
+}) {
+  if (totalPages <= 1) return null;
+
+  const start = (currentPage - 1) * perPage + 1;
+  const end = Math.min(currentPage * perPage, total);
+
+  // Generate page numbers to show
+  const getPageNumbers = () => {
+    const pages: (number | "ellipsis")[] = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (currentPage > 3) pages.push("ellipsis");
+      const rangeStart = Math.max(2, currentPage - 1);
+      const rangeEnd = Math.min(totalPages - 1, currentPage + 1);
+      for (let i = rangeStart; i <= rangeEnd; i++) pages.push(i);
+      if (currentPage < totalPages - 2) pages.push("ellipsis");
+      pages.push(totalPages);
+    }
+    return pages;
+  };
+
+  return (
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t">
+      <p className="text-sm text-muted-foreground">
+        Showing {start}–{end} of {total} bookings
+      </p>
+      <Pagination>
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+              className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+            />
+          </PaginationItem>
+          {getPageNumbers().map((page, idx) =>
+            page === "ellipsis" ? (
+              <PaginationItem key={`ellipsis-${idx}`}>
+                <PaginationEllipsis />
+              </PaginationItem>
+            ) : (
+              <PaginationItem key={page}>
+                <PaginationLink
+                  isActive={page === currentPage}
+                  onClick={() => onPageChange(page)}
+                  className="cursor-pointer"
+                >
+                  {page}
+                </PaginationLink>
+              </PaginationItem>
+            )
+          )}
+          <PaginationItem>
+            <PaginationNext
+              onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+              className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
     </div>
   );
 }

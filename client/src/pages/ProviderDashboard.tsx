@@ -82,6 +82,8 @@ import { TrialStatusBanner } from "@/components/TrialBanner";
 import { HelpTip, HelpBanner } from "@/components/shared/HelpTip";
 import { formatPrice } from "@shared/formatPrice";
 import { ImageCropper } from "@/components/ImageCropper";
+import { ProviderDashboardSkeleton } from "@/components/DashboardSkeleton";
+import SectionErrorBoundary from "@/components/SectionErrorBoundary";
 
 // ============================================================================
 // SERVICE PHOTOS MANAGER
@@ -1248,11 +1250,7 @@ export default function ProviderDashboard() {
   });
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
-      </div>
-    );
+    return <ProviderDashboardSkeleton />;
   }
 
   if (!isAuthenticated) {
@@ -1577,6 +1575,7 @@ export default function ProviderDashboard() {
 
           {/* Bookings Tab */}
           <TabsContent value="bookings" className="space-y-4 pb-20 md:pb-0">
+          <SectionErrorBoundary fallbackTitle="Bookings couldn't load">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <h2 className="text-2xl font-bold">Bookings</h2>
@@ -1997,10 +1996,12 @@ export default function ProviderDashboard() {
                 </div>
               </div>
             )}
+          </SectionErrorBoundary>
           </TabsContent>
 
           {/* Services Tab — grouped by category */}
           <TabsContent value="services" className="space-y-6 pb-20 md:pb-0">
+          <SectionErrorBoundary fallbackTitle="Services couldn't load">
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2">
@@ -2198,10 +2199,12 @@ export default function ProviderDashboard() {
                 </Card>
               );
             })()}
+          </SectionErrorBoundary>
           </TabsContent>
 
           {/* === SCHEDULE TAB (Availability + Calendar Sync) === */}
           <TabsContent value="schedule" className="space-y-6 pb-20 md:pb-0">
+          <SectionErrorBoundary fallbackTitle="Schedule couldn't load">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <h2 className="text-2xl font-bold">Manage Availability</h2>
@@ -2225,10 +2228,12 @@ export default function ProviderDashboard() {
             <div className="border-t pt-6">
               <CalendarSyncSection />
             </div>
+          </SectionErrorBoundary>
           </TabsContent>
 
           {/* === FINANCES TAB (Earnings + Payments) === */}
           <TabsContent value="finances" className="space-y-6 pb-20 md:pb-0">
+          <SectionErrorBoundary fallbackTitle="Finances couldn't load">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <h2 className="text-2xl font-bold">Earnings</h2>
@@ -2337,10 +2342,12 @@ export default function ProviderDashboard() {
                 </div>
               </CardContent>
             </Card>
+          </SectionErrorBoundary>
           </TabsContent>
 
           {/* === MY PAGE TAB (Public Profile + Analytics + Embed Widget) === */}
           <TabsContent value="my-page" className="space-y-6 pb-20 md:pb-0">
+          <SectionErrorBoundary fallbackTitle="My Page couldn't load">
             <PublicProfileSection provider={provider} />
 
           {/* Analytics sub-section inside My Page */}
@@ -2584,10 +2591,12 @@ export default function ProviderDashboard() {
                 </CardContent>
               </Card>
             </div>
+          </SectionErrorBoundary>
           </TabsContent>
 
           {/* === SETTINGS/MORE TAB (Reviews + Promo Codes + Verification) === */}
           <TabsContent value="settings" className="space-y-6 pb-20 md:pb-0">
+          <SectionErrorBoundary fallbackTitle="Settings couldn't load">
             {/* Reviews sub-section */}
             <div>
               <div className="flex items-center justify-between">
@@ -2645,6 +2654,7 @@ export default function ProviderDashboard() {
             <div className="border-t pt-6">
               <VerificationDocumentsTab />
             </div>
+          </SectionErrorBoundary>
           </TabsContent>
         </Tabs>
       </div>

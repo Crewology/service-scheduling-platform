@@ -2065,3 +2065,11 @@
 
 ## Bug Fix: 504 Gateway Timeout on /my-bookings (batched tRPC query too large)
 - [x] Fix: Added maxURLLength: 2048 to httpBatchLink — tRPC now auto-splits oversized batches into multiple smaller requests
+
+## Feature: Loading Skeletons, Pagination, and Error Boundaries
+- [x] Create reusable SectionErrorBoundary component that shows fallback UI when a section fails
+- [x] Add loading skeletons to provider dashboard sections
+- [x] Add loading skeletons to /my-bookings page
+- [x] Implement pagination for bookings list on /my-bookings (10 items per page, client-side)
+- [x] Wrap provider dashboard sections in error boundaries (6 tabs: bookings, services, schedule, finances, my-page, settings)
+- [x] Wrap my-bookings sections in error boundaries
