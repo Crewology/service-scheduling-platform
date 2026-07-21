@@ -39,7 +39,13 @@ import {
   Send,
   AlertTriangle,
   Phone,
+  Sparkles,
+  TrendingUp,
+  Users,
+  Layers,
+  ArrowRight,
 } from "lucide-react";
+import { useState as useStateLocal, useEffect as useEffectLocal } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { toast } from "sonner";
@@ -550,6 +556,52 @@ export default function PublicProviderProfile() {
           </div>
         </div>
       </div>
+
+      {/* ================================================================ */}
+      {/* OFFICIAL PROVIDER — Interactive Showcase (only for isOfficial)   */}
+      {/* ================================================================ */}
+      {provider.isOfficial && (
+        <div className="border-b bg-gradient-to-r from-blue-50/50 via-purple-50/30 to-blue-50/50 dark:from-blue-950/20 dark:via-purple-950/10 dark:to-blue-950/20">
+          <div className="container max-w-5xl py-8">
+            {/* Provider Example Banner */}
+            <div className="flex items-center gap-3 mb-6 p-4 rounded-xl bg-white/70 dark:bg-card/50 border border-primary/20 shadow-sm">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Sparkles className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-sm text-foreground">Example Provider Profile</h3>
+                <p className="text-xs text-muted-foreground">This is what your profile could look like. Set up your services, availability, and portfolio to attract customers.</p>
+              </div>
+              <Link href="/provider/onboarding">
+                <Button size="sm" className="gap-1.5 shrink-0">
+                  Build Yours <ArrowRight className="w-3.5 h-3.5" />
+                </Button>
+              </Link>
+            </div>
+
+            {/* Animated Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <AnimatedStatCard icon={<Layers className="w-5 h-5" />} label="Categories" value={categories?.length || 0} suffix="+" color="blue" />
+              <AnimatedStatCard icon={<Package className="w-5 h-5" />} label="Services" value={services.length} suffix="" color="purple" />
+              <AnimatedStatCard icon={<Users className="w-5 h-5" />} label="Bookings" value={provider.totalBookings || 0} suffix="+" color="green" />
+              <AnimatedStatCard icon={<TrendingUp className="w-5 h-5" />} label="Response" value={100} suffix="%" color="amber" />
+            </div>
+
+            {/* How It Works Steps */}
+            <div className="bg-white/70 dark:bg-card/50 rounded-xl border border-border/50 p-5">
+              <h3 className="font-semibold text-sm mb-4 flex items-center gap-2">
+                <Zap className="w-4 h-4 text-primary" /> How Booking Works
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <HowItWorksStep step={1} title="Browse Services" description="Find the service you need from the list below" />
+                <HowItWorksStep step={2} title="Pick a Time" description="Choose a date and available time slot" />
+                <HowItWorksStep step={3} title="Confirm Details" description="Add your info and submit the request" />
+                <HowItWorksStep step={4} title="Get Confirmed" description="Provider confirms and you're all set" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ================================================================ */}
       {/* MAIN CONTENT                                                     */}
@@ -1184,6 +1236,78 @@ export default function PublicProviderProfile() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+/* ================================================================ */
+/* HELPER COMPONENTS — Official Profile Interactive Elements         */
+/* ================================================================ */
+
+function AnimatedStatCard({ icon, label, value, suffix, color }: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+  suffix: string;
+  color: "blue" | "purple" | "green" | "amber";
+}) {
+  const [displayValue, setDisplayValue] = useStateLocal(0);
+
+  useEffectLocal(() => {
+    if (value === 0) return;
+    const duration = 1200;
+    const steps = 30;
+    const increment = value / steps;
+    let current = 0;
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= value) {
+        setDisplayValue(value);
+        clearInterval(timer);
+      } else {
+        setDisplayValue(Math.floor(current));
+      }
+    }, duration / steps);
+    return () => clearInterval(timer);
+  }, [value]);
+
+  const colorMap = {
+    blue: "bg-blue-50 border-blue-100 dark:bg-blue-950/30 dark:border-blue-900/30",
+    purple: "bg-purple-50 border-purple-100 dark:bg-purple-950/30 dark:border-purple-900/30",
+    green: "bg-green-50 border-green-100 dark:bg-green-950/30 dark:border-green-900/30",
+    amber: "bg-amber-50 border-amber-100 dark:bg-amber-950/30 dark:border-amber-900/30",
+  };
+
+  const iconColorMap = {
+    blue: "text-blue-600 dark:text-blue-400",
+    purple: "text-purple-600 dark:text-purple-400",
+    green: "text-green-600 dark:text-green-400",
+    amber: "text-amber-600 dark:text-amber-400",
+  };
+
+  return (
+    <div className={`rounded-xl border p-4 text-center transition-all hover:scale-105 ${colorMap[color]}`}>
+      <div className={`inline-flex mb-2 ${iconColorMap[color]}`}>{icon}</div>
+      <div className="text-2xl font-bold text-foreground">
+        {displayValue}{suffix}
+      </div>
+      <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
+    </div>
+  );
+}
+
+function HowItWorksStep({ step, title, description }: {
+  step: number;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="flex flex-col items-center text-center p-3 rounded-lg hover:bg-primary/5 transition-colors group">
+      <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold mb-2 group-hover:scale-110 transition-transform">
+        {step}
+      </div>
+      <h4 className="text-sm font-semibold text-foreground mb-1">{title}</h4>
+      <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
     </div>
   );
 }

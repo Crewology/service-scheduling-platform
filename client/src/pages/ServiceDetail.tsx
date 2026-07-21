@@ -15,7 +15,7 @@ import { useLocation, useParams, useSearch, Link } from "wouter";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
 import { Calendar } from "@/components/ui/calendar";
-import { MapPin, Clock, DollarSign, Star, ChevronRight, CheckCircle2, ArrowLeft, Info, Image as ImageIcon, Tag, X, Loader2, Gift, CalendarRange, Repeat, CalendarDays, Share2, Bell, BellOff, CreditCard, ShieldCheck } from "lucide-react";
+import { MapPin, Clock, DollarSign, Star, ChevronRight, CheckCircle2, ArrowLeft, Info, Image as ImageIcon, Tag, X, Loader2, Gift, CalendarRange, Repeat, CalendarDays, Share2, Bell, BellOff, CreditCard, ShieldCheck, AlertTriangle } from "lucide-react";
 import { generateTimeSlots, formatTimeForDisplay, type TimeSlot } from "@shared/timeSlots";
 import { ReviewList } from "@/components/shared/ReviewList";
 import { NavHeader } from "@/components/shared/NavHeader";
@@ -26,6 +26,23 @@ import { formatPrice } from "@shared/formatPrice";
 
 type BookingStep = "date" | "time" | "details" | "confirm";
 type BookingType = "single" | "multi_day" | "recurring";
+
+/** Maps raw server error messages to user-friendly descriptions */
+function getBookingErrorMessage(raw?: string): string {
+  if (!raw) return "Something went wrong. Please try again.";
+  const lower = raw.toLowerCase();
+  if (lower.includes("time slot") || lower.includes("already booked") || lower.includes("conflict"))
+    return "This time slot was just booked by someone else. Please pick a different time.";
+  if (lower.includes("not available") || lower.includes("unavailable"))
+    return "The provider is not available at this time. Try another date or time.";
+  if (lower.includes("unauthorized") || lower.includes("unauthenticated"))
+    return "Your session has expired. Please sign in again to continue.";
+  if (lower.includes("network") || lower.includes("fetch"))
+    return "Network error — please check your connection and try again.";
+  if (lower.includes("capacity") || lower.includes("full"))
+    return "This session is full. You can join the waitlist or pick another time.";
+  return raw;
+}
 
 // Category IDs that support multi-day bookings
 const MULTI_DAY_CATEGORIES = new Set([
@@ -279,8 +296,11 @@ export default function ServiceDetail() {
   
   const utils = trpc.useUtils();
 
+  const [bookingError, setBookingError] = useState<string | null>(null);
+
   const createBooking = trpc.booking.create.useMutation({
     onSuccess: (data) => {
+      setBookingError(null);
       // Record referral if a referral code was applied
       if (referralApplied?.valid) {
         applyReferral.mutate({
@@ -301,13 +321,16 @@ export default function ServiceDetail() {
       }
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to create booking");
+      const msg = getBookingErrorMessage(error.message);
+      setBookingError(msg);
+      toast.error(msg);
     },
   });
   
   // Multi-day booking mutation
   const createMultiDay = trpc.booking.createMultiDay.useMutation({
     onSuccess: (data) => {
+      setBookingError(null);
       if (!data) return;
       const isPriced = service?.pricingModel !== "custom_quote" && service?.pricingModel !== "consultation";
       if (isPriced && (service?.requireUpfrontPayment || paymentChoice === "pay_now")) {
@@ -319,13 +342,16 @@ export default function ServiceDetail() {
       }
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to create multi-day booking");
+      const msg = getBookingErrorMessage(error.message);
+      setBookingError(msg);
+      toast.error(msg);
     },
   });
 
   // Recurring booking mutation
   const createRecurring = trpc.booking.createRecurring.useMutation({
     onSuccess: (data) => {
+      setBookingError(null);
       if (!data) return;
       const isPriced = service?.pricingModel !== "custom_quote" && service?.pricingModel !== "consultation";
       if (isPriced && (service?.requireUpfrontPayment || paymentChoice === "pay_now")) {
@@ -337,18 +363,25 @@ export default function ServiceDetail() {
       }
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to create recurring booking");
+      const msg = getBookingErrorMessage(error.message);
+      setBookingError(msg);
+      toast.error(msg);
     },
   });
 
   const createCheckout = trpc.stripe.createCheckoutSession.useMutation({
     onSuccess: (data) => {
+      setBookingError(null);
       if (data.url) {
         window.location.href = data.url;
       }
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to create checkout session");
+      const msg = error.message?.includes("connect")
+        ? "Payment system is temporarily unavailable. Your booking was saved — you can pay later from your bookings page."
+        : error.message || "Failed to create checkout session. Please try again.";
+      setBookingError(msg);
+      toast.error(msg);
     },
   });
   
@@ -696,10 +729,43 @@ export default function ServiceDetail() {
 
   if (!service) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-center">
-          <div className="h-8 w-48 bg-muted rounded mb-4 mx-auto" />
-          <p className="text-muted-foreground">Loading service details...</p>
+      <div className="min-h-screen bg-background">
+        <NavHeader />
+        <div className="bg-muted/30 border-b">
+          <div className="container py-3">
+            <div className="h-4 w-48 bg-muted rounded animate-pulse" />
+          </div>
+        </div>
+        <div className="container py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left column skeleton */}
+            <div className="lg:col-span-2 space-y-6">
+              <div className="rounded-xl bg-muted aspect-[16/9] animate-pulse" />
+              <div className="space-y-3">
+                <div className="h-8 w-3/4 bg-muted rounded animate-pulse" />
+                <div className="h-4 w-1/2 bg-muted rounded animate-pulse" />
+                <div className="flex gap-3 mt-4">
+                  <div className="h-6 w-20 bg-muted rounded-full animate-pulse" />
+                  <div className="h-6 w-24 bg-muted rounded-full animate-pulse" />
+                  <div className="h-6 w-16 bg-muted rounded-full animate-pulse" />
+                </div>
+                <div className="h-20 w-full bg-muted rounded-lg animate-pulse mt-4" />
+              </div>
+            </div>
+            {/* Right column skeleton - booking card */}
+            <div className="lg:col-span-1">
+              <div className="rounded-xl border bg-card p-6 space-y-4">
+                <div className="h-6 w-2/3 bg-muted rounded animate-pulse" />
+                <div className="h-4 w-full bg-muted rounded animate-pulse" />
+                <div className="flex gap-2 mt-3">
+                  {[1,2,3,4].map(i => (
+                    <div key={i} className="w-7 h-7 rounded-full bg-muted animate-pulse" />
+                  ))}
+                </div>
+                <div className="h-64 w-full bg-muted rounded-lg animate-pulse mt-4" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -1276,7 +1342,14 @@ export default function ServiceDetail() {
 
                     {/* Standard time slot selection (hidden when custom duration is active) */}
                     {(!useCustomDuration || ![20, 17, 177, 15, 19, 195, 109, 12, 202, 9, 148, 188, 201, 199].includes(service?.categoryId)) && (<>
-                    {availableSlots.length === 0 ? (
+                    {!weeklySchedule ? (
+                      /* Skeleton while schedule is loading */
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                          <div key={i} className="h-9 rounded-md bg-muted animate-pulse" />
+                        ))}
+                      </div>
+                    ) : availableSlots.length === 0 ? (
                       <div className="text-center py-6">
                         <Clock className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
                         <p className="text-sm text-muted-foreground">
@@ -2039,14 +2112,20 @@ export default function ServiceDetail() {
                         <Button
                           onClick={handleBooking}
                           disabled={isBookingPending || isBookingSuccess}
-                          className={`w-full ${isBookingSuccess ? 'bg-green-600 hover:bg-green-600 cursor-default' : ''}`}
+                          className={`w-full transition-all duration-300 ${isBookingSuccess ? 'bg-green-600 hover:bg-green-600 cursor-default scale-[0.98]' : isBookingPending ? 'opacity-90' : ''}`}
                           size="lg"
                         >
-                          {isBookingSuccess
-                            ? "✓ Request Sent"
-                            : isBookingPending
-                            ? "Processing..."
-                            : paymentChoice === "pay_now"
+                          {isBookingSuccess ? (
+                            <span className="flex items-center gap-2">
+                              <CheckCircle2 className="h-4 w-4 animate-in fade-in" />
+                              Request Sent!
+                            </span>
+                          ) : isBookingPending ? (
+                            <span className="flex items-center gap-2">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Processing your booking...
+                            </span>
+                          ) : paymentChoice === "pay_now"
                             ? (service.depositRequired ? "Pay Deposit & Book" : "Pay & Book")
                             : "Submit Booking Request"}
                         </Button>
@@ -2055,14 +2134,20 @@ export default function ServiceDetail() {
                       <Button
                         onClick={handleBooking}
                         disabled={isBookingPending || isBookingSuccess}
-                        className={`w-full ${isBookingSuccess ? 'bg-green-600 hover:bg-green-600 cursor-default' : ''}`}
+                        className={`w-full transition-all duration-300 ${isBookingSuccess ? 'bg-green-600 hover:bg-green-600 cursor-default scale-[0.98]' : isBookingPending ? 'opacity-90' : ''}`}
                         size="lg"
                       >
-                        {isBookingSuccess
-                          ? "✓ Request Sent"
-                          : isBookingPending
-                          ? "Processing..."
-                          : service.requireUpfrontPayment
+                        {isBookingSuccess ? (
+                          <span className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 animate-in fade-in" />
+                            Request Sent!
+                          </span>
+                        ) : isBookingPending ? (
+                          <span className="flex items-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Processing your booking...
+                          </span>
+                        ) : service.requireUpfrontPayment
                           ? (service.depositRequired ? "Pay Deposit & Book" : "Pay & Book")
                           : bookingType === "multi_day"
                           ? `Confirm ${multiDayCount}-Day Booking`
@@ -2070,6 +2155,35 @@ export default function ServiceDetail() {
                           ? `Confirm ${recurringSessionCount} Sessions`
                           : "Confirm Booking"}
                       </Button>
+                    )}
+
+                    {/* Inline error display with retry */}
+                    {bookingError && !isBookingPending && !isBookingSuccess && (
+                      <div className="mt-3 p-3 bg-destructive/10 border border-destructive/20 rounded-lg animate-in fade-in slide-in-from-top-1">
+                        <div className="flex items-start gap-2">
+                          <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-xs text-destructive font-medium">{bookingError}</p>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="mt-1.5 h-7 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 px-2"
+                              onClick={() => {
+                                setBookingError(null);
+                                handleBooking();
+                              }}
+                            >
+                              Try Again
+                            </Button>
+                          </div>
+                          <button
+                            onClick={() => setBookingError(null)}
+                            className="text-destructive/60 hover:text-destructive"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
                     )}
 
                     {!isAuthenticated && (
