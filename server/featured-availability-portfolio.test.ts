@@ -94,32 +94,29 @@ describe("Provider Next Available", () => {
 // Portfolio Before/After Tests
 // ============================================================================
 describe("Portfolio Before/After", () => {
-  it("addPortfolioItem should accept before_after mediaType", async () => {
-    const caller = appRouter.createCaller(createAuthContext());
-    try {
-      await caller.provider.addPortfolioItem({
+  it("addPortfolioItem should reject non-provider user with NOT_FOUND", async () => {
+    // Use userId 99999 which has no provider profile to avoid inserting real data
+    const caller = appRouter.createCaller(createAuthContext(99999));
+    await expect(
+      caller.provider.addPortfolioItem({
         imageUrl: "https://example.com/after.jpg",
         mediaType: "before_after",
         beforeImageUrl: "https://example.com/before.jpg",
         title: "Kitchen Renovation",
         description: "Before and after kitchen remodel",
-      });
-    } catch (err: any) {
-      // Expected NOT_FOUND because test user is not a provider
-      expect(err.code).toBe("NOT_FOUND");
-    }
+      })
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
-  it("addPortfolioItem should accept single image mediaType", async () => {
-    const caller = appRouter.createCaller(createAuthContext());
-    try {
-      await caller.provider.addPortfolioItem({
+  it("addPortfolioItem single image should reject non-provider user", async () => {
+    // Use userId 99999 which has no provider profile to avoid inserting real data
+    const caller = appRouter.createCaller(createAuthContext(99999));
+    await expect(
+      caller.provider.addPortfolioItem({
         imageUrl: "https://example.com/photo.jpg",
         mediaType: "image",
-      });
-    } catch (err: any) {
-      expect(err.code).toBe("NOT_FOUND");
-    }
+      })
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
   it("getPublicPortfolio should return array with proper fields", async () => {
