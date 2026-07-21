@@ -2116,3 +2116,8 @@
 - [x] Add ROOFING (ID: 215) to database with common services
 - [x] Update seed scripts and CATEGORY_ICONS maps
 - [x] Update category count references from 43+ to 46+
+
+## Bugfix: Move services from Chisolm Audio to OlogyCrew Official
+- [x] Move ELECTRICAL SERVICES (categoryId 212, 12 services) from provider 1 to provider 360001
+- [x] Move HVAC (categoryId 213, 12 services) from provider 1 to provider 360001
+- [x] Also move provider_categories links for 212 and 213 from provider 1 to provider 360001
