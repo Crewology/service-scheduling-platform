@@ -372,6 +372,13 @@
       "when": 1784641897304,
       "tag": "0052_warm_gorilla_man",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "5",
+      "when": 1784642564653,
+      "tag": "0053_glossy_sleepwalker",
+      "breakpoints": true
     }
   ]
 }

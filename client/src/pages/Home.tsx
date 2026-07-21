@@ -26,6 +26,8 @@ const CATEGORY_ICONS: Record<number, string> = {
   198: "💻", 19: "🎥", 155: "📱", 201: "🖥️", 205: "🌐", 211: "🔧",
   212: "⚡",
   213: "❄️",
+  214: "🪚",
+  215: "🏠",
 };
 
 export default function Home() {
@@ -80,7 +82,7 @@ export default function Home() {
               <span className="gradient-text">Near You</span>
             </h1>
             <p className="text-base sm:text-lg md:text-2xl text-muted-foreground mb-8 md:mb-10 text-balance">
-              Connect with skilled providers across 43+ service categories. Book instantly, pay securely, and get the job done right.
+              Connect with skilled providers across 46+ service categories. Book instantly, pay securely, and get the job done right.
             </p>
             
             {/* Search Bar */}
@@ -179,7 +181,7 @@ export default function Home() {
           <div className="text-center mb-10 sm:mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4">Explore Service Categories</h2>
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Browse our 43+ professional service categories
+              Browse our 46+ professional service categories
             </p>
           </div>
           

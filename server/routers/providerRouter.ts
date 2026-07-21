@@ -1261,15 +1261,27 @@ export const providerRouter = router({
   getEmergencyServiceSetting: protectedProcedure.query(async ({ ctx }) => {
     const provider = await db.getProviderByUserId(ctx.user.id);
     if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider not found" });
-    return { offersEmergencyService: provider.offersEmergencyService };
+    return {
+      offersEmergencyService: provider.offersEmergencyService,
+      emergencyHoursType: provider.emergencyHoursType,
+      emergencyHoursNote: provider.emergencyHoursNote,
+    };
   }),
 
   updateEmergencyServiceSetting: protectedProcedure
-    .input(z.object({ offersEmergencyService: z.boolean() }))
+    .input(z.object({
+      offersEmergencyService: z.boolean(),
+      emergencyHoursType: z.enum(["24_7", "after_hours", "custom"]).optional(),
+      emergencyHoursNote: z.string().max(200).optional(),
+    }))
     .mutation(async ({ ctx, input }) => {
       const provider = await db.getProviderByUserId(ctx.user.id);
       if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider not found" });
-      await db.updateEmergencyService(provider.id, input.offersEmergencyService);
+      await db.updateEmergencyService(provider.id, {
+        offersEmergencyService: input.offersEmergencyService,
+        emergencyHoursType: input.emergencyHoursType,
+        emergencyHoursNote: input.emergencyHoursNote,
+      });
       return { success: true };
     }),
 });

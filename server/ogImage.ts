@@ -1024,7 +1024,7 @@ export async function generateHomepageOgImage(): Promise<string | null> {
                       color: "rgba(148, 163, 184, 0.8)",
                       letterSpacing: "1px",
                     },
-                    children: "43+ SERVICE CATEGORIES  •  VERIFIED PROVIDERS  •  SECURE PAYMENTS",
+                    children: "46+ SERVICE CATEGORIES  •  VERIFIED PROVIDERS  •  SECURE PAYMENTS",
                   },
                 },
               ],

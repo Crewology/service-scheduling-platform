@@ -744,11 +744,15 @@ function EmergencyServiceSection() {
   const { data: settings, isLoading } = trpc.provider.getEmergencyServiceSetting.useQuery();
   const utils = trpc.useUtils();
   const [enabled, setEnabled] = useState(false);
+  const [hoursType, setHoursType] = useState<"24_7" | "after_hours" | "custom">("24_7");
+  const [hoursNote, setHoursNote] = useState("");
   const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
     if (settings) {
       setEnabled(settings.offersEmergencyService);
+      setHoursType(settings.emergencyHoursType || "24_7");
+      setHoursNote(settings.emergencyHoursNote || "");
     }
   }, [settings]);
 
@@ -762,7 +766,11 @@ function EmergencyServiceSection() {
   });
 
   const handleSave = () => {
-    updateMutation.mutate({ offersEmergencyService: enabled });
+    updateMutation.mutate({
+      offersEmergencyService: enabled,
+      emergencyHoursType: hoursType,
+      emergencyHoursNote: hoursNote || undefined,
+    });
   };
 
   if (isLoading) return <Card><CardContent className="py-8 text-center"><p className="text-muted-foreground">Loading emergency service settings...</p></CardContent></Card>;
@@ -797,11 +805,61 @@ function EmergencyServiceSection() {
           </div>
 
           {enabled && (
-            <div className="border-t pt-4 bg-red-500/5 rounded-lg p-4 -mx-2">
-              <p className="text-sm text-muted-foreground">
-                <strong className="text-foreground">Tip:</strong> Customers looking for emergency services are often willing to pay premium rates.
-                Consider adding an "Emergency" service with a higher price to your service list.
-              </p>
+            <div className="space-y-4 border-t pt-4">
+              <div>
+                <Label className="text-sm font-medium">Emergency Hours</Label>
+                <p className="text-xs text-muted-foreground mb-2">When are you available for emergency calls?</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {[
+                    { value: "24_7" as const, label: "24/7", desc: "Available anytime" },
+                    { value: "after_hours" as const, label: "After Hours", desc: "Evenings & weekends" },
+                    { value: "custom" as const, label: "Custom", desc: "Specify below" },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => { setHoursType(option.value); setHasChanges(true); }}
+                      className={`p-3 rounded-lg border-2 text-left transition-all ${
+                        hoursType === option.value
+                          ? "border-red-500 bg-red-50 dark:bg-red-950/20"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <span className="font-medium text-sm block">{option.label}</span>
+                      <span className="text-xs text-muted-foreground">{option.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {(hoursType === "after_hours" || hoursType === "custom") && (
+                <div>
+                  <Label className="text-sm font-medium">
+                    {hoursType === "after_hours" ? "After-Hours Details" : "Custom Hours"}
+                  </Label>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    {hoursType === "after_hours"
+                      ? "e.g., \"Mon-Fri 6PM-10PM, Weekends 8AM-10PM\""
+                      : "Describe your emergency availability"}
+                  </p>
+                  <textarea
+                    value={hoursNote}
+                    onChange={(e) => { setHoursNote(e.target.value); setHasChanges(true); }}
+                    maxLength={200}
+                    rows={2}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    placeholder={hoursType === "after_hours" ? "Mon-Fri 6PM-10PM, Sat-Sun 8AM-10PM" : "Describe your emergency hours..."}
+                  />
+                  <p className="text-xs text-muted-foreground text-right mt-1">{hoursNote.length}/200</p>
+                </div>
+              )}
+
+              <div className="bg-red-500/5 rounded-lg p-4">
+                <p className="text-sm text-muted-foreground">
+                  <strong className="text-foreground">Tip:</strong> Customers looking for emergency services are often willing to pay premium rates.
+                  Consider adding an "Emergency" service with a higher price to your service list.
+                </p>
+              </div>
             </div>
           )}
 
@@ -2235,6 +2293,8 @@ export default function ProviderDashboard() {
                   198: "💻", 19: "🎥", 155: "📱", 201: "🖥️", 205: "🌐", 211: "🔧",
   212: "⚡",
   213: "❄️",
+  214: "🪚",
+  215: "🏠",
                 };
                 return (
                   <Card key={cat.id}>
@@ -4001,7 +4061,7 @@ function PortfolioGallery({ categories }: { categories: any[] | undefined }) {
     168: "\uD83D\uDE99", 169: "\uD83D\uDEE0\uFE0F", 199: "\uD83C\uDFAA", 158: "\uD83C\uDFAF", 73: "\uD83C\uDF7D\uFE0F", 12: "\uD83D\uDCAA",
     11: "\uD83D\uDC3E", 17: "\uD83D\uDCF8", 148: "\uD83D\uDCA6", 26: "\uD83D\uDCC5", 8: "\uD83D\uDC85", 194: "\u2600\uFE0F",
     198: "\uD83D\uDCBB", 19: "\uD83C\uDFA5", 155: "\uD83D\uDCF1", 201: "\uD83D\uDDA5\uFE0F", 205: "\uD83C\uDF10", 211: "\uD83D\uDD27",
-    212: "\u26A1", 213: "\u2744\uFE0F",
+    212: "\u26A1", 213: "\u2744\uFE0F", 214: "\uD83E\uDE9A", 215: "\uD83C\uDFE0",
   };
 
   return (

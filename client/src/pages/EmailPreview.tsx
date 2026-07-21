@@ -497,7 +497,7 @@ Welcome to OlogyCrew! You were referred by **Gary Chisolm**.
 
 As a referred member, you'll receive a **10% discount** on your first booking!
 
-Browse our 43+ service categories and book your first appointment today.
+Browse our 46+ service categories and book your first appointment today.
 
 [Browse Services](/services)
 

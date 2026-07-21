@@ -158,11 +158,17 @@ export async function updateEstimateSettings(providerId: number, data: {
   }).where(eq(serviceProviders.id, providerId));
 }
 
-export async function updateEmergencyService(providerId: number, offersEmergencyService: boolean) {
+export async function updateEmergencyService(providerId: number, data: {
+  offersEmergencyService: boolean;
+  emergencyHoursType?: "24_7" | "after_hours" | "custom" | null;
+  emergencyHoursNote?: string | null;
+}) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.update(serviceProviders).set({
-    offersEmergencyService,
+    offersEmergencyService: data.offersEmergencyService,
+    emergencyHoursType: data.offersEmergencyService ? (data.emergencyHoursType || "24_7") : null,
+    emergencyHoursNote: data.offersEmergencyService ? (data.emergencyHoursNote || null) : null,
   }).where(eq(serviceProviders.id, providerId));
 }
 

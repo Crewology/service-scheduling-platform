@@ -58,6 +58,8 @@ const CATEGORY_ICONS: Record<number, string> = {
   198: "💻", 19: "🎥", 155: "📱", 201: "🖥️", 205: "🌐", 211: "🔧",
   212: "⚡",
   213: "❄️",
+  214: "🪚",
+  215: "🏠",
 };
 
 const ALL_STEPS = [
@@ -266,7 +268,7 @@ function WhyBecomeProvider({ onGetStarted }: { onGetStarted: () => void }) {
     {
       icon: Users,
       title: "Reach New Customers",
-      description: "Get discovered by customers searching across 43+ service categories. Your public profile showcases your work and reviews.",
+      description: "Get discovered by customers searching across 46+ service categories. Your public profile showcases your work and reviews.",
     },
     {
       icon: Zap,
@@ -287,7 +289,7 @@ function WhyBecomeProvider({ onGetStarted }: { onGetStarted: () => void }) {
 
   const steps = [
     { number: "1", title: "Create Your Profile", desc: "Add your photo, business name, and location in under 2 minutes." },
-    { number: "2", title: "Choose Your Categories", desc: "Select from 43+ service categories that match your skills." },
+    { number: "2", title: "Choose Your Categories", desc: "Select from 46+ service categories that match your skills." },
     { number: "3", title: "Add Your Services", desc: "List your services with pricing, duration, and descriptions." },
     { number: "4", title: "Start Getting Booked", desc: "Connect Stripe, go live, and start accepting bookings today." },
   ];
@@ -440,7 +442,7 @@ function WhyBecomeProvider({ onGetStarted }: { onGetStarted: () => void }) {
         <div className="container max-w-4xl">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 text-center">
             <div>
-              <div className="text-3xl sm:text-4xl font-bold">43+</div>
+              <div className="text-3xl sm:text-4xl font-bold">46+</div>
               <div className="text-sm opacity-80 mt-1">Service Categories</div>
             </div>
             <div>

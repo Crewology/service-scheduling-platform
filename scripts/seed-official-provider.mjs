@@ -250,6 +250,32 @@ const CATEGORY_SERVICES = [
   { categoryId: 213, name: "Air Quality & Filtration", serviceType: "mobile", pricingModel: "fixed", basePrice: "300.00", durationMinutes: 120, description: "Install air purifiers, UV lights, and advanced filtration systems for cleaner indoor air." },
   { categoryId: 213, name: "Emergency HVAC Service", serviceType: "mobile", pricingModel: "fixed", basePrice: "300.00", durationMinutes: 90, description: "24/7 emergency heating and cooling repair when you need it most." },
   { categoryId: 213, name: "Ventilation & Exhaust Fan Installation", serviceType: "mobile", pricingModel: "fixed", basePrice: "250.00", durationMinutes: 120, description: "Install bathroom exhaust fans, kitchen hoods, and whole-house ventilation systems." },
+  // CARPENTRY SERVICES (ID: 214)
+  { categoryId: 214, name: "Custom Furniture Building", serviceType: "mobile", pricingModel: "fixed", basePrice: "500.00", durationMinutes: 480, description: "Design and build custom furniture pieces tailored to your space and style." },
+  { categoryId: 214, name: "Deck Building & Repair", serviceType: "mobile", pricingModel: "fixed", basePrice: "2500.00", durationMinutes: 480, description: "Build new decks or repair existing ones including boards, railings, and stairs." },
+  { categoryId: 214, name: "Framing & Structural Work", serviceType: "mobile", pricingModel: "fixed", basePrice: "800.00", durationMinutes: 480, description: "Wall framing, structural supports, and load-bearing modifications." },
+  { categoryId: 214, name: "Trim & Molding Installation", serviceType: "mobile", pricingModel: "fixed", basePrice: "300.00", durationMinutes: 240, description: "Install baseboards, crown molding, chair rails, and decorative trim." },
+  { categoryId: 214, name: "Cabinet Installation", serviceType: "mobile", pricingModel: "fixed", basePrice: "600.00", durationMinutes: 360, description: "Install kitchen, bathroom, or custom cabinetry with precision fitting." },
+  { categoryId: 214, name: "Door & Window Installation", serviceType: "mobile", pricingModel: "fixed", basePrice: "350.00", durationMinutes: 180, description: "Install interior/exterior doors and windows including framing adjustments." },
+  { categoryId: 214, name: "Hardwood Flooring Installation", serviceType: "mobile", pricingModel: "fixed", basePrice: "1200.00", durationMinutes: 480, description: "Install, sand, and finish hardwood floors for a beautiful, lasting surface." },
+  { categoryId: 214, name: "Fence Building & Repair", serviceType: "mobile", pricingModel: "fixed", basePrice: "1500.00", durationMinutes: 480, description: "Build new wood fences or repair existing ones including posts, panels, and gates." },
+  { categoryId: 214, name: "Shelving & Storage Solutions", serviceType: "mobile", pricingModel: "fixed", basePrice: "400.00", durationMinutes: 240, description: "Custom built-in shelving, closet systems, and storage solutions." },
+  { categoryId: 214, name: "Staircase Building & Repair", serviceType: "mobile", pricingModel: "fixed", basePrice: "1000.00", durationMinutes: 480, description: "Build or repair staircases including treads, risers, railings, and balusters." },
+  { categoryId: 214, name: "Pergola & Gazebo Construction", serviceType: "mobile", pricingModel: "fixed", basePrice: "3000.00", durationMinutes: 480, description: "Design and build outdoor pergolas, gazebos, and shade structures." },
+  { categoryId: 214, name: "Wood Repair & Restoration", serviceType: "mobile", pricingModel: "fixed", basePrice: "250.00", durationMinutes: 180, description: "Repair rotted wood, restore antique pieces, and fix structural damage." },
+  // ROOFING SERVICES (ID: 215)
+  { categoryId: 215, name: "Roof Inspection", serviceType: "mobile", pricingModel: "fixed", basePrice: "150.00", durationMinutes: 60, description: "Comprehensive roof inspection to assess condition, identify damage, and recommend repairs." },
+  { categoryId: 215, name: "Shingle Replacement", serviceType: "mobile", pricingModel: "fixed", basePrice: "400.00", durationMinutes: 240, description: "Replace damaged, missing, or worn shingles to restore roof protection." },
+  { categoryId: 215, name: "Flat Roof Repair", serviceType: "mobile", pricingModel: "fixed", basePrice: "500.00", durationMinutes: 240, description: "Repair leaks, blisters, and damage on flat or low-slope roofing systems." },
+  { categoryId: 215, name: "Gutter Installation & Repair", serviceType: "mobile", pricingModel: "fixed", basePrice: "600.00", durationMinutes: 360, description: "Install new gutters or repair existing ones including downspouts and guards." },
+  { categoryId: 215, name: "Roof Coating & Sealing", serviceType: "mobile", pricingModel: "fixed", basePrice: "800.00", durationMinutes: 360, description: "Apply protective coatings to extend roof life and improve energy efficiency." },
+  { categoryId: 215, name: "Leak Repair", serviceType: "mobile", pricingModel: "fixed", basePrice: "300.00", durationMinutes: 120, description: "Locate and repair roof leaks including flashing, vent, and chimney leaks." },
+  { categoryId: 215, name: "Skylight Installation", serviceType: "mobile", pricingModel: "fixed", basePrice: "1200.00", durationMinutes: 360, description: "Install new skylights or sun tunnels for natural light in your home." },
+  { categoryId: 215, name: "Full Roof Replacement", serviceType: "mobile", pricingModel: "fixed", basePrice: "8000.00", durationMinutes: 480, description: "Complete tear-off and replacement of your entire roof system." },
+  { categoryId: 215, name: "Emergency Roof Repair", serviceType: "mobile", pricingModel: "fixed", basePrice: "500.00", durationMinutes: 120, description: "Urgent repair for storm damage, fallen trees, or sudden leaks." },
+  { categoryId: 215, name: "Chimney Flashing Repair", serviceType: "mobile", pricingModel: "fixed", basePrice: "350.00", durationMinutes: 180, description: "Repair or replace chimney flashing to prevent water intrusion." },
+  { categoryId: 215, name: "Soffit & Fascia Repair", serviceType: "mobile", pricingModel: "fixed", basePrice: "400.00", durationMinutes: 240, description: "Repair or replace damaged soffits and fascia boards." },
+  { categoryId: 215, name: "Roof Ventilation Installation", serviceType: "mobile", pricingModel: "fixed", basePrice: "450.00", durationMinutes: 240, description: "Install ridge vents, soffit vents, or attic fans for proper ventilation." },
 ];
 
 // ─── Availability Schedule (Mon-Sat 9am-6pm) ─────────────────────────────────

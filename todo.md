@@ -2103,3 +2103,16 @@
 - [x] Public Profile: "Emergency Service Available" badge (red badge)
 - [x] Search Cards: Badge on provider cards when they offer emergency service
 - [x] Search Filter: "Emergency Service Available" checkbox filter on search page
+
+## Feature: Emergency Hours & Request Button
+- [x] Schema: Add emergencyHoursType (enum: '24_7', 'after_hours', 'custom') and emergencyHoursNote text to serviceProviders
+- [x] Backend: Update emergency service endpoints to include hours fields
+- [x] Provider Settings UI: Add hours selection when emergency toggle is enabled (24/7, After Hours, Custom + note)
+- [x] Public Profile: Display emergency hours next to the emergency badge
+- [x] Public Profile: Prominent "Request Emergency Service" button that visually stands out (red, pulsing, or elevated)
+
+## Feature: Add CARPENTRY and ROOFING Categories
+- [x] Add CARPENTRY (ID: 214) to database with common services
+- [x] Add ROOFING (ID: 215) to database with common services
+- [x] Update seed scripts and CATEGORY_ICONS maps
+- [x] Update category count references from 43+ to 46+

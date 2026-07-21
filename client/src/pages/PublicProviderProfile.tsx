@@ -38,6 +38,7 @@ import {
   MessageSquare,
   Send,
   AlertTriangle,
+  Phone,
 } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
@@ -94,6 +95,7 @@ const CATEGORY_ICONS: Record<number, string> = {
   168: "\ud83d\ude99", 169: "\ud83d\udee0\ufe0f", 199: "\ud83c\udfaa", 158: "\ud83c\udfaf", 73: "\ud83c\udf7d\ufe0f", 12: "\ud83d\udcaa",
   11: "\ud83d\udc3e", 17: "\ud83d\udcf8", 148: "\ud83d\udca6", 26: "\ud83d\udcc5", 8: "\ud83d\udc85", 194: "\u2600\ufe0f",
   198: "\ud83d\udcbb", 19: "\ud83c\udfa5", 155: "\ud83d\udcf1", 201: "\ud83d\udda5\ufe0f", 205: "\ud83c\udf10", 211: "\ud83d\udd27",
+  212: "\u26a1", 213: "\u2744\ufe0f", 214: "\ud83e\ude9a", 215: "\ud83c\udfe0",
 };
 
 function ServiceCardPhoto({ serviceId }: { serviceId: number }) {
@@ -512,9 +514,19 @@ export default function PublicProviderProfile() {
                 {provider.offersEmergencyService && (
                   <Badge className="gap-1 text-xs bg-red-100 text-red-800 border-red-200 hover:bg-red-100">
                     <AlertTriangle className="w-3 h-3" /> Emergency Service Available
+                    {provider.emergencyHoursType === "24_7" && " — 24/7"}
+                    {provider.emergencyHoursType === "after_hours" && " — After Hours"}
+                    {provider.emergencyHoursType === "custom" && provider.emergencyHoursNote && ` — ${provider.emergencyHoursNote}`}
                   </Badge>
                 )}
               </div>
+
+              {/* Emergency Hours Note (for after_hours type with note) */}
+              {provider.offersEmergencyService && provider.emergencyHoursType === "after_hours" && provider.emergencyHoursNote && (
+                <p className="text-sm text-red-700 dark:text-red-400 mt-2 italic flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5" /> {provider.emergencyHoursNote}
+                </p>
+              )}
 
               {/* Estimate Note */}
               {provider.offersEstimates && provider.estimateNote && (
@@ -763,6 +775,50 @@ export default function PublicProviderProfile() {
           {/* RIGHT SIDEBAR — Quick Book + Business Info                    */}
           {/* ============================================================ */}
           <div className="space-y-4">
+            {/* Emergency Service CTA — prominent, above everything */}
+            {provider.offersEmergencyService && (
+              <Card className="border-2 border-red-500 bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/20 shadow-lg shadow-red-500/10 overflow-hidden relative">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-red-500 animate-pulse" />
+                <CardContent className="p-5 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 rounded-full bg-red-500 text-white">
+                      <AlertTriangle className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-red-900 dark:text-red-100">Emergency Service</h3>
+                      <p className="text-xs text-red-700 dark:text-red-300">
+                        {provider.emergencyHoursType === "24_7" && "Available 24/7"}
+                        {provider.emergencyHoursType === "after_hours" && (provider.emergencyHoursNote || "Available after hours")}
+                        {provider.emergencyHoursType === "custom" && (provider.emergencyHoursNote || "Custom availability")}
+                        {!provider.emergencyHoursType && "Available for emergencies"}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold shadow-md"
+                    size="lg"
+                    onClick={() => {
+                      if (!user) {
+                        window.location.href = getLoginUrl();
+                        return;
+                      }
+                      if (user.id === provider.userId) {
+                        toast.info("This is your own profile");
+                        return;
+                      }
+                      setShowQuoteDialog(true);
+                    }}
+                  >
+                    <Phone className="w-4 h-4 mr-2" />
+                    Request Emergency Service
+                  </Button>
+                  <p className="text-xs text-red-600/70 dark:text-red-400/70 text-center">
+                    Urgent? Send a request now and the provider will be notified immediately.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Quick Book Card */}
             <Card className="sticky top-4">
               <CardContent className="p-5 space-y-4">

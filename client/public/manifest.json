@@ -1,7 +1,7 @@
 {
   "name": "OlogyCrew — Service Scheduling Platform",
   "short_name": "OlogyCrew",
-  "description": "Find and book trusted service professionals near you. 43+ categories, instant booking, secure payments.",
+  "description": "Find and book trusted service professionals near you. 46+ categories, instant booking, secure payments.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
