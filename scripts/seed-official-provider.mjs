@@ -211,6 +211,19 @@ const CATEGORY_SERVICES = [
   // WEBSITE PRODUCTION (205)
   { categoryId: 205, name: "Website Consultation", serviceType: "virtual", pricingModel: "fixed", basePrice: "100.00", durationMinutes: 60, description: "Strategy session to plan your website — goals, features, design direction, and timeline." },
   { categoryId: 205, name: "Landing Page Design", serviceType: "virtual", pricingModel: "fixed", basePrice: "500.00", durationMinutes: 480, description: "Custom landing page design and development — responsive, fast, and conversion-optimized." },
+  // PLUMBING SERVICES (ID: 211)
+  { categoryId: 211, name: "Drain Cleaning & Unclogging", serviceType: "mobile", pricingModel: "fixed", basePrice: "150.00", durationMinutes: 60, description: "Professional drain cleaning for sinks, tubs, showers, and main sewer lines." },
+  { categoryId: 211, name: "Pipe Repair & Replacement", serviceType: "mobile", pricingModel: "fixed", basePrice: "250.00", durationMinutes: 120, description: "Repair or replace damaged, leaking, or burst pipes." },
+  { categoryId: 211, name: "Water Heater Installation", serviceType: "mobile", pricingModel: "fixed", basePrice: "450.00", durationMinutes: 180, description: "Install or replace traditional or tankless water heaters." },
+  { categoryId: 211, name: "Water Heater Repair", serviceType: "mobile", pricingModel: "fixed", basePrice: "200.00", durationMinutes: 90, description: "Diagnose and repair water heater issues including no hot water, leaks, and strange noises." },
+  { categoryId: 211, name: "Fixture Installation", serviceType: "mobile", pricingModel: "fixed", basePrice: "180.00", durationMinutes: 90, description: "Install faucets, sinks, toilets, showerheads, and other plumbing fixtures." },
+  { categoryId: 211, name: "Leak Detection & Repair", serviceType: "mobile", pricingModel: "fixed", basePrice: "220.00", durationMinutes: 90, description: "Locate and repair hidden leaks in walls, floors, and underground pipes." },
+  { categoryId: 211, name: "Toilet Repair & Installation", serviceType: "mobile", pricingModel: "fixed", basePrice: "150.00", durationMinutes: 60, description: "Fix running toilets, clogs, and install new toilets." },
+  { categoryId: 211, name: "Garbage Disposal Installation", serviceType: "mobile", pricingModel: "fixed", basePrice: "180.00", durationMinutes: 60, description: "Install or replace kitchen garbage disposals." },
+  { categoryId: 211, name: "Sewer Line Inspection & Repair", serviceType: "mobile", pricingModel: "fixed", basePrice: "350.00", durationMinutes: 120, description: "Camera inspection and repair of main sewer lines." },
+  { categoryId: 211, name: "Emergency Plumbing Service", serviceType: "mobile", pricingModel: "fixed", basePrice: "250.00", durationMinutes: 60, description: "24/7 emergency plumbing for burst pipes, major leaks, and flooding." },
+  { categoryId: 211, name: "Bathroom Plumbing Rough-In", serviceType: "mobile", pricingModel: "fixed", basePrice: "800.00", durationMinutes: 480, description: "Complete plumbing rough-in for new bathroom construction or remodel." },
+  { categoryId: 211, name: "Sump Pump Installation", serviceType: "mobile", pricingModel: "fixed", basePrice: "350.00", durationMinutes: 120, description: "Install or replace sump pumps for basement flood prevention." },
 ];
 
 // ─── Availability Schedule (Mon-Sat 9am-6pm) ─────────────────────────────────

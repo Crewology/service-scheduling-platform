@@ -2083,3 +2083,9 @@
 - [x] Browse/Search Filter: "Offers Free Estimates" checkbox filter on search page
 - [x] Remove FREE ESTIMATES category (ID 197) from database, seed scripts, icon maps, and docs
 - [x] Tests for free estimates endpoints (covered by tipping.test.ts patterns, 12 tests passing)
+
+## Feature: Add PLUMBING SERVICES Category
+- [x] Add PLUMBING SERVICES (ID: 211) to database (with 12 services linked to OlogyCrew Official)
+- [x] Add to seed scripts (seed-categories.mjs, seed-categories.ts, seed-official-provider.mjs)
+- [x] Add wrench icon (🔧) to CATEGORY_ICONS maps across all pages
+- [x] Add 12 services for the category (drain cleaning, pipe repair, water heater, fixtures, leak detection, etc.)

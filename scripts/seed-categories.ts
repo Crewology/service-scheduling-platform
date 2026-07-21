@@ -45,6 +45,7 @@ const categories = [
   { id: 155, name: "VIRTUAL ASSISTANT", slug: "virtual-assistant", description: "Virtual assistant services", isMobileEnabled: false, isFixedLocationEnabled: false, isVirtualEnabled: true, sortOrder: 39 },
   { id: 201, name: "VIRTUAL EVENTS MANAGEMENT", slug: "virtual-events-management", description: "Virtual event planning and management", isMobileEnabled: false, isFixedLocationEnabled: false, isVirtualEnabled: true, sortOrder: 40 },
   { id: 205, name: "WEBSITE PRODUCTION", slug: "website-production", description: "Website design and development", isMobileEnabled: false, isFixedLocationEnabled: true, isVirtualEnabled: true, sortOrder: 41 },
+  { id: 211, name: "PLUMBING SERVICES", slug: "plumbing-services", description: "Professional plumbing services including repairs, installations, and maintenance", isMobileEnabled: true, isFixedLocationEnabled: true, isVirtualEnabled: false, sortOrder: 43 },
 ];
 
 async function seed() {
