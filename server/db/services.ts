@@ -104,9 +104,10 @@ export async function setProviderCategories(providerId: number, categoryIds: num
 export async function getProvidersByCategory(categoryId: number): Promise<number[]> {
   const db = await getDb();
   if (!db) return [];
-  const rows = await db.select({ providerId: providerCategories.providerId })
-    .from(providerCategories)
-    .where(and(eq(providerCategories.categoryId, categoryId), eq(providerCategories.isActive, true)));
+  // Only return providers who have at least one active service in this category
+  const rows = await db.selectDistinct({ providerId: services.providerId })
+    .from(services)
+    .where(and(eq(services.categoryId, categoryId), eq(services.isActive, true)));
   return rows.map(r => r.providerId);
 }
 

@@ -83,7 +83,7 @@ const guideSections: GuideSection[] = [
       {
         title: "Browsing & Searching Services",
         content:
-          "Use the \"Browse Services\" link in the navigation to explore all 46+ service categories — from Barber Shops and Massage Therapists to DJ & Music Services and Cybersecurity. You can also use the search bar on the homepage or the dedicated Search page to find specific services by keyword and location. Use the X buttons on search fields to quickly clear your filters. Each category page shows all available providers and their services.",
+          "Use the \"Browse Services\" link in the navigation to explore all 47+ service categories — from Barber Shops and Massage Therapists to DJ & Music Services and Cybersecurity. You can also use the search bar on the homepage or the dedicated Search page to find specific services by keyword and location. Use the X buttons on search fields to quickly clear your filters. Each category page shows all available providers and their services.",
         link: "/browse",
         linkText: "Browse Services",
       },
@@ -226,7 +226,7 @@ const guideSections: GuideSection[] = [
       {
         title: "Provider Onboarding",
         content:
-          "There are two ways to become a provider: (1) Choose \"Provider\" when you first sign up and see the role selection screen, or (2) Click \"Become a Provider\" from your profile page if you initially signed up as a customer. Either way, you'll enter the onboarding wizard — a simple 5-step process:\n\n1. Profile — Set up your business profile with a description, location, and contact info\n2. Skills — Choose your service categories from our 46+ options\n3. Services — Add your services with pricing and duration\n4. Your Plan — Choose your subscription tier (Starter, Pro, or Business) or start a free 14-day Pro trial\n5. Get Paid — Connect your Stripe account to receive payments\n\nYour dashboard shows a checklist of what's complete.",
+          "There are two ways to become a provider: (1) Choose \"Provider\" when you first sign up and see the role selection screen, or (2) Click \"Become a Provider\" from your profile page if you initially signed up as a customer. Either way, you'll enter the onboarding wizard — a simple 5-step process:\n\n1. Profile — Set up your business profile with a description, location, and contact info\n2. Skills — Choose your service categories from our 47+ options\n3. Services — Add your services with pricing and duration\n4. Your Plan — Choose your subscription tier (Starter, Pro, or Business) or start a free 14-day Pro trial\n5. Get Paid — Connect your Stripe account to receive payments\n\nYour dashboard shows a checklist of what's complete.",
         link: "/provider/onboarding",
         linkText: "Start Onboarding",
       },
@@ -451,7 +451,7 @@ const faqItems: FAQItem[] = [
   {
     question: "What service categories are available?",
     answer:
-      "OlogyCrew supports 46+ service categories including Barber Shop, Salon, Massage Therapist, Personal Trainer, Handyman, Photography, DJ & Music, Event Planning, Home Cleaning, Auto Detailing, Tech Support, Cybersecurity, Dance Lessons, Pet Care, and many more.",
+      "OlogyCrew supports 47+ service categories including Barber Shop, Salon, Massage Therapist, Personal Trainer, Handyman, Photography, DJ & Music, Event Planning, Home Cleaning, Auto Detailing, Tech Support, Cybersecurity, Dance Lessons, Pet Care, and many more.",
     category: "General",
   },
   {
@@ -1244,7 +1244,7 @@ export default function HelpCenter() {
                   <Star className="h-5 w-5 text-muted-foreground shrink-0" />
                   <div>
                     <p className="font-medium text-sm">Browse Services</p>
-                    <p className="text-xs text-muted-foreground">Explore 46+ categories</p>
+                    <p className="text-xs text-muted-foreground">Explore 47+ categories</p>
                   </div>
                 </CardContent>
               </Card>

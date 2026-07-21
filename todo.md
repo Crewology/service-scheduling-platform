@@ -2153,3 +2153,8 @@
 - [x] Root cause: Test file (featured-availability-portfolio.test.ts) was using userId=1 which maps to provider 1 (Chisolm Audio), so test runs inserted real portfolio items with example.com URLs
 - [x] Deleted 16 fake portfolio items from database (example.com URLs)
 - [x] Fixed test to use userId=99999 (non-existent provider) to prevent future insertions
+
+## Feature: Add MARKETING Category
+- [x] Add MARKETING (ID: 216) to database with 12 services
+- [x] Update seed scripts and CATEGORY_ICONS maps
+- [x] Update category count from 46+ to 47+
