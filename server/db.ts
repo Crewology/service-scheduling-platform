@@ -275,4 +275,5 @@ export {
   setProviderActive,
   updateTipSettings,
   getTipSettings,
+  updateEstimateSettings,
 } from "./db/providers";

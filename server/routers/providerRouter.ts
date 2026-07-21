@@ -1235,4 +1235,26 @@ export const providerRouter = router({
         tipThankYouMessage: settings.tipThankYouMessage,
       };
     }),
+
+  // === FREE ESTIMATES ===
+  getEstimateSettings: protectedProcedure.query(async ({ ctx }) => {
+    const provider = await db.getProviderByUserId(ctx.user.id);
+    if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider not found" });
+    return { offersEstimates: provider.offersEstimates, estimateNote: provider.estimateNote };
+  }),
+
+  updateEstimateSettings: protectedProcedure
+    .input(z.object({
+      offersEstimates: z.boolean(),
+      estimateNote: z.string().max(255).optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider not found" });
+      await db.updateEstimateSettings(provider.id, {
+        offersEstimates: input.offersEstimates,
+        estimateNote: input.estimateNote || null,
+      });
+      return { success: true };
+    }),
 });

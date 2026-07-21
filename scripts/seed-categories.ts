@@ -18,7 +18,6 @@ const categories = [
   { id: 196, name: "EYE CARE & VISION SERVICES", slug: "eye-care-vision-services", description: "Optometry and vision care services", isMobileEnabled: false, isFixedLocationEnabled: true, isVirtualEnabled: false, sortOrder: 11 },
   { id: 178, name: "FINANCIAL ADVISOR", slug: "financial-advisor", description: "Financial planning and advisory services", isMobileEnabled: false, isFixedLocationEnabled: true, isVirtualEnabled: true, sortOrder: 12 },
   { id: 109, name: "FITNESS CLASSES & TRAINERS", slug: "fitness-classes-trainers", description: "Personal training and fitness classes", isMobileEnabled: true, isFixedLocationEnabled: true, isVirtualEnabled: true, sortOrder: 13 },
-  { id: 197, name: "FREE ESTIMATES", slug: "free-estimates", description: "Services offering free estimates", isMobileEnabled: true, isFixedLocationEnabled: true, isVirtualEnabled: true, sortOrder: 14 },
   { id: 9, name: "HANDYMAN", slug: "handyman", description: "General handyman and repair services", isMobileEnabled: true, isFixedLocationEnabled: false, isVirtualEnabled: false, sortOrder: 15 },
   { id: 193, name: "HEALTH and WELLNESS SERVICES", slug: "health-wellness-services", description: "Health and wellness services", isMobileEnabled: true, isFixedLocationEnabled: true, isVirtualEnabled: true, sortOrder: 16 },
   { id: 188, name: "HOME CLEANING", slug: "home-cleaning", description: "Residential cleaning services", isMobileEnabled: true, isFixedLocationEnabled: false, isVirtualEnabled: false, sortOrder: 17 },

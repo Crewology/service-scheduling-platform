@@ -36,6 +36,8 @@ function renderFilters(opts: {
   categories: { id: number; name: string }[] | undefined;
   hasActiveFilters: boolean;
   clearAllFilters: () => void;
+  freeEstimatesOnly: boolean;
+  setFreeEstimatesOnly: (v: boolean) => void;
   hideSearch?: boolean;
 }) {
   return (
@@ -124,6 +126,20 @@ function renderFilters(opts: {
         </div>
       </div>
 
+      {/* Free Estimates Filter */}
+      <div>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={opts.freeEstimatesOnly}
+            onChange={(e) => opts.setFreeEstimatesOnly(e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+          />
+          <span className="text-sm font-medium">Offers Free Estimates</span>
+        </label>
+        <p className="text-xs text-muted-foreground mt-1 ml-6">Only show providers who offer free estimates</p>
+      </div>
+
       {/* Sort By */}
       <div>
         <label className="text-sm font-medium mb-2 block">Sort By</label>
@@ -188,6 +204,7 @@ export default function Search() {
   const [priceRange, setPriceRange] = useState([0, 500]);
   const [sortBy, setSortBy] = useState<"price" | "rating" | "distance">("rating");
   const [location, setLocation] = useState("");
+  const [freeEstimatesOnly, setFreeEstimatesOnly] = useState(false);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   // Sync keyword when URL changes (e.g. navigating from homepage again)
@@ -207,7 +224,7 @@ export default function Search() {
   });
 
   // Determine if user has actively set any filter
-  const hasSearchIntent = !!(debouncedKeyword || categoryId || debouncedLocation || priceRange[0] > 0 || priceRange[1] < 500);
+  const hasSearchIntent = !!(debouncedKeyword || categoryId || debouncedLocation || priceRange[0] > 0 || priceRange[1] < 500 || freeEstimatesOnly);
 
   // Search services (uses debounced values to reduce API calls)
   // Only fire when user has entered a query or adjusted filters
@@ -243,8 +260,16 @@ export default function Search() {
   }, [activePromotions]);
 
   const isLoading = (hasSearchIntent && servicesLoading) || (trimmedKeyword.length >= 2 && providersLoading);
-  const hasActiveFilters = keyword || categoryId || location || priceRange[0] > 0 || priceRange[1] < 500;
-  const hasProviderResults = providers && providers.length > 0;
+  const hasActiveFilters = keyword || categoryId || location || priceRange[0] > 0 || priceRange[1] < 500 || freeEstimatesOnly;
+
+  // Apply free estimates filter client-side
+  const filteredProviders = useMemo(() => {
+    if (!providers) return undefined;
+    if (!freeEstimatesOnly) return providers;
+    return providers.filter((p: any) => p.offersEstimates);
+  }, [providers, freeEstimatesOnly]);
+
+  const hasProviderResults = filteredProviders && filteredProviders.length > 0;
   const hasServiceResults = services && services.length > 0;
   const hasAnyResults = hasProviderResults || hasServiceResults;
 
@@ -254,6 +279,7 @@ export default function Search() {
     setPriceRange([0, 500]);
     setLocation("");
     setSortBy("rating");
+    setFreeEstimatesOnly(false);
   };
 
   // Shared props for the filter block (rendered in both desktop sidebar and mobile drawer)
@@ -271,6 +297,8 @@ export default function Search() {
     categories: categories as { id: number; name: string }[] | undefined,
     hasActiveFilters: !!hasActiveFilters,
     clearAllFilters,
+    freeEstimatesOnly,
+    setFreeEstimatesOnly,
   };
 
   return (
@@ -408,10 +436,10 @@ export default function Search() {
                 {hasProviderResults && (
                   <div>
                     <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                      Providers ({providers.length})
+                      Providers ({filteredProviders.length})
                     </h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {providers.map((provider: any) => (
+                      {filteredProviders.map((provider: any) => (
                         <Link key={provider.id} href={`/p/${provider.profileSlug || provider.slug}`}>
                           <Card className="hover:shadow-md transition-shadow cursor-pointer border-primary/20 hover:border-primary/40">
                             <CardContent className="p-4">
@@ -464,6 +492,11 @@ export default function Search() {
                                         <MapPin className="h-3 w-3" />
                                         {provider.city}{provider.state ? `, ${provider.state}` : ""}
                                       </span>
+                                    )}
+                                    {provider.offersEstimates && (
+                                      <Badge className="text-[10px] py-0 px-1.5 bg-green-100 text-green-800 border-green-200 hover:bg-green-100">
+                                        Free Estimates
+                                      </Badge>
                                     )}
                                   </div>
                                 </div>

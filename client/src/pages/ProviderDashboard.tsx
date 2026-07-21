@@ -646,6 +646,98 @@ function TipSettingsSection() {
 }
 
 // ============================================================================
+// FREE ESTIMATES TOGGLE SECTION (provider-level setting, not a category)
+// ============================================================================
+function FreeEstimatesSection() {
+  const { data: settings, isLoading } = trpc.provider.getEstimateSettings.useQuery();
+  const utils = trpc.useUtils();
+  const [enabled, setEnabled] = useState(false);
+  const [note, setNote] = useState("");
+  const [hasChanges, setHasChanges] = useState(false);
+
+  useEffect(() => {
+    if (settings) {
+      setEnabled(settings.offersEstimates);
+      setNote(settings.estimateNote || "");
+    }
+  }, [settings]);
+
+  const updateMutation = trpc.provider.updateEstimateSettings.useMutation({
+    onSuccess: () => {
+      toast.success("Free estimate settings saved!");
+      utils.provider.getEstimateSettings.invalidate();
+      setHasChanges(false);
+    },
+    onError: () => toast.error("Failed to save settings"),
+  });
+
+  const handleSave = () => {
+    updateMutation.mutate({
+      offersEstimates: enabled,
+      estimateNote: note || undefined,
+    });
+  };
+
+  if (isLoading) return <Card><CardContent className="py-8 text-center"><p className="text-muted-foreground">Loading estimate settings...</p></CardContent></Card>;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <FileText className="h-6 w-6 text-green-500" />
+            Free Estimates
+          </h2>
+          <p className="text-muted-foreground mt-1">
+            Let customers know you offer free estimates — a great way to attract new business
+          </p>
+        </div>
+      </div>
+
+      <Card>
+        <CardContent className="pt-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-base font-medium">I Offer Free Estimates</Label>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                When enabled, a "Free Estimates" badge appears on your profile and service cards
+              </p>
+            </div>
+            <Switch
+              checked={enabled}
+              onCheckedChange={(val) => { setEnabled(val); setHasChanges(true); }}
+            />
+          </div>
+
+          {enabled && (
+            <div className="border-t pt-4">
+              <Label className="text-base font-medium">Estimate Details (optional)</Label>
+              <p className="text-sm text-muted-foreground mt-0.5 mb-2">
+                Add a note about what qualifies for a free estimate
+              </p>
+              <Input
+                placeholder='e.g., "Free estimates for projects over $200" or "Free in-home estimates within 20 miles"'
+                value={note}
+                onChange={(e) => { setNote(e.target.value.slice(0, 255)); setHasChanges(true); }}
+              />
+              <p className="text-xs text-muted-foreground text-right mt-1">{note.length}/255</p>
+            </div>
+          )}
+
+          {hasChanges && (
+            <div className="flex justify-end pt-2">
+              <Button onClick={handleSave} disabled={updateMutation.isPending}>
+                {updateMutation.isPending ? "Saving..." : "Save Estimate Settings"}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ============================================================================
 // REFER A PROVIDER CARD
 // ============================================================================
 function ReferProviderCard() {
@@ -2055,7 +2147,7 @@ export default function ProviderDashboard() {
                 const CATEGORY_ICONS: Record<number, string> = {
                   15: "🎬", 170: "💈", 7: "✂️", 126: "🔒", 195: "💃", 202: "🔨",
                   23: "🦷", 20: "🎵", 22: "🚛", 177: "🎉", 196: "👁️", 178: "💰",
-                  109: "🏋️", 197: "📋", 9: "🔧", 193: "🧘", 188: "🧹", 200: "⚡",
+                  109: "🏋️", 9: "🔧", 193: "🧘", 188: "🧹", 200: "⚡",
                   179: "🏠", 171: "💇", 174: "🚗", 176: "🔩", 111: "🔗", 10: "💆",
                   168: "🚙", 169: "🛠️", 199: "🎪", 158: "🎯", 73: "🍽️", 12: "💪",
                   11: "🐾", 17: "📸", 148: "💦", 26: "📅", 8: "💅", 194: "☀️",
@@ -2643,6 +2735,11 @@ export default function ProviderDashboard() {
             {/* Tipping Settings sub-section */}
             <div className="border-t pt-6">
               <TipSettingsSection />
+            </div>
+
+            {/* Free Estimates sub-section */}
+            <div className="border-t pt-6">
+              <FreeEstimatesSection />
             </div>
 
             {/* Refer a Provider sub-section */}
@@ -3812,7 +3909,7 @@ function PortfolioGallery({ categories }: { categories: any[] | undefined }) {
   const CATEGORY_ICONS: Record<number, string> = {
     15: "\uD83C\uDFAC", 170: "\uD83D\uDC88", 7: "\u2702\uFE0F", 126: "\uD83D\uDD12", 195: "\uD83D\uDC83", 202: "\uD83D\uDD28",
     23: "\uD83E\uDDB7", 20: "\uD83C\uDFB5", 22: "\uD83D\uDE9B", 177: "\uD83C\uDF89", 196: "\uD83D\uDC41\uFE0F", 178: "\uD83D\uDCB0",
-    109: "\uD83C\uDFCB\uFE0F", 197: "\uD83D\uDCCB", 9: "\uD83D\uDD27", 193: "\uD83E\uDDD8", 188: "\uD83E\uDDF9", 200: "\u26A1",
+    109: "\uD83C\uDFCB\uFE0F", 9: "\uD83D\uDD27", 193: "\uD83E\uDDD8", 188: "\uD83E\uDDF9", 200: "\u26A1",
     179: "\uD83C\uDFE0", 171: "\uD83D\uDC87", 174: "\uD83D\uDE97", 176: "\uD83D\uDD29", 111: "\uD83D\uDD17", 10: "\uD83D\uDC86",
     168: "\uD83D\uDE99", 169: "\uD83D\uDEE0\uFE0F", 199: "\uD83C\uDFAA", 158: "\uD83C\uDFAF", 73: "\uD83C\uDF7D\uFE0F", 12: "\uD83D\uDCAA",
     11: "\uD83D\uDC3E", 17: "\uD83D\uDCF8", 148: "\uD83D\uDCA6", 26: "\uD83D\uDCC5", 8: "\uD83D\uDC85", 194: "\u2600\uFE0F",

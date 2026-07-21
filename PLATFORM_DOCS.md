@@ -897,7 +897,6 @@ Additional marketing content has been created (text-based, not stored as files):
 | 194 | TANNING SALON | 4 |
 | 195 | DANCE LESSONS & INSTRUCTORS | 5 |
 | 196 | EYE CARE & VISION SERVICES | 9 |
-| 197 | FREE ESTIMATES | 10 |
 | 198 | TECH SUPPORT & IT SERVICES | 8 |
 | 199 | PARTY & EVENT RENTALS | 5 |
 | 200 | HOME ENERGY SOLUTIONS | 5 |

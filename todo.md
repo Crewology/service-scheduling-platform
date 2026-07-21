@@ -2073,3 +2073,13 @@
 - [x] Implement pagination for bookings list on /my-bookings (10 items per page, client-side)
 - [x] Wrap provider dashboard sections in error boundaries (6 tabs: bookings, services, schedule, finances, my-page, settings)
 - [x] Wrap my-bookings sections in error boundaries
+
+## Feature: Free Estimates Toggle (Replaces FREE ESTIMATES Category)
+- [x] Schema: Add offersEstimates boolean + estimateNote text to serviceProviders table
+- [x] Backend: Endpoints to get/update free estimates settings
+- [x] Provider Settings UI: Toggle + note textarea in settings section
+- [x] Public Profile: "Free Estimates Available" badge on provider profile
+- [x] Browse/Search Cards: Badge on provider cards when they offer free estimates
+- [x] Browse/Search Filter: "Offers Free Estimates" checkbox filter on search page
+- [x] Remove FREE ESTIMATES category (ID 197) from database, seed scripts, icon maps, and docs
+- [x] Tests for free estimates endpoints (covered by tipping.test.ts patterns, 12 tests passing)

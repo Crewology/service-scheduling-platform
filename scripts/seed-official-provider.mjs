@@ -110,7 +110,6 @@ const CATEGORY_SERVICES = [
   { categoryId: 109, name: "Group Fitness Class", serviceType: "hybrid", pricingModel: "fixed", basePrice: "25.00", durationMinutes: 60, description: "High-energy group fitness class — HIIT, yoga, Zumba, or boot camp." },
   { categoryId: 109, name: "Private Fitness Training", serviceType: "mobile", pricingModel: "fixed", basePrice: "80.00", durationMinutes: 60, description: "Personalized one-on-one fitness training tailored to your goals." },
 
-  // FREE ESTIMATES (197)
   { categoryId: 197, name: "Free Project Estimate", serviceType: "mobile", pricingModel: "fixed", basePrice: "0.00", durationMinutes: 60, description: "No-obligation on-site estimate for your home improvement or service project." },
 
   // HANDYMAN (9)

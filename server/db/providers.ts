@@ -146,6 +146,18 @@ export async function getTipSettings(providerId: number) {
   return rows[0] || null;
 }
 
+export async function updateEstimateSettings(providerId: number, data: {
+  offersEstimates: boolean;
+  estimateNote?: string | null;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(serviceProviders).set({
+    offersEstimates: data.offersEstimates,
+    estimateNote: data.estimateNote ?? null,
+  }).where(eq(serviceProviders.id, providerId));
+}
+
 // ============================================================================
 // PROVIDER EARNINGS
 // ============================================================================
