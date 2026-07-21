@@ -1292,7 +1292,7 @@ export default function ProviderDashboard() {
   };
 
   const handleProviderCropComplete = (croppedBase64: string, contentType: string) => {
-    uploadProfilePhoto.mutate({ photoData: croppedBase64, contentType });
+    uploadProfilePhoto.mutate({ photoData: croppedBase64, contentType: contentType as "image/jpeg" | "image/png" | "image/webp" | "image/gif" });
   };
 
   const removeProviderPhoto = trpc.provider.removeProfilePhoto.useMutation({

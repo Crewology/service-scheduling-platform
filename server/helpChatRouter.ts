@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { publicProcedure, router } from "./_core/trpc";
 import { invokeLLM } from "./_core/llm";
+import { TRPCError } from "@trpc/server";
 
 // ─── Platform Knowledge System Prompt ────────────────────────────────────────
 
@@ -122,6 +123,30 @@ COMMUNICATION RULES:
 - Use bullet points for multi-step instructions
 - Mention relevant page links when helpful (e.g., "Go to your Provider Dashboard → Services tab")`;
 
+// ─── Rate Limiting for Chat ──────────────────────────────────────────────────
+const chatRateStore = new Map<string, { count: number; resetAt: number }>();
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of Array.from(chatRateStore.entries())) {
+    if (now > entry.resetAt) chatRateStore.delete(key);
+  }
+}, 5 * 60 * 1000);
+
+function checkChatRateLimit(identifier: string): boolean {
+  const now = Date.now();
+  const windowMs = 60 * 1000; // 1 minute window
+  const maxRequests = 10; // 10 messages per minute
+  const key = `chat:${identifier}`;
+  const entry = chatRateStore.get(key);
+  if (!entry || now > entry.resetAt) {
+    chatRateStore.set(key, { count: 1, resetAt: now + windowMs });
+    return false;
+  }
+  if (entry.count >= maxRequests) return true;
+  entry.count++;
+  return false;
+}
+
 // ─── Router ──────────────────────────────────────────────────────────────────
 
 export const helpChatRouter = router({
@@ -131,12 +156,17 @@ export const helpChatRouter = router({
         messages: z.array(
           z.object({
             role: z.enum(["system", "user", "assistant"]),
-            content: z.string(),
+            content: z.string().max(2000), // Security: Limit message length
           })
-        ),
+        ).max(20), // Security: Limit conversation history length
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      // Security: Rate limit by user ID or session-based identifier
+      const identifier = (ctx as any).user?.id?.toString() || "anon-" + Date.now().toString(36);
+      if (checkChatRateLimit(identifier)) {
+        throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Too many chat requests. Please wait a moment." });
+      }
       // Prepend system prompt to messages
       const messagesWithSystem = [
         { role: "system" as const, content: SYSTEM_PROMPT },

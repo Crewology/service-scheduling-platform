@@ -90,7 +90,11 @@ export const providerRouter = router({
   getById: publicProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ input }) => {
-      return await db.getProviderById(input.id);
+      const provider = await db.getProviderById(input.id);
+      if (!provider) return null;
+      // Security: Strip sensitive internal fields from public response
+      const { stripeAccountId, ...safeProvider } = provider;
+      return safeProvider;
     }),
     
   getMine: protectedProcedure.query(async ({ ctx }) => {
@@ -259,11 +263,15 @@ export const providerRouter = router({
   uploadProfilePhoto: protectedProcedure
     .input(z.object({
       photoData: z.string(), // base64
-      contentType: z.string().default("image/jpeg"),
+      contentType: z.enum(["image/jpeg", "image/png", "image/webp", "image/gif"]).default("image/jpeg"),
     }))
     .mutation(async ({ ctx, input }) => {
       const { storagePut } = await import("../storage");
       const buffer = Buffer.from(input.photoData, "base64");
+      // Security: Enforce max file size (5MB)
+      if (buffer.length > 5 * 1024 * 1024) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "File too large. Maximum size is 5MB." });
+      }
       const ext = input.contentType.split("/")[1] || "jpg";
       const suffix = Math.random().toString(36).substring(2, 10);
       const fileKey = `profile-photos/${ctx.user.id}/${Date.now()}-${suffix}.${ext}`;
@@ -395,11 +403,12 @@ export const providerRouter = router({
       const categoryMap = new Map(allCategories.map(c => [c.id, c]));
       const categories = providerCats.map(pc => categoryMap.get(pc.categoryId)).filter(Boolean);
       
-      // Get user info for profile photo
+            // Get user info for profile photo
       const user = await db.getUserById(provider.userId);
-      
+      // Security: Strip sensitive internal fields from public response
+      const { stripeAccountId, ...safeProvider } = provider;
       return { 
-        provider, 
+        provider: safeProvider, 
         services: providerServices, 
         reviews: providerReviews, 
         categories,

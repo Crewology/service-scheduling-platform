@@ -8,7 +8,12 @@ import { ENV } from "../_core/env";
 import bcrypt from "bcryptjs";
 
 export const authRouter = router({
-  me: publicProcedure.query(opts => opts.ctx.user),
+  me: publicProcedure.query(opts => {
+    if (!opts.ctx.user) return null;
+    // Security: Strip sensitive fields from user object
+    const { passwordHash, emailVerificationToken, emailVerificationExpires, passwordResetToken, passwordResetExpires, ...safeUser } = opts.ctx.user;
+    return safeUser;
+  }),
 
   selectRole: protectedProcedure
     .input(z.object({

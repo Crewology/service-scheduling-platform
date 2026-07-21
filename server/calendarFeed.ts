@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import * as db from "./db";
 import crypto from "crypto";
 import { ENV } from "./_core/env";
+import { sdk } from "./_core/sdk";
 
 /**
  * Generate a unique calendar feed token for a provider.
@@ -60,6 +61,15 @@ function formatIcalDateTime(dateStr: string, timeStr: string): string {
  */
 export async function handleBookingIcsDownload(req: Request, res: Response) {
   try {
+    // Security: Verify the user is authenticated and authorized
+    let user;
+    try {
+      user = await sdk.authenticateRequest(req as any);
+    } catch {
+      return res.status(401).send("Authentication required");
+    }
+    if (!user) return res.status(401).send("Authentication required");
+
     const bookingId = parseInt(req.params.bookingId, 10);
     if (isNaN(bookingId)) {
       return res.status(400).send("Invalid booking ID");
@@ -68,6 +78,14 @@ export async function handleBookingIcsDownload(req: Request, res: Response) {
     const booking = await db.getBookingById(bookingId);
     if (!booking) {
       return res.status(404).send("Booking not found");
+    }
+
+    // Security: Only the customer, provider, or admin can download the ICS
+    const userProvider = await db.getProviderByUserId(user.id);
+    const isCustomer = booking.customerId === user.id;
+    const isProvider = userProvider && userProvider.id === booking.providerId;
+    if (!isCustomer && !isProvider && user.role !== "admin") {
+      return res.status(403).send("Access denied");
     }
 
     const provider = await db.getProviderById(booking.providerId);

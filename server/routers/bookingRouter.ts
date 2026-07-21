@@ -316,13 +316,18 @@ export const bookingRouter = router({
     return await db.getCustomerBookings(ctx.user.id);
   }),
     
-  listByDateRange: publicProcedure
+  listByDateRange: protectedProcedure
     .input(z.object({
       providerId: z.number(),
       startDate: z.string().optional(),
       endDate: z.string().optional(),
     }))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      // Security: Only the provider owner or admin can list bookings by date range
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if ((!provider || provider.id !== input.providerId) && ctx.user.role !== "admin") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+      }
       if (input.startDate && input.endDate) {
         return await db.getBookingsByDateRange(input.providerId, input.startDate, input.endDate);
       }

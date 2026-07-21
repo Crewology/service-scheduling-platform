@@ -81,7 +81,7 @@ export function PhotoUpload({ serviceId, existingPhotos = [], maxPhotos = 10, on
         await uploadPhoto.mutateAsync({
           serviceId,
           photoData: base64Data,
-          contentType: file.type,
+          contentType: file.type as "image/jpeg" | "image/png" | "image/webp" | "image/gif",
           caption: "",
         });
       } catch (err) {

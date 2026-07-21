@@ -144,7 +144,13 @@ export const messageRouter = router({
     
   getConversation: protectedProcedure
     .input(z.object({ conversationId: z.string() }))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      // Security: Verify the user is part of this conversation
+      const parts = input.conversationId.replace("conv-", "").split("-");
+      const userIds = parts.map(Number);
+      if (!userIds.includes(ctx.user.id) && ctx.user.role !== "admin") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+      }
       return await db.getConversationMessages(input.conversationId);
     }),
     

@@ -225,7 +225,7 @@ export const serviceRouter = router({
     .input(z.object({
       serviceId: z.number(),
       photoData: z.string(),
-      contentType: z.string().default("image/jpeg"),
+      contentType: z.enum(["image/jpeg", "image/png", "image/webp", "image/gif"]).default("image/jpeg"),
       caption: z.string().optional(),
       isPrimary: z.boolean().default(false),
     }))
@@ -250,6 +250,10 @@ export const serviceRouter = router({
 
       const { storagePut } = await import("../storage");
       const buffer = Buffer.from(input.photoData, "base64");
+      // Security: Enforce max file size (5MB)
+      if (buffer.length > 5 * 1024 * 1024) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "File too large. Maximum size is 5MB." });
+      }
       const ext = input.contentType.split("/")[1] || "jpg";
       const suffix = Math.random().toString(36).substring(2, 10);
       const fileKey = `service-photos/${input.serviceId}/${Date.now()}-${suffix}.${ext}`;

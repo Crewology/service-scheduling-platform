@@ -760,7 +760,7 @@ export default function ProviderOnboarding() {
         const base64 = (reader.result as string).split(",")[1];
         setPhotoPreview(reader.result as string);
         if (existingProvider) {
-          uploadProfilePhoto.mutate({ photoData: base64, contentType: file.type });
+          uploadProfilePhoto.mutate({ photoData: base64, contentType: file.type as "image/jpeg" | "image/png" | "image/webp" | "image/gif" });
         }
       };
       reader.readAsDataURL(file);
@@ -856,7 +856,7 @@ export default function ProviderOnboarding() {
     if (photoPreview && photoPreview.startsWith("data:")) {
       const base64 = photoPreview.split(",")[1];
       const contentType = photoPreview.split(";")[0].split(":")[1];
-      uploadProfilePhoto.mutate({ photoData: base64, contentType });
+      uploadProfilePhoto.mutate({ photoData: base64, contentType: contentType as "image/jpeg" | "image/png" | "image/webp" | "image/gif" });
     }
 
     // Track provider referral if one was captured
