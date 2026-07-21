@@ -365,6 +365,13 @@
       "when": 1784636895640,
       "tag": "0051_silent_mole_man",
       "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "5",
+      "when": 1784641897304,
+      "tag": "0052_warm_gorilla_man",
+      "breakpoints": true
     }
   ]
 }

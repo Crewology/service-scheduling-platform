@@ -93,6 +93,8 @@ export const serviceProviders = mysqlTable("service_providers", {
   // Free estimates toggle
   offersEstimates: boolean("offersEstimates").default(false).notNull(),
   estimateNote: varchar("estimateNote", { length: 255 }),
+  // Emergency service availability
+  offersEmergencyService: boolean("offersEmergencyService").default(false).notNull(),
   // Automated trust score system (0-100)
   trustScore: int("trustScore").default(0).notNull(),
   trustLevel: mysqlEnum("trustLevel", ["new", "rising", "trusted", "top_pro"]).default("new").notNull(),

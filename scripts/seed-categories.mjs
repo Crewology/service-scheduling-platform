@@ -47,6 +47,8 @@ const categories = [
   { id: 205, name: "WEBSITE PRODUCTION", slug: "website-production", description: "Website design and development", isMobileEnabled: false, isFixedLocationEnabled: true, isVirtualEnabled: true, sortOrder: 41 },
   { id: 210, name: "HOLISTIC WELLNESS CENTER", slug: "holistic-wellness-center", description: "Holistic wellness services including energy healing, meditation, aromatherapy, and integrative health practices", isMobileEnabled: true, isFixedLocationEnabled: true, isVirtualEnabled: true, sortOrder: 42 },
   { id: 211, name: "PLUMBING SERVICES", slug: "plumbing-services", description: "Professional plumbing services including repairs, installations, and maintenance", isMobileEnabled: true, isFixedLocationEnabled: true, isVirtualEnabled: false, sortOrder: 43 },
+  { id: 212, name: "ELECTRICAL SERVICES", slug: "electrical-services", description: "Professional electrical services including wiring, panel upgrades, lighting, and repairs", isMobileEnabled: true, isFixedLocationEnabled: true, isVirtualEnabled: false, sortOrder: 44 },
+  { id: 213, name: "HVAC", slug: "hvac", description: "Heating, ventilation, and air conditioning installation, repair, and maintenance", isMobileEnabled: true, isFixedLocationEnabled: true, isVirtualEnabled: false, sortOrder: 45 },
 ];
 
 async function seed() {

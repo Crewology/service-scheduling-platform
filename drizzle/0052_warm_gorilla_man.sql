@@ -1,0 +1,1 @@
+ALTER TABLE `service_providers` ADD `offersEmergencyService` boolean DEFAULT false NOT NULL;

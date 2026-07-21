@@ -158,6 +158,14 @@ export async function updateEstimateSettings(providerId: number, data: {
   }).where(eq(serviceProviders.id, providerId));
 }
 
+export async function updateEmergencyService(providerId: number, offersEmergencyService: boolean) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(serviceProviders).set({
+    offersEmergencyService,
+  }).where(eq(serviceProviders.id, providerId));
+}
+
 // ============================================================================
 // PROVIDER EARNINGS
 // ============================================================================

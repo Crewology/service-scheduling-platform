@@ -2089,3 +2089,17 @@
 - [x] Add to seed scripts (seed-categories.mjs, seed-categories.ts, seed-official-provider.mjs)
 - [x] Add wrench icon (🔧) to CATEGORY_ICONS maps across all pages
 - [x] Add 12 services for the category (drain cleaning, pipe repair, water heater, fixtures, leak detection, etc.)
+
+## Feature: Add ELECTRICAL SERVICES and HVAC Categories
+- [x] Add ELECTRICAL SERVICES (ID: 212) to database with 12 services
+- [x] Add HVAC (ID: 213) to database with 12 services
+- [x] Update seed scripts (seed-categories.mjs, seed-categories.ts, seed-official-provider.mjs)
+- [x] Add icons to CATEGORY_ICONS maps across all pages (⚡ for Electrical, ❄️ for HVAC)
+
+## Feature: Emergency Service Available Toggle
+- [x] Schema: Add offersEmergencyService boolean to serviceProviders table
+- [x] Backend: Endpoints to get/update emergency service setting
+- [x] Provider Settings UI: Toggle in settings section
+- [x] Public Profile: "Emergency Service Available" badge (red badge)
+- [x] Search Cards: Badge on provider cards when they offer emergency service
+- [x] Search Filter: "Emergency Service Available" checkbox filter on search page

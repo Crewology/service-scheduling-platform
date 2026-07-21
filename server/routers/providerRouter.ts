@@ -1257,4 +1257,19 @@ export const providerRouter = router({
       });
       return { success: true };
     }),
+
+  getEmergencyServiceSetting: protectedProcedure.query(async ({ ctx }) => {
+    const provider = await db.getProviderByUserId(ctx.user.id);
+    if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider not found" });
+    return { offersEmergencyService: provider.offersEmergencyService };
+  }),
+
+  updateEmergencyServiceSetting: protectedProcedure
+    .input(z.object({ offersEmergencyService: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider not found" });
+      await db.updateEmergencyService(provider.id, input.offersEmergencyService);
+      return { success: true };
+    }),
 });

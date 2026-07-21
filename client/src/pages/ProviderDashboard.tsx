@@ -738,6 +738,87 @@ function FreeEstimatesSection() {
 }
 
 // ============================================================================
+// EMERGENCY SERVICE SECTION
+// ============================================================================
+function EmergencyServiceSection() {
+  const { data: settings, isLoading } = trpc.provider.getEmergencyServiceSetting.useQuery();
+  const utils = trpc.useUtils();
+  const [enabled, setEnabled] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+
+  useEffect(() => {
+    if (settings) {
+      setEnabled(settings.offersEmergencyService);
+    }
+  }, [settings]);
+
+  const updateMutation = trpc.provider.updateEmergencyServiceSetting.useMutation({
+    onSuccess: () => {
+      toast.success("Emergency service setting saved!");
+      utils.provider.getEmergencyServiceSetting.invalidate();
+      setHasChanges(false);
+    },
+    onError: () => toast.error("Failed to save setting"),
+  });
+
+  const handleSave = () => {
+    updateMutation.mutate({ offersEmergencyService: enabled });
+  };
+
+  if (isLoading) return <Card><CardContent className="py-8 text-center"><p className="text-muted-foreground">Loading emergency service settings...</p></CardContent></Card>;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <AlertTriangle className="h-6 w-6 text-red-500" />
+            Emergency Service
+          </h2>
+          <p className="text-muted-foreground mt-1">
+            Let customers know you're available for emergency calls — highly relevant for plumbers, electricians, and HVAC pros
+          </p>
+        </div>
+      </div>
+
+      <Card>
+        <CardContent className="pt-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-base font-medium">I Offer Emergency Service</Label>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                When enabled, an "Emergency Service Available" badge appears on your profile and search cards
+              </p>
+            </div>
+            <Switch
+              checked={enabled}
+              onCheckedChange={(val) => { setEnabled(val); setHasChanges(true); }}
+            />
+          </div>
+
+          {enabled && (
+            <div className="border-t pt-4 bg-red-500/5 rounded-lg p-4 -mx-2">
+              <p className="text-sm text-muted-foreground">
+                <strong className="text-foreground">Tip:</strong> Customers looking for emergency services are often willing to pay premium rates.
+                Consider adding an "Emergency" service with a higher price to your service list.
+              </p>
+            </div>
+          )}
+
+          {hasChanges && (
+            <div className="flex justify-end pt-2">
+              <Button onClick={handleSave} disabled={updateMutation.isPending}>
+                {updateMutation.isPending ? "Saving..." : "Save Emergency Setting"}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ============================================================================
 // REFER A PROVIDER CARD
 // ============================================================================
 function ReferProviderCard() {
@@ -2152,6 +2233,8 @@ export default function ProviderDashboard() {
                   168: "🚙", 169: "🛠️", 199: "🎪", 158: "🎯", 73: "🍽️", 12: "💪",
                   11: "🐾", 17: "📸", 148: "💦", 26: "📅", 8: "💅", 194: "☀️",
                   198: "💻", 19: "🎥", 155: "📱", 201: "🖥️", 205: "🌐", 211: "🔧",
+  212: "⚡",
+  213: "❄️",
                 };
                 return (
                   <Card key={cat.id}>
@@ -2740,6 +2823,10 @@ export default function ProviderDashboard() {
             {/* Free Estimates sub-section */}
             <div className="border-t pt-6">
               <FreeEstimatesSection />
+            </div>
+
+            <div className="border-t pt-6">
+              <EmergencyServiceSection />
             </div>
 
             {/* Refer a Provider sub-section */}
@@ -3914,6 +4001,7 @@ function PortfolioGallery({ categories }: { categories: any[] | undefined }) {
     168: "\uD83D\uDE99", 169: "\uD83D\uDEE0\uFE0F", 199: "\uD83C\uDFAA", 158: "\uD83C\uDFAF", 73: "\uD83C\uDF7D\uFE0F", 12: "\uD83D\uDCAA",
     11: "\uD83D\uDC3E", 17: "\uD83D\uDCF8", 148: "\uD83D\uDCA6", 26: "\uD83D\uDCC5", 8: "\uD83D\uDC85", 194: "\u2600\uFE0F",
     198: "\uD83D\uDCBB", 19: "\uD83C\uDFA5", 155: "\uD83D\uDCF1", 201: "\uD83D\uDDA5\uFE0F", 205: "\uD83C\uDF10", 211: "\uD83D\uDD27",
+    212: "\u26A1", 213: "\u2744\uFE0F",
   };
 
   return (

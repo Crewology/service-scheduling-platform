@@ -276,4 +276,5 @@ export {
   updateTipSettings,
   getTipSettings,
   updateEstimateSettings,
+  updateEmergencyService,
 } from "./db/providers";

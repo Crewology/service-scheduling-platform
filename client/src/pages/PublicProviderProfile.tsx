@@ -37,6 +37,7 @@ import {
   DollarSign,
   MessageSquare,
   Send,
+  AlertTriangle,
 } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
@@ -506,6 +507,11 @@ export default function PublicProviderProfile() {
                 {provider.offersEstimates && (
                   <Badge className="gap-1 text-xs bg-green-100 text-green-800 border-green-200 hover:bg-green-100">
                     <FileText className="w-3 h-3" /> Free Estimates
+                  </Badge>
+                )}
+                {provider.offersEmergencyService && (
+                  <Badge className="gap-1 text-xs bg-red-100 text-red-800 border-red-200 hover:bg-red-100">
+                    <AlertTriangle className="w-3 h-3" /> Emergency Service Available
                   </Badge>
                 )}
               </div>

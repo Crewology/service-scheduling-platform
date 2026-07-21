@@ -265,6 +265,7 @@ export async function searchProviders(searchTerm: string) {
       trustScore: serviceProviders.trustScore,
       trustLevel: serviceProviders.trustLevel,
       offersEstimates: serviceProviders.offersEstimates,
+      offersEmergencyService: serviceProviders.offersEmergencyService,
     })
     .from(serviceProviders)
     .innerJoin(users, eq(serviceProviders.userId, users.id))

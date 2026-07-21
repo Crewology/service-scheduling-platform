@@ -38,6 +38,8 @@ function renderFilters(opts: {
   clearAllFilters: () => void;
   freeEstimatesOnly: boolean;
   setFreeEstimatesOnly: (v: boolean) => void;
+  emergencyServiceOnly: boolean;
+  setEmergencyServiceOnly: (v: boolean) => void;
   hideSearch?: boolean;
 }) {
   return (
@@ -140,6 +142,20 @@ function renderFilters(opts: {
         <p className="text-xs text-muted-foreground mt-1 ml-6">Only show providers who offer free estimates</p>
       </div>
 
+      {/* Emergency Service Filter */}
+      <div>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={opts.emergencyServiceOnly}
+            onChange={(e) => opts.setEmergencyServiceOnly(e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+          />
+          <span className="text-sm font-medium">Emergency Service Available</span>
+        </label>
+        <p className="text-xs text-muted-foreground mt-1 ml-6">Only show providers available for emergency calls</p>
+      </div>
+
       {/* Sort By */}
       <div>
         <label className="text-sm font-medium mb-2 block">Sort By</label>
@@ -205,6 +221,7 @@ export default function Search() {
   const [sortBy, setSortBy] = useState<"price" | "rating" | "distance">("rating");
   const [location, setLocation] = useState("");
   const [freeEstimatesOnly, setFreeEstimatesOnly] = useState(false);
+  const [emergencyServiceOnly, setEmergencyServiceOnly] = useState(false);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   // Sync keyword when URL changes (e.g. navigating from homepage again)
@@ -224,7 +241,7 @@ export default function Search() {
   });
 
   // Determine if user has actively set any filter
-  const hasSearchIntent = !!(debouncedKeyword || categoryId || debouncedLocation || priceRange[0] > 0 || priceRange[1] < 500 || freeEstimatesOnly);
+  const hasSearchIntent = !!(debouncedKeyword || categoryId || debouncedLocation || priceRange[0] > 0 || priceRange[1] < 500 || freeEstimatesOnly || emergencyServiceOnly);
 
   // Search services (uses debounced values to reduce API calls)
   // Only fire when user has entered a query or adjusted filters
@@ -260,14 +277,16 @@ export default function Search() {
   }, [activePromotions]);
 
   const isLoading = (hasSearchIntent && servicesLoading) || (trimmedKeyword.length >= 2 && providersLoading);
-  const hasActiveFilters = keyword || categoryId || location || priceRange[0] > 0 || priceRange[1] < 500 || freeEstimatesOnly;
+  const hasActiveFilters = keyword || categoryId || location || priceRange[0] > 0 || priceRange[1] < 500 || freeEstimatesOnly || emergencyServiceOnly;
 
-  // Apply free estimates filter client-side
+  // Apply free estimates and emergency service filters client-side
   const filteredProviders = useMemo(() => {
     if (!providers) return undefined;
-    if (!freeEstimatesOnly) return providers;
-    return providers.filter((p: any) => p.offersEstimates);
-  }, [providers, freeEstimatesOnly]);
+    let result = providers;
+    if (freeEstimatesOnly) result = result.filter((p: any) => p.offersEstimates);
+    if (emergencyServiceOnly) result = result.filter((p: any) => p.offersEmergencyService);
+    return result;
+  }, [providers, freeEstimatesOnly, emergencyServiceOnly]);
 
   const hasProviderResults = filteredProviders && filteredProviders.length > 0;
   const hasServiceResults = services && services.length > 0;
@@ -280,6 +299,7 @@ export default function Search() {
     setLocation("");
     setSortBy("rating");
     setFreeEstimatesOnly(false);
+    setEmergencyServiceOnly(false);
   };
 
   // Shared props for the filter block (rendered in both desktop sidebar and mobile drawer)
@@ -299,6 +319,8 @@ export default function Search() {
     clearAllFilters,
     freeEstimatesOnly,
     setFreeEstimatesOnly,
+    emergencyServiceOnly,
+    setEmergencyServiceOnly,
   };
 
   return (
@@ -496,6 +518,11 @@ export default function Search() {
                                     {provider.offersEstimates && (
                                       <Badge className="text-[10px] py-0 px-1.5 bg-green-100 text-green-800 border-green-200 hover:bg-green-100">
                                         Free Estimates
+                                      </Badge>
+                                    )}
+                                    {provider.offersEmergencyService && (
+                                      <Badge className="text-[10px] py-0 px-1.5 bg-red-100 text-red-800 border-red-200 hover:bg-red-100">
+                                        Emergency Service
                                       </Badge>
                                     )}
                                   </div>
