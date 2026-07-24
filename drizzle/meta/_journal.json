@@ -379,6 +379,13 @@
       "when": 1784642564653,
       "tag": "0053_glossy_sleepwalker",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "5",
+      "when": 1784864933292,
+      "tag": "0054_fair_thena",
+      "breakpoints": true
     }
   ]
 }

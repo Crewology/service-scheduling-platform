@@ -1,5 +1,6 @@
 import { 
   int, 
+  bigint,
   mysqlEnum, 
   mysqlTable, 
   text, 
@@ -1138,3 +1139,20 @@ export const invoiceLineItems = mysqlTable("invoice_line_items", {
 ]);
 export type InvoiceLineItem = typeof invoiceLineItems.$inferSelect;
 export type InsertInvoiceLineItem = typeof invoiceLineItems.$inferInsert;
+
+// Social Media Posts
+export const socialPosts = mysqlTable("social_posts", {
+  id: int("id").primaryKey().autoincrement(),
+  content: text("content").notNull(),
+  postType: varchar("post_type", { length: 50 }).notNull(), // provider_recruitment, customer_attraction, category_spotlight
+  categoryId: int("category_id"),
+  categoryName: varchar("category_name", { length: 255 }),
+  platforms: json("platforms").$type<string[]>().notNull(), // ["facebook", "instagram", "linkedin"]
+  results: json("results").$type<{ platform: string; success: boolean; postId?: string; error?: string }[]>(),
+  status: varchar("status", { length: 20 }).notNull().default("pending"), // pending, posted, failed
+  scheduledAt: bigint("scheduled_at", { mode: "number" }),
+  postedAt: bigint("posted_at", { mode: "number" }),
+  createdAt: bigint("created_at", { mode: "number" }).notNull().$defaultFn(() => Date.now()),
+});
+export type SocialPost = typeof socialPosts.$inferSelect;
+export type InsertSocialPost = typeof socialPosts.$inferInsert;

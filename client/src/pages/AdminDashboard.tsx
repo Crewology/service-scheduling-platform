@@ -60,6 +60,8 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  Share2,
+  Settings,
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -67,7 +69,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { Link, useSearch } from "wouter";
-import { Settings } from "lucide-react";
+import AdminSocialMedia from "./AdminSocialMedia";
 import { formatCurrency, formatDate } from "@/lib/dateUtils";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { TeamManagementPanel } from "./admin/TeamManagementPanel";
@@ -457,6 +459,10 @@ export default function AdminDashboard() {
                 <DollarSign className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
                 Partner Split
               </TabsTrigger>
+              <TabsTrigger value="social-media" className="whitespace-nowrap text-xs md:text-sm">
+                <Share2 className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
+                Social Media
+              </TabsTrigger>
               <TabsTrigger value="settings" className="whitespace-nowrap text-xs md:text-sm">
                 <Settings className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
                 Settings
@@ -723,6 +729,11 @@ export default function AdminDashboard() {
           {/* Partner Revenue Split Tab */}
           <TabsContent value="partner">
             <PartnerSplitPanel />
+          </TabsContent>
+
+          {/* Social Media Tab */}
+          <TabsContent value="social-media">
+            <AdminSocialMedia />
           </TabsContent>
 
           {/* Platform Settings Tab */}

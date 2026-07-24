@@ -17,4 +17,9 @@ export const ENV = {
   partnerStripeAccountId: process.env.PARTNER_STRIPE_ACCOUNT_ID ?? "",
   googleClientId: process.env.GOOGLE_CLIENT_ID ?? "",
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+  facebookPageAccessToken: process.env.FACEBOOK_PAGE_ACCESS_TOKEN ?? "",
+  facebookPageId: process.env.FACEBOOK_PAGE_ID ?? "",
+  instagramBusinessAccountId: process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID ?? "",
+  linkedinAccessToken: process.env.LINKEDIN_ACCESS_TOKEN ?? "",
+  linkedinOrganizationId: process.env.LINKEDIN_ORGANIZATION_ID ?? "",
 };

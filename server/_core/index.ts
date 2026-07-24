@@ -213,6 +213,10 @@ Sitemap: ${baseUrl}/sitemap.xml`;
   const { handleScheduledTrialExpiry } = await import("../scheduledTrialExpiry");
   app.post("/api/scheduled/trial-expiry", handleScheduledTrialExpiry);
 
+  // Scheduled task: social media auto-post (Heartbeat cron)
+  const { handleScheduledSocialPost } = await import("../scheduledSocialPost");
+  app.post("/api/scheduled/social-post", handleScheduledSocialPost);
+
   // Custom auth routes (email/password + Google OAuth)
   const customAuthRouter = (await import("../customAuthRouter")).default;
   app.use(customAuthRouter);

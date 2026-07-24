@@ -2158,3 +2158,16 @@
 - [x] Add MARKETING (ID: 216) to database with 12 services
 - [x] Update seed scripts and CATEGORY_ICONS maps
 - [x] Update category count from 46+ to 47+
+
+## Social Media Auto-Posting System
+- [x] Database schema: social_posts table (content, postType, categoryId, platforms, results, status, timestamps)
+- [x] Server module: socialMedia.ts (LLM content generation + Facebook/Instagram/LinkedIn API posting)
+- [x] Scheduled handler: scheduledSocialPost.ts (Express endpoint for Heartbeat cron)
+- [x] tRPC router: socialMediaRouter.ts (listPosts, previewPost, publishPost, deletePost — admin-only)
+- [x] Register router in routers.ts
+- [x] Register /api/scheduled/social-post endpoint in server/_core/index.ts
+- [x] Heartbeat cron job registered (weekly Mondays 10am UTC)
+- [x] Admin UI: AdminSocialMedia.tsx (post history, preview, publish now, delete)
+- [x] Social Media tab added to AdminDashboard.tsx
+- [x] Unit tests: social-media.test.ts (4 tests passing)
+- [ ] User to add API credentials (FACEBOOK_PAGE_ACCESS_TOKEN, FACEBOOK_PAGE_ID, INSTAGRAM_BUSINESS_ACCOUNT_ID, LINKEDIN_ACCESS_TOKEN, LINKEDIN_ORGANIZATION_ID)
