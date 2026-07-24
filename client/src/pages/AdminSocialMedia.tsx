@@ -3,12 +3,21 @@ import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Share2, Eye, Send, Trash2, RefreshCw, AlertCircle, CheckCircle2, Clock, XCircle } from "lucide-react";
+import { Share2, Eye, Send, Trash2, RefreshCw, AlertCircle, CheckCircle2, Clock, XCircle, Plus, Calendar } from "lucide-react";
 
 export default function AdminSocialMedia() {
   const [previewContent, setPreviewContent] = useState<{ content: string; postType: string; categoryName?: string } | null>(null);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [newContent, setNewContent] = useState("");
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(["facebook", "instagram", "linkedin"]);
+  const [scheduleDate, setScheduleDate] = useState("");
+  const [scheduleTime, setScheduleTime] = useState("");
 
   const { data: posts, refetch, isLoading } = trpc.socialMedia.listPosts.useQuery();
   const previewMutation = trpc.socialMedia.previewPost.useMutation({
@@ -31,6 +40,29 @@ export default function AdminSocialMedia() {
       toast.error(err.message);
     },
   });
+  const createMutation = trpc.socialMedia.createPost.useMutation({
+    onSuccess: () => {
+      toast.success("Post created successfully!");
+      setCreateOpen(false);
+      setNewContent("");
+      setSelectedPlatforms(["facebook", "instagram", "linkedin"]);
+      setScheduleDate("");
+      setScheduleTime("");
+      refetch();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+  const publishExistingMutation = trpc.socialMedia.publishExisting.useMutation({
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success("Post published!");
+      } else {
+        toast.error("Some platforms failed.");
+      }
+      refetch();
+    },
+    onError: (err) => toast.error(err.message),
+  });
   const deleteMutation = trpc.socialMedia.deletePost.useMutation({
     onSuccess: () => {
       toast.success("Post deleted");
@@ -44,10 +76,42 @@ export default function AdminSocialMedia() {
     publishMutation.mutate({});
   };
 
+  const handleCreatePost = () => {
+    if (!newContent.trim()) {
+      toast.error("Post content is required");
+      return;
+    }
+    if (selectedPlatforms.length === 0) {
+      toast.error("Select at least one platform");
+      return;
+    }
+    let scheduledAt: number | undefined;
+    if (scheduleDate && scheduleTime) {
+      scheduledAt = new Date(`${scheduleDate}T${scheduleTime}`).getTime();
+      if (scheduledAt <= Date.now()) {
+        toast.error("Scheduled time must be in the future");
+        return;
+      }
+    }
+    createMutation.mutate({
+      content: newContent.trim(),
+      platforms: selectedPlatforms as ("facebook" | "instagram" | "linkedin")[],
+      scheduledAt,
+    });
+  };
+
+  const togglePlatform = (platform: string) => {
+    setSelectedPlatforms((prev) =>
+      prev.includes(platform) ? prev.filter((p) => p !== platform) : [...prev, platform]
+    );
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "posted": return <Badge className="bg-green-100 text-green-800"><CheckCircle2 className="h-3 w-3 mr-1" />Posted</Badge>;
       case "failed": return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Failed</Badge>;
+      case "scheduled": return <Badge className="bg-purple-100 text-purple-800"><Calendar className="h-3 w-3 mr-1" />Scheduled</Badge>;
+      case "draft": return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />Draft</Badge>;
       default: return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />Pending</Badge>;
     }
   };
@@ -74,8 +138,8 @@ export default function AdminSocialMedia() {
             <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
             <div className="text-sm text-blue-800">
               <p className="font-medium mb-1">Social Media Auto-Posting</p>
-              <p>Posts are automatically generated and published every Monday at 10am UTC to Facebook, Instagram, and LinkedIn. Content is AI-generated to attract providers and customers to OlogyCrew.</p>
-              <p className="mt-1 text-blue-600">API credentials must be configured in Settings → Secrets for live posting. Without credentials, posts will be generated but not published.</p>
+              <p>Posts are automatically generated and published every Monday at 10am UTC to Facebook, Instagram, and LinkedIn. You can also create custom posts manually using the "Create Post" button.</p>
+              <p className="mt-1 text-blue-600">API credentials must be configured in Settings → Secrets for live posting.</p>
             </div>
           </div>
         </CardContent>
@@ -83,20 +147,99 @@ export default function AdminSocialMedia() {
 
       {/* Actions */}
       <div className="flex flex-wrap gap-3">
+        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Post
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Create Social Media Post</DialogTitle>
+              <DialogDescription>
+                Write your post content and choose which platforms to publish to.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="post-content">Post Content</Label>
+                <Textarea
+                  id="post-content"
+                  placeholder="Write your social media post here..."
+                  value={newContent}
+                  onChange={(e) => setNewContent(e.target.value)}
+                  rows={5}
+                  maxLength={2000}
+                />
+                <p className="text-xs text-muted-foreground text-right">{newContent.length}/2000</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Platforms</Label>
+                <div className="flex flex-wrap gap-4">
+                  {[
+                    { id: "facebook", label: "Facebook" },
+                    { id: "instagram", label: "Instagram" },
+                    { id: "linkedin", label: "LinkedIn" },
+                  ].map((platform) => (
+                    <div key={platform.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`platform-${platform.id}`}
+                        checked={selectedPlatforms.includes(platform.id)}
+                        onCheckedChange={() => togglePlatform(platform.id)}
+                      />
+                      <Label htmlFor={`platform-${platform.id}`} className="text-sm font-normal cursor-pointer">
+                        {platform.label}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Schedule (optional)</Label>
+                <p className="text-xs text-muted-foreground">Leave blank to save as draft. Set a date/time to schedule for later.</p>
+                <div className="flex gap-2">
+                  <input
+                    type="date"
+                    value={scheduleDate}
+                    onChange={(e) => setScheduleDate(e.target.value)}
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  />
+                  <input
+                    type="time"
+                    value={scheduleTime}
+                    onChange={(e) => setScheduleTime(e.target.value)}
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  />
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
+              <Button onClick={handleCreatePost} disabled={createMutation.isPending}>
+                {createMutation.isPending ? "Creating..." : scheduleDate && scheduleTime ? "Schedule Post" : "Save as Draft"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         <Button
           onClick={() => previewMutation.mutate()}
           disabled={previewMutation.isPending}
           variant="outline"
         >
           <Eye className="h-4 w-4 mr-2" />
-          {previewMutation.isPending ? "Generating..." : "Preview Post"}
+          {previewMutation.isPending ? "Generating..." : "AI Preview"}
         </Button>
         <Button
           onClick={handlePublish}
           disabled={isPublishing}
+          variant="outline"
         >
           <Send className="h-4 w-4 mr-2" />
-          {isPublishing ? "Publishing..." : "Publish Now"}
+          {isPublishing ? "Publishing..." : "AI Publish Now"}
         </Button>
         <Button variant="ghost" onClick={() => refetch()}>
           <RefreshCw className="h-4 w-4 mr-2" />
@@ -110,7 +253,7 @@ export default function AdminSocialMedia() {
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
               <Eye className="h-4 w-4" />
-              Post Preview
+              AI Post Preview
               <Badge variant="secondary" className="text-xs">{previewContent.postType.replace(/_/g, " ")}</Badge>
               {previewContent.categoryName && (
                 <Badge variant="outline" className="text-xs">{previewContent.categoryName}</Badge>
@@ -139,7 +282,7 @@ export default function AdminSocialMedia() {
             <Share2 className="h-5 w-5" />
             Post History
           </CardTitle>
-          <CardDescription>All social media posts generated and published by the system</CardDescription>
+          <CardDescription>All social media posts — auto-generated and manually created</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -147,7 +290,7 @@ export default function AdminSocialMedia() {
           ) : !posts || posts.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Share2 className="h-10 w-10 mx-auto mb-3 opacity-30" />
-              <p>No posts yet. Click "Publish Now" to create your first post.</p>
+              <p>No posts yet. Click "Create Post" or "AI Publish Now" to get started.</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -167,16 +310,37 @@ export default function AdminSocialMedia() {
                       </div>
                       <p className="text-sm whitespace-pre-wrap mt-2">{post.content}</p>
                       {getPlatformResults(post.results as any)}
+                      {/* Platform badges for draft/scheduled posts */}
+                      {!post.results && post.platforms && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {(post.platforms as string[]).map((p: string) => (
+                            <Badge key={p} variant="outline" className="text-xs capitalize">{p}</Badge>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => deleteMutation.mutate({ id: post.id })}
-                      disabled={deleteMutation.isPending}
-                      className="shrink-0 text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex flex-col gap-1 shrink-0">
+                      {(post.status === "draft" || post.status === "scheduled") && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => publishExistingMutation.mutate({ postId: post.id })}
+                          disabled={publishExistingMutation.isPending}
+                        >
+                          <Send className="h-3 w-3 mr-1" />
+                          Publish
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteMutation.mutate({ id: post.id })}
+                        disabled={deleteMutation.isPending}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}

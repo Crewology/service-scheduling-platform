@@ -37,6 +37,32 @@ export const socialMediaRouter = router({
       return result;
     }),
 
+  createPost: adminProcedure
+    .input(z.object({
+      content: z.string().min(1).max(2000),
+      platforms: z.array(z.enum(["facebook", "instagram", "linkedin"])).min(1),
+      scheduledAt: z.number().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await requireDb();
+      const [inserted] = await db.insert(socialPosts).values({
+        content: input.content,
+        postType: "manual",
+        platforms: input.platforms,
+        status: input.scheduledAt ? "scheduled" : "draft",
+        scheduledAt: input.scheduledAt || null,
+        createdAt: Date.now(),
+      }).$returningId();
+      return { success: true, id: inserted.id };
+    }),
+
+  publishExisting: adminProcedure
+    .input(z.object({ postId: z.number() }))
+    .mutation(async ({ input }) => {
+      const result = await publishSocialPost(input.postId);
+      return result;
+    }),
+
   deletePost: adminProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {

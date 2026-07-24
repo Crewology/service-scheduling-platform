@@ -2171,3 +2171,9 @@
 - [x] Social Media tab added to AdminDashboard.tsx
 - [x] Unit tests: social-media.test.ts (4 tests passing)
 - [ ] User to add API credentials (FACEBOOK_PAGE_ACCESS_TOKEN, FACEBOOK_PAGE_ID, INSTAGRAM_BUSINESS_ACCOUNT_ID, LINKEDIN_ACCESS_TOKEN, LINKEDIN_ORGANIZATION_ID)
+
+## Social Media - Create Post Button
+- [x] Add "Create Post" button to Social Media admin tab
+- [x] Create post form dialog with content textarea, platform checkboxes, and optional schedule
+- [x] Add tRPC endpoint for manually creating/scheduling posts
+- [x] Add "Publish" button on draft/scheduled posts to publish them on demand
