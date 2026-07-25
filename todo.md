@@ -2177,3 +2177,9 @@
 - [x] Create post form dialog with content textarea, platform checkboxes, and optional schedule
 - [x] Add tRPC endpoint for manually creating/scheduling posts
 - [x] Add "Publish" button on draft/scheduled posts to publish them on demand
+
+## Admin Users - Cleanup & Bulk Delete
+- [x] Audit database to identify test/clutter accounts vs real providers
+- [x] Remove test/clutter accounts (keep real providers with real emails) — 1,212 clutter accounts deleted
+- [x] Add bulk select/delete functionality to admin Users panel (checkboxes + Delete Selected button + confirmation dialog)
+- [x] Keep OlogyCrew Official profile as example under all categories

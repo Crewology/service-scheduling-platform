@@ -627,4 +627,42 @@ export const adminRouter = router({
       });
       return { success: true, message: `User ${targetUser.name} has been deleted` };
     }),
+
+  // Bulk delete users (super admin only)
+  bulkDeleteUsers: superAdminProcedure
+    .input(z.object({ userIds: z.array(z.number()).min(1).max(100) }))
+    .mutation(async ({ input, ctx }) => {
+      const { userIds } = input;
+      // Prevent deleting yourself
+      if (userIds.includes(ctx.user.id)) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "You cannot delete your own account" });
+      }
+      // Prevent deleting super admins
+      const users = await Promise.all(userIds.map(id => db.getUserById(id)));
+      const superAdmins = users.filter(u => u && u.role === "admin" && (u as any).adminRole === "super_admin");
+      if (superAdmins.length > 0) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Cannot delete super admin accounts. Demote them first." });
+      }
+      // Perform cascading delete for each user
+      const { deleteUserCascade } = await import("./db/deleteUser");
+      let deleted = 0;
+      for (const userId of userIds) {
+        try {
+          await deleteUserCascade(userId);
+          deleted++;
+        } catch (e) {
+          // Skip users that fail (may already be deleted)
+          console.error(`Failed to delete user ${userId}:`, e);
+        }
+      }
+      // Create audit entry
+      await createAuditEntry({
+        action: "bulk_delete_users",
+        actorId: ctx.user.id,
+        targetId: userIds[0],
+        targetType: "user",
+        details: { count: deleted, userIds },
+      });
+      return { success: true, deleted, message: `${deleted} user(s) deleted successfully` };
+    }),
 });

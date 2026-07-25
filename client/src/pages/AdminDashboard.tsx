@@ -2415,7 +2415,48 @@ function UsersFilterPanel({ suspendUser, unsuspendUser }: { suspendUser: any; un
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [userPage, setUserPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const utils = trpc.useUtils();
+
+  const bulkDelete = trpc.admin.bulkDeleteUsers.useMutation({
+    onSuccess: (data: any) => {
+      toast.success(data.message);
+      setSelectedIds(new Set());
+      setShowDeleteConfirm(false);
+      utils.admin.searchUsersFiltered.invalidate();
+      utils.admin.listUsers.invalidate();
+      utils.admin.getStats.invalidate();
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const toggleSelect = (id: number) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = (users: any[]) => {
+    const nonAdminUsers = users.filter((u: any) => u.role !== "admin");
+    const allSelected = nonAdminUsers.every((u: any) => selectedIds.has(u.id));
+    if (allSelected) {
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        nonAdminUsers.forEach((u: any) => next.delete(u.id));
+        return next;
+      });
+    } else {
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        nonAdminUsers.forEach((u: any) => next.add(u.id));
+        return next;
+      });
+    }
+  };
 
   const { data: filteredUsers, isLoading } = trpc.admin.searchUsersFiltered.useQuery({
     query: userSearch || undefined,
@@ -2442,12 +2483,25 @@ function UsersFilterPanel({ suspendUser, unsuspendUser }: { suspendUser: any; un
             <CardTitle>User Management</CardTitle>
             <CardDescription>Search, filter, and manage all platform users. Click a user to view their full profile.</CardDescription>
           </div>
-          {hasFilters && (
-            <Button variant="outline" size="sm" onClick={clearFilters}>
-              <XCircle className="h-3.5 w-3.5 mr-1" />
-              Clear All
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {selectedIds.size > 0 && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setShowDeleteConfirm(true)}
+                disabled={bulkDelete.isPending}
+              >
+                <Trash2 className="h-3.5 w-3.5 mr-1" />
+                Delete {selectedIds.size} Selected
+              </Button>
+            )}
+            {hasFilters && (
+              <Button variant="outline" size="sm" onClick={clearFilters}>
+                <XCircle className="h-3.5 w-3.5 mr-1" />
+                Clear All
+              </Button>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -2507,6 +2561,14 @@ function UsersFilterPanel({ suspendUser, unsuspendUser }: { suspendUser: any; un
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-10">
+                      <input
+                        type="checkbox"
+                        className="rounded border-gray-300"
+                        checked={filteredUsers.users.filter((u: any) => u.role !== "admin").length > 0 && filteredUsers.users.filter((u: any) => u.role !== "admin").every((u: any) => selectedIds.has(u.id))}
+                        onChange={() => toggleSelectAll(filteredUsers.users)}
+                      />
+                    </TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Role</TableHead>
@@ -2517,7 +2579,18 @@ function UsersFilterPanel({ suspendUser, unsuspendUser }: { suspendUser: any; un
                 </TableHeader>
                 <TableBody>
                   {filteredUsers.users.map((u: any) => (
-                    <TableRow key={u.id} className="cursor-pointer hover:bg-muted/50">
+                    <TableRow key={u.id} className={`cursor-pointer hover:bg-muted/50 ${selectedIds.has(u.id) ? 'bg-muted/30' : ''}`}>
+                      <TableCell>
+                        {u.role !== "admin" && (
+                          <input
+                            type="checkbox"
+                            className="rounded border-gray-300"
+                            checked={selectedIds.has(u.id)}
+                            onChange={() => toggleSelect(u.id)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        )}
+                      </TableCell>
                       <TableCell className="font-medium">
                         <Link href={`/admin/users/${u.id}`} className="flex items-center gap-2 text-primary hover:underline">
                           <Avatar className="h-8 w-8">
@@ -2611,12 +2684,32 @@ function UsersFilterPanel({ suspendUser, unsuspendUser }: { suspendUser: any; un
             </div>
           </>
         )}
-      </CardContent>
+            </CardContent>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Bulk Delete</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to permanently delete {selectedIds.size} user(s)? This will remove all their data including bookings, reviews, messages, and provider profiles. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              onClick={() => bulkDelete.mutate({ userIds: Array.from(selectedIds) })}
+              disabled={bulkDelete.isPending}
+            >
+              {bulkDelete.isPending ? "Deleting..." : `Delete ${selectedIds.size} User(s)`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
-
-
 // ============================================================================
 // PARTNER REVENUE SPLIT PANEL
 // ============================================================================
