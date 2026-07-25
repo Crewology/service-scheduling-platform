@@ -59,7 +59,7 @@ async function postToInstagram(content: string): Promise<{ success: boolean; pos
     return { success: false, error: "Instagram credentials not configured" };
   }
   try {
-    const brandImageUrl = "https://ologycrew.com/og-image.png";
+    const brandImageUrl = "https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/social-media/ologycrew-logo.png";
     const containerResponse = await fetch(`https://graph.facebook.com/v19.0/${ENV.instagramBusinessAccountId}/media`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
