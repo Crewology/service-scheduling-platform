@@ -2183,3 +2183,7 @@
 - [x] Remove test/clutter accounts (keep real providers with real emails) — 1,212 clutter accounts deleted
 - [x] Add bulk select/delete functionality to admin Users panel (checkboxes + Delete Selected button + confirmation dialog)
 - [x] Keep OlogyCrew Official profile as example under all categories
+
+## Admin Users - Pagination Jump-to-Page
+- [x] Add page number input field to admin Users pagination
+- [x] Allow typing a page number and pressing Enter to jump directly to that page

@@ -2668,9 +2668,29 @@ function UsersFilterPanel({ suspendUser, unsuspendUser }: { suspendUser: any; un
                   >
                     Previous
                   </Button>
-                  <span className="text-sm text-muted-foreground px-2">
-                    Page {filteredUsers.page} of {filteredUsers.totalPages}
-                  </span>
+                  <span className="text-sm text-muted-foreground px-2">Page</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={filteredUsers.totalPages}
+                    value={userPage}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value);
+                      if (!isNaN(val) && val >= 1 && val <= filteredUsers.totalPages) {
+                        setUserPage(val);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const val = parseInt((e.target as HTMLInputElement).value);
+                        if (!isNaN(val) && val >= 1 && val <= filteredUsers.totalPages) {
+                          setUserPage(val);
+                        }
+                      }
+                    }}
+                    className="w-14 h-8 text-center text-sm border rounded-md bg-background"
+                  />
+                  <span className="text-sm text-muted-foreground">of {filteredUsers.totalPages}</span>
                   <Button
                     variant="outline"
                     size="sm"
