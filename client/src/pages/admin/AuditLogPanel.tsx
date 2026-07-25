@@ -181,7 +181,7 @@ export function AuditLogPanel() {
                 <p className="text-sm text-muted-foreground">
                   Showing {((page - 1) * 50) + 1}–{Math.min(page * 50, data.total)} of {data.total} entries
                 </p>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
@@ -191,6 +191,29 @@ export function AuditLogPanel() {
                     <ChevronLeft className="h-4 w-4" />
                     Previous
                   </Button>
+                  <span className="text-sm text-muted-foreground">Page</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={data.totalPages}
+                    value={page}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value);
+                      if (!isNaN(val) && val >= 1 && val <= data.totalPages) {
+                        setPage(val);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const val = parseInt((e.target as HTMLInputElement).value);
+                        if (!isNaN(val) && val >= 1 && val <= data.totalPages) {
+                          setPage(val);
+                        }
+                      }
+                    }}
+                    className="w-14 h-8 text-center text-sm border rounded-md bg-background"
+                  />
+                  <span className="text-sm text-muted-foreground">of {data.totalPages}</span>
                   <Button
                     variant="outline"
                     size="sm"

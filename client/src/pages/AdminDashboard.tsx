@@ -2385,9 +2385,29 @@ function ProvidersFilterPanel({ verifyProvider, rejectProvider, toggleProviderAc
                   >
                     Previous
                   </Button>
-                  <span className="text-sm text-muted-foreground px-2">
-                    Page {filteredProviders.page} of {filteredProviders.totalPages}
-                  </span>
+                  <span className="text-sm text-muted-foreground px-2">Page</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={filteredProviders.totalPages}
+                    value={providerPage}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value);
+                      if (!isNaN(val) && val >= 1 && val <= filteredProviders.totalPages) {
+                        setProviderPage(val);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const val = parseInt((e.target as HTMLInputElement).value);
+                        if (!isNaN(val) && val >= 1 && val <= filteredProviders.totalPages) {
+                          setProviderPage(val);
+                        }
+                      }
+                    }}
+                    className="w-14 h-8 text-center text-sm border rounded-md bg-background"
+                  />
+                  <span className="text-sm text-muted-foreground">of {filteredProviders.totalPages}</span>
                   <Button
                     variant="outline"
                     size="sm"

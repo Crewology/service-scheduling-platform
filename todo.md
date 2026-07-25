@@ -2187,3 +2187,8 @@
 ## Admin Users - Pagination Jump-to-Page
 - [x] Add page number input field to admin Users pagination
 - [x] Allow typing a page number and pressing Enter to jump directly to that page
+
+## Admin Pages - Pagination Jump-to-Page (All Lists)
+- [x] Add page number input to Providers list pagination
+- [x] Add page number input to Customers list pagination (customers are filtered within the Users tab — already done)
+- [x] Add page number input to Audit Log pagination
