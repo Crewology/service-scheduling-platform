@@ -165,7 +165,18 @@ export async function publishSocialPost(postId?: number): Promise<{ success: boo
   return { success: anySuccess, results };
 }
 
-export async function previewSocialPost(): Promise<{ content: string; postType: string; categoryName?: string }> {
+export async function previewSocialPost(): Promise<{ content: string; postType: string; categoryName?: string; postId: number }> {
   const generated = await generateSocialPost();
-  return { content: generated.content, postType: generated.postType, categoryName: generated.categoryName };
+  // Save as draft in the database so it persists across refreshes
+  const db = await requireDb();
+  const [inserted] = await db.insert(socialPosts).values({
+    content: generated.content,
+    postType: generated.postType,
+    categoryId: generated.categoryId || null,
+    categoryName: generated.categoryName || null,
+    platforms: ["facebook", "instagram", "linkedin"],
+    status: "draft",
+    createdAt: Date.now(),
+  }).$returningId();
+  return { content: generated.content, postType: generated.postType, categoryName: generated.categoryName, postId: inserted.id };
 }

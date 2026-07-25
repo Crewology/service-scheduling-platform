@@ -21,7 +21,10 @@ export default function AdminSocialMedia() {
 
   const { data: posts, refetch, isLoading } = trpc.socialMedia.listPosts.useQuery();
   const previewMutation = trpc.socialMedia.previewPost.useMutation({
-    onSuccess: (data) => setPreviewContent(data),
+    onSuccess: (data) => {
+      setPreviewContent(data);
+      refetch();
+    },
     onError: (err) => toast.error(err.message),
   });
   const publishMutation = trpc.socialMedia.publishPost.useMutation({
