@@ -82,10 +82,26 @@ async function postToInstagram(content: string): Promise<{ success: boolean; pos
 }
 
 async function postToLinkedIn(content: string): Promise<{ success: boolean; postId?: string; error?: string }> {
-  if (!ENV.linkedinAccessToken || !ENV.linkedinOrganizationId) {
+  if (!ENV.linkedinAccessToken) {
     return { success: false, error: "LinkedIn credentials not configured" };
   }
   try {
+    // First get the person URN from the token
+    const meRes = await fetch("https://api.linkedin.com/v2/userinfo", {
+      headers: { "Authorization": `Bearer ${ENV.linkedinAccessToken}` },
+    });
+    if (!meRes.ok) {
+      return { success: false, error: `LinkedIn auth failed: ${meRes.status}` };
+    }
+    const meData = await meRes.json() as any;
+    const personUrn = `urn:li:person:${meData.sub}`;
+
+    // Post as personal profile (w_member_social)
+    // If LINKEDIN_ORGANIZATION_ID is set and w_organization_social is available, use org instead
+    const author = ENV.linkedinOrganizationId
+      ? `urn:li:organization:${ENV.linkedinOrganizationId}`
+      : personUrn;
+
     const response = await fetch("https://api.linkedin.com/v2/ugcPosts", {
       method: "POST",
       headers: {
@@ -94,7 +110,7 @@ async function postToLinkedIn(content: string): Promise<{ success: boolean; post
         "X-Restli-Protocol-Version": "2.0.0",
       },
       body: JSON.stringify({
-        author: `urn:li:organization:${ENV.linkedinOrganizationId}`,
+        author: personUrn,
         lifecycleState: "PUBLISHED",
         specificContent: { "com.linkedin.ugc.ShareContent": { shareCommentary: { text: content }, shareMediaCategory: "NONE" } },
         visibility: { "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC" },
