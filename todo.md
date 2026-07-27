@@ -2255,3 +2255,5 @@
 - [x] Redirect users to OlogyCrew landing page (/) after login for both customer and provider
 - [x] Make all back arrow buttons navigate to previous page (history.back) instead of hardcoded routes (16 pages fixed)
 - [x] Change all button text/icon rollover colors to white when the background color changes on hover
+- [x] Create standalone Reviews page for customers (view reviews they've written) - /my-reviews
+- [x] Ensure provider Reviews page is accessible as standalone page from landing tile - /provider/reviews tile added

@@ -33,6 +33,7 @@ const PROVIDER_TILES: LaunchpadTile[] = [
   { label: "My Page", icon: <UserCircle className="h-7 w-7" />, href: "/provider/dashboard?tab=page", color: "bg-teal-100", iconColor: "text-teal-600" },
   { label: "Invoices", icon: <FileText className="h-7 w-7" />, href: "/provider/invoices", color: "bg-orange-100", iconColor: "text-orange-600" },
   { label: "Widgets", icon: <Grid3X3 className="h-7 w-7" />, href: "/provider/widgets", color: "bg-rose-100", iconColor: "text-rose-600" },
+  { label: "Reviews", icon: <Star className="h-7 w-7" />, href: "/provider/reviews", color: "bg-teal-100", iconColor: "text-teal-600" },
   { label: "Settings", icon: <Settings className="h-7 w-7" />, href: "/profile", color: "bg-slate-100", iconColor: "text-slate-600" },
 ];
 
@@ -47,7 +48,7 @@ const CUSTOMER_TILES: LaunchpadTile[] = [
   { label: "Waitlist", icon: <Clock className="h-7 w-7" />, href: "/my-waitlist", color: "bg-amber-100", iconColor: "text-amber-600" },
   { label: "Referrals", icon: <Gift className="h-7 w-7" />, href: "/referral-program", color: "bg-emerald-100", iconColor: "text-emerald-600" },
   { label: "Alerts", icon: <Bell className="h-7 w-7" />, href: "/notifications", color: "bg-orange-100", iconColor: "text-orange-600" },
-  { label: "Reviews", icon: <Star className="h-7 w-7" />, href: "/my-bookings", color: "bg-teal-100", iconColor: "text-teal-600" },
+  { label: "Reviews", icon: <Star className="h-7 w-7" />, href: "/my-reviews", color: "bg-teal-100", iconColor: "text-teal-600" },
   { label: "Receipts", icon: <CreditCard className="h-7 w-7" />, href: "/receipts", color: "bg-orange-100", iconColor: "text-orange-600" },
   { label: "Plans", icon: <ShieldCheck className="h-7 w-7" />, href: "/pricing", color: "bg-rose-100", iconColor: "text-rose-600" },
   { label: "Settings", icon: <Settings className="h-7 w-7" />, href: "/profile", color: "bg-slate-100", iconColor: "text-slate-600" },

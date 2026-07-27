@@ -29,7 +29,19 @@ export async function getReviewsByProvider(providerId: number) {
 export async function getReviewsByCustomer(customerId: number) {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(reviews)
+  return await db.select({
+    id: reviews.id,
+    bookingId: reviews.bookingId,
+    customerId: reviews.customerId,
+    providerId: reviews.providerId,
+    rating: reviews.rating,
+    reviewText: reviews.reviewText,
+    responseText: reviews.responseText,
+    respondedAt: reviews.respondedAt,
+    createdAt: reviews.createdAt,
+    providerName: serviceProviders.businessName,
+  }).from(reviews)
+    .innerJoin(serviceProviders, eq(reviews.providerId, serviceProviders.id))
     .where(eq(reviews.customerId, customerId))
     .orderBy(desc(reviews.createdAt));
 }

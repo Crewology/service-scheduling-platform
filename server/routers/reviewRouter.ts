@@ -4,6 +4,11 @@ import * as db from "../db";
 import { TRPCError } from "@trpc/server";
 
 export const reviewRouter = router({
+  listByCustomer: protectedProcedure
+    .query(async ({ ctx }) => {
+      return await db.getReviewsByCustomer(ctx.user.id);
+    }),
+
   listByProvider: publicProcedure
     .input(z.object({ 
       providerId: z.number(),

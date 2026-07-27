@@ -68,6 +68,7 @@ import AccountSubscription from "./pages/AccountSubscription";
 
 // Reviews
 import SubmitReview from "./pages/SubmitReview";
+import CustomerReviews from "./pages/CustomerReviews";
 
 // Embed / external
 import EmbedBooking from "./pages/EmbedBooking";
@@ -121,6 +122,7 @@ function Router() {
       <Route path="/admin/users/:id" component={UserDetailPage} />
       <Route path="/admin/email-preview" component={EmailPreview} />
       <Route path="/booking/:id/review" component={SubmitReview} />
+      <Route path="/my-reviews" component={CustomerReviews} />
       <Route path="/provider/reviews" component={ProviderReviews} />
       <Route path="/profile" component={UserProfile} />
       <Route path="/p/:slug" component={PublicProviderProfile} />

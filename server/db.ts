@@ -278,3 +278,8 @@ export {
   updateEstimateSettings,
   updateEmergencyService,
 } from "./db/providers";
+
+// Reviews (domain file)
+export {
+  getReviewsByCustomer,
+} from "./db/reviews";
