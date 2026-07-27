@@ -50,6 +50,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { toast } from "sonner";
 import { TrustBadge } from "@/components/TrustBadge";
+import { PaymentMethods } from "@/components/PaymentMethods";
 
 function formatCurrency(value: string | number | null | undefined): string {
   const num = typeof value === "string" ? parseFloat(value) : (value ?? 0);
@@ -442,27 +443,29 @@ export default function PublicProviderProfile() {
               </span>
               Welcome to the Demo Experience!
             </DialogTitle>
-            <DialogDescription className="text-left space-y-3 pt-2">
-              <p className="text-sm text-foreground/80">
-                This is a <strong>risk-free way to test the booking process</strong> on OlogyCrew. You can:
-              </p>
-              <ul className="text-sm text-muted-foreground space-y-2 pl-1">
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
-                  <span>Browse and book any demo service completely free</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
-                  <span>Experience the full booking flow without entering payment info</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
-                  <span>Cancel demo bookings anytime with one click</span>
-                </li>
-              </ul>
-              <p className="text-xs text-muted-foreground pt-1">
-                No credit card needed. No charges. Just a preview of how easy it is to book real services.
-              </p>
+            <DialogDescription asChild>
+              <div className="text-left space-y-3 pt-2">
+                <p className="text-sm text-foreground/80">
+                  This is a <strong>risk-free way to test the booking process</strong> on OlogyCrew. You can:
+                </p>
+                <ul className="text-sm text-muted-foreground space-y-2 pl-1">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
+                    <span>Browse and book any demo service completely free</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
+                    <span>Experience the full booking flow without entering payment info</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
+                    <span>Cancel demo bookings anytime with one click</span>
+                  </li>
+                </ul>
+                <p className="text-xs text-muted-foreground pt-1">
+                  No credit card needed. No charges. Just a preview of how easy it is to book real services.
+                </p>
+              </div>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-col sm:flex-row gap-2">
@@ -982,6 +985,9 @@ export default function PublicProviderProfile() {
                     >
                       <FileText className="w-4 h-4 mr-2" /> Request a Quote
                     </Button>
+                    {!provider.isOfficial && (
+                      <PaymentMethods size="sm" showSecure={false} className="mt-1" />
+                    )}
                     <Button 
                       variant="outline" 
                       className="w-full"

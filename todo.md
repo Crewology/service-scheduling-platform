@@ -2229,3 +2229,10 @@
 
 ## Bug Fix
 - [x] Fix "Rendered more hooks than during the previous render" error on PublicProviderProfile (moved useEffect before early returns)
+
+## Payment Method Icons Display
+- [x] Create reusable PaymentMethods component with Visa, Mastercard, Amex, Apple Pay, Google Pay, Link icons
+- [x] Add payment icons to Service Detail page near booking/price area
+- [x] Add payment icons to Provider profile page near Book Now area
+- [x] Add payment icons to booking confirmation step
+- [x] Add payment icons to site Footer

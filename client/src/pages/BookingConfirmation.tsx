@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,7 @@ import { formatTimeForDisplay } from "@shared/timeSlots";
 import { toast } from "sonner";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { formatPrice } from "@shared/formatPrice";
+import { PaymentMethods } from "@/components/PaymentMethods";
 
 function ShareReferralLink() {
   const { data: myCode } = trpc.referral.getMyCode.useQuery();
@@ -452,6 +454,9 @@ export default function BookingConfirmation() {
                 Payment will be processed after provider confirms the booking.
               </p>
             )}
+
+            <Separator className="my-3" />
+            <PaymentMethods size="sm" className="mt-2" />
           </CardContent>
         </Card>
         )}

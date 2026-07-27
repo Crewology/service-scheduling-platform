@@ -22,6 +22,7 @@ import { NavHeader } from "@/components/shared/NavHeader";
 import { ShareProfile } from "@/components/ShareProfile";
 import { HelpTip, HelpBanner } from "@/components/shared/HelpTip";
 import { formatPrice } from "@shared/formatPrice";
+import { PaymentMethods } from "@/components/PaymentMethods";
 
 
 type BookingStep = "date" | "time" | "details" | "confirm";
@@ -936,6 +937,10 @@ export default function ServiceDetail() {
                     </div>
                   </div>
                 </div>
+
+                {!(provider as any)?.isOfficial && (
+                  <PaymentMethods size="sm" className="mt-2" />
+                )}
 
                 {service.depositRequired && (
                   <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 p-4 rounded-lg">

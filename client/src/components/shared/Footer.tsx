@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { Download } from "lucide-react";
 import { usePWAInstallContext } from "@/contexts/PWAInstallContext";
+import { PaymentMethods } from "@/components/PaymentMethods";
 
 export function Footer() {
   const { isInstalled: pwaInstalled, triggerInstall: pwaInstall } = usePWAInstallContext();
@@ -55,7 +56,13 @@ export function Footer() {
             </ul>
           </div>
         </div>
-        <div className="border-t border-background/20 pt-8 text-center text-sm opacity-80">
+        <div className="border-t border-background/20 pt-6 pb-4">
+          <div className="flex flex-col items-center gap-3">
+            <p className="text-xs opacity-70">We Accept</p>
+            <PaymentMethods size="sm" showLabel={false} showSecure={false} />
+          </div>
+        </div>
+        <div className="border-t border-background/20 pt-4 text-center text-sm opacity-80">
           <p>&copy; 2026 OlogyCrew. All rights reserved.</p>
         </div>
       </div>
