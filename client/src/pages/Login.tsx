@@ -23,12 +23,11 @@ export default function Login() {
         setLocation("/verify-email");
       } else if (!user.hasSelectedRole) {
         setLocation("/select-role");
-      } else if (user.role === "provider") {
-        setLocation("/provider/dashboard");
-      } else if (user.role === "customer") {
-        setLocation("/browse");
       } else if (user.role === "admin") {
         setLocation("/admin");
+      } else {
+        // Both customers and providers go to OlogyCrew landing page
+        setLocation("/");
       }
     }
   }, [user, setLocation]);
@@ -67,13 +66,10 @@ export default function Login() {
         window.location.href = "/verify-email";
       } else if (!data.user.hasSelectedRole) {
         window.location.href = "/select-role";
-      } else if (data.user.role === "provider") {
-        window.location.href = "/provider/dashboard";
-      } else if (data.user.role === "customer") {
-        window.location.href = "/browse";
       } else if (data.user.role === "admin") {
         window.location.href = "/admin";
       } else {
+        // Both customers and providers go to OlogyCrew landing page
         window.location.href = "/";
       }
     } catch {

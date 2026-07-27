@@ -339,12 +339,11 @@ router.get("/api/auth/google/callback", async (req: Request, res: Response) => {
       redirectPath = "/verify-email";
     } else if (!user.hasSelectedRole) {
       redirectPath = "/select-role";
-    } else if (user.role === "provider") {
-      redirectPath = "/provider/dashboard";
-    } else if (user.role === "customer") {
-      redirectPath = "/browse";
     } else if (user.role === "admin") {
       redirectPath = "/admin";
+    } else {
+      // Both customers and providers go to OlogyCrew landing page
+      redirectPath = "/";
     }
 
     return res.redirect(302, redirectPath);

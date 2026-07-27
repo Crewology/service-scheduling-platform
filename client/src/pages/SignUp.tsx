@@ -70,12 +70,11 @@ export default function SignUp() {
         setLocation("/verify-email");
       } else if (!user.hasSelectedRole) {
         setLocation("/select-role");
-      } else if (user.role === "provider") {
-        setLocation("/provider/dashboard");
-      } else if (user.role === "customer") {
-        setLocation("/browse");
       } else if (user.role === "admin") {
         setLocation("/admin");
+      } else {
+        // Both customers and providers go to OlogyCrew landing page
+        setLocation("/");
       }
     }
   }, [user, setLocation]);

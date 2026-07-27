@@ -55,15 +55,12 @@ export function registerOAuthRoutes(app: Express) {
         } else if (!user.hasSelectedRole) {
           // New user — send to role selection
           redirectPath = "/select-role";
-        } else if (user.role === "provider") {
-          // Returning provider — send to dashboard
-          redirectPath = "/provider/dashboard";
-        } else if (user.role === "customer") {
-          // Returning customer — send to browse
-          redirectPath = "/browse";
         } else if (user.role === "admin") {
           // Admin — send to admin dashboard
           redirectPath = "/admin";
+        } else {
+          // Both customers and providers — send to OlogyCrew landing page
+          redirectPath = "/";
         }
       }
 

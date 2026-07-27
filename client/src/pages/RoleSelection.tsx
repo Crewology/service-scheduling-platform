@@ -32,7 +32,8 @@ export default function RoleSelection() {
       if (data.role === "provider") {
         setLocation("/provider/onboarding");
       } else {
-        setLocation("/browse");
+        // Customer goes to OlogyCrew landing page
+        setLocation("/");
       }
       toast.success(
         data.role === "provider"
