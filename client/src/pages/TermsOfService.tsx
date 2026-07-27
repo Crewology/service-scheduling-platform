@@ -25,7 +25,7 @@ export default function TermsOfService() {
           <section>
             <h2 className="text-xl font-semibold mt-8 mb-3">2. Description of Service</h2>
             <p className="text-muted-foreground leading-relaxed">
-              OlogyCrew is a service scheduling platform that connects customers with service providers across 47+ categories. The platform facilitates booking, payment processing, communication, and review management between customers and providers. OlogyCrew acts as an intermediary and does not directly provide any of the listed services.
+              OlogyCrew is a service scheduling platform that connects customers with service providers across 48+ categories. The platform facilitates booking, payment processing, communication, and review management between customers and providers. OlogyCrew acts as an intermediary and does not directly provide any of the listed services.
             </p>
             <p className="text-muted-foreground leading-relaxed mt-2">
               The platform supports multiple booking types including single bookings, multi-day bookings, recurring bookings, custom duration bookings (hourly rate-based with user-selected start/end times), bulk bookings (scheduling multiple providers in one session), and calendar-based monthly planning. Services may be delivered in-person, at a provider's location, virtually (including via Microsoft Teams or Zoom), or through flexible arrangements as agreed between the parties.

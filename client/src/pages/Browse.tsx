@@ -48,7 +48,7 @@ export default function Browse() {
         <div className="container">
           <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4">Browse All Services</h1>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 md:mb-8">
-            Explore 47+ professional service categories
+            Explore 48+ professional service categories
           </p>
           
           {/* Search Bar */}

@@ -702,7 +702,7 @@ Welcome to OlogyCrew! You were referred by **${data.referrerName}**.
 
 ${data.discountPercent ? `As a referred member, you'll receive a **${data.discountPercent}% discount** on your first booking!` : 'As a referred member, you may be eligible for special discounts on your first booking.'}
 
-Browse our 47+ service categories and book your first appointment today.
+Browse our 48+ service categories and book your first appointment today.
 
 [Browse Services](/browse)
 
@@ -723,7 +723,7 @@ Hello ${data.customerName || 'there'},
 
 Welcome to **OlogyCrew**! We're thrilled to have you on board.
 
-You now have access to **47+ service categories** — from barbers and massage therapists to DJs, photographers, handymen, personal trainers, and much more. Every provider on our platform is vetted with our **Trust Score** system, so you can book with confidence.
+You now have access to **48+ service categories** — from barbers and massage therapists to DJs, photographers, handymen, personal trainers, and much more. Every provider on our platform is vetted with our **Trust Score** system, so you can book with confidence.
 
 **Here's how to get started:**
 
@@ -742,7 +742,7 @@ Welcome aboard!
 Best regards,
 The OlogyCrew Team
       `.trim(),
-      smsBody: `Welcome to OlogyCrew! Browse 47+ service categories and book your first appointment today.`,
+      smsBody: `Welcome to OlogyCrew! Browse 48+ service categories and book your first appointment today.`,
     },
 
     welcome_provider: {

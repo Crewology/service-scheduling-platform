@@ -2192,3 +2192,8 @@
 - [x] Add page number input to Providers list pagination
 - [x] Add page number input to Customers list pagination (customers are filtered within the Users tab — already done)
 - [x] Add page number input to Audit Log pagination
+
+## New Category: Studio Space Rentals
+- [x] Add "STUDIO SPACE RENTALS" category (ID: 217) in alphabetical order (sortOrder: 42)
+- [x] Update seed-categories.ts with all 48 categories in proper alphabetical order with correct sort orders
+- [x] Update all "47+" category count references to "48+" across the codebase
