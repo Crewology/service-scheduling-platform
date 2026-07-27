@@ -2257,3 +2257,4 @@
 - [x] Change all button text/icon rollover colors to white when the background color changes on hover
 - [x] Create standalone Reviews page for customers (view reviews they've written) - /my-reviews
 - [x] Ensure provider Reviews page is accessible as standalone page from landing tile - /provider/reviews tile added
+- [x] Add Dashboard, Browse, Featured, Search, Plans, and Help tiles logically to customer, provider, and admin landing pages

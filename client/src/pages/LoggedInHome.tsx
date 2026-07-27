@@ -7,7 +7,8 @@ import {
   Search, Calendar, MessageSquare, Heart, FileText, Users,
   BarChart3, CreditCard, Image, Tag, Settings, Bell,
   Grid3X3, Gift, Clock, Briefcase, Star, ShieldCheck,
-  LayoutDashboard, UserCircle, Compass, BookOpen, Rocket
+  LayoutDashboard, UserCircle, Compass, BookOpen, Rocket,
+  Award, HelpCircle
 } from "lucide-react";
 
 // Launchpad tile definition
@@ -21,6 +22,7 @@ interface LaunchpadTile {
 
 // Provider tiles
 const PROVIDER_TILES: LaunchpadTile[] = [
+  { label: "Dashboard", icon: <LayoutDashboard className="h-7 w-7" />, href: "/provider/dashboard", color: "bg-gray-100", iconColor: "text-gray-700" },
   { label: "Bookings", icon: <Calendar className="h-7 w-7" />, href: "/provider/dashboard?tab=bookings", color: "bg-blue-100", iconColor: "text-blue-600" },
   { label: "Services", icon: <Briefcase className="h-7 w-7" />, href: "/provider/dashboard?tab=services", color: "bg-purple-100", iconColor: "text-purple-600" },
   { label: "Calendar", icon: <Clock className="h-7 w-7" />, href: "/provider/availability", color: "bg-green-100", iconColor: "text-green-600" },
@@ -34,6 +36,11 @@ const PROVIDER_TILES: LaunchpadTile[] = [
   { label: "Invoices", icon: <FileText className="h-7 w-7" />, href: "/provider/invoices", color: "bg-orange-100", iconColor: "text-orange-600" },
   { label: "Widgets", icon: <Grid3X3 className="h-7 w-7" />, href: "/provider/widgets", color: "bg-rose-100", iconColor: "text-rose-600" },
   { label: "Reviews", icon: <Star className="h-7 w-7" />, href: "/provider/reviews", color: "bg-teal-100", iconColor: "text-teal-600" },
+  { label: "Browse", icon: <Compass className="h-7 w-7" />, href: "/browse", color: "bg-blue-100", iconColor: "text-blue-600" },
+  { label: "Featured", icon: <Award className="h-7 w-7" />, href: "/featured", color: "bg-yellow-100", iconColor: "text-yellow-600" },
+  { label: "Search", icon: <Search className="h-7 w-7" />, href: "/search", color: "bg-purple-100", iconColor: "text-purple-600" },
+  { label: "Plans", icon: <ShieldCheck className="h-7 w-7" />, href: "/provider/subscription", color: "bg-rose-100", iconColor: "text-rose-600" },
+  { label: "Help", icon: <HelpCircle className="h-7 w-7" />, href: "/help", color: "bg-cyan-100", iconColor: "text-cyan-600" },
   { label: "Settings", icon: <Settings className="h-7 w-7" />, href: "/profile", color: "bg-slate-100", iconColor: "text-slate-600" },
 ];
 
@@ -41,6 +48,7 @@ const PROVIDER_TILES: LaunchpadTile[] = [
 const CUSTOMER_TILES: LaunchpadTile[] = [
   { label: "Browse", icon: <Compass className="h-7 w-7" />, href: "/browse", color: "bg-blue-100", iconColor: "text-blue-600" },
   { label: "Search", icon: <Search className="h-7 w-7" />, href: "/search", color: "bg-purple-100", iconColor: "text-purple-600" },
+  { label: "Featured", icon: <Award className="h-7 w-7" />, href: "/featured", color: "bg-yellow-100", iconColor: "text-yellow-600" },
   { label: "My Bookings", icon: <BookOpen className="h-7 w-7" />, href: "/my-bookings", color: "bg-green-100", iconColor: "text-green-600" },
   { label: "Messages", icon: <MessageSquare className="h-7 w-7" />, href: "/messages", color: "bg-sky-100", iconColor: "text-sky-600" },
   { label: "Saved", icon: <Heart className="h-7 w-7" />, href: "/saved-providers", color: "bg-pink-100", iconColor: "text-pink-600" },
@@ -51,6 +59,7 @@ const CUSTOMER_TILES: LaunchpadTile[] = [
   { label: "Reviews", icon: <Star className="h-7 w-7" />, href: "/my-reviews", color: "bg-teal-100", iconColor: "text-teal-600" },
   { label: "Receipts", icon: <CreditCard className="h-7 w-7" />, href: "/receipts", color: "bg-orange-100", iconColor: "text-orange-600" },
   { label: "Plans", icon: <ShieldCheck className="h-7 w-7" />, href: "/pricing", color: "bg-rose-100", iconColor: "text-rose-600" },
+  { label: "Help", icon: <HelpCircle className="h-7 w-7" />, href: "/help", color: "bg-cyan-100", iconColor: "text-cyan-600" },
   { label: "Settings", icon: <Settings className="h-7 w-7" />, href: "/profile", color: "bg-slate-100", iconColor: "text-slate-600" },
 ];
 
@@ -58,6 +67,11 @@ const CUSTOMER_TILES: LaunchpadTile[] = [
 const ADMIN_TILES: LaunchpadTile[] = [
   { label: "Admin", icon: <LayoutDashboard className="h-7 w-7" />, href: "/admin", color: "bg-red-100", iconColor: "text-red-600" },
   { label: "Users", icon: <Users className="h-7 w-7" />, href: "/admin?tab=users", color: "bg-violet-100", iconColor: "text-violet-600" },
+  { label: "Browse", icon: <Compass className="h-7 w-7" />, href: "/browse", color: "bg-blue-100", iconColor: "text-blue-600" },
+  { label: "Featured", icon: <Award className="h-7 w-7" />, href: "/featured", color: "bg-yellow-100", iconColor: "text-yellow-600" },
+  { label: "Search", icon: <Search className="h-7 w-7" />, href: "/search", color: "bg-purple-100", iconColor: "text-purple-600" },
+  { label: "Plans", icon: <ShieldCheck className="h-7 w-7" />, href: "/pricing", color: "bg-rose-100", iconColor: "text-rose-600" },
+  { label: "Help", icon: <HelpCircle className="h-7 w-7" />, href: "/help", color: "bg-cyan-100", iconColor: "text-cyan-600" },
 ];
 
 function StatBadge({ count, label }: { count: number; label: string }) {
