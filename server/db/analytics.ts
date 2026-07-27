@@ -127,11 +127,14 @@ export async function getRefundAnalytics(providerId: number) {
 export async function getAdminBookingSourceAnalytics() {
   const db = await getDb();
   if (!db) return [];
+  // Exclude demo provider bookings from admin analytics
   return await db.select({
     source: bookings.bookingSource,
     count: sql<number>`COUNT(*)`,
     revenue: sql<number>`COALESCE(SUM(CAST(${bookings.totalAmount} AS DECIMAL(10,2))), 0)`,
-  }).from(bookings).groupBy(bookings.bookingSource);
+  }).from(bookings)
+    .where(sql`${bookings.providerId} NOT IN (SELECT id FROM service_providers WHERE isOfficial = 1)`)
+    .groupBy(bookings.bookingSource);
 }
 
 // ============================================================================

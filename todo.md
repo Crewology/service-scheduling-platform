@@ -2222,3 +2222,7 @@
 
 ## Admin Cleanup: Remove Test/Seed Users
 - [x] Remove all seeded test customers and providers from database (keep only owner account and Demo - OlogyCrew)
+
+## Demo Provider: LLM Messaging & Admin Exclusion
+- [x] Verify and enhance LLM auto-reply messaging for Demo provider chat experience
+- [x] Exclude Demo provider bookings and revenue from admin dashboard statistics

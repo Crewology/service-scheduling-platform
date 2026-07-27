@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, desc, asc, sql, or, like, inArray, count, isNotNull } from "drizzle-orm";
+import { eq, ne, and, gte, lte, desc, asc, sql, or, like, inArray, count, isNotNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, 
@@ -457,11 +457,13 @@ export async function getAllBookings() {
   const db = await getDb();
   if (!db) return [];
 
+  // Exclude demo provider bookings from admin list
   const results = await db.select({
     booking: bookings,
     serviceName: services.name,
   }).from(bookings)
     .leftJoin(services, eq(bookings.serviceId, services.id))
+    .where(sql`${bookings.providerId} NOT IN (SELECT id FROM service_providers WHERE isOfficial = 1)`)
     .orderBy(bookings.createdAt).limit(100);
   
   return results.map(r => ({
@@ -815,10 +817,10 @@ export async function getAdminStats() {
     db.select({ count: sql<number>`COUNT(*)` }).from(users).where(gte(users.createdAt, firstOfMonth)),
     db.select({ count: sql<number>`COUNT(*)` }).from(serviceProviders),
     db.select({ count: sql<number>`COUNT(*)` }).from(serviceProviders).where(eq(serviceProviders.verificationStatus, "pending")),
-    db.select({ count: sql<number>`COUNT(*)` }).from(bookings),
-    db.select({ count: sql<number>`COUNT(*)` }).from(bookings).where(gte(bookings.createdAt, firstOfMonth)),
-    db.select({ total: sql<number>`COALESCE(SUM(CAST(${bookings.totalAmount} AS DECIMAL(10,2))), 0)` }).from(bookings).where(eq(bookings.status, "completed" as any)),
-    db.select({ total: sql<number>`COALESCE(SUM(CAST(${bookings.totalAmount} AS DECIMAL(10,2))), 0)` }).from(bookings).where(and(eq(bookings.status, "completed" as any), gte(bookings.createdAt, firstOfMonth))),
+    db.select({ count: sql<number>`COUNT(*)` }).from(bookings).where(sql`${bookings.providerId} NOT IN (SELECT id FROM service_providers WHERE isOfficial = 1)`),
+    db.select({ count: sql<number>`COUNT(*)` }).from(bookings).where(and(gte(bookings.createdAt, firstOfMonth), sql`${bookings.providerId} NOT IN (SELECT id FROM service_providers WHERE isOfficial = 1)`)),
+    db.select({ total: sql<number>`COALESCE(SUM(CAST(${bookings.totalAmount} AS DECIMAL(10,2))), 0)` }).from(bookings).where(and(eq(bookings.status, "completed" as any), sql`${bookings.providerId} NOT IN (SELECT id FROM service_providers WHERE isOfficial = 1)`)),
+    db.select({ total: sql<number>`COALESCE(SUM(CAST(${bookings.totalAmount} AS DECIMAL(10,2))), 0)` }).from(bookings).where(and(eq(bookings.status, "completed" as any), gte(bookings.createdAt, firstOfMonth), sql`${bookings.providerId} NOT IN (SELECT id FROM service_providers WHERE isOfficial = 1)`)),
     db.select({ count: sql<number>`COUNT(*)` }).from(bulkBookingDrafts),
     db.select({ count: sql<number>`COUNT(*)` }).from(bulkBookingDrafts).where(gte(bulkBookingDrafts.createdAt, firstOfMonth)),
   ]);

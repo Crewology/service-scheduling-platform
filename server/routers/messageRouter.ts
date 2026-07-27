@@ -77,6 +77,18 @@ async function triggerDemoAutoReply(
       });
     } catch {}
 
+    // Push real-time SSE message notification so chat updates instantly
+    try {
+      const { sseManager } = await import("../sseManager");
+      sseManager.pushMessageNotification(senderId, {
+        conversationId,
+        senderId: recipientId,
+        senderName: "Demo - OlogyCrew",
+        messagePreview: replyText.length > 100 ? replyText.slice(0, 100) + "..." : replyText,
+        bookingId,
+      });
+    } catch {}
+
     // Push notification for the auto-reply
     await pushMessageNotifications(
       recipientId,
