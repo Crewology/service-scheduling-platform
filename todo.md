@@ -2271,3 +2271,4 @@
 - [x] Create standalone /provider/quotes page (instead of dashboard?tab=bookings for quotes)
 - [x] Create standalone /provider/my-page page (instead of dashboard?tab=page)
 - [x] Update all tile hrefs in LoggedInHome and NavHeader mobile menu
+- [x] Create a proper standalone My Page (/provider/my-page) instead of redirecting to dashboard tab

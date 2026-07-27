@@ -55,7 +55,8 @@ import BookingAnalytics from "./pages/BookingAnalytics";
 import Promotions from "./pages/Promotions";
 import Invoices from "./pages/Invoices";
 import Receipts from "./pages/Receipts";
-import { ProviderBookings, ProviderServices, ProviderAnalytics, ProviderPayouts, ProviderPortfolio, ProviderQuotes, ProviderMyPage } from "./pages/ProviderTabPage";
+import { ProviderBookings, ProviderServices, ProviderAnalytics, ProviderPayouts, ProviderPortfolio, ProviderQuotes } from "./pages/ProviderTabPage";
+import ProviderMyPage from "./pages/ProviderMyPage";
 
 // User features
 import UserProfile from "./pages/UserProfile";

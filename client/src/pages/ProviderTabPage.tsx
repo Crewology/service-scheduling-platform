@@ -55,10 +55,3 @@ export function ProviderQuotes() {
   return null;
 }
 
-export function ProviderMyPage() {
-  const [, setLocation] = useLocation();
-  useEffect(() => {
-    setLocation("/provider/dashboard?tab=my-page", { replace: true });
-  }, [setLocation]);
-  return null;
-}
