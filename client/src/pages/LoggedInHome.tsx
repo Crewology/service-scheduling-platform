@@ -131,8 +131,8 @@ export default function LoggedInHome() {
 
         {/* Launchpad Grid */}
         <div className="grid grid-cols-4 sm:grid-cols-4 gap-4 sm:gap-6">
-          {allTiles.map((tile) => (
-            <Link key={tile.label} href={tile.href}>
+          {allTiles.map((tile, index) => (
+            <Link key={`${tile.label}-${tile.href}`} href={tile.href}>
               <div className="flex flex-col items-center gap-2 group cursor-pointer">
                 <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl ${tile.color} flex items-center justify-center transition-transform group-hover:scale-105 group-active:scale-95 shadow-sm`}>
                   <span className={tile.iconColor}>{tile.icon}</span>

@@ -2258,3 +2258,4 @@
 - [x] Create standalone Reviews page for customers (view reviews they've written) - /my-reviews
 - [x] Ensure provider Reviews page is accessible as standalone page from landing tile - /provider/reviews tile added
 - [x] Add Dashboard, Browse, Featured, Search, Plans, and Help tiles logically to customer, provider, and admin landing pages
+- [x] Fix duplicate React key errors on landing page when admin tiles merge with provider/customer tiles
