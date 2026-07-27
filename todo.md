@@ -2261,3 +2261,13 @@
 - [x] Fix duplicate React key errors on landing page when admin tiles merge with provider/customer tiles
 - [x] Make navigation tiles consistent across all user landing pages and mobile hamburger menus (same icons, colors, order)
 - [x] Remove category text headers (Discover, My Account, Provider) from hamburger menu tiles on mobile
+
+## UX: All Tiles Link to Individual Pages
+- [x] Create standalone /provider/bookings page (instead of dashboard?tab=bookings)
+- [x] Create standalone /provider/services page (instead of dashboard?tab=services)
+- [x] Create standalone /provider/analytics page (instead of dashboard?tab=analytics)
+- [x] Create standalone /provider/payouts page (instead of dashboard?tab=payments)
+- [x] Create standalone /provider/portfolio page (instead of dashboard?tab=services for portfolio)
+- [x] Create standalone /provider/quotes page (instead of dashboard?tab=bookings for quotes)
+- [x] Create standalone /provider/my-page page (instead of dashboard?tab=page)
+- [x] Update all tile hrefs in LoggedInHome and NavHeader mobile menu

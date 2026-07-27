@@ -55,6 +55,7 @@ import BookingAnalytics from "./pages/BookingAnalytics";
 import Promotions from "./pages/Promotions";
 import Invoices from "./pages/Invoices";
 import Receipts from "./pages/Receipts";
+import { ProviderBookings, ProviderServices, ProviderAnalytics, ProviderPayouts, ProviderPortfolio, ProviderQuotes, ProviderMyPage } from "./pages/ProviderTabPage";
 
 // User features
 import UserProfile from "./pages/UserProfile";
@@ -107,6 +108,13 @@ function Router() {
       <Route path="/search" component={Search} />
       <Route path="/category/:slug" component={CategoryDetail} />
       <Route path="/provider/dashboard" component={ProviderDashboard} />
+      <Route path="/provider/bookings" component={ProviderBookings} />
+      <Route path="/provider/services" component={ProviderServices} />
+      <Route path="/provider/analytics" component={ProviderAnalytics} />
+      <Route path="/provider/payouts" component={ProviderPayouts} />
+      <Route path="/provider/portfolio" component={ProviderPortfolio} />
+      <Route path="/provider/quotes" component={ProviderQuotes} />
+      <Route path="/provider/my-page" component={ProviderMyPage} />
       <Route path="/provider/services/new" component={CreateService} />
       <Route path="/provider/availability" component={ManageAvailability} />
       <Route path="/provider/calendar" component={ProviderCalendar} />
