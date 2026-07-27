@@ -2259,3 +2259,5 @@
 - [x] Ensure provider Reviews page is accessible as standalone page from landing tile - /provider/reviews tile added
 - [x] Add Dashboard, Browse, Featured, Search, Plans, and Help tiles logically to customer, provider, and admin landing pages
 - [x] Fix duplicate React key errors on landing page when admin tiles merge with provider/customer tiles
+- [x] Make navigation tiles consistent across all user landing pages and mobile hamburger menus (same icons, colors, order)
+- [x] Remove category text headers (Discover, My Account, Provider) from hamburger menu tiles on mobile

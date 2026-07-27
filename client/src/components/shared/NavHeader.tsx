@@ -32,6 +32,18 @@ import {
   HelpCircle,
   Clock,
   LayoutDashboard,
+  Compass,
+  Award,
+  ShieldCheck,
+  BarChart3,
+  Image,
+  Rocket,
+  UserCircle,
+  Star,
+  Tag,
+  Gift,
+  BookOpen,
+  Users,
 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -461,6 +473,95 @@ function UserMenuDropdown({ user }: { user: any }) {
   );
 }
 
+// Mobile menu tile data - matches LoggedInHome.tsx landing page tiles exactly
+const MOBILE_PROVIDER_TILES = [
+  { label: "Dashboard", icon: LayoutDashboard, href: "/provider/dashboard", color: "bg-gray-100", iconColor: "text-gray-700" },
+  { label: "Bookings", icon: Calendar, href: "/provider/dashboard?tab=bookings", color: "bg-blue-100", iconColor: "text-blue-600" },
+  { label: "Services", icon: Briefcase, href: "/provider/dashboard?tab=services", color: "bg-purple-100", iconColor: "text-purple-600" },
+  { label: "Calendar", icon: Clock, href: "/provider/availability", color: "bg-green-100", iconColor: "text-green-600" },
+  { label: "Messages", icon: MessageSquare, href: "/messages", color: "bg-sky-100", iconColor: "text-sky-600" },
+  { label: "Analytics", icon: BarChart3, href: "/provider/dashboard?tab=analytics", color: "bg-amber-100", iconColor: "text-amber-600" },
+  { label: "Payouts", icon: CreditCard, href: "/provider/dashboard?tab=payments", color: "bg-emerald-100", iconColor: "text-emerald-600" },
+  { label: "Portfolio", icon: Image, href: "/provider/dashboard?tab=services", color: "bg-pink-100", iconColor: "text-pink-600" },
+  { label: "Boost", icon: Rocket, href: "/provider/promotions", color: "bg-purple-100", iconColor: "text-purple-600" },
+  { label: "Quotes", icon: FileText, href: "/provider/dashboard?tab=bookings", color: "bg-indigo-100", iconColor: "text-indigo-600" },
+  { label: "My Page", icon: UserCircle, href: "/provider/dashboard?tab=page", color: "bg-teal-100", iconColor: "text-teal-600" },
+  { label: "Invoices", icon: FileText, href: "/provider/invoices", color: "bg-orange-100", iconColor: "text-orange-600" },
+  { label: "Widgets", icon: Grid3X3, href: "/provider/widgets", color: "bg-rose-100", iconColor: "text-rose-600" },
+  { label: "Reviews", icon: Star, href: "/provider/reviews", color: "bg-teal-100", iconColor: "text-teal-600" },
+  { label: "Browse", icon: Compass, href: "/browse", color: "bg-blue-100", iconColor: "text-blue-600" },
+  { label: "Featured", icon: Award, href: "/featured", color: "bg-yellow-100", iconColor: "text-yellow-600" },
+  { label: "Search", icon: Search, href: "/search", color: "bg-purple-100", iconColor: "text-purple-600" },
+  { label: "Plans", icon: ShieldCheck, href: "/provider/subscription", color: "bg-rose-100", iconColor: "text-rose-600" },
+  { label: "Help", icon: HelpCircle, href: "/help", color: "bg-cyan-100", iconColor: "text-cyan-600" },
+  { label: "Settings", icon: Settings, href: "/profile", color: "bg-slate-100", iconColor: "text-slate-600" },
+];
+
+const MOBILE_CUSTOMER_TILES = [
+  { label: "Browse", icon: Compass, href: "/browse", color: "bg-blue-100", iconColor: "text-blue-600" },
+  { label: "Search", icon: Search, href: "/search", color: "bg-purple-100", iconColor: "text-purple-600" },
+  { label: "Featured", icon: Award, href: "/featured", color: "bg-yellow-100", iconColor: "text-yellow-600" },
+  { label: "My Bookings", icon: BookOpen, href: "/my-bookings", color: "bg-green-100", iconColor: "text-green-600" },
+  { label: "Messages", icon: MessageSquare, href: "/messages", color: "bg-sky-100", iconColor: "text-sky-600" },
+  { label: "Saved", icon: Heart, href: "/saved-providers", color: "bg-pink-100", iconColor: "text-pink-600" },
+  { label: "Quotes", icon: FileText, href: "/my-quotes", color: "bg-indigo-100", iconColor: "text-indigo-600" },
+  { label: "Waitlist", icon: Clock, href: "/my-waitlist", color: "bg-amber-100", iconColor: "text-amber-600" },
+  { label: "Referrals", icon: Gift, href: "/referral-program", color: "bg-emerald-100", iconColor: "text-emerald-600" },
+  { label: "Alerts", icon: Bell, href: "/notifications", color: "bg-orange-100", iconColor: "text-orange-600" },
+  { label: "Reviews", icon: Star, href: "/my-reviews", color: "bg-teal-100", iconColor: "text-teal-600" },
+  { label: "Receipts", icon: CreditCard, href: "/receipts", color: "bg-orange-100", iconColor: "text-orange-600" },
+  { label: "Plans", icon: ShieldCheck, href: "/pricing", color: "bg-rose-100", iconColor: "text-rose-600" },
+  { label: "Help", icon: HelpCircle, href: "/help", color: "bg-cyan-100", iconColor: "text-cyan-600" },
+  { label: "Settings", icon: Settings, href: "/profile", color: "bg-slate-100", iconColor: "text-slate-600" },
+];
+
+const MOBILE_ADMIN_TILES = [
+  { label: "Admin", icon: LayoutDashboard, href: "/admin", color: "bg-red-100", iconColor: "text-red-600" },
+  { label: "Users", icon: Users, href: "/admin?tab=users", color: "bg-violet-100", iconColor: "text-violet-600" },
+];
+
+function MobileMenuTiles({ isAuthenticated, isProvider, isAdmin, isProviderView, unreadMessages, onClose }: {
+  isAuthenticated: boolean;
+  isProvider: boolean;
+  isAdmin: boolean;
+  isProviderView: boolean;
+  unreadMessages: number;
+  onClose: () => void;
+}) {
+  // Determine which tiles to show based on view mode (same logic as landing page)
+  const baseTiles = isAuthenticated
+    ? (isProviderView ? MOBILE_PROVIDER_TILES : MOBILE_CUSTOMER_TILES)
+    : MOBILE_CUSTOMER_TILES.filter(t => ["/browse", "/search", "/featured", "/pricing", "/help"].includes(t.href));
+
+  // Prepend admin tiles and deduplicate (same as landing page)
+  const allTiles = isAdmin
+    ? [...MOBILE_ADMIN_TILES, ...baseTiles].filter((tile, idx, arr) => arr.findIndex(t => t.href === tile.href) === idx)
+    : baseTiles;
+
+  return (
+    <div className="grid grid-cols-4 gap-2">
+      {allTiles.map((tile) => {
+        const Icon = tile.icon;
+        return (
+          <Link key={`${tile.label}-${tile.href}`} href={tile.href} onClick={onClose}>
+            <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
+              <div className={`h-11 w-11 rounded-2xl ${tile.color} flex items-center justify-center relative`}>
+                <Icon className={`h-6 w-6 ${tile.iconColor}`} />
+                {tile.label === "Messages" && unreadMessages > 0 && (
+                  <span className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                    {unreadMessages}
+                  </span>
+                )}
+              </div>
+              <span className="text-[11px] font-medium text-center leading-tight">{tile.label}</span>
+            </div>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
 function MobileLogoutButton({ onClose }: { onClose: () => void }) {
   return (
     <div>
@@ -712,164 +813,16 @@ export function NavHeader() {
                 </div>
               )}
 
-              {/* App-Style Grid Navigation */}
+              {/* App-Style Grid Navigation - matches landing page tiles exactly */}
               <div className="flex-1 px-5 py-5 overflow-y-auto">
-                {/* Discover Grid */}
-                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">Discover</p>
-                <div className="grid grid-cols-4 gap-2 mb-6">
-                  <Link href="/browse" onClick={() => setMobileMenuOpen(false)}>
-                    <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                      <div className="h-11 w-11 rounded-2xl bg-blue-50 flex items-center justify-center">
-                        <Grid3X3 className="h-6 w-6 text-blue-600" />
-                      </div>
-                      <span className="text-[11px] font-medium text-center leading-tight">Browse</span>
-                    </div>
-                  </Link>
-                  <Link href="/featured" onClick={() => setMobileMenuOpen(false)}>
-                    <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                      <div className="h-11 w-11 rounded-2xl bg-pink-50 flex items-center justify-center">
-                        <Sparkles className="h-6 w-6 text-pink-600" />
-                      </div>
-                      <span className="text-[11px] font-medium text-center leading-tight">Featured</span>
-                    </div>
-                  </Link>
-                  <Link href="/search" onClick={() => setMobileMenuOpen(false)}>
-                    <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                      <div className="h-11 w-11 rounded-2xl bg-purple-50 flex items-center justify-center">
-                        <Search className="h-6 w-6 text-purple-600" />
-                      </div>
-                      <span className="text-[11px] font-medium text-center leading-tight">Search</span>
-                    </div>
-                  </Link>
-                  <Link href="/pricing" onClick={() => setMobileMenuOpen(false)}>
-                    <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                      <div className="h-11 w-11 rounded-2xl bg-green-50 flex items-center justify-center">
-                        <CreditCard className="h-6 w-6 text-green-600" />
-                      </div>
-                      <span className="text-[11px] font-medium text-center leading-tight">Plans</span>
-                    </div>
-                  </Link>
-                  <Link href="/help" onClick={() => setMobileMenuOpen(false)}>
-                    <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                      <div className="h-11 w-11 rounded-2xl bg-amber-50 flex items-center justify-center">
-                        <HelpCircle className="h-6 w-6 text-amber-600" />
-                      </div>
-                      <span className="text-[11px] font-medium text-center leading-tight">Help</span>
-                    </div>
-                  </Link>
-                </div>
-
-                {isAuthenticated && (
-                  <>
-                    {/* My Account Grid */}
-                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">My Account</p>
-                    <div className="grid grid-cols-4 gap-2 mb-6">
-                      <Link href="/my-bookings" onClick={() => setMobileMenuOpen(false)}>
-                        <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                          <div className="h-11 w-11 rounded-2xl bg-indigo-50 flex items-center justify-center">
-                            <Calendar className="h-6 w-6 text-indigo-600" />
-                          </div>
-                          <span className="text-[11px] font-medium text-center leading-tight">Bookings</span>
-                        </div>
-                      </Link>
-                      <Link href="/messages" onClick={() => setMobileMenuOpen(false)}>
-                        <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all relative">
-                          <div className="h-11 w-11 rounded-2xl bg-sky-50 flex items-center justify-center relative">
-                            <MessageSquare className="h-6 w-6 text-sky-600" />
-                            {unreadMessages > 0 && (
-                              <span className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
-                                {unreadMessages}
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-[11px] font-medium text-center leading-tight">Messages</span>
-                        </div>
-                      </Link>
-                      <Link href="/saved-providers" onClick={() => setMobileMenuOpen(false)}>
-                        <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                          <div className="h-11 w-11 rounded-2xl bg-rose-50 flex items-center justify-center">
-                            <Heart className="h-6 w-6 text-rose-500" />
-                          </div>
-                          <span className="text-[11px] font-medium text-center leading-tight">Saved</span>
-                        </div>
-                      </Link>
-                      <Link href="/my-quotes" onClick={() => setMobileMenuOpen(false)}>
-                        <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                          <div className="h-11 w-11 rounded-2xl bg-teal-50 flex items-center justify-center">
-                            <FileText className="h-6 w-6 text-teal-600" />
-                          </div>
-                          <span className="text-[11px] font-medium text-center leading-tight">Quotes</span>
-                        </div>
-                      </Link>
-                      <Link href="/my-waitlist" onClick={() => setMobileMenuOpen(false)}>
-                        <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                          <div className="h-11 w-11 rounded-2xl bg-orange-50 flex items-center justify-center">
-                            <Clock className="h-6 w-6 text-orange-500" />
-                          </div>
-                          <span className="text-[11px] font-medium text-center leading-tight">Waitlist</span>
-                        </div>
-                      </Link>
-                      <Link href="/notifications" onClick={() => setMobileMenuOpen(false)}>
-                        <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                          <div className="h-11 w-11 rounded-2xl bg-yellow-50 flex items-center justify-center">
-                            <Bell className="h-6 w-6 text-yellow-600" />
-                          </div>
-                          <span className="text-[11px] font-medium text-center leading-tight">Alerts</span>
-                        </div>
-                      </Link>
-                      <Link href="/referrals" onClick={() => setMobileMenuOpen(false)}>
-                        <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                          <div className="h-11 w-11 rounded-2xl bg-emerald-50 flex items-center justify-center">
-                            <Coins className="h-6 w-6 text-emerald-600" />
-                          </div>
-                          <span className="text-[11px] font-medium text-center leading-tight">Referrals</span>
-                        </div>
-                      </Link>
-                      <Link href="/profile" onClick={() => setMobileMenuOpen(false)}>
-                        <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                          <div className="h-11 w-11 rounded-2xl bg-slate-100 flex items-center justify-center">
-                            <Settings className="h-6 w-6 text-slate-600" />
-                          </div>
-                          <span className="text-[11px] font-medium text-center leading-tight">Settings</span>
-                        </div>
-                      </Link>
-                    </div>
-
-                    {/* Provider Grid */}
-                    {isProvider && (isProviderView || isAdmin) && (
-                      <>
-                        <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">Provider</p>
-                        <div className="grid grid-cols-4 gap-2 mb-6">
-                          <Link href="/provider/dashboard" onClick={() => setMobileMenuOpen(false)}>
-                            <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                              <div className="h-11 w-11 rounded-2xl bg-violet-50 flex items-center justify-center">
-                                <LayoutDashboard className="h-6 w-6 text-violet-600" />
-                              </div>
-                              <span className="text-[11px] font-medium text-center leading-tight">Dashboard</span>
-                            </div>
-                          </Link>
-                        </div>
-                      </>
-                    )}
-
-                    {/* Admin Grid */}
-                    {isAdmin && (
-                      <>
-                        <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">Admin</p>
-                        <div className="grid grid-cols-4 gap-2 mb-6">
-                          <Link href="/admin" onClick={() => setMobileMenuOpen(false)}>
-                            <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                              <div className="h-11 w-11 rounded-2xl bg-blue-100 flex items-center justify-center">
-                                <Shield className="h-6 w-6 text-blue-700" />
-                              </div>
-                              <span className="text-[11px] font-medium text-center leading-tight text-blue-700">Admin</span>
-                            </div>
-                          </Link>
-                        </div>
-                      </>
-                    )}
-                  </>
-                )}
+                <MobileMenuTiles
+                  isAuthenticated={isAuthenticated}
+                  isProvider={isProvider}
+                  isAdmin={isAdmin}
+                  isProviderView={isProviderView}
+                  unreadMessages={unreadMessages}
+                  onClose={() => setMobileMenuOpen(false)}
+                />
               </div>
 
               {/* Footer Actions */}
