@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { CheckCircle, Calendar, Clock, MapPin, DollarSign, Gift, Loader2, Share2, Copy, Users } from "lucide-react";
+import { CheckCircle, Calendar, Clock, MapPin, DollarSign, Gift, Loader2, Share2, Copy, Users, XCircle } from "lucide-react";
 import { useLocation, useParams, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -102,6 +102,14 @@ export default function BookingConfirmation() {
     onError: (error) => {
       toast.error(error.message || "Failed to create checkout session");
     },
+  });
+
+  const cancelDemo = trpc.booking.cancel.useMutation({
+    onSuccess: () => {
+      toast.success("Demo booking cancelled successfully!");
+      setLocation("/my-bookings");
+    },
+    onError: (err: any) => toast.error(err.message || "Failed to cancel demo booking"),
   });
 
   const handlePayment = () => {
@@ -540,51 +548,68 @@ export default function BookingConfirmation() {
         )}
 
         {/* Action Buttons */}
-        <div className="flex gap-4">
-          {user && booking.customerId === user.id && depositAmount && !(booking as any).depositPaidAt && (
+        <div className="flex flex-col gap-3">
+          {/* Cancel Demo Booking Button */}
+          {(provider as any)?.isOfficial && user && booking.customerId === user.id && (booking.status === "pending" || booking.status === "confirmed") && (
             <Button
-              onClick={() => handlePayment()}
-              disabled={createCheckout.isPending}
-              className="flex-1"
+              variant="outline"
+              className="w-full text-amber-600 border-amber-300 hover:bg-amber-50 hover:text-amber-700"
+              onClick={() => {
+                cancelDemo.mutate({ bookingId: booking.id, reason: "Demo booking cancelled by user" });
+              }}
+              disabled={cancelDemo.isPending}
             >
-              {createCheckout.isPending ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Processing...</>
-              ) : useCredits && creditPreview?.coversFullAmount ? (
-                <>Pay with Credits</>
-              ) : (
-                <>Pay Deposit ({formatPrice(Math.max(0, depositAmount - (useCredits ? creditDiscount : 0)))})</>
-              )}
+              <XCircle className="h-4 w-4 mr-2" />
+              {cancelDemo.isPending ? "Cancelling..." : "Cancel Demo Booking"}
             </Button>
           )}
-          {user && booking.customerId === user.id && !depositAmount && !(booking as any).paidAt && booking.status === "confirmed" && (
+
+          <div className="flex gap-4">
+            {user && booking.customerId === user.id && !(provider as any)?.isOfficial && depositAmount && !(booking as any).depositPaidAt && (
+              <Button
+                onClick={() => handlePayment()}
+                disabled={createCheckout.isPending}
+                className="flex-1"
+              >
+                {createCheckout.isPending ? (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Processing...</>
+                ) : useCredits && creditPreview?.coversFullAmount ? (
+                  <>Pay with Credits</>
+                ) : (
+                  <>Pay Deposit ({formatPrice(Math.max(0, depositAmount - (useCredits ? creditDiscount : 0)))})</>
+                )}
+              </Button>
+            )}
+            {user && booking.customerId === user.id && !(provider as any)?.isOfficial && !depositAmount && !(booking as any).paidAt && booking.status === "confirmed" && (
+              <Button
+                onClick={() => handlePayment()}
+                disabled={createCheckout.isPending}
+                className="flex-1"
+              >
+                {createCheckout.isPending ? (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Processing...</>
+                ) : useCredits && creditPreview?.coversFullAmount ? (
+                  <>Pay with Credits</>
+                ) : (
+                  <>Pay Now ({formatPrice(Math.max(0, getPriceNum() - (useCredits ? creditDiscount : 0)))})</>
+                )}
+              </Button>
+            )}
             <Button
-              onClick={() => handlePayment()}
-              disabled={createCheckout.isPending}
+              onClick={() => setLocation("/my-bookings")}
+              className="flex-1"
+              variant={depositAmount && !(booking as any).depositPaidAt ? "outline" : "default"}
+            >
+              View My Bookings
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setLocation("/")}
               className="flex-1"
             >
-              {createCheckout.isPending ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Processing...</>
-              ) : useCredits && creditPreview?.coversFullAmount ? (
-                <>Pay with Credits</>
-              ) : (
-                <>Pay Now ({formatPrice(Math.max(0, getPriceNum() - (useCredits ? creditDiscount : 0)))})</>
-              )}
+              Back to Home
             </Button>
-          )}
-          <Button
-            onClick={() => setLocation("/my-bookings")}
-            className="flex-1"
-            variant={depositAmount && !(booking as any).depositPaidAt ? "outline" : "default"}
-          >
-            View My Bookings
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setLocation("/")}
-            className="flex-1"
-          >
-            Back to Home
-          </Button>
+          </div>
         </div>
       </div>
     </div>

@@ -2204,3 +2204,8 @@
 - [x] Add visible "DEMO" badge on provider cards and service listings for demo provider
 - [x] Ensure demo bookings skip payment (free) and show demo messaging to customers
 - [x] Demo provider bio explains it's a demonstration of the booking experience
+
+## Demo Provider UX Enhancements
+- [x] Add welcome popup when users visit Demo provider profile explaining risk-free booking
+- [x] Update customer dashboard to visually separate demo bookings from real bookings with distinct labels
+- [x] Add 'Cancel Demo Booking' button on confirmation page for easy test booking cleanup

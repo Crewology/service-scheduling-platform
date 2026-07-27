@@ -544,15 +544,25 @@ function BookingCard({
   const serviceName = service?.name || booking.serviceName || "Service";
   const providerName = provider?.businessName || booking.providerName || "Provider";
 
+  const isDemo = (provider as any)?.isOfficial;
+
   return (
     <>
-      <Card className={isOffline ? "opacity-90" : ""}>
+      <Card className={`${isOffline ? "opacity-90" : ""} ${isDemo ? "border-amber-200 bg-amber-50/30" : ""}`}>
         <CardHeader>
           <div className="flex items-start justify-between">
             <div>
-              <CardTitle className="text-xl">{serviceName}</CardTitle>
+              <CardTitle className="text-xl flex items-center gap-2">
+                {serviceName}
+                {isDemo && (
+                  <Badge className="bg-amber-100 text-amber-700 border-amber-300 text-[10px] font-semibold uppercase tracking-wide hover:bg-amber-100">
+                    Demo Booking
+                  </Badge>
+                )}
+              </CardTitle>
               <CardDescription>
                 by {providerName}
+                {isDemo && <span className="text-amber-600 ml-1">(Demo Provider)</span>}
               </CardDescription>
               <p className="text-xs text-muted-foreground mt-1">
                 Booking #{booking.bookingNumber}
@@ -560,7 +570,7 @@ function BookingCard({
             </div>
             <div className="flex items-center gap-2">
               {getStatusBadge(booking.status)}
-              {!isProviderView && booking.status === "confirmed" && !(booking as any).paidAt && parseFloat(booking.totalAmount || "0") > 0 && (
+              {!isProviderView && !isDemo && booking.status === "confirmed" && !(booking as any).paidAt && parseFloat(booking.totalAmount || "0") > 0 && (
                 <Badge variant="outline" className="border-blue-300 text-blue-600 text-xs">Payment Due</Badge>
               )}
               {canDelete && onDelete && (
@@ -616,7 +626,7 @@ function BookingCard({
             {booking.totalPrice && (
               <div className="flex items-center gap-2">
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">${booking.totalPrice}</span>
+                <span className="text-sm">{isDemo ? <span className="text-amber-600 font-medium">FREE (Demo)</span> : `$${booking.totalPrice}`}</span>
               </div>
             )}
           </div>
@@ -650,7 +660,19 @@ function BookingCard({
                 Message Provider
               </Button>
             )}
-            {canCancel && (
+            {canCancel && isDemo && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="text-amber-600 border-amber-300 hover:bg-amber-50 hover:text-amber-700"
+                onClick={() => cancelBooking.mutate({ bookingId: booking.id, reason: "Demo booking cancelled by user" })}
+                disabled={cancelBooking.isPending}
+              >
+                <XCircle className="h-4 w-4 mr-2" />
+                {cancelBooking.isPending ? "Cancelling..." : "Cancel Demo Booking"}
+              </Button>
+            )}
+            {canCancel && !isDemo && (
               <Button 
                 variant="outline" 
                 size="sm"

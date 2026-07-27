@@ -288,6 +288,7 @@ export default function PublicProviderProfile() {
   );
 
   const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [showDemoWelcome, setShowDemoWelcome] = useState(false);
   const [showQuoteDialog, setShowQuoteDialog] = useState(false);
   const [quoteTitle, setQuoteTitle] = useState("");
   const [quoteDescription, setQuoteDescription] = useState("");
@@ -408,12 +409,74 @@ export default function PublicProviderProfile() {
 
   const { provider, services, reviews, categories, profilePhoto } = data;
   const avgRating = parseFloat(provider.averageRating || "0");
+
+  // Show demo welcome popup on first visit to demo provider
+  useEffectLocal(() => {
+    if (provider.isOfficial) {
+      const dismissed = sessionStorage.getItem('demo_welcome_dismissed');
+      if (!dismissed) {
+        setShowDemoWelcome(true);
+      }
+    }
+  }, [provider.isOfficial]);
   const displayName = (name: string) =>
     name.split(" ").map((w: string) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
 
   return (
     <div className="min-h-screen bg-background">
       <NavHeader />
+
+      {/* Demo Welcome Popup */}
+      <Dialog open={showDemoWelcome} onOpenChange={(open) => {
+        if (!open) {
+          setShowDemoWelcome(false);
+          sessionStorage.setItem('demo_welcome_dismissed', 'true');
+        }
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-100">
+                <Sparkles className="w-4 h-4 text-amber-600" />
+              </span>
+              Welcome to the Demo Experience!
+            </DialogTitle>
+            <DialogDescription className="text-left space-y-3 pt-2">
+              <p className="text-sm text-foreground/80">
+                This is a <strong>risk-free way to test the booking process</strong> on OlogyCrew. You can:
+              </p>
+              <ul className="text-sm text-muted-foreground space-y-2 pl-1">
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
+                  <span>Browse and book any demo service completely free</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
+                  <span>Experience the full booking flow without entering payment info</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
+                  <span>Cancel demo bookings anytime with one click</span>
+                </li>
+              </ul>
+              <p className="text-xs text-muted-foreground pt-1">
+                No credit card needed. No charges. Just a preview of how easy it is to book real services.
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              className="w-full sm:w-auto"
+              onClick={() => {
+                setShowDemoWelcome(false);
+                sessionStorage.setItem('demo_welcome_dismissed', 'true');
+              }}
+            >
+              Got it, let me explore!
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       {/* ================================================================ */}
       {/* HERO — Profile Photo + Name + Bio + Stats                        */}
       {/* ================================================================ */}
