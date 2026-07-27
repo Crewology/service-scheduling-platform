@@ -2251,3 +2251,4 @@
 
 ## UX Fix
 - [x] Ensure all screens have the NavHeader on top (added to AccountSubscription, Invoices, MyWaitlist, Promotions, Receipts)
+- [x] Make Widgets page its own standalone page (updated tile link from /provider/dashboard?tab=more to /provider/widgets)

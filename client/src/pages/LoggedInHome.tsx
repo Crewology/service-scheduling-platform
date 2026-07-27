@@ -32,7 +32,7 @@ const PROVIDER_TILES: LaunchpadTile[] = [
   { label: "Quotes", icon: <FileText className="h-7 w-7" />, href: "/provider/dashboard?tab=bookings", color: "bg-indigo-100", iconColor: "text-indigo-600" },
   { label: "My Page", icon: <UserCircle className="h-7 w-7" />, href: "/provider/dashboard?tab=page", color: "bg-teal-100", iconColor: "text-teal-600" },
   { label: "Invoices", icon: <FileText className="h-7 w-7" />, href: "/provider/invoices", color: "bg-orange-100", iconColor: "text-orange-600" },
-  { label: "Widgets", icon: <Grid3X3 className="h-7 w-7" />, href: "/provider/dashboard?tab=more", color: "bg-rose-100", iconColor: "text-rose-600" },
+  { label: "Widgets", icon: <Grid3X3 className="h-7 w-7" />, href: "/provider/widgets", color: "bg-rose-100", iconColor: "text-rose-600" },
   { label: "Settings", icon: <Settings className="h-7 w-7" />, href: "/profile", color: "bg-slate-100", iconColor: "text-slate-600" },
 ];
 
