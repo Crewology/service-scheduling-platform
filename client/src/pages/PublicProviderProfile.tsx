@@ -389,6 +389,17 @@ export default function PublicProviderProfile() {
     { enabled: !!providerId }
   );
 
+  // Show demo welcome popup on first visit to demo provider
+  const isOfficial = data?.provider?.isOfficial;
+  useEffectLocal(() => {
+    if (isOfficial) {
+      const dismissed = sessionStorage.getItem('demo_welcome_dismissed');
+      if (!dismissed) {
+        setShowDemoWelcome(true);
+      }
+    }
+  }, [isOfficial]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -409,16 +420,6 @@ export default function PublicProviderProfile() {
 
   const { provider, services, reviews, categories, profilePhoto } = data;
   const avgRating = parseFloat(provider.averageRating || "0");
-
-  // Show demo welcome popup on first visit to demo provider
-  useEffectLocal(() => {
-    if (provider.isOfficial) {
-      const dismissed = sessionStorage.getItem('demo_welcome_dismissed');
-      if (!dismissed) {
-        setShowDemoWelcome(true);
-      }
-    }
-  }, [provider.isOfficial]);
   const displayName = (name: string) =>
     name.split(" ").map((w: string) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
 

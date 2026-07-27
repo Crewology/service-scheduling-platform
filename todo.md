@@ -2226,3 +2226,6 @@
 ## Demo Provider: LLM Messaging & Admin Exclusion
 - [x] Verify and enhance LLM auto-reply messaging for Demo provider chat experience
 - [x] Exclude Demo provider bookings and revenue from admin dashboard statistics
+
+## Bug Fix
+- [x] Fix "Rendered more hooks than during the previous render" error on PublicProviderProfile (moved useEffect before early returns)
