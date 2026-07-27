@@ -275,7 +275,7 @@ export default function Conversations() {
                       {group.messages.map((msg: any) => (
                         <Card
                           key={msg.id}
-                          className="cursor-pointer hover:bg-accent/50 transition-colors"
+                          className="cursor-pointer hover:bg-accent/50 hover:text-white transition-colors"
                           onClick={() => {
                             if (msg.bookingId) {
                               setLocation(`/messages/${msg.bookingId}`);
@@ -356,7 +356,7 @@ export default function Conversations() {
                   return (
                     <Card
                       key={conv.conversationId}
-                      className={`cursor-pointer transition-colors hover:bg-accent/50 ${
+                      className={`cursor-pointer transition-colors hover:bg-accent/50 hover:text-white ${
                         isUnread ? "border-primary/30 bg-primary/5" : ""
                       }`}
                       onClick={() => {
