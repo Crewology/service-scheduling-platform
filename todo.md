@@ -2219,3 +2219,6 @@
 - [x] Add persistent 'Demo Mode Active' banner at top of screen during entire demo booking flow
 - [x] Add simulated payment step showing payment UI with 'No credit card required' message
 - [x] Implement LLM-powered auto-reply messaging for Demo provider conversations
+
+## Admin Cleanup: Remove Test/Seed Users
+- [x] Remove all seeded test customers and providers from database (keep only owner account and Demo - OlogyCrew)
