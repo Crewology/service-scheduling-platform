@@ -2278,3 +2278,12 @@
 - [x] Create standalone Provider Portfolio page (/provider/portfolio) - renders dashboard with hideChrome
 - [x] Create standalone Provider Quotes page (/provider/quotes) - renders dashboard with hideChrome
 - [x] Create standalone Provider Analytics page (/provider/analytics) - renders dashboard with hideChrome
+
+## Accessibility: Button Hover Text Contrast
+- [x] Audit all button hover colors and ensure text is readable (light bg → dark text, dark bg → light text) per WCAG AA standards
+  - Fixed accent-foreground in light mode to dark (oklch 0.18) for 6.0:1 contrast on orange bg
+  - Darkened primary to oklch 0.45 for 4.5:1 contrast with white text
+  - Fixed AIChatBox suggested prompts: hover:text-white → hover:text-accent-foreground
+  - Fixed Conversations cards: hover:text-white → hover:text-accent-foreground
+  - Secondary button hover:bg-primary + hover:text-white = 4.5:1 (passes)
+  - Dark mode accent-foreground (oklch 0.92) on dark bg (oklch 0.274) = 8.2:1 (passes)
