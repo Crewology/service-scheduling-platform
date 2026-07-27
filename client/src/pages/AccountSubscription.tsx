@@ -143,10 +143,10 @@ export default function AccountSubscription() {
       <div className="container max-w-4xl py-8">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-          <Link href="/profile" className="hover:text-foreground transition-colors flex items-center gap-1">
+          <button onClick={() => window.history.back()} className="hover:text-foreground transition-colors flex items-center gap-1">
             <ArrowLeft className="h-4 w-4" />
-            Back to Profile
-          </Link>
+            Back
+          </button>
         </div>
 
         <h1 className="text-2xl font-bold mb-1">My Subscription</h1>

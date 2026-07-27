@@ -86,11 +86,9 @@ export default function PromoCodes() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <Link href="/provider/dashboard">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            </Link>
+            <Button variant="ghost" size="icon" onClick={() => window.history.back()}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
             <div>
               <h1 className="text-2xl font-bold">Promo & Referral Codes</h1>
               <p className="text-muted-foreground">Create discount codes to attract new customers and reward loyal clients</p>

@@ -100,12 +100,10 @@ export default function UserDetailPage() {
               <CardDescription>This user does not exist or could not be loaded.</CardDescription>
             </CardHeader>
             <CardContent>
-              <Link href="/admin">
-                <Button variant="outline">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Admin
-                </Button>
-              </Link>
+              <Button variant="outline" onClick={() => window.history.back()}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back
+              </Button>
             </CardContent>
           </Card>
         </div>
@@ -120,7 +118,7 @@ export default function UserDetailPage() {
       <NavHeader />
       <div className="container py-8">
         {/* Back Button */}
-        <Button variant="ghost" className="mb-4" onClick={() => navigate("/admin?tab=users")}>
+        <Button variant="ghost" className="mb-4" onClick={() => window.history.back()}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Admin Dashboard
         </Button>

@@ -244,7 +244,7 @@ export default function DirectMessage() {
             <CardTitle>Conversation Not Found</CardTitle>
           </CardHeader>
           <div className="p-6 pt-0">
-            <Button onClick={() => setLocation("/messages")}>Back to Messages</Button>
+            <Button onClick={() => window.history.back()}>Back to Messages</Button>
           </div>
         </Card>
       </div>

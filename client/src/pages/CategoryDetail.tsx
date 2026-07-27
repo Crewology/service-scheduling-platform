@@ -200,12 +200,10 @@ export default function CategoryDetail() {
       {/* Page Header */}
       <section className="py-12 bg-gradient-to-br from-primary/5 to-accent/5">
         <div className="container">
-          <Link href="/browse">
-            <Button variant="ghost" className="mb-4">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Browse
-            </Button>
-          </Link>
+          <Button variant="ghost" className="mb-4" onClick={() => window.history.back()}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back
+          </Button>
           
           <div className="flex items-center gap-3 mb-4">
             <span className="text-2xl sm:text-4xl">{icon}</span>

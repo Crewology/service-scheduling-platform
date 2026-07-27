@@ -238,12 +238,10 @@ export default function SubscriptionManagement() {
       <div className="container py-8 max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <Link href="/provider/dashboard">
-            <Button variant="ghost" size="sm" className="mb-4">
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Back to Dashboard
-            </Button>
-          </Link>
+          <Button variant="ghost" size="sm" className="mb-4" onClick={() => window.history.back()}>
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Back
+          </Button>
           <h1 className="text-2xl sm:text-3xl font-bold mb-2">Choose Your Plan</h1>
           <p className="text-muted-foreground text-lg">
             Grow your business with more categories, services, and visibility. All plans include a low 1% transaction fee.

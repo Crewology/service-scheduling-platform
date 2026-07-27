@@ -145,7 +145,7 @@ export default function SavedProviders() {
           <Heart className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4" />
           <h1 className="text-2xl font-bold mb-2">Saved Providers</h1>
           <p className="text-muted-foreground mb-6">Sign in to save your favorite providers</p>
-          <Button onClick={() => navigate("/")}>Go Home</Button>
+          <Button onClick={() => window.history.back()}>Go Home</Button>
         </div>
       </div>
     );

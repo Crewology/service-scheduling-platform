@@ -78,11 +78,9 @@ export default function Receipts() {
       <NavHeader />
       <div className="container max-w-4xl py-8">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/">
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </Link>
+        <Button variant="ghost" size="icon" onClick={() => window.history.back()}>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
         <div>
           <h1 className="text-2xl font-bold">Receipts & Invoices</h1>
           <p className="text-muted-foreground text-sm">View your payment history and pay outstanding invoices</p>

@@ -122,11 +122,9 @@ export default function NotificationSettings() {
       <div className="container max-w-2xl py-8">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <Link href="/notifications">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
+          <Button variant="ghost" size="icon" onClick={() => window.history.back()}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
           <div>
             <h1 className="text-2xl font-bold">Notification Settings</h1>
             <p className="text-sm text-muted-foreground">

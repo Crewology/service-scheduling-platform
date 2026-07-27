@@ -577,10 +577,10 @@ export default function ProviderCalendar() {
       <NavHeader />
       <div className="container py-6 max-w-7xl">
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-          <Link href="/provider/dashboard" className="hover:text-foreground flex items-center gap-1">
+          <button onClick={() => window.history.back()} className="hover:text-foreground flex items-center gap-1">
             <ArrowLeft className="h-4 w-4" />
-            Dashboard
-          </Link>
+            Back
+          </button>
           <span>/</span>
           <span className="text-foreground">Calendar</span>
         </div>

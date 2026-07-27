@@ -415,9 +415,9 @@ export default function BookingAnalytics() {
       />
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link href="/saved-providers" className="hover:text-foreground transition-colors">
-          Saved Providers
-        </Link>
+        <button onClick={() => window.history.back()} className="hover:text-foreground transition-colors">
+          Back
+        </button>
         <ChevronRight className="h-4 w-4" />
         <span className="text-foreground font-medium">Booking Analytics</span>
       </div>
@@ -661,12 +661,10 @@ export default function BookingAnalytics() {
 
           {/* Navigation */}
           <div className="flex justify-between items-center">
-            <Link href="/saved-providers">
-              <Button variant="outline" className="gap-2">
-                <ArrowLeft className="h-4 w-4" />
-                Back to Saved Providers
-              </Button>
-            </Link>
+            <Button variant="outline" className="gap-2" onClick={() => window.history.back()}>
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
             <Link href="/my-bookings">
               <Button variant="outline" className="gap-2">
                 View All Bookings

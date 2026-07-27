@@ -201,12 +201,10 @@ export default function PromotionDetail() {
 
       {/* Back navigation */}
       <div className="container pt-4">
-        <Link href="/featured">
-          <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-4 w-4" />
-            All Featured Professionals
-          </Button>
-        </Link>
+        <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-foreground" onClick={() => window.history.back()}>
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
       </div>
 
       {/* Main promotion content */}

@@ -134,7 +134,7 @@ export default function WidgetGenerator() {
       <div className="container py-8 max-w-6xl">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <Button variant="ghost" size="icon" onClick={() => setLocation("/provider/dashboard")}>
+          <Button variant="ghost" size="icon" onClick={() => window.history.back()}>
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div>
