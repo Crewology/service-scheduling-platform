@@ -2287,3 +2287,6 @@
   - Fixed Conversations cards: hover:text-white → hover:text-accent-foreground
   - Secondary button hover:bg-primary + hover:text-white = 4.5:1 (passes)
   - Dark mode accent-foreground (oklch 0.92) on dark bg (oklch 0.274) = 8.2:1 (passes)
+
+## Bug Fix
+- [x] Fix blank Analytics standalone page - pointed tile to /analytics (BookingAnalytics) instead of non-existent dashboard tab
