@@ -1,57 +1,31 @@
-import { useEffect } from "react";
-import { useLocation } from "wouter";
+import ProviderDashboard from "./ProviderDashboard";
 
 /**
- * Wrapper pages that redirect to /provider/dashboard?tab=<tab>
- * This gives each provider feature its own clean URL while reusing the dashboard.
- * The ProviderDashboard already reads ?tab= from the URL to set the active tab.
+ * Standalone provider pages that render the ProviderDashboard
+ * with a specific tab pre-selected and chrome (stats, tab bars, etc.) hidden.
+ * Each page has its own clean URL and shows only the relevant tab content.
  */
 
 export function ProviderBookings() {
-  const [, setLocation] = useLocation();
-  useEffect(() => {
-    setLocation("/provider/dashboard?tab=bookings", { replace: true });
-  }, [setLocation]);
-  return null;
+  return <ProviderDashboard initialTab="bookings" hideChrome={true} />;
 }
 
 export function ProviderServices() {
-  const [, setLocation] = useLocation();
-  useEffect(() => {
-    setLocation("/provider/dashboard?tab=services", { replace: true });
-  }, [setLocation]);
-  return null;
+  return <ProviderDashboard initialTab="services" hideChrome={true} />;
 }
 
 export function ProviderAnalytics() {
-  const [, setLocation] = useLocation();
-  useEffect(() => {
-    setLocation("/provider/dashboard?tab=analytics", { replace: true });
-  }, [setLocation]);
-  return null;
+  return <ProviderDashboard initialTab="analytics" hideChrome={true} />;
 }
 
 export function ProviderPayouts() {
-  const [, setLocation] = useLocation();
-  useEffect(() => {
-    setLocation("/provider/dashboard?tab=finances", { replace: true });
-  }, [setLocation]);
-  return null;
+  return <ProviderDashboard initialTab="finances" hideChrome={true} />;
 }
 
 export function ProviderPortfolio() {
-  const [, setLocation] = useLocation();
-  useEffect(() => {
-    setLocation("/provider/dashboard?tab=services", { replace: true });
-  }, [setLocation]);
-  return null;
+  return <ProviderDashboard initialTab="services" hideChrome={true} />;
 }
 
 export function ProviderQuotes() {
-  const [, setLocation] = useLocation();
-  useEffect(() => {
-    setLocation("/provider/dashboard?tab=bookings", { replace: true });
-  }, [setLocation]);
-  return null;
+  return <ProviderDashboard initialTab="bookings" hideChrome={true} />;
 }
-

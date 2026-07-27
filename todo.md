@@ -2272,3 +2272,9 @@
 - [x] Create standalone /provider/my-page page (instead of dashboard?tab=page)
 - [x] Update all tile hrefs in LoggedInHome and NavHeader mobile menu
 - [x] Create a proper standalone My Page (/provider/my-page) instead of redirecting to dashboard tab
+- [x] Create standalone Provider Bookings page (/provider/bookings) - renders dashboard with hideChrome
+- [x] Create standalone Provider Services page (/provider/services) - renders dashboard with hideChrome
+- [x] Create standalone Provider Payouts page (/provider/payouts) - renders dashboard with hideChrome
+- [x] Create standalone Provider Portfolio page (/provider/portfolio) - renders dashboard with hideChrome
+- [x] Create standalone Provider Quotes page (/provider/quotes) - renders dashboard with hideChrome
+- [x] Create standalone Provider Analytics page (/provider/analytics) - renders dashboard with hideChrome

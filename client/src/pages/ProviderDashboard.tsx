@@ -1207,7 +1207,8 @@ function VerificationDocumentsTab() {
 // ============================================================================
 // MAIN DASHBOARD
 // ============================================================================
-export default function ProviderDashboard() {
+export default function ProviderDashboard(props: { initialTab?: string; hideChrome?: boolean } & Record<string, any> = {}) {
+  const { initialTab, hideChrome } = props;
   const { user, isAuthenticated, loading } = useAuth();
   const [, setLocation] = useLocation();
   const { isProviderView } = useViewMode();
@@ -1237,6 +1238,7 @@ export default function ProviderDashboard() {
   const [portfolioBeforeUrl, setPortfolioBeforeUrl] = useState("");
   const [portfolioAfterUrl, setPortfolioAfterUrl] = useState("");
   const [activeTab, setActiveTab] = useState(() => {
+    if (initialTab) return initialTab;
     const params = new URLSearchParams(window.location.search);
     return params.get("tab") || "bookings";
   });
@@ -1557,6 +1559,7 @@ export default function ProviderDashboard() {
       <NavHeader />
 
       <div className="container py-8">
+        {!hideChrome && <>
         {/* Welcome Section */}
         <div className="mb-8 flex flex-col sm:flex-row items-start justify-between gap-4">
           <div>
@@ -1762,11 +1765,12 @@ export default function ProviderDashboard() {
           onCropComplete={handleProviderCropComplete}
           isUploading={uploadProfilePhoto.isPending}
         />
+        </>}
 
         {/* Main Content Tabs - Consolidated from 12 to 6 */}
         <Tabs defaultValue="bookings" className="space-y-6" value={activeTab} onValueChange={setActiveTab}>
           {/* Desktop Tab Bar */}
-          <div className="hidden md:block">
+          {!hideChrome && <div className="hidden md:block">
             <TabsList className="inline-flex h-auto gap-1 w-full p-1">
               <TabsTrigger value="bookings" className="flex-1 text-sm px-3 py-2"><Calendar className="h-4 w-4 mr-1.5" />Bookings</TabsTrigger>
               <TabsTrigger value="services" className="flex-1 text-sm px-3 py-2"><Package className="h-4 w-4 mr-1.5" />Services</TabsTrigger>
@@ -1775,10 +1779,9 @@ export default function ProviderDashboard() {
               <TabsTrigger value="my-page" className="flex-1 text-sm px-3 py-2"><Globe className="h-4 w-4 mr-1.5" />My Page</TabsTrigger>
               <TabsTrigger value="settings" className="flex-1 text-sm px-3 py-2"><Settings className="h-4 w-4 mr-1.5" />More</TabsTrigger>
             </TabsList>
-          </div>
+          </div>}
 
-          {/* Mobile Bottom Navigation Bar */}
-          <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border shadow-lg">
+          {!hideChrome && <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border shadow-lg">
             <div className="grid grid-cols-6 h-16">
               {[
                 { value: "bookings", icon: Calendar, label: "Bookings" },
@@ -1802,7 +1805,7 @@ export default function ProviderDashboard() {
                 </button>
               ))}
             </div>
-          </div>
+          </div>}
 
           {/* Bookings Tab */}
           <TabsContent value="bookings" className="space-y-4 pb-20 md:pb-0">
