@@ -2,6 +2,94 @@ import { protectedProcedure, router } from "../_core/trpc";
 import { z } from "zod";
 import * as db from "../db";
 import { TRPCError } from "@trpc/server";
+import { invokeLLM } from "../_core/llm";
+
+// ─── Demo Provider Auto-Reply ────────────────────────────────────────────────
+
+const DEMO_SYSTEM_PROMPT = `You are the Demo - OlogyCrew virtual assistant, responding to messages on behalf of a demo service provider on the OlogyCrew platform. Your role is to simulate how a real provider would respond to customer messages.
+
+Guidelines:
+- Be friendly, professional, and helpful
+- Keep responses concise (2-4 sentences max)
+- Acknowledge the customer's message naturally
+- If they ask about availability, say you have openings this week
+- If they ask about pricing, mention it's a free demo booking
+- If they confirm a booking, congratulate them on testing the platform
+- If they have general questions, answer helpfully about the demo experience
+- Always subtly remind them this is a demo: end with a brief note like "(This is an automated demo response to showcase the messaging feature)"
+- Never pretend to be a real person or make commitments about real services`;
+
+async function triggerDemoAutoReply(
+  recipientId: number,
+  senderId: number,
+  senderName: string,
+  messageText: string,
+  conversationId: string,
+  bookingId?: number,
+) {
+  try {
+    // Check if the recipient is the demo provider
+    const provider = await db.getProviderByUserId(recipientId);
+    if (!provider || !provider.isOfficial) return;
+
+    // Small delay to simulate typing (1.5-3 seconds)
+    await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1500));
+
+    // Show typing indicator
+    try {
+      const { sseManager } = await import("../sseManager");
+      sseManager.pushTypingIndicator(senderId, {
+        conversationId,
+        senderId: recipientId,
+        senderName: "Demo - OlogyCrew",
+        isTyping: true,
+      });
+    } catch {}
+
+    // Generate response using LLM
+    const response = await invokeLLM({
+      messages: [
+        { role: "system", content: DEMO_SYSTEM_PROMPT },
+        { role: "user", content: `Customer ${senderName} says: "${messageText}"` },
+      ],
+    });
+
+    const replyText = (response.choices?.[0]?.message?.content as string) || "Thanks for your message! This is a demo provider — feel free to explore the messaging feature. (Automated demo response)";
+
+    // Send the auto-reply message
+    await db.createMessage({
+      conversationId,
+      senderId: recipientId,
+      recipientId: senderId,
+      messageText: replyText,
+      bookingId: bookingId || undefined,
+      attachmentUrl: null,
+    });
+
+    // Clear typing indicator
+    try {
+      const { sseManager } = await import("../sseManager");
+      sseManager.pushTypingIndicator(senderId, {
+        conversationId,
+        senderId: recipientId,
+        senderName: "Demo - OlogyCrew",
+        isTyping: false,
+      });
+    } catch {}
+
+    // Push notification for the auto-reply
+    await pushMessageNotifications(
+      recipientId,
+      "Demo - OlogyCrew",
+      senderId,
+      replyText,
+      conversationId,
+      bookingId,
+    );
+  } catch {
+    // Non-blocking: if auto-reply fails, just skip it
+  }
+}
 
 // Allowed MIME types for message attachments
 const ALLOWED_MIME_TYPES = [
@@ -138,6 +226,9 @@ export const messageRouter = router({
       } catch {
         // Non-blocking
       }
+
+      // Demo provider auto-reply using LLM
+      triggerDemoAutoReply(input.recipientId, ctx.user.id, ctx.user.name || "Customer", input.messageText, conversationId, input.bookingId).catch(() => {});
 
       return newMsg;
     }),
@@ -333,6 +424,9 @@ export const messageRouter = router({
         undefined,
         !!input.attachmentUrl,
       );
+
+      // Demo provider auto-reply using LLM
+      triggerDemoAutoReply(input.recipientId, ctx.user.id, ctx.user.name || "Customer", input.messageText, conversationId).catch(() => {});
       
       return { conversationId };
     }),

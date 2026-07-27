@@ -217,6 +217,16 @@ export default function BookingConfirmation() {
     <div className="min-h-screen bg-background">
       <NavHeader />
 
+      {/* Demo Mode Active Banner */}
+      {(provider as any)?.isOfficial && (
+        <div className="sticky top-0 z-50 bg-amber-500 text-white text-center py-2 px-4 shadow-md">
+          <p className="text-sm font-semibold flex items-center justify-center gap-2">
+            <span className="inline-block w-2 h-2 rounded-full bg-white animate-pulse" />
+            Demo Mode Active — This is a free test booking. No charges will be applied.
+          </p>
+        </div>
+      )}
+
       <div className="container py-12 max-w-3xl">
         {/* Success Message */}
         <div className="text-center mb-8">

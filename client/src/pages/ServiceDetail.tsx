@@ -824,6 +824,16 @@ export default function ServiceDetail() {
     <div className="min-h-screen bg-background">
       <NavHeader />
 
+      {/* Demo Mode Active Banner */}
+      {(provider as any)?.isOfficial && (
+        <div className="sticky top-0 z-50 bg-amber-500 text-white text-center py-2 px-4 shadow-md">
+          <p className="text-sm font-semibold flex items-center justify-center gap-2">
+            <span className="inline-block w-2 h-2 rounded-full bg-white animate-pulse" />
+            Demo Mode Active — This is a free test booking. No charges will be applied.
+          </p>
+        </div>
+      )}
+
       {/* Breadcrumb */}
       <div className="bg-muted/30 border-b">
         <div className="container py-3">
@@ -2131,8 +2141,64 @@ export default function ServiceDetail() {
                       </div>
                     </div>
 
-                    {/* Payment timing choice - only for priced services */}
-                    {service.pricingModel !== "custom_quote" && service.pricingModel !== "consultation" && getNumericPrice() > 0 && !service.requireUpfrontPayment ? (
+                    {/* Simulated Payment Step for Demo Provider */}
+                    {(provider as any)?.isOfficial ? (
+                      <div className="space-y-3">
+                        {/* Simulated payment card UI */}
+                        <div className="border-2 border-dashed border-amber-300 rounded-lg p-4 bg-amber-50/50 space-y-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <CreditCard className="h-5 w-5 text-amber-600" />
+                            <span className="text-sm font-semibold text-amber-800">Payment Method (Demo)</span>
+                          </div>
+                          {/* Mock card input fields */}
+                          <div className="space-y-2">
+                            <div className="bg-white border border-gray-200 rounded-md p-3 flex items-center gap-3">
+                              <div className="flex gap-1">
+                                <div className="w-8 h-5 bg-blue-600 rounded-sm" />
+                                <div className="w-8 h-5 bg-red-500 rounded-sm" />
+                                <div className="w-8 h-5 bg-yellow-500 rounded-sm" />
+                              </div>
+                              <span className="text-sm text-muted-foreground flex-1">•••• •••• •••• 4242</span>
+                              <ShieldCheck className="h-4 w-4 text-green-500" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="bg-white border border-gray-200 rounded-md p-2.5">
+                                <span className="text-xs text-muted-foreground">12/28</span>
+                              </div>
+                              <div className="bg-white border border-gray-200 rounded-md p-2.5">
+                                <span className="text-xs text-muted-foreground">•••</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="bg-amber-100 border border-amber-200 rounded-md p-2.5 text-center">
+                            <p className="text-xs font-medium text-amber-800">
+                              ✓ No credit card required for demo bookings
+                            </p>
+                            <p className="text-xs text-amber-600 mt-0.5">
+                              This simulates the payment experience — you won't be charged
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          onClick={handleBooking}
+                          disabled={isBookingPending || isBookingSuccess}
+                          className={`w-full transition-all duration-300 bg-amber-500 hover:bg-amber-600 text-white ${isBookingSuccess ? 'bg-green-600 hover:bg-green-600 cursor-default scale-[0.98]' : isBookingPending ? 'opacity-90' : ''}`}
+                          size="lg"
+                        >
+                          {isBookingSuccess ? (
+                            <span className="flex items-center gap-2">
+                              <CheckCircle2 className="h-4 w-4 animate-in fade-in" />
+                              Demo Booking Complete!
+                            </span>
+                          ) : isBookingPending ? (
+                            <span className="flex items-center gap-2">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Processing demo booking...
+                            </span>
+                          ) : "Complete Demo Booking (Free)"}
+                        </Button>
+                      </div>
+                    ) : service.pricingModel !== "custom_quote" && service.pricingModel !== "consultation" && getNumericPrice() > 0 && !service.requireUpfrontPayment ? (
                       <div className="space-y-3">
                         <p className="text-sm font-medium text-center text-muted-foreground">How would you like to pay?</p>
                         <div className="grid grid-cols-2 gap-3">
