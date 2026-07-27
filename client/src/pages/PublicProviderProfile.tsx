@@ -561,20 +561,20 @@ export default function PublicProviderProfile() {
       {/* OFFICIAL PROVIDER — Interactive Showcase (only for isOfficial)   */}
       {/* ================================================================ */}
       {provider.isOfficial && (
-        <div className="border-b bg-gradient-to-r from-blue-50/50 via-purple-50/30 to-blue-50/50 dark:from-blue-950/20 dark:via-purple-950/10 dark:to-blue-950/20">
+        <div className="border-b bg-gradient-to-r from-amber-50/50 via-orange-50/30 to-amber-50/50 dark:from-amber-950/20 dark:via-orange-950/10 dark:to-amber-950/20">
           <div className="container max-w-5xl py-8">
-            {/* Provider Example Banner */}
-            <div className="flex items-center gap-3 mb-6 p-4 rounded-xl bg-white/70 dark:bg-card/50 border border-primary/20 shadow-sm">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <Sparkles className="w-5 h-5 text-primary" />
+            {/* Demo Provider Banner */}
+            <div className="flex items-center gap-3 mb-6 p-4 rounded-xl bg-white/70 dark:bg-card/50 border border-amber-300/40 shadow-sm">
+              <div className="p-2 rounded-lg bg-amber-500/10">
+                <Sparkles className="w-5 h-5 text-amber-600" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-sm text-foreground">Example Provider Profile</h3>
-                <p className="text-xs text-muted-foreground">This is what your profile could look like. Set up your services, availability, and portfolio to attract customers.</p>
+                <h3 className="font-semibold text-sm text-foreground">Demo Provider — Free to Book</h3>
+                <p className="text-xs text-muted-foreground">This is a demo provider. Book any service below for free to experience how easy it is. No charges will be made.</p>
               </div>
               <Link href="/provider/onboarding">
                 <Button size="sm" className="gap-1.5 shrink-0">
-                  Build Yours <ArrowRight className="w-3.5 h-3.5" />
+                  Become a Provider <ArrowRight className="w-3.5 h-3.5" />
                 </Button>
               </Link>
             </div>

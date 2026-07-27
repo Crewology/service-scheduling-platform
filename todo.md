@@ -2197,3 +2197,10 @@
 - [x] Add "STUDIO SPACE RENTALS" category (ID: 217) in alphabetical order (sortOrder: 42)
 - [x] Update seed-categories.ts with all 48 categories in proper alphabetical order with correct sort orders
 - [x] Update all "47+" category count references to "48+" across the codebase
+
+## Demo Provider: Demo - OlogyCrew
+- [x] Create "Demo - OlogyCrew" provider account with site logo as profile photo
+- [x] Add free ($0) demo services in all 48 categories with realistic durations
+- [x] Add visible "DEMO" badge on provider cards and service listings for demo provider
+- [x] Ensure demo bookings skip payment (free) and show demo messaging to customers
+- [x] Demo provider bio explains it's a demonstration of the booking experience

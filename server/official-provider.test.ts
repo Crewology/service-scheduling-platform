@@ -32,8 +32,8 @@ describe("OlogyCrew Official Provider", () => {
       );
       const data = (rows as any)[0];
       if (data.length > 0) {
-        expect(data[0].profileSlug).toBe("ologycrew-official");
-        expect(data[0].businessName).toBe("OlogyCrew Official");
+        expect(data[0].profileSlug).toBe("demo-ologycrew");
+        expect(data[0].businessName).toBe("Demo - OlogyCrew");
       }
     });
 

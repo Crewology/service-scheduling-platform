@@ -314,6 +314,24 @@ export default function BookingConfirmation() {
         </Card>
 
         {/* Payment Information */}
+        {(provider as any)?.isOfficial ? (
+          <Card className="mb-6 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-amber-800">
+                Demo Booking — No Charge
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <p className="text-sm text-amber-700">
+                This is a demo booking with <strong>Demo - OlogyCrew</strong>. No payment is required.
+                You just experienced how easy it is to book a service on OlogyCrew!
+              </p>
+              <p className="text-xs text-amber-600">
+                Ready to book a real provider? Browse our categories to find the perfect service for you.
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -418,6 +436,7 @@ export default function BookingConfirmation() {
             )}
           </CardContent>
         </Card>
+        )}
 
         {/* Next Steps */}
         <Card className="mb-6">

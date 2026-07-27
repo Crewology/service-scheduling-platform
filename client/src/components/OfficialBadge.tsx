@@ -1,4 +1,4 @@
-import { Shield } from "lucide-react";
+import { TestTube } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
@@ -23,15 +23,15 @@ export function OfficialBadge({ size = "md", showLabel = true, className = "" }:
         <TooltipTrigger asChild>
           <Badge
             variant="secondary"
-            className={`bg-gradient-to-r from-blue-500/10 to-indigo-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 hover:bg-blue-500/20 gap-1 ${textSize} ${className}`}
+            className={`bg-gradient-to-r from-amber-500/10 to-orange-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800 hover:bg-amber-500/20 gap-1 ${textSize} ${className}`}
           >
-            <Shield className={`${iconSize} fill-blue-500/20`} />
-            {showLabel && "Official"}
+            <TestTube className={`${iconSize}`} />
+            {showLabel && "DEMO"}
           </Badge>
         </TooltipTrigger>
         <TooltipContent>
-          <p className="text-sm">OlogyCrew Official — Platform demo account</p>
-          <p className="text-xs text-muted-foreground">Browse sample services and practice booking</p>
+          <p className="text-sm font-medium">Demo Provider — Free to Book</p>
+          <p className="text-xs text-muted-foreground">Practice the booking flow at no charge. This is not a real provider.</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

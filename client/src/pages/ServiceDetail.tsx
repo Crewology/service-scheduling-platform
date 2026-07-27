@@ -311,6 +311,12 @@ export default function ServiceDetail() {
         });
         localStorage.removeItem("customer_referral_code");
       }
+      // Demo provider: skip payment entirely
+      if ((provider as any)?.isOfficial) {
+        toast.success("Demo booking confirmed! No payment needed — this is a free demo.");
+        setLocation(`/booking/${data.id}`);
+        return;
+      }
       const isPriced = service?.pricingModel !== "custom_quote" && service?.pricingModel !== "consultation";
       if (isPriced && (service?.requireUpfrontPayment || paymentChoice === "pay_now")) {
         toast.success("Booking created! Redirecting to payment...");
@@ -332,6 +338,12 @@ export default function ServiceDetail() {
     onSuccess: (data) => {
       setBookingError(null);
       if (!data) return;
+      // Demo provider: skip payment entirely
+      if ((provider as any)?.isOfficial) {
+        toast.success("Demo booking confirmed! No payment needed — this is a free demo.");
+        setLocation(`/booking/${data.id}`);
+        return;
+      }
       const isPriced = service?.pricingModel !== "custom_quote" && service?.pricingModel !== "consultation";
       if (isPriced && (service?.requireUpfrontPayment || paymentChoice === "pay_now")) {
         toast.success("Multi-day booking created! Redirecting to payment...");
@@ -353,6 +365,12 @@ export default function ServiceDetail() {
     onSuccess: (data) => {
       setBookingError(null);
       if (!data) return;
+      // Demo provider: skip payment entirely
+      if ((provider as any)?.isOfficial) {
+        toast.success("Demo booking confirmed! No payment needed — this is a free demo.");
+        setLocation(`/booking/${data.id}`);
+        return;
+      }
       const isPriced = service?.pricingModel !== "custom_quote" && service?.pricingModel !== "consultation";
       if (isPriced && (service?.requireUpfrontPayment || paymentChoice === "pay_now")) {
         toast.success("Recurring booking created! Redirecting to payment...");
@@ -374,6 +392,12 @@ export default function ServiceDetail() {
       setBookingError(null);
       if (data.url) {
         window.location.href = data.url;
+      } else if ((data as any).isDemo) {
+        toast.success("Demo booking confirmed! No payment needed.");
+        setLocation(`/booking/${(data as any).bookingId || ''}/confirmation`);
+      } else if (data.paidWithCredits) {
+        toast.success("Booking paid in full with referral credits!");
+        setLocation("/my-bookings");
       }
     },
     onError: (error) => {

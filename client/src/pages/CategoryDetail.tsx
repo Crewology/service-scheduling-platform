@@ -430,12 +430,16 @@ export default function CategoryDetail() {
                                   <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{service.description}</p>
                                 )}
                               </div>
-                              <span className="font-bold text-sm text-primary flex-shrink-0">
-                                {service.pricingModel === "fixed" && service.basePrice && formatCurrency(service.basePrice)}
-                                {service.pricingModel === "hourly" && service.hourlyRate && `${formatCurrency(service.hourlyRate)}/hr`}
-                                {service.pricingModel === "package" && service.basePrice && formatCurrency(service.basePrice)}
-                                {service.pricingModel === "custom_quote" && "Quote"}
-                                {service.pricingModel === "consultation" && "Free"}
+                              <span className={`font-bold text-sm flex-shrink-0 ${provider.isOfficial ? 'text-amber-600' : 'text-primary'}`}>
+                                {provider.isOfficial ? "FREE" : (
+                                  <>
+                                    {service.pricingModel === "fixed" && service.basePrice && formatCurrency(service.basePrice)}
+                                    {service.pricingModel === "hourly" && service.hourlyRate && `${formatCurrency(service.hourlyRate)}/hr`}
+                                    {service.pricingModel === "package" && service.basePrice && formatCurrency(service.basePrice)}
+                                    {service.pricingModel === "custom_quote" && "Quote"}
+                                    {service.pricingModel === "consultation" && "Free"}
+                                  </>
+                                )}
                               </span>
                             </div>
                             {/* Provider name and photo on each service tile */}

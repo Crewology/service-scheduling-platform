@@ -755,7 +755,12 @@ export default function BookingDetail() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {payment ? (
+                {(provider as any)?.isOfficial ? (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-center">
+                    <p className="text-sm font-medium text-amber-800">Demo Booking — No Payment Required</p>
+                    <p className="text-xs text-amber-600 mt-1">This was a free demo to experience the booking flow.</p>
+                  </div>
+                ) : payment ? (
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>

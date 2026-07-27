@@ -59,6 +59,25 @@ export const stripeRouter = router({
       const provider = await db.getProviderById(booking.providerId);
       if (!service || !provider) throw new Error("Service or provider not found");
 
+      // Demo provider bypass: skip payment entirely for official/demo providers
+      if (provider.isOfficial) {
+        await db.updateBookingStatus(booking.id, "confirmed", {
+          paidAt: new Date().toISOString(),
+        });
+        try {
+          await db.createNotification({
+            userId: ctx.user.id,
+            notificationType: "payment",
+            title: "Demo Booking Confirmed",
+            message: `Your demo booking #${booking.bookingNumber} is confirmed — no payment required. This was a free demo experience.`,
+            relatedBookingId: booking.id,
+          });
+        } catch (err) {
+          console.error("[Stripe] Failed to create demo booking notification:", err);
+        }
+        return { url: null, paidWithCredits: false, creditApplied: "0.00", isDemo: true };
+      }
+
       // Determine amount to charge (deposit or full amount)
       const originalAmount = service.depositRequired
         ? parseFloat(booking.depositAmount || "0")
