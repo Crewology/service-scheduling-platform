@@ -2244,3 +2244,6 @@
 
 ## Bug Fix
 - [x] Fix "Rendered more hooks than during the previous render" crash on /my-bookings during login (moved useMemo and useMutation hooks before early returns)
+
+## Bug Fix
+- [x] Fix "My Bookings" button on customer landing page giving 404 error
