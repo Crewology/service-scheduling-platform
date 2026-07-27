@@ -74,15 +74,23 @@ function StripeLinkIcon({ className }: { className?: string }) {
 }
 
 export function PaymentMethods({ size = "md", showLabel = true, showSecure = true, className = "" }: PaymentMethodsProps) {
-  const iconSize = size === "sm" ? "h-5 w-8" : size === "lg" ? "h-8 w-12" : "h-6 w-9";
-  const gapSize = size === "sm" ? "gap-1" : size === "lg" ? "gap-2.5" : "gap-1.5";
+  // Responsive icon sizes: smaller on mobile, normal on desktop
+  const iconSizeClasses = {
+    sm: "h-4 w-6 sm:h-5 sm:w-8",
+    md: "h-5 w-8 sm:h-6 sm:w-9",
+    lg: "h-6 w-9 sm:h-8 sm:w-12",
+  };
+  const iconSize = iconSizeClasses[size];
+  const gapSize = size === "sm" ? "gap-1 sm:gap-1.5" : size === "lg" ? "gap-2 sm:gap-2.5" : "gap-1 sm:gap-1.5";
 
   return (
     <div className={`flex flex-col items-center ${className}`}>
       {showLabel && (
         <div className="flex items-center gap-1.5 mb-1.5">
-          {showSecure && <Lock className="w-3 h-3 text-muted-foreground" />}
-          <span className="text-xs text-muted-foreground font-medium">Secure payments powered by Stripe</span>
+          {showSecure && <Lock className="w-3.5 h-3.5 text-emerald-600" />}
+          <span className="text-xs text-muted-foreground font-medium">
+            {showSecure ? "Secure payments" : "Payments"} powered by Stripe
+          </span>
         </div>
       )}
       <div className={`flex items-center flex-wrap justify-center ${gapSize}`}>

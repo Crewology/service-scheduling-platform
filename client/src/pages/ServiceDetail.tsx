@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { trpc } from "@/lib/trpc";
 import { formatDuration, getDurationPricingLabel } from "../../../shared/duration";
 import { getServiceTypeLabel } from "../../../shared/serviceTypeLabels";
@@ -957,6 +958,59 @@ export default function ServiceDetail() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Payment & Security FAQ */}
+            {!(provider as any)?.isOfficial && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="h-5 w-5 text-emerald-600" />
+                    <CardTitle className="text-lg">Payment & Security</CardTitle>
+                  </div>
+                  <CardDescription>Common questions about payments on OlogyCrew</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-0">
+                  <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="methods">
+                      <AccordionTrigger className="text-sm font-medium">What payment methods are accepted?</AccordionTrigger>
+                      <AccordionContent className="text-sm text-muted-foreground">
+                        We accept all major credit and debit cards (Visa, Mastercard, American Express, Discover), Apple Pay, Google Pay, and Stripe Link for one-click checkout. All payments are processed securely through Stripe.
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="security">
+                      <AccordionTrigger className="text-sm font-medium">Is my payment information secure?</AccordionTrigger>
+                      <AccordionContent className="text-sm text-muted-foreground">
+                        Absolutely. We never store your card details on our servers. All payment processing is handled by Stripe, a PCI Level 1 certified payment processor — the highest level of security certification available. Your data is encrypted end-to-end.
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="charged">
+                      <AccordionTrigger className="text-sm font-medium">When am I charged?</AccordionTrigger>
+                      <AccordionContent className="text-sm text-muted-foreground">
+                        You are charged at the time of booking. If the service requires a deposit, only the deposit amount is charged upfront, with the remaining balance due at the time of service. You'll see the exact amount before confirming.
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="refund">
+                      <AccordionTrigger className="text-sm font-medium">What is the refund policy?</AccordionTrigger>
+                      <AccordionContent className="text-sm text-muted-foreground">
+                        Cancellations made 48+ hours before your appointment receive a full refund. Cancellations 24–48 hours before receive 75%. Cancellations 4–24 hours before receive 50%. Cancellations less than 4 hours before are non-refundable. Refunds are processed back to your original payment method within 5–10 business days.
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="receipt">
+                      <AccordionTrigger className="text-sm font-medium">Will I receive a receipt?</AccordionTrigger>
+                      <AccordionContent className="text-sm text-muted-foreground">
+                        Yes! A confirmation email with payment details is sent immediately after booking. You can also view and download invoices from your booking history at any time.
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="dispute">
+                      <AccordionTrigger className="text-sm font-medium">What if I have a payment issue?</AccordionTrigger>
+                      <AccordionContent className="text-sm text-muted-foreground">
+                        If you experience any payment issues, you can contact the provider directly through our messaging system, or reach out to OlogyCrew support. We're here to help resolve any billing concerns quickly.
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Reviews */}
             {reviews && reviews.length > 0 && (

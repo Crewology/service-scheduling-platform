@@ -2236,3 +2236,8 @@
 - [x] Add payment icons to Provider profile page near Book Now area
 - [x] Add payment icons to booking confirmation step
 - [x] Add payment icons to site Footer
+
+## Payment UX Enhancements
+- [x] Add lock icon next to 'Secure payments' text in PaymentMethods component
+- [x] Ensure payment icons scale properly on mobile screens (responsive sizing)
+- [x] Create 'Payment & Security' FAQ section on Service Detail page
