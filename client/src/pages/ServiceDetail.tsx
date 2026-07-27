@@ -15,7 +15,7 @@ import { useLocation, useParams, useSearch, Link } from "wouter";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
 import { Calendar } from "@/components/ui/calendar";
-import { MapPin, Clock, DollarSign, Star, ChevronRight, CheckCircle2, ArrowLeft, Info, Image as ImageIcon, Tag, X, Loader2, Gift, CalendarRange, Repeat, CalendarDays, Share2, Bell, BellOff, CreditCard, ShieldCheck, AlertTriangle } from "lucide-react";
+import { MapPin, Clock, DollarSign, Star, ChevronRight, CheckCircle, CheckCircle2, ArrowLeft, Info, Image as ImageIcon, Tag, X, Loader2, Gift, CalendarRange, Repeat, CalendarDays, Share2, Bell, BellOff, CreditCard, ShieldCheck, AlertTriangle } from "lucide-react";
 import { generateTimeSlots, formatTimeForDisplay, type TimeSlot } from "@shared/timeSlots";
 import { ReviewList } from "@/components/shared/ReviewList";
 import { NavHeader } from "@/components/shared/NavHeader";
@@ -295,6 +295,28 @@ export default function ServiceDetail() {
   }, [selectedDate, bookingType]);
   
   const utils = trpc.useUtils();
+
+  // Auto-fill booking form with dummy data for demo provider
+  useEffect(() => {
+    if ((provider as any)?.isOfficial && bookingStep === "details") {
+      const needsAddress = service?.serviceType === "mobile" || service?.serviceType === "hybrid";
+      const isFlexible = service?.serviceType === "flexible";
+      setBookingForm((prev) => {
+        // Only auto-fill if fields are empty (don't overwrite user edits)
+        if (prev.addressLine1 || prev.notes) return prev;
+        return {
+          ...prev,
+          addressLine1: needsAddress || isFlexible ? "123 Demo Street" : prev.addressLine1,
+          city: needsAddress || isFlexible ? "Demo City" : prev.city,
+          state: needsAddress || isFlexible ? "CA" : prev.state,
+          postalCode: needsAddress || isFlexible ? "90210" : prev.postalCode,
+          venueName: isFlexible ? "Demo Venue" : prev.venueName,
+          djLocationType: isFlexible ? "public_venue" as const : prev.djLocationType,
+          notes: "This is a demo booking — just testing the process!",
+        };
+      });
+    }
+  }, [provider, bookingStep, service?.serviceType]);
 
   const [bookingError, setBookingError] = useState<string | null>(null);
 
@@ -1478,6 +1500,14 @@ export default function ServiceDetail() {
                         Change Time
                       </Button>
                     </div>
+
+                    {/* Demo auto-fill notice */}
+                    {(provider as any)?.isOfficial && (
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-amber-600 shrink-0" />
+                        <p className="text-xs text-amber-700">Demo mode: Form pre-filled with sample data. Just click "Review Booking" to continue!</p>
+                      </div>
+                    )}
 
                     {/* Summary so far */}
                     <div className="bg-muted/50 rounded-lg p-3 mb-4 space-y-1">

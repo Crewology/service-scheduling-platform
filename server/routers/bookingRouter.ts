@@ -1405,4 +1405,31 @@ export const bookingRouter = router({
       await db.deleteBooking(input.id);
       return { success: true };
     }),
+
+  cancelAllDemo: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      // Get all customer bookings
+      const bookings = await db.getCustomerBookings(ctx.user.id);
+      // Find bookings from demo (official) providers that are still active
+      const demoBookings = [];
+      for (const booking of bookings) {
+        if (booking.status === "pending" || booking.status === "confirmed") {
+          const provider = await db.getProviderById(booking.providerId);
+          if (provider && (provider as any).isOfficial) {
+            demoBookings.push(booking);
+          }
+        }
+      }
+      // Cancel all demo bookings
+      let cancelled = 0;
+      for (const booking of demoBookings) {
+        await db.cancelBooking(booking.id, {
+          cancellationReason: "Demo booking cleared by user",
+          cancelledBy: "customer",
+          cancelledAt: new Date(),
+        });
+        cancelled++;
+      }
+      return { cancelled };
+    }),
 });

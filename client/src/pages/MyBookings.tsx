@@ -156,6 +156,24 @@ export default function MyBookings() {
     return `${Math.floor(hours / 24)}d ago`;
   };
 
+  // Count active demo bookings (pending/confirmed from official provider)
+  const demoBookingCount = useMemo(() => {
+    if (!bookings || bookingView !== "customer") return 0;
+    return bookings.filter((b: any) =>
+      (b.status === "pending" || b.status === "confirmed") &&
+      b.providerName?.startsWith("Demo")
+    ).length;
+  }, [bookings, bookingView]);
+
+  const utils = trpc.useUtils();
+  const cancelAllDemo = trpc.booking.cancelAllDemo.useMutation({
+    onSuccess: (data) => {
+      toast.success(`Cleared ${data.cancelled} demo booking${data.cancelled !== 1 ? "s" : ""}!`);
+      utils.booking.listMine.invalidate();
+    },
+    onError: (err: any) => toast.error(err.message || "Failed to clear demo bookings"),
+  });
+
   return (
     <div className="min-h-screen bg-background">
       <NavHeader />
@@ -223,6 +241,18 @@ export default function MyBookings() {
                   <CalendarDays className="h-4 w-4" />
                   Monthly Planner
                 </Button>
+                {demoBookingCount > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 text-amber-600 border-amber-300 hover:bg-amber-50 hover:text-amber-700"
+                    onClick={() => cancelAllDemo.mutate()}
+                    disabled={cancelAllDemo.isPending}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    {cancelAllDemo.isPending ? "Clearing..." : `Clear All Demo Bookings (${demoBookingCount})`}
+                  </Button>
+                )}
               </>
             )}
           <DropdownMenu>

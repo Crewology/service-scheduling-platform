@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { CheckCircle, Calendar, Clock, MapPin, DollarSign, Gift, Loader2, Share2, Copy, Users, XCircle } from "lucide-react";
+import { CheckCircle, Calendar, Clock, MapPin, DollarSign, Gift, Loader2, Share2, Copy, Users, XCircle, Search } from "lucide-react";
 import { useLocation, useParams, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -562,6 +562,21 @@ export default function BookingConfirmation() {
               <XCircle className="h-4 w-4 mr-2" />
               {cancelDemo.isPending ? "Cancelling..." : "Cancel Demo Booking"}
             </Button>
+          )}
+
+          {/* Find Real Providers CTA for demo bookings */}
+          {(provider as any)?.isOfficial && (
+            <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-4">
+              <p className="text-sm font-medium text-foreground mb-2">Ready to book a real service?</p>
+              <p className="text-xs text-muted-foreground mb-3">You've seen how easy it is! Now find real providers in your area.</p>
+              <Button
+                onClick={() => setLocation("/browse")}
+                className="w-full gap-2"
+              >
+                <Search className="h-4 w-4" />
+                Find Real Providers
+              </Button>
+            </div>
           )}
 
           <div className="flex gap-4">
