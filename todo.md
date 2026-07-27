@@ -2241,3 +2241,6 @@
 - [x] Add lock icon next to 'Secure payments' text in PaymentMethods component
 - [x] Ensure payment icons scale properly on mobile screens (responsive sizing)
 - [x] Create 'Payment & Security' FAQ section on Service Detail page
+
+## Bug Fix
+- [x] Fix "Rendered more hooks than during the previous render" crash on /my-bookings during login (moved useMemo and useMutation hooks before early returns)

@@ -113,6 +113,24 @@ export default function MyBookings() {
     setCurrentPage(1);
   }, [searchQuery, bookingView]);
 
+  // Count active demo bookings (pending/confirmed from official provider)
+  const demoBookingCount = useMemo(() => {
+    if (!bookings || bookingView !== "customer") return 0;
+    return bookings.filter((b: any) =>
+      (b.status === "pending" || b.status === "confirmed") &&
+      b.providerName?.startsWith("Demo")
+    ).length;
+  }, [bookings, bookingView]);
+
+  const utils = trpc.useUtils();
+  const cancelAllDemo = trpc.booking.cancelAllDemo.useMutation({
+    onSuccess: (data) => {
+      toast.success(`Cleared ${data.cancelled} demo booking${data.cancelled !== 1 ? "s" : ""}!`);
+      utils.booking.listMine.invalidate();
+    },
+    onError: (err: any) => toast.error(err.message || "Failed to clear demo bookings"),
+  });
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -155,24 +173,6 @@ export default function MyBookings() {
     if (hours < 24) return `${hours}h ago`;
     return `${Math.floor(hours / 24)}d ago`;
   };
-
-  // Count active demo bookings (pending/confirmed from official provider)
-  const demoBookingCount = useMemo(() => {
-    if (!bookings || bookingView !== "customer") return 0;
-    return bookings.filter((b: any) =>
-      (b.status === "pending" || b.status === "confirmed") &&
-      b.providerName?.startsWith("Demo")
-    ).length;
-  }, [bookings, bookingView]);
-
-  const utils = trpc.useUtils();
-  const cancelAllDemo = trpc.booking.cancelAllDemo.useMutation({
-    onSuccess: (data) => {
-      toast.success(`Cleared ${data.cancelled} demo booking${data.cancelled !== 1 ? "s" : ""}!`);
-      utils.booking.listMine.invalidate();
-    },
-    onError: (err: any) => toast.error(err.message || "Failed to clear demo bookings"),
-  });
 
   return (
     <div className="min-h-screen bg-background">
