@@ -63,15 +63,10 @@ const CUSTOMER_TILES: LaunchpadTile[] = [
   { label: "Settings", icon: <Settings className="h-7 w-7" />, href: "/profile", color: "bg-slate-100", iconColor: "text-slate-600" },
 ];
 
-// Admin tiles (shown additionally for admins)
+// Admin tiles (only admin-specific tiles that don't already exist in provider/customer arrays)
 const ADMIN_TILES: LaunchpadTile[] = [
   { label: "Admin", icon: <LayoutDashboard className="h-7 w-7" />, href: "/admin", color: "bg-red-100", iconColor: "text-red-600" },
   { label: "Users", icon: <Users className="h-7 w-7" />, href: "/admin?tab=users", color: "bg-violet-100", iconColor: "text-violet-600" },
-  { label: "Browse", icon: <Compass className="h-7 w-7" />, href: "/browse", color: "bg-blue-100", iconColor: "text-blue-600" },
-  { label: "Featured", icon: <Award className="h-7 w-7" />, href: "/featured", color: "bg-yellow-100", iconColor: "text-yellow-600" },
-  { label: "Search", icon: <Search className="h-7 w-7" />, href: "/search", color: "bg-purple-100", iconColor: "text-purple-600" },
-  { label: "Plans", icon: <ShieldCheck className="h-7 w-7" />, href: "/pricing", color: "bg-rose-100", iconColor: "text-rose-600" },
-  { label: "Help", icon: <HelpCircle className="h-7 w-7" />, href: "/help", color: "bg-cyan-100", iconColor: "text-cyan-600" },
 ];
 
 function StatBadge({ count, label }: { count: number; label: string }) {
@@ -97,7 +92,10 @@ export default function LoggedInHome() {
   });
 
   const tiles = isProviderView ? PROVIDER_TILES : CUSTOMER_TILES;
-  const allTiles = isAdmin ? [...tiles, ...ADMIN_TILES] : tiles;
+  // Prepend admin tiles, then deduplicate by href to avoid key collisions
+  const allTiles = isAdmin
+    ? [...ADMIN_TILES, ...tiles].filter((tile, idx, arr) => arr.findIndex(t => t.href === tile.href) === idx)
+    : tiles;
 
   const greeting = () => {
     const hour = new Date().getHours();
