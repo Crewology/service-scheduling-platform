@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
+import { NavHeader } from "@/components/shared/NavHeader";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -124,6 +125,7 @@ export default function AccountSubscription() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
+        <NavHeader />
         <div className="container max-w-4xl py-8">
           <div className="animate-pulse space-y-6">
             <div className="h-8 w-48 bg-muted rounded" />
@@ -137,6 +139,7 @@ export default function AccountSubscription() {
 
   return (
     <div className="min-h-screen bg-background">
+      <NavHeader />
       <div className="container max-w-4xl py-8">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">

@@ -2248,3 +2248,6 @@
 ## Bug Fix
 - [x] Fix "My Bookings" button on customer landing page giving 404 error
 - [x] Fix all broken links on customer and provider landing pages (Messages->/messages, Saved->/saved-providers, Quotes->/my-quotes, Waitlist->/my-waitlist, Settings->/profile)
+
+## UX Fix
+- [x] Ensure all screens have the NavHeader on top (added to AccountSubscription, Invoices, MyWaitlist, Promotions, Receipts)

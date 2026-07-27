@@ -1,6 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { getLoginUrl } from "@/const";
+import { NavHeader } from "@/components/shared/NavHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -27,23 +28,29 @@ export default function MyWaitlist() {
 
   if (authLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-background">
+        <NavHeader />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
       </div>
     );
   }
 
   if (!isAuthenticated) {
     return (
-      <div className="container max-w-2xl py-12 text-center">
-        <Bell className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-        <h2 className="text-2xl font-bold mb-2">Sign in to view your waitlist</h2>
-        <p className="text-muted-foreground mb-6">
-          You need to be signed in to manage your waitlist entries.
-        </p>
-        <a href={getLoginUrl()}>
-          <Button>Sign In</Button>
-        </a>
+      <div className="min-h-screen bg-background">
+        <NavHeader />
+        <div className="container max-w-2xl py-12 text-center">
+          <Bell className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-2xl font-bold mb-2">Sign in to view your waitlist</h2>
+          <p className="text-muted-foreground mb-6">
+            You need to be signed in to manage your waitlist entries.
+          </p>
+          <a href={getLoginUrl()}>
+            <Button>Sign In</Button>
+          </a>
+        </div>
       </div>
     );
   }
@@ -139,7 +146,9 @@ export default function MyWaitlist() {
   );
 
   return (
-    <div className="container max-w-2xl py-8">
+    <div className="min-h-screen bg-background">
+      <NavHeader />
+      <div className="container max-w-2xl py-8">
       <div className="flex items-center gap-3 mb-6">
         <Link href="/my-bookings">
           <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -213,6 +222,7 @@ export default function MyWaitlist() {
           )}
         </div>
       )}
+      </div>
     </div>
   );
 }

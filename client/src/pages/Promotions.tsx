@@ -2,6 +2,7 @@ import { useState } from "react";
 import QRCode from "qrcode";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { NavHeader } from "@/components/shared/NavHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -88,16 +89,21 @@ export default function Promotions() {
 
   if (!user) {
     return (
-      <div className="container py-12 text-center">
-        <h1 className="text-2xl font-bold mb-4">Boost Your Business</h1>
-        <p className="text-muted-foreground mb-6">Sign in to promote your services and reach more customers.</p>
-        <Button onClick={() => navigate("/login")}>Sign In</Button>
+      <div className="min-h-screen bg-background">
+        <NavHeader />
+        <div className="container py-12 text-center">
+          <h1 className="text-2xl font-bold mb-4">Boost Your Business</h1>
+          <p className="text-muted-foreground mb-6">Sign in to promote your services and reach more customers.</p>
+          <Button onClick={() => navigate("/login")}>Sign In</Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container py-6 sm:py-10 max-w-5xl mx-auto">
+    <div className="min-h-screen bg-background">
+      <NavHeader />
+      <div className="container py-6 sm:py-10 max-w-5xl mx-auto">
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
@@ -427,6 +433,7 @@ export default function Promotions() {
           )}
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
 }

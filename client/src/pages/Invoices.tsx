@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { NavHeader } from "@/components/shared/NavHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -132,7 +133,9 @@ export default function Invoices() {
   }, [invoices]);
 
   return (
-    <div className="container max-w-5xl py-8">
+    <div className="min-h-screen bg-background">
+      <NavHeader />
+      <div className="container max-w-5xl py-8">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <Link href="/">
@@ -308,11 +311,11 @@ export default function Invoices() {
             );
           })}
         </div>
-      )}
+            )}
+      </div>
     </div>
   );
 }
-
 // Create Invoice Form Component
 function CreateInvoiceForm({
   customers,

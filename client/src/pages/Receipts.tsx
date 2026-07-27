@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { NavHeader } from "@/components/shared/NavHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -73,9 +74,11 @@ export default function Receipts() {
   }, [receipts]);
 
   return (
-    <div className="container max-w-4xl py-8">
+    <div className="min-h-screen bg-background">
+      <NavHeader />
+      <div className="container max-w-4xl py-8">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/dashboard">
+        <Link href="/">
           <Button variant="ghost" size="icon">
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -209,6 +212,7 @@ export default function Receipts() {
           })}
         </div>
       )}
+      </div>
     </div>
   );
 }
