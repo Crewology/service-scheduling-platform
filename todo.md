@@ -2341,3 +2341,10 @@
 - [x] Fix search provider results dropdown being clipped/hidden by the bounding box on the Monthly Planner page
   - Root cause: Card component has overflow-hidden by default which clips absolutely-positioned dropdown
   - Fix: Added overflow-visible class to the Add Event Card on the Monthly Planner page
+
+## Bug Fix: Monthly Planner Time Fields Overlap on Mobile
+- [x] Fix start and end time form fields overlapping and extending beyond screen on mobile
+  - Added min-w-0 to grid cells and w-full min-w-0 to time inputs to prevent overflow
+  - Reduced CardContent padding on mobile (px-4 sm:px-6) for more content space
+  - Added min-w-0 flex-1 and truncate to event list items for long provider names
+  - Added shrink-0 to action buttons/icons to prevent them from being squeezed

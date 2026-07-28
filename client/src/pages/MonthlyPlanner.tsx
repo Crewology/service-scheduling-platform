@@ -413,7 +413,7 @@ export default function MonthlyPlanner() {
                     })}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-3 px-4 sm:px-6">
                   {/* Provider Search */}
                   {!selectedProvider ? (
                     <div className="space-y-2">
@@ -501,23 +501,23 @@ export default function MonthlyPlanner() {
 
                   {/* Time */}
                   {selectedService && (
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="space-y-1">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1 min-w-0">
                         <Label className="text-xs">Start</Label>
                         <Input
                           type="time"
                           value={startTime}
                           onChange={(e) => setStartTime(e.target.value)}
-                          className="h-8 text-sm"
+                          className="h-8 text-sm w-full min-w-0"
                         />
                       </div>
-                      <div className="space-y-1">
+                      <div className="space-y-1 min-w-0">
                         <Label className="text-xs">End</Label>
                         <Input
                           type="time"
                           value={endTime}
                           onChange={(e) => setEndTime(e.target.value)}
-                          className="h-8 text-sm"
+                          className="h-8 text-sm w-full min-w-0"
                         />
                       </div>
                     </div>
@@ -546,10 +546,10 @@ export default function MonthlyPlanner() {
                               : "bg-gray-50 border"
                           }`}
                         >
-                          <div>
-                            <div className="font-medium">{ev.providerName}</div>
+                          <div className="min-w-0 flex-1">
+                            <div className="font-medium truncate">{ev.providerName}</div>
                             <div className="text-muted-foreground flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
+                              <Clock className="h-3 w-3 shrink-0" />
                               {formatTimeForDisplay(ev.startTime)} - {formatTimeForDisplay(ev.endTime)}
                             </div>
                           </div>
@@ -557,14 +557,14 @@ export default function MonthlyPlanner() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-6 w-6 p-0 text-destructive"
+                              className="h-6 w-6 p-0 text-destructive shrink-0"
                               onClick={() => removeEvent(ev.id)}
                             >
                               <X className="h-3 w-3" />
                             </Button>
                           )}
                           {ev.status === "booked" && (
-                            <CheckCircle2 className="h-4 w-4 text-green-600" />
+                            <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
                           )}
                         </div>
                       ))}
@@ -592,8 +592,8 @@ export default function MonthlyPlanner() {
                           : ""
                       }`}
                     >
-                      <div>
-                        <div className="font-medium">{ev.providerName}</div>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium truncate">{ev.providerName}</div>
                         <div className="text-muted-foreground">
                           {new Date(ev.date + "T12:00:00").toLocaleDateString("en-US", {
                             month: "short",
