@@ -501,14 +501,14 @@ export default function MonthlyPlanner() {
 
                   {/* Time */}
                   {selectedService && (
-                    <div className="flex flex-col sm:flex-row gap-2 w-full overflow-hidden">
+                    <div className="flex flex-col sm:flex-row gap-2 w-full">
                       <div className="space-y-1 flex-1 min-w-0">
                         <Label className="text-xs">Start</Label>
                         <Input
                           type="time"
                           value={startTime}
                           onChange={(e) => setStartTime(e.target.value)}
-                          className="h-8 text-sm w-full max-w-full"
+                          className="h-8 text-sm"
                         />
                       </div>
                       <div className="space-y-1 flex-1 min-w-0">
@@ -517,7 +517,7 @@ export default function MonthlyPlanner() {
                           type="time"
                           value={endTime}
                           onChange={(e) => setEndTime(e.target.value)}
-                          className="h-8 text-sm w-full max-w-full"
+                          className="h-8 text-sm"
                         />
                       </div>
                     </div>
