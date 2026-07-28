@@ -239,7 +239,7 @@ export default function MyBookings() {
                 </Button>
                 <Button variant="outline" size="sm" className="gap-2" onClick={() => setLocation("/monthly-planner")}>
                   <CalendarDays className="h-4 w-4" />
-                  Monthly Planner
+                  Planner
                 </Button>
                 {demoBookingCount > 0 && (
                   <Button
