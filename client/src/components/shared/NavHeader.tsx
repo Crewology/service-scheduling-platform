@@ -617,49 +617,7 @@ export function NavHeader() {
             <span className="hidden lg:inline text-xl font-bold gradient-text whitespace-nowrap">OlogyCrew</span>
           </Link>
 
-          {/* Desktop Nav */}
-          <nav className="hidden lg:flex items-center gap-4 ml-6">
-            <Link
-              href="/browse"
-              className={`text-sm font-medium transition-colors ${
-                location === "/browse" ? "text-primary" : "hover:text-primary"
-              }`}
-            >
-              Browse Services
-            </Link>
-            <Link
-              href="/featured"
-              className={`text-sm font-medium transition-colors ${
-                location === "/featured" ? "text-primary" : "hover:text-primary"
-              }`}
-            >
-              Featured
-            </Link>
-            <Link
-              href="/search"
-              className={`text-sm font-medium transition-colors ${
-                location === "/search" ? "text-primary" : "hover:text-primary"
-              }`}
-            >
-              Search
-            </Link>
-            <Link
-              href="/pricing"
-              className={`text-sm font-medium transition-colors ${
-                location === "/pricing" ? "text-primary" : "hover:text-primary"
-              }`}
-            >
-              Plans
-            </Link>
-            <Link
-              href="/help"
-              className={`text-sm font-medium transition-colors ${
-                location === "/help" ? "text-primary" : "hover:text-primary"
-              }`}
-            >
-              Help
-            </Link>
-          </nav>
+          {/* Desktop Nav - hidden per user request */}
 
           {/* Right side actions */}
           <div className="hidden lg:flex items-center gap-1">
