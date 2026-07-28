@@ -501,7 +501,7 @@ export default function MonthlyPlanner() {
 
                   {/* Time */}
                   {selectedService && (
-                    <div className="grid grid-cols-2 gap-3 w-full max-w-[calc(100%-1rem)]">
+                    <div className="grid grid-cols-2 gap-5 w-full max-w-[calc(100%-1rem)]">
                       <div className="space-y-1">
                         <Label className="text-xs">Start</Label>
                         <Input
