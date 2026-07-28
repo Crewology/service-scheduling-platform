@@ -402,7 +402,7 @@ export default function MonthlyPlanner() {
           <div className="space-y-4">
             {/* Add Event Panel */}
             {selectedDate && (
-              <Card>
+              <Card className="overflow-visible">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
                     <CalendarDays className="h-4 w-4" />
@@ -418,7 +418,7 @@ export default function MonthlyPlanner() {
                   {!selectedProvider ? (
                     <div className="space-y-2">
                       <Label className="text-xs font-medium">Search Provider</Label>
-                      <div className="relative" style={{ overflow: "visible" }}>
+                      <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           placeholder="Search providers..."
