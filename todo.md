@@ -2336,3 +2336,8 @@
   - Verified ProviderDashboard tabs hidden on mobile (uses bottom nav instead)
   - All TabsContent have pb-20 md:pb-0 for bottom nav clearance
   - Dialog component has max-w-[calc(100%-2rem)] on mobile preventing overflow
+
+## Bug Fix: Monthly Planner Search Results Hidden
+- [x] Fix search provider results dropdown being clipped/hidden by the bounding box on the Monthly Planner page
+  - Root cause: Card component has overflow-hidden by default which clips absolutely-positioned dropdown
+  - Fix: Added overflow-visible class to the Add Event Card on the Monthly Planner page
