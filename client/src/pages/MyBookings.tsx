@@ -328,7 +328,7 @@ export default function MyBookings() {
             </TabsTrigger>
             <TabsTrigger value="drafts">
               <Archive className="h-3.5 w-3.5 mr-1" />
-              Saved Drafts
+              Drafts
             </TabsTrigger>
           </TabsList>
 
@@ -928,7 +928,7 @@ function SavedDraftsTab() {
       <Card>
         <CardContent className="py-12 text-center">
           <Archive className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-lg font-medium mb-2">No saved drafts</p>
+          <p className="text-lg font-medium mb-2">No drafts</p>
           <p className="text-muted-foreground mb-4">
             When you save a bulk booking as a draft, it will appear here so you can resume it later.
           </p>
