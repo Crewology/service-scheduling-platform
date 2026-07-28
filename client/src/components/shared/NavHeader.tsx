@@ -668,14 +668,7 @@ export function NavHeader() {
                 {/* View Mode Switcher for providers */}
                 <ViewModeSwitcher />
 
-                {/* My Dashboard — show only when NOT in provider view (hidden when Provider tab is active) */}
-                {isProvider && !isProviderView && (
-                  <Link href="/provider/dashboard">
-                    <Button variant="outline" size="sm" className="text-xs px-2.5">
-                      My Dashboard
-                    </Button>
-                  </Link>
-                )}
+                {/* My Dashboard — hidden per user request */}
 
                 {/* Admin Dashboard */}
                 {isAdmin && (
