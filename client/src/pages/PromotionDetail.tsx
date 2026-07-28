@@ -61,7 +61,7 @@ function ShareButtons({ url, title }: { url: string; title: string }) {
         onClick={copyLink}
         className="gap-1.5"
       >
-        {copied ? <CheckCircle2 className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+        {copied ? <CheckCircle2 className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
         {copied ? "Copied!" : "Copy Link"}
       </Button>
       <Button

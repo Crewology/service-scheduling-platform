@@ -98,7 +98,7 @@ const TIER_BENEFITS = {
     price: "$20/mo",
     annualPrice: "$16.00/mo",
     icon: Crown,
-    color: "text-amber-600 dark:text-amber-400",
+    color: "text-amber-700 dark:text-amber-400",
     bgColor: "bg-amber-100 dark:bg-amber-900/30",
     features: [
       "Unlimited categories",
@@ -134,7 +134,7 @@ export function UpgradePrompt({ open, onClose, reason, currentTier, currentCount
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Crown className="h-5 w-5 text-amber-500" />
+            <Crown className="h-5 w-5 text-amber-700" />
             {reasonInfo.title}
           </DialogTitle>
           <DialogDescription>
@@ -196,7 +196,7 @@ export function UpgradePrompt({ open, onClose, reason, currentTier, currentCount
                 <ul className="space-y-1 text-xs mb-3">
                   {TIER_BENEFITS.basic.features.map((f) => (
                     <li key={f} className="flex items-center gap-1.5">
-                      <CheckCircle className="h-3 w-3 text-green-500 shrink-0" />
+                      <CheckCircle className="h-3 w-3 text-green-600 shrink-0" />
                       {f}
                     </li>
                   ))}
@@ -226,20 +226,20 @@ export function UpgradePrompt({ open, onClose, reason, currentTier, currentCount
                     </p>
                   </div>
                   {reasonInfo.minTier === "premium" && (
-                    <Badge className="ml-auto bg-amber-500 text-white text-[9px] px-1.5">Required</Badge>
+                    <Badge className="ml-auto bg-amber-700 text-white text-[9px] px-1.5">Required</Badge>
                   )}
                 </div>
                 <ul className="space-y-1 text-xs mb-3">
                   {TIER_BENEFITS.premium.features.map((f) => (
                     <li key={f} className="flex items-center gap-1.5">
-                      <CheckCircle className="h-3 w-3 text-green-500 shrink-0" />
+                      <CheckCircle className="h-3 w-3 text-green-600 shrink-0" />
                       {f}
                     </li>
                   ))}
                 </ul>
                 <Button
                   size="sm"
-                  className="w-full bg-amber-500 hover:bg-amber-600 text-white"
+                  className="w-full bg-amber-700 hover:bg-amber-800 text-white"
                   onClick={() => createCheckout.mutate({ tier: "premium", interval: billingInterval })}
                   disabled={createCheckout.isPending}
                 >
@@ -292,7 +292,7 @@ export function UpgradeBanner({
           : "bg-muted/50 border-border text-muted-foreground"
       }`}
     >
-      <Crown className={`h-4 w-4 shrink-0 ${isAtLimit ? "text-amber-500" : "text-muted-foreground"}`} />
+      <Crown className={`h-4 w-4 shrink-0 ${isAtLimit ? "text-amber-700" : "text-muted-foreground"}`} />
       <span className="flex-1">
         {isAtLimit ? (
           <>
@@ -309,7 +309,7 @@ export function UpgradeBanner({
       <Button
         size="sm"
         variant={isAtLimit ? "default" : "outline"}
-        className={isAtLimit ? "bg-amber-500 hover:bg-amber-600 text-white" : ""}
+        className={isAtLimit ? "bg-amber-700 hover:bg-amber-800 text-white" : ""}
         onClick={onUpgradeClick}
       >
         Upgrade <ArrowRight className="h-3.5 w-3.5 ml-1" />

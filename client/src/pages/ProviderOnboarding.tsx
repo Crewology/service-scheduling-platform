@@ -1003,7 +1003,7 @@ export default function ProviderOnboarding() {
             <CardContent className="space-y-6">
               {existingProvider ? (
                 <div className="text-center py-8">
-                  <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
+                  <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold">{existingProvider.businessName}</h3>
                   <p className="text-muted-foreground mt-1">Profile created</p>
                   <Button className="mt-4" onClick={() => setCurrentStep(2)}>
@@ -1410,11 +1410,11 @@ export default function ProviderOnboarding() {
                     <span className="text-muted-foreground text-sm">/month</span>
                   </div>
                   <ul className="space-y-1.5 text-sm">
-                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> 1 service category</li>
-                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Up to 3 services</li>
-                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> 1 photo per service</li>
-                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Basic public profile</li>
-                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Booking management</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-600 shrink-0" /> 1 service category</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-600 shrink-0" /> Up to 3 services</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-600 shrink-0" /> 1 photo per service</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-600 shrink-0" /> Basic public profile</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-600 shrink-0" /> Booking management</li>
                   </ul>
                   {(selectedTier === "free" || (currentSubscription?.currentTier === "free" && !selectedTier)) && (
                     <div className="absolute top-3 right-3">
@@ -1459,11 +1459,11 @@ export default function ProviderOnboarding() {
                     )}
                   </div>
                   <ul className="space-y-1.5 text-sm">
-                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Up to 5 categories</li>
-                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Up to 10 services</li>
-                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> 3 photos per service</li>
-                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Priority search placement</li>
-                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Business analytics</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-600 shrink-0" /> Up to 5 categories</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-600 shrink-0" /> Up to 10 services</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-600 shrink-0" /> 3 photos per service</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-600 shrink-0" /> Priority search placement</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-600 shrink-0" /> Business analytics</li>
                   </ul>
                   {billingInterval === "year" && (
                     <div className="mt-3 text-center">
@@ -1514,11 +1514,11 @@ export default function ProviderOnboarding() {
                     )}
                   </div>
                   <ul className="space-y-1.5 text-sm">
-                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Unlimited categories</li>
-                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Unlimited services</li>
-                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> 5 photos per service</li>
-                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Featured listing badge</li>
-                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" /> Full analytics suite</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-600 shrink-0" /> Unlimited categories</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-600 shrink-0" /> Unlimited services</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-600 shrink-0" /> 5 photos per service</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-600 shrink-0" /> Featured listing badge</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-600 shrink-0" /> Full analytics suite</li>
                   </ul>
                   {billingInterval === "year" && (
                     <div className="mt-3 text-center">
@@ -1637,13 +1637,13 @@ export default function ProviderOnboarding() {
             <CardContent className="space-y-6">
               {existingProvider?.payoutEnabled ? (
                 <div className="text-center py-8">
-                  <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
+                  <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold">Payments Connected</h3>
                   <p className="text-muted-foreground mt-1">You're all set to receive payments</p>
                 </div>
               ) : (selectedTier === "free" || (!selectedTier && (!currentSubscription?.subscription || currentSubscription?.currentTier === "free"))) ? (
                 <div className="text-center py-8">
-                  <Shield className="h-12 w-12 text-amber-500 mx-auto mb-4" />
+                  <Shield className="h-12 w-12 text-amber-600 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold">Upgrade Required</h3>
                   <p className="text-muted-foreground mt-1 max-w-md mx-auto">
                     Payment account setup requires a Pro or Business subscription. Go back to Step 4 to upgrade your plan, or skip this step and upgrade later from your dashboard.

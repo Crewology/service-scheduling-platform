@@ -152,7 +152,7 @@ export default function UserDetailPage() {
                     {user.deletedAt ? (
                       <Badge variant="destructive">Suspended</Badge>
                     ) : !user.emailVerified ? (
-                      <Badge variant="outline" className="text-amber-600 border-amber-600">Unverified</Badge>
+                      <Badge variant="outline" className="text-amber-700 border-amber-700">Unverified</Badge>
                     ) : (
                       <Badge variant="outline" className="text-green-600 border-green-600">Active</Badge>
                     )}
@@ -324,7 +324,7 @@ export default function UserDetailPage() {
                 <div>
                   <p className="text-sm text-muted-foreground">Rating</p>
                   <p className="font-medium flex items-center gap-1">
-                    <Star className="h-3.5 w-3.5 text-yellow-500" />
+                    <Star className="h-3.5 w-3.5 text-amber-600" />
                     {provider.averageRating ? Number(provider.averageRating).toFixed(1) : "No ratings"}
                     {provider.totalReviews ? ` (${provider.totalReviews} reviews)` : ""}
                   </p>
@@ -443,7 +443,7 @@ export default function UserDetailPage() {
                                 <TableRow key={r.id}>
                                   <TableCell>
                                     <div className="flex items-center gap-1">
-                                      <Star className="h-3.5 w-3.5 text-yellow-500 fill-yellow-500" />
+                                      <Star className="h-3.5 w-3.5 text-amber-600 fill-yellow-500" />
                                       {r.rating}
                                     </div>
                                   </TableCell>
@@ -473,7 +473,7 @@ export default function UserDetailPage() {
                                 <TableRow key={r.id}>
                                   <TableCell>
                                     <div className="flex items-center gap-1">
-                                      <Star className="h-3.5 w-3.5 text-yellow-500 fill-yellow-500" />
+                                      <Star className="h-3.5 w-3.5 text-amber-600 fill-yellow-500" />
                                       {r.rating}
                                     </div>
                                   </TableCell>

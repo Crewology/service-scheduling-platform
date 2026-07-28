@@ -38,7 +38,7 @@ const tiers = [
     yearlyPrice: "$16.00",
     savedLimit: "Unlimited",
     icon: Crown,
-    color: "text-amber-500",
+    color: "text-amber-700 dark:text-amber-400",
     bgColor: "bg-amber-500/10",
     borderColor: "border-amber-500/30",
     popular: true,
@@ -74,7 +74,7 @@ export default function UpgradeModal({ open, onOpenChange, currentTier = "free",
           <DialogHeader className="mb-4">
             <div className="flex items-center gap-2 mb-2">
               <div className="p-2 rounded-full bg-amber-500/10">
-                <Heart className="h-5 w-5 text-amber-500" />
+                <Heart className="h-5 w-5 text-amber-700" />
               </div>
               <DialogTitle className="text-xl">Save More Providers</DialogTitle>
             </div>
@@ -94,7 +94,7 @@ export default function UpgradeModal({ open, onOpenChange, currentTier = "free",
                 className={`relative rounded-xl border ${t.borderColor} bg-card p-4 flex flex-col`}
               >
                 {t.popular && (
-                  <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-amber-500 text-white border-0 px-3">
+                  <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-amber-700 text-white border-0 px-3">
                     Most Popular
                   </Badge>
                 )}

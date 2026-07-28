@@ -35,7 +35,7 @@ const TRUST_CONFIG: Record<TrustLevel, {
   top_pro: {
     label: "Top Pro",
     description: "Elite provider with exceptional service",
-    colorClass: "text-amber-600 dark:text-amber-400",
+    colorClass: "text-amber-700 dark:text-amber-400",
     bgClass: "bg-amber-50 dark:bg-amber-900/30",
     icon: Award,
   },

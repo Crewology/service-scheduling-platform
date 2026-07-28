@@ -93,7 +93,7 @@ function SubscriptionAnalyticsPanel() {
         <Card className="border-l-4 border-l-green-500">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Monthly Recurring Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-500" />
+            <DollarSign className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{formatCurrency(analytics.mrr)}</div>
@@ -122,7 +122,7 @@ function SubscriptionAnalyticsPanel() {
             {analytics.churnRate > 5 ? (
               <ArrowUpRight className="h-4 w-4 text-red-500" />
             ) : (
-              <ArrowDownRight className="h-4 w-4 text-green-500" />
+              <ArrowDownRight className="h-4 w-4 text-green-600" />
             )}
           </CardHeader>
           <CardContent>
@@ -193,8 +193,8 @@ function SubscriptionAnalyticsPanel() {
               {analytics.tiers.trialing > 0 && (
                 <div className="pt-2 border-t">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-amber-600">Currently Trialing</span>
-                    <span className="text-sm text-amber-600">{analytics.tiers.trialing}</span>
+                    <span className="text-sm font-medium text-amber-700">Currently Trialing</span>
+                    <span className="text-sm text-amber-700">{analytics.tiers.trialing}</span>
                   </div>
                 </div>
               )}
@@ -856,11 +856,11 @@ function ReviewModerationPanel() {
                   <div className="flex items-center gap-1">
                     {!item.review.isFlagged ? (
                       <Button size="sm" variant="ghost" onClick={() => { setSelectedReviewId(item.review.id); setFlagDialogOpen(true); }}>
-                        <Flag className="h-4 w-4 text-orange-500" />
+                        <Flag className="h-4 w-4 text-orange-600" />
                       </Button>
                     ) : (
                       <Button size="sm" variant="ghost" onClick={() => unflagReview.mutate({ reviewId: item.review.id })}>
-                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <CheckCircle className="h-4 w-4 text-green-600" />
                       </Button>
                     )}
                     <Button size="sm" variant="ghost" onClick={() => hideReview.mutate({ reviewId: item.review.id })}>
@@ -1020,7 +1020,7 @@ function DocumentReviewPanel() {
                             onClick={() => reviewDoc.mutate({ documentId: item.document.id, status: "approved" })}
                             disabled={reviewDoc.isPending}
                           >
-                            <CheckCircle className="h-4 w-4 text-green-500" />
+                            <CheckCircle className="h-4 w-4 text-green-600" />
                           </Button>
                           <Button
                             size="sm"
@@ -1609,7 +1609,7 @@ function ContactSubmissionsPanel() {
                                 <MailCheck className="h-3 w-3" /> Email sent
                               </span>
                             ) : (
-                              <span className="text-xs text-amber-600 flex items-center gap-1">
+                              <span className="text-xs text-amber-700 flex items-center gap-1">
                                 <AlertCircle className="h-3 w-3" /> Email pending
                               </span>
                             )}
@@ -1891,7 +1891,7 @@ function ReferralAnalyticsPanel() {
         <Card className="border-l-4 border-l-green-500">
           <CardContent className="pt-4 pb-3">
             <div className="flex items-center gap-2 mb-1">
-              <CheckCircle className="h-4 w-4 text-green-500" />
+              <CheckCircle className="h-4 w-4 text-green-600" />
               <div className="text-xs text-muted-foreground">Completed</div>
             </div>
             <div className="text-2xl font-bold text-green-600">{refStats.completedReferrals}</div>
@@ -1900,7 +1900,7 @@ function ReferralAnalyticsPanel() {
         <Card className="border-l-4 border-l-amber-500">
           <CardContent className="pt-4 pb-3">
             <div className="flex items-center gap-2 mb-1">
-              <Clock className="h-4 w-4 text-amber-500" />
+              <Clock className="h-4 w-4 text-amber-600" />
               <div className="text-xs text-muted-foreground">Pending</div>
             </div>
             <div className="text-2xl font-bold text-amber-600">{refStats.pendingReferrals}</div>
@@ -2008,9 +2008,9 @@ function ReferralAnalyticsPanel() {
                   <TableRow key={r.userId}>
                     <TableCell>
                       {i === 0 ? (
-                        <span className="text-amber-500 font-bold">#1</span>
+                        <span className="text-amber-700 dark:text-amber-400 font-bold">#1</span>
                       ) : i === 1 ? (
-                        <span className="text-gray-400 font-bold">#2</span>
+                        <span className="text-muted-foreground font-bold">#2</span>
                       ) : i === 2 ? (
                         <span className="text-amber-700 font-bold">#3</span>
                       ) : (
@@ -2072,7 +2072,7 @@ function PushAnalyticsPanel() {
         <Card className="border-l-4 border-l-green-500">
           <CardContent className="pt-4 pb-3">
             <div className="flex items-center gap-2 mb-1">
-              <Wifi className="h-4 w-4 text-green-500" />
+              <Wifi className="h-4 w-4 text-green-600" />
               <div className="text-xs text-muted-foreground">Active</div>
             </div>
             <div className="text-2xl font-bold text-green-600">{pushStats.activeSubscriptions}</div>
@@ -2081,7 +2081,7 @@ function PushAnalyticsPanel() {
         <Card className="border-l-4 border-l-red-400">
           <CardContent className="pt-4 pb-3">
             <div className="flex items-center gap-2 mb-1">
-              <WifiOff className="h-4 w-4 text-red-400" />
+              <WifiOff className="h-4 w-4 text-red-500" />
               <div className="text-xs text-muted-foreground">Inactive</div>
             </div>
             <div className="text-2xl font-bold text-red-500">{pushStats.inactiveSubscriptions}</div>
@@ -2099,7 +2099,7 @@ function PushAnalyticsPanel() {
         <Card className="border-l-4 border-l-amber-500">
           <CardContent className="pt-4 pb-3">
             <div className="flex items-center gap-2 mb-1">
-              <Activity className="h-4 w-4 text-amber-500" />
+              <Activity className="h-4 w-4 text-amber-600" />
               <div className="text-xs text-muted-foreground">Last 7 Days</div>
             </div>
             <div className="text-2xl font-bold text-amber-600">{pushStats.recentSubscriptions}</div>
@@ -2640,7 +2640,7 @@ function UsersFilterPanel({ suspendUser, unsuspendUser }: { suspendUser: any; un
                         {u.deletedAt ? (
                           <Badge variant="destructive">Suspended</Badge>
                         ) : !u.emailVerified ? (
-                          <Badge variant="outline" className="text-amber-600 border-amber-600">Unverified</Badge>
+                          <Badge variant="outline" className="text-amber-700 border-amber-700">Unverified</Badge>
                         ) : (
                           <Badge variant="outline" className="text-green-600 border-green-600">Active</Badge>
                         )}

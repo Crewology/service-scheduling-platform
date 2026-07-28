@@ -53,7 +53,7 @@ export function PWAInstallBanner() {
           </div>
           <button
             onClick={handleDismiss}
-            className="text-gray-400 hover:text-gray-600 shrink-0"
+            className="text-gray-500 hover:text-gray-700 shrink-0"
             aria-label="Dismiss install banner"
           >
             <X className="h-4 w-4" />

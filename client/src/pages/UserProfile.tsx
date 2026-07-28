@@ -323,7 +323,7 @@ function DeleteAccountSection() {
               <>
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-amber-500" />
+                    <AlertTriangle className="h-5 w-5 text-amber-600" />
                     Are you sure?
                   </DialogTitle>
                   <DialogDescription className="text-left space-y-3 pt-2">

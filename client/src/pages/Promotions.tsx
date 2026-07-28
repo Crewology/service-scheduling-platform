@@ -336,7 +336,7 @@ export default function Promotions() {
                   {/* View & Click Stats */}
                   <div className="flex gap-4 text-sm mb-3 p-2.5 bg-muted/50 rounded-lg">
                     <span className="flex items-center gap-1.5 font-medium"><Eye className="h-4 w-4 text-blue-500" /> {promo.impressions} <span className="text-muted-foreground font-normal">page views</span></span>
-                    <span className="flex items-center gap-1.5 font-medium"><MousePointerClick className="h-4 w-4 text-green-500" /> {promo.clicks} <span className="text-muted-foreground font-normal">clicks</span></span>
+                    <span className="flex items-center gap-1.5 font-medium"><MousePointerClick className="h-4 w-4 text-green-600" /> {promo.clicks} <span className="text-muted-foreground font-normal">clicks</span></span>
                   </div>
                   {/* Share & QR Code */}
                   <div className="flex items-center gap-2 pt-3 border-t flex-wrap">

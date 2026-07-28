@@ -434,7 +434,7 @@ export default function ManageAvailability() {
                           </span>
                           {isAvailable ? (
                             <div className="flex items-center gap-2 min-w-0">
-                              <Check className="h-4 w-4 text-emerald-500 shrink-0" />
+                              <Check className="h-4 w-4 text-emerald-600 shrink-0" />
                               <span className="text-sm truncate">
                                 {slots.map((s, i) => (
                                   <span key={i}>

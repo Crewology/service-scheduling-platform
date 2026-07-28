@@ -457,7 +457,7 @@ function QuickCategoryStackingModal({
                   key={cat.id}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-left transition-colors ${
                     alreadyAdded
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      ? "bg-gray-100 text-gray-500 cursor-not-allowed"
                       : isSelected
                       ? "bg-primary/10 border border-primary/30"
                       : "hover:bg-gray-50 border border-transparent"
@@ -752,7 +752,7 @@ function ProviderSlotCard({
                     </div>
                     <span className="font-medium">{fav.businessName || fav.userName}</span>
                     {fav.averageRating && parseFloat(fav.averageRating) > 0 && (
-                      <span className="text-amber-500">★{parseFloat(fav.averageRating).toFixed(1)}</span>
+                      <span className="text-amber-700 dark:text-amber-400">★{parseFloat(fav.averageRating).toFixed(1)}</span>
                     )}
                   </button>
                 ))}
@@ -791,7 +791,7 @@ function ProviderSlotCard({
                       {p.city && <p className="text-xs text-muted-foreground">{p.city}, {p.state}</p>}
                     </div>
                     {p.averageRating && parseFloat(p.averageRating) > 0 && (
-                      <span className="text-xs text-amber-600 shrink-0">★ {parseFloat(p.averageRating).toFixed(1)}</span>
+                      <span className="text-xs text-amber-700 shrink-0">★ {parseFloat(p.averageRating).toFixed(1)}</span>
                     )}
                   </button>
                 );
@@ -896,7 +896,7 @@ function ProviderSlotCard({
               {/* Smart time suggestion hint */}
               {slot.startTime && slot.endTime && (
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Sparkles className="h-3 w-3 text-amber-500" />
+                  <Sparkles className="h-3 w-3 text-amber-600" />
                   {formatTime12h(slot.startTime)} – {formatTime12h(slot.endTime)}
                   {slot.durationMinutes && ` (${slot.durationMinutes} min service)`}
                 </p>

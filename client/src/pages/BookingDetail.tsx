@@ -271,7 +271,7 @@ export default function BookingDetail() {
 
       {/* Demo Mode Active Banner */}
       {(provider as any)?.isOfficial && (
-        <div className="sticky top-0 z-50 bg-amber-500 text-white text-center py-2 px-4 shadow-md">
+        <div className="sticky top-0 z-50 bg-amber-700 text-white text-center py-2 px-4 shadow-md">
           <p className="text-sm font-semibold flex items-center justify-center gap-2">
             <span className="inline-block w-2 h-2 rounded-full bg-white animate-pulse" />
             Demo Mode Active — This is a free test booking. No charges will be applied.
@@ -590,7 +590,7 @@ export default function BookingDetail() {
                     <CardDescription className="flex gap-3 mt-1">
                       <span className="text-green-600">{sessionStats.completed} completed</span>
                       <span className="text-blue-600">{sessionStats.scheduled} scheduled</span>
-                      {sessionStats.rescheduled > 0 && <span className="text-amber-600">{sessionStats.rescheduled} rescheduled</span>}
+                      {sessionStats.rescheduled > 0 && <span className="text-amber-700">{sessionStats.rescheduled} rescheduled</span>}
                       {sessionStats.cancelled > 0 && <span className="text-red-600">{sessionStats.cancelled} cancelled</span>}
                     </CardDescription>
                   )}
@@ -624,7 +624,7 @@ export default function BookingDetail() {
                                 {formatTimeForDisplay(session.startTime)} - {formatTimeForDisplay(session.endTime)}
                               </p>
                               {session.rescheduledFromDate && (
-                                <p className="text-xs text-amber-600 mt-0.5">
+                                <p className="text-xs text-amber-700 mt-0.5">
                                   Rescheduled from {new Date(session.rescheduledFromDate).toLocaleDateString()}
                                 </p>
                               )}
@@ -769,7 +769,7 @@ export default function BookingDetail() {
                 {(provider as any)?.isOfficial ? (
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-center">
                     <p className="text-sm font-medium text-amber-800">Demo Booking — No Payment Required</p>
-                    <p className="text-xs text-amber-600 mt-1">This was a free demo to experience the booking flow.</p>
+                    <p className="text-xs text-amber-700 mt-1">This was a free demo to experience the booking flow.</p>
                   </div>
                 ) : payment ? (
                   <div className="space-y-4">
@@ -926,7 +926,7 @@ export default function BookingDetail() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
-                    <Star className="h-5 w-5 text-yellow-500" />
+                    <Star className="h-5 w-5 text-amber-600" />
                     Customer Review
                   </CardTitle>
                 </CardHeader>

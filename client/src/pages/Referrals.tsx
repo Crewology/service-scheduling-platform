@@ -374,21 +374,21 @@ export default function Referrals() {
               </Card>
               <Card>
                 <CardContent className="pt-6 text-center">
-                  <CheckCircle2 className="h-8 w-8 text-green-500 mx-auto mb-2" />
+                  <CheckCircle2 className="h-8 w-8 text-green-600 mx-auto mb-2" />
                   <p className="text-2xl font-bold">{stats?.completedReferrals || 0}</p>
                   <p className="text-sm text-muted-foreground">Completed</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="pt-6 text-center">
-                  <Clock className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
+                  <Clock className="h-8 w-8 text-amber-600 mx-auto mb-2" />
                   <p className="text-2xl font-bold">{stats?.pendingReferrals || 0}</p>
                   <p className="text-sm text-muted-foreground">Pending</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="pt-6 text-center">
-                  <DollarSign className="h-8 w-8 text-emerald-500 mx-auto mb-2" />
+                  <DollarSign className="h-8 w-8 text-emerald-600 mx-auto mb-2" />
                   <p className="text-2xl font-bold">${stats?.totalEarnings || "0.00"}</p>
                   <p className="text-sm text-muted-foreground">Credits Earned</p>
                 </CardContent>
@@ -590,21 +590,21 @@ export default function Referrals() {
               </Card>
               <Card>
                 <CardContent className="pt-6 text-center">
-                  <CheckCircle2 className="h-8 w-8 text-green-500 mx-auto mb-2" />
+                  <CheckCircle2 className="h-8 w-8 text-green-600 mx-auto mb-2" />
                   <p className="text-2xl font-bold">{stats?.completedReferrals || 0}</p>
                   <p className="text-sm text-muted-foreground">Completed</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="pt-6 text-center">
-                  <Clock className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
+                  <Clock className="h-8 w-8 text-amber-600 mx-auto mb-2" />
                   <p className="text-2xl font-bold">{stats?.pendingReferrals || 0}</p>
                   <p className="text-sm text-muted-foreground">Pending</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="pt-6 text-center">
-                  <DollarSign className="h-8 w-8 text-emerald-500 mx-auto mb-2" />
+                  <DollarSign className="h-8 w-8 text-emerald-600 mx-auto mb-2" />
                   <p className="text-2xl font-bold">${stats?.totalEarnings || "0.00"}</p>
                   <p className="text-sm text-muted-foreground">Credits Earned</p>
                 </CardContent>

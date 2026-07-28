@@ -59,7 +59,7 @@ const tierConfig = {
   business: {
     name: "Manager",
     icon: Crown,
-    color: "text-amber-600",
+    color: "text-amber-700",
     bgColor: "bg-amber-50",
     borderColor: "border-amber-200",
     description: "Full access with analytics and exports",
@@ -205,7 +205,7 @@ export default function AccountSubscription() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {currentConfig.features.map((feature) => (
                 <div key={feature} className="flex items-center gap-2 text-sm">
-                  <Check className="h-4 w-4 text-green-500 shrink-0" />
+                  <Check className="h-4 w-4 text-green-600 shrink-0" />
                   <span>{feature}</span>
                 </div>
               ))}
@@ -266,7 +266,7 @@ export default function AccountSubscription() {
                         <ul className="space-y-2 mb-6">
                           {config.features.map((feature) => (
                             <li key={feature} className="flex items-center gap-2 text-sm">
-                              <Check className="h-4 w-4 text-green-500 shrink-0" />
+                              <Check className="h-4 w-4 text-green-600 shrink-0" />
                               {feature}
                             </li>
                           ))}

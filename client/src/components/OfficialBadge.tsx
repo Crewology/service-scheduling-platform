@@ -23,7 +23,7 @@ export function OfficialBadge({ size = "md", showLabel = true, className = "" }:
         <TooltipTrigger asChild>
           <Badge
             variant="secondary"
-            className={`bg-gradient-to-r from-amber-500/10 to-orange-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800 hover:bg-amber-500/20 gap-1 ${textSize} ${className}`}
+            className={`bg-gradient-to-r from-amber-500/10 to-orange-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800 hover:bg-amber-500/20 gap-1 ${textSize} ${className}`}
           >
             <TestTube className={`${iconSize}`} />
             {showLabel && "DEMO"}

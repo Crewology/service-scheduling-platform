@@ -119,7 +119,7 @@ export function TrialExpiredBanner() {
       </button>
 
       <div className="flex items-start gap-3 pr-6">
-        <div className="mt-0.5 rounded-full p-1.5 bg-amber-100 text-amber-600 dark:bg-amber-900 dark:text-amber-400">
+        <div className="mt-0.5 rounded-full p-1.5 bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-400">
           <AlertTriangle className="h-4 w-4" />
         </div>
 

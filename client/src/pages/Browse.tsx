@@ -133,7 +133,7 @@ export default function Browse() {
           ) : (
             <div className="text-center py-12">
               <div className="max-w-md mx-auto">
-                <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
+                <AlertCircle className="h-12 w-12 text-amber-600 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Categories Temporarily Unavailable</h3>
                 <p className="text-muted-foreground mb-4">
                   We're having trouble loading the service categories. Please try refreshing.

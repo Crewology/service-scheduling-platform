@@ -113,8 +113,8 @@ export default function RoleSelection() {
             <div
               className={`w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center ${
                 selectedRole === "customer"
-                  ? "bg-amber-500 text-white"
-                  : "bg-amber-100 text-amber-600"
+                  ? "bg-amber-700 text-white"
+                  : "bg-amber-100 text-amber-700"
               }`}
             >
               <Search className="h-8 w-8" />
@@ -126,7 +126,7 @@ export default function RoleSelection() {
               Browse local professionals, book appointments, and manage your bookings — all in one place.
             </p>
             {selectedRole === "customer" && (
-              <div className="mt-3 text-amber-600 font-medium text-sm flex items-center justify-center gap-1">
+              <div className="mt-3 text-amber-700 font-medium text-sm flex items-center justify-center gap-1">
                 <span className="inline-block w-2 h-2 rounded-full bg-amber-500" />
                 Selected
               </div>
@@ -147,8 +147,8 @@ export default function RoleSelection() {
             <div
               className={`w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center ${
                 selectedRole === "provider"
-                  ? "bg-amber-500 text-white"
-                  : "bg-amber-100 text-amber-600"
+                  ? "bg-amber-700 text-white"
+                  : "bg-amber-100 text-amber-700"
               }`}
             >
               <Briefcase className="h-8 w-8" />
@@ -160,7 +160,7 @@ export default function RoleSelection() {
               List your services, manage bookings, accept payments, and grow your business with OlogyCrew.
             </p>
             {selectedRole === "provider" && (
-              <div className="mt-3 text-amber-600 font-medium text-sm flex items-center justify-center gap-1">
+              <div className="mt-3 text-amber-700 font-medium text-sm flex items-center justify-center gap-1">
                 <span className="inline-block w-2 h-2 rounded-full bg-amber-500" />
                 Selected
               </div>
@@ -204,7 +204,7 @@ export default function RoleSelection() {
       </button>
 
       {/* Note */}
-      <p className="text-xs text-gray-400 mt-6 text-center max-w-sm">
+      <p className="text-xs text-muted-foreground mt-6 text-center max-w-sm">
         You can always switch later or add provider services from your profile settings.
       </p>
     </div>

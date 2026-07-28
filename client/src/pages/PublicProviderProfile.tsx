@@ -450,15 +450,15 @@ export default function PublicProviderProfile() {
                 </p>
                 <ul className="text-sm text-muted-foreground space-y-2 pl-1">
                   <li className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
                     <span>Browse and book any demo service completely free</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
                     <span>Experience the full booking flow without entering payment info</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
                     <span>Cancel demo bookings anytime with one click</span>
                   </li>
                 </ul>
@@ -534,7 +534,7 @@ export default function PublicProviderProfile() {
               {/* Response Time Badge */}
               {responseTime?.label && responseTime.avgMinutes !== null && (
                 <div className="flex items-center gap-1.5 mt-2">
-                  <Zap className="w-4 h-4 text-green-500" />
+                  <Zap className="w-4 h-4 text-green-600" />
                   <span className="text-sm text-green-600 font-medium">{responseTime.label}</span>
                 </div>
               )}
@@ -818,7 +818,7 @@ export default function PublicProviderProfile() {
                               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Includes:</p>
                               {pkg.services.map((svc: any, idx: number) => (
                                 <div key={idx} className="flex items-center gap-2 text-sm">
-                                  <CheckCircle className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                                  <CheckCircle className="w-3.5 h-3.5 text-green-600 shrink-0" />
                                   <span>{svc.serviceName}</span>
                                 </div>
                               ))}

@@ -28,7 +28,7 @@ const iconMap = {
 const colorMap = {
   info: "text-blue-500 hover:text-blue-600",
   help: "text-muted-foreground hover:text-foreground",
-  tip: "text-amber-500 hover:text-amber-600",
+  tip: "text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300",
 };
 
 const sizeMap = {

@@ -303,7 +303,7 @@ export default function SubscriptionManagement() {
         {trialStatus?.trialExpired && currentTier === "free" && (
           <div className="mb-6 p-4 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
             <div className="flex items-center gap-3">
-              <Crown className="h-5 w-5 text-amber-500" />
+              <Crown className="h-5 w-5 text-amber-600" />
               <div>
                 <p className="font-medium text-sm">Your Pro trial has ended</p>
                 <p className="text-xs text-muted-foreground">
@@ -441,7 +441,7 @@ export default function SubscriptionManagement() {
                 )}
                 {plan.tier === "premium" && !isCurrent && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                    <Badge className="bg-amber-500 text-white border-0 px-3 shadow-sm">Recommended</Badge>
+                    <Badge className="bg-amber-700 text-white border-0 px-3 shadow-sm">Recommended</Badge>
                   </div>
                 )}
                 {/* Current Plan tag - only show when user is signed in */}
@@ -632,7 +632,7 @@ export default function SubscriptionManagement() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Pause className="h-5 w-5 text-amber-500" />
+              <Pause className="h-5 w-5 text-amber-600" />
               Pause Your Subscription
             </DialogTitle>
             <DialogDescription className="text-left space-y-3 pt-2">
@@ -701,7 +701,7 @@ export default function SubscriptionManagement() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              <AlertTriangle className="h-5 w-5 text-amber-600" />
               Confirm Downgrade
             </DialogTitle>
             <DialogDescription className="text-left space-y-3 pt-2">

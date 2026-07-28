@@ -545,7 +545,7 @@ export default function BookingAnalytics() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Star className="h-5 w-5 text-amber-500" />
+                <Star className="h-5 w-5 text-amber-600" />
                 Top Providers
               </CardTitle>
               <CardDescription>Your most-booked service providers</CardDescription>

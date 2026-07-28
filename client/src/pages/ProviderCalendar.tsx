@@ -65,7 +65,7 @@ const STATUS_COLORS: Record<string, { bg: string; text: string; border: string }
   confirmed: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
   in_progress: { bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200" },
   completed: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
-  cancelled: { bg: "bg-red-50", text: "text-red-400 line-through", border: "border-red-200" },
+  cancelled: { bg: "bg-red-50", text: "text-red-700 line-through", border: "border-red-200" },
   scheduled: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
   rescheduled: { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200" },
   blocked: { bg: "bg-gray-100", text: "text-gray-500", border: "border-gray-300" },
@@ -366,7 +366,7 @@ export default function ProviderCalendar() {
                     )}
                   </div>
                   {isFullDayBlocked && (
-                    <Ban className="h-3 w-3 text-gray-400" />
+                    <Ban className="h-3 w-3 text-gray-500" />
                   )}
                 </div>
                 <div className="space-y-0.5">
@@ -431,7 +431,7 @@ export default function ProviderCalendar() {
               <div key={dateKey} className={`text-center py-2 border-l ${isToday ? "bg-primary/10" : ""} ${isFullDayBlocked ? "bg-gray-100 dark:bg-gray-800/50" : ""}`}>
                 <div className="text-xs text-muted-foreground flex items-center justify-center gap-1">
                   {DAY_NAMES[date.getDay()]}
-                  {isFullDayBlocked && <Ban className="h-3 w-3 text-gray-400" />}
+                  {isFullDayBlocked && <Ban className="h-3 w-3 text-gray-500" />}
                 </div>
                 <div className={`text-sm font-medium ${isToday ? "text-primary" : ""}`}>
                   {isToday ? (
@@ -475,7 +475,7 @@ export default function ProviderCalendar() {
                   <div key={`${dateKey}-${hour}`} className={`border-l border-b relative min-h-[60px] ${isHourBlocked ? "bg-gray-50 dark:bg-gray-800/30" : ""}`}>
                     {isHourBlocked && hourEvents.length === 0 && (
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-[9px] text-gray-400">Blocked</span>
+                        <span className="text-[9px] text-muted-foreground">Blocked</span>
                       </div>
                     )}
                     {hourEvents.map((event, eIdx) => {

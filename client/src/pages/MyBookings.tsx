@@ -245,7 +245,7 @@ export default function MyBookings() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="gap-2 text-amber-600 border-amber-300 hover:bg-amber-50 hover:text-amber-700"
+                    className="gap-2 text-amber-700 border-amber-300 hover:bg-amber-50 hover:text-amber-800"
                     onClick={() => cancelAllDemo.mutate()}
                     disabled={cancelAllDemo.isPending}
                   >
@@ -592,7 +592,7 @@ function BookingCard({
               </CardTitle>
               <CardDescription>
                 by {providerName}
-                {isDemo && <span className="text-amber-600 ml-1">(Demo Provider)</span>}
+                {isDemo && <span className="text-amber-700 ml-1">(Demo Provider)</span>}
               </CardDescription>
               <p className="text-xs text-muted-foreground mt-1">
                 Booking #{booking.bookingNumber}
@@ -656,7 +656,7 @@ function BookingCard({
             {booking.totalPrice && (
               <div className="flex items-center gap-2">
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{isDemo ? <span className="text-amber-600 font-medium">FREE (Demo)</span> : `$${booking.totalPrice}`}</span>
+                <span className="text-sm">{isDemo ? <span className="text-amber-700 font-medium">FREE (Demo)</span> : `$${booking.totalPrice}`}</span>
               </div>
             )}
           </div>
@@ -694,7 +694,7 @@ function BookingCard({
               <Button 
                 variant="outline" 
                 size="sm"
-                className="text-amber-600 border-amber-300 hover:bg-amber-50 hover:text-amber-700"
+                className="text-amber-700 border-amber-300 hover:bg-amber-50 hover:text-amber-800"
                 onClick={() => cancelBooking.mutate({ bookingId: booking.id, reason: "Demo booking cancelled by user" })}
                 disabled={cancelBooking.isPending}
               >
@@ -741,7 +741,7 @@ function BookingCard({
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              <AlertTriangle className="h-5 w-5 text-amber-600" />
               Cancel Booking
             </DialogTitle>
             <DialogDescription>

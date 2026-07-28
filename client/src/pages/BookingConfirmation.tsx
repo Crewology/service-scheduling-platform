@@ -221,7 +221,7 @@ export default function BookingConfirmation() {
 
       {/* Demo Mode Active Banner */}
       {(provider as any)?.isOfficial && (
-        <div className="sticky top-0 z-50 bg-amber-500 text-white text-center py-2 px-4 shadow-md">
+        <div className="sticky top-0 z-50 bg-amber-700 text-white text-center py-2 px-4 shadow-md">
           <p className="text-sm font-semibold flex items-center justify-center gap-2">
             <span className="inline-block w-2 h-2 rounded-full bg-white animate-pulse" />
             Demo Mode Active — This is a free test booking. No charges will be applied.
@@ -346,7 +346,7 @@ export default function BookingConfirmation() {
                 This is a demo booking with <strong>Demo - OlogyCrew</strong>. No payment is required.
                 You just experienced how easy it is to book a service on OlogyCrew!
               </p>
-              <p className="text-xs text-amber-600">
+              <p className="text-xs text-amber-700">
                 Ready to book a real provider? Browse our categories to find the perfect service for you.
               </p>
             </CardContent>
@@ -568,7 +568,7 @@ export default function BookingConfirmation() {
           {(provider as any)?.isOfficial && user && booking.customerId === user.id && (booking.status === "pending" || booking.status === "confirmed") && (
             <Button
               variant="outline"
-              className="w-full text-amber-600 border-amber-300 hover:bg-amber-50 hover:text-amber-700"
+              className="w-full text-amber-700 border-amber-300 hover:bg-amber-50 hover:text-amber-800"
               onClick={() => {
                 cancelDemo.mutate({ bookingId: booking.id, reason: "Demo booking cancelled by user" });
               }}

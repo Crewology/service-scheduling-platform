@@ -198,7 +198,7 @@ export default function SavedProviders() {
                     {count} / {limit} providers saved
                   </span>
                   {isNearLimit && count < limit && (
-                    <Badge variant="outline" className="text-amber-600 border-amber-300 text-xs">Almost full</Badge>
+                    <Badge variant="outline" className="text-amber-700 border-amber-300 text-xs">Almost full</Badge>
                   )}
                   {count >= limit && (
                     <Badge variant="outline" className="text-red-600 border-red-300 text-xs">Limit reached</Badge>
@@ -234,7 +234,7 @@ export default function SavedProviders() {
           <Card className="mb-6 border-amber-500/30 bg-amber-500/5">
             <CardContent className="p-4 flex items-center gap-3">
               <div className="p-2 rounded-full bg-amber-500/10">
-                <Crown className="h-5 w-5 text-amber-500" />
+                <Crown className="h-5 w-5 text-amber-600" />
               </div>
               <div>
                 <p className="text-sm font-medium">Manager Plan — Unlimited Saved Providers</p>

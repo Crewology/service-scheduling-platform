@@ -271,7 +271,7 @@ export default function EmbedBooking() {
                       {formatPrice(svc.basePrice || svc.hourlyRate)}
                     </p>
                     {svc.pricingModel === "hourly" && (
-                      <p className="text-xs text-gray-400">/hr</p>
+                      <p className="text-xs text-muted-foreground">/hr</p>
                     )}
                   </div>
                 </div>
@@ -508,7 +508,7 @@ export default function EmbedBooking() {
           </div>
 
           {!isAuthenticated && (
-            <p className="text-xs text-center text-gray-400">
+            <p className="text-xs text-center text-muted-foreground">
               You'll need to sign in to complete your booking
             </p>
           )}
@@ -559,7 +559,7 @@ export default function EmbedBooking() {
           href={window.location.origin}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-xs text-gray-400 hover:text-gray-600 transition-colors inline-flex items-center gap-1"
+          className="text-xs text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
         >
           Powered by OlogyCrew <ExternalLink className="w-3 h-3" />
         </a>

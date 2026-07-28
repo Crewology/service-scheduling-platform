@@ -96,7 +96,7 @@ const providerPlans = [
     monthlyPrice: 20,
     yearlyPrice: 16.00,
     icon: Crown,
-    color: "text-amber-500",
+    color: "text-amber-700 dark:text-amber-400",
     bgColor: "bg-amber-500/10",
     borderColor: "border-amber-500/30",
     description: "Unlimited everything for established businesses and full-service pros.",
@@ -188,7 +188,7 @@ const customerPlans = [
     monthlyPrice: 20,
     yearlyPrice: 16.00,
     icon: Crown,
-    color: "text-amber-500",
+    color: "text-amber-700 dark:text-amber-400",
     bgColor: "bg-amber-500/10",
     borderColor: "border-amber-500/30",
     description: "For logistics managers, agencies, and production companies booking large crews.",
@@ -769,7 +769,7 @@ export default function CustomerPricing() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              <AlertTriangle className="h-5 w-5 text-amber-600" />
               Confirm Downgrade
             </DialogTitle>
             <DialogDescription className="text-left space-y-3 pt-2">

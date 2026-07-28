@@ -59,7 +59,7 @@ export function PWAInstallProvider({ children }: { children: ReactNode }) {
               <h3 className="font-semibold text-lg text-gray-900">Install OlogyCrew</h3>
               <button
                 onClick={() => setShowIOSGuide(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-500 hover:text-gray-700"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -110,7 +110,7 @@ export function PWAInstallProvider({ children }: { children: ReactNode }) {
 
             {/* Arrow pointing down to Safari toolbar */}
             <div className="flex justify-center mt-6 mb-2">
-              <div className="flex items-center gap-2 text-xs text-gray-400">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <ArrowUp className="h-4 w-4 rotate-180 animate-bounce" />
                 <span>Look for the Share button in your Safari toolbar below</span>
               </div>

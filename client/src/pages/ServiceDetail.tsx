@@ -828,7 +828,7 @@ export default function ServiceDetail() {
 
       {/* Demo Mode Active Banner */}
       {(provider as any)?.isOfficial && (
-        <div className="sticky top-0 z-50 bg-amber-500 text-white text-center py-2 px-4 shadow-md">
+        <div className="sticky top-0 z-50 bg-amber-700 text-white text-center py-2 px-4 shadow-md">
           <p className="text-sm font-semibold flex items-center justify-center gap-2">
             <span className="inline-block w-2 h-2 rounded-full bg-white animate-pulse" />
             Demo Mode Active — This is a free test booking. No charges will be applied.
@@ -1174,7 +1174,7 @@ export default function ServiceDetail() {
                       }}
                     />
                     {!weeklySchedule || weeklySchedule.length === 0 ? (
-                      <p className="text-sm text-amber-600 mt-3 flex items-center gap-1">
+                      <p className="text-sm text-amber-700 mt-3 flex items-center gap-1">
                         <Info className="h-4 w-4" />
                         This provider hasn't set their availability yet.
                       </p>
@@ -1512,7 +1512,7 @@ export default function ServiceDetail() {
                                   !slot.available
                                     ? "text-destructive"
                                     : slot.spotsRemaining <= 3
-                                    ? "text-amber-600"
+                                    ? "text-amber-700"
                                     : "text-muted-foreground"
                                 }`}>
                                   {slot.available
@@ -2218,7 +2218,7 @@ export default function ServiceDetail() {
                                 <div className="w-8 h-5 bg-yellow-500 rounded-sm" />
                               </div>
                               <span className="text-sm text-muted-foreground flex-1">•••• •••• •••• 4242</span>
-                              <ShieldCheck className="h-4 w-4 text-green-500" />
+                              <ShieldCheck className="h-4 w-4 text-green-600" />
                             </div>
                             <div className="grid grid-cols-2 gap-2">
                               <div className="bg-white border border-gray-200 rounded-md p-2.5">
@@ -2233,7 +2233,7 @@ export default function ServiceDetail() {
                             <p className="text-xs font-medium text-amber-800">
                               ✓ No credit card required for demo bookings
                             </p>
-                            <p className="text-xs text-amber-600 mt-0.5">
+                            <p className="text-xs text-amber-700 mt-0.5">
                               This simulates the payment experience — you won't be charged
                             </p>
                           </div>
@@ -2241,7 +2241,7 @@ export default function ServiceDetail() {
                         <Button
                           onClick={handleBooking}
                           disabled={isBookingPending || isBookingSuccess}
-                          className={`w-full transition-all duration-300 bg-amber-500 hover:bg-amber-600 text-white ${isBookingSuccess ? 'bg-green-600 hover:bg-green-600 cursor-default scale-[0.98]' : isBookingPending ? 'opacity-90' : ''}`}
+                          className={`w-full transition-all duration-300 bg-amber-700 hover:bg-amber-800 text-white ${isBookingSuccess ? 'bg-green-600 hover:bg-green-600 cursor-default scale-[0.98]' : isBookingPending ? 'opacity-90' : ''}`}
                           size="lg"
                         >
                           {isBookingSuccess ? (

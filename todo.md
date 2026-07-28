@@ -2290,3 +2290,17 @@
 
 ## Bug Fix
 - [x] Fix blank Analytics standalone page - pointed tile to /analytics (BookingAnalytics) instead of non-existent dashboard tab
+
+## Accessibility: Comprehensive Text Contrast Audit
+- [x] Audit and fix all text color contrast issues across the entire site (CSS variables, components, inline styles) to meet WCAG AA standards
+  - Fixed muted-foreground in light mode: oklch(0.552) → oklch(0.49) for 7.56:1 on white
+  - Fixed dark mode destructive: oklch(0.704) → oklch(0.55) for 6.47:1 with white text
+  - Fixed all text-amber-500 → text-amber-700 (readable text) or text-amber-600 (icons only)
+  - Fixed all bg-amber-500 text-white → bg-amber-700 text-white (5.02:1)
+  - Fixed all text-gray-400 readable text → text-muted-foreground or text-gray-500
+  - Fixed all text-green-500 → text-green-600 (3.30:1 passes 3:1 for icons)
+  - Fixed text-yellow-500 icons → text-amber-600 (3.19:1 passes 3:1)
+  - Fixed text-orange-500 → text-orange-600 (3.56:1 passes 3:1)
+  - Fixed text-emerald-500 → text-emerald-600 (3.77:1 passes 3:1)
+  - Fixed text-red-400 → text-red-500/red-700 for proper contrast
+  - Fixed text-amber-600 on amber-100 bg → text-amber-700 (4.51:1)

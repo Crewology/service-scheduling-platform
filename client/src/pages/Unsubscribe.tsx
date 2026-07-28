@@ -107,7 +107,7 @@ export default function Unsubscribe() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardContent className="py-12 text-center">
-            <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-500" />
+            <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-600" />
             <h2 className="text-xl font-bold mb-2">Unsubscribed Successfully</h2>
             <p className="text-sm text-muted-foreground mb-6">
               You've been unsubscribed from all OlogyCrew email notifications.
@@ -134,7 +134,7 @@ export default function Unsubscribe() {
         <Card className="max-w-md w-full border-amber-200">
           <CardHeader className="text-center">
             <div className="mx-auto mb-2">
-              <ShieldAlert className="h-10 w-10 text-amber-500" />
+              <ShieldAlert className="h-10 w-10 text-amber-600" />
             </div>
             <CardTitle>Are you sure?</CardTitle>
             <CardDescription>

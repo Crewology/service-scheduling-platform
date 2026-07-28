@@ -428,7 +428,7 @@ export default function CategoryDetail() {
                                   <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{service.description}</p>
                                 )}
                               </div>
-                              <span className={`font-bold text-sm flex-shrink-0 ${provider.isOfficial ? 'text-amber-600' : 'text-primary'}`}>
+                              <span className={`font-bold text-sm flex-shrink-0 ${provider.isOfficial ? 'text-amber-700' : 'text-primary'}`}>
                                 {provider.isOfficial ? "FREE" : (
                                   <>
                                     {service.pricingModel === "fixed" && service.basePrice && formatCurrency(service.basePrice)}

@@ -178,7 +178,7 @@ export default function NotificationSettings() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-0.5 rounded-full">Coming Soon</span>
+                    <span className="text-xs font-medium text-amber-700 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-0.5 rounded-full">Coming Soon</span>
                     <Switch
                       checked={false}
                       disabled
@@ -273,7 +273,7 @@ export default function NotificationSettings() {
                 <CardTitle className="text-lg flex items-center gap-2">
                   <MessageSquare className="h-5 w-5" />
                   SMS Preferences
-                  <span className="text-xs font-medium text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-0.5 rounded-full">Coming Soon</span>
+                  <span className="text-xs font-medium text-amber-700 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-0.5 rounded-full">Coming Soon</span>
                 </CardTitle>
                 <CardDescription>
                   SMS notifications will be available in a future update. We'll notify you when this feature launches.

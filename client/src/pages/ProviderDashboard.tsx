@@ -160,7 +160,7 @@ function StripeConnectSection({ provider, currentTier }: { provider: any; curren
           <Card className="border-dashed border-2 border-amber-500/30">
             <CardContent className="py-12 text-center space-y-4">
               <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto">
-                <CreditCard className="w-8 h-8 text-amber-500" />
+                <CreditCard className="w-8 h-8 text-amber-600" />
               </div>
               <div>
                 <h3 className="text-lg font-semibold">Upgrade Required</h3>
@@ -234,7 +234,7 @@ function StripeConnectSection({ provider, currentTier }: { provider: any; curren
 
         <Card className="border-yellow-500/30 bg-yellow-500/5">
           <CardContent className="py-8 text-center space-y-4">
-            <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto" />
+            <AlertCircle className="w-12 h-12 text-amber-600 mx-auto" />
             <div>
               <h3 className="text-lg font-semibold">Onboarding Incomplete</h3>
               <p className="text-sm text-muted-foreground max-w-md mx-auto mt-2">
@@ -270,7 +270,7 @@ function StripeConnectSection({ provider, currentTier }: { provider: any; curren
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Available Balance</CardTitle>
-            <Wallet className="h-4 w-4 text-green-500" />
+            <Wallet className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(balance?.available || 0)}</div>
@@ -281,7 +281,7 @@ function StripeConnectSection({ provider, currentTier }: { provider: any; curren
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            <Clock className="h-4 w-4 text-yellow-500" />
+            <Clock className="h-4 w-4 text-amber-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(balance?.pending || 0)}</div>
@@ -685,7 +685,7 @@ function FreeEstimatesSection() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
-            <FileText className="h-6 w-6 text-green-500" />
+            <FileText className="h-6 w-6 text-green-600" />
             Free Estimates
           </h2>
           <p className="text-muted-foreground mt-1">
@@ -1664,7 +1664,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Confirmed</CardTitle>
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{confirmedBookings}</div>
@@ -1686,7 +1686,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Earnings</CardTitle>
-              <DollarSign className="h-4 w-4 text-green-500" />
+              <DollarSign className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{formatCurrency(Number(earnings?.totalEarnings || 0))}</div>
@@ -2145,7 +2145,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
             {waitlistEntries && waitlistEntries.length > 0 && (
               <div className="mt-8">
                 <div className="flex items-center gap-2 mb-4">
-                  <BellRing className="h-5 w-5 text-amber-500" />
+                  <BellRing className="h-5 w-5 text-amber-600" />
                   <h3 className="text-lg font-semibold">Waitlist</h3>
                   <Badge variant="secondary" className="ml-1">{waitlistEntries.length}</Badge>
                 </div>
@@ -2251,7 +2251,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
                   </Button>
                 </Link>
                 {serviceCount >= serviceLimit && currentTier !== "premium" ? (
-                  <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-white" onClick={() => {
+                  <Button size="sm" className="bg-amber-700 hover:bg-amber-800 text-white" onClick={() => {
                     setUpgradeReason("service_limit");
                     setShowUpgradePrompt(true);
                   }}>
@@ -2484,7 +2484,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total Earnings</CardTitle>
-                  <Wallet className="h-4 w-4 text-green-500" />
+                  <Wallet className="h-4 w-4 text-green-600" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{formatCurrency(Number(earnings?.totalEarnings || 0))}</div>
@@ -2504,7 +2504,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Pending Payouts</CardTitle>
-                  <Clock className="h-4 w-4 text-yellow-500" />
+                  <Clock className="h-4 w-4 text-amber-600" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{formatCurrency(Number(earnings?.pendingPayouts || 0))}</div>
@@ -2514,7 +2514,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Completed Jobs</CardTitle>
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{earnings?.completedBookings || 0}</div>
@@ -2563,7 +2563,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
                   <div>
                     <p className="font-medium">
                       <Badge variant="outline" className={`gap-1.5 px-2.5 py-0.5 ${
-                        currentTier === "premium" ? "text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40" :
+                        currentTier === "premium" ? "text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40" :
                         currentTier === "basic" ? "text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40" :
                         "text-muted-foreground bg-muted"
                       }`}>
@@ -2610,7 +2610,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Returning Customers</CardTitle>
-                  <RefreshCw className="h-4 w-4 text-green-500" />
+                  <RefreshCw className="h-4 w-4 text-green-600" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{analytics?.customerRetention?.returningCustomers ?? 0}</div>
@@ -3577,7 +3577,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
       <Dialog open={showConflictWarning} onOpenChange={setShowConflictWarning}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-amber-600">
+            <DialogTitle className="flex items-center gap-2 text-amber-700">
               <AlertTriangle className="h-5 w-5" />
               Schedule Conflict Detected
             </DialogTitle>
@@ -3859,7 +3859,7 @@ function OnboardingChecklist({
         <CardContent className="p-6">
           <div className="flex items-center gap-4">
             <div className="flex-shrink-0 w-14 h-14 rounded-full bg-green-500/10 flex items-center justify-center">
-              <Sparkles className="h-7 w-7 text-green-500" />
+              <Sparkles className="h-7 w-7 text-green-600" />
             </div>
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-green-700 dark:text-green-400">Profile Complete!</h3>
@@ -4160,7 +4160,7 @@ function PackagesList() {
                 <div className="mt-2 space-y-1">
                   {pkg.services.map((svc: any, i: number) => (
                     <div key={i} className="text-xs text-muted-foreground flex items-center gap-1">
-                      <CheckCircle2 className="h-3 w-3 text-green-500" />
+                      <CheckCircle2 className="h-3 w-3 text-green-600" />
                       {svc.serviceName}
                     </div>
                   ))}
@@ -4234,7 +4234,7 @@ function CalendarSyncSection() {
               className="font-mono text-xs"
             />
             <Button variant="outline" size="icon" onClick={copyFeedUrl}>
-              <Clipboard className={`h-4 w-4 ${copied ? "text-green-500" : ""}`} />
+              <Clipboard className={`h-4 w-4 ${copied ? "text-green-600" : ""}`} />
             </Button>
           </div>
           {/* One-click subscribe buttons */}
