@@ -408,40 +408,20 @@ export default function BookingAnalytics() {
   return (
     <>
     <NavHeader />
+    <PageHeader
+      title="Booking Analytics"
+      subtitle="Track your spending, top providers, and booking trends"
+      breadcrumbs={[{ label: "Home", href: "/" }, { label: "Analytics" }]}
+      actions={
+        sub ? (
+          <Badge variant="outline" className="gap-1 px-3 py-1.5 text-sm bg-amber-50 border-amber-200 text-amber-700">
+            <Crown className="h-4 w-4" />
+            {sub.tierConfig.name}
+          </Badge>
+        ) : undefined
+      }
+    />
     <div className="container py-8 space-y-6">
-      <PageHeader
-        title="Booking Analytics"
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Analytics" }]}
-      />
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <button onClick={() => window.history.back()} className="hover:text-foreground transition-colors">
-          Back
-        </button>
-        <ChevronRight className="h-4 w-4" />
-        <span className="text-foreground font-medium">Booking Analytics</span>
-      </div>
-
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold flex items-center gap-2 sm:gap-3">
-            <BarChart3 className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 shrink-0" />
-            Booking Analytics
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Track your spending, top providers, and booking trends
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {sub && (
-            <Badge variant="outline" className="gap-1 px-3 py-1.5 text-sm bg-amber-50 border-amber-200 text-amber-700">
-              <Crown className="h-4 w-4" />
-              {sub.tierConfig.name}
-            </Badge>
-          )}
-        </div>
-      </div>
 
       {/* Export Controls */}
       {data && <ExportControls />}

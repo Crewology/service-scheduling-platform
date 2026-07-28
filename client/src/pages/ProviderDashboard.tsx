@@ -2248,7 +2248,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
               <div className="flex flex-wrap gap-2">
                 <Link href="/provider/onboarding">
                   <Button variant="outline" size="sm">
-                    <Grid3X3 className="h-4 w-4 mr-1" /> Manage Categories
+                    <Grid3X3 className="h-4 w-4 mr-1" /> Categories
                   </Button>
                 </Link>
                 {serviceCount >= serviceLimit && currentTier !== "premium" ? (
