@@ -709,8 +709,15 @@ export function NavHeader() {
             )}
           </div>
 
-          {/* Mobile actions: AI Assistant + Notifications + Hamburger */}
+          {/* Mobile actions: Browse + AI Assistant + Notifications + Search + Hamburger */}
           <div className="flex lg:hidden items-center gap-1">
+            {/* Browse Services (mobile) */}
+            <Link href="/browse">
+              <Button variant="ghost" size="icon" className="relative h-10 w-10" title="Browse Services">
+                <Compass className="h-5 w-5" />
+              </Button>
+            </Link>
+
             {/* AI Assistant button (mobile only) */}
             <Button
               variant="ghost"
@@ -724,6 +731,13 @@ export function NavHeader() {
 
             {/* Notification bell (mobile only) */}
             {isAuthenticated && <NotificationDropdown />}
+
+            {/* Search (mobile) */}
+            <Link href="/search">
+              <Button variant="ghost" size="icon" className="relative h-10 w-10" title="Search">
+                <Search className="h-5 w-5" />
+              </Button>
+            </Link>
 
             {/* Hamburger menu */}
             <Button
