@@ -392,7 +392,7 @@ function UserMenuDropdown({ user }: { user: any }) {
             onClick={() => setOpen(false)}
           >
             <User className="h-4 w-4 text-muted-foreground" />
-            My Profile
+            My Account
           </Link>
           {providerProfile?.profileSlug && (
             <Link
