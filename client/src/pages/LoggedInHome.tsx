@@ -29,7 +29,6 @@ const PROVIDER_TILES: LaunchpadTile[] = [
   { label: "Messages", icon: <MessageSquare className="h-7 w-7" />, href: "/messages", color: "bg-sky-100", iconColor: "text-sky-600" },
   { label: "Analytics", icon: <BarChart3 className="h-7 w-7" />, href: "/analytics", color: "bg-amber-100", iconColor: "text-amber-700" },
   { label: "Payouts", icon: <CreditCard className="h-7 w-7" />, href: "/provider/payouts", color: "bg-emerald-100", iconColor: "text-emerald-600" },
-  { label: "Portfolio", icon: <Image className="h-7 w-7" />, href: "/provider/portfolio", color: "bg-pink-100", iconColor: "text-pink-600" },
   { label: "Boost", icon: <Rocket className="h-7 w-7" />, href: "/provider/promotions", color: "bg-gradient-to-br from-purple-100 to-pink-100", iconColor: "text-purple-600" },
   { label: "Quotes", icon: <FileText className="h-7 w-7" />, href: "/provider/quotes", color: "bg-indigo-100", iconColor: "text-indigo-600" },
   { label: "My Page", icon: <UserCircle className="h-7 w-7" />, href: "/provider/my-page", color: "bg-teal-100", iconColor: "text-teal-600" },

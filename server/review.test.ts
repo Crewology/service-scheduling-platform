@@ -58,6 +58,12 @@ function createAuthContext(user: AuthenticatedUser): TrpcContext {
 }
 
 // Helper to get a future date string
+function pastDate(daysAgo: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - daysAgo - 7); // 7+ days ago to ensure booking is in the past
+  return d.toISOString().slice(0, 10);
+}
+
 function futureDate(daysAhead: number): string {
   const d = new Date();
   d.setDate(d.getDate() + daysAhead + 30); // 30+ days ahead to avoid conflicts
@@ -97,7 +103,7 @@ describe("Review System", () => {
     // Create booking
     const booking = await customerCaller.booking.create({
       serviceId: service.id,
-      bookingDate: futureDate(1),
+      bookingDate: pastDate(1),
       startTime: "10:00",
       endTime: "11:00",
       locationType: "fixed_location",
@@ -151,7 +157,7 @@ describe("Review System", () => {
     // Create and complete booking
     const booking = await customerCaller.booking.create({
       serviceId: service.id,
-      bookingDate: futureDate(2),
+      bookingDate: pastDate(2),
       startTime: "11:00",
       endTime: "12:00",
       locationType: "fixed_location",
@@ -209,7 +215,7 @@ describe("Review System", () => {
     for (let i = 0; i < 2; i++) {
       const booking = await customerCaller.booking.create({
         serviceId: service.id,
-        bookingDate: futureDate(10 + i),
+        bookingDate: pastDate(10 + i),
         startTime: "12:00",
         endTime: "13:00",
         locationType: "fixed_location",

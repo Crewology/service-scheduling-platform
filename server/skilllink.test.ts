@@ -256,10 +256,10 @@ describe("booking", () => {
     const customerUser = { id: customerUserId, openId: `${TEST_PREFIX}-customer`, name: "Test Customer", email: `customer-${TEST_PREFIX}@test.com`, role: "customer" as const, loginMethod: "test", emailVerified: true, createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date(), firstName: null, lastName: null, phone: null, profilePhotoUrl: null, deletedAt: null };
     const caller = appRouter.createCaller(makeCtx(customerUser));
 
-    // Get a future date (next Monday)
-    const nextMonday = new Date();
-    nextMonday.setDate(nextMonday.getDate() + ((1 + 7 - nextMonday.getDay()) % 7 || 7));
-    const bookingDate = nextMonday.toISOString().slice(0, 10);
+    // Use a past date so booking can be marked completed
+    const pastDate = new Date();
+    pastDate.setDate(pastDate.getDate() - 7); // 7 days ago
+    const bookingDate = pastDate.toISOString().slice(0, 10);
 
     const result = await caller.booking.create({
       serviceId,

@@ -2304,3 +2304,9 @@
   - Fixed text-emerald-500 → text-emerald-600 (3.77:1 passes 3:1)
   - Fixed text-red-400 → text-red-500/red-700 for proper contrast
   - Fixed text-amber-600 on amber-100 bg → text-amber-700 (4.51:1)
+
+## UI: Remove Portfolio Tile
+- [x] Remove Portfolio tile from all user views (LoggedInHome, provider dashboard navigation)
+
+## Bug Fix: Prevent Early Booking Completion
+- [x] Add server-side validation to prevent marking bookings as "completed" before the actual booking date and end time has passed

@@ -354,6 +354,19 @@ export const bookingRouter = router({
         additionalData.cancellationReason = input.cancellationReason;
         additionalData.cancelledBy = booking.customerId === ctx.user.id ? "customer" : "provider";
       }
+
+      // Prevent marking as completed before the booking's scheduled end time
+      if (input.status === "completed") {
+        const endTime = booking.endTime || booking.startTime;
+        const bookingEndDateTime = new Date(`${booking.bookingDate}T${endTime}`);
+        const now = new Date();
+        if (now < bookingEndDateTime) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Cannot mark booking as completed before the scheduled end time. Please wait until the appointment is finished.",
+          });
+        }
+      }
       
       await db.updateBookingStatus(input.id, input.status, additionalData);
       const updated = await db.getBookingById(input.id);
@@ -1117,6 +1130,20 @@ export const bookingRouter = router({
       }
       const session = await db.getSessionById(input.sessionId);
       if (!session) throw new TRPCError({ code: "NOT_FOUND", message: "Session not found" });
+
+      // Prevent marking session as completed before its scheduled date/time
+      if (input.status === "completed") {
+        const sessionEndTime = booking.endTime || booking.startTime;
+        const sessionEndDateTime = new Date(`${session.sessionDate}T${sessionEndTime}`);
+        const now = new Date();
+        if (now < sessionEndDateTime) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Cannot mark session as completed before the scheduled end time. Please wait until the session is finished.",
+          });
+        }
+      }
+
       await db.updateSessionStatus(input.sessionId, input.status, input.notes);
 
       // Send notification to customer about session status change
