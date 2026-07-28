@@ -9,6 +9,7 @@ import { RoleGuard } from "./components/RoleGuard";
 import { Footer } from "./components/shared/Footer";
 import { HelpChatWidget } from "./components/HelpChatWidget";
 import { useLocation } from "wouter";
+import { useEffect } from "react";
 
 // ─── Page Imports ───────────────────────────────────────────────────────────
 
@@ -170,6 +171,11 @@ function AppContent() {
   const [location] = useLocation();
   // Hide footer on embed pages and admin dashboard
   const hideFooter = location.startsWith("/embed") || location.startsWith("/admin");
+
+  // Scroll to top on route change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location]);
 
   return (
     <>
