@@ -101,21 +101,21 @@ export default function Receipts() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
         <Card>
-          <CardContent className="p-4 text-center">
+          <CardContent className="p-2 sm:p-4 text-center">
             <div className="text-2xl font-bold">{stats.total}</div>
             <div className="text-xs text-muted-foreground">Total</div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4 text-center">
+          <CardContent className="p-2 sm:p-4 text-center">
             <div className="text-2xl font-bold text-green-600">{stats.paid}</div>
             <div className="text-xs text-muted-foreground">Paid</div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4 text-center">
+          <CardContent className="p-2 sm:p-4 text-center">
             <div className="text-2xl font-bold text-orange-600">{stats.unpaid}</div>
             <div className="text-xs text-muted-foreground">Unpaid</div>
           </CardContent>

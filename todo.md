@@ -2321,3 +2321,18 @@
   - Fixed all bare .toLocaleString() calls (BookingDetail, DirectMessage, Messages, AdminSocialMedia, AuditLogPanel, UserDetailPage) → en-US with hour12: true
   - Fixed Conversations.tsx, DirectMessage.tsx, Messages.tsx read receipts → added hour12: true
   - Fixed PromoCodes.tsx bare .toLocaleTimeString() → en-US with hour12: true
+
+## Mobile Layout: Fix Overflow Issues
+- [x] Audit all mobile views and fix any layout elements that overflow or appear outside the viewable screen
+  - Added overflow-x: hidden to body in index.css to prevent horizontal scrolling globally
+  - Fixed DashboardLayoutSkeleton sidebar visible on mobile (added hidden md:block)
+  - Wrapped AdminDashboard referrals and partner split tables in overflow-x-auto
+  - Fixed Referrals grid-cols-4 → grid-cols-2 sm:grid-cols-4 for mobile
+  - Fixed Receipts grid-cols-3 gap and card padding for small screens
+  - Wrapped MyBookings TabsList in overflow-x-auto for scrollable tabs on mobile
+  - Verified all key pages use container class with responsive padding
+  - Verified all grids use responsive breakpoints (md:grid-cols-*, lg:grid-cols-*)
+  - Verified NavHeader, dialogs, and fixed elements all have proper mobile constraints
+  - Verified ProviderDashboard tabs hidden on mobile (uses bottom nav instead)
+  - All TabsContent have pb-20 md:pb-0 for bottom nav clearance
+  - Dialog component has max-w-[calc(100%-2rem)] on mobile preventing overflow

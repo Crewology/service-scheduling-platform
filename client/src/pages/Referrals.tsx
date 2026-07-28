@@ -216,7 +216,7 @@ export default function Referrals() {
               {/* All tiers preview */}
               <div className="mt-4 pt-4 border-t">
                 <p className="text-xs font-medium text-muted-foreground mb-2">Reward Tiers</p>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {(tierInfo.allTiers as readonly { name: string; minReferrals: number; maxReferrals: number; rewardPercent: number; color: string }[]).map((tier) => (
                     <div
                       key={tier.name}

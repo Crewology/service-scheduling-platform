@@ -316,6 +316,7 @@ export default function MyBookings() {
 
         <SectionErrorBoundary fallbackTitle="Bookings couldn't load">
         <Tabs defaultValue="upcoming" className="space-y-6">
+          <div className="overflow-x-auto -mx-1 px-1 pb-1">
           <TabsList>
             <TabsTrigger value="upcoming">
               Upcoming ({upcomingBookings.length})
@@ -331,6 +332,7 @@ export default function MyBookings() {
               Drafts
             </TabsTrigger>
           </TabsList>
+          </div>
 
           <TabsContent value="upcoming" className="space-y-4">
             {isLoading && !isUsingCache ? (
@@ -580,9 +582,9 @@ function BookingCard({
     <>
       <Card className={`${isOffline ? "opacity-90" : ""} ${isDemo ? "border-amber-200 bg-amber-50/30" : ""}`}>
         <CardHeader>
-          <div className="flex items-start justify-between">
-            <div>
-              <CardTitle className="text-xl flex items-center gap-2">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <CardTitle className="text-xl flex items-center gap-2 flex-wrap">
                 {serviceName}
                 {isDemo && (
                   <Badge className="bg-amber-100 text-amber-700 border-amber-300 text-[10px] font-semibold uppercase tracking-wide hover:bg-amber-100">

@@ -1994,6 +1994,7 @@ function ReferralAnalyticsPanel() {
           {refStats.topReferrers.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">No referrers yet</p>
           ) : (
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -2037,6 +2038,7 @@ function ReferralAnalyticsPanel() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -3004,6 +3006,7 @@ function PartnerSplitPanel() {
               No transfers yet. Transfers will appear here once subscription payments or booking fees are processed.
             </p>
           ) : (
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -3042,6 +3045,7 @@ function PartnerSplitPanel() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           )}
         </CardContent>
       </Card>

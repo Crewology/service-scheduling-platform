@@ -125,7 +125,7 @@ export default function LoggedInHome() {
         </div>
 
         {/* Launchpad Grid */}
-        <div className="grid grid-cols-4 sm:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-4 gap-3 sm:gap-6">
           {allTiles.map((tile, index) => (
             <Link key={`${tile.label}-${tile.href}`} href={tile.href}>
               <div className="flex flex-col items-center gap-2 group cursor-pointer">
