@@ -402,7 +402,7 @@ export default function MonthlyPlanner() {
           <div className="space-y-4">
             {/* Add Event Panel */}
             {selectedDate && (
-              <Card className="overflow-visible">
+              <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
                     <CalendarDays className="h-4 w-4" />
@@ -413,12 +413,12 @@ export default function MonthlyPlanner() {
                     })}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3 px-4 sm:px-6">
+                <CardContent className="space-y-3 px-3 sm:px-6">
                   {/* Provider Search */}
                   {!selectedProvider ? (
                     <div className="space-y-2">
                       <Label className="text-xs font-medium">Search Provider</Label>
-                      <div className="relative">
+                      <div className="relative" style={{ overflow: "visible" }}>
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           placeholder="Search providers..."
@@ -427,7 +427,7 @@ export default function MonthlyPlanner() {
                           onChange={(e) => handleSearchChange(e.target.value)}
                         />
                         {searchResults && searchResults.length > 0 && (
-                          <div className="absolute z-10 top-full mt-1 w-full bg-white border rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                          <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-white border rounded-lg shadow-lg max-h-40 overflow-y-auto">
                             {searchResults.map((p: any) => (
                               <button
                                 key={p.id}
@@ -501,23 +501,23 @@ export default function MonthlyPlanner() {
 
                   {/* Time */}
                   {selectedService && (
-                    <div className="flex flex-col sm:flex-row gap-2 w-full">
-                      <div className="space-y-1 flex-1 min-w-0">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1 overflow-hidden">
                         <Label className="text-xs">Start</Label>
                         <Input
                           type="time"
                           value={startTime}
                           onChange={(e) => setStartTime(e.target.value)}
-                          className="h-8 text-sm"
+                          className="h-8 text-xs sm:text-sm w-full [&::-webkit-calendar-picker-indicator]:w-3 [&::-webkit-calendar-picker-indicator]:h-3"
                         />
                       </div>
-                      <div className="space-y-1 flex-1 min-w-0">
+                      <div className="space-y-1 overflow-hidden">
                         <Label className="text-xs">End</Label>
                         <Input
                           type="time"
                           value={endTime}
                           onChange={(e) => setEndTime(e.target.value)}
-                          className="h-8 text-sm"
+                          className="h-8 text-xs sm:text-sm w-full [&::-webkit-calendar-picker-indicator]:w-3 [&::-webkit-calendar-picker-indicator]:h-3"
                         />
                       </div>
                     </div>
