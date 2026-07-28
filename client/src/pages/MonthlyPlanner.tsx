@@ -403,7 +403,7 @@ export default function MonthlyPlanner() {
             {/* Add Event Panel */}
             {selectedDate && (
               <Card className="overflow-visible">
-                <CardHeader className="pb-3 px-5 sm:px-6">
+                <CardHeader className="pb-3 px-6">
                   <CardTitle className="text-base flex items-center gap-2">
                     <CalendarDays className="h-4 w-4" />
                     {new Date(selectedDate + "T12:00:00").toLocaleDateString("en-US", {
@@ -413,7 +413,7 @@ export default function MonthlyPlanner() {
                     })}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3 px-5 sm:px-6">
+                <CardContent className="space-y-3 px-6">
                   {/* Provider Search */}
                   {!selectedProvider ? (
                     <div className="space-y-2">
@@ -501,23 +501,23 @@ export default function MonthlyPlanner() {
 
                   {/* Time */}
                   {selectedService && (
-                    <div className="flex gap-4 w-full">
-                      <div className="space-y-1 flex-1 min-w-0">
+                    <div className="grid grid-cols-2 gap-3 w-full max-w-[calc(100%-1rem)]">
+                      <div className="space-y-1">
                         <Label className="text-xs">Start</Label>
                         <Input
                           type="time"
                           value={startTime}
                           onChange={(e) => setStartTime(e.target.value)}
-                          className="h-8 text-xs sm:text-sm px-2 w-full"
+                          className="h-8 text-xs sm:text-sm px-1.5 sm:px-2"
                         />
                       </div>
-                      <div className="space-y-1 flex-1 min-w-0">
+                      <div className="space-y-1">
                         <Label className="text-xs">End</Label>
                         <Input
                           type="time"
                           value={endTime}
                           onChange={(e) => setEndTime(e.target.value)}
-                          className="h-8 text-xs sm:text-sm px-2 w-full"
+                          className="h-8 text-xs sm:text-sm px-1.5 sm:px-2"
                         />
                       </div>
                     </div>
