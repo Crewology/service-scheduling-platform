@@ -924,7 +924,7 @@ export default function ProviderOnboarding() {
     <div className="min-h-screen bg-background">
       <NavHeader />
 
-      <div className="container max-w-4xl py-8">
+      <div className="container max-w-4xl py-8 overflow-visible">
         {/* Header with overall progress */}
         <div className="text-center mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold">Set Up Your Provider Profile</h1>
@@ -949,7 +949,7 @@ export default function ProviderOnboarding() {
         </div>
 
         {/* Progress Steps */}
-        <div className="flex items-center justify-between mb-8 sm:mb-10 px-0 sm:px-4 overflow-x-auto">
+        <div className="flex items-center justify-between mb-8 sm:mb-10 px-4 sm:px-6 overflow-visible">
           {STEPS.map((step, index) => {
             const isComplete = stepComplete[step.id as keyof typeof stepComplete];
             const isCurrent = currentStep === step.id;
