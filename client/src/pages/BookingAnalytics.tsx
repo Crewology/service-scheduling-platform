@@ -346,9 +346,7 @@ function LockedOverlay() {
                 Upgrade to Business
               </Button>
             </Link>
-            <Link href="/saved-providers">
-              <Button variant="outline">Go Back</Button>
-            </Link>
+            <Button variant="outline" onClick={() => window.history.back()}>Go Back</Button>
           </div>
         </CardContent>
       </Card>
@@ -396,9 +394,17 @@ export default function BookingAnalytics() {
   // If the query failed with FORBIDDEN, show the locked overlay
   if (analyticsQuery.error?.data?.code === "FORBIDDEN") {
     return (
-      <div className="container py-8">
-        <LockedOverlay />
-      </div>
+      <>
+        <NavHeader />
+        <PageHeader
+          title="Booking Analytics"
+          subtitle="Track your spending, top providers, and booking trends"
+          breadcrumbs={[{ label: "Home", href: "/" }, { label: "Analytics" }]}
+        />
+        <div className="container py-8">
+          <LockedOverlay />
+        </div>
+      </>
     );
   }
 
