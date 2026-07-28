@@ -623,6 +623,13 @@ export function NavHeader() {
           <div className="hidden lg:flex items-center gap-1">
             {isAuthenticated ? (
               <>
+                {/* Browse Services */}
+                <Link href="/browse">
+                  <Button variant="ghost" size="icon" className="relative h-9 w-9" title="Browse Services">
+                    <Compass className="h-4 w-4" />
+                  </Button>
+                </Link>
+
                 {/* My Bookings */}
                 <Link href="/my-bookings">
                   <Button variant="ghost" size="icon" className="relative h-9 w-9" title="My Bookings">
@@ -661,6 +668,13 @@ export function NavHeader() {
 
                 {/* Credit Balance */}
                 <CreditBadge />
+
+                {/* Search */}
+                <Link href="/search">
+                  <Button variant="ghost" size="icon" className="relative h-9 w-9" title="Search">
+                    <Search className="h-4 w-4" />
+                  </Button>
+                </Link>
 
                 {/* Notifications Dropdown */}
                 <NotificationDropdown />
