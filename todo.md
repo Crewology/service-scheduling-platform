@@ -2359,3 +2359,12 @@
   - Fix: Auto-verify all OAuth users on login (Manus OAuth + Google OAuth callbacks)
   - Added markEmailVerified() db helper, updated both OAuth callbacks
   - Fixed existing unverified OAuth users in database (including ologywood5@gmail.com)
+
+## Bug Fix: Test Accounts Polluting Production Database
+- [x] Delete all test accounts (@test.com, @example.com, Phase10 Provider, etc) from production database
+  - Cleaned 660+ test accounts and all related data (services, bookings, notifications, etc)
+  - Only 12 real users remain
+- [x] Fix test suite to auto-cleanup after running
+  - Added vitest globalSetup teardown (server/vitest-global-setup.ts)
+  - After every test run, all test accounts are automatically deleted from the DB
+  - Catches patterns: @test.com, @example.com, @deleted.ologycrew.com, Phase%, Test %, P1% Customer/Provider/Admin
