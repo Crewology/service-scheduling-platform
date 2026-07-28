@@ -8,7 +8,7 @@ import {
   BarChart3, CreditCard, Image, Tag, Settings, Bell,
   Grid3X3, Gift, Clock, Briefcase, Star, ShieldCheck,
   LayoutDashboard, UserCircle, Compass, BookOpen, Rocket,
-  Award, HelpCircle
+  Award, HelpCircle, UserCog
 } from "lucide-react";
 
 // Launchpad tile definition
@@ -38,6 +38,7 @@ const PROVIDER_TILES: LaunchpadTile[] = [
   { label: "Featured", icon: <Award className="h-7 w-7" />, href: "/featured", color: "bg-yellow-100", iconColor: "text-yellow-600" },
   { label: "Plans", icon: <ShieldCheck className="h-7 w-7" />, href: "/provider/subscription", color: "bg-rose-100", iconColor: "text-rose-600" },
   { label: "Help", icon: <HelpCircle className="h-7 w-7" />, href: "/help", color: "bg-cyan-100", iconColor: "text-cyan-600" },
+  { label: "Profile", icon: <UserCog className="h-7 w-7" />, href: "/provider/onboarding", color: "bg-violet-100", iconColor: "text-violet-600" },
   { label: "Account", icon: <Settings className="h-7 w-7" />, href: "/profile", color: "bg-slate-100", iconColor: "text-slate-600" },
 ];
 
