@@ -669,15 +669,15 @@ export function NavHeader() {
                 {/* Credit Balance */}
                 <CreditBadge />
 
+                {/* Notifications Dropdown */}
+                <NotificationDropdown />
+
                 {/* Search */}
                 <Link href="/search">
                   <Button variant="ghost" size="icon" className="relative h-9 w-9" title="Search">
                     <Search className="h-4 w-4" />
                   </Button>
                 </Link>
-
-                {/* Notifications Dropdown */}
-                <NotificationDropdown />
 
                 {/* View Mode Switcher for providers */}
                 <ViewModeSwitcher />
