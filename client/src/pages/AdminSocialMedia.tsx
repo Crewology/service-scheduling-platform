@@ -308,7 +308,7 @@ export default function AdminSocialMedia() {
                           <Badge variant="secondary" className="text-xs">{post.categoryName}</Badge>
                         )}
                         <span className="text-xs text-muted-foreground">
-                          {post.postedAt ? new Date(post.postedAt).toLocaleString() : post.createdAt ? new Date(post.createdAt).toLocaleString() : ""}
+                          {post.postedAt ? new Date(post.postedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true }) : post.createdAt ? new Date(post.createdAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true }) : ""}
                         </span>
                       </div>
                       <p className="text-sm whitespace-pre-wrap mt-2">{post.content}</p>

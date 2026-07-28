@@ -835,7 +835,7 @@ export default function BookingDetail() {
                       >
                         <p className="text-sm">{msg.messageText}</p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {new Date(msg.createdAt).toLocaleString()}
+                          {new Date(msg.createdAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true })}
                         </p>
                       </div>
                     ))}

@@ -435,7 +435,7 @@ function RedemptionsDialog({
                 <div>
                   <p className="text-sm font-medium">{r.userName || "Unknown User"}</p>
                   <p className="text-xs text-muted-foreground">
-                    {new Date(r.redeemedAt).toLocaleDateString()} at {new Date(r.redeemedAt).toLocaleTimeString()}
+                    {new Date(r.redeemedAt).toLocaleDateString()} at {new Date(r.redeemedAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}
                   </p>
                 </div>
                 <Badge variant="outline" className="font-mono">

@@ -145,7 +145,7 @@ export function AuditLogPanel() {
                     {data.entries.map((entry: any) => (
                       <TableRow key={entry.id}>
                         <TableCell className="text-muted-foreground whitespace-nowrap">
-                          {new Date(entry.createdAt).toLocaleString()}
+                          {new Date(entry.createdAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true })}
                         </TableCell>
                         <TableCell className="font-medium">
                           {entry.actorName || `Admin #${entry.actorId}`}

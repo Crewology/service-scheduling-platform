@@ -81,6 +81,7 @@ import { TrustBadge, TrustScoreProgress } from "@/components/TrustBadge";
 import { TrialStatusBanner } from "@/components/TrialBanner";
 import { HelpTip, HelpBanner } from "@/components/shared/HelpTip";
 import { formatPrice } from "@shared/formatPrice";
+import { formatTimeForDisplay } from "@shared/timeSlots";
 import { ImageCropper } from "@/components/ImageCropper";
 import { ProviderDashboardSkeleton } from "@/components/DashboardSkeleton";
 import SectionErrorBoundary from "@/components/SectionErrorBoundary";
@@ -1845,7 +1846,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
                           <CardDescription>
                             {booking.bookingType === "multi_day" && booking.endDate
                               ? `${new Date(booking.bookingDate).toLocaleDateString()} — ${new Date(booking.endDate).toLocaleDateString()}`
-                              : new Date(booking.bookingDate).toLocaleDateString()} at {booking.startTime}
+                              : new Date(booking.bookingDate).toLocaleDateString()} at {formatTimeForDisplay(booking.startTime)}
                           </CardDescription>
                           {booking.bookingType && booking.bookingType !== "single" && (
                             <Badge variant="outline" className="mt-1 w-fit text-xs">
@@ -2173,7 +2174,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
                                   {new Date(bookingDate + "T00:00:00").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
                                   {" · "}
                                   {(entries as any[])[0]?.startTime
-                                    ? new Date(`2000-01-01T${(entries as any[])[0].startTime}`).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+                                    ? formatTimeForDisplay((entries as any[])[0].startTime)
                                     : ""}
                                 </CardDescription>
                               </div>
@@ -3591,7 +3592,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
                 <div key={i} className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
                   <p className="font-medium text-sm">{conflict.serviceName}</p>
                   <p className="text-xs text-muted-foreground">
-                    {conflict.bookingDate} &middot; {conflict.startTime} - {conflict.endTime}
+                    {conflict.bookingDate} &middot; {formatTimeForDisplay(conflict.startTime)} - {formatTimeForDisplay(conflict.endTime)}
                   </p>
                   <span className="text-xs px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300">
                     {conflict.status}

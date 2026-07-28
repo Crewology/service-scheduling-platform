@@ -292,11 +292,12 @@ export default function Conversations() {
                                     {msg.isFromMe ? "You" : msg.otherUserName}
                                   </span>
                                   <span className="text-[10px] text-muted-foreground">
-                                    {new Date(msg.createdAt).toLocaleString(undefined, {
+                                    {new Date(msg.createdAt).toLocaleString("en-US", {
                                       month: "short",
                                       day: "numeric",
                                       hour: "numeric",
                                       minute: "2-digit",
+                                      hour12: true,
                                     })}
                                   </span>
                                 </div>

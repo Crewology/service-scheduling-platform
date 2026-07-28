@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { trpc } from "@/lib/trpc";
+import { formatTimeForDisplay } from "@shared/timeSlots";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { useLocation } from "wouter";
 import { useViewMode } from "@/contexts/ViewModeContext";
@@ -549,7 +550,7 @@ export default function MonthlyPlanner() {
                             <div className="font-medium">{ev.providerName}</div>
                             <div className="text-muted-foreground flex items-center gap-1">
                               <Clock className="h-3 w-3" />
-                              {ev.startTime} - {ev.endTime}
+                              {formatTimeForDisplay(ev.startTime)} - {formatTimeForDisplay(ev.endTime)}
                             </div>
                           </div>
                           {ev.status === "planned" && (
@@ -598,7 +599,7 @@ export default function MonthlyPlanner() {
                             month: "short",
                             day: "numeric",
                           })}{" "}
-                          | {ev.startTime}-{ev.endTime}
+                          | {formatTimeForDisplay(ev.startTime)}-{formatTimeForDisplay(ev.endTime)}
                         </div>
                       </div>
                       {ev.status === "planned" && (

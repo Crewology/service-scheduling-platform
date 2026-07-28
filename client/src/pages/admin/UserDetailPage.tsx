@@ -553,7 +553,7 @@ export default function UserDetailPage() {
                         {auditHistory.map((entry: any) => (
                           <TableRow key={entry.id}>
                             <TableCell className="text-muted-foreground whitespace-nowrap">
-                              {new Date(entry.createdAt).toLocaleString()}
+                              {new Date(entry.createdAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true })}
                             </TableCell>
                             <TableCell>
                               <Badge variant="secondary">{entry.action}</Badge>

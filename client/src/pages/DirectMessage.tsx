@@ -390,7 +390,7 @@ export default function DirectMessage() {
                           )}
                           <div className={`flex items-center gap-1 mt-1 ${isMe ? "justify-end" : ""}`}>
                             <p className={`text-xs ${isMe ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-                              {new Date(msg.createdAt).toLocaleString()}
+                              {new Date(msg.createdAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true })}
                             </p>
                             {isMe && readInfo && (
                               <span className={`inline-flex ${readInfo.status === "read" ? "text-blue-300" : "text-primary-foreground/50"}`}>
@@ -416,11 +416,12 @@ export default function DirectMessage() {
                       </div>
                       {isMe && readInfo?.showTimestamp && readInfo.readAt && (
                         <p className="text-[10px] text-muted-foreground text-right mt-0.5 mr-1">
-                          Seen {new Date(readInfo.readAt).toLocaleString(undefined, {
+                          Seen {new Date(readInfo.readAt).toLocaleString("en-US", {
                             hour: "numeric",
                             minute: "2-digit",
                             month: "short",
                             day: "numeric",
+                            hour12: true,
                           })}
                         </p>
                       )}

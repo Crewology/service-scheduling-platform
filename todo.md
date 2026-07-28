@@ -2310,3 +2310,14 @@
 
 ## Bug Fix: Prevent Early Booking Completion
 - [x] Add server-side validation to prevent marking bookings as "completed" before the actual booking date and end time has passed
+
+## UI: 12-Hour Time Format
+- [x] Audit all time displays across the site and ensure they use 12-hour format (e.g., 2:30 PM) instead of 24-hour format (e.g., 14:30)
+  - Verified shared formatTimeForDisplay (shared/timeSlots.ts) already uses 12-hour format
+  - Verified all local formatTime helpers (ProviderCalendar, MyWaitlist, BulkBooking, CategoryDetail) use 12-hour
+  - Fixed AdminDashboard.tsx raw time display → formatTimeForDisplay
+  - Fixed MonthlyPlanner.tsx raw time displays → formatTimeForDisplay
+  - Fixed ProviderDashboard.tsx 3 raw time displays → formatTimeForDisplay
+  - Fixed all bare .toLocaleString() calls (BookingDetail, DirectMessage, Messages, AdminSocialMedia, AuditLogPanel, UserDetailPage) → en-US with hour12: true
+  - Fixed Conversations.tsx, DirectMessage.tsx, Messages.tsx read receipts → added hour12: true
+  - Fixed PromoCodes.tsx bare .toLocaleTimeString() → en-US with hour12: true

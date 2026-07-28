@@ -71,6 +71,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Link, useSearch } from "wouter";
 import AdminSocialMedia from "./AdminSocialMedia";
 import { formatCurrency, formatDate } from "@/lib/dateUtils";
+import { formatTimeForDisplay } from "@shared/timeSlots";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { TeamManagementPanel } from "./admin/TeamManagementPanel";
 import { AuditLogPanel } from "./admin/AuditLogPanel";
@@ -668,7 +669,7 @@ export default function AdminDashboard() {
                             <p className="text-xs text-muted-foreground font-mono">{booking.bookingNumber}</p>
                           </TableCell>
                           <TableCell>{booking.bookingDate}</TableCell>
-                          <TableCell>{booking.startTime} - {booking.endTime}</TableCell>
+                          <TableCell>{formatTimeForDisplay(booking.startTime)} - {formatTimeForDisplay(booking.endTime)}</TableCell>
                           <TableCell className="capitalize">{booking.locationType?.replace('_', ' ')}</TableCell>
                           <TableCell>{formatCurrency(parseFloat(booking.totalAmount || "0"))}</TableCell>
                           <TableCell>
