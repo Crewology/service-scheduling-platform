@@ -103,18 +103,18 @@ export default function Browse() {
               </div>
             </div>
           ) : filteredCategories && filteredCategories.length > 0 ? (
-            <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
               {filteredCategories.map((category) => (
                 <Link key={category.id} href={`/category/${category.slug}`}>
                   <Card className="hover:shadow-medium transition-all cursor-pointer group h-full">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg group-hover:text-primary transition-colors flex items-center gap-2">
-                        <span className="text-2xl">{CATEGORY_ICONS[category.id] || "📋"}</span>
-                        {category.name}
+                    <CardHeader className="pb-1 sm:pb-2 p-3 sm:p-6">
+                      <CardTitle className="text-sm sm:text-lg group-hover:text-primary transition-colors flex items-center gap-1.5 sm:gap-2">
+                        <span className="text-lg sm:text-2xl">{CATEGORY_ICONS[category.id] || "📋"}</span>
+                        <span className="line-clamp-2">{category.name}</span>
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground line-clamp-3">
+                    <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+                      <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-3">
                         {category.description}
                       </p>
                     </CardContent>
