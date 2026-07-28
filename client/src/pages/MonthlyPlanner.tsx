@@ -501,23 +501,23 @@ export default function MonthlyPlanner() {
 
                   {/* Time */}
                   {selectedService && (
-                    <div className="grid grid-cols-2 gap-2 max-w-full">
-                      <div className="space-y-1 min-w-0">
+                    <div className="flex gap-3 w-full">
+                      <div className="space-y-1 flex-1 min-w-0">
                         <Label className="text-xs">Start</Label>
                         <Input
                           type="time"
                           value={startTime}
                           onChange={(e) => setStartTime(e.target.value)}
-                          className="h-8 text-xs sm:text-sm px-2"
+                          className="h-8 text-[11px] sm:text-sm px-1.5 sm:px-2 w-full"
                         />
                       </div>
-                      <div className="space-y-1 min-w-0">
+                      <div className="space-y-1 flex-1 min-w-0">
                         <Label className="text-xs">End</Label>
                         <Input
                           type="time"
                           value={endTime}
                           onChange={(e) => setEndTime(e.target.value)}
-                          className="h-8 text-xs sm:text-sm px-2"
+                          className="h-8 text-[11px] sm:text-sm px-1.5 sm:px-2 w-full"
                         />
                       </div>
                     </div>
