@@ -38,7 +38,7 @@ const PROVIDER_TILES: LaunchpadTile[] = [
   { label: "Featured", icon: <Award className="h-7 w-7" />, href: "/featured", color: "bg-yellow-100", iconColor: "text-yellow-600" },
   { label: "Plans", icon: <ShieldCheck className="h-7 w-7" />, href: "/provider/subscription", color: "bg-rose-100", iconColor: "text-rose-600" },
   { label: "Help", icon: <HelpCircle className="h-7 w-7" />, href: "/help", color: "bg-cyan-100", iconColor: "text-cyan-600" },
-  { label: "Settings", icon: <Settings className="h-7 w-7" />, href: "/profile", color: "bg-slate-100", iconColor: "text-slate-600" },
+  { label: "Account", icon: <Settings className="h-7 w-7" />, href: "/profile", color: "bg-slate-100", iconColor: "text-slate-600" },
 ];
 
 // Customer tiles
@@ -57,7 +57,7 @@ const CUSTOMER_TILES: LaunchpadTile[] = [
   { label: "Receipts", icon: <CreditCard className="h-7 w-7" />, href: "/receipts", color: "bg-orange-100", iconColor: "text-orange-600" },
   { label: "Plans", icon: <ShieldCheck className="h-7 w-7" />, href: "/pricing", color: "bg-rose-100", iconColor: "text-rose-600" },
   { label: "Help", icon: <HelpCircle className="h-7 w-7" />, href: "/help", color: "bg-cyan-100", iconColor: "text-cyan-600" },
-  { label: "Settings", icon: <Settings className="h-7 w-7" />, href: "/profile", color: "bg-slate-100", iconColor: "text-slate-600" },
+  { label: "Account", icon: <Settings className="h-7 w-7" />, href: "/profile", color: "bg-slate-100", iconColor: "text-slate-600" },
 ];
 
 // Admin tiles (only admin-specific tiles that don't already exist in provider/customer arrays)
