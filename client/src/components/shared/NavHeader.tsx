@@ -44,6 +44,7 @@ import {
   Gift,
   BookOpen,
   Users,
+  UserCog,
 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -491,7 +492,8 @@ const MOBILE_PROVIDER_TILES = [
   { label: "Featured", icon: Award, href: "/featured", color: "bg-yellow-100", iconColor: "text-yellow-600" },
   { label: "Plans", icon: ShieldCheck, href: "/provider/subscription", color: "bg-rose-100", iconColor: "text-rose-600" },
   { label: "Help", icon: HelpCircle, href: "/help", color: "bg-cyan-100", iconColor: "text-cyan-600" },
-  { label: "Settings", icon: Settings, href: "/profile", color: "bg-slate-100", iconColor: "text-slate-600" },
+  { label: "Profile", icon: UserCog, href: "/provider/onboarding", color: "bg-violet-100", iconColor: "text-violet-600" },
+  { label: "Account", icon: Settings, href: "/profile", color: "bg-slate-100", iconColor: "text-slate-600" },
 ];
 
 const MOBILE_CUSTOMER_TILES = [
@@ -509,7 +511,7 @@ const MOBILE_CUSTOMER_TILES = [
   { label: "Receipts", icon: CreditCard, href: "/receipts", color: "bg-orange-100", iconColor: "text-orange-600" },
   { label: "Plans", icon: ShieldCheck, href: "/pricing", color: "bg-rose-100", iconColor: "text-rose-600" },
   { label: "Help", icon: HelpCircle, href: "/help", color: "bg-cyan-100", iconColor: "text-cyan-600" },
-  { label: "Settings", icon: Settings, href: "/profile", color: "bg-slate-100", iconColor: "text-slate-600" },
+  { label: "Account", icon: Settings, href: "/profile", color: "bg-slate-100", iconColor: "text-slate-600" },
 ];
 
 const MOBILE_ADMIN_TILES = [
