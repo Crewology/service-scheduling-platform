@@ -321,6 +321,11 @@ router.get("/api/auth/google/callback", async (req: Request, res: Response) => {
       return res.redirect("/login?error=account_creation_failed");
     }
 
+    // Auto-verify email for Google OAuth users (they authenticated through a trusted provider)
+    if (!user.emailVerified) {
+      await db.markEmailVerified(user.id);
+    }
+
     // Update last sign in
     await db.upsertUser({ openId: user.openId, lastSignedIn: new Date() });
 
@@ -333,13 +338,15 @@ router.get("/api/auth/google/callback", async (req: Request, res: Response) => {
     const cookieOptions = getSessionCookieOptions(req);
     res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
-    // Smart redirect based on user state
+    // Smart redirect based on user state (re-fetch to get updated emailVerified)
+    const updatedUser = await db.getUserById(user.id);
+    const finalUser = updatedUser || user;
     let redirectPath = "/";
-    if (!user.emailVerified) {
+    if (!finalUser.emailVerified) {
       redirectPath = "/verify-email";
-    } else if (!user.hasSelectedRole) {
+    } else if (!finalUser.hasSelectedRole) {
       redirectPath = "/select-role";
-    } else if (user.role === "admin") {
+    } else if (finalUser.role === "admin") {
       redirectPath = "/admin";
     } else {
       // Both customers and providers go to OlogyCrew landing page
@@ -433,6 +440,52 @@ router.post("/api/auth/resend-verification", async (req: Request, res: Response)
   } catch (error) {
     console.error("[Auth] Resend verification failed:", error);
     return res.status(500).json({ error: "Failed to send verification email." });
+  }
+});
+
+// ============================================================================
+// CHECK VERIFICATION STATUS (for "I'm verified, check again" button)
+// Auto-verifies OAuth users who don't need email verification
+// ============================================================================
+
+router.post("/api/auth/check-verification", async (req: Request, res: Response) => {
+  try {
+    // Get the current user from the session
+    const { sdk: sdkInstance } = await import("./_core/sdk");
+    let currentUser;
+    try {
+      currentUser = await sdkInstance.authenticateRequest(req);
+    } catch {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    if (!currentUser) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    // If already verified, just return success
+    if (currentUser.emailVerified) {
+      return res.json({ verified: true });
+    }
+
+    // Auto-verify OAuth users (Manus OAuth or Google OAuth)
+    // These users authenticated through a trusted identity provider
+    const authProvider = currentUser.authProvider || "manus";
+    if (authProvider === "manus" || authProvider === "google") {
+      await db.markEmailVerified(currentUser.id);
+      return res.json({ verified: true, autoVerified: true });
+    }
+
+    // For email/password users, check if they have a valid verification in the DB
+    const freshUser = await db.getUserById(currentUser.id);
+    if (freshUser?.emailVerified) {
+      return res.json({ verified: true });
+    }
+
+    return res.json({ verified: false });
+  } catch (error) {
+    console.error("[Auth] Check verification failed:", error);
+    return res.status(500).json({ error: "Failed to check verification status" });
   }
 });
 

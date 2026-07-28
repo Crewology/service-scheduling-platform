@@ -229,6 +229,7 @@ export {
   createUserWithGoogle,
   setEmailVerificationToken,
   verifyUserEmail,
+  markEmailVerified,
   setPasswordResetToken,
   resetPassword,
   updateUserPassword,

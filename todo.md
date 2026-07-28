@@ -2348,3 +2348,14 @@
   - Reduced CardContent padding on mobile (px-4 sm:px-6) for more content space
   - Added min-w-0 flex-1 and truncate to event list items for long provider names
   - Added shrink-0 to action buttons/icons to prevent them from being squeezed
+
+## Bug Fix: Email Verification Issues
+- [x] Fix "I'm verified, check again" button not working on desktop
+  - Root cause: Button only called refresh() which re-fetched auth state, but OAuth users were never verified in DB
+  - Fix: Added /api/auth/check-verification endpoint that auto-verifies OAuth users when button is clicked
+  - Added loading state and proper redirect after verification
+- [x] Fix verification emails not being sent to OAuth users (Manus/Google login)
+  - Root cause: Only email/password signups sent verification emails; OAuth users were stuck unverified
+  - Fix: Auto-verify all OAuth users on login (Manus OAuth + Google OAuth callbacks)
+  - Added markEmailVerified() db helper, updated both OAuth callbacks
+  - Fixed existing unverified OAuth users in database (including ologywood5@gmail.com)

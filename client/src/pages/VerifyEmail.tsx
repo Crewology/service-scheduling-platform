@@ -11,6 +11,7 @@ export default function VerifyEmail() {
   const [error, setError] = useState("");
   const [resending, setResending] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [checking, setChecking] = useState(false);
   const { user, loading, refresh } = useAuth();
   const [, setLocation] = useLocation();
 
@@ -60,6 +61,17 @@ export default function VerifyEmail() {
     }
   }, [resendCooldown]);
 
+  // If user becomes verified (e.g. after refresh), redirect away
+  useEffect(() => {
+    if (user?.emailVerified && status === "gate") {
+      if (user.hasSelectedRole) {
+        setLocation("/");
+      } else {
+        setLocation("/select-role");
+      }
+    }
+  }, [user?.emailVerified, status, user?.hasSelectedRole, setLocation]);
+
   const handleResendVerification = async () => {
     if (resending || resendCooldown > 0) return;
     setResending(true);
@@ -85,9 +97,43 @@ export default function VerifyEmail() {
     }
   };
 
+  const handleCheckAgain = async () => {
+    setChecking(true);
+    try {
+      // Call the server to check and auto-verify if the user logged in via OAuth
+      const response = await fetch("/api/auth/check-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.verified) {
+          // Refresh auth state and redirect
+          await refresh();
+          toast.success("Email verified! Redirecting...");
+          // The useEffect above will handle the redirect
+          return;
+        }
+      }
+
+      // If not verified by the server check, just refetch auth state
+      const result = await refresh();
+      if (result?.data?.emailVerified) {
+        toast.success("Email verified! Redirecting...");
+      } else {
+        toast.info("Email not yet verified. Please check your inbox for the verification link.");
+      }
+    } catch {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setChecking(false);
+    }
+  };
+
   const handleContinueAfterVerification = () => {
     if (user?.hasSelectedRole) {
-      setLocation("/dashboard");
+      setLocation("/");
     } else {
       setLocation("/select-role");
     }
@@ -213,9 +259,14 @@ export default function VerifyEmail() {
                   <Button
                     variant="outline"
                     className="w-full"
-                    onClick={() => refresh()}
+                    onClick={handleCheckAgain}
+                    disabled={checking}
                   >
-                    I've verified — check again
+                    {checking ? (
+                      <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Checking...</>
+                    ) : (
+                      "I've verified — check again"
+                    )}
                   </Button>
 
                   <p className="text-xs text-slate-400">

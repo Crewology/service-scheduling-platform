@@ -801,6 +801,20 @@ export async function verifyUserEmail(token: string) {
   return { success: true, user };
 }
 
+/**
+ * Mark a user's email as verified (used for OAuth users who authenticated through a trusted provider).
+ */
+export async function markEmailVerified(userId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users).set({
+    emailVerified: true,
+    emailVerificationToken: null,
+    emailVerificationExpires: null,
+  }).where(eq(users.id, userId));
+}
+
 export async function setPasswordResetToken(userId: number, token: string, expires: Date) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

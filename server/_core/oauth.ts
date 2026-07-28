@@ -36,6 +36,12 @@ export function registerOAuthRoutes(app: Express) {
         lastSignedIn: new Date(),
       });
 
+      // Auto-verify email for OAuth users (they authenticated through a trusted provider)
+      const existingUser = await db.getUserByOpenId(userInfo.openId);
+      if (existingUser && !existingUser.emailVerified) {
+        await db.markEmailVerified(existingUser.id);
+      }
+
       const sessionToken = await sdk.createSessionToken(userInfo.openId, {
         name: userInfo.name || "",
         expiresInMs: ONE_YEAR_MS,
@@ -44,7 +50,7 @@ export function registerOAuthRoutes(app: Express) {
       const cookieOptions = getSessionCookieOptions(req);
       res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
-      // Smart redirect based on user's role and state
+      // Smart redirect based on user's role and state (re-fetch to get updated emailVerified)
       const user = await db.getUserByOpenId(userInfo.openId);
       let redirectPath = "/";
 
@@ -58,8 +64,14 @@ export function registerOAuthRoutes(app: Express) {
         } else if (user.role === "admin") {
           // Admin — send to admin dashboard
           redirectPath = "/admin";
+        } else if (user.role === "provider") {
+          // Provider — send to provider dashboard
+          redirectPath = "/provider/dashboard";
+        } else if (user.role === "customer") {
+          // Customer — send to browse
+          redirectPath = "/browse";
         } else {
-          // Both customers and providers — send to OlogyCrew landing page
+          // Fallback — send to OlogyCrew landing page
           redirectPath = "/";
         }
       }
