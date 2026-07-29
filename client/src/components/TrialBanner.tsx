@@ -148,6 +148,66 @@ export function TrialExpiredBanner() {
 }
 
 /**
+ * TrialExpiredGate — Full-page blocking overlay when trial has expired.
+ * Provider must either add a payment method to continue or downgrade to Free.
+ * This is NOT dismissable — it blocks access to provider features.
+ */
+export function TrialExpiredGate({ onDowngrade }: { onDowngrade?: () => void }) {
+  const [, navigate] = useLocation();
+  const utils = trpc.useUtils();
+  const downgrade = trpc.subscription.downgrade.useMutation({
+    onSuccess: () => {
+      utils.subscription.mySubscription.invalidate();
+      utils.subscription.checkTrialStatus.invalidate();
+      onDowngrade?.();
+    },
+  });
+
+  return (
+    <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="max-w-lg w-full bg-card border rounded-xl shadow-2xl p-8 text-center space-y-6">
+        <div className="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto">
+          <AlertTriangle className="h-8 w-8 text-amber-600" />
+        </div>
+
+        <div>
+          <h2 className="text-2xl font-bold">Your 14-Day Trial Has Ended</h2>
+          <p className="text-muted-foreground mt-2">
+            Your free trial of Pro features has expired. To continue using premium features like
+            multiple categories, priority search, analytics, and custom URLs, please subscribe to a plan.
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          <Button
+            size="lg"
+            className="w-full"
+            onClick={() => navigate("/provider/subscription")}
+          >
+            <Zap className="h-4 w-4 mr-2" />
+            Subscribe to Continue — Starting at $12/mo
+          </Button>
+
+          <Button
+            variant="outline"
+            size="lg"
+            className="w-full"
+            onClick={() => downgrade.mutate({ targetTier: "free" })}
+            disabled={downgrade.isPending}
+          >
+            {downgrade.isPending ? "Downgrading..." : "Continue with Free Plan (Limited Features)"}
+          </Button>
+        </div>
+
+        <p className="text-xs text-muted-foreground">
+          Free plan includes: 1 category, up to 3 services, basic profile, and booking management.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/**
  * TrialStatusBanner — Auto-selects the right banner based on trial status.
  * Use this in the Provider Dashboard for a single integration point.
  */
@@ -169,7 +229,7 @@ export function TrialStatusBanner() {
   }
 
   if (trialStatus.trialExpired) {
-    return <TrialExpiredBanner />;
+    return <TrialExpiredGate />;
   }
 
   return null;

@@ -2393,3 +2393,12 @@
 - [x] When all onboarding steps are complete, show a completion/congratulations state and auto-redirect to dashboard
 - [x] On onboarding step 5, if Stripe is already connected, show "Connected" status instead of "Connect Stripe" button (already existed)
 - [x] Add Stripe Express Dashboard link in Provider Dashboard for managing banking info (already existed as "Open Stripe Dashboard" button)
+
+## No-Credit-Card Free Trial Implementation
+- [x] Modify subscription backend to allow trial activation without Stripe payment (no card required)
+- [x] Add trialEndsAt field to track when the 14-day trial expires (already existed)
+- [x] Update onboarding plan selection to skip Stripe checkout for trial plans
+- [x] Add trial countdown banner to provider dashboard (shows days remaining) (already existed)
+- [x] Build trial expiration gate that blocks provider features when trial ends (TrialExpiredGate)
+- [x] Gate offers options: add payment method to continue, or downgrade to Free tier
+- [x] Send reminder notifications at 3 days and 1 day before trial expiration (already existed)

@@ -1444,7 +1444,7 @@ export default function ProviderOnboarding() {
                   }`}
                   onClick={() => setSelectedTier("basic")}
                 >
-                  <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] px-2">Popular</Badge>
+                  <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] px-2">14-Day Free Trial</Badge>
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                       <Zap className="h-4 w-4 text-blue-600 dark:text-blue-400" />
@@ -1599,20 +1599,20 @@ export default function ProviderOnboarding() {
                     </Button>
                   ) : selectedTier === "basic" ? (
                     <Button
-                      onClick={() => createCheckout.mutate({ tier: "basic", interval: billingInterval })}
-                      disabled={createCheckout.isPending}
+                      onClick={() => startTrial.mutate({ tier: "basic" })}
+                      disabled={startTrial.isPending}
                     >
-                      {createCheckout.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                      Subscribe to Pro{billingInterval === "year" ? " (Annual)" : ""}
+                      {startTrial.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                      Start 14-Day Pro Trial
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   ) : selectedTier === "premium" ? (
                     <Button
-                      onClick={() => createCheckout.mutate({ tier: "premium", interval: billingInterval })}
-                      disabled={createCheckout.isPending}
+                      onClick={() => startTrial.mutate({ tier: "premium" })}
+                      disabled={startTrial.isPending}
                     >
-                      {createCheckout.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                      Subscribe to Business{billingInterval === "year" ? " (Annual)" : ""}
+                      {startTrial.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                      Start 14-Day Business Trial
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   ) : (

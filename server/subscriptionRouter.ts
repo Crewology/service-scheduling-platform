@@ -67,12 +67,18 @@ export const subscriptionRouter = router({
     return Object.values(SUBSCRIPTION_TIERS);
   }),
 
-  // Start 14-day Pro trial for new providers
-  startProfessionalTrial: protectedProcedure.mutation(async ({ ctx }) => {
+  // Start 14-day trial for new providers (no credit card required)
+  startProfessionalTrial: protectedProcedure
+    .input(z.object({
+      tier: z.enum(["basic", "premium"]).default("basic"),
+    }).optional())
+    .mutation(async ({ ctx, input }) => {
     const provider = await db.getProviderByUserId(ctx.user.id);
     if (!provider) {
       throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
     }
+
+    const trialTier = input?.tier || "basic";
 
     // Check if already has an active/trialing subscription
     const existing = await db.getProviderSubscription(provider.id);
@@ -83,13 +89,13 @@ export const subscriptionRouter = router({
       throw new TRPCError({ code: "BAD_REQUEST", message: "Already have an active paid subscription" });
     }
 
-    // Start 14-day Pro trial
+    // Start 14-day trial (no credit card required)
     const now = new Date();
     const trialEnd = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
 
     await db.upsertProviderSubscription({
       providerId: provider.id,
-      tier: "basic",
+      tier: trialTier,
       status: "trialing",
       trialEndsAt: trialEnd,
       currentPeriodStart: now,
@@ -107,7 +113,7 @@ export const subscriptionRouter = router({
       trialEndsAt: trialEnd,
     }).catch(err => console.error("[Trial] Failed to send trial_started notification:", err));
 
-    return { tier: "basic" as const, status: "trialing" as const, trialEndsAt: trialEnd };
+    return { tier: trialTier, status: "trialing" as const, trialEndsAt: trialEnd };
   }),
 
   // Check and handle trial expiry (called on dashboard load)
