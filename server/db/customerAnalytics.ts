@@ -40,9 +40,10 @@ export async function getCustomerMonthlySpending(customerId: number, months: num
   startDate.setMonth(startDate.getMonth() - months);
   const startStr = startDate.toISOString().slice(0, 10);
 
+  const monthExpr = sql.raw(`LEFT(\`bookings\`.\`bookingDate\`, 7)`);
   const result = await db
     .select({
-      month: sql<string>`LEFT(${bookings.bookingDate}, 7)`.as('month'),
+      month: sql<string>`${monthExpr}`.as('month'),
       totalSpent: sql<string>`COALESCE(SUM(${bookings.totalAmount}), 0)`,
       bookingCount: sql<number>`COUNT(*)`,
     })
@@ -54,8 +55,8 @@ export async function getCustomerMonthlySpending(customerId: number, months: num
         sql`${bookings.status} IN ('completed', 'confirmed', 'in_progress')`
       )
     )
-    .groupBy(sql.raw(`LEFT(\`bookings\`.\`bookingDate\`, 7)`))
-    .orderBy(sql.raw(`LEFT(\`bookings\`.\`bookingDate\`, 7)`));
+    .groupBy(monthExpr)
+    .orderBy(monthExpr);
 
   return result;
 }
