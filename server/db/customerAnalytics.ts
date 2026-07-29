@@ -42,7 +42,7 @@ export async function getCustomerMonthlySpending(customerId: number, months: num
 
   const result = await db
     .select({
-      month: sql<string>`LEFT(${bookings.bookingDate}, 7)`,
+      month: sql<string>`LEFT(${bookings.bookingDate}, 7)`.as('month'),
       totalSpent: sql<string>`COALESCE(SUM(${bookings.totalAmount}), 0)`,
       bookingCount: sql<number>`COUNT(*)`,
     })
@@ -54,8 +54,8 @@ export async function getCustomerMonthlySpending(customerId: number, months: num
         sql`${bookings.status} IN ('completed', 'confirmed', 'in_progress')`
       )
     )
-    .groupBy(sql`LEFT(${bookings.bookingDate}, 7)`)
-    .orderBy(sql`LEFT(${bookings.bookingDate}, 7)`);
+    .groupBy(sql.raw(`LEFT(\`bookings\`.\`bookingDate\`, 7)`))
+    .orderBy(sql.raw(`LEFT(\`bookings\`.\`bookingDate\`, 7)`));
 
   return result;
 }
