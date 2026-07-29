@@ -2387,3 +2387,9 @@
 - [x] Group available time slots into categories: Morning, Afternoon, Evening, Night
 - [x] Apply grouping and labels to ServiceDetail booking page
 - [x] Apply grouping and labels to EmbedBooking widget
+
+## Fix Post-Stripe Onboarding Flow
+- [x] After Stripe return (?stripe=return), detect completion and redirect to dashboard instead of re-showing onboarding
+- [x] When all onboarding steps are complete, show a completion/congratulations state and auto-redirect to dashboard
+- [x] On onboarding step 5, if Stripe is already connected, show "Connected" status instead of "Connect Stripe" button (already existed)
+- [x] Add Stripe Express Dashboard link in Provider Dashboard for managing banking info (already existed as "Open Stripe Dashboard" button)

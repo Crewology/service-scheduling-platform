@@ -1223,6 +1223,30 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
 
   const utils = trpc.useUtils();
 
+  // Handle Stripe return/refresh URL params
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const stripeParam = params.get("stripe");
+    if (stripeParam === "return") {
+      toast.success("Stripe account connected successfully! You're all set to receive payments.");
+      params.delete("stripe");
+      const newUrl = params.toString()
+        ? `${window.location.pathname}?${params.toString()}`
+        : window.location.pathname;
+      window.history.replaceState({}, "", newUrl);
+      // Invalidate stripe status to refresh
+      utils.stripeConnect.getStatus.invalidate();
+      utils.provider.getMyProfile.invalidate();
+    } else if (stripeParam === "refresh") {
+      toast.info("Stripe session expired. Please try connecting again.");
+      params.delete("stripe");
+      const newUrl = params.toString()
+        ? `${window.location.pathname}?${params.toString()}`
+        : window.location.pathname;
+      window.history.replaceState({}, "", newUrl);
+    }
+  }, []);
+
   const [editingService, setEditingService] = useState<any>(null);
   const [editingProfile, setEditingProfile] = useState(false);
   const [editingBio, setEditingBio] = useState(false);

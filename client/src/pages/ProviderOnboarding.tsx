@@ -807,6 +807,16 @@ export default function ProviderOnboarding() {
     5: existingProvider?.payoutEnabled === true,
   }), [existingProvider, myCategories, myServices, tierSelected, hasActivePlan]);
 
+  // If all steps are complete and user navigates to onboarding, redirect to dashboard
+  const allStepsComplete = stepComplete[1] && stepComplete[2] && stepComplete[3] && stepComplete[4] && stepComplete[5];
+
+  useEffect(() => {
+    if (allStepsComplete && showOnboarding) {
+      toast.success("Your profile is complete! Redirecting to your dashboard...");
+      setTimeout(() => setLocation("/provider/dashboard"), 1500);
+    }
+  }, [allStepsComplete, showOnboarding, setLocation]);
+
   // Initialize selected categories from existing data
   useMemo(() => {
     if (myCategories && myCategories.length > 0 && selectedCategoryIds.size === 0) {
