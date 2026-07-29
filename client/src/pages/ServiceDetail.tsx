@@ -16,7 +16,7 @@ import { useLocation, useParams, useSearch, Link } from "wouter";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
 import { Calendar } from "@/components/ui/calendar";
-import { MapPin, Clock, DollarSign, Star, ChevronRight, CheckCircle, CheckCircle2, ArrowLeft, Info, Image as ImageIcon, Tag, X, Loader2, Gift, CalendarRange, Repeat, CalendarDays, Share2, Bell, BellOff, CreditCard, ShieldCheck, AlertTriangle } from "lucide-react";
+import { MapPin, Clock, DollarSign, Star, ChevronRight, CheckCircle, CheckCircle2, ArrowLeft, Info, Image as ImageIcon, Tag, X, Loader2, Gift, CalendarRange, Repeat, CalendarDays, Share2, Bell, BellOff, CreditCard, ShieldCheck, AlertTriangle, Sunrise, Sun, Sunset, Moon } from "lucide-react";
 import { generateTimeSlots, formatTimeForDisplay, type TimeSlot } from "@shared/timeSlots";
 import { ReviewList } from "@/components/shared/ReviewList";
 import { NavHeader } from "@/components/shared/NavHeader";
@@ -1484,68 +1484,100 @@ export default function ServiceDetail() {
                         </Button>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-56 overflow-y-auto pr-1">
-                        {availableSlots.map((slot) => (
-                          <div key={slot.time} className="flex flex-col items-center">
-                            <Button
-                              variant={
-                                selectedTime === slot.time ? "default" : "outline"
-                              }
-                              disabled={!slot.available}
-                              onClick={() => {
-                                setSelectedTime(slot.time);
-                                setBookingStep("details");
-                              }}
-                              className={`h-auto py-1.5 text-xs flex flex-col items-center gap-0.5 w-full ${
-                                !slot.available
-                                  ? "opacity-40"
-                                  : selectedTime === slot.time
-                                  ? ""
-                                  : "hover:border-primary hover:text-primary"
-                              }`}
-                            >
-                              <span className={!slot.available ? "line-through" : ""}>
-                                {formatTimeForDisplay(slot.time)}
-                              </span>
-                              {service?.isGroupClass && slot.maxCapacity > 1 && (
-                                <span className={`text-[10px] font-normal ${
-                                  !slot.available
-                                    ? "text-destructive"
-                                    : slot.spotsRemaining <= 3
-                                    ? "text-amber-700"
-                                    : "text-muted-foreground"
-                                }`}>
-                                  {slot.available
-                                    ? `${slot.spotsRemaining} spot${slot.spotsRemaining !== 1 ? "s" : ""} left`
-                                    : "Full"}
-                                </span>
-                              )}
-                              {!service?.isGroupClass && !slot.available && (
-                                <span className="text-[10px] font-normal text-destructive">Booked</span>
-                              )}
-                            </Button>
-                            {/* Join Waitlist button for full group class slots */}
-                            {service?.isGroupClass && !slot.available && isAuthenticated && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 text-[10px] text-primary hover:text-primary/80 px-1 -mt-1"
-                                onClick={() => {
-                                  joinWaitlistMutation.mutate({
-                                    serviceId: parseInt(id!),
-                                    providerId: service.providerId,
-                                    bookingDate: selectedDateStr!,
-                                    startTime: slot.time,
-                                  });
-                                }}
-                                disabled={joinWaitlistMutation.isPending}
-                              >
-                                <Bell className="h-3 w-3 mr-0.5" />
-                                Notify Me
-                              </Button>
-                            )}
-                          </div>
-                        ))}
+                      <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+                        {(() => {
+                          // Group slots by time of day
+                          const groups: { label: string; icon: React.ReactNode; slots: typeof availableSlots }[] = [];
+                          const morning = availableSlots.filter(s => { const h = parseInt(s.time.split(':')[0]); return h >= 5 && h < 12 && !s.isNextDay; });
+                          const afternoon = availableSlots.filter(s => { const h = parseInt(s.time.split(':')[0]); return h >= 12 && h < 17 && !s.isNextDay; });
+                          const evening = availableSlots.filter(s => { const h = parseInt(s.time.split(':')[0]); return h >= 17 && h < 21 && !s.isNextDay; });
+                          const night = availableSlots.filter(s => { const h = parseInt(s.time.split(':')[0]); return ((h >= 21 || h < 5) && !s.isNextDay); });
+                          const nextDay = availableSlots.filter(s => s.isNextDay);
+
+                          if (morning.length > 0) groups.push({ label: "Morning", icon: <Sunrise className="h-3.5 w-3.5" />, slots: morning });
+                          if (afternoon.length > 0) groups.push({ label: "Afternoon", icon: <Sun className="h-3.5 w-3.5" />, slots: afternoon });
+                          if (evening.length > 0) groups.push({ label: "Evening", icon: <Sunset className="h-3.5 w-3.5" />, slots: evening });
+                          if (night.length > 0) groups.push({ label: "Night", icon: <Moon className="h-3.5 w-3.5" />, slots: night });
+                          if (nextDay.length > 0) groups.push({ label: "Next Day", icon: <Moon className="h-3.5 w-3.5" />, slots: nextDay });
+
+                          return groups.map((group) => (
+                            <div key={group.label}>
+                              <div className="flex items-center gap-1.5 mb-1.5">
+                                <span className="text-muted-foreground">{group.icon}</span>
+                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{group.label}</span>
+                                {group.label === "Next Day" && (
+                                  <Badge variant="outline" className="text-[9px] h-4 px-1 py-0 border-amber-400 text-amber-600 bg-amber-50">
+                                    Past Midnight
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                {group.slots.map((slot) => (
+                                  <div key={slot.time + (slot.isNextDay ? '-next' : '')} className="flex flex-col items-center">
+                                    <Button
+                                      variant={
+                                        selectedTime === slot.time ? "default" : "outline"
+                                      }
+                                      disabled={!slot.available}
+                                      onClick={() => {
+                                        setSelectedTime(slot.time);
+                                        setBookingStep("details");
+                                      }}
+                                      className={`h-auto py-1.5 text-xs flex flex-col items-center gap-0.5 w-full ${
+                                        !slot.available
+                                          ? "opacity-40"
+                                          : selectedTime === slot.time
+                                          ? ""
+                                          : "hover:border-primary hover:text-primary"
+                                      }`}
+                                    >
+                                      <span className={!slot.available ? "line-through" : ""}>
+                                        {formatTimeForDisplay(slot.time)}
+                                        {slot.isNextDay && <span className="ml-1 text-[9px] text-amber-600 font-normal">+1</span>}
+                                      </span>
+                                      {service?.isGroupClass && slot.maxCapacity > 1 && (
+                                        <span className={`text-[10px] font-normal ${
+                                          !slot.available
+                                            ? "text-destructive"
+                                            : slot.spotsRemaining <= 3
+                                            ? "text-amber-700"
+                                            : "text-muted-foreground"
+                                        }`}>
+                                          {slot.available
+                                            ? `${slot.spotsRemaining} spot${slot.spotsRemaining !== 1 ? "s" : ""} left`
+                                            : "Full"}
+                                        </span>
+                                      )}
+                                      {!service?.isGroupClass && !slot.available && (
+                                        <span className="text-[10px] font-normal text-destructive">Booked</span>
+                                      )}
+                                    </Button>
+                                    {/* Join Waitlist button for full group class slots */}
+                                    {service?.isGroupClass && !slot.available && isAuthenticated && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 text-[10px] text-primary hover:text-primary/80 px-1 -mt-1"
+                                        onClick={() => {
+                                          joinWaitlistMutation.mutate({
+                                            serviceId: parseInt(id!),
+                                            providerId: service.providerId,
+                                            bookingDate: selectedDateStr!,
+                                            startTime: slot.time,
+                                          });
+                                        }}
+                                        disabled={joinWaitlistMutation.isPending}
+                                      >
+                                        <Bell className="h-3 w-3 mr-0.5" />
+                                        Notify Me
+                                      </Button>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ));
+                        })()}
                       </div>
                     )}
                     </>)}

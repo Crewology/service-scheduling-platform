@@ -2381,3 +2381,9 @@
 ## Bug Fix: "No available time slots" showing for all days even when provider has availability
 - [x] Investigate time slot generation logic in booking flow
 - [x] Fix the issue so available days correctly show bookable time slots (overnight schedule: endTime < startTime now handled)
+
+## Time Slot UI Improvements
+- [x] Add "Next Day" visual label to time slots that cross past midnight
+- [x] Group available time slots into categories: Morning, Afternoon, Evening, Night
+- [x] Apply grouping and labels to ServiceDetail booking page
+- [x] Apply grouping and labels to EmbedBooking widget

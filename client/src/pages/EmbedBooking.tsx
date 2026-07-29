@@ -12,7 +12,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useParams } from "wouter";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
-import { Clock, DollarSign, MapPin, CheckCircle2, ArrowLeft, ArrowRight, ExternalLink } from "lucide-react";
+import { Clock, DollarSign, MapPin, CheckCircle2, ArrowLeft, ArrowRight, ExternalLink, Sunrise, Sun, Sunset, Moon } from "lucide-react";
 import { generateTimeSlots, formatTimeForDisplay, type TimeSlot } from "@shared/timeSlots";
 
 type WidgetStep = "service" | "date" | "time" | "details" | "confirm" | "success";
@@ -342,25 +342,53 @@ export default function EmbedBooking() {
               No available time slots for this date. Please select another date.
             </p>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[50vh] overflow-y-auto">
-              {availableSlots
-                .filter((slot) => slot.available)
-                .map((slot) => (
-                  <button
-                    key={slot.time}
-                    onClick={() => {
-                      setSelectedTime(slot.time);
-                      setStep("details");
-                    }}
-                    className={`py-2 px-3 rounded-md text-sm font-medium border transition-colors ${
-                      selectedTime === slot.time
-                        ? "bg-blue-600 text-white border-blue-600"
-                        : "hover:border-blue-400 hover:bg-blue-50/50"
-                    }`}
-                  >
-                    {formatTimeForDisplay(slot.time)}
-                  </button>
-                ))}
+            <div className="space-y-3 max-h-[50vh] overflow-y-auto">
+              {(() => {
+                const available = availableSlots.filter((slot) => slot.available);
+                const groups: { label: string; icon: React.ReactNode; slots: typeof available }[] = [];
+                const morning = available.filter(s => { const h = parseInt(s.time.split(':')[0]); return h >= 5 && h < 12 && !s.isNextDay; });
+                const afternoon = available.filter(s => { const h = parseInt(s.time.split(':')[0]); return h >= 12 && h < 17 && !s.isNextDay; });
+                const evening = available.filter(s => { const h = parseInt(s.time.split(':')[0]); return h >= 17 && h < 21 && !s.isNextDay; });
+                const night = available.filter(s => { const h = parseInt(s.time.split(':')[0]); return ((h >= 21 || h < 5) && !s.isNextDay); });
+                const nextDay = available.filter(s => s.isNextDay);
+
+                if (morning.length > 0) groups.push({ label: "Morning", icon: <Sunrise className="h-3.5 w-3.5" />, slots: morning });
+                if (afternoon.length > 0) groups.push({ label: "Afternoon", icon: <Sun className="h-3.5 w-3.5" />, slots: afternoon });
+                if (evening.length > 0) groups.push({ label: "Evening", icon: <Sunset className="h-3.5 w-3.5" />, slots: evening });
+                if (night.length > 0) groups.push({ label: "Night", icon: <Moon className="h-3.5 w-3.5" />, slots: night });
+                if (nextDay.length > 0) groups.push({ label: "Next Day", icon: <Moon className="h-3.5 w-3.5" />, slots: nextDay });
+
+                return groups.map((group) => (
+                  <div key={group.label}>
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <span className="text-gray-400">{group.icon}</span>
+                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{group.label}</span>
+                      {group.label === "Next Day" && (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded border border-amber-300 text-amber-600 bg-amber-50">Past Midnight</span>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {group.slots.map((slot) => (
+                        <button
+                          key={slot.time + (slot.isNextDay ? '-next' : '')}
+                          onClick={() => {
+                            setSelectedTime(slot.time);
+                            setStep("details");
+                          }}
+                          className={`py-2 px-3 rounded-md text-sm font-medium border transition-colors ${
+                            selectedTime === slot.time
+                              ? "bg-blue-600 text-white border-blue-600"
+                              : "hover:border-blue-400 hover:bg-blue-50/50"
+                          }`}
+                        >
+                          {formatTimeForDisplay(slot.time)}
+                          {slot.isNextDay && <span className="ml-1 text-[9px] text-amber-600">+1</span>}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ));
+              })()}
             </div>
           )}
           <Button

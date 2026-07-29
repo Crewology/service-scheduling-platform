@@ -10,6 +10,7 @@ export interface TimeSlot {
   maxCapacity: number; // Max allowed bookings (1 for individual, >1 for group)
   spotsRemaining: number; // maxCapacity - bookingCount
   bookingId?: number;
+  isNextDay?: boolean; // true if this slot crosses past midnight (for overnight schedules)
 }
 
 export interface WeeklySchedule {
@@ -128,12 +129,16 @@ export function generateTimeSlots(
     const spotsRemaining = Math.max(0, maxCapacity - bookingCount);
     const available = spotsRemaining > 0;
 
+    // Mark slots past midnight as next day
+    const isNextDay = minutes >= 24 * 60;
+
     slots.push({
       time: slotTime,
       available,
       bookingCount,
       maxCapacity,
       spotsRemaining,
+      isNextDay,
     });
   }
 
