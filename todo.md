@@ -2377,3 +2377,7 @@
 - [x] Redirect /provider/bookings route to /my-bookings
 - [x] Update LoggedInHome provider "Bookings" tile to link to /my-bookings
 - [x] Update NavHeader hamburger menu provider "Bookings" link to /my-bookings
+
+## Bug Fix: "No available time slots" showing for all days even when provider has availability
+- [x] Investigate time slot generation logic in booking flow
+- [x] Fix the issue so available days correctly show bookable time slots (overnight schedule: endTime < startTime now handled)

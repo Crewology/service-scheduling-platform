@@ -97,10 +97,17 @@ export function generateTimeSlots(
   // Generate time slots
   const slots: TimeSlot[] = [];
   const startMinutes = timeToMinutes(startTime);
-  const endMinutes = timeToMinutes(endTime);
+  let endMinutes = timeToMinutes(endTime);
+
+  // Handle overnight schedules (e.g., 04:00 to 01:00 means 4AM to 1AM next day)
+  if (endMinutes <= startMinutes) {
+    endMinutes += 24 * 60; // Add 24 hours to represent next-day end time
+  }
 
   for (let minutes = startMinutes; minutes < endMinutes; minutes += slotIntervalMinutes) {
-    const slotTime = minutesToTime(minutes);
+    // Normalize the slot time to 24-hour format for display
+    const normalizedMinutes = minutes % (24 * 60);
+    const slotTime = minutesToTime(normalizedMinutes);
     
     // Check if this slot would allow the full service duration
     if (minutes + serviceDurationMinutes > endMinutes) {
@@ -150,6 +157,10 @@ function countOverlappingBookings(
     
     if (booking.endTime) {
       bookingEndMinutes = timeToMinutes(booking.endTime);
+      // Handle overnight bookings (endTime < startTime)
+      if (bookingEndMinutes <= bookingStartMinutes) {
+        bookingEndMinutes += 24 * 60;
+      }
     } else if (booking.durationMinutes) {
       bookingEndMinutes = bookingStartMinutes + booking.durationMinutes;
     } else {
