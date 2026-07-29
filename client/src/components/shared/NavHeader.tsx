@@ -477,7 +477,7 @@ function UserMenuDropdown({ user }: { user: any }) {
 // Mobile menu tile data - matches LoggedInHome.tsx landing page tiles exactly
 const MOBILE_PROVIDER_TILES = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/provider/dashboard", color: "bg-gray-100", iconColor: "text-gray-700" },
-  { label: "Bookings", icon: Calendar, href: "/provider/bookings", color: "bg-blue-100", iconColor: "text-blue-600" },
+  { label: "Bookings", icon: Calendar, href: "/my-bookings", color: "bg-blue-100", iconColor: "text-blue-600" },
   { label: "Services", icon: Briefcase, href: "/provider/services", color: "bg-purple-100", iconColor: "text-purple-600" },
   { label: "Schedule", icon: Clock, href: "/provider/availability", color: "bg-green-100", iconColor: "text-green-600" },
   { label: "Messages", icon: MessageSquare, href: "/messages", color: "bg-sky-100", iconColor: "text-sky-600" },

@@ -110,7 +110,7 @@ function Router() {
       <Route path="/search" component={Search} />
       <Route path="/category/:slug" component={CategoryDetail} />
       <Route path="/provider/dashboard" component={ProviderDashboard} />
-      <Route path="/provider/bookings" component={ProviderBookings} />
+      <Route path="/provider/bookings">{() => { window.location.replace("/my-bookings"); return null; }}</Route>
       <Route path="/provider/services" component={ProviderServices} />
       <Route path="/provider/analytics" component={ProviderAnalytics} />
       <Route path="/provider/payouts" component={ProviderPayouts} />

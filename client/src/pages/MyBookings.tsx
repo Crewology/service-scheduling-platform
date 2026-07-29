@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,10 +18,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { trpc } from "@/lib/trpc";
-import { Calendar, Clock, MapPin, DollarSign, MessageSquare, XCircle, AlertTriangle, Loader2, Download, FileText, FileSpreadsheet, WifiOff, RefreshCw, Search, X, Trash2, RotateCcw, CalendarDays, Layers, Archive, Users, Play, ArrowUpDown, ListFilter } from "lucide-react";
+import { Calendar, Clock, MapPin, DollarSign, MessageSquare, XCircle, AlertTriangle, Loader2, Download, FileText, FileSpreadsheet, WifiOff, RefreshCw, Search, X, Trash2, RotateCcw, CalendarDays, Layers, Archive, Users, Play, ArrowUpDown, ListFilter, CheckCircle2, Eye, Globe } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useLocation } from "wouter";
+
 import { getLoginUrl } from "@/const";
 import { formatTimeForDisplay } from "@shared/timeSlots";
 import { NavHeader } from "@/components/shared/NavHeader";
@@ -29,6 +30,10 @@ import { useOfflineBookings } from "@/hooks/useOfflineBookings";
 import { useViewMode } from "@/contexts/ViewModeContext";
 import { HelpTip } from "@/components/shared/HelpTip";
 import { formatPrice } from "@shared/formatPrice";
+import { formatDuration, DURATION_PRESETS } from "../../../shared/duration";
+import { formatCurrency } from "@/lib/dateUtils";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { BookingsSkeleton } from "@/components/DashboardSkeleton";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext, PaginationEllipsis } from "@/components/ui/pagination";
 import SectionErrorBoundary from "@/components/SectionErrorBoundary";
@@ -131,6 +136,105 @@ export default function MyBookings() {
     onError: (err: any) => toast.error(err.message || "Failed to clear demo bookings"),
   });
 
+  // === Provider-specific state & mutations ===
+  const { data: providerProfile } = trpc.provider.getMyProfile.useQuery(undefined, {
+    enabled: isAuthenticated && canSwitch,
+  });
+  const { data: providerQuotes } = trpc.provider.providerQuotes.useQuery(undefined, {
+    enabled: isAuthenticated && !!providerProfile,
+  });
+  const { data: quoteCount } = trpc.provider.quoteCount.useQuery(undefined, {
+    enabled: isAuthenticated && !!providerProfile,
+  });
+
+  const updateBookingStatus = trpc.booking.updateStatus.useMutation({
+    onSuccess: () => {
+      utils.booking.listForProvider.invalidate();
+      toast.success("Booking updated");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const deleteBookingRecord = trpc.booking.delete.useMutation({
+    onSuccess: () => {
+      utils.booking.listForProvider.invalidate();
+      setDeletingBookingId(null);
+      toast.success("Booking removed");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const respondToQuote = trpc.provider.respondToQuote.useMutation({
+    onSuccess: () => {
+      utils.provider.providerQuotes.invalidate();
+      utils.provider.quoteCount.invalidate();
+      setRespondingQuoteId(null);
+      setQuoteAmount("");
+      setQuoteDuration("");
+      setQuoteNotes("");
+      setQuoteValidDays("7");
+      toast.success("Quote sent to customer!");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const declineQuoteRequest = trpc.provider.updateQuoteStatus.useMutation({
+    onSuccess: () => {
+      utils.provider.providerQuotes.invalidate();
+      utils.provider.quoteCount.invalidate();
+      toast.success("Quote request declined");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const deleteQuoteRequest = trpc.provider.deleteQuote.useMutation({
+    onSuccess: () => {
+      utils.provider.providerQuotes.invalidate();
+      utils.provider.quoteCount.invalidate();
+      toast.success("Quote request deleted");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  // Provider dialog state
+  const [conflictBookingId, setConflictBookingId] = useState<number | null>(null);
+  const [showConflictWarning, setShowConflictWarning] = useState(false);
+  const [conflictData, setConflictData] = useState<any[]>([]);
+  const [deletingBookingId, setDeletingBookingId] = useState<number | null>(null);
+  const [respondingQuoteId, setRespondingQuoteId] = useState<number | null>(null);
+  const [quoteAmount, setQuoteAmount] = useState("");
+  const [quoteDuration, setQuoteDuration] = useState("");
+  const [quoteNotes, setQuoteNotes] = useState("");
+  const [quoteValidDays, setQuoteValidDays] = useState("7");
+
+  // Provider action handlers
+  const handleAcceptBooking = async (bookingId: number) => {
+    try {
+      const result = await utils.booking.checkConflicts.fetch({ bookingId });
+      if (result && result.hasConflicts && result.conflicts.length > 0) {
+        setConflictBookingId(bookingId);
+        setConflictData(result.conflicts);
+        setShowConflictWarning(true);
+      } else {
+        updateBookingStatus.mutate({ id: bookingId, status: "confirmed" });
+      }
+    } catch {
+      updateBookingStatus.mutate({ id: bookingId, status: "confirmed" });
+    }
+  };
+
+  const handleDeclineBooking = (bookingId: number) => {
+    updateBookingStatus.mutate({ id: bookingId, status: "cancelled", cancellationReason: "Declined by provider" });
+  };
+
+  const handleStartService = (bookingId: number) => {
+    updateBookingStatus.mutate({ id: bookingId, status: "in_progress" });
+  };
+
+  const handleCompleteBooking = (bookingId: number) => {
+    updateBookingStatus.mutate({ id: bookingId, status: "completed" });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -153,7 +257,7 @@ export default function MyBookings() {
     return filteredBookings.filter((b: any) => status.includes(b.status));
   };
 
-  const upcomingBookings = filterBookings(["pending", "confirmed"]);
+  const upcomingBookings = filterBookings(bookingView === "provider" ? ["pending", "confirmed", "in_progress"] : ["pending", "confirmed"]);
   const pastBookings = filterBookings(["completed", "cancelled", "no_show", "refunded"]);
 
   // Pagination helper
@@ -231,6 +335,14 @@ export default function MyBookings() {
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
+            {bookingView === "provider" && canSwitch && (
+              <Link href="/provider/calendar">
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Calendar View
+                </Button>
+              </Link>
+            )}
             {bookingView === "customer" && (
               <>
                 <Button variant="outline" size="sm" className="gap-2" onClick={() => setLocation("/bulk-booking")}>
@@ -331,6 +443,12 @@ export default function MyBookings() {
               <Archive className="h-3.5 w-3.5 mr-1" />
               Drafts
             </TabsTrigger>
+            {bookingView === "provider" && canSwitch && (
+              <TabsTrigger value="quotes">
+                <DollarSign className="h-3.5 w-3.5 mr-1" />
+                Quotes {quoteCount ? `(${quoteCount})` : ""}
+              </TabsTrigger>
+            )}
           </TabsList>
           </div>
 
@@ -354,7 +472,19 @@ export default function MyBookings() {
             ) : (
               <>
                 {paginateList(upcomingBookings).paginated.map((booking: any) => (
-                  <BookingCard key={booking.id} booking={booking} setLocation={setLocation} isOffline={isOffline} isProviderView={bookingView === "provider"} />
+                  <BookingCard
+                    key={booking.id}
+                    booking={booking}
+                    setLocation={setLocation}
+                    isOffline={isOffline}
+                    isProviderView={bookingView === "provider"}
+                    onAccept={bookingView === "provider" ? handleAcceptBooking : undefined}
+                    onDecline={bookingView === "provider" ? handleDeclineBooking : undefined}
+                    onStartService={bookingView === "provider" ? handleStartService : undefined}
+                    onComplete={bookingView === "provider" ? handleCompleteBooking : undefined}
+                    onRemove={bookingView === "provider" ? (id) => setDeletingBookingId(id) : undefined}
+                    isUpdating={updateBookingStatus.isPending}
+                  />
                 ))}
                 <BookingPagination
                   currentPage={currentPage}
@@ -387,11 +517,13 @@ export default function MyBookings() {
                     setLocation={setLocation}
                     isOffline={isOffline}
                     isProviderView={bookingView === "provider"}
-                    canDelete
+                    canDelete={bookingView !== "provider"}
                     onDelete={(id, label) => {
                       setDeleteBookingId(id);
                       setDeleteBookingLabel(label);
                     }}
+                    onRemove={bookingView === "provider" ? (id) => setDeletingBookingId(id) : undefined}
+                    isUpdating={updateBookingStatus.isPending}
                   />
                 ))}
                 <BookingPagination
@@ -433,11 +565,17 @@ export default function MyBookings() {
                       setLocation={setLocation}
                       isOffline={isOffline}
                       isProviderView={bookingView === "provider"}
-                      canDelete={isPast}
+                      canDelete={isPast && bookingView !== "provider"}
                       onDelete={(id, label) => {
                         setDeleteBookingId(id);
                         setDeleteBookingLabel(label);
                       }}
+                      onAccept={bookingView === "provider" ? handleAcceptBooking : undefined}
+                      onDecline={bookingView === "provider" ? handleDeclineBooking : undefined}
+                      onStartService={bookingView === "provider" ? handleStartService : undefined}
+                      onComplete={bookingView === "provider" ? handleCompleteBooking : undefined}
+                      onRemove={bookingView === "provider" ? (id) => setDeletingBookingId(id) : undefined}
+                      isUpdating={updateBookingStatus.isPending}
                     />
                   );
                 })}
@@ -455,6 +593,24 @@ export default function MyBookings() {
           <TabsContent value="drafts" className="space-y-4">
             <SavedDraftsTab />
           </TabsContent>
+
+          {/* Quotes Tab - Provider Only */}
+          {bookingView === "provider" && canSwitch && (
+            <TabsContent value="quotes" className="space-y-4">
+              <QuoteRequestsSection
+                quotes={providerQuotes || []}
+                onRespond={(id) => setRespondingQuoteId(id)}
+                onDecline={(id) => declineQuoteRequest.mutate({ quoteId: id, status: "declined", reason: "Unable to fulfill this request" })}
+                onDelete={(id) => {
+                  if (confirm("Are you sure you want to delete this quote request? This cannot be undone.")) {
+                    deleteQuoteRequest.mutate({ quoteId: id });
+                  }
+                }}
+                isDeclinePending={declineQuoteRequest.isPending}
+                isDeletePending={deleteQuoteRequest.isPending}
+              />
+            </TabsContent>
+          )}
         </Tabs>
         </SectionErrorBoundary>
       </div>
@@ -482,6 +638,162 @@ export default function MyBookings() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Provider: Schedule Conflict Warning Dialog */}
+      <Dialog open={showConflictWarning} onOpenChange={setShowConflictWarning}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-amber-700">
+              <AlertTriangle className="h-5 w-5" />
+              Schedule Conflict Detected
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              This booking overlaps with {conflictData.length} existing booking{conflictData.length > 1 ? "s" : ""}:
+            </p>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {conflictData.map((conflict, i) => (
+                <div key={i} className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
+                  <p className="font-medium text-sm">{conflict.serviceName}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {conflict.bookingDate} &middot; {formatTimeForDisplay(conflict.startTime)} - {formatTimeForDisplay(conflict.endTime)}
+                  </p>
+                  <span className="text-xs px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300">
+                    {conflict.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p className="text-sm font-medium">
+              Do you still want to accept this booking?
+            </p>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowConflictWarning(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (conflictBookingId) {
+                  updateBookingStatus.mutate({ id: conflictBookingId, status: "confirmed" });
+                }
+                setShowConflictWarning(false);
+                setConflictBookingId(null);
+                setConflictData([]);
+              }}
+            >
+              Accept Anyway
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Provider: Delete Booking Confirmation */}
+      <Dialog open={!!deletingBookingId} onOpenChange={() => setDeletingBookingId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove Booking</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to remove this booking from your list? This will permanently delete the booking record and any associated messages, reviews, and payment records. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeletingBookingId(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={() => deletingBookingId && deleteBookingRecord.mutate({ id: deletingBookingId })} disabled={deleteBookingRecord.isPending}>
+              {deleteBookingRecord.isPending ? "Removing..." : "Remove Booking"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Provider: Respond to Quote Dialog */}
+      <Dialog open={respondingQuoteId !== null} onOpenChange={() => setRespondingQuoteId(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-primary" />
+              Send Your Quote
+            </DialogTitle>
+            <DialogDescription>
+              Provide your pricing and estimated duration for this service request.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="quote-amount">Your Price ($) *</Label>
+              <Input
+                id="quote-amount"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="e.g., 150.00"
+                value={quoteAmount}
+                onChange={(e) => setQuoteAmount(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="quote-duration">Estimated Duration *</Label>
+              <select
+                id="quote-duration"
+                className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                value={quoteDuration}
+                onChange={(e) => setQuoteDuration(e.target.value)}
+              >
+                <option value="">Select duration...</option>
+                {DURATION_PRESETS.map(p => (
+                  <option key={p.value} value={p.value}>{p.label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="quote-notes">Notes for Customer</Label>
+              <Textarea
+                id="quote-notes"
+                placeholder="Any additional details about your quote..."
+                value={quoteNotes}
+                onChange={(e) => setQuoteNotes(e.target.value)}
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="quote-valid">Quote Valid For (days)</Label>
+              <Input
+                id="quote-valid"
+                type="number"
+                min="1"
+                max="30"
+                value={quoteValidDays}
+                onChange={(e) => setQuoteValidDays(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRespondingQuoteId(null)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (!respondingQuoteId || !quoteAmount || !quoteDuration) {
+                  toast.error("Please fill in price and duration");
+                  return;
+                }
+                respondToQuote.mutate({
+                  quoteId: respondingQuoteId,
+                  quotedAmount: quoteAmount,
+                  quotedDurationMinutes: parseInt(quoteDuration),
+                  providerNotes: quoteNotes || undefined,
+                  validDays: parseInt(quoteValidDays) || 7,
+                });
+              }}
+              disabled={respondToQuote.isPending || !quoteAmount || !quoteDuration}
+            >
+              {respondToQuote.isPending ? "Sending..." : "Send Quote"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -493,6 +805,12 @@ function BookingCard({
   canDelete,
   onDelete,
   isProviderView,
+  onAccept,
+  onDecline,
+  onStartService,
+  onComplete,
+  onRemove,
+  isUpdating,
 }: {
   booking: any;
   setLocation: (path: string) => void;
@@ -500,6 +818,12 @@ function BookingCard({
   canDelete?: boolean;
   onDelete?: (id: number, label: string) => void;
   isProviderView?: boolean;
+  onAccept?: (id: number) => void;
+  onDecline?: (id: number) => void;
+  onStartService?: (id: number) => void;
+  onComplete?: (id: number) => void;
+  onRemove?: (id: number) => void;
+  isUpdating?: boolean;
 }) {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
@@ -664,6 +988,63 @@ function BookingCard({
           </div>
 
           <div className="flex flex-wrap gap-2 pt-2">
+            {/* Provider Actions */}
+            {isProviderView && booking.status === "pending" && onAccept && (
+              <Button
+                size="sm"
+                onClick={() => onAccept(booking.id)}
+                disabled={isUpdating}
+              >
+                <CheckCircle2 className="h-4 w-4 mr-1" />
+                Accept
+              </Button>
+            )}
+            {isProviderView && booking.status === "pending" && onDecline && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-destructive hover:text-destructive"
+                onClick={() => onDecline(booking.id)}
+                disabled={isUpdating}
+              >
+                <XCircle className="h-4 w-4 mr-1" />
+                Decline
+              </Button>
+            )}
+            {isProviderView && booking.status === "confirmed" && onStartService && (
+              <Button
+                size="sm"
+                onClick={() => onStartService(booking.id)}
+                disabled={isUpdating}
+              >
+                <Play className="h-4 w-4 mr-1" />
+                Start Service
+              </Button>
+            )}
+            {isProviderView && booking.status === "confirmed" && onDecline && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-destructive hover:text-destructive"
+                onClick={() => onDecline(booking.id)}
+                disabled={isUpdating}
+              >
+                <XCircle className="h-4 w-4 mr-1" />
+                Cancel
+              </Button>
+            )}
+            {isProviderView && booking.status === "in_progress" && onComplete && (
+              <Button
+                size="sm"
+                onClick={() => onComplete(booking.id)}
+                disabled={isUpdating}
+              >
+                <CheckCircle2 className="h-4 w-4 mr-1" />
+                Mark Complete
+              </Button>
+            )}
+
+            {/* Customer Actions */}
             {!isProviderView && booking.status === "confirmed" && !(booking as any).paidAt && parseFloat(booking.totalAmount || "0") > 0 && (
               <Button 
                 variant="default" 
@@ -682,17 +1063,15 @@ function BookingCard({
             >
               View Details
             </Button>
-            {canCancel && (
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setLocation(`/messages/${booking.id}`)}
-              >
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Message Provider
-              </Button>
-            )}
-            {canCancel && isDemo && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setLocation(`/messages/${booking.id}`)}
+            >
+              <MessageSquare className="h-4 w-4 mr-1" />
+              {isProviderView ? "Message" : "Message Provider"}
+            </Button>
+            {!isProviderView && canCancel && isDemo && (
               <Button 
                 variant="outline" 
                 size="sm"
@@ -704,7 +1083,7 @@ function BookingCard({
                 {cancelBooking.isPending ? "Cancelling..." : "Cancel Demo Booking"}
               </Button>
             )}
-            {canCancel && !isDemo && (
+            {!isProviderView && canCancel && !isDemo && (
               <Button 
                 variant="outline" 
                 size="sm"
@@ -715,7 +1094,7 @@ function BookingCard({
                 Cancel Booking
               </Button>
             )}
-            {!isOffline && booking.status === "completed" && !booking.reviewId && (
+            {!isProviderView && !isOffline && booking.status === "completed" && !booking.reviewId && (
               <Button 
                 variant="default" 
                 size="sm"
@@ -724,7 +1103,7 @@ function BookingCard({
                 Leave Review
               </Button>
             )}
-            {!isOffline && ["completed", "cancelled", "no_show"].includes(booking.status) && (
+            {!isProviderView && !isOffline && ["completed", "cancelled", "no_show"].includes(booking.status) && (
               <Button 
                 variant="outline" 
                 size="sm"
@@ -732,6 +1111,18 @@ function BookingCard({
               >
                 <RotateCcw className="h-4 w-4 mr-2" />
                 Book Again
+              </Button>
+            )}
+            {/* Provider: Remove from list */}
+            {isProviderView && ["completed", "cancelled", "no_show", "refunded"].includes(booking.status) && onRemove && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-destructive hover:text-destructive"
+                onClick={() => onRemove(booking.id)}
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                Remove
               </Button>
             )}
           </div>
@@ -822,6 +1213,165 @@ function BookingCard({
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+function QuoteRequestsSection({
+  quotes,
+  onRespond,
+  onDecline,
+  onDelete,
+  isDeclinePending,
+  isDeletePending,
+}: {
+  quotes: any[];
+  onRespond: (id: number) => void;
+  onDecline: (id: number) => void;
+  onDelete: (id: number) => void;
+  isDeclinePending: boolean;
+  isDeletePending: boolean;
+}) {
+  if (!quotes || quotes.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center">
+          <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+          <p className="text-muted-foreground mb-2">No quote requests yet</p>
+          <p className="text-sm text-muted-foreground">
+            When customers request custom quotes, they'll appear here
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {quotes.map((quote: any) => (
+        <Card key={quote.id} className={quote.status === "pending" ? "border-amber-300 bg-amber-50/30" : ""}>
+          <CardHeader className="pb-3">
+            <div className="flex items-start justify-between">
+              <div>
+                <CardTitle className="text-lg">{quote.title}</CardTitle>
+                <CardDescription className="mt-1">
+                  From: {quote.customerName || "Customer"}
+                  {quote.customerEmail && ` (${quote.customerEmail})`}
+                </CardDescription>
+              </div>
+              <Badge variant={
+                quote.status === "pending" ? "secondary" :
+                quote.status === "quoted" ? "default" :
+                quote.status === "accepted" ? "outline" :
+                quote.status === "booked" ? "default" :
+                "destructive"
+              }>
+                {quote.status === "pending" ? "Awaiting Your Quote" :
+                 quote.status === "quoted" ? "Quote Sent" :
+                 quote.status === "accepted" ? "Accepted" :
+                 quote.status === "booked" ? "Booked" :
+                 quote.status === "declined" ? "Declined" :
+                 quote.status}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-3">{quote.description}</p>
+            
+            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
+              {quote.preferredDate && (
+                <span className="flex items-center gap-1">
+                  <Calendar className="h-3.5 w-3.5" />
+                  {new Date(quote.preferredDate).toLocaleDateString()}
+                  {quote.preferredTime && ` at ${quote.preferredTime}`}
+                </span>
+              )}
+              {quote.location && (
+                <span className="flex items-center gap-1">
+                  <Globe className="h-3.5 w-3.5" />
+                  {quote.location}
+                </span>
+              )}
+              {quote.locationType && (
+                <span className="flex items-center gap-1">
+                  {quote.locationType === "mobile" ? "Mobile" :
+                   quote.locationType === "fixed_location" ? "At Location" :
+                   "Virtual"}
+                </span>
+              )}
+              <span className="flex items-center gap-1">
+                <Clock className="h-3.5 w-3.5" />
+                {new Date(quote.createdAt).toLocaleDateString()}
+              </span>
+            </div>
+
+            {/* Show quoted amount if already responded */}
+            {quote.status === "quoted" && quote.quotedAmount && (
+              <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800 mb-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-blue-800 dark:text-blue-300">Your Quote</span>
+                  <span className="text-lg font-bold text-blue-900 dark:text-blue-200">
+                    {formatPrice(parseFloat(quote.quotedAmount))}
+                  </span>
+                </div>
+                {quote.quotedDurationMinutes && (
+                  <p className="text-xs text-blue-700 dark:text-blue-400 mt-1">
+                    Est. duration: {formatDuration(quote.quotedDurationMinutes)}
+                  </p>
+                )}
+                {quote.providerNotes && (
+                  <p className="text-xs text-blue-700 dark:text-blue-400 mt-1">{quote.providerNotes}</p>
+                )}
+              </div>
+            )}
+
+            {/* Action buttons */}
+            {quote.status === "pending" && (
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => onRespond(quote.id)}
+                >
+                  <DollarSign className="h-4 w-4 mr-1" />
+                  Send Quote
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onDecline(quote.id)}
+                  disabled={isDeclinePending}
+                >
+                  <XCircle className="h-4 w-4 mr-1" />
+                  Decline
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => onDelete(quote.id)}
+                  disabled={isDeletePending}
+                >
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Delete
+                </Button>
+              </div>
+            )}
+            {quote.status !== "pending" && (
+              <div className="flex justify-end mt-2">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => onDelete(quote.id)}
+                  disabled={isDeletePending}
+                >
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Delete
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 }
 

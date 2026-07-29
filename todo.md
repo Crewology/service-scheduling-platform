@@ -2368,3 +2368,12 @@
   - Added vitest globalSetup teardown (server/vitest-global-setup.ts)
   - After every test run, all test accounts are automatically deleted from the DB
   - Catches patterns: @test.com, @example.com, @deleted.ologycrew.com, Phase%, Test %, P1% Customer/Provider/Admin
+
+## Merge Booking Pages: /my-bookings and /provider/bookings → Single Unified Page
+- [x] Add provider actions (Accept/Decline/Start Service/Mark Complete) to MyBookings BookingCard when in provider view
+- [x] Add conflict detection when accepting bookings (same as ProviderDashboard)
+- [x] Add Quote Requests section to MyBookings page (as tab or section) when in provider view
+- [x] Add Calendar View shortcut link to MyBookings header when in provider view
+- [x] Redirect /provider/bookings route to /my-bookings
+- [x] Update LoggedInHome provider "Bookings" tile to link to /my-bookings
+- [x] Update NavHeader hamburger menu provider "Bookings" link to /my-bookings

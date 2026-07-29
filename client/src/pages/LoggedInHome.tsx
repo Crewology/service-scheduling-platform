@@ -23,7 +23,7 @@ interface LaunchpadTile {
 // Provider tiles
 const PROVIDER_TILES: LaunchpadTile[] = [
   { label: "Dashboard", icon: <LayoutDashboard className="h-7 w-7" />, href: "/provider/dashboard", color: "bg-gray-100", iconColor: "text-gray-700" },
-  { label: "Bookings", icon: <Calendar className="h-7 w-7" />, href: "/provider/bookings", color: "bg-blue-100", iconColor: "text-blue-600" },
+  { label: "Bookings", icon: <Calendar className="h-7 w-7" />, href: "/my-bookings", color: "bg-blue-100", iconColor: "text-blue-600" },
   { label: "Services", icon: <Briefcase className="h-7 w-7" />, href: "/provider/services", color: "bg-purple-100", iconColor: "text-purple-600" },
   { label: "Schedule", icon: <Clock className="h-7 w-7" />, href: "/provider/availability", color: "bg-green-100", iconColor: "text-green-600" },
   { label: "Messages", icon: <MessageSquare className="h-7 w-7" />, href: "/messages", color: "bg-sky-100", iconColor: "text-sky-600" },
