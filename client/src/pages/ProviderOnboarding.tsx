@@ -61,6 +61,8 @@ const CATEGORY_ICONS: Record<number, string> = {
   214: "🪚",
   215: "🏠",
   216: "📣",
+  210: "🕉️",
+  218: "🌱",
 };
 
 const ALL_STEPS = [

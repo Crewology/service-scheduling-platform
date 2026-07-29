@@ -103,6 +103,7 @@ const CATEGORY_ICONS: Record<number, string> = {
   11: "\ud83d\udc3e", 17: "\ud83d\udcf8", 148: "\ud83d\udca6", 26: "\ud83d\udcc5", 8: "\ud83d\udc85", 194: "\u2600\ufe0f",
   198: "\ud83d\udcbb", 19: "\ud83c\udfa5", 155: "\ud83d\udcf1", 201: "\ud83d\udda5\ufe0f", 205: "\ud83c\udf10", 211: "\ud83d\udd27",
   212: "\u26a1", 213: "\u2744\ufe0f", 214: "\ud83e\ude9a", 215: "\ud83c\udfe0", 216: "\ud83d\udce3",
+  210: "\ud83d\udd49\ufe0f", 218: "\ud83c\udf31",
 };
 
 function ServiceCardPhoto({ serviceId }: { serviceId: number }) {

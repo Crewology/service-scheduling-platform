@@ -2300,6 +2300,8 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
   214: "🪚",
   215: "🏠",
   216: "📣",
+  210: "🕉️",
+  218: "🌱",
                 };
                 return (
                   <Card key={cat.id}>
@@ -4067,6 +4069,7 @@ function PortfolioGallery({ categories }: { categories: any[] | undefined }) {
     11: "\uD83D\uDC3E", 17: "\uD83D\uDCF8", 148: "\uD83D\uDCA6", 26: "\uD83D\uDCC5", 8: "\uD83D\uDC85", 194: "\u2600\uFE0F",
     198: "\uD83D\uDCBB", 19: "\uD83C\uDFA5", 155: "\uD83D\uDCF1", 201: "\uD83D\uDDA5\uFE0F", 205: "\uD83C\uDF10", 211: "\uD83D\uDD27",
     212: "\u26A1", 213: "\u2744\uFE0F", 214: "\uD83E\uDE9A", 215: "\uD83C\uDFE0", 216: "\uD83D\uDCE3",
+    210: "\uD83D\uDD49\uFE0F", 218: "\uD83C\uDF31",
   };
 
   return (
