@@ -730,7 +730,7 @@ export default function CustomerPricing() {
                   },
                   {
                     q: "Can I cancel or downgrade anytime?",
-                    a: "Yes! You can cancel or downgrade at any time. Your plan remains active until the end of your billing period, then you'll move to the lower tier.",
+                    a: "Yes! You can cancel or downgrade at any time. Changes take effect immediately and you'll receive a prorated credit for any unused time on your current plan.",
                   },
                   {
                     q: "Is there a free trial for Pro?",
@@ -766,7 +766,7 @@ export default function CustomerPricing() {
                   },
                   {
                     q: "Can I cancel anytime?",
-                    a: "Yes! Cancel or downgrade at any time. Your plan stays active until the end of your billing period.",
+                    a: "Yes! Cancel or downgrade at any time. Changes take effect immediately and you'll receive a prorated credit for any unused time.",
                   },
                   {
                     q: "Is there a free trial for Coordinator or Manager?",
