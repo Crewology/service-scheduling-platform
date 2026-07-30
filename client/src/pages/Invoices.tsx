@@ -68,7 +68,7 @@ export default function Invoices() {
   const { data: invoices, refetch } = trpc.invoice.getMyInvoices.useQuery();
   const { data: provider } = trpc.provider.getMyProfile.useQuery();
   const { data: bookings } = trpc.booking.providerBookings.useQuery(
-    { status: "completed" },
+    {},
     { enabled: !!provider }
   );
 
