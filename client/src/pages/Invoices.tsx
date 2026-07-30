@@ -114,8 +114,8 @@ export default function Invoices() {
       if (!seen.has(b.customerId)) {
         seen.set(b.customerId, {
           id: b.customerId,
-          name: (b as any).customerName || `Customer #${b.customerId}`,
-          email: (b as any).customerEmail || "",
+          name: b.customerName || `Customer #${b.customerId}`,
+          email: b.customerEmail || "",
         });
       }
     }

@@ -85,14 +85,19 @@ export async function getInvoicesByProvider(providerId: number) {
   }));
 }
 
-export async function getInvoicesByCustomer(customerId: number) {
+export async function getInvoicesByCustomer(customerId: number, customerEmail?: string) {
   const db = await getDb();
   if (!db) return [];
+
+  // Match by customerId OR by customerEmail (for invoices sent to non-system customers who later sign up)
+  const conditions = customerEmail
+    ? sql`(${invoices.customerId} = ${customerId} OR ${invoices.customerEmail} = ${customerEmail})`
+    : eq(invoices.customerId, customerId);
 
   return db
     .select()
     .from(invoices)
-    .where(eq(invoices.customerId, customerId))
+    .where(and(conditions, sql`${invoices.status} != 'draft'`))
     .orderBy(desc(invoices.createdAt));
 }
 

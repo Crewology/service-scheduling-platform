@@ -55,9 +55,43 @@ export async function getProviderBookings(providerId: number, status?: string) {
   if (!db) return [];
   const conditions = [eq(bookings.providerId, providerId)];
   if (status && status !== "all") conditions.push(eq(bookings.status, status as any));
-  return await db.select().from(bookings)
+  const results = await db.select({
+    id: bookings.id,
+    bookingNumber: bookings.bookingNumber,
+    customerId: bookings.customerId,
+    providerId: bookings.providerId,
+    serviceId: bookings.serviceId,
+    categoryId: bookings.categoryId,
+    bookingDate: bookings.bookingDate,
+    startTime: bookings.startTime,
+    endTime: bookings.endTime,
+    durationMinutes: bookings.durationMinutes,
+    status: bookings.status,
+    subtotal: bookings.subtotal,
+    platformFee: bookings.platformFee,
+    totalAmount: bookings.totalAmount,
+    depositAmount: bookings.depositAmount,
+    remainingAmount: bookings.remainingAmount,
+    paymentStatus: bookings.paymentStatus,
+    paymentMethod: bookings.paymentMethod,
+    locationType: bookings.locationType,
+    serviceAddressLine1: bookings.serviceAddressLine1,
+    serviceCity: bookings.serviceCity,
+    serviceState: bookings.serviceState,
+    servicePostalCode: bookings.servicePostalCode,
+    venueName: bookings.venueName,
+    customerNotes: bookings.customerNotes,
+    providerNotes: bookings.providerNotes,
+    travelFee: bookings.travelFee,
+    createdAt: bookings.createdAt,
+    updatedAt: bookings.updatedAt,
+    customerName: users.name,
+    customerEmail: users.email,
+  }).from(bookings)
+    .leftJoin(users, eq(bookings.customerId, users.id))
     .where(and(...conditions))
     .orderBy(desc(bookings.createdAt));
+  return results;
 }
 
 export async function getAllBookings() {

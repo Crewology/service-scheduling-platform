@@ -92,7 +92,7 @@ export const invoiceRouter = router({
 
   // Customer: get all their receipts and invoices
   getMyReceipts: protectedProcedure.query(async ({ ctx }) => {
-    return invoiceDb.getInvoicesByCustomer(ctx.user.id);
+    return invoiceDb.getInvoicesByCustomer(ctx.user.id, ctx.user.email);
   }),
 
   // Get single invoice by ID (for both provider and customer)

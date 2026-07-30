@@ -2487,3 +2487,9 @@
 - [x] Add provider-only guard to ProviderReviews page
 - [x] Add provider-only guard to SubscriptionManagement page
 - [x] Add provider-only guard to WidgetGenerator page
+## Invoice & Receipts Fixes
+- [x] Show customer names (not IDs) in invoice existing customer dropdown
+- [x] Auto-fill email when existing customer is selected
+- [x] Show received invoices on customer Receipts & Invoices page
+- [x] Show paid invoice status on customer Receipts page
+- [x] Fix naming consistency: tile says "Receipts" but page says "Receipts & Invoices"
