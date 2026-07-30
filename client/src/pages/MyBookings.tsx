@@ -147,6 +147,11 @@ export default function MyBookings() {
     enabled: isAuthenticated && !!providerProfile,
   });
 
+  // Customer quotes (for customer view)
+  const { data: customerQuotes } = trpc.provider.myQuotes.useQuery(undefined, {
+    enabled: isAuthenticated && bookingView !== "provider",
+  });
+
   const updateBookingStatus = trpc.booking.updateStatus.useMutation({
     onSuccess: () => {
       utils.booking.listForProvider.invalidate();
@@ -431,26 +436,19 @@ export default function MyBookings() {
           <div className="overflow-x-auto -mx-1 px-1 pb-1">
           <TabsList>
             <TabsTrigger value="upcoming">
-              {bookingView === "provider" && canSwitch ? "New" : "Upcoming"} ({upcomingBookings.length})
+              New ({upcomingBookings.length})
             </TabsTrigger>
             <TabsTrigger value="past">
               Past ({pastBookings.length})
             </TabsTrigger>
-            {!(bookingView === "provider" && canSwitch) && (
-              <TabsTrigger value="all">
-                All ({filteredBookings?.length || 0})
-              </TabsTrigger>
-            )}
             <TabsTrigger value="drafts">
               <Archive className="h-3.5 w-3.5 mr-1" />
               Drafts
             </TabsTrigger>
-            {bookingView === "provider" && canSwitch && (
-              <TabsTrigger value="quotes">
-                <DollarSign className="h-3.5 w-3.5 mr-1" />
-                Quotes {quoteCount && typeof quoteCount === "object" && quoteCount.total ? `(${quoteCount.total})` : ""}
-              </TabsTrigger>
-            )}
+            <TabsTrigger value="quotes">
+              <DollarSign className="h-3.5 w-3.5 mr-1" />
+              Quotes {bookingView === "provider" && quoteCount && typeof quoteCount === "object" && quoteCount.total ? `(${quoteCount.total})` : customerQuotes ? `(${customerQuotes.length})` : ""}
+            </TabsTrigger>
           </TabsList>
           </div>
 
@@ -462,9 +460,7 @@ export default function MyBookings() {
                 <CardContent className="py-12 text-center">
                   <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground mb-4">
-                    {searchQuery 
-                      ? (bookingView === "provider" && canSwitch ? "No matching new bookings" : "No matching upcoming bookings")
-                      : (bookingView === "provider" && canSwitch ? "No new bookings" : "No upcoming bookings")}
+                    {searchQuery ? "No matching new bookings" : "No new bookings"}
                   </p>
                   {!searchQuery && (
                     <Button onClick={() => setLocation("/browse")} disabled={isOffline}>
@@ -541,66 +537,13 @@ export default function MyBookings() {
             )}
           </TabsContent>
 
-          <TabsContent value="all" className="space-y-4">
-            {isLoading && !isUsingCache ? (
-              <BookingsSkeleton />
-            ) : !filteredBookings || filteredBookings.length === 0 ? (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground mb-4">
-                    {searchQuery ? "No matching bookings" : "No bookings yet"}
-                  </p>
-                  {!searchQuery && (
-                    <Button onClick={() => setLocation("/browse")} disabled={isOffline}>
-                      Browse Services
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
-            ) : (
-              <>
-                {paginateList(filteredBookings).paginated.map((booking: any) => {
-                  const isPast = ["completed", "cancelled", "no_show", "refunded"].includes(booking.status);
-                  return (
-                    <BookingCard
-                      key={booking.id}
-                      booking={booking}
-                      setLocation={setLocation}
-                      isOffline={isOffline}
-                      isProviderView={bookingView === "provider"}
-                      canDelete={isPast && bookingView !== "provider"}
-                      onDelete={(id, label) => {
-                        setDeleteBookingId(id);
-                        setDeleteBookingLabel(label);
-                      }}
-                      onAccept={bookingView === "provider" ? handleAcceptBooking : undefined}
-                      onDecline={bookingView === "provider" ? handleDeclineBooking : undefined}
-                      onStartService={bookingView === "provider" ? handleStartService : undefined}
-                      onComplete={bookingView === "provider" ? handleCompleteBooking : undefined}
-                      onRemove={bookingView === "provider" ? (id) => setDeletingBookingId(id) : undefined}
-                      isUpdating={updateBookingStatus.isPending}
-                    />
-                  );
-                })}
-                <BookingPagination
-                  currentPage={currentPage}
-                  totalPages={paginateList(filteredBookings).totalPages}
-                  total={paginateList(filteredBookings).total}
-                  perPage={ITEMS_PER_PAGE}
-                  onPageChange={setCurrentPage}
-                />
-              </>
-            )}
-          </TabsContent>
-
           <TabsContent value="drafts" className="space-y-4">
             <SavedDraftsTab />
           </TabsContent>
 
-          {/* Quotes Tab - Provider Only */}
-          {bookingView === "provider" && canSwitch && (
-            <TabsContent value="quotes" className="space-y-4">
+          {/* Quotes Tab - Both Provider and Customer */}
+          <TabsContent value="quotes" className="space-y-4">
+            {bookingView === "provider" && canSwitch ? (
               <QuoteRequestsSection
                 quotes={providerQuotes || []}
                 onRespond={(id) => setRespondingQuoteId(id)}
@@ -613,8 +556,10 @@ export default function MyBookings() {
                 isDeclinePending={declineQuoteRequest.isPending}
                 isDeletePending={deleteQuoteRequest.isPending}
               />
-            </TabsContent>
-          )}
+            ) : (
+              <CustomerQuotesSection />
+            )}
+          </TabsContent>
         </Tabs>
         </SectionErrorBoundary>
       </div>
@@ -1375,6 +1320,173 @@ function QuoteRequestsSection({
           </CardContent>
         </Card>
       ))}
+    </div>
+  );
+}
+
+// Customer Quotes Section - shows quotes the customer has requested
+function CustomerQuotesSection() {
+  const { data: quotes, isLoading } = trpc.provider.myQuotes.useQuery();
+  const [, setLocation] = useLocation();
+  const utils = trpc.useUtils();
+
+  const updateStatus = trpc.provider.updateQuoteStatus.useMutation({
+    onSuccess: (data) => {
+      utils.provider.myQuotes.invalidate();
+      if (data.bookingId) {
+        toast.success("Quote accepted! A booking has been created.", {
+          action: {
+            label: "View Booking",
+            onClick: () => setLocation(`/bookings/${data.bookingId}`),
+          },
+          duration: 8000,
+        });
+      } else {
+        toast.success("Quote updated");
+      }
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  if (isLoading) {
+    return <BookingsSkeleton />;
+  }
+
+  if (!quotes || quotes.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <DollarSign className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">No quote requests yet</h3>
+          <p className="text-muted-foreground mb-4">
+            Browse providers and request custom quotes for services that need personalized pricing
+          </p>
+          <Button onClick={() => setLocation("/browse")}>Browse Services</Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const statusConfig: Record<string, { label: string; color: string }> = {
+    pending: { label: "Awaiting Quote", color: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300" },
+    quoted: { label: "Quote Received", color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300" },
+    accepted: { label: "Accepted", color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" },
+    declined: { label: "Declined", color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300" },
+    expired: { label: "Expired", color: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300" },
+    booked: { label: "Booked", color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300" },
+  };
+
+  return (
+    <div className="space-y-4">
+      {quotes.map((quote: any) => {
+        const status = statusConfig[quote.status] || statusConfig.pending;
+        return (
+          <Card key={quote.id}>
+            <CardContent className="p-5">
+              <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <h3 className="font-semibold text-base truncate">{quote.title}</h3>
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${status.color}`}>
+                      {status.label}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{quote.description}</p>
+                  <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                    {quote.preferredDate && (
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {new Date(quote.preferredDate).toLocaleDateString()}
+                        {quote.preferredTime && ` at ${quote.preferredTime}`}
+                      </span>
+                    )}
+                    {quote.location && (
+                      <span className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        {quote.location}
+                      </span>
+                    )}
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      Requested {new Date(quote.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Provider's Quote Response */}
+              {quote.status === "quoted" && quote.quotedAmount && (
+                <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-2">
+                    <span className="font-semibold text-blue-800 dark:text-blue-300">Provider's Quote</span>
+                    <span className="text-xl font-bold text-blue-900 dark:text-blue-200">
+                      ${(parseFloat(quote.quotedAmount) / 100).toFixed(2)}
+                    </span>
+                  </div>
+                  {quote.quotedDurationMinutes && (
+                    <p className="text-sm text-blue-700 dark:text-blue-400">
+                      Estimated duration: {quote.quotedDurationMinutes} min
+                    </p>
+                  )}
+                  {quote.providerNotes && (
+                    <p className="text-sm text-blue-700 dark:text-blue-400 mt-1">
+                      {quote.providerNotes}
+                    </p>
+                  )}
+                  {quote.validUntil && (
+                    <p className="text-xs text-blue-600 dark:text-blue-500 mt-2">
+                      Valid until: {new Date(quote.validUntil).toLocaleDateString()}
+                    </p>
+                  )}
+                  <div className="flex gap-2 mt-3">
+                    <Button
+                      size="sm"
+                      onClick={() => updateStatus.mutate({ quoteId: quote.id, status: "accepted" })}
+                      disabled={updateStatus.isPending}
+                    >
+                      <CheckCircle2 className="h-4 w-4 mr-1" />
+                      Accept Quote
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => updateStatus.mutate({ quoteId: quote.id, status: "declined" })}
+                      disabled={updateStatus.isPending}
+                    >
+                      <XCircle className="h-4 w-4 mr-1" />
+                      Decline
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Accepted/Booked */}
+              {(quote.status === "accepted" || quote.status === "booked") && quote.quotedAmount && (
+                <div className="mt-4 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
+                  <div className="flex items-center justify-between">
+                    <p className="font-semibold text-green-800 dark:text-green-300 text-sm">
+                      {quote.status === "booked" ? "Booking Created" : "Quote Accepted"} — ${(parseFloat(quote.quotedAmount) / 100).toFixed(2)}
+                    </p>
+                    {quote.bookingId && (
+                      <Button size="sm" variant="outline" className="text-xs" onClick={() => setLocation(`/bookings/${quote.bookingId}`)}>
+                        View Booking
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {quote.status === "declined" && quote.declineReason && (
+                <div className="mt-3 p-3 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200 dark:border-red-800">
+                  <p className="text-sm text-red-700 dark:text-red-400">
+                    <strong>Reason:</strong> {quote.declineReason}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }

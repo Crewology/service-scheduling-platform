@@ -2464,3 +2464,7 @@
 - [x] Update invoice list to show customer name instead of "Customer #ID"
 - [x] Update send mutation to work with non-system customers (send email using stored customerName/customerEmail)
 - [x] Ensure PDF download works for all invoices (generate PDF button always visible)
+## Customer My Bookings Page Updates
+- [x] Remove "All" tab from customer's My Bookings page
+- [x] Rename "Upcoming" tab to "New" on customer's My Bookings page
+- [x] Add "Quotes" tab to customer's My Bookings page showing their quote requests
