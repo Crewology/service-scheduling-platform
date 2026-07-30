@@ -89,7 +89,7 @@ export function CustomerTrialCountdownBanner({
               size="sm"
               variant={isUrgent ? "destructive" : "default"}
               className="h-7 text-xs"
-              onClick={() => navigate("/account/subscription")}
+              onClick={() => navigate("/customer/subscription")}
             >
               <Zap className="h-3 w-3 mr-1" />
               {isUrgent ? "Subscribe Now" : "Upgrade to Keep Features"}
@@ -137,7 +137,7 @@ export function CustomerTrialExpiredGate({ onDowngrade }: { onDowngrade?: () => 
           <Button
             size="lg"
             className="w-full"
-            onClick={() => navigate("/account/subscription")}
+            onClick={() => navigate("/customer/subscription")}
           >
             <Zap className="h-4 w-4 mr-2" />
             Subscribe to Continue — Starting at $12/mo

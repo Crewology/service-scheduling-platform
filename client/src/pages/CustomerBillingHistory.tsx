@@ -141,7 +141,7 @@ export default function CustomerBillingHistory() {
       <div className="container max-w-4xl py-6 px-4">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <Link href="/account/subscription">
+          <Link href="/customer/subscription">
             <Button variant="ghost" size="icon" className="h-8 w-8">
               <ArrowLeft className="h-4 w-4" />
             </Button>
@@ -176,7 +176,7 @@ export default function CustomerBillingHistory() {
                     </p>
                   </div>
                 </div>
-                <Link href="/account/subscription">
+                <Link href="/customer/subscription">
                   <Button variant="outline" size="sm">
                     Manage Plan
                   </Button>
@@ -299,7 +299,7 @@ export default function CustomerBillingHistory() {
         <div className="mt-4 text-center">
           <p className="text-xs text-muted-foreground">
             Need to update your payment method or download older invoices?{" "}
-            <Link href="/account/subscription" className="text-primary hover:underline">
+            <Link href="/customer/subscription" className="text-primary hover:underline">
               Manage Subscription
             </Link>
           </p>

@@ -2435,3 +2435,8 @@
 ## Allow switching billing interval on same tier
 - [x] When user is on any paid plan (Pro/Business) and toggles to a different billing interval, the current plan card should be selectable (not greyed out)
 - [x] Clicking the plan button when on same tier but different interval should trigger a billing interval change via Stripe (proration applied automatically)
+
+## Customer Subscription Page Redesign
+- [x] Rewrite AccountSubscription page to match Provider subscription layout (title, current plan box + usage side by side, billing interval toggle, plan cards with interval switching)
+- [x] Change URL from /account/subscription to /customer/subscription
+- [x] Update all references to /account/subscription across the codebase (NavHeader, LoggedInHome, ViewModeSwitcher, etc.)

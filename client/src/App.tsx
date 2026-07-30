@@ -157,8 +157,8 @@ function Router() {
       <Route path="/my-quotes" component={MyQuotes} />
       <Route path="/my-waitlist" component={MyWaitlist} />
       <Route path="/pricing" component={CustomerPricing} />
-      <Route path="/account/subscription" component={AccountSubscription} />
-      <Route path="/account/billing" component={CustomerBillingHistory} />
+      <Route path="/customer/subscription" component={AccountSubscription} />
+      <Route path="/customer/billing" component={CustomerBillingHistory} />
       <Route path="/analytics" component={BookingAnalytics} />
       <Route path="/privacy" component={PrivacyPolicy} />
       <Route path="/terms" component={TermsOfService} />

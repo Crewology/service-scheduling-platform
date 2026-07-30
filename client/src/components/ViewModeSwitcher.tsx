@@ -8,10 +8,10 @@ import { useLocation } from "wouter";
  * they'll be navigated to the corresponding route.
  */
 const ROUTE_PAIRS: Record<string, string> = {
-  "/provider/subscription": "/account/subscription",
-  "/account/subscription": "/provider/subscription",
-  "/provider/billing": "/account/billing",
-  "/account/billing": "/provider/billing",
+  "/provider/subscription": "/customer/subscription",
+  "/customer/subscription": "/provider/subscription",
+  "/provider/billing": "/customer/billing",
+  "/customer/billing": "/provider/billing",
 };
 
 /**

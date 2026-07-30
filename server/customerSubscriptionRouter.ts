@@ -73,9 +73,24 @@ export const customerSubscriptionRouter = router({
     const favoriteCount = await db.getUserFavoriteCount(ctx.user.id);
     const tierConfig = CUSTOMER_TIERS[tier];
 
+    // Get current billing interval from Stripe if subscription exists
+    let currentInterval: "month" | "year" = "month";
+    if (subscription?.stripeSubscriptionId && subscription.status === "active") {
+      try {
+        const stripeSub = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionId);
+        const item = stripeSub.items.data[0];
+        if (item?.price.recurring?.interval) {
+          currentInterval = item.price.recurring.interval as "month" | "year";
+        }
+      } catch (e) {
+        // If Stripe call fails, default to month
+      }
+    }
+
     return {
       subscription,
       currentTier: tier,
+      currentInterval,
       tierConfig,
       usage: {
         savedProviders: favoriteCount,
@@ -99,8 +114,25 @@ export const customerSubscriptionRouter = router({
     }))
     .mutation(async ({ ctx, input }) => {
       const currentTier = await db.getCustomerTier(ctx.user.id);
-      if (currentTier === input.tier) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Already subscribed to this tier" });
+      const existingSubForCheck = await db.getCustomerSubscription(ctx.user.id);
+      if (currentTier === input.tier && existingSubForCheck?.stripeSubscriptionId) {
+        // Same tier but possibly different interval - update in-place with proration
+        const stripeSub = await stripe.subscriptions.retrieve(existingSubForCheck.stripeSubscriptionId);
+        const currentItem = stripeSub.items.data[0];
+        const currentInterval = currentItem?.price.recurring?.interval as "month" | "year" || "month";
+        if (currentInterval === input.interval) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Already subscribed to this tier and interval" });
+        }
+        // Different interval on same tier - update the subscription in-place with proration
+        const newPriceId = await getOrCreateCustomerStripePrice(input.tier, input.interval);
+        await stripe.subscriptions.update(existingSubForCheck.stripeSubscriptionId, {
+          items: [{
+            id: currentItem.id,
+            price: newPriceId,
+          }],
+          proration_behavior: "create_prorations",
+        });
+        return { url: null, message: `Switched to ${input.interval === "year" ? "annual" : "monthly"} billing. Proration applied.` };
       }
 
       const priceId = await getOrCreateCustomerStripePrice(input.tier, input.interval);
