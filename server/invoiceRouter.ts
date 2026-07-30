@@ -92,7 +92,7 @@ export const invoiceRouter = router({
 
   // Customer: get all their receipts and invoices
   getMyReceipts: protectedProcedure.query(async ({ ctx }) => {
-    return invoiceDb.getInvoicesByCustomer(ctx.user.id, ctx.user.email);
+    return invoiceDb.getInvoicesByCustomer(ctx.user.id, ctx.user.email || undefined);
   }),
 
   // Get single invoice by ID (for both provider and customer)
@@ -158,11 +158,18 @@ export const invoiceRouter = router({
 
       // Send email notification to customer (works for both system and non-system customers)
       if (customerEmail) {
+        // Try to resolve userId by email if customer is null (non-system customer flow)
+        let recipientUserId = customer?.id || 0;
+        if (!recipientUserId && customerEmail) {
+          const { getUserByEmail } = await import("./db/users");
+          const userByEmail = await getUserByEmail(customerEmail);
+          if (userByEmail) recipientUserId = userByEmail.id;
+        }
         await sendNotification({
           type: "invoice_sent",
           channel: "email",
           recipient: {
-            userId: customer?.id || 0,
+            userId: recipientUserId,
             email: customerEmail,
             name: customerName,
           },

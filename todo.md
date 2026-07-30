@@ -2496,3 +2496,8 @@
 ## Receipts & Invoices Enhancements
 - [x] Add search bar on Receipts & Invoices page to filter by customer name or email
 - [x] Add invoice preview modal for providers to review final layout before sending
+## Unsubscribe Fix
+- [x] Fix unsubscribe token generation for non-system customers (userId=0) - skip or handle gracefully
+- [x] Fix unsubscribe link fallback from '#' to '/notification-settings' when no token
+- [x] Fix invoice send to resolve userId by email for proper unsubscribe token generation
+- [x] "Settings" link in user dropdown already points to /notification-settings (verified accessible)

@@ -57,8 +57,13 @@ export class EmailProvider implements NotificationProvider {
   /**
    * Ensure the user has an unsubscribe token.
    * If none exists, create one and persist it.
+   * For non-system customers (userId=0), skip token generation.
    */
   private async ensureUnsubscribeToken(userId: number): Promise<string> {
+    if (!userId || userId <= 0) {
+      // Non-system customer, no unsubscribe token possible
+      return "";
+    }
     try {
       const prefs = await db.getNotificationPreferences(userId);
       if (prefs?.unsubscribeToken) return prefs.unsubscribeToken;
@@ -201,9 +206,10 @@ export class EmailProvider implements NotificationProvider {
       .replace(/\n/g, '<br>');
 
     // Build absolute unsubscribe URL
+    // For non-system customers (no token), link to notification-settings page
     const unsubscribeUrl = data.unsubscribeToken
       ? `${siteUrl}/unsubscribe/${data.unsubscribeToken}`
-      : "#";
+      : `${siteUrl}/notification-settings`;
 
     return `
 <!DOCTYPE html>
