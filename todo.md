@@ -2468,3 +2468,10 @@
 - [x] Remove "All" tab from customer's My Bookings page
 - [x] Rename "Upcoming" tab to "New" on customer's My Bookings page
 - [x] Add "Quotes" tab to customer's My Bookings page showing their quote requests
+## Invoice Fixes
+- [x] Make Invoices a provider-only feature (remove from customer navigation/view)
+- [x] Show customer name instead of customer ID in invoice list
+## Remove Quotes from Navigation
+- [x] Remove Quotes tile from customer landing page
+- [x] Remove Quotes tile from provider landing page
+- [x] Remove Quotes icon from header navigation

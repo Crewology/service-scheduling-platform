@@ -493,7 +493,6 @@ const MOBILE_PROVIDER_TILES = [
   { label: "Analytics", icon: BarChart3, href: "/analytics", color: "bg-amber-100", iconColor: "text-amber-700" },
   { label: "Payouts", icon: CreditCard, href: "/provider/payouts", color: "bg-emerald-100", iconColor: "text-emerald-600" },
   { label: "Boost", icon: Rocket, href: "/provider/promotions", color: "bg-purple-100", iconColor: "text-purple-600" },
-  { label: "Quotes", icon: FileText, href: "/provider/quotes", color: "bg-indigo-100", iconColor: "text-indigo-600" },
   { label: "My Page", icon: UserCircle, href: "/provider/my-page", color: "bg-teal-100", iconColor: "text-teal-600" },
   { label: "Invoices", icon: FileText, href: "/provider/invoices", color: "bg-orange-100", iconColor: "text-orange-600" },
   { label: "Widgets", icon: Grid3X3, href: "/provider/widgets", color: "bg-rose-100", iconColor: "text-rose-600" },
@@ -512,7 +511,6 @@ const MOBILE_CUSTOMER_TILES = [
   { label: "My Bookings", icon: BookOpen, href: "/my-bookings", color: "bg-green-100", iconColor: "text-green-600" },
   { label: "Messages", icon: MessageSquare, href: "/messages", color: "bg-sky-100", iconColor: "text-sky-600" },
   { label: "Saved", icon: Heart, href: "/saved-providers", color: "bg-pink-100", iconColor: "text-pink-600" },
-  { label: "Quotes", icon: FileText, href: "/my-quotes", color: "bg-indigo-100", iconColor: "text-indigo-600" },
   { label: "Waitlist", icon: Clock, href: "/my-waitlist", color: "bg-amber-100", iconColor: "text-amber-700" },
   { label: "Referrals", icon: Gift, href: "/referral-program", color: "bg-emerald-100", iconColor: "text-emerald-600" },
   { label: "Alerts", icon: Bell, href: "/notifications", color: "bg-orange-100", iconColor: "text-orange-600" },
@@ -653,12 +651,6 @@ export function NavHeader() {
                   </Button>
                 </Link>
 
-                {/* My Quotes */}
-                <Link href="/my-quotes">
-                  <Button variant="ghost" size="icon" className="relative h-9 w-9" title="Quotes">
-                    <FileText className="h-4 w-4" />
-                  </Button>
-                </Link>
 
                 {/* Messages with unread badge */}
                 <Link href="/messages">

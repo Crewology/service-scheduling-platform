@@ -1,6 +1,6 @@
 import { eq, desc, and, sql, like } from "drizzle-orm";
 import { getDb } from "./connection";
-import { invoices, invoiceLineItems, type InsertInvoice, type InsertInvoiceLineItem } from "../../drizzle/schema";
+import { invoices, invoiceLineItems, users, type InsertInvoice, type InsertInvoiceLineItem } from "../../drizzle/schema";
 
 export async function getNextInvoiceNumber(providerId: number): Promise<string> {
   const db = await getDb();
@@ -69,11 +69,20 @@ export async function getInvoicesByProvider(providerId: number) {
   const db = await getDb();
   if (!db) return [];
 
-  return db
-    .select()
+  const results = await db
+    .select({
+      invoice: invoices,
+      userName: users.name,
+    })
     .from(invoices)
+    .leftJoin(users, eq(invoices.customerId, users.id))
     .where(eq(invoices.providerId, providerId))
     .orderBy(desc(invoices.createdAt));
+
+  return results.map(r => ({
+    ...r.invoice,
+    customerName: r.invoice.customerName || r.userName || (r.invoice.customerId ? `Customer #${r.invoice.customerId}` : "—"),
+  }));
 }
 
 export async function getInvoicesByCustomer(customerId: number) {
