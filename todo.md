@@ -2425,3 +2425,9 @@
 
 ## Provider/Customer Toggle Navigation on Subscription Pages
 - [x] When user switches the Provider/Customer toggle while on a subscription page, navigate to the corresponding subscription page (e.g., /provider/subscription ↔ /account/subscription, /provider/billing ↔ /account/billing)
+
+## Provider Plans Page Updates
+- [x] Change page title from "Provider Plans" to "My Provider Plan Subscription"
+- [x] Remove the "Customer Plans" button/link
+- [x] Remove the Frequently Asked Questions section
+- [x] Move the usage/services box to the right of the Current Plan box (side by side layout)

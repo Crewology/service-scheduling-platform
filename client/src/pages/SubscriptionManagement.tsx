@@ -227,7 +227,7 @@ export default function SubscriptionManagement() {
       <div className="min-h-screen bg-background">
         <NavHeader />
         <div className="container py-16 text-center">
-          <h1 className="text-2xl sm:text-3xl font-bold mb-4">Provider Plans</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-4">My Provider Plan Subscription</h1>
           <p className="text-muted-foreground mb-8">Sign in to manage your subscription</p>
         </div>
       </div>
@@ -245,24 +245,13 @@ export default function SubscriptionManagement() {
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back
           </Button>
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Briefcase className="h-5 w-5 text-purple-600" />
-                <h1 className="text-2xl sm:text-3xl font-bold">Provider Plans</h1>
-              </div>
-              <p className="text-muted-foreground text-lg">
-                Grow your business with more categories, services, and visibility. All plans include a low 1% transaction fee.
-              </p>
-            </div>
-            <Link href="/account/subscription">
-              <Button variant="outline" size="sm" className="gap-2 text-xs shrink-0">
-                <ShoppingBag className="h-3.5 w-3.5" />
-                Customer Plans
-                <ArrowRight className="h-3 w-3" />
-              </Button>
-            </Link>
+          <div className="flex items-center gap-2 mb-2">
+            <Briefcase className="h-5 w-5 text-purple-600" />
+            <h1 className="text-2xl sm:text-3xl font-bold">My Provider Plan Subscription</h1>
           </div>
+          <p className="text-muted-foreground text-lg">
+            Grow your business with more categories, services, and visibility. All plans include a low 1% transaction fee.
+          </p>
         </div>
 
         {/* Annual/Monthly Toggle */}
@@ -435,6 +424,34 @@ export default function SubscriptionManagement() {
           </div>
         )}
 
+        {/* Usage Stats - side by side with current plan */}
+        {currentSub?.usage && currentTier !== "free" && (
+          <div className="mb-8 p-4 rounded-lg border bg-card">
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-primary" />
+              Your Usage
+            </h3>
+            <div>
+              <p className="text-sm text-muted-foreground mb-1">Services</p>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                  <div 
+                    className={`h-full rounded-full transition-all ${
+                      currentSub.usage.servicesUsed >= currentSub.usage.servicesLimit
+                        ? "bg-red-500"
+                        : "bg-primary"
+                    }`}
+                    style={{ width: `${Math.min(100, (currentSub.usage.servicesUsed / currentSub.usage.servicesLimit) * 100)}%` }}
+                  />
+                </div>
+                <span className="text-sm font-medium">
+                  {currentSub.usage.servicesUsed}/{currentSub.usage.servicesLimit === 999 ? "∞" : currentSub.usage.servicesLimit}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Plans Grid */}
         <div className="grid md:grid-cols-3 gap-6 mb-12 pt-4">
           {PLANS.map((plan) => {
@@ -569,84 +586,7 @@ export default function SubscriptionManagement() {
           })}
         </div>
 
-        {/* Usage Stats */}
-        {currentSub?.usage && (
-          <div className="mb-12 p-6 rounded-lg border bg-card">
-            <h3 className="font-semibold mb-4 flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-primary" />
-              Your Usage
-            </h3>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Services</p>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
-                    <div 
-                      className={`h-full rounded-full transition-all ${
-                        currentSub.usage.servicesUsed >= currentSub.usage.servicesLimit
-                          ? "bg-red-500"
-                          : "bg-primary"
-                      }`}
-                      style={{ width: `${Math.min(100, (currentSub.usage.servicesUsed / currentSub.usage.servicesLimit) * 100)}%` }}
-                    />
-                  </div>
-                  <span className="text-sm font-medium">
-                    {currentSub.usage.servicesUsed}/{currentSub.usage.servicesLimit === 999 ? "∞" : currentSub.usage.servicesLimit}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
-        {/* FAQ Section */}
-        <div className="max-w-2xl mx-auto">
-          <h2 className="text-2xl font-bold text-center mb-8">Frequently Asked Questions</h2>
-          <div className="space-y-6">
-            <div>
-              <h3 className="font-semibold mb-2">What happens when I upgrade?</h3>
-              <p className="text-sm text-muted-foreground">
-                Your new plan takes effect immediately. You'll be charged the prorated amount for the remainder of your billing cycle. All new features are available right away.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2">Can I cancel anytime?</h3>
-              <p className="text-sm text-muted-foreground">
-                Yes, you can cancel your subscription at any time. Your plan will remain active until the end of your current billing period, then you'll be moved to the Starter tier.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2">How does annual billing work?</h3>
-              <p className="text-sm text-muted-foreground">
-                When you choose annual billing, you pay for 12 months upfront at a discount. Pro saves 16% ($10.08/mo billed annually at $120.96/year instead of $12/mo). Business saves 20% ($16.00/mo billed annually at $192.00/year instead of $20/mo).
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2">What happens when I downgrade?</h3>
-              <p className="text-sm text-muted-foreground">
-                When you downgrade, your current plan remains active until the end of your billing period. After that, you'll be moved to the lower tier. You won't be charged again for the higher plan.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2">What's the 1% transaction fee?</h3>
-              <p className="text-sm text-muted-foreground">
-                All plans include a 1% platform fee on each booking transaction. This covers payment processing infrastructure and platform maintenance. The fee is automatically deducted when your client pays.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2">Do I need a paid plan to accept payments?</h3>
-              <p className="text-sm text-muted-foreground">
-                No! All providers can accept payments through Stripe Connect on any plan, including Free. Paid plans unlock additional features like more service listings, photos, and priority placement.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2">Can I test with a demo payment?</h3>
-              <p className="text-sm text-muted-foreground">
-                Yes! Use the test card number 4242 4242 4242 4242 with any future expiry date and any CVC to simulate a payment.
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Pause Subscription Dialog */}
