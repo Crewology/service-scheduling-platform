@@ -2602,7 +2602,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
                   <Link href="/provider/subscription">
                     <Button variant="outline" size="sm">
                       <Crown className="h-4 w-4 mr-1" />
-                      Manage Plan
+                      Manage Subscription
                     </Button>
                   </Link>
                 </div>
