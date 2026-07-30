@@ -6,6 +6,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { PWAInstallBanner } from "./components/PWAInstallBanner";
 import { OfflineBanner } from "./components/OfflineBanner";
 import { RoleGuard } from "./components/RoleGuard";
+import { ProviderOnlyGuard } from "./components/ProviderOnlyGuard";
 import { Footer } from "./components/shared/Footer";
 import { HelpChatWidget } from "./components/HelpChatWidget";
 import { useLocation } from "wouter";
@@ -113,15 +114,15 @@ function Router() {
       <Route path="/category/:slug" component={CategoryDetail} />
       <Route path="/provider/dashboard" component={ProviderDashboard} />
       <Route path="/provider/bookings">{() => { window.location.replace("/my-bookings"); return null; }}</Route>
-      <Route path="/provider/services" component={ProviderServices} />
-      <Route path="/provider/analytics" component={ProviderAnalytics} />
-      <Route path="/provider/payouts" component={ProviderPayouts} />
-      <Route path="/provider/portfolio" component={ProviderPortfolio} />
-      <Route path="/provider/quotes" component={ProviderQuotes} />
-      <Route path="/provider/my-page" component={ProviderMyPage} />
-      <Route path="/provider/services/new" component={CreateService} />
-      <Route path="/provider/availability" component={ManageAvailability} />
-      <Route path="/provider/calendar" component={ProviderCalendar} />
+      <Route path="/provider/services">{() => <ProviderOnlyGuard featureName="Services"><ProviderServices /></ProviderOnlyGuard>}</Route>
+      <Route path="/provider/analytics">{() => <ProviderOnlyGuard featureName="Analytics"><ProviderAnalytics /></ProviderOnlyGuard>}</Route>
+      <Route path="/provider/payouts">{() => <ProviderOnlyGuard featureName="Payouts"><ProviderPayouts /></ProviderOnlyGuard>}</Route>
+      <Route path="/provider/portfolio">{() => <ProviderOnlyGuard featureName="Portfolio"><ProviderPortfolio /></ProviderOnlyGuard>}</Route>
+      <Route path="/provider/quotes">{() => <ProviderOnlyGuard featureName="Quotes"><ProviderQuotes /></ProviderOnlyGuard>}</Route>
+      <Route path="/provider/my-page">{() => <ProviderOnlyGuard featureName="My Page"><ProviderMyPage /></ProviderOnlyGuard>}</Route>
+      <Route path="/provider/services/new">{() => <ProviderOnlyGuard featureName="Create Service"><CreateService /></ProviderOnlyGuard>}</Route>
+      <Route path="/provider/availability">{() => <ProviderOnlyGuard featureName="Availability Management"><ManageAvailability /></ProviderOnlyGuard>}</Route>
+      <Route path="/provider/calendar">{() => <ProviderOnlyGuard featureName="Calendar"><ProviderCalendar /></ProviderOnlyGuard>}</Route>
       <Route path="/service/:id" component={ServiceDetail} />
       <Route path="/booking/:id" component={BookingConfirmation} />
       <Route path="/bulk-booking" component={BulkBooking} />
@@ -135,21 +136,21 @@ function Router() {
       <Route path="/admin/email-preview" component={EmailPreview} />
       <Route path="/booking/:id/review" component={SubmitReview} />
       <Route path="/my-reviews" component={CustomerReviews} />
-      <Route path="/provider/reviews" component={ProviderReviews} />
+      <Route path="/provider/reviews">{() => <ProviderOnlyGuard featureName="Reviews"><ProviderReviews /></ProviderOnlyGuard>}</Route>
       <Route path="/profile" component={UserProfile} />
       <Route path="/p/:slug" component={PublicProviderProfile} />
-      <Route path="/provider/subscription" component={SubscriptionManagement} />
-      <Route path="/provider/onboarding" component={ProviderOnboarding} />
+      <Route path="/provider/subscription">{() => <ProviderOnlyGuard featureName="Subscription Plans"><SubscriptionManagement /></ProviderOnlyGuard>}</Route>
+      <Route path="/provider/onboarding">{() => <ProviderOnlyGuard featureName="Provider Profile Setup"><ProviderOnboarding /></ProviderOnlyGuard>}</Route>
       <Route path="/notifications" component={Notifications} />
       <Route path="/notification-settings" component={NotificationSettings} />
       <Route path="/unsubscribe/:token" component={Unsubscribe} />
       <Route path="/embed/book/:serviceId" component={EmbedBooking} />
       <Route path="/embed/provider/:providerId" component={EmbedBooking} />
-      <Route path="/provider/widgets" component={WidgetGenerator} />
-      <Route path="/provider/promo-codes" component={PromoCodes} />
-      <Route path="/provider/promotions" component={Promotions} />
-      <Route path="/provider/invoices" component={Invoices} />
-      <Route path="/provider/billing" component={BillingHistory} />
+      <Route path="/provider/widgets">{() => <ProviderOnlyGuard featureName="Widgets"><WidgetGenerator /></ProviderOnlyGuard>}</Route>
+      <Route path="/provider/promo-codes">{() => <ProviderOnlyGuard featureName="Promo Codes"><PromoCodes /></ProviderOnlyGuard>}</Route>
+      <Route path="/provider/promotions">{() => <ProviderOnlyGuard featureName="Promotions"><Promotions /></ProviderOnlyGuard>}</Route>
+      <Route path="/provider/invoices">{() => <ProviderOnlyGuard featureName="Invoices"><Invoices /></ProviderOnlyGuard>}</Route>
+      <Route path="/provider/billing">{() => <ProviderOnlyGuard featureName="Billing History"><BillingHistory /></ProviderOnlyGuard>}</Route>
       <Route path="/receipts" component={Receipts} />
       <Route path="/booking/:id/detail" component={BookingDetail} />
       <Route path="/referrals" component={Referrals} />

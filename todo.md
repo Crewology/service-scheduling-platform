@@ -2475,3 +2475,15 @@
 - [x] Remove Quotes tile from customer landing page
 - [x] Remove Quotes tile from provider landing page
 - [x] Remove Quotes icon from header navigation
+## Provider-Only Page Audit
+- [x] Add provider-only guard to BillingHistory page
+- [x] Add provider-only guard to CreateService page
+- [x] Add provider-only guard to ManageAvailability page
+- [x] Add provider-only guard to PromoCodes page
+- [x] Add provider-only guard to Promotions page
+- [x] Add provider-only guard to ProviderCalendar page
+- [x] Add provider-only guard to ProviderMyPage page
+- [x] Add provider-only guard to ProviderOnboarding page
+- [x] Add provider-only guard to ProviderReviews page
+- [x] Add provider-only guard to SubscriptionManagement page
+- [x] Add provider-only guard to WidgetGenerator page
