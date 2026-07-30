@@ -1,5 +1,18 @@
 import { useViewMode } from "@/contexts/ViewModeContext";
 import { Briefcase, ShoppingBag } from "lucide-react";
+import { useLocation } from "wouter";
+
+/**
+ * Route pairs that should navigate when the view mode is toggled.
+ * When on one of these routes and the user switches view mode,
+ * they'll be navigated to the corresponding route.
+ */
+const ROUTE_PAIRS: Record<string, string> = {
+  "/provider/subscription": "/account/subscription",
+  "/account/subscription": "/provider/subscription",
+  "/provider/billing": "/account/billing",
+  "/account/billing": "/provider/billing",
+};
 
 /**
  * A pill-style toggle that lets providers switch between
@@ -8,13 +21,24 @@ import { Briefcase, ShoppingBag } from "lucide-react";
  */
 export function ViewModeSwitcher() {
   const { viewMode, setViewMode, canSwitch } = useViewMode();
+  const [location, navigate] = useLocation();
 
   if (!canSwitch) return null;
+
+  const handleSwitch = (mode: "provider" | "customer") => {
+    if (mode === viewMode) return;
+    setViewMode(mode);
+    // If on a paired route, navigate to the counterpart
+    const targetRoute = ROUTE_PAIRS[location];
+    if (targetRoute) {
+      navigate(targetRoute);
+    }
+  };
 
   return (
     <div className="flex items-center bg-gray-100 rounded-full p-0.5 gap-0.5">
       <button
-        onClick={() => setViewMode("provider")}
+        onClick={() => handleSwitch("provider")}
         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
           viewMode === "provider"
             ? "bg-white text-gray-900 shadow-sm"
@@ -26,7 +50,7 @@ export function ViewModeSwitcher() {
         <span className="hidden sm:inline">Provider</span>
       </button>
       <button
-        onClick={() => setViewMode("customer")}
+        onClick={() => handleSwitch("customer")}
         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
           viewMode === "customer"
             ? "bg-white text-gray-900 shadow-sm"
@@ -46,16 +70,25 @@ export function ViewModeSwitcher() {
  */
 export function ViewModeSwitcherMobile({ onSwitch }: { onSwitch?: () => void }) {
   const { viewMode, setViewMode, canSwitch } = useViewMode();
+  const [location, navigate] = useLocation();
 
   if (!canSwitch) return null;
+
+  const handleSwitch = (mode: "provider" | "customer") => {
+    if (mode === viewMode) return;
+    setViewMode(mode);
+    // If on a paired route, navigate to the counterpart
+    const targetRoute = ROUTE_PAIRS[location];
+    if (targetRoute) {
+      navigate(targetRoute);
+    }
+    onSwitch?.();
+  };
 
   return (
     <div className="flex items-center bg-gray-100 rounded-lg p-1 gap-1">
       <button
-        onClick={() => {
-          setViewMode("provider");
-          onSwitch?.();
-        }}
+        onClick={() => handleSwitch("provider")}
         className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
           viewMode === "provider"
             ? "bg-white text-gray-900 shadow-sm"
@@ -66,10 +99,7 @@ export function ViewModeSwitcherMobile({ onSwitch }: { onSwitch?: () => void }) 
         Provider
       </button>
       <button
-        onClick={() => {
-          setViewMode("customer");
-          onSwitch?.();
-        }}
+        onClick={() => handleSwitch("customer")}
         className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
           viewMode === "customer"
             ? "bg-white text-gray-900 shadow-sm"

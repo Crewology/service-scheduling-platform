@@ -2410,8 +2410,8 @@
 - [x] Include: date, description, amount, status, downloadable invoice PDF links
 
 ## Customer Subscription UX Improvements
-- [ ] Make NavHeader "My Subscription" link toggle-aware (provider view -> /provider/subscription, customer view -> /account/subscription)
-- [ ] Make NavHeader "Billing History" link toggle-aware (provider view -> /provider/billing, customer view -> /account/billing)
+- [x] Make NavHeader "My Subscription" link toggle-aware (provider view -> /provider/subscription, customer view -> /account/subscription)
+- [x] Make NavHeader "Billing History" link toggle-aware (provider view -> /provider/billing, customer view -> /account/billing)
 - [x] Add customer billing history endpoint (fetch invoices from Stripe for customer subscription)
 - [x] Create customer billing history page at /account/billing
 - [x] Add customer trial expiration gate (blocks features until payment or downgrade, like provider gate)
@@ -2422,3 +2422,6 @@
 - [x] Change customer "Plans" tile in CUSTOMER_TILES (LoggedInHome.tsx) from /pricing to /account/subscription
 - [x] Add context indicator on AccountSubscription page showing "Customer Plan" with link to switch to provider subscription
 - [x] Add context indicator on SubscriptionManagement page showing "Provider Plan" with link to switch to customer subscription
+
+## Provider/Customer Toggle Navigation on Subscription Pages
+- [x] When user switches the Provider/Customer toggle while on a subscription page, navigate to the corresponding subscription page (e.g., /provider/subscription ↔ /account/subscription, /provider/billing ↔ /account/billing)
