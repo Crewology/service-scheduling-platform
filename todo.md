@@ -2457,3 +2457,10 @@
 - [x] Remove "All" tab from Provider "Bookings I Received" page
 - [x] Change "Upcoming" tab to "New" on Provider "Bookings I Received" page
 - [x] Fix Quotes tab [object Object] error on Provider "Bookings I Received" page
+## Invoice Creation & Delivery Improvements
+- [x] Add customerName column to invoices schema (for non-system customers)
+- [x] Update invoice create mutation to accept optional customerName + make customerId optional (0 for non-system)
+- [x] Redesign CreateInvoiceForm: allow provider to type customer name/email directly (for new customers not in system), or select from existing customers
+- [x] Update invoice list to show customer name instead of "Customer #ID"
+- [x] Update send mutation to work with non-system customers (send email using stored customerName/customerEmail)
+- [x] Ensure PDF download works for all invoices (generate PDF button always visible)

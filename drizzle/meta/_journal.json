@@ -386,6 +386,13 @@
       "when": 1784864933292,
       "tag": "0054_fair_thena",
       "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "5",
+      "when": 1785445200454,
+      "tag": "0055_wise_talos",
+      "breakpoints": true
     }
   ]
 }

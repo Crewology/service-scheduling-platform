@@ -15,7 +15,8 @@ export const invoiceRouter = router({
   // Provider: create a new invoice
   create: protectedProcedure
     .input(z.object({
-      customerId: z.number(),
+      customerId: z.number().optional(), // 0 or omitted for non-system customers
+      customerName: z.string().optional(), // For non-system customers
       lineItems: z.array(z.object({
         description: z.string().min(1),
         quantity: z.number().min(0.01),
@@ -30,6 +31,11 @@ export const invoiceRouter = router({
     .mutation(async ({ ctx, input }) => {
       const provider = await getProviderByUserId(ctx.user.id);
       if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Provider profile required" });
+
+      // Must have either a system customer or a customer name
+      if (!input.customerId && !input.customerName) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Please provide a customer name or select an existing customer" });
+      }
 
       const invoiceNumber = await invoiceDb.getNextInvoiceNumber(provider.id);
 
@@ -51,7 +57,7 @@ export const invoiceRouter = router({
           invoiceNumber,
           type: "invoice",
           providerId: provider.id,
-          customerId: input.customerId,
+          customerId: input.customerId || 0,
           status: "draft",
           subtotal,
           taxRate: String(input.taxRate),
@@ -60,6 +66,7 @@ export const invoiceRouter = router({
           dueDate: input.dueDate ? new Date(input.dueDate) : null,
           notes: input.notes || null,
           customerEmail: input.customerEmail || null,
+          customerName: input.customerName || null,
           issueDate: new Date(),
           bookingId: null,
           promotionId: null,
@@ -126,9 +133,11 @@ export const invoiceRouter = router({
       if (invoice.status !== "draft") throw new TRPCError({ code: "BAD_REQUEST", message: "Can only send draft invoices" });
 
       // Get customer and provider user info for PDF
-      const customer = await getUserById(invoice.customerId);
+      const customer = invoice.customerId ? await getUserById(invoice.customerId) : null;
       const providerUser = await getUserById(provider.userId);
-      const customerName = customer ? `${customer.firstName || ""} ${customer.lastName || ""}`.trim() || customer.name || "Customer" : "Customer";
+      // Use stored customerName first (for non-system customers), then fall back to system user
+      const customerName = (invoice as any).customerName || 
+        (customer ? `${customer.firstName || ""} ${customer.lastName || ""}`.trim() || customer.name || "Customer" : "Customer");
       const customerEmail = invoice.customerEmail || customer?.email || undefined;
       const providerAddress = [provider.addressLine1, provider.city, provider.state, provider.postalCode].filter(Boolean).join(", ") || undefined;
 
@@ -147,13 +156,13 @@ export const invoiceRouter = router({
       await invoiceDb.updateInvoiceStatus(input.invoiceId, "sent", { pdfUrl });
       await invoiceDb.updateInvoicePdfUrl(input.invoiceId, pdfUrl);
 
-      // Send email notification to customer
-      if (customerEmail && customer) {
+      // Send email notification to customer (works for both system and non-system customers)
+      if (customerEmail) {
         await sendNotification({
           type: "invoice_sent",
           channel: "email",
           recipient: {
-            userId: customer.id,
+            userId: customer?.id || 0,
             email: customerEmail,
             name: customerName,
           },
@@ -181,9 +190,10 @@ export const invoiceRouter = router({
       if (!invoice) throw new TRPCError({ code: "NOT_FOUND" });
       if (invoice.providerId !== provider.id) throw new TRPCError({ code: "FORBIDDEN" });
 
-      const customer = await getUserById(invoice.customerId);
+      const customer = invoice.customerId ? await getUserById(invoice.customerId) : null;
       const providerUser = await getUserById(provider.userId);
-      const customerName = customer ? `${customer.firstName || ""} ${customer.lastName || ""}`.trim() || customer.name || "Customer" : "Customer";
+      const customerName = (invoice as any).customerName || 
+        (customer ? `${customer.firstName || ""} ${customer.lastName || ""}`.trim() || customer.name || "Customer" : "Customer");
       const providerAddress = [provider.addressLine1, provider.city, provider.state, provider.postalCode].filter(Boolean).join(", ") || undefined;
 
       const pdfUrl = await generateInvoicePdf({

@@ -1089,7 +1089,7 @@ export const invoices = mysqlTable("invoices", {
   invoiceNumber: varchar("invoiceNumber", { length: 30 }).notNull().unique(),
   type: mysqlEnum("invoiceType", ["invoice", "receipt", "credit_note"]).notNull(),
   providerId: int("providerId").notNull(),
-  customerId: int("customerId").notNull(),
+  customerId: int("customerId").notNull().default(0),
   // For receipts linked to bookings/promotions
   bookingId: int("bookingId"),
   promotionId: int("promotionId"),
@@ -1113,6 +1113,7 @@ export const invoices = mysqlTable("invoices", {
   // Notes
   notes: text("notes"),
   customerEmail: varchar("customerEmail", { length: 320 }),
+  customerName: varchar("customerName", { length: 255 }),
   // For credit notes, reference the original invoice
   originalInvoiceId: int("originalInvoiceId"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

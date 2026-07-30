@@ -245,20 +245,29 @@ export default function Invoices() {
                         )}
                       </div>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span>Customer #{inv.customerId}</span>
+                        <span>{(inv as any).customerName || (inv.customerId ? `Customer #${inv.customerId}` : "—")}</span>
                         <span>{formatDate(inv.createdAt)}</span>
                         {inv.dueDate && <span>Due: {formatDate(inv.dueDate)}</span>}
                       </div>
                     </div>
                     <div className="text-right">
                       <div className="text-lg font-semibold">{formatCents(inv.total)}</div>
-                      <div className="flex gap-1 mt-1">
+                      <div className="flex flex-wrap gap-1 mt-1">
                         {inv.status === "draft" && (
                           <>
                             <Button
                               size="sm"
                               variant="default"
-                              onClick={() => sendMutation.mutate({ invoiceId: inv.id })}
+                              onClick={() => {
+                                if (!inv.customerEmail && !(inv as any).customerName) {
+                                  toast.error("No customer email set — add an email to send");
+                                  return;
+                                }
+                                if (!inv.customerEmail) {
+                                  toast.error("No customer email — invoice will be generated but not emailed");
+                                }
+                                sendMutation.mutate({ invoiceId: inv.id });
+                              }}
                               disabled={sendMutation.isPending}
                             >
                               <Send className="h-3 w-3 mr-1" />
@@ -286,19 +295,22 @@ export default function Invoices() {
                         {inv.pdfUrl ? (
                           <Button
                             size="sm"
-                            variant="ghost"
+                            variant="outline"
                             onClick={() => window.open(inv.pdfUrl!, "_blank")}
                           >
-                            <Download className="h-3 w-3" />
+                            <Download className="h-3 w-3 mr-1" />
+                            Download
                           </Button>
                         ) : (
                           <Button
                             size="sm"
-                            variant="ghost"
+                            variant="outline"
                             onClick={() => generatePdfMutation.mutate({ invoiceId: inv.id })}
                             disabled={generatePdfMutation.isPending}
+                            title="Generate PDF"
                           >
-                            <FileText className="h-3 w-3" />
+                            <Download className="h-3 w-3 mr-1" />
+                            {generatePdfMutation.isPending ? "..." : "PDF"}
                           </Button>
                         )}
                       </div>
@@ -322,8 +334,9 @@ function CreateInvoiceForm({
   customers: { id: number; name: string; email: string }[];
   onSuccess: () => void;
 }) {
-
+  const [customerMode, setCustomerMode] = useState<"existing" | "new">(customers.length > 0 ? "existing" : "new");
   const [customerId, setCustomerId] = useState<string>("");
+  const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [taxRate, setTaxRate] = useState("0");
   const [dueDate, setDueDate] = useState("");
@@ -366,8 +379,13 @@ function CreateInvoiceForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerId) {
+
+    if (customerMode === "existing" && !customerId) {
       toast.error("Select a customer");
+      return;
+    }
+    if (customerMode === "new" && !customerName.trim()) {
+      toast.error("Enter a customer name");
       return;
     }
 
@@ -385,7 +403,8 @@ function CreateInvoiceForm({
     }
 
     createMutation.mutate({
-      customerId: parseInt(customerId),
+      customerId: customerMode === "existing" ? parseInt(customerId) : undefined,
+      customerName: customerMode === "new" ? customerName.trim() : undefined,
       lineItems: items,
       taxRate: parseFloat(taxRate) || 0,
       dueDate: dueDate || undefined,
@@ -396,14 +415,36 @@ function CreateInvoiceForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Customer selection */}
+      {/* Customer selection mode */}
       <div>
-        <Label>Customer</Label>
-        {customers.length > 0 ? (
+        <Label className="mb-2 block">Customer</Label>
+        <div className="flex gap-2 mb-3">
+          {customers.length > 0 && (
+            <Button
+              type="button"
+              variant={customerMode === "existing" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setCustomerMode("existing")}
+            >
+              Existing Customer
+            </Button>
+          )}
+          <Button
+            type="button"
+            variant={customerMode === "new" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setCustomerMode("new")}
+          >
+            New Customer
+          </Button>
+        </div>
+
+        {customerMode === "existing" && customers.length > 0 ? (
           <Select value={customerId} onValueChange={(val) => {
             setCustomerId(val);
             const c = customers.find((c) => String(c.id) === val);
             if (c?.email) setCustomerEmail(c.email);
+            if (c?.name) setCustomerName(c.name);
           }}>
             <SelectTrigger>
               <SelectValue placeholder="Select a customer" />
@@ -411,29 +452,36 @@ function CreateInvoiceForm({
             <SelectContent>
               {customers.map((c) => (
                 <SelectItem key={c.id} value={String(c.id)}>
-                  {c.name}
+                  {c.name} {c.email ? `(${c.email})` : ""}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         ) : (
-          <Input
-            type="number"
-            placeholder="Customer ID"
-            value={customerId}
-            onChange={(e) => setCustomerId(e.target.value)}
-          />
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs text-muted-foreground">Customer Name</Label>
+              <Input
+                placeholder="Enter customer name"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+              />
+            </div>
+          </div>
         )}
       </div>
 
       <div>
-        <Label>Customer Email (for invoice delivery)</Label>
+        <Label>Customer Email (for sending invoice)</Label>
         <Input
           type="email"
           placeholder="customer@email.com"
           value={customerEmail}
           onChange={(e) => setCustomerEmail(e.target.value)}
         />
+        <p className="text-xs text-muted-foreground mt-1">
+          Required to send the invoice via email
+        </p>
       </div>
 
       {/* Line items */}
