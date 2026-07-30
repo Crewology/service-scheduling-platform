@@ -177,9 +177,9 @@ export default function BillingHistory() {
                     </p>
                   </div>
                 </div>
-                <Link href="/provider/dashboard?tab=subscription">
+                <Link href="/provider/subscription">
                   <Button variant="outline" size="sm">
-                    Manage Plan
+                    Manage Subscription
                   </Button>
                 </Link>
               </div>

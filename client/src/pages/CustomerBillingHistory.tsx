@@ -178,7 +178,7 @@ export default function CustomerBillingHistory() {
                 </div>
                 <Link href="/customer/subscription">
                   <Button variant="outline" size="sm">
-                    Manage Plan
+                    Manage Subscription
                   </Button>
                 </Link>
               </div>
