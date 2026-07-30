@@ -473,7 +473,7 @@ export default function SubscriptionManagement() {
                   plan.highlight 
                     ? "border-primary shadow-lg shadow-primary/10 scale-[1.02]" 
                     : ""
-                } ${isCurrent ? "ring-2 ring-primary" : ""}`}
+                } ${isCurrent && billingInterval === (currentSub?.currentInterval || "month") ? "ring-2 ring-primary" : ""}`}
               >
                 {/* Plan tags: Most Popular for Pro, Recommended for Business */}
                 {plan.tier === "basic" && (
@@ -486,8 +486,8 @@ export default function SubscriptionManagement() {
                     <Badge className="bg-amber-700 text-white border-0 px-3 shadow-sm">Recommended</Badge>
                   </div>
                 )}
-                {/* Current Plan tag - only show when user is signed in */}
-                {isCurrent && isAuthenticated && currentTier !== "free" && (
+                {/* Current Plan tag - only show when user is signed in AND billing interval matches */}
+                {isCurrent && isAuthenticated && currentTier !== "free" && billingInterval === (currentSub?.currentInterval || "month") && (
                   <div className={`absolute ${plan.tier === "basic" || plan.tier === "premium" ? "top-3" : "-top-3"} left-1/2 -translate-x-1/2 z-10`}>
                     <Badge className="bg-green-600 text-white border-0 shadow-sm whitespace-nowrap">Current Plan</Badge>
                   </div>

@@ -2440,3 +2440,7 @@
 - [x] Rewrite AccountSubscription page to match Provider subscription layout (title, current plan box + usage side by side, billing interval toggle, plan cards with interval switching)
 - [x] Change URL from /account/subscription to /customer/subscription
 - [x] Update all references to /account/subscription across the codebase (NavHeader, LoggedInHome, ViewModeSwitcher, etc.)
+
+## Current Plan Pill Visibility Fix
+- [x] On Provider subscription page (SubscriptionManagement.tsx): only show "Current Plan" pill when billing interval toggle matches user's actual current interval
+- [x] On Customer subscription page (AccountSubscription.tsx): only show "Current Plan" pill when billing interval toggle matches user's actual current interval
