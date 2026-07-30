@@ -423,6 +423,14 @@ function UserMenuDropdown({ user }: { user: any }) {
             My Subscription
           </Link>
           <Link
+            href="/provider/billing"
+            className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors"
+            onClick={() => setOpen(false)}
+          >
+            <FileText className="h-4 w-4 text-muted-foreground" />
+            Billing History
+          </Link>
+          <Link
             href="/notification-settings"
             className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors"
             onClick={() => setOpen(false)}
