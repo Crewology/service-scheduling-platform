@@ -717,7 +717,37 @@ export const customerSubscriptionRouter = router({
         params.starting_after = input.startingAfter;
       }
 
-      const invoices = await stripe.invoices.list(params);
+      let invoices;
+      try {
+        invoices = await stripe.invoices.list(params);
+      } catch (err: any) {
+        // Handle invalid/deleted Stripe customer gracefully
+        if (err?.code === "resource_missing" || err?.message?.includes("No such customer")) {
+          // Return just the local events (trial, plan changes) without Stripe data
+          if (sub.status === "trialing" || (sub.trialEndsAt && new Date(sub.trialEndsAt) > new Date(sub.createdAt))) {
+            events.push({
+              id: `trial_${sub.userId}`,
+              type: "trial",
+              date: new Date(sub.createdAt).toISOString(),
+              description: `Started 14-day ${sub.tier === "business" ? "Manager" : "Coordinator"} trial (no charge)`,
+              amount: null,
+              status: sub.status === "trialing" ? "active" : "ended",
+              invoicePdfUrl: null,
+            });
+          }
+          events.push({
+            id: `plan_${sub.userId}`,
+            type: "subscription_change",
+            date: new Date(sub.createdAt).toISOString(),
+            description: `Selected ${sub.tier === "business" ? "Manager" : sub.tier === "pro" ? "Coordinator" : "Individual"} plan`,
+            amount: null,
+            status: sub.status,
+            invoicePdfUrl: null,
+          });
+          return { items: events, hasMore: false };
+        }
+        throw err;
+      }
 
       const items = invoices.data.map((inv) => {
         let description = "";

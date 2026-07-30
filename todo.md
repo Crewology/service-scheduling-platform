@@ -2450,3 +2450,6 @@
 - [x] Change paid plan buttons to "Start Free Trial" for users who haven't used their trial (both pages)
 - [x] Wire "Start Free Trial" button to backend trial process (auto-trigger 14-day trial)
 - [x] Ensure trial can only be used once per account lifetime (backend enforcement)
+
+## Fix: Customer Billing History Error for Free Plan Users
+- [x] Handle "No such customer" Stripe error gracefully in billingHistory endpoint (return empty array instead of throwing)
