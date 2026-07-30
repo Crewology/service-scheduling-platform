@@ -67,26 +67,11 @@ export default function Invoices() {
   const [showCreate, setShowCreate] = useState(false);
   const [filter, setFilter] = useState<string>("all");
 
-  // Invoices is provider-only — redirect customers
-  if (!isProviderView) {
-    return (
-      <div className="min-h-screen bg-background">
-        <NavHeader />
-        <div className="container max-w-5xl py-12 text-center">
-          <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h2 className="text-2xl font-bold mb-2">Provider Feature</h2>
-          <p className="text-muted-foreground mb-6">Invoices are only available in Provider view. Switch to Provider mode to create and manage invoices.</p>
-          <Button onClick={() => setLocation("/")}>Go Home</Button>
-        </div>
-      </div>
-    );
-  }
-
-  const { data: invoices, refetch } = trpc.invoice.getMyInvoices.useQuery();
-  const { data: provider } = trpc.provider.getMyProfile.useQuery();
+  const { data: invoices, refetch } = trpc.invoice.getMyInvoices.useQuery(undefined, { enabled: isProviderView });
+  const { data: provider } = trpc.provider.getMyProfile.useQuery(undefined, { enabled: isProviderView });
   const { data: bookings } = trpc.booking.providerBookings.useQuery(
     { status: "completed" },
-    { enabled: !!provider }
+    { enabled: isProviderView && !!provider }
   );
 
   const sendMutation = trpc.invoice.send.useMutation({
@@ -149,6 +134,21 @@ export default function Invoices() {
       overdue: invoices.filter((i) => i.status === "overdue").length,
     };
   }, [invoices]);
+
+  // Invoices is provider-only — redirect customers
+  if (!isProviderView) {
+    return (
+      <div className="min-h-screen bg-background">
+        <NavHeader />
+        <div className="container max-w-5xl py-12 text-center">
+          <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <h2 className="text-2xl font-bold mb-2">Provider Feature</h2>
+          <p className="text-muted-foreground mb-6">Invoices are only available in Provider view. Switch to Provider mode to create and manage invoices.</p>
+          <Button onClick={() => setLocation("/")}>Go Home</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
