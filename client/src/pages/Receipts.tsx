@@ -5,6 +5,7 @@ import { NavHeader } from "@/components/shared/NavHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   FileText,
   Download,
@@ -14,6 +15,8 @@ import {
   ArrowLeft,
   Receipt,
   Eye,
+  Search,
+  X,
 } from "lucide-react";
 import { Link, useSearch } from "wouter";
 import { toast } from "sonner";
@@ -43,6 +46,7 @@ const statusConfig: Record<string, { label: string; color: string; icon: any }> 
 export default function Receipts() {
   const { user } = useAuth();
   const [filter, setFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const searchParams = useSearch();
   const paidId = new URLSearchParams(searchParams).get("paid");
 
@@ -59,10 +63,22 @@ export default function Receipts() {
 
   const filteredReceipts = useMemo(() => {
     if (!receipts) return [];
-    if (filter === "all") return receipts;
-    if (filter === "unpaid") return receipts.filter((r) => ["sent", "viewed", "overdue"].includes(r.status));
-    return receipts.filter((r) => r.status === filter);
-  }, [receipts, filter]);
+    let results = receipts;
+    // Apply status filter
+    if (filter === "unpaid") results = results.filter((r) => ["sent", "viewed", "overdue"].includes(r.status));
+    else if (filter !== "all") results = results.filter((r) => r.status === filter);
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      results = results.filter((r) =>
+        (r.invoiceNumber || "").toLowerCase().includes(q) ||
+        (r.customerName || "").toLowerCase().includes(q) ||
+        (r.customerEmail || "").toLowerCase().includes(q) ||
+        (r.notes || "").toLowerCase().includes(q)
+      );
+    }
+    return results;
+  }, [receipts, filter, searchQuery]);
 
   const stats = useMemo(() => {
     if (!receipts) return { total: 0, paid: 0, unpaid: 0 };
@@ -120,6 +136,25 @@ export default function Receipts() {
             <div className="text-xs text-muted-foreground">Unpaid</div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Search */}
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Search by invoice #, name, email, or description..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9 pr-9"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       {/* Filter */}

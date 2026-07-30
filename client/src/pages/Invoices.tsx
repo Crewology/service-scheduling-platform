@@ -63,6 +63,7 @@ export default function Invoices() {
   const { user } = useAuth();
   const [showCreate, setShowCreate] = useState(false);
   const [filter, setFilter] = useState<string>("all");
+  const [previewInvoice, setPreviewInvoice] = useState<any>(null);
 
   const { data: invoices, refetch } = trpc.invoice.getMyInvoices.useQuery();
   const { data: provider } = trpc.provider.getMyProfile.useQuery();
@@ -114,8 +115,8 @@ export default function Invoices() {
       if (!seen.has(b.customerId)) {
         seen.set(b.customerId, {
           id: b.customerId,
-          name: b.customerName || `Customer #${b.customerId}`,
-          email: b.customerEmail || "",
+          name: (b as any).customerName || `Customer #${b.customerId}`,
+          email: (b as any).customerEmail || "",
         });
       }
     }
@@ -259,6 +260,14 @@ export default function Invoices() {
                           <>
                             <Button
                               size="sm"
+                              variant="outline"
+                              onClick={() => setPreviewInvoice(inv)}
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              Preview
+                            </Button>
+                            <Button
+                              size="sm"
                               variant="default"
                               onClick={() => {
                                 if (!inv.customerEmail && !(inv as any).customerName) {
@@ -324,10 +333,160 @@ export default function Invoices() {
           })}
         </div>
             )}
+      {/* Invoice Preview Modal */}
+      <Dialog open={!!previewInvoice} onOpenChange={(open) => !open && setPreviewInvoice(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Invoice Preview</DialogTitle>
+          </DialogHeader>
+          {previewInvoice && (
+            <InvoicePreview
+              invoice={previewInvoice}
+              providerName={provider?.businessName || user?.name || "Provider"}
+              onSend={() => {
+                if (!previewInvoice.customerEmail && !(previewInvoice as any).customerName) {
+                  toast.error("No customer email set — add an email to send");
+                  return;
+                }
+                sendMutation.mutate({ invoiceId: previewInvoice.id });
+                setPreviewInvoice(null);
+              }}
+              onClose={() => setPreviewInvoice(null)}
+              isSending={sendMutation.isPending}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
       </div>
     </div>
   );
 }
+
+// Invoice Preview Component
+function InvoicePreview({
+  invoice,
+  providerName,
+  onSend,
+  onClose,
+  isSending,
+}: {
+  invoice: any;
+  providerName: string;
+  onSend: () => void;
+  onClose: () => void;
+  isSending: boolean;
+}) {
+  const lineItems = invoice.lineItems ? (typeof invoice.lineItems === "string" ? JSON.parse(invoice.lineItems) : invoice.lineItems) : [];
+  const subtotal = lineItems.reduce((sum: number, item: any) => sum + (item.quantity || 1) * (item.unitPrice || 0), 0);
+  const taxAmount = Math.round(subtotal * (invoice.taxRate || 0) / 100);
+  const total = invoice.total || subtotal + taxAmount;
+
+  return (
+    <div className="space-y-6">
+      {/* Invoice header */}
+      <div className="border rounded-lg p-6 bg-white">
+        <div className="flex justify-between items-start mb-8">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">INVOICE</h2>
+            <p className="text-sm text-muted-foreground font-mono mt-1">{invoice.invoiceNumber}</p>
+          </div>
+          <div className="text-right">
+            <p className="font-semibold text-lg">{providerName}</p>
+            <p className="text-sm text-muted-foreground">Service Provider</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-6 mb-8">
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Bill To</p>
+            <p className="font-medium">{(invoice as any).customerName || "Customer"}</p>
+            {invoice.customerEmail && (
+              <p className="text-sm text-muted-foreground">{invoice.customerEmail}</p>
+            )}
+          </div>
+          <div className="text-right">
+            <div className="space-y-1">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Date</p>
+                <p className="text-sm">{new Date(invoice.createdAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
+              </div>
+              {invoice.dueDate && (
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Due Date</p>
+                  <p className="text-sm">{new Date(invoice.dueDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Line items table */}
+        <div className="border rounded-md overflow-hidden mb-6">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="text-left px-4 py-2 font-medium">Description</th>
+                <th className="text-center px-4 py-2 font-medium">Qty</th>
+                <th className="text-right px-4 py-2 font-medium">Unit Price</th>
+                <th className="text-right px-4 py-2 font-medium">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {lineItems.map((item: any, i: number) => (
+                <tr key={i} className="border-t">
+                  <td className="px-4 py-2">{item.description}</td>
+                  <td className="px-4 py-2 text-center">{item.quantity || 1}</td>
+                  <td className="px-4 py-2 text-right">${((item.unitPrice || 0) / 100).toFixed(2)}</td>
+                  <td className="px-4 py-2 text-right">${(((item.quantity || 1) * (item.unitPrice || 0)) / 100).toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Totals */}
+        <div className="flex justify-end">
+          <div className="w-64 space-y-1 text-sm">
+            <div className="flex justify-between">
+              <span>Subtotal</span>
+              <span>${(subtotal / 100).toFixed(2)}</span>
+            </div>
+            {invoice.taxRate > 0 && (
+              <div className="flex justify-between text-muted-foreground">
+                <span>Tax ({invoice.taxRate}%)</span>
+                <span>${(taxAmount / 100).toFixed(2)}</span>
+              </div>
+            )}
+            <div className="flex justify-between font-bold text-base border-t pt-2">
+              <span>Total</span>
+              <span>${(total / 100).toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Notes */}
+        {invoice.notes && (
+          <div className="mt-6 pt-4 border-t">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Notes</p>
+            <p className="text-sm text-muted-foreground">{invoice.notes}</p>
+          </div>
+        )}
+      </div>
+
+      {/* Actions */}
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" onClick={onClose}>Close</Button>
+        {invoice.status === "draft" && (
+          <Button onClick={onSend} disabled={isSending}>
+            <Send className="h-4 w-4 mr-2" />
+            {isSending ? "Sending..." : "Send Invoice"}
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // Create Invoice Form Component
 function CreateInvoiceForm({
   customers,

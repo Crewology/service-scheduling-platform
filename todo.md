@@ -2493,3 +2493,6 @@
 - [x] Show received invoices on customer Receipts & Invoices page
 - [x] Show paid invoice status on customer Receipts page
 - [x] Fix naming consistency: tile says "Receipts" but page says "Receipts & Invoices"
+## Receipts & Invoices Enhancements
+- [x] Add search bar on Receipts & Invoices page to filter by customer name or email
+- [x] Add invoice preview modal for providers to review final layout before sending
