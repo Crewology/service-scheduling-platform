@@ -148,7 +148,7 @@ export default function BillingHistory() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">Billing History</h1>
+            <h1 className="text-2xl font-bold">Provider Billing History</h1>
             <p className="text-sm text-muted-foreground">
               View your subscription charges, plan changes, and payment history
             </p>
@@ -300,7 +300,7 @@ export default function BillingHistory() {
         <div className="mt-4 text-center">
           <p className="text-xs text-muted-foreground">
             Need to update your payment method or download older invoices?{" "}
-            <Link href="/provider/dashboard?tab=subscription" className="text-primary hover:underline">
+            <Link href="/provider/subscription" className="text-primary hover:underline">
               Manage Subscription
             </Link>
           </p>

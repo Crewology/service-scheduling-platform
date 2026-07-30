@@ -147,7 +147,7 @@ export default function CustomerBillingHistory() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">Billing History</h1>
+            <h1 className="text-2xl font-bold">Customer Billing History</h1>
             <p className="text-sm text-muted-foreground">
               View your subscription charges, plan changes, and payment history
             </p>
