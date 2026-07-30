@@ -518,7 +518,7 @@ const MOBILE_CUSTOMER_TILES = [
   { label: "Alerts", icon: Bell, href: "/notifications", color: "bg-orange-100", iconColor: "text-orange-600" },
   { label: "Reviews", icon: Star, href: "/my-reviews", color: "bg-teal-100", iconColor: "text-teal-600" },
   { label: "Receipts", icon: CreditCard, href: "/receipts", color: "bg-orange-100", iconColor: "text-orange-600" },
-  { label: "Plans", icon: ShieldCheck, href: "/pricing", color: "bg-rose-100", iconColor: "text-rose-600" },
+  { label: "Plans", icon: ShieldCheck, href: "/account/subscription", color: "bg-rose-100", iconColor: "text-rose-600" },
   { label: "Help", icon: HelpCircle, href: "/help", color: "bg-cyan-100", iconColor: "text-cyan-600" },
   { label: "Account", icon: Settings, href: "/profile", color: "bg-slate-100", iconColor: "text-slate-600" },
 ];

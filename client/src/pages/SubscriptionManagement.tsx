@@ -21,6 +21,9 @@ import {
   AlertTriangle,
   Pause,
   Play,
+  Briefcase,
+  ShoppingBag,
+  ArrowRight,
 } from "lucide-react";
 import { Link } from "wouter";
 import { NavHeader } from "@/components/shared/NavHeader";
@@ -242,10 +245,24 @@ export default function SubscriptionManagement() {
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back
           </Button>
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Choose Your Plan</h1>
-          <p className="text-muted-foreground text-lg">
-            Grow your business with more categories, services, and visibility. All plans include a low 1% transaction fee.
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Briefcase className="h-5 w-5 text-purple-600" />
+                <h1 className="text-2xl sm:text-3xl font-bold">Provider Plans</h1>
+              </div>
+              <p className="text-muted-foreground text-lg">
+                Grow your business with more categories, services, and visibility. All plans include a low 1% transaction fee.
+              </p>
+            </div>
+            <Link href="/account/subscription">
+              <Button variant="outline" size="sm" className="gap-2 text-xs shrink-0">
+                <ShoppingBag className="h-3.5 w-3.5" />
+                Customer Plans
+                <ArrowRight className="h-3 w-3" />
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Annual/Monthly Toggle */}

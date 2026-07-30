@@ -2416,3 +2416,9 @@
 - [x] Create customer billing history page at /account/billing
 - [x] Add customer trial expiration gate (blocks features until payment or downgrade, like provider gate)
 - [x] Update customer pricing CTA to offer "Start 14-Day Free Trial" instead of going straight to Stripe checkout
+
+## Fix Provider/Customer Subscription Toggle Distinction
+- [x] Change customer "Plans" tile in MOBILE_CUSTOMER_TILES (NavHeader.tsx) from /pricing to /account/subscription
+- [x] Change customer "Plans" tile in CUSTOMER_TILES (LoggedInHome.tsx) from /pricing to /account/subscription
+- [x] Add context indicator on AccountSubscription page showing "Customer Plan" with link to switch to provider subscription
+- [x] Add context indicator on SubscriptionManagement page showing "Provider Plan" with link to switch to customer subscription

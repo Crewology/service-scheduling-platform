@@ -21,7 +21,11 @@ import {
   Download,
   Shield,
   Sparkles,
+  ShoppingBag,
+  Briefcase,
+  ArrowRight,
 } from "lucide-react";
+import { useViewMode } from "@/contexts/ViewModeContext";
 
 const tierConfig = {
   free: {
@@ -149,8 +153,22 @@ export default function AccountSubscription() {
           </button>
         </div>
 
-        <h1 className="text-2xl font-bold mb-1">My Subscription</h1>
-        <p className="text-muted-foreground mb-6">Manage your plan and billing</p>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <ShoppingBag className="h-5 w-5 text-blue-600" />
+              <h1 className="text-2xl font-bold">Customer Subscription</h1>
+            </div>
+            <p className="text-muted-foreground">Manage your customer plan and billing</p>
+          </div>
+          <Link href="/provider/subscription">
+            <Button variant="outline" size="sm" className="gap-2 text-xs">
+              <Briefcase className="h-3.5 w-3.5" />
+              Provider Plans
+              <ArrowRight className="h-3 w-3" />
+            </Button>
+          </Link>
+        </div>
 
         {/* Current Plan Card */}
         <Card className={`${currentConfig.borderColor} border-2 mb-8`}>
