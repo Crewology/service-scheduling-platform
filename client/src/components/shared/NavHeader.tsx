@@ -490,7 +490,7 @@ const MOBILE_PROVIDER_TILES = [
   { label: "Services", icon: Briefcase, href: "/provider/services", color: "bg-purple-100", iconColor: "text-purple-600" },
   { label: "Schedule", icon: Clock, href: "/provider/availability", color: "bg-green-100", iconColor: "text-green-600" },
   { label: "Messages", icon: MessageSquare, href: "/messages", color: "bg-sky-100", iconColor: "text-sky-600" },
-  { label: "Analytics", icon: BarChart3, href: "/analytics", color: "bg-amber-100", iconColor: "text-amber-700" },
+  { label: "Analytics", icon: BarChart3, href: "/provider/analytics", color: "bg-amber-100", iconColor: "text-amber-700" },
   { label: "Payouts", icon: CreditCard, href: "/provider/payouts", color: "bg-emerald-100", iconColor: "text-emerald-600" },
   { label: "Boost", icon: Rocket, href: "/provider/promotions", color: "bg-purple-100", iconColor: "text-purple-600" },
   { label: "My Page", icon: UserCircle, href: "/provider/my-page", color: "bg-teal-100", iconColor: "text-teal-600" },

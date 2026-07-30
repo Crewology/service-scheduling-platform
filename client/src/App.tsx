@@ -160,7 +160,7 @@ function Router() {
       <Route path="/pricing" component={CustomerPricing} />
       <Route path="/customer/subscription" component={AccountSubscription} />
       <Route path="/customer/billing" component={CustomerBillingHistory} />
-      <Route path="/analytics" component={BookingAnalytics} />
+      <Route path="/analytics">{() => <ProviderOnlyGuard featureName="Analytics"><BookingAnalytics /></ProviderOnlyGuard>}</Route>
       <Route path="/privacy" component={PrivacyPolicy} />
       <Route path="/terms" component={TermsOfService} />
       <Route path="/help" component={HelpCenter} />
