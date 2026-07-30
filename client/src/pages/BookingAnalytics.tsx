@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/table";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { CustomerTrialStatusBanner } from "@/components/CustomerTrialBanner";
 import {
   DollarSign,
   TrendingUp,
@@ -414,6 +415,7 @@ export default function BookingAnalytics() {
   return (
     <>
     <NavHeader />
+    <div className="container px-4 pt-4"><CustomerTrialStatusBanner /></div>
     <PageHeader
       title="Booking Analytics"
       subtitle="Track your spending, top providers, and booking trends"

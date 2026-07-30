@@ -15,6 +15,7 @@ import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import UpgradeModal from "@/components/UpgradeModal";
 import BulkQuoteModal from "@/components/BulkQuoteModal";
+import { CustomerTrialStatusBanner } from "@/components/CustomerTrialBanner";
 
 export default function SavedProviders() {
   const { user, loading: authLoading } = useAuth();
@@ -155,6 +156,7 @@ export default function SavedProviders() {
     <div className="min-h-screen bg-background">
       <NavHeader />
       <div className="container py-8 max-w-6xl mx-auto px-4">
+        <CustomerTrialStatusBanner />
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">

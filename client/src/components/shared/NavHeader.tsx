@@ -357,6 +357,7 @@ function UserMenuDropdown({ user }: { user: any }) {
   const ref = useRef<HTMLDivElement>(null);
   const { logout } = useAuth();
   const { isInstalled, triggerInstall } = usePWAInstallContext();
+  const { isProviderView } = useViewMode();
   const { data: providerProfile } = trpc.provider.getMyProfile.useQuery(undefined, {
     enabled: !!user,
   });
@@ -415,7 +416,7 @@ function UserMenuDropdown({ user }: { user: any }) {
             </Link>
           )}
           <Link
-            href="/account/subscription"
+            href={isProviderView ? "/provider/subscription" : "/account/subscription"}
             className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors"
             onClick={() => setOpen(false)}
           >
@@ -423,7 +424,7 @@ function UserMenuDropdown({ user }: { user: any }) {
             My Subscription
           </Link>
           <Link
-            href="/provider/billing"
+            href={isProviderView ? "/provider/billing" : "/account/billing"}
             className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors"
             onClick={() => setOpen(false)}
           >

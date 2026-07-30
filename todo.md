@@ -2408,3 +2408,11 @@
 - [x] Build BillingHistory.tsx page showing subscription charges, plan changes, and payment history
 - [x] Add /provider/billing route and navigation link from Subscription Management page
 - [x] Include: date, description, amount, status, downloadable invoice PDF links
+
+## Customer Subscription UX Improvements
+- [ ] Make NavHeader "My Subscription" link toggle-aware (provider view -> /provider/subscription, customer view -> /account/subscription)
+- [ ] Make NavHeader "Billing History" link toggle-aware (provider view -> /provider/billing, customer view -> /account/billing)
+- [x] Add customer billing history endpoint (fetch invoices from Stripe for customer subscription)
+- [x] Create customer billing history page at /account/billing
+- [x] Add customer trial expiration gate (blocks features until payment or downgrade, like provider gate)
+- [x] Update customer pricing CTA to offer "Start 14-Day Free Trial" instead of going straight to Stripe checkout

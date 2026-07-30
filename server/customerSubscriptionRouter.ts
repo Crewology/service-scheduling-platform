@@ -617,6 +617,114 @@ export const customerSubscriptionRouter = router({
     };
   }),
 
+  // Billing history for customer subscription
+  billingHistory: protectedProcedure
+    .input(z.object({
+      limit: z.number().min(1).max(100).default(25),
+      startingAfter: z.string().optional(),
+    }).optional())
+    .query(async ({ ctx, input }) => {
+      const sub = await db.getCustomerSubscription(ctx.user.id);
+
+      const events: Array<{
+        id: string;
+        type: "subscription_change" | "invoice" | "payment" | "refund" | "trial";
+        date: string;
+        description: string;
+        amount: number | null;
+        status: string;
+        invoicePdfUrl: string | null;
+      }> = [];
+
+      if (!sub?.stripeCustomerId) {
+        // No Stripe customer yet — return events from DB only
+        if (sub?.status === "trialing" && sub.trialEndsAt) {
+          events.push({
+            id: `trial_${sub.userId}`,
+            type: "trial",
+            date: new Date(sub.createdAt).toISOString(),
+            description: `Started 14-day ${sub.tier === "business" ? "Manager" : "Coordinator"} trial`,
+            amount: null,
+            status: "active",
+            invoicePdfUrl: null,
+          });
+        }
+
+        if (sub) {
+          events.push({
+            id: `plan_${sub.userId}`,
+            type: "subscription_change",
+            date: new Date(sub.createdAt).toISOString(),
+            description: `Selected ${sub.tier === "business" ? "Manager" : sub.tier === "pro" ? "Coordinator" : "Individual"} plan`,
+            amount: null,
+            status: sub.status,
+            invoicePdfUrl: null,
+          });
+        }
+
+        return { items: events, hasMore: false };
+      }
+
+      // Fetch invoices from Stripe
+      const params: any = {
+        customer: sub.stripeCustomerId,
+        limit: input?.limit || 25,
+        expand: ["data.charge"],
+      };
+      if (input?.startingAfter) {
+        params.starting_after = input.startingAfter;
+      }
+
+      const invoices = await stripe.invoices.list(params);
+
+      const items = invoices.data.map((inv) => {
+        let description = "";
+        if (inv.lines?.data?.[0]?.description) {
+          description = inv.lines.data[0].description;
+        } else if (inv.description) {
+          description = inv.description;
+        } else {
+          description = `Invoice #${inv.number || inv.id.slice(-8)}`;
+        }
+
+        let status = inv.status || "unknown";
+        if (inv.status === "paid") status = "paid";
+        else if (inv.status === "open") status = "pending";
+        else if (inv.status === "void") status = "voided";
+        else if (inv.status === "uncollectible") status = "failed";
+
+        return {
+          id: inv.id,
+          type: "invoice" as const,
+          date: new Date((inv.created || 0) * 1000).toISOString(),
+          description,
+          amount: inv.amount_paid || inv.total || 0,
+          status,
+          invoicePdfUrl: inv.invoice_pdf || null,
+        };
+      });
+
+      // Add trial event if applicable
+      if (sub.status === "trialing" || (sub.trialEndsAt && new Date(sub.trialEndsAt) > new Date(sub.createdAt))) {
+        events.push({
+          id: `trial_${sub.userId}`,
+          type: "trial",
+          date: new Date(sub.createdAt).toISOString(),
+          description: `Started 14-day ${sub.tier === "business" ? "Manager" : "Coordinator"} trial (no charge)`,
+          amount: null,
+          status: sub.status === "trialing" ? "active" : "ended",
+          invoicePdfUrl: null,
+        });
+      }
+
+      // Combine and sort by date descending
+      const allItems = [...events, ...items].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+
+      return { items: allItems, hasMore: invoices.has_more };
+    }),
+
   // Check if user can save more providers (used before toggling favorite)
   canSaveMore: protectedProcedure.query(async ({ ctx }) => {
     const tier = await db.getCustomerTier(ctx.user.id);

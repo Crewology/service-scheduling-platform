@@ -228,6 +228,14 @@ export default function CustomerPricing() {
     onError: (err) => toast.error(err.message),
   });
 
+  const customerStartTrial = trpc.customerSubscription.startTrial.useMutation({
+    onSuccess: (data) => {
+      toast.success(`Your 14-day ${data.tier === "business" ? "Manager" : "Coordinator"} trial has started!`);
+      navigate("/saved-providers");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
   const customerCreatePortal = trpc.customerSubscription.createPortalSession.useMutation({
     onSuccess: (data) => {
       if (data.url) window.location.href = data.url;
@@ -652,26 +660,46 @@ export default function CustomerPricing() {
                           Downgrade
                         </Button>
                       ) : (
-                        <Button
-                          className="w-full"
-                          variant={plan.popular ? "default" : "outline"}
-                          onClick={() => {
-                            if (!user) {
-                              toast.info("Please sign in first to subscribe.");
-                              return;
-                            }
-                            customerCreateCheckout.mutate({
-                              tier: plan.tier as "pro" | "business",
-                              interval: yearly ? "year" : "month",
-                            });
-                          }}
-                          disabled={customerCreateCheckout.isPending}
-                        >
-                          {customerCreateCheckout.isPending ? (
-                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                          ) : null}
-                          {customerCreateCheckout.isPending ? "Loading..." : `Select ${plan.name}`}
-                        </Button>
+                        <div className="space-y-2">
+                          <Button
+                            className="w-full"
+                            variant={plan.popular ? "default" : "outline"}
+                            onClick={() => {
+                              if (!user) {
+                                toast.info("Please sign in first to start your free trial.");
+                                return;
+                              }
+                              customerStartTrial.mutate({ tier: plan.tier as "pro" | "business" });
+                            }}
+                            disabled={customerStartTrial.isPending}
+                          >
+                            {customerStartTrial.isPending ? (
+                              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            ) : (
+                              <Clock className="h-4 w-4 mr-2" />
+                            )}
+                            {customerStartTrial.isPending ? "Starting..." : "Start 14-Day Free Trial"}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full text-xs text-muted-foreground"
+                            onClick={() => {
+                              if (!user) {
+                                toast.info("Please sign in first to subscribe.");
+                                return;
+                              }
+                              customerCreateCheckout.mutate({
+                                tier: plan.tier as "pro" | "business",
+                                interval: yearly ? "year" : "month",
+                                withTrial: false,
+                              });
+                            }}
+                            disabled={customerCreateCheckout.isPending}
+                          >
+                            {customerCreateCheckout.isPending ? "Loading..." : "Or subscribe now"}
+                          </Button>
+                        </div>
                       )}
                     </CardContent>
                   </Card>
@@ -739,6 +767,10 @@ export default function CustomerPricing() {
                   {
                     q: "Can I cancel anytime?",
                     a: "Yes! Cancel or downgrade at any time. Your plan stays active until the end of your billing period.",
+                  },
+                  {
+                    q: "Is there a free trial for Coordinator or Manager?",
+                    a: "Yes! New customers get a 14-day free trial of Coordinator or Manager — no credit card required. At the end of the trial, you can subscribe to keep your features or automatically return to the Individual plan.",
                   },
                   {
                     q: "What payment methods do you accept?",

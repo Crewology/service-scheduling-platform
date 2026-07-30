@@ -223,6 +223,12 @@ export default function AccountSubscription() {
                   <ExternalLink className="h-4 w-4" />
                   {createPortal.isPending ? "Opening..." : "Manage Billing"}
                 </Button>
+                <Link href="/account/billing">
+                  <Button variant="outline" className="gap-2">
+                    <CreditCard className="h-4 w-4" />
+                    Billing History
+                  </Button>
+                </Link>
               </div>
             )}
           </CardContent>

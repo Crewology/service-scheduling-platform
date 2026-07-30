@@ -69,6 +69,7 @@ import Referrals from "./pages/Referrals";
 import SavedProviders from "./pages/SavedProviders";
 import CustomerPricing from "./pages/CustomerPricing";
 import AccountSubscription from "./pages/AccountSubscription";
+import CustomerBillingHistory from "./pages/CustomerBillingHistory";
 
 // Reviews
 import SubmitReview from "./pages/SubmitReview";
@@ -157,6 +158,7 @@ function Router() {
       <Route path="/my-waitlist" component={MyWaitlist} />
       <Route path="/pricing" component={CustomerPricing} />
       <Route path="/account/subscription" component={AccountSubscription} />
+      <Route path="/account/billing" component={CustomerBillingHistory} />
       <Route path="/analytics" component={BookingAnalytics} />
       <Route path="/privacy" component={PrivacyPolicy} />
       <Route path="/terms" component={TermsOfService} />
