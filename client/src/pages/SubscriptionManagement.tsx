@@ -126,6 +126,9 @@ export default function SubscriptionManagement() {
     onSuccess: (data) => {
       if (data.url) {
         window.location.href = data.url;
+      } else if (data.message) {
+        toast.success(data.message);
+        window.location.reload();
       }
       setSubscribing(null);
     },
@@ -530,9 +533,22 @@ export default function SubscriptionManagement() {
                 </CardContent>
 
                 <CardFooter>
-                  {isCurrent ? (
+                  {isCurrent && billingInterval === (currentSub?.currentInterval || "month") ? (
                     <Button variant="outline" className="w-full" disabled>
                       Current Plan
+                    </Button>
+                  ) : isCurrent && billingInterval !== (currentSub?.currentInterval || "month") ? (
+                    <Button 
+                      className="w-full"
+                      variant="default"
+                      onClick={() => handleSubscribe(plan.tier)}
+                      disabled={subscribing === plan.tier || subscribe.isPending}
+                    >
+                      {subscribing === plan.tier ? (
+                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Processing...</>
+                      ) : (
+                        `Switch to ${billingInterval === "year" ? "Annual" : "Monthly"}`
+                      )}
                     </Button>
                   ) : plan.tier === "free" ? (
                     isDowngrade ? (

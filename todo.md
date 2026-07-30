@@ -2431,3 +2431,7 @@
 - [x] Remove the "Customer Plans" button/link
 - [x] Remove the Frequently Asked Questions section
 - [x] Move the usage/services box to the right of the Current Plan box (side by side layout)
+
+## Allow switching billing interval on same tier
+- [x] When user is on any paid plan (Pro/Business) and toggles to a different billing interval, the current plan card should be selectable (not greyed out)
+- [x] Clicking the plan button when on same tier but different interval should trigger a billing interval change via Stripe (proration applied automatically)

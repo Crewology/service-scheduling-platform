@@ -226,9 +226,24 @@ export const subscriptionRouter = router({
     const serviceCount = await db.getActiveServiceCount(provider.id);
     const tierConfig = SUBSCRIPTION_TIERS[tier];
 
+    // Get current billing interval from Stripe if subscription exists
+    let currentInterval: "month" | "year" = "month";
+    if (subscription?.stripeSubscriptionId && subscription.status === "active") {
+      try {
+        const stripeSub = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionId);
+        const item = stripeSub.items.data[0];
+        if (item?.price.recurring?.interval) {
+          currentInterval = item.price.recurring.interval as "month" | "year";
+        }
+      } catch (e) {
+        // If Stripe call fails, default to month
+      }
+    }
+
     return {
       subscription,
       currentTier: tier,
+      currentInterval,
       tierConfig,
       usage: {
         servicesUsed: serviceCount,
@@ -251,8 +266,25 @@ export const subscriptionRouter = router({
       }
 
       const currentSub = await db.getProviderSubscription(provider.id);
-      if (currentSub?.status === "active" && currentSub.tier === input.tier) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Already subscribed to this tier" });
+      if (currentSub?.status === "active" && currentSub.tier === input.tier && currentSub.stripeSubscriptionId) {
+        // Same tier but possibly different interval - redirect to changeBillingInterval logic
+        // Retrieve the Stripe subscription to check current interval
+        const stripeSub = await stripe.subscriptions.retrieve(currentSub.stripeSubscriptionId);
+        const currentItem = stripeSub.items.data[0];
+        const currentInterval = currentItem?.price.recurring?.interval as "month" | "year" || "month";
+        if (currentInterval === input.interval) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Already subscribed to this tier and interval" });
+        }
+        // Different interval on same tier - update the subscription in-place with proration
+        const newPriceId = await getOrCreateStripePrice(input.tier, input.interval);
+        await stripe.subscriptions.update(currentSub.stripeSubscriptionId, {
+          items: [{
+            id: currentItem.id,
+            price: newPriceId,
+          }],
+          proration_behavior: "create_prorations",
+        });
+        return { url: null, message: `Switched to ${input.interval === "year" ? "annual" : "monthly"} billing. Proration applied.` };
       }
 
       const priceId = await getOrCreateStripePrice(input.tier, input.interval);
@@ -483,6 +515,56 @@ export const subscriptionRouter = router({
       }
 
       throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid downgrade path" });
+    }),
+
+  // Change billing interval (monthly <-> annual) for same tier
+  changeBillingInterval: protectedProcedure
+    .input(z.object({
+      interval: z.enum(["month", "year"]),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+      }
+
+      const sub = await db.getProviderSubscription(provider.id);
+      if (!sub || !sub.stripeSubscriptionId) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "No active subscription found" });
+      }
+
+      if (sub.tier === "free") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Free tier has no billing interval" });
+      }
+
+      // Retrieve the Stripe subscription
+      const stripeSubscription = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId);
+      const currentItem = stripeSubscription.items.data[0];
+      if (!currentItem) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "No subscription item found" });
+      }
+
+      const currentInterval = currentItem.price.recurring?.interval as "month" | "year" || "month";
+      if (currentInterval === input.interval) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: `Already on ${input.interval}ly billing` });
+      }
+
+      // Get or create the new price for the same tier but different interval
+      const newPriceId = await getOrCreateStripePrice(sub.tier as "basic" | "premium", input.interval);
+
+      // Update the subscription with proration
+      await stripe.subscriptions.update(sub.stripeSubscriptionId, {
+        items: [{
+          id: currentItem.id,
+          price: newPriceId,
+        }],
+        proration_behavior: "create_prorations",
+      });
+
+      return {
+        success: true,
+        message: `Switched to ${input.interval === "year" ? "annual" : "monthly"} billing. Proration applied automatically.`,
+      };
     }),
 
   // Pause subscription (up to 30 days)
