@@ -2453,3 +2453,7 @@
 
 ## Fix: Customer Billing History Error for Free Plan Users
 - [x] Handle "No such customer" Stripe error gracefully in billingHistory endpoint (return empty array instead of throwing)
+## Provider "Bookings I Received" Page Fixes
+- [x] Remove "All" tab from Provider "Bookings I Received" page
+- [x] Change "Upcoming" tab to "New" on Provider "Bookings I Received" page
+- [x] Fix Quotes tab [object Object] error on Provider "Bookings I Received" page

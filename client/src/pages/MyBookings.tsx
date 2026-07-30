@@ -431,14 +431,16 @@ export default function MyBookings() {
           <div className="overflow-x-auto -mx-1 px-1 pb-1">
           <TabsList>
             <TabsTrigger value="upcoming">
-              Upcoming ({upcomingBookings.length})
+              {bookingView === "provider" && canSwitch ? "New" : "Upcoming"} ({upcomingBookings.length})
             </TabsTrigger>
             <TabsTrigger value="past">
               Past ({pastBookings.length})
             </TabsTrigger>
-            <TabsTrigger value="all">
-              All ({filteredBookings?.length || 0})
-            </TabsTrigger>
+            {!(bookingView === "provider" && canSwitch) && (
+              <TabsTrigger value="all">
+                All ({filteredBookings?.length || 0})
+              </TabsTrigger>
+            )}
             <TabsTrigger value="drafts">
               <Archive className="h-3.5 w-3.5 mr-1" />
               Drafts
@@ -446,7 +448,7 @@ export default function MyBookings() {
             {bookingView === "provider" && canSwitch && (
               <TabsTrigger value="quotes">
                 <DollarSign className="h-3.5 w-3.5 mr-1" />
-                Quotes {quoteCount ? `(${quoteCount})` : ""}
+                Quotes {quoteCount && typeof quoteCount === "object" && quoteCount.total ? `(${quoteCount.total})` : ""}
               </TabsTrigger>
             )}
           </TabsList>
@@ -460,7 +462,9 @@ export default function MyBookings() {
                 <CardContent className="py-12 text-center">
                   <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground mb-4">
-                    {searchQuery ? "No matching upcoming bookings" : "No upcoming bookings"}
+                    {searchQuery 
+                      ? (bookingView === "provider" && canSwitch ? "No matching new bookings" : "No matching upcoming bookings")
+                      : (bookingView === "provider" && canSwitch ? "No new bookings" : "No upcoming bookings")}
                   </p>
                   {!searchQuery && (
                     <Button onClick={() => setLocation("/browse")} disabled={isOffline}>
