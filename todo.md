@@ -2444,3 +2444,9 @@
 ## Current Plan Pill Visibility Fix
 - [x] On Provider subscription page (SubscriptionManagement.tsx): only show "Current Plan" pill when billing interval toggle matches user's actual current interval
 - [x] On Customer subscription page (AccountSubscription.tsx): only show "Current Plan" pill when billing interval toggle matches user's actual current interval
+
+## Free Trial Feature Updates
+- [x] Add "14-day free trial" as the first feature in each paid plan's feature list (both Customer and Provider subscription pages)
+- [x] Change paid plan buttons to "Start Free Trial" for users who haven't used their trial (both pages)
+- [x] Wire "Start Free Trial" button to backend trial process (auto-trigger 14-day trial)
+- [x] Ensure trial can only be used once per account lifetime (backend enforcement)

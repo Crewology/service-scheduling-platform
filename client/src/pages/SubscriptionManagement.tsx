@@ -69,6 +69,7 @@ const PLANS = [
     description: "For providers offering multiple service categories — grow your reach.",
     icon: Zap,
     features: [
+      { text: "14-day free trial", included: true },
       { text: "Up to 5 service categories", included: true },
       { text: "Up to 10 services", included: true },
       { text: "3 photos per service", included: true },
@@ -92,6 +93,7 @@ const PLANS = [
     description: "Unlimited everything for established businesses and full-service pros.",
     icon: Crown,
     features: [
+      { text: "14-day free trial", included: true },
       { text: "Unlimited service categories", included: true },
       { text: "Unlimited services", included: true },
       { text: "5 photos per service", included: true },
@@ -585,19 +587,23 @@ export default function SubscriptionManagement() {
                         if (isDowngrade) {
                           setDowngradeTarget(plan.tier as "basic");
                           setShowDowngradeDialog(true);
+                        } else if (currentTier === "free" && trialStatus && !trialStatus.hasUsedTrial) {
+                          startTrial.mutate({ tier: plan.tier as "basic" | "premium" });
                         } else {
                           handleSubscribe(plan.tier);
                         }
                       }}
-                      disabled={subscribing === plan.tier || subscribe.isPending || (downgrade.isPending && downgradeTarget === plan.tier)}
+                      disabled={subscribing === plan.tier || subscribe.isPending || startTrial.isPending || (downgrade.isPending && downgradeTarget === plan.tier)}
                     >
-                      {subscribing === plan.tier ? (
+                      {subscribing === plan.tier || startTrial.isPending ? (
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                           Processing...
                         </>
                       ) : isDowngrade ? (
                         "Downgrade"
+                      ) : currentTier === "free" && trialStatus && !trialStatus.hasUsedTrial ? (
+                        "Start Free Trial"
                       ) : (
                         `Select ${plan.name}`
                       )}

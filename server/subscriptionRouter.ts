@@ -88,6 +88,10 @@ export const subscriptionRouter = router({
     if (existing && existing.status === "active" && existing.tier !== "free") {
       throw new TRPCError({ code: "BAD_REQUEST", message: "Already have an active paid subscription" });
     }
+    // Enforce one-time trial per account lifetime
+    if (existing && existing.trialEndsAt != null) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "You have already used your free trial. Please subscribe to continue." });
+    }
 
     // Start 14-day trial (no credit card required)
     const now = new Date();
@@ -131,12 +135,12 @@ export const subscriptionRouter = router({
       const daysRemaining = Math.max(0, Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
 
       if (daysRemaining <= 0) {
-        // Trial expired — downgrade to free
+        // Trial expired — downgrade to free (keep trialEndsAt as historical record)
         await db.upsertProviderSubscription({
           providerId: provider.id,
           tier: "free",
           status: "active",
-          trialEndsAt: undefined,
+          trialEndsAt: sub.trialEndsAt ? new Date(sub.trialEndsAt) : undefined,
           currentPeriodStart: undefined,
           currentPeriodEnd: undefined,
         });
@@ -158,6 +162,7 @@ export const subscriptionRouter = router({
         daysRemaining: 0,
         trialEndsAt: sub.trialEndsAt,
         currentTier: "free" as const,
+        hasUsedTrial: true,
       };
       }
 
@@ -180,8 +185,12 @@ export const subscriptionRouter = router({
         trialEndsAt: sub.trialEndsAt,
         currentTier: sub.tier,
         showUrgentNudge: daysRemaining <= 3,
+        hasUsedTrial: true,
       };
     }
+
+    // Check if trial was ever used (trialEndsAt is non-null even after expiry)
+    const hasUsedTrial = sub.trialEndsAt != null;
 
     return {
       isTrialing: false,
@@ -190,6 +199,7 @@ export const subscriptionRouter = router({
       daysRemaining: 0,
       trialEndsAt: null,
       currentTier: sub.tier,
+      hasUsedTrial,
     };
   }),
 
