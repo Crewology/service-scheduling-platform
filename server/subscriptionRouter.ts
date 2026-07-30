@@ -621,6 +621,129 @@ export const subscriptionRouter = router({
     };
   }),
 
+  // Get billing history (invoices + charges from Stripe)
+  billingHistory: protectedProcedure
+    .input(z.object({
+      limit: z.number().min(1).max(100).default(25),
+      startingAfter: z.string().optional(),
+    }).optional())
+    .query(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+
+      const sub = await db.getProviderSubscription(provider.id);
+      if (!sub?.stripeCustomerId) {
+        // No Stripe customer yet — return empty with subscription events from DB
+        const events: Array<{
+          id: string;
+          type: "subscription_change" | "invoice" | "payment" | "refund" | "trial";
+          date: string;
+          description: string;
+          amount: number | null;
+          status: string;
+          invoicePdfUrl: string | null;
+        }> = [];
+
+        // Add trial start event if applicable
+        if (sub?.status === "trialing" && sub.currentPeriodStart) {
+          events.push({
+            id: `trial_${sub.providerId}`,
+            type: "trial",
+            date: new Date(sub.currentPeriodStart).toISOString(),
+            description: `Started 14-day ${sub.tier === "premium" ? "Business" : "Pro"} trial`,
+            amount: null,
+            status: "active",
+            invoicePdfUrl: null,
+          });
+        }
+
+        // Add plan selection event
+        if (sub) {
+          events.push({
+            id: `plan_${sub.providerId}`,
+            type: "subscription_change",
+            date: new Date(sub.currentPeriodStart || sub.createdAt || Date.now()).toISOString(),
+            description: `Selected ${sub.tier === "premium" ? "Business" : sub.tier === "basic" ? "Pro" : "Starter"} plan`,
+            amount: null,
+            status: sub.status,
+            invoicePdfUrl: null,
+          });
+        }
+
+        return { items: events, hasMore: false };
+      }
+
+      // Fetch invoices from Stripe
+      const params: any = {
+        customer: sub.stripeCustomerId,
+        limit: input?.limit || 25,
+        expand: ["data.charge"],
+      };
+      if (input?.startingAfter) {
+        params.starting_after = input.startingAfter;
+      }
+
+      const invoices = await stripe.invoices.list(params);
+
+      const items = invoices.data.map((inv) => {
+        let description = "";
+        if (inv.lines?.data?.[0]?.description) {
+          description = inv.lines.data[0].description;
+        } else if (inv.description) {
+          description = inv.description;
+        } else {
+          description = `Invoice #${inv.number || inv.id.slice(-8)}`;
+        }
+
+        let status = inv.status || "unknown";
+        if (inv.status === "paid") status = "paid";
+        else if (inv.status === "open") status = "pending";
+        else if (inv.status === "void") status = "voided";
+        else if (inv.status === "uncollectible") status = "failed";
+
+        return {
+          id: inv.id,
+          type: "invoice" as const,
+          date: new Date((inv.created || 0) * 1000).toISOString(),
+          description,
+          amount: inv.amount_paid || inv.total || 0,
+          status,
+          invoicePdfUrl: inv.invoice_pdf || null,
+        };
+      });
+
+      // Prepend subscription events from DB
+      const events: Array<{
+        id: string;
+        type: "subscription_change" | "invoice" | "payment" | "refund" | "trial";
+        date: string;
+        description: string;
+        amount: number | null;
+        status: string;
+        invoicePdfUrl: string | null;
+      }> = [];
+
+      // Add trial event if applicable
+      if (sub.status === "trialing" || (sub.trialEndsAt && new Date(sub.trialEndsAt) > new Date(sub.currentPeriodStart || 0))) {
+        events.push({
+          id: `trial_${sub.providerId}`,
+          type: "trial",
+          date: new Date(sub.currentPeriodStart || Date.now()).toISOString(),
+          description: `Started 14-day ${sub.tier === "premium" ? "Business" : "Pro"} trial (no charge)`,
+          amount: null,
+          status: sub.status === "trialing" ? "active" : "ended",
+          invoicePdfUrl: null,
+        });
+      }
+
+      // Combine and sort by date descending
+      const allItems = [...events, ...items].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+
+      return { items: allItems, hasMore: invoices.has_more };
+    }),
+
   // Admin: get subscription analytics
   analytics: protectedProcedure.query(async ({ ctx }) => {
     if (ctx.user.role !== "admin") {

@@ -406,6 +406,11 @@ export default function SubscriptionManagement() {
                         "Manage Billing"
                       )}
                     </Button>
+                    <Link href="/provider/billing">
+                      <Button variant="ghost" size="sm">
+                        Billing History
+                      </Button>
+                    </Link>
                   </>
                 ) : null}
               </div>

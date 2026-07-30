@@ -2402,3 +2402,9 @@
 - [x] Build trial expiration gate that blocks provider features when trial ends (TrialExpiredGate)
 - [x] Gate offers options: add payment method to continue, or downgrade to Free tier
 - [x] Send reminder notifications at 3 days and 1 day before trial expiration (already existed)
+
+## Feature: Provider Billing History Page
+- [x] Create backend endpoint to fetch billing/payment history from Stripe (invoices, charges, plan changes)
+- [x] Build BillingHistory.tsx page showing subscription charges, plan changes, and payment history
+- [x] Add /provider/billing route and navigation link from Subscription Management page
+- [x] Include: date, description, amount, status, downloadable invoice PDF links

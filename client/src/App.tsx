@@ -55,6 +55,7 @@ import PromoCodes from "./pages/PromoCodes";
 import BookingAnalytics from "./pages/BookingAnalytics";
 import Promotions from "./pages/Promotions";
 import Invoices from "./pages/Invoices";
+import BillingHistory from "./pages/BillingHistory";
 import Receipts from "./pages/Receipts";
 import { ProviderBookings, ProviderServices, ProviderAnalytics, ProviderPayouts, ProviderPortfolio, ProviderQuotes } from "./pages/ProviderTabPage";
 import ProviderMyPage from "./pages/ProviderMyPage";
@@ -147,6 +148,7 @@ function Router() {
       <Route path="/provider/promo-codes" component={PromoCodes} />
       <Route path="/provider/promotions" component={Promotions} />
       <Route path="/provider/invoices" component={Invoices} />
+      <Route path="/provider/billing" component={BillingHistory} />
       <Route path="/receipts" component={Receipts} />
       <Route path="/booking/:id/detail" component={BookingDetail} />
       <Route path="/referrals" component={Referrals} />
