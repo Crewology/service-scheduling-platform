@@ -303,7 +303,8 @@ export const bookingRouter = router({
     .query(async ({ ctx, input }) => {
       const provider = await db.getProviderByUserId(ctx.user.id);
       if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
-      return await db.getProviderBookings(provider.id, input.status);
+      const bookings = await db.getProviderBookings(provider.id, input.status);
+      return bookings;
     }),
     
   listForProvider: protectedProcedure.query(async ({ ctx }) => {

@@ -106,6 +106,42 @@ export const invoiceRouter = router({
     return invoiceDb.getInvoicesByProvider(provider.id);
   }),
 
+  // Provider: get unique customers for invoice form
+  getMyCustomers: protectedProcedure.query(async ({ ctx }) => {
+    const provider = await getProviderByUserId(ctx.user.id);
+    if (!provider) return [];
+    const { getDb } = await import("./db/connection");
+    const { bookings, users } = await import("../drizzle/schema");
+    const { eq, desc } = await import("drizzle-orm");
+    const db = await getDb();
+    if (!db) return [];
+    const results = await db.select({
+      customerId: bookings.customerId,
+      customerName: users.name,
+      customerFirstName: users.firstName,
+      customerLastName: users.lastName,
+      customerEmail: users.email,
+    }).from(bookings)
+      .leftJoin(users, eq(bookings.customerId, users.id))
+      .where(eq(bookings.providerId, provider.id))
+      .orderBy(desc(bookings.createdAt));
+    // Deduplicate and resolve names
+    const seen = new Map<number, { id: number; name: string; email: string }>();
+    for (const r of results) {
+      if (!seen.has(r.customerId)) {
+        const name = r.customerName || 
+          [r.customerFirstName, r.customerLastName].filter(Boolean).join(" ") || 
+          "";
+        seen.set(r.customerId, {
+          id: r.customerId,
+          name,
+          email: r.customerEmail || "",
+        });
+      }
+    }
+    return Array.from(seen.values());
+  }),
+
   // Customer: get all their receipts and invoices
   getMyReceipts: protectedProcedure.query(async ({ ctx }) => {
     return invoiceDb.getInvoicesByCustomer(ctx.user.id, ctx.user.email || undefined);

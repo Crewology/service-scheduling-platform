@@ -67,8 +67,8 @@ export default function Invoices() {
 
   const { data: invoices, refetch } = trpc.invoice.getMyInvoices.useQuery();
   const { data: provider } = trpc.provider.getMyProfile.useQuery();
-  const { data: bookings } = trpc.booking.providerBookings.useQuery(
-    {},
+  const { data: customersList } = trpc.invoice.getMyCustomers.useQuery(
+    undefined,
     { enabled: !!provider }
   );
 
@@ -107,21 +107,11 @@ export default function Invoices() {
     return invoices.filter((inv) => inv.status === filter);
   }, [invoices, filter]);
 
-  // Get unique customers from bookings for the create form
+  // Get unique customers from dedicated query
   const customers = useMemo(() => {
-    if (!bookings) return [];
-    const seen = new Map<number, { id: number; name: string; email: string }>();
-    for (const b of bookings) {
-      if (!seen.has(b.customerId)) {
-        seen.set(b.customerId, {
-          id: b.customerId,
-          name: (b as any).customerName || `Customer #${b.customerId}`,
-          email: (b as any).customerEmail || "",
-        });
-      }
-    }
-    return Array.from(seen.values());
-  }, [bookings]);
+    if (!customersList) return [];
+    return customersList.filter(c => c.name); // Only show customers with names
+  }, [customersList]);
 
   const stats = useMemo(() => {
     if (!invoices) return { total: 0, paid: 0, outstanding: 0, overdue: 0 };
