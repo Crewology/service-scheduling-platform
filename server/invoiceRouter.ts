@@ -57,6 +57,16 @@ export const invoiceRouter = router({
           if (!resolvedCustomerPhone && customer.phone) {
             resolvedCustomerPhone = customer.phone;
           }
+          if (!resolvedCustomerAddress) {
+            const addressParts = [
+              (customer as any).billingAddressLine1,
+              (customer as any).billingAddressLine2,
+              [(customer as any).billingCity, (customer as any).billingState, (customer as any).billingPostalCode].filter(Boolean).join(", "),
+            ].filter(Boolean);
+            if (addressParts.length > 0) {
+              resolvedCustomerAddress = addressParts.join(", ");
+            }
+          }
         }
       }
 
@@ -131,22 +141,34 @@ export const invoiceRouter = router({
       customerLastName: users.lastName,
       customerEmail: users.email,
       customerPhone: users.phone,
+      billingAddressLine1: users.billingAddressLine1,
+      billingAddressLine2: users.billingAddressLine2,
+      billingCity: users.billingCity,
+      billingState: users.billingState,
+      billingPostalCode: users.billingPostalCode,
     }).from(bookings)
       .leftJoin(users, eq(bookings.customerId, users.id))
       .where(eq(bookings.providerId, provider.id))
       .orderBy(desc(bookings.createdAt));
     // Deduplicate and resolve names
-    const seen = new Map<number, { id: number; name: string; email: string; phone: string }>();
+    const seen = new Map<number, { id: number; name: string; email: string; phone: string; billingAddress: string }>();
     for (const r of results) {
       if (!seen.has(r.customerId)) {
         const name = r.customerName || 
           [r.customerFirstName, r.customerLastName].filter(Boolean).join(" ") || 
           "";
+        // Compose billing address from parts
+        const addressParts = [
+          r.billingAddressLine1,
+          r.billingAddressLine2,
+          [r.billingCity, r.billingState, r.billingPostalCode].filter(Boolean).join(", "),
+        ].filter(Boolean);
         seen.set(r.customerId, {
           id: r.customerId,
           name,
           email: r.customerEmail || "",
           phone: r.customerPhone || "",
+          billingAddress: addressParts.join(", "),
         });
       }
     }

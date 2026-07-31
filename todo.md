@@ -2506,3 +2506,5 @@
 - [x] Fix invoice page: selecting customer from dropdown should auto-populate their email
 - [x] Add search bar inside customer dropdown on invoice form for easy filtering
 - [x] Auto-populate customer billing address and phone number on invoice when selected from dropdown
+- [x] Add optional billing address fields to customer Account/Profile page with helper note
+- [x] Wire customer billing address to invoice auto-populate when provider selects customer

@@ -28,6 +28,12 @@ export const users = mysqlTable("users", {
   firstName: varchar("firstName", { length: 100 }),
   lastName: varchar("lastName", { length: 100 }),
   phone: varchar("phone", { length: 20 }),
+  // Billing address (optional, used for invoices)
+  billingAddressLine1: varchar("billingAddressLine1", { length: 255 }),
+  billingAddressLine2: varchar("billingAddressLine2", { length: 255 }),
+  billingCity: varchar("billingCity", { length: 100 }),
+  billingState: varchar("billingState", { length: 50 }),
+  billingPostalCode: varchar("billingPostalCode", { length: 20 }),
   profilePhotoUrl: varchar("profilePhotoUrl", { length: 500 }),
   emailVerified: boolean("emailVerified").default(false).notNull(),
   hasSelectedRole: boolean("hasSelectedRole").default(false).notNull(),

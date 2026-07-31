@@ -494,7 +494,7 @@ function CreateInvoiceForm({
   customers,
   onSuccess,
 }: {
-  customers: { id: number; name: string; email: string; phone: string }[];
+  customers: { id: number; name: string; email: string; phone: string; billingAddress: string }[];
   onSuccess: () => void;
 }) {
   const [customerMode, setCustomerMode] = useState<"existing" | "new">(customers.length > 0 ? "existing" : "new");
@@ -643,6 +643,7 @@ function CreateInvoiceForm({
                           setCustomerName(c.name || "");
                           setCustomerEmail(c.email || "");
                           setCustomerPhone(c.phone || "");
+                          setCustomerAddress(c.billingAddress || "");
                           setCustomerSearchOpen(false);
                           setCustomerSearch("");
                         }}

@@ -150,6 +150,11 @@ export async function updateUserProfile(userId: number, data: {
   lastName?: string;
   profilePhotoUrl?: string | null;
   role?: "admin" | "customer" | "provider";
+  billingAddressLine1?: string;
+  billingAddressLine2?: string;
+  billingCity?: string;
+  billingState?: string;
+  billingPostalCode?: string;
 }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -162,6 +167,11 @@ export async function updateUserProfile(userId: number, data: {
   if (data.lastName !== undefined) updateData.lastName = data.lastName;
   if (data.profilePhotoUrl !== undefined) updateData.profilePhotoUrl = data.profilePhotoUrl;
   if (data.role !== undefined) updateData.role = data.role;
+  if (data.billingAddressLine1 !== undefined) updateData.billingAddressLine1 = data.billingAddressLine1;
+  if (data.billingAddressLine2 !== undefined) updateData.billingAddressLine2 = data.billingAddressLine2;
+  if (data.billingCity !== undefined) updateData.billingCity = data.billingCity;
+  if (data.billingState !== undefined) updateData.billingState = data.billingState;
+  if (data.billingPostalCode !== undefined) updateData.billingPostalCode = data.billingPostalCode;
 
   if (Object.keys(updateData).length === 0) return;
 

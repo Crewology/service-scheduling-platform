@@ -407,6 +407,11 @@ export default function UserProfile() {
     lastName: "",
     phone: "",
     email: "",
+    billingAddressLine1: "",
+    billingAddressLine2: "",
+    billingCity: "",
+    billingState: "",
+    billingPostalCode: "",
   });
   const [businessName, setBusinessName] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -431,6 +436,11 @@ export default function UserProfile() {
         lastName: user.lastName || "",
         phone: user.phone || "",
         email: user.email || "",
+        billingAddressLine1: (user as any).billingAddressLine1 || "",
+        billingAddressLine2: (user as any).billingAddressLine2 || "",
+        billingCity: (user as any).billingCity || "",
+        billingState: (user as any).billingState || "",
+        billingPostalCode: (user as any).billingPostalCode || "",
       });
     }
   }, [user]);
@@ -637,6 +647,61 @@ export default function UserProfile() {
                     placeholder="Phone number"
                   />
                 </div>
+
+                {/* Billing Address Section */}
+                <div className="border-t pt-4 mt-4">
+                  <div className="mb-3">
+                    <Label className="text-base font-semibold">Billing Address</Label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Used for invoices and receipts from your service providers. This information is never shared publicly.
+                    </p>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Street Address</Label>
+                      <Input 
+                        value={form.billingAddressLine1} 
+                        onChange={e => setForm({ ...form, billingAddressLine1: e.target.value })} 
+                        placeholder="123 Main Street"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Apt, Suite, Unit (optional)</Label>
+                      <Input 
+                        value={form.billingAddressLine2} 
+                        onChange={e => setForm({ ...form, billingAddressLine2: e.target.value })} 
+                        placeholder="Apt 4B"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      <div>
+                        <Label className="text-xs text-muted-foreground">City</Label>
+                        <Input 
+                          value={form.billingCity} 
+                          onChange={e => setForm({ ...form, billingCity: e.target.value })} 
+                          placeholder="City"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground">State</Label>
+                        <Input 
+                          value={form.billingState} 
+                          onChange={e => setForm({ ...form, billingState: e.target.value })} 
+                          placeholder="State"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Zip Code</Label>
+                        <Input 
+                          value={form.billingPostalCode} 
+                          onChange={e => setForm({ ...form, billingPostalCode: e.target.value })} 
+                          placeholder="12345"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {user?.role === "provider" && (
                   <div>
                     <Label>Business Name</Label>
@@ -689,6 +754,21 @@ export default function UserProfile() {
                     <div>
                       <p className="text-sm text-muted-foreground">Business Name</p>
                       <p className="font-medium">{providerProfile.businessName}</p>
+                    </div>
+                  </div>
+                )}
+                {(user as any)?.billingAddressLine1 && (
+                  <div className="flex items-start gap-3 py-3 border-b">
+                    <Building2 className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Billing Address</p>
+                      <p className="font-medium">
+                        {(user as any).billingAddressLine1}
+                        {(user as any).billingAddressLine2 && <>, {(user as any).billingAddressLine2}</>}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {[(user as any).billingCity, (user as any).billingState, (user as any).billingPostalCode].filter(Boolean).join(", ")}
+                      </p>
                     </div>
                   </div>
                 )}

@@ -186,6 +186,11 @@ export const authRouter = router({
       phone: z.string().optional(),
       profilePhotoUrl: z.string().optional(),
       email: z.string().optional(),
+      billingAddressLine1: z.string().optional(),
+      billingAddressLine2: z.string().optional(),
+      billingCity: z.string().optional(),
+      billingState: z.string().optional(),
+      billingPostalCode: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       // Auto-compose the display name from firstName + lastName
