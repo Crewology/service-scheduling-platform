@@ -2502,3 +2502,5 @@
 - [x] Fix invoice send to resolve userId by email for proper unsubscribe token generation
 - [x] "Settings" link in user dropdown already points to /notification-settings (verified accessible)
 - [x] Fix analytics page blank screen - /provider/analytics route sets initialTab="analytics" but ProviderDashboard has no TabsContent with value="analytics"
+- [x] Fix invoice page: customer dropdown shows ID numbers instead of customer names
+- [x] Fix invoice page: selecting customer from dropdown should auto-populate their email

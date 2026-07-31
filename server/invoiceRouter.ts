@@ -37,6 +37,22 @@ export const invoiceRouter = router({
         throw new TRPCError({ code: "BAD_REQUEST", message: "Please provide a customer name or select an existing customer" });
       }
 
+      // Look up customer details if existing customer selected
+      let resolvedCustomerName = input.customerName || null;
+      let resolvedCustomerEmail = input.customerEmail || null;
+      if (input.customerId) {
+        const customer = await getUserById(input.customerId);
+        if (customer) {
+          if (!resolvedCustomerName) {
+            resolvedCustomerName = customer.name || 
+              [customer.firstName, customer.lastName].filter(Boolean).join(" ") || null;
+          }
+          if (!resolvedCustomerEmail && customer.email) {
+            resolvedCustomerEmail = customer.email;
+          }
+        }
+      }
+
       const invoiceNumber = await invoiceDb.getNextInvoiceNumber(provider.id);
 
       // Calculate totals
@@ -65,8 +81,8 @@ export const invoiceRouter = router({
           total,
           dueDate: input.dueDate ? new Date(input.dueDate) : null,
           notes: input.notes || null,
-          customerEmail: input.customerEmail || null,
-          customerName: input.customerName || null,
+          customerEmail: resolvedCustomerEmail,
+          customerName: resolvedCustomerName,
           issueDate: new Date(),
           bookingId: null,
           promotionId: null,

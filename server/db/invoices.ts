@@ -73,16 +73,21 @@ export async function getInvoicesByProvider(providerId: number) {
     .select({
       invoice: invoices,
       userName: users.name,
+      userFirstName: users.firstName,
+      userLastName: users.lastName,
     })
     .from(invoices)
     .leftJoin(users, eq(invoices.customerId, users.id))
     .where(eq(invoices.providerId, providerId))
     .orderBy(desc(invoices.createdAt));
 
-  return results.map(r => ({
-    ...r.invoice,
-    customerName: r.invoice.customerName || r.userName || (r.invoice.customerId ? `Customer #${r.invoice.customerId}` : "—"),
-  }));
+  return results.map(r => {
+    const fullName = [r.userFirstName, r.userLastName].filter(Boolean).join(" ");
+    return {
+      ...r.invoice,
+      customerName: r.invoice.customerName || r.userName || fullName || (r.invoice.customerId ? `Customer #${r.invoice.customerId}` : "—"),
+    };
+  });
 }
 
 export async function getInvoicesByCustomer(customerId: number, customerEmail?: string) {

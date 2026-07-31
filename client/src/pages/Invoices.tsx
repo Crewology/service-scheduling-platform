@@ -565,7 +565,7 @@ function CreateInvoiceForm({
 
     createMutation.mutate({
       customerId: customerMode === "existing" ? parseInt(customerId) : undefined,
-      customerName: customerMode === "new" ? customerName.trim() : undefined,
+      customerName: customerName.trim() || undefined,
       lineItems: items,
       taxRate: parseFloat(taxRate) || 0,
       dueDate: dueDate || undefined,
@@ -604,8 +604,8 @@ function CreateInvoiceForm({
           <Select value={customerId} onValueChange={(val) => {
             setCustomerId(val);
             const c = customers.find((c) => String(c.id) === val);
-            if (c?.email) setCustomerEmail(c.email);
-            if (c?.name) setCustomerName(c.name);
+            setCustomerEmail(c?.email || "");
+            setCustomerName(c?.name || "");
           }}>
             <SelectTrigger>
               <SelectValue placeholder="Select a customer" />

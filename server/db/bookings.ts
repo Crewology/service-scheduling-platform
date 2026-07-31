@@ -83,12 +83,20 @@ export async function getProviderBookings(providerId: number, status?: string) {
     createdAt: bookings.createdAt,
     updatedAt: bookings.updatedAt,
     customerName: users.name,
+    customerFirstName: users.firstName,
+    customerLastName: users.lastName,
     customerEmail: users.email,
   }).from(bookings)
     .leftJoin(users, eq(bookings.customerId, users.id))
     .where(and(...conditions))
     .orderBy(desc(bookings.createdAt));
-  return results;
+  // Construct proper customerName from available fields
+  return results.map(r => ({
+    ...r,
+    customerName: r.customerName || 
+      [r.customerFirstName, r.customerLastName].filter(Boolean).join(" ") || 
+      null,
+  }));
 }
 
 export async function getAllBookings() {
