@@ -94,18 +94,18 @@ async function injectOgTags(url: string, template: string, origin: string): Prom
   // Fallback OG tags for any page that doesn't have specific ones
   if (!ogTags) {
     ogTags = [
-      `<meta property="og:title" content="OlogyCrew — Service Scheduling Platform" />`,
+      `<meta property="og:title" content="OlogyCrew \u2014 Service Scheduling Platform" />`,
       `<meta property="og:description" content="Find and book trusted service professionals near you. 48+ categories, instant booking, secure payments." />`,
       `<meta property="og:url" content="${origin}${url.split('?')[0]}" />`,
       `<meta property="og:type" content="website" />`,
       `<meta property="og:site_name" content="OlogyCrew" />`,
-      `<meta name="twitter:card" content="summary_large_image" />`,
-      `<meta name="twitter:title" content="OlogyCrew — Service Scheduling Platform" />`,
+      `<meta name="twitter:card" content="summary" />`,
+      `<meta name="twitter:title" content="OlogyCrew \u2014 Service Scheduling Platform" />`,
       `<meta name="twitter:description" content="Find and book trusted service professionals near you. 48+ categories, instant booking, secure payments." />`,
-      `<meta property="og:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-compressed_d69712f3.jpg" />`,
-      `<meta property="og:image:width" content="1200" />`,
-      `<meta property="og:image:height" content="630" />`,
-      `<meta name="twitter:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-compressed_d69712f3.jpg" />`,
+      `<meta property="og:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png" />`,
+      `<meta property="og:image:width" content="200" />`,
+      `<meta property="og:image:height" content="50" />`,
+      `<meta name="twitter:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png" />`,
     ].join("\n    ");
   }
 

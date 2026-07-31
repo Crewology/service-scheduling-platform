@@ -2517,3 +2517,4 @@
 - [x] Fix Basic→Premium upgrade to use existing card on file with proration instead of re-entering payment via Stripe Checkout
 - [x] Fix 60/40 revenue split between platform owners — splits not executing on Stripe and not reflecting in admin split tab
 - [x] Fix provider onboarding page to auto-redirect to dashboard when all steps are 100% complete (for existing providers)
+- [x] Fix "All Services Widget" quick link preview — changed to "Your Provider Page" link (/p/slug) with proper OG tags, and fixed fallback OG image for unmatched routes
