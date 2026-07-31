@@ -96,7 +96,9 @@ export const widgetRouter = router({
         .filter((b: any) => ["pending", "confirmed", "in_progress"].includes(b.status))
         .map((b: any) => ({
           bookingDate: b.bookingDate,
-          bookingTime: b.bookingTime,
+          bookingTime: b.startTime,
+          endTime: b.endTime,
+          durationMinutes: b.durationMinutes,
           status: b.status,
         }));
     }),

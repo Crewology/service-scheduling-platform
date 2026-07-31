@@ -157,6 +157,7 @@ function countOverlappingBookings(
   let count = 0;
   
   for (const booking of bookings) {
+    if (!booking.bookingTime) continue; // Skip bookings with missing time data
     const bookingStartMinutes = timeToMinutes(booking.bookingTime);
     let bookingEndMinutes: number;
     
@@ -185,9 +186,10 @@ function countOverlappingBookings(
 /**
  * Convert HH:MM time string to minutes since midnight
  */
-export function timeToMinutes(time: string): number {
+export function timeToMinutes(time: string | undefined | null): number {
+  if (!time) return 0;
   const [hours, minutes] = time.split(':').map(Number);
-  return hours * 60 + minutes;
+  return hours * 60 + (minutes || 0);
 }
 
 /**
@@ -228,11 +230,12 @@ export function isTimeSlotAvailable(
 /**
  * Format time for display (e.g., "09:00" -> "9:00 AM")
  */
-export function formatTimeForDisplay(time: string): string {
+export function formatTimeForDisplay(time: string | undefined | null): string {
+  if (!time) return '';
   const [hours, minutes] = time.split(':').map(Number);
   const period = hours >= 12 ? 'PM' : 'AM';
   const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-  return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+  return `${displayHours}:${(minutes || 0).toString().padStart(2, '0')} ${period}`;
 }
 
 /**
