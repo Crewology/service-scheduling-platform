@@ -2504,3 +2504,5 @@
 - [x] Fix analytics page blank screen - /provider/analytics route sets initialTab="analytics" but ProviderDashboard has no TabsContent with value="analytics"
 - [x] Fix invoice page: customer dropdown shows ID numbers instead of customer names
 - [x] Fix invoice page: selecting customer from dropdown should auto-populate their email
+- [x] Add search bar inside customer dropdown on invoice form for easy filtering
+- [x] Auto-populate customer billing address and phone number on invoice when selected from dropdown

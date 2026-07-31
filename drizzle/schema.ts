@@ -1114,6 +1114,8 @@ export const invoices = mysqlTable("invoices", {
   notes: text("notes"),
   customerEmail: varchar("customerEmail", { length: 320 }),
   customerName: varchar("customerName", { length: 255 }),
+  customerPhone: varchar("customerPhone", { length: 20 }),
+  customerAddress: text("customerAddress"),
   // For credit notes, reference the original invoice
   originalInvoiceId: int("originalInvoiceId"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

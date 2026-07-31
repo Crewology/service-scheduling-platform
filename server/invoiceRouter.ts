@@ -27,6 +27,8 @@ export const invoiceRouter = router({
       dueDate: z.string().optional(), // ISO date
       notes: z.string().optional(),
       customerEmail: z.string().email().optional(),
+      customerPhone: z.string().optional(),
+      customerAddress: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const provider = await getProviderByUserId(ctx.user.id);
@@ -40,6 +42,8 @@ export const invoiceRouter = router({
       // Look up customer details if existing customer selected
       let resolvedCustomerName = input.customerName || null;
       let resolvedCustomerEmail = input.customerEmail || null;
+      let resolvedCustomerPhone = input.customerPhone || null;
+      let resolvedCustomerAddress = input.customerAddress || null;
       if (input.customerId) {
         const customer = await getUserById(input.customerId);
         if (customer) {
@@ -49,6 +53,9 @@ export const invoiceRouter = router({
           }
           if (!resolvedCustomerEmail && customer.email) {
             resolvedCustomerEmail = customer.email;
+          }
+          if (!resolvedCustomerPhone && customer.phone) {
+            resolvedCustomerPhone = customer.phone;
           }
         }
       }
@@ -83,6 +90,8 @@ export const invoiceRouter = router({
           notes: input.notes || null,
           customerEmail: resolvedCustomerEmail,
           customerName: resolvedCustomerName,
+          customerPhone: resolvedCustomerPhone,
+          customerAddress: resolvedCustomerAddress,
           issueDate: new Date(),
           bookingId: null,
           promotionId: null,
@@ -121,12 +130,13 @@ export const invoiceRouter = router({
       customerFirstName: users.firstName,
       customerLastName: users.lastName,
       customerEmail: users.email,
+      customerPhone: users.phone,
     }).from(bookings)
       .leftJoin(users, eq(bookings.customerId, users.id))
       .where(eq(bookings.providerId, provider.id))
       .orderBy(desc(bookings.createdAt));
     // Deduplicate and resolve names
-    const seen = new Map<number, { id: number; name: string; email: string }>();
+    const seen = new Map<number, { id: number; name: string; email: string; phone: string }>();
     for (const r of results) {
       if (!seen.has(r.customerId)) {
         const name = r.customerName || 
@@ -136,6 +146,7 @@ export const invoiceRouter = router({
           id: r.customerId,
           name,
           email: r.customerEmail || "",
+          phone: r.customerPhone || "",
         });
       }
     }

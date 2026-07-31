@@ -22,6 +22,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 import {
   FileText,
   Plus,
@@ -33,6 +43,8 @@ import {
   Eye,
   Trash2,
   ArrowLeft,
+  Check,
+  ChevronsUpDown,
 } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -482,13 +494,17 @@ function CreateInvoiceForm({
   customers,
   onSuccess,
 }: {
-  customers: { id: number; name: string; email: string }[];
+  customers: { id: number; name: string; email: string; phone: string }[];
   onSuccess: () => void;
 }) {
   const [customerMode, setCustomerMode] = useState<"existing" | "new">(customers.length > 0 ? "existing" : "new");
   const [customerId, setCustomerId] = useState<string>("");
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [customerAddress, setCustomerAddress] = useState("");
+  const [customerSearchOpen, setCustomerSearchOpen] = useState(false);
+  const [customerSearch, setCustomerSearch] = useState("");
   const [taxRate, setTaxRate] = useState("0");
   const [dueDate, setDueDate] = useState("");
   const [notes, setNotes] = useState("");
@@ -561,6 +577,8 @@ function CreateInvoiceForm({
       dueDate: dueDate || undefined,
       notes: notes || undefined,
       customerEmail: customerEmail || undefined,
+      customerPhone: customerPhone || undefined,
+      customerAddress: customerAddress || undefined,
     });
   };
 
@@ -591,23 +609,56 @@ function CreateInvoiceForm({
         </div>
 
         {customerMode === "existing" && customers.length > 0 ? (
-          <Select value={customerId} onValueChange={(val) => {
-            setCustomerId(val);
-            const c = customers.find((c) => String(c.id) === val);
-            setCustomerEmail(c?.email || "");
-            setCustomerName(c?.name || "");
-          }}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a customer" />
-            </SelectTrigger>
-            <SelectContent>
-              {customers.map((c) => (
-                <SelectItem key={c.id} value={String(c.id)}>
-                  {c.name} {c.email ? `(${c.email})` : ""}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Popover open={customerSearchOpen} onOpenChange={setCustomerSearchOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={customerSearchOpen}
+                className="w-full justify-between font-normal"
+                type="button"
+              >
+                {customerId
+                  ? customers.find((c) => String(c.id) === customerId)?.name || "Select a customer"
+                  : "Select a customer..."}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+              <Command>
+                <CommandInput
+                  placeholder="Search customers..."
+                  value={customerSearch}
+                  onValueChange={setCustomerSearch}
+                />
+                <CommandList>
+                  <CommandEmpty>No customer found.</CommandEmpty>
+                  <CommandGroup>
+                    {customers.map((c) => (
+                      <CommandItem
+                        key={c.id}
+                        value={`${c.name} ${c.email}`}
+                        onSelect={() => {
+                          setCustomerId(String(c.id));
+                          setCustomerName(c.name || "");
+                          setCustomerEmail(c.email || "");
+                          setCustomerPhone(c.phone || "");
+                          setCustomerSearchOpen(false);
+                          setCustomerSearch("");
+                        }}
+                      >
+                        <Check className={cn("mr-2 h-4 w-4", customerId === String(c.id) ? "opacity-100" : "opacity-0")} />
+                        <div className="flex flex-col">
+                          <span className="font-medium">{c.name}</span>
+                          {c.email && <span className="text-xs text-muted-foreground">{c.email}</span>}
+                        </div>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         ) : (
           <div className="space-y-3">
             <div>
@@ -622,16 +673,40 @@ function CreateInvoiceForm({
         )}
       </div>
 
+      {/* Customer contact info */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <Label>Customer Email</Label>
+          <Input
+            type="email"
+            placeholder="customer@email.com"
+            value={customerEmail}
+            onChange={(e) => setCustomerEmail(e.target.value)}
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Required to send the invoice via email
+          </p>
+        </div>
+        <div>
+          <Label>Customer Phone</Label>
+          <Input
+            type="tel"
+            placeholder="(555) 123-4567"
+            value={customerPhone}
+            onChange={(e) => setCustomerPhone(e.target.value)}
+          />
+        </div>
+      </div>
       <div>
-        <Label>Customer Email (for sending invoice)</Label>
-        <Input
-          type="email"
-          placeholder="customer@email.com"
-          value={customerEmail}
-          onChange={(e) => setCustomerEmail(e.target.value)}
+        <Label>Billing Address</Label>
+        <Textarea
+          placeholder="Street address, city, state, zip"
+          value={customerAddress}
+          onChange={(e) => setCustomerAddress(e.target.value)}
+          rows={2}
         />
         <p className="text-xs text-muted-foreground mt-1">
-          Required to send the invoice via email
+          Auto-populated when selecting an existing customer
         </p>
       </div>
 
