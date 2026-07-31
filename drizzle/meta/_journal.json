@@ -407,6 +407,13 @@
       "when": 1785490559749,
       "tag": "0057_lucky_prodigy",
       "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "5",
+      "when": 1785491622411,
+      "tag": "0058_worried_felicia_hardy",
+      "breakpoints": true
     }
   ]
 }

@@ -345,6 +345,7 @@ export default function Invoices() {
             <InvoicePreview
               invoice={previewInvoice}
               providerName={provider?.businessName || user?.name || "Provider"}
+              providerLogoUrl={provider?.businessLogoUrl || undefined}
               providerAddress={provider ? [provider.addressLine1, provider.addressLine2, [provider.city, provider.state, provider.postalCode].filter(Boolean).join(", ")].filter(Boolean).join(", ") : undefined}
               providerPhone={user?.phone || undefined}
               providerEmail={user?.email || undefined}
@@ -371,6 +372,7 @@ export default function Invoices() {
 function InvoicePreview({
   invoice,
   providerName,
+  providerLogoUrl,
   providerAddress,
   providerPhone,
   providerEmail,
@@ -380,6 +382,7 @@ function InvoicePreview({
 }: {
   invoice: any;
   providerName: string;
+  providerLogoUrl?: string;
   providerAddress?: string;
   providerPhone?: string;
   providerEmail?: string;
@@ -396,6 +399,11 @@ function InvoicePreview({
     <div className="space-y-6">
       {/* Invoice header */}
       <div className="border rounded-lg p-6 bg-white">
+        {providerLogoUrl && (
+          <div className="mb-4">
+            <img src={providerLogoUrl} alt={`${providerName} logo`} className="h-14 w-auto object-contain" />
+          </div>
+        )}
         <div className="flex justify-between items-start mb-8">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">INVOICE</h2>

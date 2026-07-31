@@ -1322,6 +1322,42 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
     uploadProfilePhoto.mutate({ photoData: croppedBase64, contentType: contentType as "image/jpeg" | "image/png" | "image/webp" | "image/gif" });
   };
 
+  // Business logo upload
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const uploadBusinessLogo = trpc.provider.uploadBusinessLogo.useMutation({
+    onSuccess: () => {
+      utils.provider.getMyProfile.invalidate();
+      toast.success("Business logo updated!");
+    },
+    onError: (err: any) => toast.error(err.message || "Failed to upload logo"),
+  });
+  const removeBusinessLogo = trpc.provider.removeBusinessLogo.useMutation({
+    onSuccess: () => {
+      utils.provider.getMyProfile.invalidate();
+      toast.success("Business logo removed");
+    },
+    onError: (err: any) => toast.error(err.message || "Failed to remove logo"),
+  });
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Logo must be under 2MB");
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = (reader.result as string).split(",")[1];
+      uploadBusinessLogo.mutate({ photoData: base64, contentType: file.type });
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
   const removeProviderPhoto = trpc.provider.removeProfilePhoto.useMutation({
     onSuccess: () => {
       utils.provider.getMyProfile.invalidate();
@@ -2967,6 +3003,44 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
                     {removeProviderPhoto.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Remove"}
                   </Button>
                 )}
+              </div>
+            </div>
+            {/* Business Logo Upload */}
+            <div>
+              <Label>Business Logo</Label>
+              <p className="text-xs text-muted-foreground mb-2">Displayed on your invoices for a branded, professional look. Recommended: square image, under 2MB.</p>
+              <div className="flex items-center gap-4">
+                <div className="h-16 w-16 rounded-lg border border-border bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                  {(provider as any)?.businessLogoUrl ? (
+                    <img src={(provider as any).businessLogoUrl} alt="Business Logo" className="h-full w-full object-contain" />
+                  ) : (
+                    <span className="text-xs text-muted-foreground">No logo</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button type="button" variant="outline" size="sm" onClick={() => logoInputRef.current?.click()} disabled={uploadBusinessLogo.isPending}>
+                    {uploadBusinessLogo.isPending ? <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> Uploading...</> : "Upload Logo"}
+                  </Button>
+                  {(provider as any)?.businessLogoUrl && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => removeBusinessLogo.mutate()}
+                      disabled={removeBusinessLogo.isPending}
+                    >
+                      {removeBusinessLogo.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Remove"}
+                    </Button>
+                  )}
+                </div>
+                <input
+                  type="file"
+                  ref={logoInputRef}
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                />
               </div>
             </div>
             <div>

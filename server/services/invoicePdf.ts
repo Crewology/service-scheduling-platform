@@ -8,6 +8,7 @@ interface PdfData {
   providerEmail?: string;
   providerPhone?: string;
   providerAddress?: string;
+  providerLogoUrl?: string;
   customerName: string;
   customerEmail?: string;
 }
@@ -26,7 +27,20 @@ function formatDate(date: Date | string | null): string {
 }
 
 export async function generateInvoicePdf(data: PdfData): Promise<string> {
-  const { invoice, providerName, providerEmail, providerPhone, providerAddress, customerName, customerEmail } = data;
+  const { invoice, providerName, providerEmail, providerPhone, providerAddress, providerLogoUrl, customerName, customerEmail } = data;
+
+  // Fetch logo image buffer if URL is provided
+  let logoBuffer: Buffer | null = null;
+  if (providerLogoUrl) {
+    try {
+      const response = await fetch(providerLogoUrl);
+      if (response.ok) {
+        logoBuffer = Buffer.from(await response.arrayBuffer());
+      }
+    } catch (e) {
+      // Logo fetch failed, continue without it
+    }
+  }
 
   return new Promise<string>((resolve, reject) => {
     const doc = new PDFDocument({ size: "LETTER", margin: 50 });
@@ -45,10 +59,21 @@ export async function generateInvoicePdf(data: PdfData): Promise<string> {
     });
     doc.on("error", reject);
 
+    // Logo at top-left if available
+    let headerStartY = 50;
+    if (logoBuffer) {
+      try {
+        doc.image(logoBuffer, 50, 50, { height: 40, fit: [150, 40] });
+        headerStartY = 100;
+      } catch (e) {
+        // If logo image is invalid, skip it
+      }
+    }
+
     // Header
     const typeLabel = invoice.type === "receipt" ? "RECEIPT" : invoice.type === "credit_note" ? "CREDIT NOTE" : "INVOICE";
-    doc.fontSize(24).font("Helvetica-Bold").text(typeLabel, 50, 50);
-    doc.fontSize(10).font("Helvetica").text(invoice.invoiceNumber, 50, 80);
+    doc.fontSize(24).font("Helvetica-Bold").text(typeLabel, 50, headerStartY);
+    doc.fontSize(10).font("Helvetica").text(invoice.invoiceNumber, 50, headerStartY + 30);
 
     // Status badge
     const statusColors: Record<string, string> = {
@@ -60,23 +85,25 @@ export async function generateInvoicePdf(data: PdfData): Promise<string> {
       cancelled: "#9ca3af",
     };
     const statusColor = statusColors[invoice.status] || "#6b7280";
-    doc.fontSize(10).fillColor(statusColor).text(invoice.status.toUpperCase(), 450, 55, { align: "right" });
+    doc.fontSize(10).fillColor(statusColor).text(invoice.status.toUpperCase(), 450, headerStartY + 5, { align: "right" });
     doc.fillColor("#000000");
 
     // Provider info (right side)
-    doc.fontSize(10).font("Helvetica-Bold").text("From:", 400, 100);
-    doc.font("Helvetica").text(providerName, 400, 115);
-    if (providerEmail) doc.text(providerEmail, 400, 130);
-    if (providerPhone) doc.text(providerPhone, 400, 145);
-    if (providerAddress) doc.text(providerAddress, 400, 160);
+    const providerY = headerStartY + 50;
+    doc.fontSize(10).font("Helvetica-Bold").text("From:", 400, providerY);
+    doc.font("Helvetica").text(providerName, 400, providerY + 15);
+    let providerLineY = providerY + 30;
+    if (providerEmail) { doc.text(providerEmail, 400, providerLineY); providerLineY += 15; }
+    if (providerPhone) { doc.text(providerPhone, 400, providerLineY); providerLineY += 15; }
+    if (providerAddress) { doc.text(providerAddress, 400, providerLineY, { width: 160 }); providerLineY += 15; }
 
     // Customer info (left side)
-    doc.font("Helvetica-Bold").text("Bill To:", 50, 100);
-    doc.font("Helvetica").text(customerName, 50, 115);
-    if (customerEmail) doc.text(customerEmail, 50, 130);
+    doc.font("Helvetica-Bold").text("Bill To:", 50, providerY);
+    doc.font("Helvetica").text(customerName, 50, providerY + 15);
+    if (customerEmail) doc.text(customerEmail, 50, providerY + 30);
 
     // Dates
-    let dateY = 190;
+    let dateY = Math.max(providerLineY, providerY + 50) + 20;
     doc.font("Helvetica-Bold").text("Issue Date:", 50, dateY);
     doc.font("Helvetica").text(formatDate(invoice.issueDate), 130, dateY);
     if (invoice.dueDate) {

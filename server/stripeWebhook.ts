@@ -670,6 +670,7 @@ async function handleInvoicePayment(session: Stripe.Checkout.Session) {
         providerEmail: providerUser?.email || undefined,
         providerPhone: providerUser?.phone || undefined,
         providerAddress,
+        providerLogoUrl: provider?.businessLogoUrl || undefined,
         customerName,
         customerEmail: invoice.customerEmail || customer?.email || undefined,
       });
@@ -770,6 +771,7 @@ async function generateBookingReceipt(
       providerEmail: providerUser?.email || undefined,
       providerPhone: providerUser?.phone || undefined,
       providerAddress,
+      providerLogoUrl: provider?.businessLogoUrl || undefined,
       customerName,
       customerEmail: customer?.email || undefined,
     });

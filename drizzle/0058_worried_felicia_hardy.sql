@@ -1,0 +1,1 @@
+ALTER TABLE `service_providers` ADD `businessLogoUrl` varchar(500);

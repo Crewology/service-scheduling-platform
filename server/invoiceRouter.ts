@@ -233,6 +233,7 @@ export const invoiceRouter = router({
         providerEmail: providerUser?.email || undefined,
         providerPhone: providerUser?.phone || undefined,
         providerAddress,
+        providerLogoUrl: provider.businessLogoUrl || undefined,
         customerName,
         customerEmail,
       });
@@ -294,6 +295,7 @@ export const invoiceRouter = router({
         providerEmail: providerUser?.email || undefined,
         providerPhone: providerUser?.phone || undefined,
         providerAddress,
+        providerLogoUrl: provider.businessLogoUrl || undefined,
         customerName,
         customerEmail: invoice.customerEmail || customer?.email || undefined,
       });

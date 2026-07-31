@@ -905,6 +905,7 @@ export async function updateProviderProfile(providerId: number, data: {
   acceptsMobile?: boolean;
   acceptsFixedLocation?: boolean;
   acceptsVirtual?: boolean;
+  businessLogoUrl?: string | null;
 }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

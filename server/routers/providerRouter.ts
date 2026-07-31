@@ -1293,4 +1293,29 @@ export const providerRouter = router({
       });
       return { success: true };
     }),
+  // Business logo upload
+  uploadBusinessLogo: protectedProcedure
+    .input(z.object({
+      photoData: z.string(), // base64
+      contentType: z.string().default("image/png"),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider not found" });
+      const { storagePut } = await import("../storage");
+      const buffer = Buffer.from(input.photoData, "base64");
+      const ext = input.contentType.split("/")[1] || "png";
+      const suffix = Math.random().toString(36).substring(2, 10);
+      const fileKey = `business-logos/${provider.id}/${Date.now()}-${suffix}.${ext}`;
+      const { url } = await storagePut(fileKey, buffer, input.contentType);
+      await db.updateProviderProfile(provider.id, { businessLogoUrl: url });
+      return { url };
+    }),
+  removeBusinessLogo: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      const provider = await db.getProviderByUserId(ctx.user.id);
+      if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider not found" });
+      await db.updateProviderProfile(provider.id, { businessLogoUrl: null });
+      return { success: true };
+    }),
 });
