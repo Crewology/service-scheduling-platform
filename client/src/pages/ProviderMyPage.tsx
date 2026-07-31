@@ -238,6 +238,21 @@ export default function ProviderMyPage() {
               <CardContent className="space-y-2">
                 <div className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
                   <div>
+                    <p className="text-sm font-medium">Your Profile Page</p>
+                    <p className="text-xs text-muted-foreground">Your public profile link for sharing</p>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => {
+                    const url = provider.profileSlug
+                      ? `https://ologycrew.com/p/${provider.profileSlug}`
+                      : `https://ologycrew.com/p/${provider.id}`;
+                    navigator.clipboard.writeText(url);
+                    toast.success("Profile URL copied!");
+                  }}>
+                    <Copy className="w-3 h-3 mr-1" /> Copy URL
+                  </Button>
+                </div>
+                <div className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                  <div>
                     <p className="text-sm font-medium">All Services Widget</p>
                     <p className="text-xs text-muted-foreground">Shows all your services with a picker</p>
                   </div>
