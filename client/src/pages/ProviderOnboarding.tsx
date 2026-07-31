@@ -811,11 +811,11 @@ export default function ProviderOnboarding() {
   const allStepsComplete = stepComplete[1] && stepComplete[2] && stepComplete[3] && stepComplete[4] && stepComplete[5];
 
   useEffect(() => {
-    if (allStepsComplete && showOnboarding) {
+    if (allStepsComplete && existingProvider) {
       toast.success("Your profile is complete! Redirecting to your dashboard...");
       setTimeout(() => setLocation("/provider/dashboard"), 1500);
     }
-  }, [allStepsComplete, showOnboarding, setLocation]);
+  }, [allStepsComplete, existingProvider, setLocation]);
 
   // Initialize selected categories from existing data
   useMemo(() => {
