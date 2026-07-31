@@ -110,20 +110,33 @@ export function generateTimeSlots(
     const normalizedMinutes = minutes % (24 * 60);
     const slotTime = minutesToTime(normalizedMinutes);
     
-    // Check if this slot would allow the full service duration
-    if (minutes + serviceDurationMinutes > endMinutes) {
-      break; // Not enough time for service
+    // For long-duration services (4+ hours), don't enforce that the full duration
+    // fits within the schedule window — the provider may accept bookings that extend
+    // beyond their posted hours (e.g., production call times in entertainment industry).
+    // For shorter services, still enforce the duration fits within schedule.
+    const isLongService = serviceDurationMinutes >= 240; // 4+ hours
+    if (!isLongService && minutes + serviceDurationMinutes > endMinutes) {
+      break; // Not enough time for short service
+    }
+    // For long services past the schedule end, still show the slot but mark based on bookings only
+    if (isLongService && minutes >= endMinutes) {
+      break; // Don't go past schedule end time for slot start
     }
 
     // Count overlapping bookings for this time slot
     const slotStartMinutes = minutes;
-    const slotEndMinutes = minutes + serviceDurationMinutes;
+    // For long-duration services, only check if this specific start time conflicts
+    // with an existing booking (i.e., does any booking occupy this exact time?).
+    // We use a 30-min window so the slot is blocked only if a booking is actively
+    // happening at that time, not hours away.
+    const overlapWindow = isLongService ? 30 : serviceDurationMinutes;
+    const slotEndMinutes = minutes + overlapWindow;
     
     const bookingCount = countOverlappingBookings(
       activeBookings,
       slotStartMinutes,
       slotEndMinutes,
-      serviceDurationMinutes
+      overlapWindow
     );
 
     const spotsRemaining = Math.max(0, maxCapacity - bookingCount);

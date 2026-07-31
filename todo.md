@@ -2519,3 +2519,4 @@
 - [x] Fix provider onboarding page to auto-redirect to dashboard when all steps are 100% complete (for existing providers)
 - [x] Fix "All Services Widget" quick link preview — kept embed widget URL with proper OG tags, hardcoded ologycrew.com domain for all shareable links, and fixed fallback OG image for unmatched routes
 - [x] Fix embed widget crash when selecting a booked time slot — widgetRouter was returning undefined bookingTime (field was startTime in DB), added defensive guards in shared timeSlots utilities
+- [x] Fix long-duration services (4+ hrs) not showing all available time slots — removed duration-fits-in-schedule constraint for long services, use 30-min overlap window instead of full duration for conflict detection
