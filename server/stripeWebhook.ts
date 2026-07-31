@@ -118,11 +118,19 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     return;
   }
 
+  // Handle subscription checkouts (split is handled by invoice.payment_succeeded event)
+  if (session.metadata?.type === "provider_subscription" || session.metadata?.type === "customer_subscription") {
+    console.log(`[Stripe] Subscription checkout completed: ${session.metadata.type}, tier: ${session.metadata.tier || "unknown"}`);
+    // The revenue split for subscriptions is triggered by invoice.payment_succeeded
+    // which fires when the subscription invoice is paid (including the first payment)
+    return;
+  }
+
   const bookingId = session.metadata?.bookingId;
   const paymentType = session.metadata?.paymentType;
 
   if (!bookingId) {
-    console.error("[Stripe] No bookingId in session metadata");
+    console.log("[Stripe] No bookingId in session metadata, skipping (not a booking checkout)");
     return;
   }
 

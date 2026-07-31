@@ -350,6 +350,7 @@ export const subscriptionRouter = router({
           providerId: provider.id.toString(),
           userId: ctx.user.id.toString(),
           tier: input.tier,
+          type: "provider_subscription",
         },
         allow_promotion_codes: true,
       };
@@ -360,6 +361,7 @@ export const subscriptionRouter = router({
           metadata: {
             providerId: provider.id.toString(),
             tier: input.tier,
+            type: "provider_subscription",
           },
         };
       } else {
@@ -367,6 +369,7 @@ export const subscriptionRouter = router({
           metadata: {
             providerId: provider.id.toString(),
             tier: input.tier,
+            type: "provider_subscription",
           },
         };
       }

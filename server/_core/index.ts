@@ -62,8 +62,8 @@ async function startServer() {
     message: { error: "Too many requests, please try again later." },
     validate: { xForwardedForHeader: false },
     skip: (req) => {
-      // Skip rate limiting for auth routes - they have their own per-action rate limiting
-      return req.path.startsWith("/api/auth/");
+      // Skip rate limiting for auth routes and Stripe webhooks
+      return req.path.startsWith("/api/auth/") || req.path === "/api/stripe/webhook";
     },
   });
   const sensitiveLimiter = rateLimit({

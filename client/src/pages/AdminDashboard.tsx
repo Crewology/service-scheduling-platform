@@ -2757,6 +2757,33 @@ function UsersFilterPanel({ suspendUser, unsuspendUser }: { suspendUser: any; un
 // PARTNER REVENUE SPLIT PANEL
 // ============================================================================
 
+function WebhookStatusBanner() {
+  const { data: webhookStatus } = trpc.admin.getWebhookStatus.useQuery();
+  if (!webhookStatus) return null;
+  const isHealthy = webhookStatus.configured && webhookStatus.webhookSecretSet && webhookStatus.partnerAccountSet;
+  return (
+    <div className={`rounded-lg border p-3 flex items-center gap-3 ${isHealthy ? 'border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950' : 'border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950'}`}>
+      <div className={`h-2.5 w-2.5 rounded-full ${isHealthy ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
+      <div className="flex-1">
+        <p className={`text-sm font-medium ${isHealthy ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
+          {isHealthy ? 'Webhook Active' : 'Webhook Issue Detected'}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          {webhookStatus.endpoints?.[0]?.url || 'No endpoint configured'}
+          {webhookStatus.endpoints?.[0]?.enabledEvents && ` (${webhookStatus.endpoints[0].enabledEvents.length} events)`}
+        </p>
+      </div>
+      {!isHealthy && (
+        <div className="text-xs text-red-600 dark:text-red-400">
+          {!webhookStatus.configured && 'No webhook endpoint '}
+          {!webhookStatus.webhookSecretSet && 'Missing webhook secret '}
+          {!webhookStatus.partnerAccountSet && 'Missing partner account'}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PartnerSplitPanel() {
   const [dateRange, setDateRange] = useState<"all" | "this_month" | "last_month" | "this_quarter" | "last_quarter" | "this_year" | "custom">("all");
   const [customStart, setCustomStart] = useState("");
@@ -2899,6 +2926,9 @@ function PartnerSplitPanel() {
           </Button>
         </div>
       </div>
+
+      {/* Webhook Status */}
+      <WebhookStatusBanner />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

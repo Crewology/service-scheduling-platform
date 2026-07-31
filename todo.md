@@ -2515,3 +2515,4 @@
 - [x] Add sample branded invoice preview on the upgrade prompt page
 - [x] Redirect user back to invoice creation page after successful subscription upgrade
 - [x] Fix Basic→Premium upgrade to use existing card on file with proration instead of re-entering payment via Stripe Checkout
+- [x] Fix 60/40 revenue split between platform owners — splits not executing on Stripe and not reflecting in admin split tab
