@@ -348,11 +348,11 @@ function PublicProfileSection({ provider }: { provider: any }) {
   });
 
   const profileUrl = provider.profileSlug
-    ? `${window.location.origin}/p/${provider.profileSlug}`
+    ? `https://ologycrew.com/p/${provider.profileSlug}`
     : null;
   // Use the /api/og/ URL for sharing — this serves proper OG meta tags for social media previews
   const shareableUrl = provider.profileSlug
-    ? `${window.location.origin}/p/${provider.profileSlug}`
+    ? `https://ologycrew.com/p/${provider.profileSlug}`
     : null;
 
   const copyUrl = () => {
@@ -433,7 +433,7 @@ function PublicProfileSection({ provider }: { provider: any }) {
 
           {editingSlug ? (
             <div className="space-y-3">
-              <div className="text-sm text-muted-foreground">{window.location.origin}/p/</div>
+              <div className="text-sm text-muted-foreground">https://ologycrew.com/p/</div>
               <Input
                 value={slugInput}
                 onChange={(e) => setSlugInput(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
@@ -886,7 +886,7 @@ function ReferProviderCard() {
   const [copied, setCopied] = useState(false);
 
   const referralLink = myCode
-    ? `${window.location.origin}/provider/onboarding?ref=${myCode.code}`
+    ? `https://ologycrew.com/provider/onboarding?ref=${myCode.code}`
     : "";
 
   const copyLink = () => {
@@ -2880,15 +2880,12 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
                 <CardContent className="space-y-2">
                   <div className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
                     <div>
-                      <p className="text-sm font-medium">Your Provider Page</p>
-                      <p className="text-xs text-muted-foreground">Share your public profile with all services</p>
+                      <p className="text-sm font-medium">All Services Widget</p>
+                      <p className="text-xs text-muted-foreground">Shows all your services with a picker</p>
                     </div>
                     <Button variant="outline" size="sm" onClick={() => {
-                      const url = provider.profileSlug
-                        ? `${window.location.origin}/p/${provider.profileSlug}`
-                        : `${window.location.origin}/p/${provider.id}`;
-                      navigator.clipboard.writeText(url);
-                      toast.success("Profile URL copied!");
+                      navigator.clipboard.writeText(`https://ologycrew.com/embed/provider/${provider.id}`);
+                      toast.success("Widget URL copied!");
                     }}>
                       <Copy className="w-3 h-3 mr-1" /> Copy URL
                     </Button>

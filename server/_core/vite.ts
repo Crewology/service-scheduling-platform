@@ -32,6 +32,38 @@ async function injectOgTags(url: string, template: string, origin: string): Prom
     }
   }
 
+  // Embed widget pages (/embed/provider/:id) - reuse provider OG tags
+  if (!ogTags) {
+    const embedProviderMatch = url.match(/^\/embed\/provider\/(\d+)/);
+    if (embedProviderMatch) {
+      // Look up the provider's slug by ID to get their OG tags
+      try {
+        const { getProviderById } = await import("../db");
+        const provider = await getProviderById(parseInt(embedProviderMatch[1], 10));
+        if (provider?.profileSlug) {
+          ogTags = await getProviderOgTags(provider.profileSlug, origin);
+        } else if (provider) {
+          // Fallback: build basic OG tags for the provider
+          const businessName = provider.businessName || "Service Provider";
+          ogTags = [
+            `<meta property="og:title" content="Book Services from ${businessName} on OlogyCrew" />`,
+            `<meta property="og:description" content="Browse and book services from ${businessName}. Choose a service, pick a time, and book instantly." />`,
+            `<meta property="og:url" content="${origin}/embed/provider/${embedProviderMatch[1]}" />`,
+            `<meta property="og:type" content="website" />`,
+            `<meta property="og:site_name" content="OlogyCrew" />`,
+            `<meta name="twitter:card" content="summary_large_image" />`,
+            `<meta name="twitter:title" content="Book Services from ${businessName} on OlogyCrew" />`,
+            `<meta name="twitter:description" content="Browse and book services from ${businessName}. Choose a service, pick a time, and book instantly." />`,
+            `<meta property="og:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png" />`,
+            `<meta name="twitter:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png" />`,
+          ].join("\n    ");
+        }
+      } catch (e) {
+        console.error("[OG Tags] Error generating embed provider OG tags:", e);
+      }
+    }
+  }
+
   // Referral program page
   if (!ogTags && url.startsWith("/referral-program")) {
     ogTags = [
