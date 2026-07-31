@@ -2514,3 +2514,4 @@
 - [x] Customize upgrade prompt card with tier benefits (custom logos, auto-populated addresses, etc.)
 - [x] Add sample branded invoice preview on the upgrade prompt page
 - [x] Redirect user back to invoice creation page after successful subscription upgrade
+- [x] Fix Basic→Premium upgrade to use existing card on file with proration instead of re-entering payment via Stripe Checkout

@@ -277,25 +277,46 @@ export const subscriptionRouter = router({
       }
 
       const currentSub = await db.getProviderSubscription(provider.id);
-      if (currentSub?.status === "active" && currentSub.tier === input.tier && currentSub.stripeSubscriptionId) {
-        // Same tier but possibly different interval - redirect to changeBillingInterval logic
-        // Retrieve the Stripe subscription to check current interval
+
+      // Handle existing active subscribers with a Stripe subscription
+      if (currentSub?.status === "active" && currentSub.stripeSubscriptionId) {
         const stripeSub = await stripe.subscriptions.retrieve(currentSub.stripeSubscriptionId);
         const currentItem = stripeSub.items.data[0];
         const currentInterval = currentItem?.price.recurring?.interval as "month" | "year" || "month";
-        if (currentInterval === input.interval) {
+
+        if (currentSub.tier === input.tier && currentInterval === input.interval) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Already subscribed to this tier and interval" });
         }
-        // Different interval on same tier - update the subscription in-place with proration
-        const newPriceId = await getOrCreateStripePrice(input.tier, input.interval);
-        await stripe.subscriptions.update(currentSub.stripeSubscriptionId, {
-          items: [{
-            id: currentItem.id,
-            price: newPriceId,
-          }],
-          proration_behavior: "create_prorations",
-        });
-        return { url: null, message: `Switched to ${input.interval === "year" ? "annual" : "monthly"} billing. Proration applied.` };
+
+        // In-place update: same tier different interval, OR upgrade (basic→premium) with card on file
+        const tierOrder: Record<string, number> = { free: 0, basic: 1, premium: 2 };
+        const isUpgrade = tierOrder[input.tier] > tierOrder[currentSub.tier];
+        const isSameTierIntervalSwitch = currentSub.tier === input.tier && currentInterval !== input.interval;
+
+        if (isSameTierIntervalSwitch || isUpgrade) {
+          const newPriceId = await getOrCreateStripePrice(input.tier, input.interval);
+          await stripe.subscriptions.update(currentSub.stripeSubscriptionId, {
+            items: [{
+              id: currentItem.id,
+              price: newPriceId,
+            }],
+            proration_behavior: "create_prorations",
+          });
+
+          // Update local subscription record for tier upgrades
+          if (isUpgrade) {
+            await db.upsertProviderSubscription({
+              providerId: provider.id,
+              tier: input.tier,
+              status: "active",
+            });
+          }
+
+          const message = isUpgrade
+            ? `Upgraded to ${input.tier === "premium" ? "Business" : "Pro"}! Proration applied to your existing payment method.`
+            : `Switched to ${input.interval === "year" ? "annual" : "monthly"} billing. Proration applied.`;
+          return { url: null, message };
+        }
       }
 
       const priceId = await getOrCreateStripePrice(input.tier, input.interval);
