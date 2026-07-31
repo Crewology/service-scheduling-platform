@@ -51,7 +51,7 @@ const PLANS = [
       { text: "1 photo per service", included: true },
       { text: "Basic public profile", included: true },
       { text: "Standard search placement", included: true },
-      { text: "Invoicing & receipts", included: true },
+      { text: "Invoicing & branded receipts", included: false },
       { text: "Tip collection (Zelle, Cash App, Venmo)", included: true },
       { text: "1% transaction fee", included: true },
       { text: "Multiple categories", included: false },
@@ -204,12 +204,16 @@ export default function SubscriptionManagement() {
     onError: (err) => toast.error(err.message),
   });
 
+  // Extract returnTo from URL query params (e.g., /provider/subscription?returnTo=/provider/invoices)
+  const returnTo = new URLSearchParams(window.location.search).get("returnTo") || undefined;
+
   const handleSubscribe = (tier: string) => {
     if (tier === "free") return;
     setSubscribing(tier);
     subscribe.mutate({ 
       tier: tier as "basic" | "premium",
       interval: billingInterval,
+      returnTo,
     });
   };
 

@@ -2511,3 +2511,6 @@
 - [x] Auto-populate provider's business address and contact info on invoices for professional look
 - [x] Add company logo upload for providers to display at top of invoices
 - [x] Gate entire invoice feature behind paid subscription tiers (Basic/Premium only, block Free tier)
+- [x] Customize upgrade prompt card with tier benefits (custom logos, auto-populated addresses, etc.)
+- [x] Add sample branded invoice preview on the upgrade prompt page
+- [x] Redirect user back to invoice creation page after successful subscription upgrade

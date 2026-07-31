@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { NavHeader } from "@/components/shared/NavHeader";
@@ -81,6 +81,16 @@ export default function Invoices() {
   const invoices = invoiceData && 'invoices' in invoiceData ? (invoiceData as any).invoices : Array.isArray(invoiceData) ? invoiceData : [];
   const canUseInvoices = invoiceData && 'canUseInvoices' in invoiceData ? (invoiceData as any).canUseInvoices : true;
   const { data: provider } = trpc.provider.getMyProfile.useQuery();
+
+  // Show success toast if redirected back after subscription upgrade
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("status") === "upgraded") {
+      toast.success("Subscription upgraded! You now have full access to invoicing.");
+      // Clean the URL
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
   const { data: customersList } = trpc.invoice.getMyCustomers.useQuery(
     undefined,
     { enabled: !!provider && canUseInvoices !== false }
@@ -149,18 +159,198 @@ export default function Invoices() {
             </Button>
             <h1 className="text-2xl font-bold">Invoices</h1>
           </div>
-          <Card>
-            <CardContent className="p-12 text-center">
-              <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <FileText className="h-8 w-8 text-primary" />
+
+          {/* Benefits section */}
+          <Card className="mb-8">
+            <CardContent className="p-8 md:p-12">
+              <div className="text-center mb-8">
+                <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <FileText className="h-8 w-8 text-primary" />
+                </div>
+                <h2 className="text-2xl font-bold mb-2">Upgrade to Unlock Professional Invoicing</h2>
+                <p className="text-muted-foreground max-w-lg mx-auto">
+                  Send branded invoices, get paid faster, and keep your business looking professional.
+                </p>
               </div>
-              <h2 className="text-xl font-semibold mb-2">Upgrade to Unlock Invoicing</h2>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Create professional invoices, send them to customers, accept online payments, and track payment status. Available on Pro and Business plans.
-              </p>
-              <Button onClick={() => window.location.href = "/provider/subscription"}>
-                View Plans & Upgrade
-              </Button>
+
+              {/* Feature grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 max-w-2xl mx-auto">
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="mt-0.5 h-5 w-5 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                    <Check className="h-3 w-3 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">Custom Business Logo</p>
+                    <p className="text-xs text-muted-foreground">Upload your logo for branded invoices</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="mt-0.5 h-5 w-5 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                    <Check className="h-3 w-3 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">Auto-Populated Addresses</p>
+                    <p className="text-xs text-muted-foreground">Customer info fills in automatically</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="mt-0.5 h-5 w-5 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                    <Check className="h-3 w-3 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">One-Click Email Delivery</p>
+                    <p className="text-xs text-muted-foreground">Send invoices directly to customers</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="mt-0.5 h-5 w-5 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                    <Check className="h-3 w-3 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">Online Payment Links</p>
+                    <p className="text-xs text-muted-foreground">Customers pay directly from the invoice</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="mt-0.5 h-5 w-5 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                    <Check className="h-3 w-3 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">PDF Generation</p>
+                    <p className="text-xs text-muted-foreground">Download professional PDF invoices</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="mt-0.5 h-5 w-5 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                    <Check className="h-3 w-3 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">Payment Tracking</p>
+                    <p className="text-xs text-muted-foreground">Track sent, viewed, paid, and overdue status</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-center">
+                <Button size="lg" onClick={() => window.location.href = "/provider/subscription?returnTo=/provider/invoices"}>
+                  View Plans & Upgrade
+                </Button>
+                <p className="text-xs text-muted-foreground mt-2">Available on Basic and Premium plans</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Sample branded invoice preview */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Eye className="h-5 w-5 text-muted-foreground" />
+                Sample Branded Invoice Preview
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">Here's what your invoices could look like with a paid plan</p>
+            </CardHeader>
+            <CardContent>
+              <div className="border rounded-lg p-6 bg-white relative overflow-hidden">
+                {/* Watermark overlay */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                  <p className="text-6xl font-bold text-gray-100 rotate-[-30deg] select-none">SAMPLE</p>
+                </div>
+
+                {/* Sample logo */}
+                <div className="mb-4">
+                  <div className="h-12 w-32 bg-gradient-to-r from-primary/80 to-primary rounded-md flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">YOUR LOGO</span>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-start mb-8">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">INVOICE</h2>
+                    <p className="text-sm text-muted-foreground font-mono mt-1">INV-2026-001</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-lg">Your Business Name</p>
+                    <p className="text-sm text-muted-foreground">123 Main Street, Suite 100</p>
+                    <p className="text-sm text-muted-foreground">Atlanta, GA 30301</p>
+                    <p className="text-sm text-muted-foreground">(555) 123-4567</p>
+                    <p className="text-sm text-muted-foreground">you@yourbusiness.com</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-6 mb-8">
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Bill To</p>
+                    <p className="font-medium">Jane Smith</p>
+                    <p className="text-sm text-muted-foreground">jane.smith@email.com</p>
+                    <p className="text-sm text-muted-foreground">(555) 987-6543</p>
+                    <p className="text-sm text-muted-foreground">456 Oak Ave, Atlanta, GA 30302</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="space-y-1">
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Date</p>
+                        <p className="text-sm">July 31, 2026</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Due Date</p>
+                        <p className="text-sm">August 14, 2026</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sample line items */}
+                <div className="border rounded-md overflow-hidden mb-6">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="text-left px-4 py-2 font-medium">Description</th>
+                        <th className="text-center px-4 py-2 font-medium">Qty</th>
+                        <th className="text-right px-4 py-2 font-medium">Unit Price</th>
+                        <th className="text-right px-4 py-2 font-medium">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-t">
+                        <td className="px-4 py-2">Deep Cleaning Service - Full Home</td>
+                        <td className="px-4 py-2 text-center">1</td>
+                        <td className="px-4 py-2 text-right">$250.00</td>
+                        <td className="px-4 py-2 text-right">$250.00</td>
+                      </tr>
+                      <tr className="border-t">
+                        <td className="px-4 py-2">Carpet Steam Cleaning (3 rooms)</td>
+                        <td className="px-4 py-2 text-center">3</td>
+                        <td className="px-4 py-2 text-right">$75.00</td>
+                        <td className="px-4 py-2 text-right">$225.00</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Sample totals */}
+                <div className="flex justify-end">
+                  <div className="w-64 space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span>Subtotal</span>
+                      <span>$475.00</span>
+                    </div>
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>Tax (8%)</span>
+                      <span>$38.00</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-base border-t pt-2">
+                      <span>Total</span>
+                      <span>$513.00</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sample notes */}
+                <div className="mt-6 pt-4 border-t">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Notes</p>
+                  <p className="text-sm text-muted-foreground">Thank you for your business! Payment is due within 14 days.</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>

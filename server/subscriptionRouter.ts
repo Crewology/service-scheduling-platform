@@ -268,6 +268,7 @@ export const subscriptionRouter = router({
       tier: z.enum(["basic", "premium"]),
       interval: z.enum(["month", "year"]).default("month"),
       withTrial: z.boolean().default(false),
+      returnTo: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const provider = await db.getProviderByUserId(ctx.user.id);
@@ -318,8 +319,12 @@ export const subscriptionRouter = router({
         payment_method_types: ["card"],
         line_items: [{ price: priceId, quantity: 1 }],
         mode: "subscription",
-        success_url: `${ctx.req.headers.origin}/provider/dashboard?tab=subscription&status=success`,
-        cancel_url: `${ctx.req.headers.origin}/provider/dashboard?tab=subscription&status=cancelled`,
+        success_url: input.returnTo
+          ? `${ctx.req.headers.origin}${input.returnTo}?status=upgraded`
+          : `${ctx.req.headers.origin}/provider/dashboard?tab=subscription&status=success`,
+        cancel_url: input.returnTo
+          ? `${ctx.req.headers.origin}${input.returnTo}`
+          : `${ctx.req.headers.origin}/provider/dashboard?tab=subscription&status=cancelled`,
         metadata: {
           providerId: provider.id.toString(),
           userId: ctx.user.id.toString(),
