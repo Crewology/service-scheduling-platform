@@ -2508,3 +2508,4 @@
 - [x] Auto-populate customer billing address and phone number on invoice when selected from dropdown
 - [x] Add optional billing address fields to customer Account/Profile page with helper note
 - [x] Wire customer billing address to invoice auto-populate when provider selects customer
+- [x] Auto-populate provider's business address and contact info on invoices for professional look

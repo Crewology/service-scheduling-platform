@@ -345,6 +345,9 @@ export default function Invoices() {
             <InvoicePreview
               invoice={previewInvoice}
               providerName={provider?.businessName || user?.name || "Provider"}
+              providerAddress={provider ? [provider.addressLine1, provider.addressLine2, [provider.city, provider.state, provider.postalCode].filter(Boolean).join(", ")].filter(Boolean).join(", ") : undefined}
+              providerPhone={user?.phone || undefined}
+              providerEmail={user?.email || undefined}
               onSend={() => {
                 if (!previewInvoice.customerEmail && !(previewInvoice as any).customerName) {
                   toast.error("No customer email set — add an email to send");
@@ -368,12 +371,18 @@ export default function Invoices() {
 function InvoicePreview({
   invoice,
   providerName,
+  providerAddress,
+  providerPhone,
+  providerEmail,
   onSend,
   onClose,
   isSending,
 }: {
   invoice: any;
   providerName: string;
+  providerAddress?: string;
+  providerPhone?: string;
+  providerEmail?: string;
   onSend: () => void;
   onClose: () => void;
   isSending: boolean;
@@ -394,7 +403,15 @@ function InvoicePreview({
           </div>
           <div className="text-right">
             <p className="font-semibold text-lg">{providerName}</p>
-            <p className="text-sm text-muted-foreground">Service Provider</p>
+            {providerAddress && (
+              <p className="text-sm text-muted-foreground">{providerAddress}</p>
+            )}
+            {providerPhone && (
+              <p className="text-sm text-muted-foreground">{providerPhone}</p>
+            )}
+            {providerEmail && (
+              <p className="text-sm text-muted-foreground">{providerEmail}</p>
+            )}
           </div>
         </div>
 
@@ -404,6 +421,12 @@ function InvoicePreview({
             <p className="font-medium">{(invoice as any).customerName || "Customer"}</p>
             {invoice.customerEmail && (
               <p className="text-sm text-muted-foreground">{invoice.customerEmail}</p>
+            )}
+            {(invoice as any).customerPhone && (
+              <p className="text-sm text-muted-foreground">{(invoice as any).customerPhone}</p>
+            )}
+            {(invoice as any).customerAddress && (
+              <p className="text-sm text-muted-foreground">{(invoice as any).customerAddress}</p>
             )}
           </div>
           <div className="text-right">
