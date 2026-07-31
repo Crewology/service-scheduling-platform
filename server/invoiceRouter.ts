@@ -6,6 +6,19 @@ import { ENV } from "./_core/env";
 import * as invoiceDb from "./db/invoices";
 import { getProviderByUserId } from "./db/providers";
 import { getUserById } from "./db/users";
+import { getProviderTier } from "./db/payments";
+
+// Helper: check if provider has paid tier (Basic or Premium)
+async function requirePaidTier(providerId: number) {
+  const tier = await getProviderTier(providerId);
+  if (tier === "free") {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Invoicing is available for Pro and Business subscribers. Upgrade your plan to create and send invoices.",
+    });
+  }
+  return tier;
+}
 import { generateInvoicePdf } from "./services/invoicePdf";
 import { sendNotification } from "./notifications";
 
@@ -33,6 +46,7 @@ export const invoiceRouter = router({
     .mutation(async ({ ctx, input }) => {
       const provider = await getProviderByUserId(ctx.user.id);
       if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Provider profile required" });
+      await requirePaidTier(provider.id);
 
       // Must have either a system customer or a customer name
       if (!input.customerId && !input.customerName) {
@@ -118,17 +132,21 @@ export const invoiceRouter = router({
       return result;
     }),
 
-  // Provider: get all their invoices
+  // Provider: get all their invoices (paid tiers only)
   getMyInvoices: protectedProcedure.query(async ({ ctx }) => {
     const provider = await getProviderByUserId(ctx.user.id);
-    if (!provider) return [];
-    return invoiceDb.getInvoicesByProvider(provider.id);
+    if (!provider) return { invoices: [], tier: "free" as const, canUseInvoices: false };
+    const tier = await getProviderTier(provider.id);
+    if (tier === "free") return { invoices: [], tier: "free" as const, canUseInvoices: false };
+    const invoices = await invoiceDb.getInvoicesByProvider(provider.id);
+    return { invoices, tier, canUseInvoices: true };
   }),
 
-  // Provider: get unique customers for invoice form
+  // Provider: get unique customers for invoice form (paid tiers only)
   getMyCustomers: protectedProcedure.query(async ({ ctx }) => {
     const provider = await getProviderByUserId(ctx.user.id);
     if (!provider) return [];
+    await requirePaidTier(provider.id);
     const { getDb } = await import("./db/connection");
     const { bookings, users } = await import("../drizzle/schema");
     const { eq, desc } = await import("drizzle-orm");
@@ -205,12 +223,13 @@ export const invoiceRouter = router({
       return invoice;
     }),
 
-  // Provider: send invoice to customer (changes status to sent, generates PDF, emails)
+  // Provider: send invoice to customer (paid tiers only)
   send: protectedProcedure
     .input(z.object({ invoiceId: z.number() }))
     .mutation(async ({ ctx, input }) => {
       const provider = await getProviderByUserId(ctx.user.id);
       if (!provider) throw new TRPCError({ code: "FORBIDDEN" });
+      await requirePaidTier(provider.id);
 
       const invoice = await invoiceDb.getInvoiceById(input.invoiceId);
       if (!invoice) throw new TRPCError({ code: "NOT_FOUND" });
@@ -272,12 +291,13 @@ export const invoiceRouter = router({
       return { success: true, pdfUrl };
     }),
 
-  // Provider: generate PDF for any invoice (without sending)
+  // Provider: generate PDF for any invoice (paid tiers only)
   generatePdf: protectedProcedure
     .input(z.object({ invoiceId: z.number() }))
     .mutation(async ({ ctx, input }) => {
       const provider = await getProviderByUserId(ctx.user.id);
       if (!provider) throw new TRPCError({ code: "FORBIDDEN" });
+      await requirePaidTier(provider.id);
 
       const invoice = await invoiceDb.getInvoiceById(input.invoiceId);
       if (!invoice) throw new TRPCError({ code: "NOT_FOUND" });
@@ -343,12 +363,13 @@ export const invoiceRouter = router({
       return { url: session.url };
     }),
 
-  // Provider: mark invoice as paid manually (for cash/external payments)
+  // Provider: mark invoice as paid manually (paid tiers only)
   markPaid: protectedProcedure
     .input(z.object({ invoiceId: z.number() }))
     .mutation(async ({ ctx, input }) => {
       const provider = await getProviderByUserId(ctx.user.id);
       if (!provider) throw new TRPCError({ code: "FORBIDDEN" });
+      await requirePaidTier(provider.id);
 
       const invoice = await invoiceDb.getInvoiceById(input.invoiceId);
       if (!invoice) throw new TRPCError({ code: "NOT_FOUND" });
@@ -358,12 +379,13 @@ export const invoiceRouter = router({
       return { success: true };
     }),
 
-  // Provider: cancel an invoice
+  // Provider: cancel an invoice (paid tiers only)
   cancel: protectedProcedure
     .input(z.object({ invoiceId: z.number() }))
     .mutation(async ({ ctx, input }) => {
       const provider = await getProviderByUserId(ctx.user.id);
       if (!provider) throw new TRPCError({ code: "FORBIDDEN" });
+      await requirePaidTier(provider.id);
 
       const invoice = await invoiceDb.getInvoiceById(input.invoiceId);
       if (!invoice) throw new TRPCError({ code: "NOT_FOUND" });

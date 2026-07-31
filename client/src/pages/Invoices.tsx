@@ -77,11 +77,13 @@ export default function Invoices() {
   const [filter, setFilter] = useState<string>("all");
   const [previewInvoice, setPreviewInvoice] = useState<any>(null);
 
-  const { data: invoices, refetch } = trpc.invoice.getMyInvoices.useQuery();
+  const { data: invoiceData, refetch } = trpc.invoice.getMyInvoices.useQuery();
+  const invoices = invoiceData && 'invoices' in invoiceData ? (invoiceData as any).invoices : Array.isArray(invoiceData) ? invoiceData : [];
+  const canUseInvoices = invoiceData && 'canUseInvoices' in invoiceData ? (invoiceData as any).canUseInvoices : true;
   const { data: provider } = trpc.provider.getMyProfile.useQuery();
   const { data: customersList } = trpc.invoice.getMyCustomers.useQuery(
     undefined,
-    { enabled: !!provider }
+    { enabled: !!provider && canUseInvoices !== false }
   );
 
   const sendMutation = trpc.invoice.send.useMutation({
@@ -114,9 +116,9 @@ export default function Invoices() {
   });
 
   const filteredInvoices = useMemo(() => {
-    if (!invoices) return [];
+    if (!invoices || !invoices.length) return [];
     if (filter === "all") return invoices;
-    return invoices.filter((inv) => inv.status === filter);
+    return invoices.filter((inv: any) => inv.status === filter);
   }, [invoices, filter]);
 
   // Get unique customers from dedicated query
@@ -126,16 +128,45 @@ export default function Invoices() {
   }, [customersList]);
 
   const stats = useMemo(() => {
-    if (!invoices) return { total: 0, paid: 0, outstanding: 0, overdue: 0 };
+    if (!invoices || !invoices.length) return { total: 0, paid: 0, outstanding: 0, overdue: 0 };
     return {
       total: invoices.length,
-      paid: invoices.filter((i) => i.status === "paid").length,
-      outstanding: invoices.filter((i) => ["sent", "viewed"].includes(i.status)).length,
-      overdue: invoices.filter((i) => i.status === "overdue").length,
+      paid: invoices.filter((i: any) => i.status === "paid").length,
+      outstanding: invoices.filter((i: any) => ["sent", "viewed"].includes(i.status)).length,
+      overdue: invoices.filter((i: any) => i.status === "overdue").length,
     };
   }, [invoices]);
 
-
+  // Show upgrade prompt for free tier
+  if (canUseInvoices === false) {
+    return (
+      <div className="min-h-screen bg-background">
+        <NavHeader />
+        <div className="container max-w-5xl py-8">
+          <div className="flex items-center gap-3 mb-6">
+            <Button variant="ghost" size="icon" onClick={() => window.history.back()}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="text-2xl font-bold">Invoices</h1>
+          </div>
+          <Card>
+            <CardContent className="p-12 text-center">
+              <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <FileText className="h-8 w-8 text-primary" />
+              </div>
+              <h2 className="text-xl font-semibold mb-2">Upgrade to Unlock Invoicing</h2>
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                Create professional invoices, send them to customers, accept online payments, and track payment status. Available on Pro and Business plans.
+              </p>
+              <Button onClick={() => window.location.href = "/provider/subscription"}>
+                View Plans & Upgrade
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -228,7 +259,7 @@ export default function Invoices() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {filteredInvoices.map((inv) => {
+          {filteredInvoices.map((inv: any) => {
             const config = statusConfig[inv.status] || statusConfig.draft;
             const StatusIcon = config.icon;
             return (
