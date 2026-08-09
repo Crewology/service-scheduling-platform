@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { NavHeader } from "@/components/shared/NavHeader";
 
 function PasswordStrength({ password }: { password: string }) {
   const strength = useMemo(() => {
@@ -107,7 +108,9 @@ export default function ResetPassword() {
 
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 px-4 py-12">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+        <NavHeader />
+        <div className="flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md text-center">
           <Card className="shadow-lg border-0">
             <CardContent className="p-6 space-y-4">
@@ -122,6 +125,7 @@ export default function ResetPassword() {
             </CardContent>
           </Card>
         </div>
+        </div>
       </div>
     );
   }
@@ -129,7 +133,9 @@ export default function ResetPassword() {
   const passwordsMatch = password && confirmPassword && password === confirmPassword;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 px-4 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <NavHeader />
+      <div className="flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         {/* Logo/Brand */}
         <div className="text-center mb-8">
@@ -246,6 +252,7 @@ export default function ResetPassword() {
             )}
           </CardContent>
         </Card>
+    </div>
       </div>
     </div>
   );

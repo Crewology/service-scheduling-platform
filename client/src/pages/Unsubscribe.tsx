@@ -7,6 +7,7 @@ import { Mail, CheckCircle, AlertCircle, Loader2, ShieldAlert, Bell, Calendar, M
 import { Link } from "wouter";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { NavHeader } from "@/components/shared/NavHeader";
 
 const EMAIL_TYPES = [
   { key: "bookingEmail" as const, label: "Booking Updates", description: "Confirmations, cancellations, and status changes", icon: Calendar },
@@ -76,14 +77,15 @@ export default function Unsubscribe() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <><NavHeader /><div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
+      </div></>
     );
   }
 
   if (!prefs && !unsubscribed) {
     return (
+      <><NavHeader />
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardContent className="py-12 text-center">
@@ -99,11 +101,13 @@ export default function Unsubscribe() {
           </CardContent>
         </Card>
       </div>
+      </>
     );
   }
 
   if (unsubscribed) {
     return (
+      <><NavHeader />
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardContent className="py-12 text-center">
@@ -124,12 +128,14 @@ export default function Unsubscribe() {
           </CardContent>
         </Card>
       </div>
+      </>
     );
   }
 
   // ── Confirmation step for unsubscribe all ──
   if (showConfirm) {
     return (
+      <><NavHeader />
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <Card className="max-w-md w-full border-amber-200">
           <CardHeader className="text-center">
@@ -170,6 +176,7 @@ export default function Unsubscribe() {
           </CardContent>
         </Card>
       </div>
+      </>
     );
   }
 
@@ -177,6 +184,7 @@ export default function Unsubscribe() {
   const enabledCount = Object.values(localPrefs).filter(Boolean).length;
 
   return (
+    <><NavHeader />
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <Card className="max-w-lg w-full">
         <CardHeader className="text-center">
@@ -251,5 +259,6 @@ export default function Unsubscribe() {
         </CardContent>
       </Card>
     </div>
+    </>
   );
 }

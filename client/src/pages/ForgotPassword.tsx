@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { NavHeader } from "@/components/shared/NavHeader";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -40,7 +41,9 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 px-4 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <NavHeader />
+      <div className="flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         {/* Logo/Brand */}
         <div className="text-center mb-8">
@@ -125,6 +128,7 @@ export default function ForgotPassword() {
             )}
           </CardContent>
         </Card>
+    </div>
       </div>
     </div>
   );
