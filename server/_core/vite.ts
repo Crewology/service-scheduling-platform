@@ -16,6 +16,19 @@ async function injectOgTags(url: string, template: string, origin: string): Prom
     ogTags = await getProviderOgTags(providerMatch[1], origin);
   }
 
+  // Clean provider profile URLs (/:slug) — check after /p/ but before other routes
+  if (!ogTags) {
+    const cleanSlugMatch = url.match(/^\/([a-z0-9][a-z0-9-]*[a-z0-9])(?:[/?#]|$)/);
+    if (cleanSlugMatch) {
+      // Only treat as provider slug if it's not a known app route
+      const knownRoutes = ['login','signup','forgot-password','reset-password','verify-email','select-role','browse','featured','search','category','provider','service','booking','bulk-booking','monthly-planner','my-bookings','messages','dm','admin','my-reviews','profile','notifications','notification-settings','unsubscribe','embed','receipts','referrals','saved-providers','my-quotes','my-waitlist','pricing','customer','analytics','privacy','terms','help','referral-program','404'];
+      const slug = cleanSlugMatch[1];
+      if (!knownRoutes.includes(slug) && !slug.startsWith('p/')) {
+        ogTags = await getProviderOgTags(slug, origin);
+      }
+    }
+  }
+
   // Service detail pages (/service/:id)
   if (!ogTags) {
     const serviceMatch = url.match(/^\/service\/(\d+)/);

@@ -333,7 +333,7 @@ function PublicProfileSection({ provider }: { provider: any }) {
   const generateSlug = trpc.provider.generateSlug.useMutation({
     onSuccess: (data) => {
       utils.provider.getMyProfile.invalidate();
-      toast.success(`Profile URL created: /p/${data.slug}`);
+      toast.success(`Profile URL created: /${data.slug}`);
     },
     onError: (err) => toast.error(err.message),
   });
@@ -342,17 +342,17 @@ function PublicProfileSection({ provider }: { provider: any }) {
     onSuccess: (data) => {
       utils.provider.getMyProfile.invalidate();
       setEditingSlug(false);
-      toast.success(`Profile URL updated to /p/${data.slug}`);
+      toast.success(`Profile URL updated to /${data.slug}`);
     },
     onError: (err) => toast.error(err.message),
   });
 
   const profileUrl = provider.profileSlug
-    ? `https://ologycrew.com/p/${provider.profileSlug}`
+    ? `https://ologycrew.com/${provider.profileSlug}`
     : null;
   // Use the /api/og/ URL for sharing — this serves proper OG meta tags for social media previews
   const shareableUrl = provider.profileSlug
-    ? `https://ologycrew.com/p/${provider.profileSlug}`
+    ? `https://ologycrew.com/${provider.profileSlug}`
     : null;
 
   const copyUrl = () => {
@@ -416,7 +416,7 @@ function PublicProfileSection({ provider }: { provider: any }) {
             <Button variant="outline" size="icon" onClick={copyUrl} title="Copy link">
               <Copy className="w-4 h-4" />
             </Button>
-            <Link href={`/p/${provider.profileSlug}`} target="_blank">
+            <Link href={`/${provider.profileSlug}`} target="_blank">
               <Button variant="outline" size="icon" title="Preview">
                 <ExternalLink className="w-4 h-4" />
               </Button>
@@ -433,7 +433,7 @@ function PublicProfileSection({ provider }: { provider: any }) {
 
           {editingSlug ? (
             <div className="space-y-3">
-              <div className="text-sm text-muted-foreground">https://ologycrew.com/p/</div>
+              <div className="text-sm text-muted-foreground">https://ologycrew.com/</div>
               <Input
                 value={slugInput}
                 onChange={(e) => setSlugInput(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
@@ -2885,8 +2885,8 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
                     </div>
                     <Button variant="outline" size="sm" onClick={() => {
                       const url = provider.profileSlug
-                        ? `https://ologycrew.com/p/${provider.profileSlug}`
-                        : `https://ologycrew.com/p/${provider.id}`;
+                        ? `https://ologycrew.com/${provider.profileSlug}`
+                        : `https://ologycrew.com/${provider.id}`;
                       navigator.clipboard.writeText(url);
                       toast.success("Profile URL copied!");
                     }}>

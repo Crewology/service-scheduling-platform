@@ -167,6 +167,7 @@ function Router() {
       <Route path="/help" component={HelpCenter} />
       <Route path="/referral-program" component={ReferralProgram} />
       <Route path="/404" component={NotFound} />
+      <Route path="/:slug" component={PublicProviderProfile} />
       <Route component={NotFound} />
     </Switch>
   );

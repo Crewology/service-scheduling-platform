@@ -30,7 +30,7 @@ export default function ProviderMyPage() {
   const generateSlug = trpc.provider.generateSlug.useMutation({
     onSuccess: (data) => {
       utils.provider.getMyProfile.invalidate();
-      toast.success(`Profile URL created: /p/${data.slug}`);
+      toast.success(`Profile URL created: /${data.slug}`);
     },
     onError: (err: any) => toast.error(err.message),
   });
@@ -39,7 +39,7 @@ export default function ProviderMyPage() {
     onSuccess: (data) => {
       utils.provider.getMyProfile.invalidate();
       setEditingSlug(false);
-      toast.success(`Profile URL updated to /p/${data.slug}`);
+      toast.success(`Profile URL updated to /${data.slug}`);
     },
     onError: (err: any) => toast.error(err.message),
   });
@@ -73,10 +73,10 @@ export default function ProviderMyPage() {
   }
 
   const profileUrl = provider.profileSlug
-    ? `https://ologycrew.com/p/${provider.profileSlug}`
+    ? `https://ologycrew.com/${provider.profileSlug}`
     : null;
   const shareableUrl = provider.profileSlug
-    ? `https://ologycrew.com/p/${provider.profileSlug}`
+    ? `https://ologycrew.com/${provider.profileSlug}`
     : null;
 
   const copyUrl = () => {
@@ -144,7 +144,7 @@ export default function ProviderMyPage() {
                   <Button variant="outline" size="icon" onClick={copyUrl} title="Copy link">
                     <Copy className="w-4 h-4" />
                   </Button>
-                  <Link href={`/p/${provider.profileSlug}`} target="_blank">
+                  <Link href={`/${provider.profileSlug}`} target="_blank">
                     <Button variant="outline" size="icon" title="Preview">
                       <ExternalLink className="w-4 h-4" />
                     </Button>
@@ -160,7 +160,7 @@ export default function ProviderMyPage() {
 
                 {editingSlug ? (
                   <div className="space-y-3">
-                    <div className="text-sm text-muted-foreground">https://ologycrew.com/p/</div>
+                    <div className="text-sm text-muted-foreground">https://ologycrew.com/</div>
                     <Input
                       value={slugInput}
                       onChange={(e) => setSlugInput(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
@@ -253,8 +253,8 @@ export default function ProviderMyPage() {
                   </div>
                   <Button variant="outline" size="sm" onClick={() => {
                     const url = provider.profileSlug
-                      ? `https://ologycrew.com/p/${provider.profileSlug}`
-                      : `https://ologycrew.com/p/${provider.id}`;
+                      ? `https://ologycrew.com/${provider.profileSlug}`
+                      : `https://ologycrew.com/${provider.id}`;
                     navigator.clipboard.writeText(url);
                     toast.success("Profile URL copied!");
                   }}>

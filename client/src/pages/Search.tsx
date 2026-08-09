@@ -462,7 +462,7 @@ export default function Search() {
                     </h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {filteredProviders.map((provider: any) => (
-                        <Link key={provider.id} href={`/p/${provider.profileSlug || provider.slug}`}>
+                        <Link key={provider.id} href={`/${provider.profileSlug || provider.slug}`}>
                           <Card className="hover:shadow-md transition-shadow cursor-pointer border-primary/20 hover:border-primary/40">
                             <CardContent className="p-4">
                               <div className="flex items-start gap-3">

@@ -397,7 +397,7 @@ function UserMenuDropdown({ user }: { user: any }) {
           </Link>
           {providerProfile?.profileSlug && (
             <Link
-              href={`/p/${providerProfile.profileSlug}`}
+              href={`/${providerProfile.profileSlug}`}
               className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors"
               onClick={() => setOpen(false)}
             >

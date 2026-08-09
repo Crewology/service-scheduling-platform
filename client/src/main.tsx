@@ -53,7 +53,12 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
   const isPublicPage = publicPaths.includes(currentPath) ||
     currentPath.startsWith("/embed/") ||
     currentPath.startsWith("/p/") ||
-    currentPath.startsWith("/unsubscribe/");
+    currentPath.startsWith("/unsubscribe/") ||
+    currentPath.startsWith("/category/") ||
+    currentPath.startsWith("/service/") ||
+    currentPath.startsWith("/featured") ||
+    // Clean provider profile URLs: single-segment paths like /chisolm-audio
+    (/^\/[a-z0-9][a-z0-9-]*$/.test(currentPath) && !['provider','admin','messages','my-bookings','profile','notifications','analytics','referrals','receipts','my-reviews','my-quotes','my-waitlist'].includes(currentPath.slice(1)));
 
   if (isPublicPage) return;
 

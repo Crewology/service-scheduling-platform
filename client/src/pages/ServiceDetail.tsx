@@ -850,7 +850,7 @@ export default function ServiceDetail() {
             {(fromProvider || provider) && (
               <>
                 <ChevronRight className="h-3.5 w-3.5" />
-                <Link href={`/p/${fromProvider || provider?.profileSlug || provider?.id}`} className="hover:text-foreground transition-colors truncate max-w-[180px]">
+                <Link href={`/${fromProvider || provider?.profileSlug || provider?.id}`} className="hover:text-foreground transition-colors truncate max-w-[180px]">
                   {provider?.businessName || "Provider"}
                 </Link>
               </>

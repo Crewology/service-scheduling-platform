@@ -370,7 +370,7 @@ export default function CategoryDetail() {
                 <Card key={providerId} className="overflow-hidden">
                   {/* Provider Header */}
                   <CardHeader className="bg-muted/30 border-b">
-                    <Link href={provider.profileSlug ? `/p/${provider.profileSlug}` : "#"}>
+                    <Link href={provider.profileSlug ? `/${provider.profileSlug}` : "#"}>
                       <div className="flex items-center gap-3 sm:gap-4 cursor-pointer hover:opacity-80 transition-opacity min-w-0">
                         <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                           {provider.profilePhotoUrl ? (
@@ -509,7 +509,7 @@ export default function CategoryDetail() {
                         {prov && <FavoriteButton providerId={prov.id} />}
                       </div>
                       {prov && (
-                        <Link href={prov.profileSlug ? `/p/${prov.profileSlug}` : "#"}>
+                        <Link href={prov.profileSlug ? `/${prov.profileSlug}` : "#"}>
                           <div className="flex items-center gap-2 mt-1 cursor-pointer hover:opacity-80 transition-opacity">
                             {prov.profilePhotoUrl ? (
                               <img src={prov.profilePhotoUrl} alt={prov.businessName} className="w-6 h-6 rounded-full object-cover flex-shrink-0" />

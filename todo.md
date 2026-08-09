@@ -2528,3 +2528,5 @@
 - [x] Add "Get your own page" CTA on public provider pages for visitor conversion
 - [ ] Update OG tags and images for social sharing to reflect new brand messaging
 - [x] Update OG tags and images for social sharing to reflect new brand messaging
+- [ ] Change provider profile URLs from /p/slug to top-level /Slug (e.g. ologycrew.com/GaryChisolmAudio) for a cleaner business identity
+- [x] Change provider profile URLs from /p/slug to top-level /slug (e.g. ologycrew.com/chisolm-audio) for a cleaner business identity — /p/ kept for backward compat

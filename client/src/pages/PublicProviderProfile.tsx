@@ -520,7 +520,7 @@ export default function PublicProviderProfile() {
                 <FavoriteButton providerId={provider.id} />
                 {/* Share Button */}
                 <ShareProfile
-                  url={`/p/${provider.profileSlug || params.slug}`}
+                  url={`/${provider.profileSlug || params.slug}`}
                   
                   title={provider.businessName || "Provider"}
                   description={provider.description || `Book services from ${provider.businessName} on OlogyCrew`}

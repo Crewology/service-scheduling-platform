@@ -34,14 +34,14 @@ export function ShareProfile({
 
   // The canonical URL (what users see, copy, and share)
   const fullUrl = url.startsWith("http") ? url : `${window.location.origin}${url}`;
-  // Use the clean canonical URL for all sharing — /p/slug already has OG tags via SSR
+  // Use the clean canonical URL for all sharing — /slug already has OG tags via SSR
   const socialUrl = fullUrl;
   const encodedUrl = encodeURIComponent(socialUrl);
   const encodedTitle = encodeURIComponent(title);
   const encodedDesc = encodeURIComponent(description || title);
 
   const handleCopyLink = async () => {
-    // Copy the clean canonical URL — OG tags are served via SSR on the /p/ route
+    // Copy the clean canonical URL — OG tags are served via SSR on the top-level route
     const copyTarget = fullUrl;
     try {
       await navigator.clipboard.writeText(copyTarget);

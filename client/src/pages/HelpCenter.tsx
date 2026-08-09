@@ -284,7 +284,7 @@ const guideSections: GuideSection[] = [
       {
         title: "Your Public Profile",
         content:
-          "Every provider gets a public profile page that customers can view. It shows your services, reviews, portfolio, availability, and business information. Pro and Business subscribers can customize their profile URL slug for a more professional look (e.g., /p/your-business-name). When you share your profile link on social media (Facebook, Twitter/X, LinkedIn, etc.), a rich preview card is automatically generated with your business name, description, and photo — making your profile look professional and clickable.",
+          "Every provider gets a public profile page that customers can view. It shows your services, reviews, portfolio, availability, and business information. Pro and Business subscribers can customize their profile URL slug for a more professional look (e.g., /your-business-name). When you share your profile link on social media (Facebook, Twitter/X, LinkedIn, etc.), a rich preview card is automatically generated with your business name, description, and photo — making your profile look professional and clickable.",
       },
       {
         title: "Provider & Customer View Switcher",

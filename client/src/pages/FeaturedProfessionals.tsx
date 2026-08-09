@@ -148,7 +148,7 @@ export default function FeaturedProfessionals() {
                 {featured.map((item: any) => {
                   const tierInfo = TIER_LABELS[item.promotion.tier] || TIER_LABELS.quick_boost;
                   const providerUrl = item.provider.profileSlug
-                    ? `/p/${item.provider.profileSlug}`
+                    ? `/${item.provider.profileSlug}`
                     : `/provider/${item.provider.id}`;
                   const fullProviderUrl = typeof window !== "undefined"
                     ? `${window.location.origin}${providerUrl}`

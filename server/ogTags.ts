@@ -21,7 +21,7 @@ export async function getProviderOgTags(slug: string, origin: string): Promise<s
 
     const businessName = escapeHtml(provider.businessName || "Provider");
     const title = `${businessName} on OlogyCrew`;
-    const url = `${origin}/p/${slug}`;
+    const url = `${origin}/${slug}`;
 
     // Build description from available data
     const parts: string[] = [];

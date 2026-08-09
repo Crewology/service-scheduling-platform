@@ -35,7 +35,7 @@ export async function handleOgPage(req: Request, res: Response) {
       case "provider":
       case "p":
         ogTags = await getProviderOgTags(id, origin);
-        canonicalPath = `/p/${id}`;
+        canonicalPath = `/${id}`;
         break;
       case "service":
         ogTags = await getServiceOgTags(parseInt(id, 10), origin);

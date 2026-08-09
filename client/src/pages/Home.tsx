@@ -485,7 +485,7 @@ function FeaturedProviders() {
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {featured.slice(0, 6).map((item: any) => (
-            <Link key={item.promotion.id} href={item.provider.profileSlug ? `/p/${item.provider.profileSlug}` : `/provider/${item.provider.id}`}>
+            <Link key={item.promotion.id} href={item.provider.profileSlug ? `/${item.provider.profileSlug}` : `/provider/${item.provider.id}`}>
               <Card className="hover:shadow-lg transition-all cursor-pointer group overflow-hidden">
                 <div className="h-1.5 bg-gradient-to-r from-purple-500 to-pink-500" />
                 <CardContent className="p-5">

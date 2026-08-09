@@ -154,7 +154,7 @@ export default function PromotionDetail() {
 
   const { promotion, provider, service } = data;
   const tierInfo = TIER_LABELS[promotion.tier] || TIER_LABELS.quick_boost;
-  const providerUrl = provider.profileSlug ? `/p/${provider.profileSlug}` : `/provider/${provider.id}`;
+  const providerUrl = provider.profileSlug ? `/${provider.profileSlug}` : `/provider/${provider.id}`;
   const shareTitle = `${promotion.headline} — ${provider.businessName} on OlogyCrew`;
   const promoDescription = promotion.description || "";
 

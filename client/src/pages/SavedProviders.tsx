@@ -541,7 +541,7 @@ export default function SavedProviders() {
                             </div>
                           )}
                           <div>
-                            <Link href={fav.profileSlug ? `/p/${fav.profileSlug}` : "#"}>
+                            <Link href={fav.profileSlug ? `/${fav.profileSlug}` : "#"}>
                               <h3 className="font-semibold hover:text-primary transition-colors cursor-pointer">
                                 {fav.businessName}
                               </h3>
@@ -650,7 +650,7 @@ export default function SavedProviders() {
                       )}
 
                       <div className="mt-4">
-                        <Link href={fav.profileSlug ? `/p/${fav.profileSlug}` : "#"}>
+                        <Link href={fav.profileSlug ? `/${fav.profileSlug}` : "#"}>
                           <Button variant="outline" size="sm" className="w-full">View Profile</Button>
                         </Link>
                       </div>
