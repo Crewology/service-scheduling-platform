@@ -2526,3 +2526,5 @@
 - [x] Reframe provider onboarding language as "building your digital home"
 - [x] Add prominent "Share your OlogyCrew link" section to provider dashboard with usage suggestions
 - [x] Add "Get your own page" CTA on public provider pages for visitor conversion
+- [ ] Update OG tags and images for social sharing to reflect new brand messaging
+- [x] Update OG tags and images for social sharing to reflect new brand messaging

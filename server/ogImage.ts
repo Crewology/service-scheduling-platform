@@ -815,11 +815,10 @@ export async function generateHomepageOgImage(): Promise<string | null> {
   try {
     const fontData = await loadFont();
 
-    // Popular category labels to show as "chips"
+    // Feature highlights to show as "chips"
     const categoryChips = [
-      "Barber", "Massage", "Photography", "Handyman",
-      "DJ & Music", "Fitness", "Home Cleaning", "Auto Detailing",
-      "Event Planning", "Pet Care", "Tech Support", "Salon",
+      "Profile", "Services", "Booking", "Payments",
+      "Invoicing", "Scheduling", "Reviews", "Analytics",
     ];
 
     const element = {
@@ -924,7 +923,7 @@ export async function generateHomepageOgImage(): Promise<string | null> {
                 maxWidth: "900px",
                 marginBottom: "12px",
               },
-              children: "Find Trusted Service Professionals",
+              children: "Your Business. Your Customers. Your Money.",
             },
           },
           // Subtitle
@@ -939,7 +938,7 @@ export async function generateHomepageOgImage(): Promise<string | null> {
                 marginBottom: "36px",
                 lineHeight: "1.4",
               },
-              children: "Book instantly. Pay securely. Get the job done right.",
+              children: "The digital home for your business. Get discovered. Get booked. Get paid.",
             },
           },
           // Category chips - Row 1
@@ -1024,7 +1023,7 @@ export async function generateHomepageOgImage(): Promise<string | null> {
                       color: "rgba(148, 163, 184, 0.8)",
                       letterSpacing: "1px",
                     },
-                    children: "48+ SERVICE CATEGORIES  •  VERIFIED PROVIDERS  •  SECURE PAYMENTS",
+                    children: "NO GATEKEEPING  •  48+ CATEGORIES  •  FREE TO START  •  ologycrew.com",
                   },
                 },
               ],

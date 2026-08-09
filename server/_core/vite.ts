@@ -85,14 +85,14 @@ async function injectOgTags(url: string, template: string, origin: string): Prom
   // Provider onboarding referral page (/provider/onboarding?ref=...)
   if (!ogTags && url.startsWith("/provider/onboarding")) {
     ogTags = [
-      `<meta property="og:title" content="Join OlogyCrew as a Service Provider" />`,
-      `<meta property="og:description" content="Start your business on OlogyCrew. Reach new customers, manage bookings, accept secure payments, and grow your service business. Sign up today!" />`,
+      `<meta property="og:title" content="Build Your Digital Home on OlogyCrew" />`,
+      `<meta property="og:description" content="Your business deserves a digital home. Get discovered, get booked, get paid — no gatekeeping, no lead fees. Set up your profile in minutes." />`,
       `<meta property="og:url" content="${origin}/provider/onboarding" />`,
       `<meta property="og:type" content="website" />`,
       `<meta property="og:site_name" content="OlogyCrew" />`,
       `<meta name="twitter:card" content="summary_large_image" />`,
-      `<meta name="twitter:title" content="Join OlogyCrew as a Service Provider" />`,
-      `<meta name="twitter:description" content="Start your business on OlogyCrew. Reach new customers, manage bookings, accept secure payments, and grow your service business." />`,
+      `<meta name="twitter:title" content="Build Your Digital Home on OlogyCrew" />`,
+      `<meta name="twitter:description" content="Your business deserves a digital home. Get discovered, get booked, get paid — no gatekeeping, no lead fees." />`,
       `<meta property="og:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-compressed_d69712f3.jpg" />`,
       `<meta property="og:image:width" content="1200" />`,
       `<meta property="og:image:height" content="630" />`,
@@ -103,14 +103,14 @@ async function injectOgTags(url: string, template: string, origin: string): Prom
   // Signup referral page (/signup?ref=...)
   if (!ogTags && url.startsWith("/signup")) {
     ogTags = [
-      `<meta property="og:title" content="Join OlogyCrew — Book Trusted Service Professionals" />`,
-      `<meta property="og:description" content="Sign up for OlogyCrew and get access to 48+ service categories. Book trusted professionals, pay securely, and get the job done right." />`,
+      `<meta property="og:title" content="Join OlogyCrew — The Digital Home for Your Business" />`,
+      `<meta property="og:description" content="Get discovered, get booked, get paid. OlogyCrew gives you a professional profile, booking system, and payment infrastructure — all in one place." />`,
       `<meta property="og:url" content="${origin}/signup" />`,
       `<meta property="og:type" content="website" />`,
       `<meta property="og:site_name" content="OlogyCrew" />`,
       `<meta name="twitter:card" content="summary_large_image" />`,
-      `<meta name="twitter:title" content="Join OlogyCrew — Book Trusted Service Professionals" />`,
-      `<meta name="twitter:description" content="Sign up for OlogyCrew and get access to 48+ service categories. Book trusted professionals, pay securely, and get the job done right." />`,
+      `<meta name="twitter:title" content="Join OlogyCrew — The Digital Home for Your Business" />`,
+      `<meta name="twitter:description" content="Get discovered, get booked, get paid. OlogyCrew gives you a professional profile, booking system, and payment infrastructure — all in one place." />`,
       `<meta property="og:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-compressed_d69712f3.jpg" />`,
       `<meta property="og:image:width" content="1200" />`,
       `<meta property="og:image:height" content="630" />`,
@@ -126,14 +126,14 @@ async function injectOgTags(url: string, template: string, origin: string): Prom
   // Fallback OG tags for any page that doesn't have specific ones
   if (!ogTags) {
     ogTags = [
-      `<meta property="og:title" content="OlogyCrew \u2014 Service Scheduling Platform" />`,
-      `<meta property="og:description" content="Find and book trusted service professionals near you. 48+ categories, instant booking, secure payments." />`,
+      `<meta property="og:title" content="OlogyCrew \u2014 The Digital Home for Your Business" />`,
+      `<meta property="og:description" content="Your business. Your customers. Your money. Get discovered, get booked, get paid — no gatekeeping." />`,
       `<meta property="og:url" content="${origin}${url.split('?')[0]}" />`,
       `<meta property="og:type" content="website" />`,
       `<meta property="og:site_name" content="OlogyCrew" />`,
       `<meta name="twitter:card" content="summary" />`,
-      `<meta name="twitter:title" content="OlogyCrew \u2014 Service Scheduling Platform" />`,
-      `<meta name="twitter:description" content="Find and book trusted service professionals near you. 48+ categories, instant booking, secure payments." />`,
+      `<meta name="twitter:title" content="OlogyCrew \u2014 The Digital Home for Your Business" />`,
+      `<meta name="twitter:description" content="Your business. Your customers. Your money. Get discovered, get booked, get paid — no gatekeeping." />`,
       `<meta property="og:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png" />`,
       `<meta property="og:image:width" content="200" />`,
       `<meta property="og:image:height" content="50" />`,

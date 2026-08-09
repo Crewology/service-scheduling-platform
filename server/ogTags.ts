@@ -159,8 +159,8 @@ export async function getCategoryOgTags(categorySlug: string, origin: string): P
  * Build OG meta tag HTML for the homepage.
  */
 export async function getHomepageOgTags(origin: string): Promise<string> {
-  const title = "OlogyCrew — Book Trusted Service Professionals";
-  const description = "Find and book trusted service professionals for barbering, auto detailing, fitness, photography, home services, and more. Browse categories, compare providers, and schedule appointments instantly.";
+  const title = "OlogyCrew — The Digital Home for Your Business";
+  const description = "Your business. Your customers. Your money. Get discovered, build your profile, get booked, get paid, send invoices, and keep your customers — all in one place. No gatekeeping.";
 
   // Try to get/generate branded homepage OG image
   let imageUrl: string = OLOGYCREW_LOGO;
