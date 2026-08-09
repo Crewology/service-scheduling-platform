@@ -2530,3 +2530,4 @@
 - [x] Update OG tags and images for social sharing to reflect new brand messaging
 - [ ] Change provider profile URLs from /p/slug to top-level /Slug (e.g. ologycrew.com/GaryChisolmAudio) for a cleaner business identity
 - [x] Change provider profile URLs from /p/slug to top-level /slug (e.g. ologycrew.com/chisolm-audio) for a cleaner business identity — /p/ kept for backward compat
+- [x] Add Accountants, Attorneys & Legal Services, and Catering & Food Services categories (IDs 219-221) with emojis 🧮 ⚖️ 🍴

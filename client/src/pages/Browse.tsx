@@ -23,6 +23,9 @@ const CATEGORY_ICONS: Record<number, string> = {
   216: "📣",
   210: "🕉️",
   218: "🌱",
+  219: "🧮",
+  220: "⚖️",
+  221: "🍴",
 };
 
 export default function Browse() {
