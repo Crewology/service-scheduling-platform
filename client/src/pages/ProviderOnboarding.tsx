@@ -308,15 +308,15 @@ function WhyBecomeProvider({ onGetStarted }: { onGetStarted: () => void }) {
           <div className="text-center max-w-3xl mx-auto">
             <Badge variant="secondary" className="mb-4 px-4 py-1.5 text-sm font-medium">
               <Rocket className="h-3.5 w-3.5 mr-1.5" />
-              Join OlogyCrew as a Provider
+              Build Your Digital Home
             </Badge>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight">
-              Turn Your Skills Into a
-              <span className="text-primary block sm:inline"> Thriving Business</span>
+              Your Business Deserves a
+              <span className="text-primary block sm:inline"> Digital Home</span>
             </h1>
             <p className="text-lg sm:text-xl text-muted-foreground mt-4 max-w-2xl mx-auto leading-relaxed">
-              OlogyCrew gives you everything you need to offer your services, manage bookings, 
-              and get paid — all in one place. No upfront costs, no commitments.
+              Get discovered. Get booked. Get paid. OlogyCrew gives you a professional profile, 
+              booking system, and payment infrastructure — no gatekeeping, no lead fees.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
               <Button size="lg" className="text-base px-8" onClick={onGetStarted}>
@@ -939,9 +939,9 @@ export default function ProviderOnboarding() {
       <div className="container max-w-4xl py-8 overflow-visible">
         {/* Header with overall progress */}
         <div className="text-center mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold">Set Up Your Provider Profile</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Build Your Digital Home</h1>
           <p className="text-muted-foreground mt-2">
-            Show the world everything you can do — add all your skills and services
+            Set up your profile, list your services, and start getting booked — all in one place
           </p>
           {/* Overall completion percentage */}
           <div className="mt-4 max-w-xs mx-auto">

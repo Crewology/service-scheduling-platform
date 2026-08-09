@@ -2520,3 +2520,9 @@
 - [x] Fix "All Services Widget" quick link preview — kept embed widget URL with proper OG tags, hardcoded ologycrew.com domain for all shareable links, and fixed fallback OG image for unmatched routes
 - [x] Fix embed widget crash when selecting a booked time slot — widgetRouter was returning undefined bookingTime (field was startTime in DB), added defensive guards in shared timeSlots utilities
 - [x] Fix long-duration services (4+ hrs) not showing all available time slots — removed duration-fits-in-schedule constraint for long services, use 30-min overlap window instead of full duration for conflict detection
+- [ ] Rewrite homepage hero and sections with "digital home for your business" positioning and comparison table
+- [x] Rewrite homepage hero and sections with "digital home for your business" positioning and comparison table
+- [x] Update pricing/plans page with "No Gatekeeping" philosophy lead-in
+- [x] Reframe provider onboarding language as "building your digital home"
+- [x] Add prominent "Share your OlogyCrew link" section to provider dashboard with usage suggestions
+- [x] Add "Get your own page" CTA on public provider pages for visitor conversion

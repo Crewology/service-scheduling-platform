@@ -3,17 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
-import { Search, Calendar, Shield, Star, ArrowRight, CheckCircle2, User, Gift, Trophy, TrendingUp, Users, Award, ShieldCheck, Sparkles, MapPin } from "lucide-react";
+import { Search, Calendar, Star, ArrowRight, CheckCircle2, User, Gift, Trophy, TrendingUp, Users, Award, ShieldCheck, Sparkles, MapPin, Globe, CreditCard, FileText, Clock, UserCheck, Link2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
 import { NavHeader } from "@/components/shared/NavHeader";
 import LoggedInHome from "@/pages/LoggedInHome";
-
-
-
-
-
 
 // Category emoji map for visual pop
 const CATEGORY_ICONS: Record<number, string> = {
@@ -24,13 +19,7 @@ const CATEGORY_ICONS: Record<number, string> = {
   168: "🚙", 169: "🛠️", 199: "🎪", 158: "🎯", 73: "🍽️", 12: "💪",
   11: "🐾", 17: "📸", 148: "💦", 26: "📅", 8: "💅", 194: "☀️",
   198: "💻", 19: "🎥", 155: "📱", 201: "🖥️", 205: "🌐", 211: "🔧",
-  212: "⚡",
-  213: "❄️",
-  214: "🪚",
-  215: "🏠",
-  216: "📣",
-  210: "🕉️",
-  218: "🌱",
+  212: "⚡", 213: "❄️", 214: "🪚", 215: "🏠", 216: "📣", 210: "🕉️", 218: "🌱",
 };
 
 export default function Home() {
@@ -44,14 +33,12 @@ export default function Home() {
     const refCode = params.get("ref");
     if (refCode) {
       localStorage.setItem("customer_referral_code", refCode.toUpperCase().trim());
-      // Clean the URL without reloading
       const url = new URL(window.location.href);
       url.searchParams.delete("ref");
       window.history.replaceState({}, "", url.pathname + url.search);
     }
   }, []);
   const { data: categories } = trpc.category.list.useQuery();
-
 
   const { data: myProviderProfile } = trpc.provider.getMyProfile.useQuery(undefined, {
     enabled: isAuthenticated,
@@ -77,26 +64,32 @@ export default function Home() {
       <NavHeader />
 
       {/* Hero Section */}
-      <section className="py-12 sm:py-16 md:py-32 bg-gradient-to-br from-primary/5 via-background to-accent/5">
+      <section className="py-14 sm:py-20 md:py-32 bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.4\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }}></div>
         <div className="container">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-6 text-balance">
-              Find Trusted Service Professionals{" "}
-              <span className="gradient-text">Near You</span>
+          <div className="max-w-4xl mx-auto text-center relative">
+            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white/90 rounded-full px-4 py-1.5 text-sm font-medium mb-6 border border-white/20">
+              <Globe className="h-4 w-4" />
+              The digital home for your business
+            </div>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-6 text-balance text-white">
+              Your Business.{" "}
+              <span className="text-blue-300">Your Customers.</span>{" "}
+              <span className="text-emerald-300">Your Money.</span>
             </h1>
-            <p className="text-base sm:text-lg md:text-2xl text-muted-foreground mb-8 md:mb-10 text-balance">
-              Connect with skilled providers across 48+ service categories. Book instantly, pay securely, and get the job done right.
+            <p className="text-base sm:text-lg md:text-2xl text-white/70 mb-8 md:mb-10 text-balance max-w-3xl mx-auto">
+              Get discovered. Build your profile. Get booked. Get paid. Send invoices. Manage your time. Keep your customers.
             </p>
             
             {/* Search Bar */}
             <div className="max-w-2xl mx-auto">
-              <div className="flex flex-col sm:flex-row gap-2 shadow-medium rounded-lg bg-white p-2">
+              <div className="flex flex-col sm:flex-row gap-2 shadow-2xl rounded-lg bg-white p-2">
                 <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                   <Input
                     type="text"
                     placeholder="What service do you need?"
-                    className="pl-10 border-0 focus-visible:ring-0 text-base sm:text-lg h-12"
+                    className="pl-10 border-0 focus-visible:ring-0 text-base sm:text-lg h-12 text-slate-900"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -108,10 +101,10 @@ export default function Home() {
               </div>
               
               <div className="mt-4 flex flex-wrap gap-2 justify-center">
-                <span className="text-sm text-muted-foreground">Popular:</span>
+                <span className="text-sm text-white/60">Popular:</span>
                 {["Handyman", "Massage", "Barber", "Photography", "Cleaning"].map((service) => (
                   <Link key={service} href={`/search?q=${encodeURIComponent(service)}`}>
-                    <Button variant="outline" size="sm" className="rounded-full">
+                    <Button variant="outline" size="sm" className="rounded-full bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white">
                       {service}
                     </Button>
                   </Link>
@@ -122,69 +115,191 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-12 sm:py-16 md:py-20 bg-white">
+      {/* "One Place" Value Proposition Section */}
+      <section className="py-14 sm:py-16 md:py-24 bg-white">
         <div className="container">
-          <div className="text-center mb-10 sm:mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4">Why Choose OlogyCrew?</h2>
-            <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-              The simplest way to book professional services with confidence
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">Why are you sending your customers all over the internet?</h2>
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
+              Stop juggling Google, Calendly, Stripe, QuickBooks, and a dozen other tools. Put the entire business relationship in one place.
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card className="border-2 hover:border-primary transition-colors shadow-soft">
-              <CardContent className="p-6 sm:p-8 text-center">
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
-                  <Award className="h-8 w-8 text-primary" />
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
+            <div className="flex items-start gap-4 p-5 rounded-xl bg-slate-50 border border-slate-100">
+              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+                <UserCheck className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-base mb-1">Your Profile</h3>
+                <p className="text-sm text-muted-foreground">A professional page that works like a digital business card</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4 p-5 rounded-xl bg-slate-50 border border-slate-100">
+              <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+                <Globe className="h-5 w-5 text-emerald-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-base mb-1">Your Services</h3>
+                <p className="text-sm text-muted-foreground">List what you offer with pricing, duration, and descriptions</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4 p-5 rounded-xl bg-slate-50 border border-slate-100">
+              <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
+                <Clock className="h-5 w-5 text-purple-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-base mb-1">Your Availability</h3>
+                <p className="text-sm text-muted-foreground">Set your schedule and let customers book open slots</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4 p-5 rounded-xl bg-slate-50 border border-slate-100">
+              <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+                <Calendar className="h-5 w-5 text-amber-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-base mb-1">Your Bookings</h3>
+                <p className="text-sm text-muted-foreground">Manage appointments, confirmations, and follow-ups</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4 p-5 rounded-xl bg-slate-50 border border-slate-100">
+              <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
+                <CreditCard className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-base mb-1">Your Payments</h3>
+                <p className="text-sm text-muted-foreground">Get paid securely — money goes straight to your bank</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4 p-5 rounded-xl bg-slate-50 border border-slate-100">
+              <div className="w-10 h-10 rounded-lg bg-rose-100 flex items-center justify-center shrink-0">
+                <FileText className="h-5 w-5 text-rose-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-base mb-1">Your Invoices</h3>
+                <p className="text-sm text-muted-foreground">Send branded invoices and track payment status</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Profile URL callout */}
+          <div className="mt-12 max-w-3xl mx-auto text-center">
+            <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-2xl p-6 sm:p-8 border border-slate-200">
+              <h3 className="text-lg sm:text-xl font-bold mb-2">Your OlogyCrew URL becomes the front door</h3>
+              <p className="text-sm text-muted-foreground mb-4">Put it in your Google profile, Instagram bio, business cards, email signature, or QR code</p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <div className="bg-white rounded-lg px-4 py-2.5 border border-slate-200 font-mono text-sm sm:text-base text-slate-700 shadow-sm">
+                  ologycrew.com/<span className="text-blue-600 font-semibold">YourBusinessName</span>
                 </div>
-                <h3 className="text-xl sm:text-2xl font-bold mb-3">Trust-Rated Providers</h3>
-                <p className="text-muted-foreground">
-                  Every provider earns trust badges based on completed bookings, customer reviews, and profile quality — so you can book with confidence.
-                </p>
-                <div className="flex items-center justify-center gap-2 mt-4">
-                  <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-blue-100 text-blue-700"><TrendingUp className="h-3 w-3" /> Rising</span>
-                  <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-green-100 text-green-700"><ShieldCheck className="h-3 w-3" /> Trusted</span>
-                  <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-amber-100 text-amber-700"><Trophy className="h-3 w-3" /> Top Pro</span>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="border-2 hover:border-primary transition-colors shadow-soft">
-              <CardContent className="p-6 sm:p-8 text-center">
-                <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-6">
-                  <Calendar className="h-8 w-8 text-accent" />
-                </div>
-                <h3 className="text-xl sm:text-2xl font-bold mb-3">Easy Booking</h3>
-                <p className="text-muted-foreground">
-                  Check real-time availability, book instantly, and manage everything from your dashboard.
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="border-2 hover:border-primary transition-colors shadow-soft">
-              <CardContent className="p-6 sm:p-8 text-center">
-                <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-6">
-                  <Star className="h-8 w-8 text-success" />
-                </div>
-                <h3 className="text-xl sm:text-2xl font-bold mb-3">Secure Payments</h3>
-                <p className="text-muted-foreground">
-                  Pay securely with escrow protection. Money is only released when you're satisfied.
-                </p>
-              </CardContent>
-            </Card>
+              </div>
+              <p className="text-xs text-muted-foreground mt-3">See → Learn → Book → Pay → Receive invoice → Contact → Return</p>
+            </div>
           </div>
         </div>
       </section>
 
+      {/* Comparison Table Section */}
+      <section className="py-14 sm:py-16 md:py-20 bg-slate-50">
+        <div className="container">
+          <div className="text-center mb-10 sm:mb-14">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">Everything in one place</h2>
+            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
+              Other platforms give you a piece. OlogyCrew gives you the whole picture.
+            </p>
+          </div>
+
+          <div className="max-w-4xl mx-auto overflow-x-auto">
+            <table className="w-full text-sm border-collapse bg-white rounded-xl overflow-hidden shadow-soft">
+              <thead>
+                <tr className="bg-slate-800 text-white">
+                  <th className="text-left p-4 font-semibold">Platform</th>
+                  <th className="text-left p-4 font-semibold">What it does</th>
+                  <th className="text-left p-4 font-semibold">What you get</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-slate-100">
+                  <td className="p-4 font-medium text-slate-700">Google</td>
+                  <td className="p-4 text-muted-foreground">Discovery</td>
+                  <td className="p-4 text-muted-foreground">A listing</td>
+                </tr>
+                <tr className="border-b border-slate-100 bg-slate-50/50">
+                  <td className="p-4 font-medium text-slate-700">Yelp</td>
+                  <td className="p-4 text-muted-foreground">Discovery + Reviews</td>
+                  <td className="p-4 text-muted-foreground">A listing</td>
+                </tr>
+                <tr className="border-b border-slate-100">
+                  <td className="p-4 font-medium text-slate-700">Calendly</td>
+                  <td className="p-4 text-muted-foreground">Scheduling</td>
+                  <td className="p-4 text-muted-foreground">A scheduling page</td>
+                </tr>
+                <tr className="border-b border-slate-100 bg-slate-50/50">
+                  <td className="p-4 font-medium text-slate-700">Stripe / Square</td>
+                  <td className="p-4 text-muted-foreground">Payments</td>
+                  <td className="p-4 text-muted-foreground">Payment infrastructure</td>
+                </tr>
+                <tr className="bg-blue-50 border-2 border-blue-200">
+                  <td className="p-4 font-bold text-blue-900">OlogyCrew</td>
+                  <td className="p-4 font-medium text-blue-800">Discovery + Profile + Booking + Payments + Invoicing</td>
+                  <td className="p-4 font-bold text-blue-900">A business presence and operating system</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {/* No Gatekeeping Philosophy Section */}
+      <section className="py-14 sm:py-16 md:py-20 bg-white">
+        <div className="container">
+          <div className="max-w-4xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-10 items-center">
+              <div>
+                <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-800 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
+                  <ShieldCheck className="h-4 w-4" />
+                  No Gatekeeping
+                </div>
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
+                  OlogyCrew isn't here to become your business. We're here to help you build yours.
+                </h2>
+                <p className="text-muted-foreground text-base sm:text-lg">
+                  We provide the infrastructure. You own the relationship.
+                </p>
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-red-50 border border-red-100">
+                  <span className="text-red-500 font-bold text-lg mt-0.5">✕</span>
+                  <p className="font-medium text-red-900 text-sm">We don't make you pay to be visible</p>
+                </div>
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-red-50 border border-red-100">
+                  <span className="text-red-500 font-bold text-lg mt-0.5">✕</span>
+                  <p className="font-medium text-red-900 text-sm">We don't make you buy leads</p>
+                </div>
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-red-50 border border-red-100">
+                  <span className="text-red-500 font-bold text-lg mt-0.5">✕</span>
+                  <p className="font-medium text-red-900 text-sm">We don't make you compete for placement</p>
+                </div>
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-red-50 border border-red-100">
+                  <span className="text-red-500 font-bold text-lg mt-0.5">✕</span>
+                  <p className="font-medium text-red-900 text-sm">We don't make you surrender the customer relationship</p>
+                </div>
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-emerald-50 border border-emerald-200">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 mt-0.5 shrink-0" />
+                  <p className="font-medium text-emerald-900 text-sm">We give you the tools to manage the relationship yourself</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Categories Section */}
       <section className="py-12 sm:py-16 md:py-20 bg-muted/30">
         <div className="container">
           <div className="text-center mb-10 sm:mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4">Explore Service Categories</h2>
-            <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Browse our 48+ professional service categories
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">Explore 48+ Service Categories</h2>
+            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
+              Find professionals across every industry — from audio engineers to wellness coaches
             </p>
           </div>
           
@@ -217,7 +332,6 @@ export default function Home() {
         </div>
       </section>
 
-
       {/* Featured Providers Section */}
       <FeaturedProviders />
 
@@ -230,8 +344,8 @@ export default function Home() {
                 <Gift className="h-4 w-4" />
                 Referral Program
               </div>
-              <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4">Refer & Earn Rewards</h2>
-              <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">Refer & Earn Rewards</h2>
+              <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
                 Share OlogyCrew with friends and service providers. Earn credits toward your next booking with every successful referral.
               </p>
             </div>
@@ -308,22 +422,18 @@ export default function Home() {
       </section>
 
       {/* CTA Section for Providers */}
-      <section className="py-8 sm:py-10 relative overflow-hidden">
+      <section className="py-10 sm:py-14 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/90 to-blue-600"></div>
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.4\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }}></div>
         <div className="container relative">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="text-white">
-              <h2 className="text-2xl sm:text-3xl font-bold mb-2">
-                Ready to Grow Your Business?
-              </h2>
-              <p className="text-sm sm:text-base opacity-90 flex flex-wrap items-center gap-x-4 gap-y-1">
-                <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4" /> Flexible scheduling</span>
-                <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4" /> Secure payments</span>
-                <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4" /> Build your reputation</span>
-              </p>
-            </div>
-            <div className="flex-shrink-0">
+          <div className="max-w-3xl mx-auto text-center text-white">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3">
+              Ready to build your digital home?
+            </h2>
+            <p className="text-base sm:text-lg opacity-90 mb-6">
+              Join thousands of service professionals who manage their entire business on OlogyCrew
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               {isAuthenticated && myProviderProfile ? (
                 <Link href="/provider/dashboard">
                   <Button size="lg" className="bg-white text-primary hover:bg-white/90 font-semibold shadow-lg shadow-black/20 px-8">
@@ -332,19 +442,24 @@ export default function Home() {
                   </Button>
                 </Link>
               ) : (
-                <Link href="/pricing">
-                  <Button size="lg" className="bg-white text-primary hover:bg-white/90 font-semibold shadow-lg shadow-black/20 px-8 animate-pulse hover:animate-none">
-                    Become a Provider
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
+                <>
+                  <Link href="/pricing">
+                    <Button size="lg" className="bg-white text-primary hover:bg-white/90 font-semibold shadow-lg shadow-black/20 px-8">
+                      Get Started Free
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  </Link>
+                  <Link href="/browse">
+                    <Button size="lg" variant="outline" className="border-white/40 text-white hover:bg-white/10 hover:text-white px-8">
+                      Browse Services
+                    </Button>
+                  </Link>
+                </>
               )}
             </div>
           </div>
         </div>
       </section>
-
-
     </div>
   );
 }

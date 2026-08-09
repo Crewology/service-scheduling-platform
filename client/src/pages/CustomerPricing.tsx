@@ -304,9 +304,13 @@ export default function CustomerPricing() {
       <div className="container py-12 max-w-6xl mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold mb-3">Plans That Grow With You</h1>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Whether you're providing services or booking them — choose the plan that fits your needs.
+          <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-800 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
+            <Shield className="h-4 w-4" />
+            No Gatekeeping
+          </div>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3">Your business. Your profile. Your customers. Your money.</h1>
+          <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto">
+            OlogyCrew provides the infrastructure — you own the relationship. Choose the plan that fits where you are today.
           </p>
         </div>
 
@@ -367,8 +371,8 @@ export default function CustomerPricing() {
         {audience === "provider" && (
           <>
             <div className="text-center mb-8">
-              <p className="text-sm text-muted-foreground max-w-xl mx-auto">
-                Grow your business on OlogyCrew. All plans include booking management, customer messaging, and secure payments with just a 1% transaction fee.
+              <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
+                Build your digital home on OlogyCrew. All plans include your own profile page, booking management, customer messaging, and secure payments — no lead fees, no gatekeeping.
               </p>
             </div>
 

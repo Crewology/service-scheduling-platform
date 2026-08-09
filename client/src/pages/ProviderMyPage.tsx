@@ -134,7 +134,7 @@ export default function ProviderMyPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Your Profile Link</CardTitle>
-                <CardDescription>Share this URL with clients, on social media, or on your business cards</CardDescription>
+                <CardDescription>This is your digital business card — share it everywhere</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-2">
@@ -189,6 +189,16 @@ export default function ProviderMyPage() {
                     <Pencil className="w-3 h-3 mr-1" /> Customize URL
                   </Button>
                 )}
+
+                {/* Where to share suggestions */}
+                <div className="pt-3 border-t border-border">
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Put this link in your:</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {["Google Profile", "Instagram Bio", "Facebook Page", "Business Cards", "Email Signature", "QR Code"].map((place) => (
+                      <span key={place} className="text-xs bg-muted px-2 py-1 rounded-md text-muted-foreground">{place}</span>
+                    ))}
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
