@@ -97,7 +97,7 @@ function renderFilters(opts: {
         </label>
         <Slider
           min={0}
-          max={500}
+          max={1000}
           step={10}
           value={opts.priceRange}
           onValueChange={opts.setPriceRange}
@@ -217,7 +217,7 @@ export default function Search() {
 
   const [keyword, setKeyword] = useState(initialQuery);
   const [categoryId, setCategoryId] = useState<number | undefined>();
-  const [priceRange, setPriceRange] = useState([0, 500]);
+  const [priceRange, setPriceRange] = useState([0, 1000]);
   const [sortBy, setSortBy] = useState<"price" | "rating" | "distance">("rating");
   const [location, setLocation] = useState("");
   const [freeEstimatesOnly, setFreeEstimatesOnly] = useState(false);
@@ -241,15 +241,15 @@ export default function Search() {
   });
 
   // Determine if user has actively set any filter
-  const hasSearchIntent = !!(debouncedKeyword || categoryId || debouncedLocation || priceRange[0] > 0 || priceRange[1] < 500 || freeEstimatesOnly || emergencyServiceOnly);
+  const hasSearchIntent = !!(debouncedKeyword || categoryId || debouncedLocation || priceRange[0] > 0 || priceRange[1] < 1000 || freeEstimatesOnly || emergencyServiceOnly);
 
   // Search services (uses debounced values to reduce API calls)
   // Only fire when user has entered a query or adjusted filters
   const { data: services, isLoading: servicesLoading, isError: servicesError, refetch: refetchServices, isRefetching: isRefetchingServices } = trpc.service.search.useQuery({
     keyword: debouncedKeyword,
     categoryId,
-    minPrice: priceRange[0],
-    maxPrice: priceRange[1],
+    minPrice: priceRange[0] > 0 ? priceRange[0] : undefined,
+    maxPrice: priceRange[1] < 1000 ? priceRange[1] : undefined,
     sortBy,
     location: debouncedLocation || undefined,
   }, {
