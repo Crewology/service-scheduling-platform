@@ -28,6 +28,10 @@ export const serviceRouter = router({
       }),
       isGroupClass: z.boolean().default(false),
       maxCapacity: z.number().min(1).default(1),
+      isExperience: z.boolean().default(false),
+      minGuests: z.number().min(1).default(1),
+      pricePerPerson: z.union([z.number(), z.string()]).optional(),
+      whatsIncluded: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const provider = await db.getProviderByUserId(ctx.user.id);
@@ -60,6 +64,10 @@ export const serviceRouter = router({
         depositPercentage: input.depositPercentage?.toString().trim() || null,
         isGroupClass: input.isGroupClass,
         maxCapacity: input.maxCapacity,
+        isExperience: input.isExperience,
+        minGuests: input.minGuests,
+        pricePerPerson: input.pricePerPerson?.toString().trim() || null,
+        whatsIncluded: input.whatsIncluded || null,
       });
       const providerServices = await db.getServicesByProviderId(provider.id);
       const created = providerServices.find(s => s.name === input.name);
@@ -83,6 +91,11 @@ export const serviceRouter = router({
     .input(z.object({ categoryId: z.number() }))
     .query(async ({ input }) => {
       return await db.getServicesByCategory(input.categoryId);
+    }),
+  
+  listExperiences: publicProcedure
+    .query(async () => {
+      return await db.getExperiences();
     }),
     
   search: publicProcedure

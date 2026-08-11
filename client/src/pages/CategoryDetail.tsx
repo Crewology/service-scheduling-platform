@@ -24,6 +24,7 @@ const CATEGORY_ICONS: Record<number, string> = {
   212: "\u26a1", 213: "\u2744\ufe0f", 214: "\ud83e\ude9a", 215: "\ud83c\udfe0", 216: "\ud83d\udce3",
   210: "\ud83d\udd49\ufe0f", 218: "\ud83c\udf31",
   219: "\ud83e\uddee", 220: "\u2696\ufe0f", 221: "\ud83c\udf74",
+  222: "🎉",
 };
 
 function formatCurrency(value: string | number | null | undefined): string {

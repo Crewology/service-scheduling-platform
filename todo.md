@@ -2531,3 +2531,7 @@
 - [ ] Change provider profile URLs from /p/slug to top-level /Slug (e.g. ologycrew.com/GaryChisolmAudio) for a cleaner business identity
 - [x] Change provider profile URLs from /p/slug to top-level /slug (e.g. ologycrew.com/chisolm-audio) for a cleaner business identity — /p/ kept for backward compat
 - [x] Add Accountants, Attorneys & Legal Services, and Catering & Food Services categories (IDs 219-221) with emojis 🧮 ⚖️ 🍴
+- [x] Experiences Phase 1: Add database fields (maxGuests, minGuests, pricePerPerson, whatsIncluded) to services table
+- [x] Experiences Phase 1: Add EXPERIENCES & EVENTS category with emoji
+- [x] Experiences Phase 1: Create dedicated /experiences browse page with visual card layout
+- [x] Experiences Phase 1: Update service creation form to support experience mode (guest count, per-person pricing, what's included)

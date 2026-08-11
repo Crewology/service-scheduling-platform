@@ -48,7 +48,7 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
 
   // Don't redirect to login if user is on a public page or select-role
   // This prevents login loops when unauthenticated queries fire on public pages
-  const publicPaths = ["/", "/browse", "/search", "/plans", "/pricing", "/privacy", "/terms", "/help", "/contact", "/about", "/select-role", "/login", "/signup", "/forgot-password", "/reset-password", "/verify-email"];
+  const publicPaths = ["/", "/browse", "/search", "/plans", "/pricing", "/privacy", "/terms", "/help", "/contact", "/about", "/select-role", "/login", "/signup", "/forgot-password", "/reset-password", "/verify-email", "/experiences"];
   const currentPath = window.location.pathname;
   const isPublicPage = publicPaths.includes(currentPath) ||
     currentPath.startsWith("/embed/") ||

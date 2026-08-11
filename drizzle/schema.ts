@@ -197,6 +197,11 @@ export const services = mysqlTable("services", {
   // Group class / capacity settings
   isGroupClass: boolean("isGroupClass").default(false).notNull(),
   maxCapacity: int("maxCapacity").default(1).notNull(), // 1 = individual, >1 = group class
+  // Experience mode fields
+  isExperience: boolean("isExperience").default(false).notNull(),
+  minGuests: int("minGuests").default(1).notNull(),
+  pricePerPerson: decimal("pricePerPerson", { precision: 10, scale: 2 }),
+  whatsIncluded: text("whatsIncluded"),
   isActive: boolean("isActive").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

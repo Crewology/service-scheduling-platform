@@ -69,6 +69,10 @@ export default function CreateService() {
     depositPercentage: "",
     isGroupClass: false,
     maxCapacity: "1",
+    isExperience: false,
+    minGuests: "1",
+    pricePerPerson: "",
+    whatsIncluded: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -98,6 +102,10 @@ export default function CreateService() {
         : undefined,
       isGroupClass: formData.isGroupClass,
       maxCapacity: formData.isGroupClass ? parseInt(formData.maxCapacity) : 1,
+      isExperience: formData.isExperience,
+      minGuests: formData.isExperience ? parseInt(formData.minGuests) : 1,
+      pricePerPerson: formData.isExperience && formData.pricePerPerson ? parseFloat(formData.pricePerPerson) : undefined,
+      whatsIncluded: formData.isExperience ? formData.whatsIncluded : undefined,
     });
   };
 
@@ -377,6 +385,45 @@ export default function CreateService() {
             </CardContent>
           </Card>
           )}
+          {/* Experience Mode */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <CardTitle>Experience Mode</CardTitle>
+              </div>
+              <CardDescription>List this as a bookable experience with guest pricing</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <input type="checkbox" id="isExperience" checked={formData.isExperience} onChange={(e) => setFormData({ ...formData, isExperience: e.target.checked, maxCapacity: e.target.checked ? "10" : formData.maxCapacity })} className="h-4 w-4" />
+                <Label htmlFor="isExperience" className="cursor-pointer">This is an experience (tasting, workshop, class, tour, event)</Label>
+              </div>
+              {formData.isExperience && (
+                <div className="space-y-4 pt-2 border-t">
+                  <p className="text-xs text-muted-foreground">Experiences appear on the dedicated Experiences page and support per-person pricing.</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="minGuests">Min Guests</Label>
+                      <Input id="minGuests" type="number" min="1" max="100" value={formData.minGuests} onChange={(e) => setFormData({ ...formData, minGuests: e.target.value })} placeholder="2" />
+                    </div>
+                    <div>
+                      <Label htmlFor="maxCapacityExp">Max Guests</Label>
+                      <Input id="maxCapacityExp" type="number" min="1" max="200" value={formData.maxCapacity} onChange={(e) => setFormData({ ...formData, maxCapacity: e.target.value })} placeholder="12" />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="pricePerPerson">Price Per Person ($)</Label>
+                    <Input id="pricePerPerson" type="number" min="0" step="0.01" value={formData.pricePerPerson} onChange={(e) => setFormData({ ...formData, pricePerPerson: e.target.value })} placeholder="45.00" />
+                    <p className="text-xs text-muted-foreground mt-1">Leave blank to use base price as flat group rate</p>
+                  </div>
+                  <div>
+                    <Label htmlFor="whatsIncluded">Whats Included</Label>
+                    <textarea id="whatsIncluded" className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={formData.whatsIncluded} onChange={(e) => setFormData({ ...formData, whatsIncluded: e.target.value })} placeholder="Premium tequila flight, tasting glasses, food pairing bites..." />
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Deposit Settings */}
           <Card>

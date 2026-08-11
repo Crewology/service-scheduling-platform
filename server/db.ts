@@ -60,6 +60,7 @@ export {
   setProviderCategories,
   getProvidersByCategory,
   searchProviders,
+  getExperiences,
 } from "./db/services";
 
 // Availability management

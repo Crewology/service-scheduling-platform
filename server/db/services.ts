@@ -137,6 +137,45 @@ export async function getServicesByProviderId(providerId: number) {
     .orderBy(services.name);
 }
 
+export async function getExperiences() {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db.select({
+    id: services.id,
+    providerId: services.providerId,
+    categoryId: services.categoryId,
+    name: services.name,
+    description: services.description,
+    serviceType: services.serviceType,
+    pricingModel: services.pricingModel,
+    basePrice: services.basePrice,
+    hourlyRate: services.hourlyRate,
+    durationMinutes: services.durationMinutes,
+    isExperience: services.isExperience,
+    minGuests: services.minGuests,
+    maxCapacity: services.maxCapacity,
+    pricePerPerson: services.pricePerPerson,
+    whatsIncluded: services.whatsIncluded,
+    isActive: services.isActive,
+    createdAt: services.createdAt,
+    businessName: serviceProviders.businessName,
+    providerSlug: serviceProviders.profileSlug,
+    providerCity: serviceProviders.city,
+    providerState: serviceProviders.state,
+    providerProfilePhotoUrl: users.profilePhotoUrl,
+  })
+    .from(services)
+    .innerJoin(serviceProviders, eq(services.providerId, serviceProviders.id))
+    .innerJoin(users, eq(serviceProviders.userId, users.id))
+    .where(and(
+      eq(services.isExperience, true),
+      eq(services.isActive, true),
+      eq(serviceProviders.isActive, true)
+    ))
+    .orderBy(desc(services.createdAt));
+  return rows;
+}
+
 export async function getServicesByCategory(categoryId: number) {
   const db = await getDb();
   if (!db) return [];

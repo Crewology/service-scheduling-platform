@@ -17,6 +17,7 @@ import { useEffect } from "react";
 // Core pages
 import Home from "./pages/Home";
 import Browse from "./pages/Browse";
+import Experiences from "./pages/Experiences";
 import Search from "./pages/Search";
 import CategoryDetail from "./pages/CategoryDetail";
 import ServiceDetail from "./pages/ServiceDetail";
@@ -109,6 +110,7 @@ function Router() {
       <Route path="/select-role" component={RoleSelection} />
       <Route path="/" component={Home} />
       <Route path="/browse" component={Browse} />
+      <Route path="/experiences" component={Experiences} />
       <Route path="/featured" component={FeaturedProfessionals} />
       <Route path="/featured/promo/:id" component={PromotionDetail} />
       <Route path="/search" component={Search} />
