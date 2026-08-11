@@ -815,10 +815,10 @@ export default function ProviderOnboarding() {
   // Step completion tracking
   const tierSelected = !!currentSubscription?.subscription || selectedTier !== null;
   const stepComplete = useMemo(() => ({
-    1: !!existingProvider,
-    2: (myCategories?.length ?? 0) > 0,
-    3: (myServices?.length ?? 0) > 0,
-    4: tierSelected || hasActivePlan,
+    1: tierSelected || hasActivePlan,
+    2: !!existingProvider,
+    3: (myCategories?.length ?? 0) > 0,
+    4: (myServices?.length ?? 0) > 0,
     5: existingProvider?.payoutEnabled === true,
   }), [existingProvider, myCategories, myServices, tierSelected, hasActivePlan]);
 
