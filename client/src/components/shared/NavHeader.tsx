@@ -388,7 +388,7 @@ function UserMenuDropdown({ user }: { user: any }) {
       {open && (
         <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-xl border z-[100] overflow-hidden py-1">
           <Link
-            href="/profile"
+            href="/account"
             className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors"
             onClick={() => setOpen(false)}
           >
@@ -501,7 +501,7 @@ const MOBILE_PROVIDER_TILES = [
   { label: "Plans", icon: ShieldCheck, href: "/provider/subscription", color: "bg-rose-100", iconColor: "text-rose-600" },
   { label: "Help", icon: HelpCircle, href: "/help", color: "bg-cyan-100", iconColor: "text-cyan-600" },
   { label: "Profile", icon: UserCog, href: "/provider/onboarding", color: "bg-violet-100", iconColor: "text-violet-600" },
-  { label: "Account", icon: Settings, href: "/profile", color: "bg-slate-100", iconColor: "text-slate-600" },
+  { label: "Account", icon: Settings, href: "/account", color: "bg-slate-100", iconColor: "text-slate-600" },
 ];
 
 const MOBILE_CUSTOMER_TILES = [
@@ -518,7 +518,7 @@ const MOBILE_CUSTOMER_TILES = [
   { label: "Receipts & Invoices", icon: CreditCard, href: "/receipts", color: "bg-orange-100", iconColor: "text-orange-600" },
   { label: "Plans", icon: ShieldCheck, href: "/customer/subscription", color: "bg-rose-100", iconColor: "text-rose-600" },
   { label: "Help", icon: HelpCircle, href: "/help", color: "bg-cyan-100", iconColor: "text-cyan-600" },
-  { label: "Account", icon: Settings, href: "/profile", color: "bg-slate-100", iconColor: "text-slate-600" },
+  { label: "Account", icon: Settings, href: "/account", color: "bg-slate-100", iconColor: "text-slate-600" },
 ];
 
 const MOBILE_ADMIN_TILES = [

@@ -212,7 +212,7 @@ const guideSections: GuideSection[] = [
         title: "Becoming a Provider",
         content:
           "Want to offer your own services? You don't need a separate account. Visit your Profile page and you'll see a \"Become a Provider\" card that walks you through the process. Click \"Get Started\" to begin the provider onboarding wizard. Once complete, you'll have access to both customer and provider features — book services and offer your own, all from one account.",
-        link: "/profile",
+        link: "/account",
         linkText: "View Profile",
       },
     ],
@@ -373,7 +373,7 @@ const guideSections: GuideSection[] = [
         title: "Your Profile",
         content:
           "Access your profile from the user menu in the top-right corner. Update your name, profile photo, phone number, and other details. Your profile page includes a completion indicator that shows your progress — a checklist highlights which fields still need attention (name, email, phone, photo). Once your profile is 100% complete, the indicator disappears. A complete profile helps providers communicate with you and improves your booking experience.",
-        link: "/profile",
+        link: "/account",
         linkText: "Edit Profile",
       },
       {

@@ -21,7 +21,7 @@ async function injectOgTags(url: string, template: string, origin: string): Prom
     const cleanSlugMatch = url.match(/^\/([a-z0-9][a-z0-9-]*[a-z0-9])(?:[/?#]|$)/);
     if (cleanSlugMatch) {
       // Only treat as provider slug if it's not a known app route
-      const knownRoutes = ['login','signup','forgot-password','reset-password','verify-email','select-role','browse','featured','search','category','provider','service','booking','bulk-booking','monthly-planner','my-bookings','messages','dm','admin','my-reviews','profile','notifications','notification-settings','unsubscribe','embed','receipts','referrals','saved-providers','my-quotes','my-waitlist','pricing','customer','analytics','privacy','terms','help','referral-program','404','experiences'];
+      const knownRoutes = ['login','signup','forgot-password','reset-password','verify-email','select-role','browse','featured','search','category','provider','service','booking','bulk-booking','monthly-planner','my-bookings','messages','dm','admin','my-reviews','profile','account','notifications','notification-settings','unsubscribe','embed','receipts','referrals','saved-providers','my-quotes','my-waitlist','pricing','customer','analytics','privacy','terms','help','referral-program','404','experiences'];
       const slug = cleanSlugMatch[1];
       if (!knownRoutes.includes(slug) && !slug.startsWith('p/')) {
         ogTags = await getProviderOgTags(slug, origin);

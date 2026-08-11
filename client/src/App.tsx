@@ -141,7 +141,8 @@ function Router() {
       <Route path="/booking/:id/review" component={SubmitReview} />
       <Route path="/my-reviews" component={CustomerReviews} />
       <Route path="/provider/reviews">{() => <ProviderOnlyGuard featureName="Reviews"><ProviderReviews /></ProviderOnlyGuard>}</Route>
-      <Route path="/profile" component={UserProfile} />
+      <Route path="/account" component={UserProfile} />
+      <Route path="/profile">{() => { window.location.replace("/account"); return null; }}</Route>
       <Route path="/p/:slug" component={PublicProviderProfile} />
       <Route path="/provider/subscription">{() => <ProviderOnlyGuard featureName="Subscription Plans"><SubscriptionManagement /></ProviderOnlyGuard>}</Route>
       <Route path="/provider/onboarding">{() => <ProviderOnlyGuard featureName="Provider Profile Setup"><ProviderOnboarding /></ProviderOnlyGuard>}</Route>

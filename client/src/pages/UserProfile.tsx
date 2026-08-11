@@ -525,7 +525,7 @@ export default function UserProfile() {
       <NavHeader />
 
       <div className="container max-w-2xl py-8 space-y-6">
-        <h1 className="text-2xl sm:text-3xl font-bold">My Profile</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">My Account</h1>
 
         {/* Profile Completion Indicator */}
         <ProfileCompletionCard user={user} onEditClick={() => setEditing(true)} />

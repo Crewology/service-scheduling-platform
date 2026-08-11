@@ -3873,7 +3873,7 @@ function OnboardingChecklist({
         label: "Add a profile photo",
         description: "Help customers recognize you",
         done: hasPhoto,
-        action: () => onUploadPhoto ? onUploadPhoto() : setLocation("/profile"),
+        action: () => onUploadPhoto ? onUploadPhoto() : setLocation("/account"),
         actionLabel: "Add Photo",
         priority: 1,
       },
