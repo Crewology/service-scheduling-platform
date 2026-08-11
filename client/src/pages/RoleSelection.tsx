@@ -25,7 +25,12 @@ export default function RoleSelection() {
   const [, setLocation] = useLocation();
   const [selectedRole, setSelectedRole] = useState<"customer" | "provider" | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [autoSubmitting, setAutoSubmitting] = useState(false);
+  // Initialize autoSubmitting immediately if plan is stored — prevents any flash of role cards
+  const [autoSubmitting, setAutoSubmitting] = useState(() => {
+    try {
+      return !!localStorage.getItem("ologycrew_selected_plan");
+    } catch { return false; }
+  });
 
   const selectRoleMutation = trpc.auth.selectRole.useMutation({
     onSuccess: async (data) => {
