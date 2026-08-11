@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Eye, EyeOff, Mail, Lock, User, AlertCircle, Check } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, AlertCircle, Check, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -53,6 +53,20 @@ function PasswordStrength({ password }: { password: string }) {
 export default function SignUp() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
+
+  // Read selected plan from URL params + localStorage
+  const [selectedPlan, setSelectedPlan] = useState<{tier: string; name: string; price: string; interval: string; audience: string} | null>(null);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const planParam = params.get("plan");
+    if (planParam) {
+      const stored = localStorage.getItem("ologycrew_selected_plan");
+      if (stored) {
+        try { setSelectedPlan(JSON.parse(stored)); } catch {}
+      }
+    }
+  }, []);
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -138,6 +152,24 @@ export default function SignUp() {
           </Link>
           <p className="text-slate-600 mt-2">Create your account to get started.</p>
         </div>
+
+        {/* Selected Plan Badge */}
+        {selectedPlan && (
+          <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl">
+            <div className="flex items-center gap-2 mb-1">
+              <Sparkles className="w-4 h-4 text-blue-600" />
+              <span className="text-sm font-semibold text-blue-900">You selected the {selectedPlan.name} Plan</span>
+            </div>
+            <p className="text-xs text-blue-700">
+              {selectedPlan.price === "0" || selectedPlan.price === "0.00"
+                ? "Free forever — no credit card required."
+                : `$${selectedPlan.price}/${selectedPlan.interval === "year" ? "yr" : "mo"} — 14-day free trial, no card required to start.`}
+            </p>
+            <p className="text-xs text-blue-600 mt-1">
+              Create your account below and your plan will be ready after setup.
+            </p>
+          </div>
+        )}
 
         <Card className="shadow-lg border-0">
           <CardContent className="p-6 space-y-6">

@@ -779,6 +779,20 @@ export default function ProviderOnboarding() {
   const [selectedTier, setSelectedTier] = useState<"free" | "basic" | "premium" | null>(null);
   const [billingInterval, setBillingInterval] = useState<"month" | "year">("month");
 
+  // Pre-select plan from pricing page selection (stored in localStorage)
+  useEffect(() => {
+    const stored = localStorage.getItem("ologycrew_selected_plan");
+    if (stored && !selectedTier) {
+      try {
+        const plan = JSON.parse(stored);
+        if (plan.audience === "provider" && ["free", "basic", "premium"].includes(plan.tier)) {
+          setSelectedTier(plan.tier as "free" | "basic" | "premium");
+          if (plan.interval === "year") setBillingInterval("year");
+        }
+      } catch {}
+    }
+  }, []);
+
   // Check if provider already has an active subscription (skip plan step)
   const hasActivePlan = !!currentSubscription?.subscription && currentSubscription.currentTier !== "free";
   

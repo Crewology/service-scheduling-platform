@@ -2535,3 +2535,5 @@
 - [x] Experiences Phase 1: Add EXPERIENCES & EVENTS category with emoji
 - [x] Experiences Phase 1: Create dedicated /experiences browse page with visual card layout
 - [x] Experiences Phase 1: Update service creation form to support experience mode (guest count, per-person pricing, what's included)
+- [ ] Plan-aware signup: pricing page passes selected plan to signup, signup page displays selected plan badge, onboarding pre-selects the plan
+- [x] Plan-aware signup: pricing page passes selected plan to signup, signup page displays selected plan badge, onboarding pre-selects the plan

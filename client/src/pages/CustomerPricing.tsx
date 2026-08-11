@@ -500,20 +500,27 @@ export default function CustomerPricing() {
                           disabled={providerDowngrade.isPending}
                         >
                           Downgrade
-                        </Button>
-                      ) : (
-                        <Button
-                          className="w-full"
-                          variant={plan.popular ? "default" : "outline"}
-                          onClick={() => {
-                            if (!user) {
-                              toast.info("Please sign in first to subscribe.");
+                       </Button>
+                     ) : (
+                       <Button
+                         className="w-full"
+                         variant={plan.popular ? "default" : "outline"}
+                         onClick={() => {
+                           if (!user) {
+                              localStorage.setItem("ologycrew_selected_plan", JSON.stringify({
+                                tier: plan.tier,
+                                name: plan.name,
+                                price: yearly ? plan.yearlyPrice.toFixed(2) : plan.monthlyPrice.toFixed(2),
+                                interval: yearly ? "year" : "month",
+                                audience: "provider",
+                              }));
+                              navigate(`/signup?plan=${plan.tier}&audience=provider`);
                               return;
                             }
-                            providerCreateCheckout.mutate({
-                              tier: plan.tier as "basic" | "premium",
-                              interval: yearly ? "year" : "month",
-                            });
+                           providerCreateCheckout.mutate({
+                             tier: plan.tier as "basic" | "premium",
+                             interval: yearly ? "year" : "month",
+                           });
                           }}
                           disabled={providerCreateCheckout.isPending}
                         >
@@ -666,14 +673,21 @@ export default function CustomerPricing() {
                       ) : (
                         <div className="space-y-2">
                           <Button
-                            className="w-full"
-                            variant={plan.popular ? "default" : "outline"}
-                            onClick={() => {
-                              if (!user) {
-                                toast.info("Please sign in first to start your free trial.");
+                           className="w-full"
+                           variant={plan.popular ? "default" : "outline"}
+                           onClick={() => {
+                             if (!user) {
+                                localStorage.setItem("ologycrew_selected_plan", JSON.stringify({
+                                  tier: plan.tier,
+                                  name: plan.name,
+                                  price: yearly ? plan.yearlyPrice.toFixed(2) : plan.monthlyPrice.toFixed(2),
+                                  interval: yearly ? "year" : "month",
+                                  audience: "customer",
+                                }));
+                                navigate(`/signup?plan=${plan.tier}&audience=customer`);
                                 return;
                               }
-                              customerStartTrial.mutate({ tier: plan.tier as "pro" | "business" });
+                             customerStartTrial.mutate({ tier: plan.tier as "pro" | "business" });
                             }}
                             disabled={customerStartTrial.isPending}
                           >
@@ -685,15 +699,22 @@ export default function CustomerPricing() {
                             {customerStartTrial.isPending ? "Starting..." : "Start 14-Day Free Trial"}
                           </Button>
                           <Button
-                            variant="ghost"
-                            size="sm"
-                            className="w-full text-xs text-muted-foreground"
-                            onClick={() => {
-                              if (!user) {
-                                toast.info("Please sign in first to subscribe.");
+                           variant="ghost"
+                           size="sm"
+                           className="w-full text-xs text-muted-foreground"
+                           onClick={() => {
+                             if (!user) {
+                                localStorage.setItem("ologycrew_selected_plan", JSON.stringify({
+                                  tier: plan.tier,
+                                  name: plan.name,
+                                  price: yearly ? plan.yearlyPrice.toFixed(2) : plan.monthlyPrice.toFixed(2),
+                                  interval: yearly ? "year" : "month",
+                                  audience: "customer",
+                                }));
+                                navigate(`/signup?plan=${plan.tier}&audience=customer`);
                                 return;
                               }
-                              customerCreateCheckout.mutate({
+                             customerCreateCheckout.mutate({
                                 tier: plan.tier as "pro" | "business",
                                 interval: yearly ? "year" : "month",
                                 withTrial: false,
