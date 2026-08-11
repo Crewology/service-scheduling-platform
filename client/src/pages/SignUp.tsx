@@ -137,7 +137,18 @@ export default function SignUp() {
 
   const handleGoogleSignUp = () => {
     const origin = window.location.origin;
-    window.location.href = `/api/auth/google?origin=${encodeURIComponent(origin)}`;
+    // Pass audience from selected plan so server can auto-assign role
+    let audience = "";
+    try {
+      const stored = localStorage.getItem("ologycrew_selected_plan");
+      if (stored) {
+        const plan = JSON.parse(stored);
+        audience = plan.audience || "";
+      }
+    } catch {}
+    const params = new URLSearchParams({ origin });
+    if (audience) params.set("audience", audience);
+    window.location.href = `/api/auth/google?${params.toString()}`;
   };
 
   const passwordsMatch = password && confirmPassword && password === confirmPassword;

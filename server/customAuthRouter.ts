@@ -254,6 +254,7 @@ router.post("/api/auth/login", async (req: Request, res: Response) => {
 
 router.get("/api/auth/google", (req: Request, res: Response) => {
   const origin = req.query.origin as string || req.headers.origin || "";
+  const audience = req.query.audience as string || "";
   const redirectUri = `${origin}/api/auth/google/callback`;
   
   const params = new URLSearchParams({
@@ -263,7 +264,7 @@ router.get("/api/auth/google", (req: Request, res: Response) => {
     scope: "openid email profile",
     access_type: "offline",
     prompt: "select_account",
-    state: Buffer.from(JSON.stringify({ origin })).toString("base64"),
+    state: Buffer.from(JSON.stringify({ origin, audience })).toString("base64"),
   });
 
   res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`);
@@ -280,9 +281,11 @@ router.get("/api/auth/google/callback", async (req: Request, res: Response) => {
 
     // Decode state to get origin
     let origin = "";
+    let audience = "";
     try {
       const stateData = JSON.parse(Buffer.from(stateParam || "", "base64").toString());
       origin = stateData.origin || "";
+      audience = stateData.audience || "";
     } catch {
       origin = `${req.protocol}://${req.get("host")}`;
     }
@@ -399,7 +402,18 @@ router.get("/api/auth/google/callback", async (req: Request, res: Response) => {
     if (!finalUser.emailVerified) {
       redirectPath = "/verify-email";
     } else if (!finalUser.hasSelectedRole) {
-      redirectPath = "/select-role";
+      // If audience was passed from pricing page, auto-assign role and skip role selection
+      if (audience === "provider" || audience === "customer") {
+        const role = audience as "provider" | "customer";
+        await db.updateUserProfile(finalUser.id, { role, hasSelectedRole: true });
+        if (role === "provider") {
+          redirectPath = "/provider/onboarding";
+        } else {
+          redirectPath = "/";
+        }
+      } else {
+        redirectPath = "/select-role";
+      }
     } else if (finalUser.role === "admin") {
       redirectPath = "/admin";
     } else {
