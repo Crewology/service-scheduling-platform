@@ -24,6 +24,7 @@ interface LaunchpadTile {
 // Provider tiles
 const PROVIDER_TILES: LaunchpadTile[] = [
   { label: "Dashboard", icon: <LayoutDashboard className="h-7 w-7" />, href: "/provider/dashboard", color: "bg-gray-100", iconColor: "text-gray-700" },
+  { label: "Profile", icon: <UserCog className="h-7 w-7" />, href: "/provider/onboarding", color: "bg-violet-100", iconColor: "text-violet-600" },
   { label: "Bookings", icon: <Calendar className="h-7 w-7" />, href: "/my-bookings", color: "bg-blue-100", iconColor: "text-blue-600" },
   { label: "Services", icon: <Briefcase className="h-7 w-7" />, href: "/provider/services", color: "bg-purple-100", iconColor: "text-purple-600" },
   { label: "Schedule", icon: <Clock className="h-7 w-7" />, href: "/provider/availability", color: "bg-green-100", iconColor: "text-green-600" },
@@ -38,7 +39,6 @@ const PROVIDER_TILES: LaunchpadTile[] = [
   { label: "Featured", icon: <Award className="h-7 w-7" />, href: "/featured", color: "bg-yellow-100", iconColor: "text-yellow-600" },
   { label: "Plans", icon: <ShieldCheck className="h-7 w-7" />, href: "/provider/subscription", color: "bg-rose-100", iconColor: "text-rose-600" },
   { label: "Help", icon: <HelpCircle className="h-7 w-7" />, href: "/help", color: "bg-cyan-100", iconColor: "text-cyan-600" },
-  { label: "Profile", icon: <UserCog className="h-7 w-7" />, href: "/provider/onboarding", color: "bg-violet-100", iconColor: "text-violet-600" },
   { label: "Account", icon: <Settings className="h-7 w-7" />, href: "/profile", color: "bg-slate-100", iconColor: "text-slate-600" },
 ];
 
