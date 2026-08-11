@@ -135,7 +135,7 @@ export async function getAllUsers() {
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(users).orderBy(users.createdAt);
+  return await db.select().from(users).where(isNull(users.deletedAt)).orderBy(users.createdAt);
 }
 
 // ============================================================================
@@ -701,7 +701,7 @@ export async function getUserByEmail(email: string) {
   const db = await getDb();
   if (!db) return undefined;
 
-  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  const result = await db.select().from(users).where(and(eq(users.email, email), isNull(users.deletedAt))).limit(1);
   return result.length > 0 ? result[0] : undefined;
 }
 
@@ -709,7 +709,7 @@ export async function getUserByGoogleId(googleId: string) {
   const db = await getDb();
   if (!db) return undefined;
 
-  const result = await db.select().from(users).where(eq(users.googleId, googleId)).limit(1);
+  const result = await db.select().from(users).where(and(eq(users.googleId, googleId), isNull(users.deletedAt))).limit(1);
   return result.length > 0 ? result[0] : undefined;
 }
 
