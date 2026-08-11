@@ -151,31 +151,17 @@ export default function LoggedInHome() {
         )}
 
         {/* Onboarding Progress Bar (for providers who haven't completed setup) */}
-        {isProviderView && user?.role === "provider" && !providerProfile && (
-          <Link href="/provider/onboarding">
-            <div className="mb-6 p-4 rounded-xl border bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800 cursor-pointer hover:shadow-sm transition-shadow">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-amber-900 dark:text-amber-100">Complete Your Profile</span>
-                <span className="text-xs font-bold text-amber-700 dark:text-amber-300">0%</span>
-              </div>
-              <div className="w-full h-2 bg-amber-200 dark:bg-amber-800 rounded-full overflow-hidden">
-                <div className="h-full bg-amber-500 rounded-full" style={{ width: "0%" }} />
-              </div>
-              <p className="text-xs text-amber-700 dark:text-amber-400 mt-2">Tap here to finish setting up your provider profile</p>
-            </div>
-          </Link>
-        )}
-        {isProviderView && providerProfile && !providerProfile.stripeOnboardingComplete && (
+        {isProviderView && user?.role === "provider" && (!providerProfile || !providerProfile.stripeOnboardingComplete) && (
           <Link href="/provider/onboarding">
             <div className="mb-6 p-4 rounded-xl border bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-sm transition-shadow">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-blue-900 dark:text-blue-100">Finish Your Setup</span>
-                <span className="text-xs font-bold text-blue-700 dark:text-blue-300">In Progress</span>
+                <span className="text-sm font-semibold text-blue-900 dark:text-blue-100">Complete Your Profile</span>
+                <span className="text-xs font-bold text-blue-700 dark:text-blue-300">{!providerProfile ? "0%" : "In Progress"}</span>
               </div>
-              <div className="w-full h-2 bg-blue-200 dark:bg-blue-800 rounded-full overflow-hidden">
-                <div className="h-full bg-blue-500 rounded-full" style={{ width: "60%" }} />
+              <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div className="h-full bg-blue-600 rounded-full transition-all" style={{ width: !providerProfile ? "0%" : "60%" }} />
               </div>
-              <p className="text-xs text-blue-700 dark:text-blue-400 mt-2">Tap here to complete your profile and start getting booked</p>
+              <p className="text-xs text-blue-700 dark:text-blue-400 mt-2">Tap here to finish setting up your provider profile</p>
             </div>
           </Link>
         )}
