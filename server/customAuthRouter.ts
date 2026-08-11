@@ -66,6 +66,7 @@ router.post("/api/auth/register", async (req: Request, res: Response) => {
       const reactivatedPasswordHash = await bcrypt.hash(password, 12);
       const user = await db.reactivateUser(deletedUser.id, {
         name: `${firstName.trim()} ${lastName.trim()}`,
+        email: email.toLowerCase(),
         firstName: firstName.trim(),
         lastName: lastName.trim(),
       });
@@ -350,6 +351,7 @@ router.get("/api/auth/google/callback", async (req: Request, res: Response) => {
         const deletedUser = deletedByGoogle || deletedByEmail;
         if (deletedUser) {
           user = await db.reactivateUser(deletedUser.id, {
+            email: googleUser.email.toLowerCase(),
             name: googleUser.name,
             firstName: googleUser.given_name || "",
             lastName: googleUser.family_name || "",

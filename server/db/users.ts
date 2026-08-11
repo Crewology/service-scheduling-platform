@@ -730,7 +730,7 @@ export async function getDeletedUserByEmail(email: string) {
 }
 
 // Reactivate a soft-deleted user account
-export async function reactivateUser(userId: number, updates?: { name?: string; firstName?: string; lastName?: string; profilePhotoUrl?: string | null }) {
+export async function reactivateUser(userId: number, updates?: { name?: string; firstName?: string; lastName?: string; profilePhotoUrl?: string | null; email?: string }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.update(users).set({
