@@ -98,6 +98,21 @@ export default function RoleSelection() {
     return null;
   }
 
+  // If auto-submitting from plan selection, show loading instead of role cards
+  if (autoSubmitting) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-amber-50 via-white to-orange-50 px-4">
+        <img
+          src="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png"
+          alt="OlogyCrew"
+          className="h-10 mx-auto mb-4"
+        />
+        <Loader2 className="h-8 w-8 animate-spin text-amber-600 mb-4" />
+        <p className="text-gray-600">Setting up your account...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-amber-50 via-white to-orange-50 px-4">
       {/* Logo */}
