@@ -3,6 +3,7 @@ import { useViewMode } from "@/contexts/ViewModeContext";
 import { trpc } from "@/lib/trpc";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { Link } from "wouter";
+import { useLocation } from "wouter";
 import {
   Search, Calendar, MessageSquare, Heart, FileText, Users,
   BarChart3, CreditCard, Image, Tag, Settings, Bell,
@@ -77,7 +78,8 @@ function StatBadge({ count, label }: { count: number; label: string }) {
 
 export default function LoggedInHome() {
   const { user } = useAuth();
-  const { isProviderView, isAdmin } = useViewMode();
+  const { isProviderView, isAdmin, setViewMode } = useViewMode();
+  const [, setLocation] = useLocation();
 
   // Fetch quick stats
   const { data: unreadMessages } = trpc.message.unreadCount.useQuery(undefined, {
@@ -85,6 +87,11 @@ export default function LoggedInHome() {
   });
   const { data: unreadNotifications } = trpc.notification.unreadCount.useQuery(undefined, {
     refetchInterval: 30000,
+  });
+
+  // Fetch provider profile to check onboarding completion (only for providers)
+  const { data: providerProfile } = trpc.provider.getMyProfile.useQuery(undefined, {
+    enabled: isProviderView && user?.role === "provider",
   });
 
   const tiles = isProviderView ? PROVIDER_TILES : CUSTOMER_TILES;
@@ -123,6 +130,56 @@ export default function LoggedInHome() {
           <StatBadge count={unreadNotifications?.count || 0} label="notifications" />
         </div>
 
+        {/* Provider/Customer Toggle (mobile) */}
+        {user?.role === "provider" && (
+          <div className="flex justify-center mb-6 sm:hidden">
+            <div className="inline-flex rounded-full border bg-muted p-1">
+              <button
+                onClick={() => setViewMode("provider")}
+                className={`px-4 py-1.5 text-sm font-medium rounded-full transition-colors ${isProviderView ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground"}`}
+              >
+                Provider
+              </button>
+              <button
+                onClick={() => setViewMode("customer")}
+                className={`px-4 py-1.5 text-sm font-medium rounded-full transition-colors ${!isProviderView ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground"}`}
+              >
+                Customer
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Onboarding Progress Bar (for providers who haven't completed setup) */}
+        {isProviderView && user?.role === "provider" && !providerProfile && (
+          <Link href="/provider/onboarding">
+            <div className="mb-6 p-4 rounded-xl border bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800 cursor-pointer hover:shadow-sm transition-shadow">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold text-amber-900 dark:text-amber-100">Complete Your Profile</span>
+                <span className="text-xs font-bold text-amber-700 dark:text-amber-300">0%</span>
+              </div>
+              <div className="w-full h-2 bg-amber-200 dark:bg-amber-800 rounded-full overflow-hidden">
+                <div className="h-full bg-amber-500 rounded-full" style={{ width: "0%" }} />
+              </div>
+              <p className="text-xs text-amber-700 dark:text-amber-400 mt-2">Tap here to finish setting up your provider profile</p>
+            </div>
+          </Link>
+        )}
+        {isProviderView && providerProfile && !providerProfile.stripeOnboardingComplete && (
+          <Link href="/provider/onboarding">
+            <div className="mb-6 p-4 rounded-xl border bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-sm transition-shadow">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold text-blue-900 dark:text-blue-100">Finish Your Setup</span>
+                <span className="text-xs font-bold text-blue-700 dark:text-blue-300">In Progress</span>
+              </div>
+              <div className="w-full h-2 bg-blue-200 dark:bg-blue-800 rounded-full overflow-hidden">
+                <div className="h-full bg-blue-500 rounded-full" style={{ width: "60%" }} />
+              </div>
+              <p className="text-xs text-blue-700 dark:text-blue-400 mt-2">Tap here to complete your profile and start getting booked</p>
+            </div>
+          </Link>
+        )}
+
         {/* Launchpad Grid */}
         <div className="grid grid-cols-4 gap-3 sm:gap-6">
           {allTiles.map((tile, index) => (
@@ -141,7 +198,7 @@ export default function LoggedInHome() {
 
         {/* Role indicator */}
         <div className="text-center mt-10 sm:mt-12">
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground hidden sm:block">
             Viewing as <span className="font-medium capitalize">{isProviderView ? "Provider" : "Customer"}</span>
             {isProviderView && " · Switch to Customer view from the top menu"}
           </p>
