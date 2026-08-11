@@ -1553,23 +1553,8 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
   }
 
   if (!provider) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Card className="max-w-md">
-          <CardHeader>
-            <CardTitle>Create Provider Profile</CardTitle>
-            <CardDescription>
-              You need to create a provider profile to access the dashboard
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={() => setLocation("/provider/onboarding")} className="w-full">
-              Get Started
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    setLocation("/provider/onboarding");
+    return null;
   }
 
   const pendingBookings = bookings?.filter(b => b.status === "pending").length || 0;
