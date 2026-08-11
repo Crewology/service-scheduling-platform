@@ -66,10 +66,10 @@ const CATEGORY_ICONS: Record<number, string> = {
 };
 
 const ALL_STEPS = [
-  { id: 1, title: "Your Profile", icon: User, description: "Photo, name & location" },
-  { id: 2, title: "Your Skills", icon: Grid3X3, description: "Choose your categories" },
-  { id: 3, title: "Your Services", icon: Wrench, description: "Add services & pricing" },
-  { id: 4, title: "Your Plan", icon: Zap, description: "Choose a subscription" },
+  { id: 1, title: "Your Plan", icon: Zap, description: "Choose a subscription" },
+  { id: 2, title: "Your Profile", icon: User, description: "Photo, name & location" },
+  { id: 3, title: "Your Skills", icon: Grid3X3, description: "Choose your categories" },
+  { id: 4, title: "Your Services", icon: Wrench, description: "Add services & pricing" },
   { id: 5, title: "Get Paid", icon: CreditCard, description: "Connect Stripe" },
 ];
 
@@ -694,7 +694,7 @@ export default function ProviderOnboarding() {
     onSuccess: () => {
       refetchMyCategories();
       toast.success("Categories saved!");
-      setCurrentStep(3);
+      setCurrentStep(4);
     },
     onError: (err) => toast.error(err.message),
   });
@@ -725,7 +725,7 @@ export default function ProviderOnboarding() {
       setSelectedTier("free");
       utils.subscription.mySubscription.invalidate();
       toast.success("Starter plan selected! You can upgrade anytime.");
-      setCurrentStep(5);
+      setCurrentStep(2);
     },
     onError: (err) => toast.error(err.message),
   });
@@ -735,7 +735,7 @@ export default function ProviderOnboarding() {
       setSelectedTier("basic");
       utils.subscription.mySubscription.invalidate();
       toast.success("Pro trial started! You have 14 days of full access.");
-      setCurrentStep(5);
+      setCurrentStep(2);
     },
     onError: (err) => toast.error(err.message),
   });
@@ -805,9 +805,9 @@ export default function ProviderOnboarding() {
     return ALL_STEPS;
   }, [hasActivePlan]);
 
-  // If provider already has a plan and lands on step 4, redirect to step 2 (manage categories)
+  // If provider already has an active subscription, skip the plan step and go to profile
   useEffect(() => {
-    if (hasActivePlan && currentStep === 4) {
+    if (hasActivePlan && currentStep === 1) {
       setCurrentStep(2);
     }
   }, [hasActivePlan, currentStep]);
@@ -905,7 +905,7 @@ export default function ProviderOnboarding() {
       }
     }
 
-    setCurrentStep(2);
+    setCurrentStep(3);
   };
 
   const handleSaveCategories = () => {
@@ -1016,7 +1016,7 @@ export default function ProviderOnboarding() {
         {/* ================================================================ */}
         {/* STEP 1: YOUR PROFILE                                             */}
         {/* ================================================================ */}
-        {currentStep === 1 && (
+        {currentStep === 2 && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -1033,7 +1033,7 @@ export default function ProviderOnboarding() {
                   <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold">{existingProvider.businessName}</h3>
                   <p className="text-muted-foreground mt-1">Profile created</p>
-                  <Button className="mt-4" onClick={() => setCurrentStep(2)}>
+                  <Button className="mt-4" onClick={() => setCurrentStep(3)}>
                     Continue <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
                 </div>
@@ -1175,7 +1175,7 @@ export default function ProviderOnboarding() {
         {/* ================================================================ */}
         {/* STEP 2: YOUR SKILLS (Multi-Category Selection)                   */}
         {/* ================================================================ */}
-        {currentStep === 2 && (
+        {currentStep === 3 && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -1250,7 +1250,7 @@ export default function ProviderOnboarding() {
               </div>
 
               <div className="flex justify-between pt-4">
-                <Button variant="outline" onClick={() => setCurrentStep(1)}>
+                <Button variant="outline" onClick={() => setCurrentStep(2)}>
                   <ChevronLeft className="h-4 w-4 mr-1" /> Back
                 </Button>
                 <Button onClick={handleSaveCategories} disabled={setMyCategories.isPending || selectedCategoryIds.size === 0}>
@@ -1266,7 +1266,7 @@ export default function ProviderOnboarding() {
         {/* ================================================================ */}
         {/* STEP 3: YOUR SERVICES (Per-Category)                             */}
         {/* ================================================================ */}
-        {currentStep === 3 && (
+        {currentStep === 4 && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -1347,18 +1347,18 @@ export default function ProviderOnboarding() {
                 <div className="text-center py-8 text-muted-foreground">
                   <Grid3X3 className="h-12 w-12 mx-auto mb-4 opacity-30" />
                   <p>Go back to Step 2 and select your categories first</p>
-                  <Button variant="outline" className="mt-4" onClick={() => setCurrentStep(2)}>
+                  <Button variant="outline" className="mt-4" onClick={() => setCurrentStep(3)}>
                     <ChevronLeft className="h-4 w-4 mr-1" /> Select Categories
                   </Button>
                 </div>
               )}
 
               <div className="flex justify-between pt-4">
-                <Button variant="outline" onClick={() => setCurrentStep(2)}>
+                <Button variant="outline" onClick={() => setCurrentStep(3)}>
                   <ChevronLeft className="h-4 w-4 mr-1" /> Back
                 </Button>
                 <Button
-                  onClick={() => setCurrentStep(hasActivePlan ? 5 : 4)}
+                  onClick={() => setCurrentStep(5)}
                   disabled={(myServices?.length ?? 0) === 0}
                 >
                   {hasActivePlan ? "Connect Payments" : "Choose Your Plan"}
@@ -1372,7 +1372,7 @@ export default function ProviderOnboarding() {
         {/* ================================================================ */}
         {/* STEP 4: CHOOSE YOUR PLAN (Tier Selection)                        */}
         {/* ================================================================ */}
-        {currentStep === 4 && (
+        {currentStep === 1 && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -1598,9 +1598,7 @@ export default function ProviderOnboarding() {
                 All plans include: 1% transaction fee on bookings &middot; Stripe payments &middot; Booking management &middot; Customer messaging
               </div>
 
-              <div className="flex justify-between pt-4">
-                <Button variant="outline" onClick={() => setCurrentStep(3)}>
-                  <ChevronLeft className="h-4 w-4 mr-1" /> Back
+                <div />
                 </Button>
                 <div className="flex gap-2">
                   {selectedTier === "free" || (!selectedTier && (!currentSubscription?.subscription || currentSubscription?.currentTier === "free")) ? (
@@ -1634,7 +1632,7 @@ export default function ProviderOnboarding() {
                     <Button
                       onClick={() => {
                         // Already has a subscription, just advance
-                        setCurrentStep(5);
+                        setCurrentStep(2);
                       }}
                     >
                       Continue
@@ -1706,7 +1704,7 @@ export default function ProviderOnboarding() {
               )}
 
               <div className="flex justify-between">
-                <Button variant="outline" onClick={() => setCurrentStep(hasActivePlan ? 3 : 4)}>
+                <Button variant="outline" onClick={() => setCurrentStep(4)}>
                   <ChevronLeft className="h-4 w-4 mr-1" /> Back
                 </Button>
                 <div className="flex gap-2">
