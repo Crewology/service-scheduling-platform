@@ -24,7 +24,7 @@ const CATEGORY_ICONS: Record<number, string> = {
 };
 
 export default function Home() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [, setLocation] = useLocation();
 
@@ -44,6 +44,21 @@ export default function Home() {
   const { data: myProviderProfile } = trpc.provider.getMyProfile.useQuery(undefined, {
     enabled: isAuthenticated,
   });
+
+  // While auth is loading, show a minimal loading state to prevent flash of public homepage
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse">
+          <img
+            src="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png"
+            alt="OlogyCrew"
+            className="h-8 opacity-50"
+          />
+        </div>
+      </div>
+    );
+  }
 
   // Show Launchpad for logged-in users
   if (isAuthenticated && user) {
