@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -25,6 +25,7 @@ export default function RoleSelection() {
   const [, setLocation] = useLocation();
   const [selectedRole, setSelectedRole] = useState<"customer" | "provider" | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [autoSubmitting, setAutoSubmitting] = useState(false);
 
   const selectRoleMutation = trpc.auth.selectRole.useMutation({
     onSuccess: async (data) => {
@@ -44,8 +45,24 @@ export default function RoleSelection() {
     onError: (err) => {
       toast.error(err.message || "Something went wrong. Please try again.");
       setIsSubmitting(false);
+      setAutoSubmitting(false);
     },
   });
+
+  // Auto-select and auto-submit role if plan was pre-selected from pricing page
+  useEffect(() => {
+    const stored = localStorage.getItem("ologycrew_selected_plan");
+    if (stored && user && !user.hasSelectedRole && !autoSubmitting) {
+      try {
+        const plan = JSON.parse(stored);
+        const role = plan.audience === "provider" ? "provider" : "customer";
+        setSelectedRole(role);
+        setAutoSubmitting(true);
+        setIsSubmitting(true);
+        selectRoleMutation.mutate({ role });
+      } catch {}
+    }
+  }, [user]);
 
   const handleSelect = (role: "customer" | "provider") => {
     setSelectedRole(role);
