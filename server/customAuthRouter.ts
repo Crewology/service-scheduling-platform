@@ -407,7 +407,7 @@ router.get("/api/auth/google/callback", async (req: Request, res: Response) => {
         const role = audience as "provider" | "customer";
         await db.updateUserProfile(finalUser.id, { role, hasSelectedRole: true });
         if (role === "provider") {
-          redirectPath = "/provider/onboarding";
+          redirectPath = "/provider/onboarding?step=2";
         } else {
           redirectPath = "/";
         }
