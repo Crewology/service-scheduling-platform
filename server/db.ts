@@ -226,6 +226,9 @@ export {
 export {
   getUserByEmail,
   getUserByGoogleId,
+  getDeletedUserByGoogleId,
+  getDeletedUserByEmail,
+  reactivateUser,
   createUserWithEmail,
   createUserWithGoogle,
   setEmailVerificationToken,

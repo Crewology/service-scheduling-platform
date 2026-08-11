@@ -60,6 +60,45 @@ router.post("/api/auth/register", async (req: Request, res: Response) => {
       return res.status(409).json({ error: "An account with this email already exists" });
     }
 
+    // Check if there's a deleted user with the same email — reactivate
+    const deletedUser = await db.getDeletedUserByEmail(email.toLowerCase());
+    if (deletedUser) {
+      const reactivatedPasswordHash = await bcrypt.hash(password, 12);
+      const user = await db.reactivateUser(deletedUser.id, {
+        name: `${firstName.trim()} ${lastName.trim()}`,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+      });
+      if (!user) {
+        return res.status(500).json({ error: "Failed to reactivate account" });
+      }
+      // Update password and reset email verification
+      const { getDb } = await import("./db/connection");
+      const { users } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      const dbConn = await getDb();
+      if (dbConn) {
+        const reactivationToken = crypto.randomBytes(32).toString("hex");
+        const reactivationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        await dbConn.update(users).set({
+          passwordHash: reactivatedPasswordHash,
+          emailVerified: false,
+          emailVerificationToken: reactivationToken,
+          emailVerificationExpires: reactivationExpires,
+        }).where(eq(users.id, user.id));
+        // Send verification email
+        const origin = req.headers.origin || req.headers.referer?.replace(/\/$/, "") || "";
+        const verifyUrl = `${origin}/verify-email?token=${reactivationToken}`;
+        await EmailProvider.sendRaw(email.toLowerCase(), "Verify your OlogyCrew account",
+          `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;"><h2>Welcome back to OlogyCrew!</h2><p>Hi ${firstName},</p><p>Your account has been reactivated. Please verify your email.</p><a href="${verifyUrl}" style="display:inline-block;background:#2563eb;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;margin:16px 0;">Verify Email</a><p style="color:#666;font-size:14px;">Link expires in 24 hours.</p></div>`,
+          `Welcome back! Verify: ${verifyUrl}`, 'info');
+      }
+      const sessionToken = await sdk.createSessionToken(user.openId, { name: user.name || "", expiresInMs: ONE_YEAR_MS });
+      const cookieOptions = getSessionCookieOptions(req);
+      res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+      return res.json({ success: true, user: { id: user.id, email: user.email, name: user.name, firstName: user.firstName, lastName: user.lastName, emailVerified: false, hasSelectedRole: false, role: user.role } });
+    }
+
     // Hash password
     const passwordHash = await bcrypt.hash(password, 12);
 
@@ -305,15 +344,28 @@ router.get("/api/auth/google/callback", async (req: Request, res: Response) => {
         await db.linkGoogleAccount(existingUser.id, googleUser.id);
         user = existingUser;
       } else {
-        // Create new user with Google
-        user = await db.createUserWithGoogle({
-          googleId: googleUser.id,
-          email: googleUser.email.toLowerCase(),
-          name: googleUser.name,
-          firstName: googleUser.given_name || "",
-          lastName: googleUser.family_name || "",
-          profilePhotoUrl: googleUser.picture,
-        });
+        // Check if there's a deleted user with same Google ID or email — reactivate
+        const deletedByGoogle = await db.getDeletedUserByGoogleId(googleUser.id);
+        const deletedByEmail = !deletedByGoogle ? await db.getDeletedUserByEmail(googleUser.email.toLowerCase()) : null;
+        const deletedUser = deletedByGoogle || deletedByEmail;
+        if (deletedUser) {
+          user = await db.reactivateUser(deletedUser.id, {
+            name: googleUser.name,
+            firstName: googleUser.given_name || "",
+            lastName: googleUser.family_name || "",
+            profilePhotoUrl: googleUser.picture,
+          });
+        } else {
+          // Create new user with Google
+          user = await db.createUserWithGoogle({
+            googleId: googleUser.id,
+            email: googleUser.email.toLowerCase(),
+            name: googleUser.name,
+            firstName: googleUser.given_name || "",
+            lastName: googleUser.family_name || "",
+            profilePhotoUrl: googleUser.picture,
+          });
+        }
       }
     }
 

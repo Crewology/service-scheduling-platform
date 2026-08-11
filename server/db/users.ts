@@ -1,4 +1,4 @@
-import { eq, and, inArray, isNull, or } from "drizzle-orm";
+import { eq, and, inArray, isNull, not, or } from "drizzle-orm";
 import {
   InsertUser,
   users,
@@ -710,6 +710,37 @@ export async function getUserByGoogleId(googleId: string) {
   if (!db) return undefined;
 
   const result = await db.select().from(users).where(and(eq(users.googleId, googleId), isNull(users.deletedAt))).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+// Find a soft-deleted user by Google ID (for reactivation)
+export async function getDeletedUserByGoogleId(googleId: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(and(eq(users.googleId, googleId), not(isNull(users.deletedAt)))).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+// Find a soft-deleted user by email (for reactivation)
+export async function getDeletedUserByEmail(email: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(and(eq(users.email, email), not(isNull(users.deletedAt)))).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+// Reactivate a soft-deleted user account
+export async function reactivateUser(userId: number, updates?: { name?: string; firstName?: string; lastName?: string; profilePhotoUrl?: string | null }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(users).set({
+    deletedAt: null,
+    hasSelectedRole: false,
+    lastSignedIn: new Date(),
+    updatedAt: new Date(),
+    ...(updates || {}),
+  }).where(eq(users.id, userId));
+  const result = await db.select().from(users).where(eq(users.id, userId)).limit(1);
   return result.length > 0 ? result[0] : undefined;
 }
 
