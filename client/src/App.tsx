@@ -10,7 +10,8 @@ import { ProviderOnlyGuard } from "./components/ProviderOnlyGuard";
 import { Footer } from "./components/shared/Footer";
 import { HelpChatWidget } from "./components/HelpChatWidget";
 import { useLocation } from "wouter";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 // ─── Page Imports ───────────────────────────────────────────────────────────
 
@@ -178,6 +179,17 @@ function Router() {
 // ─── App Shell ───────────────────────────────────────────────────────────────
 function AppContent() {
   const [location] = useLocation();
+  const { loading: authLoading } = useAuth();
+  const [showContent, setShowContent] = useState(false);
+
+  // Wait for auth to resolve before showing any page content
+  // This prevents the flash of wrong content (e.g., public homepage before dashboard)
+  useEffect(() => {
+    if (!authLoading) {
+      setShowContent(true);
+    }
+  }, [authLoading]);
+
   // Hide footer on embed pages and admin dashboard
   const hideFooter = location.startsWith("/embed") || location.startsWith("/admin");
 
@@ -185,6 +197,21 @@ function AppContent() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location]);
+
+  // Show minimal loading screen while auth resolves
+  if (!showContent) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse">
+          <img
+            src="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png"
+            alt="OlogyCrew"
+            className="h-8 opacity-50"
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
