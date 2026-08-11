@@ -153,7 +153,7 @@ export default function LoggedInHome() {
         {/* Onboarding Progress Bar (for providers who haven't completed setup) */}
         {isProviderView && user?.role === "provider" && (!providerProfile || !providerProfile.stripeOnboardingComplete) && (
           <Link href="/provider/onboarding">
-            <div className="mb-6 p-4 rounded-xl border bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-sm transition-shadow">
+            <div className="mb-6 px-3 sm:px-4 py-3 rounded-xl border bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-sm transition-shadow w-full">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-semibold text-blue-900 dark:text-blue-100">Complete Your Profile</span>
                 <span className="text-xs font-bold text-blue-700 dark:text-blue-300">{!providerProfile ? "0%" : "In Progress"}</span>
