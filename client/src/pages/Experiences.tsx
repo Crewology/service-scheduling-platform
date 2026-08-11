@@ -1,5 +1,5 @@
 import { trpc } from "@/lib/trpc";
-import NavHeader from "@/components/shared/NavHeader";
+import { NavHeader } from "@/components/shared/NavHeader";
 import { Link } from "wouter";
 import { Clock, Users, MapPin, Star } from "lucide-react";
 
