@@ -611,12 +611,8 @@ function WhyBecomeProvider({ onGetStarted }: { onGetStarted: () => void }) {
 export default function ProviderOnboarding() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
-  // Skip the marketing hero if user came from plan selection (they already committed)
-  const [showOnboarding, setShowOnboarding] = useState(() => {
-    try {
-      return !!localStorage.getItem("ologycrew_selected_plan");
-    } catch { return false; }
-  });
+  // Always show the wizard for logged-in users — the marketing hero is only for unauthenticated visitors
+  const [showOnboarding, setShowOnboarding] = useState(true);
   const [currentStep, setCurrentStep] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     const step = parseInt(params.get("step") || "1", 10);
