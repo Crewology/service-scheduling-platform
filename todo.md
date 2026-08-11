@@ -2537,3 +2537,4 @@
 - [x] Experiences Phase 1: Update service creation form to support experience mode (guest count, per-person pricing, what's included)
 - [ ] Plan-aware signup: pricing page passes selected plan to signup, signup page displays selected plan badge, onboarding pre-selects the plan
 - [x] Plan-aware signup: pricing page passes selected plan to signup, signup page displays selected plan badge, onboarding pre-selects the plan
+- [x] Gate provider landing page: redirect to /provider/onboarding until steps 1-4 (Plan, Profile, Skills, Services) are complete. Remove progress bar from landing page.

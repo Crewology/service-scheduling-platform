@@ -4,6 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { Link } from "wouter";
 import { useLocation } from "wouter";
+import { useEffect } from "react";
 import {
   Search, Calendar, MessageSquare, Heart, FileText, Users,
   BarChart3, CreditCard, Image, Tag, Settings, Bell,
@@ -90,12 +91,28 @@ export default function LoggedInHome() {
   });
 
   // Fetch provider profile to check onboarding completion (only for providers)
-  const { data: providerProfile } = trpc.provider.getMyProfile.useQuery(undefined, {
-    enabled: isProviderView && user?.role === "provider",
+  const { data: onboardingStatus, isLoading: onboardingLoading } = trpc.provider.getOnboardingStatus.useQuery(undefined, {
+    enabled: isProviderView && user?.role === "provider" && !isAdmin,
   });
-  const { data: currentSubscription } = trpc.subscription.mySubscription.useQuery(undefined, {
-    enabled: isProviderView && user?.role === "provider",
-  });
+
+  // Gate: redirect providers to onboarding if steps 1-4 are not complete
+  useEffect(() => {
+    if (isProviderView && user?.role === "provider" && !isAdmin && onboardingStatus && !onboardingStatus.steps1to4Complete) {
+      setLocation("/provider/onboarding");
+    }
+  }, [isProviderView, user?.role, isAdmin, onboardingStatus, setLocation]);
+
+  // Show loading while checking onboarding status for providers
+  if (isProviderView && user?.role === "provider" && !isAdmin && onboardingLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <NavHeader />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="animate-pulse text-muted-foreground">Loading...</div>
+        </div>
+      </div>
+    );
+  }
 
   const tiles = isProviderView ? PROVIDER_TILES : CUSTOMER_TILES;
   // Prepend admin tiles, then deduplicate by href to avoid key collisions
@@ -152,36 +169,6 @@ export default function LoggedInHome() {
             </div>
           </div>
         )}
-
-        {/* Onboarding Progress Bar (for providers who haven't completed setup) */}
-        {isProviderView && user?.role === "provider" && (!providerProfile || !providerProfile.stripeOnboardingComplete) && (() => {
-          const hasPlan = !!currentSubscription?.subscription && currentSubscription.currentTier !== "free";
-          const hasProfile = !!providerProfile;
-          const hasCategories = (providerProfile as any)?.categoryCount > 0 || hasProfile;
-          const hasStripe = providerProfile?.stripeOnboardingComplete === true;
-          let completedSteps = 0;
-          if (hasPlan) completedSteps++;
-          if (hasProfile) completedSteps++;
-          if (hasProfile) completedSteps++; // Skills (assume if profile exists, categories likely done)
-          if (hasProfile) completedSteps++; // Services (assume partial)
-          if (hasStripe) completedSteps++;
-          const pct = Math.round((completedSteps / 5) * 100);
-          const displayPct = !providerProfile ? (hasPlan ? "20%" : "0%") : (hasStripe ? "100%" : `${Math.min(pct, 80)}%`);
-          return (
-          <Link href="/provider/onboarding">
-            <div className="mb-8 px-5 py-4 rounded-lg border bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-sm transition-shadow max-w-2xl mx-auto">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-blue-900 dark:text-blue-100">Complete Your Profile</span>
-                <span className="text-xs font-bold text-blue-700 dark:text-blue-300">{displayPct}</span>
-              </div>
-              <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div className="h-full bg-blue-600 rounded-full transition-all" style={{ width: displayPct }} />
-              </div>
-              <p className="text-xs text-blue-700 dark:text-blue-400 mt-2">Tap here to finish setting up your provider profile</p>
-            </div>
-          </Link>
-          );
-        })()}
 
         {/* Launchpad Grid */}
         <div className="grid grid-cols-4 gap-3 sm:gap-6">

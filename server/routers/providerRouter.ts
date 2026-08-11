@@ -1318,4 +1318,35 @@ export const providerRouter = router({
       await db.updateProviderProfile(provider.id, { businessLogoUrl: null });
       return { success: true };
     }),
+  // Returns onboarding completion status for steps 1-4 (used by landing page gate)
+  getOnboardingStatus: protectedProcedure.query(async ({ ctx }) => {
+    const provider = await db.getProviderByUserId(ctx.user.id);
+    if (!provider) {
+      return {
+        hasPlan: false,
+        hasProfile: false,
+        hasSkills: false,
+        hasServices: false,
+        hasStripe: false,
+        steps1to4Complete: false,
+      };
+    }
+    const subscription = await db.getProviderSubscription(provider.id);
+    const hasPlan = !!subscription && subscription.status === "active" && subscription.tier !== "free";
+    const hasProfile = true; // provider record exists
+    const categories = await db.getProviderCategories(provider.id);
+    const hasSkills = categories.length > 0;
+    const services = await db.getServicesByProviderId(provider.id);
+    const hasServices = services.length > 0;
+    const hasStripe = provider.payoutEnabled === true;
+    const steps1to4Complete = hasPlan && hasProfile && hasSkills && hasServices;
+    return {
+      hasPlan,
+      hasProfile,
+      hasSkills,
+      hasServices,
+      hasStripe,
+      steps1to4Complete,
+    };
+  }),
 });

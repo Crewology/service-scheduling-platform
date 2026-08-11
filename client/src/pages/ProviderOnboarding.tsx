@@ -796,11 +796,11 @@ export default function ProviderOnboarding() {
 
   // Check if provider already has an active subscription (skip plan step)
   const hasActivePlan = !!currentSubscription?.subscription && currentSubscription.currentTier !== "free";
-  
-  // Derive visible steps: skip step 4 if already subscribed to a paid plan
+
+  // Derive visible steps: skip step 1 (Plan) if already subscribed to a paid plan
   const STEPS = useMemo(() => {
     if (hasActivePlan) {
-      return ALL_STEPS.filter(s => s.id !== 4);
+      return ALL_STEPS.filter(s => s.id !== 1);
     }
     return ALL_STEPS;
   }, [hasActivePlan]);
@@ -827,8 +827,8 @@ export default function ProviderOnboarding() {
 
   useEffect(() => {
     if (allStepsComplete && existingProvider) {
-      toast.success("Your profile is complete! Redirecting to your dashboard...");
-      setTimeout(() => setLocation("/provider/dashboard"), 1500);
+      toast.success("Your profile is complete!");
+      setTimeout(() => setLocation("/"), 1500);
     }
   }, [allStepsComplete, existingProvider, setLocation]);
 
