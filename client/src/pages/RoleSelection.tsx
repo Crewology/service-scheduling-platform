@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Search, Briefcase, ArrowRight, Home, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { useRef } from "react";
 
 /**
  * RoleSelection page — shown after first login when hasSelectedRole is false.
@@ -31,6 +32,7 @@ export default function RoleSelection() {
       return !!localStorage.getItem("ologycrew_selected_plan");
     } catch { return false; }
   });
+  const mutationFiredRef = useRef(false);
 
   const selectRoleMutation = trpc.auth.selectRole.useMutation({
     onSuccess: async (data) => {
@@ -57,13 +59,14 @@ export default function RoleSelection() {
   // Auto-select and auto-submit role if plan was pre-selected from pricing page
   useEffect(() => {
     const stored = localStorage.getItem("ologycrew_selected_plan");
-    if (stored && user && !user.hasSelectedRole && !autoSubmitting) {
+    if (stored && user && !user.hasSelectedRole && !mutationFiredRef.current) {
       try {
         const plan = JSON.parse(stored);
         const role = plan.audience === "provider" ? "provider" : "customer";
         setSelectedRole(role);
         setAutoSubmitting(true);
         setIsSubmitting(true);
+        mutationFiredRef.current = true;
         selectRoleMutation.mutate({ role });
       } catch {}
     }
