@@ -21,7 +21,7 @@ export async function getAllCategories() {
   if (!db) return [];
   return await db.select().from(serviceCategories)
     .where(eq(serviceCategories.isActive, true))
-    .orderBy(asc(serviceCategories.sortOrder));
+    .orderBy(asc(serviceCategories.name));
 }
 
 export async function getCategoryById(id: number) {
