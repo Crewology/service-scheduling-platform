@@ -1597,9 +1597,7 @@ export default function ProviderOnboarding() {
               <div className="text-center text-xs text-muted-foreground">
                 All plans include: 1% transaction fee on bookings &middot; Stripe payments &middot; Booking management &middot; Customer messaging
               </div>
-
-                <div />
-                </Button>
+              <div className="flex justify-end pt-4">
                 <div className="flex gap-2">
                   {selectedTier === "free" || (!selectedTier && (!currentSubscription?.subscription || currentSubscription?.currentTier === "free")) ? (
                     <Button
