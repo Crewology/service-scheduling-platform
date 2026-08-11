@@ -740,6 +740,35 @@ export async function reactivateUser(userId: number, updates?: { name?: string; 
     updatedAt: new Date(),
     ...(updates || {}),
   }).where(eq(users.id, userId));
+
+  // Clean up old provider profile and subscription from the deleted account
+  // so the user starts completely fresh on re-registration
+  const providerRows = await db.select({ id: serviceProviders.id }).from(serviceProviders).where(eq(serviceProviders.userId, userId)).limit(1);
+  if (providerRows.length > 0) {
+    const providerId = providerRows[0].id;
+    // Delete any cancelled subscriptions from the old account
+    try {
+      await db.delete(providerSubscriptions).where(eq(providerSubscriptions.providerId, providerId));
+    } catch (e) { /* ignore */ }
+    // Delete old provider categories
+    try {
+      await db.delete(providerCategories).where(eq(providerCategories.providerId, providerId));
+    } catch (e) { /* ignore */ }
+    // Delete old services (must be before provider profile due to FK)
+    try {
+      await db.delete(services).where(eq(services.providerId, providerId));
+    } catch (e) { /* ignore */ }
+    // Delete the old anonymized provider profile
+    try {
+      await db.delete(serviceProviders).where(eq(serviceProviders.id, providerId));
+    } catch (e) { /* ignore */ }
+  }
+
+  // Also clean up old customer subscription if exists
+  try {
+    await db.delete(customerSubscriptions).where(eq(customerSubscriptions.userId, userId));
+  } catch (e) { /* ignore */ }
+
   const result = await db.select().from(users).where(eq(users.id, userId)).limit(1);
   return result.length > 0 ? result[0] : undefined;
 }
