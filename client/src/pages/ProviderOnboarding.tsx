@@ -824,11 +824,13 @@ export default function ProviderOnboarding() {
 
   // If all steps are complete and user navigates to onboarding, redirect to dashboard
   const allStepsComplete = stepComplete[1] && stepComplete[2] && stepComplete[3] && stepComplete[4] && stepComplete[5];
+  const hasRedirectedRef = useRef(false);
 
   useEffect(() => {
-    if (allStepsComplete && existingProvider) {
+    if (allStepsComplete && existingProvider && !hasRedirectedRef.current) {
+      hasRedirectedRef.current = true;
       toast.success("Your profile is complete!");
-      setTimeout(() => setLocation("/"), 1500);
+      setTimeout(() => setLocation("/"), 1000);
     }
   }, [allStepsComplete, existingProvider, setLocation]);
 

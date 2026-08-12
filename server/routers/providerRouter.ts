@@ -1332,7 +1332,9 @@ export const providerRouter = router({
       };
     }
     const subscription = await db.getProviderSubscription(provider.id);
-    const hasPlan = !!subscription && subscription.status === "active" && subscription.tier !== "free";
+    // Step 1 (Plan) is complete if any subscription exists (including free/Starter tier)
+    // This matches the onboarding wizard's logic: tierSelected = !!currentSubscription?.subscription
+    const hasPlan = !!subscription;
     const hasProfile = true; // provider record exists
     const categories = await db.getProviderCategories(provider.id);
     const hasSkills = categories.length > 0;
