@@ -289,7 +289,7 @@ export const subscriptionRouter = router({
           await db.upsertProviderSubscription({
             providerId: provider.id,
             tier: "free",
-            status: "canceled",
+            status: "cancelled",
           });
         } else {
         const currentItem = stripeSub.items.data[0];
