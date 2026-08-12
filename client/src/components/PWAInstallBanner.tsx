@@ -29,7 +29,7 @@ export function PWAInstallBanner() {
   if (isInstalled || dismissed) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-sm">
+    <div className="fixed bottom-4 left-4 right-4 z-50 md:right-auto md:left-4 md:max-w-sm">
       <div className="bg-white border border-gray-200 rounded-xl shadow-lg p-4">
         <div className="flex items-start gap-3">
           <div className="bg-primary/10 rounded-lg p-2 shrink-0">

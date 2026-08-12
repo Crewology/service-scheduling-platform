@@ -231,7 +231,7 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">
         <TooltipProvider>
-          <Toaster />
+          <Toaster position="bottom-left" />
           <OfflineBanner />
           <AppContent />
         </TooltipProvider>
