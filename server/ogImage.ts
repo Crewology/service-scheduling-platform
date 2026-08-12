@@ -815,6 +815,23 @@ export async function generateHomepageOgImage(): Promise<string | null> {
   try {
     const fontData = await loadFont();
 
+    // Fetch the OlogyCrew clock logo and convert to base64 for satori
+    let logoDataUri = "";
+    try {
+      const logoUrl = "https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png";
+      const logoResponse = await fetch(logoUrl);
+      if (logoResponse.ok) {
+        const logoBuffer = Buffer.from(await logoResponse.arrayBuffer());
+        const resizedLogo = await sharp(logoBuffer)
+          .resize(80, 80, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+          .png()
+          .toBuffer();
+        logoDataUri = `data:image/png;base64,${resizedLogo.toString("base64")}`;
+      }
+    } catch (e) {
+      console.error("[OG Image] Failed to fetch logo for homepage OG:", e);
+    }
+
     // Feature highlights to show as "chips"
     const categoryChips = [
       "Profile", "Services", "Booking", "Payments",
@@ -877,24 +894,38 @@ export async function generateHomepageOgImage(): Promise<string | null> {
                 marginBottom: "24px",
               },
               children: [
-                {
-                  type: "div",
-                  props: {
-                    style: {
-                      width: "56px",
-                      height: "56px",
-                      borderRadius: "50%",
-                      background: "linear-gradient(135deg, #3b82f6, #2563eb)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "white",
-                      fontSize: "28px",
-                      fontWeight: "700",
+                logoDataUri
+                  ? {
+                      type: "img",
+                      props: {
+                        src: logoDataUri,
+                        width: 56,
+                        height: 56,
+                        style: {
+                          width: "56px",
+                          height: "56px",
+                          borderRadius: "50%",
+                        },
+                      },
+                    }
+                  : {
+                      type: "div",
+                      props: {
+                        style: {
+                          width: "56px",
+                          height: "56px",
+                          borderRadius: "50%",
+                          background: "linear-gradient(135deg, #3b82f6, #2563eb)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "white",
+                          fontSize: "28px",
+                          fontWeight: "700",
+                        },
+                        children: "O",
+                      },
                     },
-                    children: "O",
-                  },
-                },
                 {
                   type: "div",
                   props: {
