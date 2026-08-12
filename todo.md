@@ -2538,3 +2538,4 @@
 - [ ] Plan-aware signup: pricing page passes selected plan to signup, signup page displays selected plan badge, onboarding pre-selects the plan
 - [x] Plan-aware signup: pricing page passes selected plan to signup, signup page displays selected plan badge, onboarding pre-selects the plan
 - [x] Gate provider landing page: redirect to /provider/onboarding until steps 1-4 (Plan, Profile, Skills, Services) are complete. Remove progress bar from landing page.
+- [x] Fix homepage OG image for social sharing: use the branded "Your Business. Your Customers. Your Money." hero image instead of the logged-in dashboard screenshot
