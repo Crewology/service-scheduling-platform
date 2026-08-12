@@ -118,6 +118,8 @@ export const customerSubscriptionRouter = router({
       if (currentTier === input.tier && existingSubForCheck?.stripeSubscriptionId) {
         // Same tier but possibly different interval - update in-place with proration
         const stripeSub = await stripe.subscriptions.retrieve(existingSubForCheck.stripeSubscriptionId);
+        // If the Stripe subscription is canceled (e.g., trial ended), skip update and create new checkout
+        if (stripeSub.status !== "canceled" && stripeSub.status !== "incomplete_expired") {
         const currentItem = stripeSub.items.data[0];
         const currentInterval = currentItem?.price.recurring?.interval as "month" | "year" || "month";
         if (currentInterval === input.interval) {
@@ -133,6 +135,7 @@ export const customerSubscriptionRouter = router({
           proration_behavior: "create_prorations",
         });
         return { url: null, message: `Switched to ${input.interval === "year" ? "annual" : "monthly"} billing. Proration applied.` };
+        }
       }
 
       const priceId = await getOrCreateCustomerStripePrice(input.tier, input.interval);

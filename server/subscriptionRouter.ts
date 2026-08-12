@@ -281,9 +281,19 @@ export const subscriptionRouter = router({
       // Handle existing active subscribers with a Stripe subscription
       if (currentSub?.status === "active" && currentSub.stripeSubscriptionId) {
         const stripeSub = await stripe.subscriptions.retrieve(currentSub.stripeSubscriptionId);
+
+        // If the Stripe subscription is actually canceled (e.g., trial ended without payment),
+        // skip the in-place update and fall through to create a new checkout session
+        if (stripeSub.status === "canceled" || stripeSub.status === "incomplete_expired") {
+          // Update local DB to reflect the actual canceled state
+          await db.upsertProviderSubscription({
+            providerId: provider.id,
+            tier: "free",
+            status: "canceled",
+          });
+        } else {
         const currentItem = stripeSub.items.data[0];
         const currentInterval = currentItem?.price.recurring?.interval as "month" | "year" || "month";
-
         if (currentSub.tier === input.tier && currentInterval === input.interval) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Already subscribed to this tier and interval" });
         }
@@ -316,6 +326,7 @@ export const subscriptionRouter = router({
             ? `Upgraded to ${input.tier === "premium" ? "Business" : "Pro"}! Proration applied to your existing payment method.`
             : `Switched to ${input.interval === "year" ? "annual" : "monthly"} billing. Proration applied.`;
           return { url: null, message };
+        }
         }
       }
 
