@@ -1540,7 +1540,7 @@ export default function ProviderOnboarding() {
                         Current Plan
                       </Button>
                     ) : (
-                      <Button variant="outline" size="sm" className="w-full" onClick={(e) => { e.stopPropagation(); setSelectedTier("free"); }}>
+                      <Button variant="outline" size="sm" className="w-full" onClick={(e) => { e.stopPropagation(); setSelectedTier("free"); if (!existingProvider) setCurrentStep(2); }}>
                         Select Starter
                       </Button>
                     )}
@@ -1613,7 +1613,7 @@ export default function ProviderOnboarding() {
                         Current Plan
                       </Button>
                     ) : (
-                      <Button variant="outline" size="sm" className="w-full" onClick={(e) => { e.stopPropagation(); setSelectedTier("basic"); }}>
+                      <Button variant="outline" size="sm" className="w-full" onClick={(e) => { e.stopPropagation(); setSelectedTier("basic"); if (!existingProvider) setCurrentStep(2); }}>
                         {!hasUsedTrial ? "Start Free Trial" : "Select Pro"}
                       </Button>
                     )}
@@ -1686,7 +1686,7 @@ export default function ProviderOnboarding() {
                         Current Plan
                       </Button>
                     ) : (
-                      <Button variant="outline" size="sm" className="w-full" onClick={(e) => { e.stopPropagation(); setSelectedTier("premium"); }}>
+                      <Button variant="outline" size="sm" className="w-full" onClick={(e) => { e.stopPropagation(); setSelectedTier("premium"); if (!existingProvider) setCurrentStep(2); }}>
                         {!hasUsedTrial ? "Start Free Trial" : "Select Business"}
                       </Button>
                     )}
