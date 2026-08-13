@@ -68,7 +68,7 @@ const CATEGORY_ICONS: Record<number, string> = {
 const ALL_STEPS = [
   { id: 1, title: "Your Plan", icon: Zap, description: "Choose a subscription" },
   { id: 2, title: "Your Profile", icon: User, description: "Photo, name & location" },
-  { id: 3, title: "Your Skills", icon: Grid3X3, description: "Choose your categories" },
+  { id: 3, title: "Your Categories", icon: Grid3X3, description: "Choose your categories" },
   { id: 4, title: "Your Services", icon: Wrench, description: "Add services & pricing" },
   { id: 5, title: "Get Paid", icon: CreditCard, description: "Connect Stripe" },
 ];
@@ -1224,7 +1224,7 @@ export default function ProviderOnboarding() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Grid3X3 className="h-5 w-5" />
-                Your Skills & Categories
+                Your Provider Categories
               </CardTitle>
               <CardDescription>
                 Select every category you can provide services in. You're multi-talented — show it!
