@@ -499,38 +499,57 @@ export default function CustomerPricing() {
                           }}
                           disabled={providerDowngrade.isPending}
                         >
-                          Downgrade
-                       </Button>
-                     ) : (
-                       <Button
-                         className="w-full"
-                         variant={plan.popular ? "default" : "outline"}
-                         onClick={() => {
-                           if (!user) {
-                              localStorage.setItem("ologycrew_selected_plan", JSON.stringify({
-                                tier: plan.tier,
-                                name: plan.name,
-                                price: yearly ? plan.yearlyPrice.toFixed(2) : plan.monthlyPrice.toFixed(2),
-                                interval: yearly ? "year" : "month",
-                                audience: "provider",
-                              }));
-                              navigate(`/signup?plan=${plan.tier}&audience=provider`);
-                              return;
-                            }
-                           providerCreateCheckout.mutate({
-                             tier: plan.tier as "basic" | "premium",
-                             interval: yearly ? "year" : "month",
-                           });
-                          }}
-                          disabled={providerCreateCheckout.isPending}
-                        >
-                          {providerCreateCheckout.isPending ? (
-                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                          ) : null}
-                          {providerCreateCheckout.isPending ? "Loading..." : `Select ${plan.name}`}
-                        </Button>
-                      )}
-                    </CardContent>
+                         Downgrade
+                      </Button>
+                    ) : (
+                       <div className="space-y-2">
+                         <Button
+                           className="w-full"
+                           variant={plan.popular ? "default" : "outline"}
+                           onClick={() => {
+                             if (!user) {
+                               localStorage.setItem("ologycrew_selected_plan", JSON.stringify({
+                                 tier: plan.tier,
+                                 name: plan.name,
+                                 price: yearly ? plan.yearlyPrice.toFixed(2) : plan.monthlyPrice.toFixed(2),
+                                 interval: yearly ? "year" : "month",
+                                 audience: "provider",
+                               }));
+                               navigate(`/signup?plan=${plan.tier}&audience=provider`);
+                               return;
+                             }
+                             providerCreateCheckout.mutate({
+                               tier: plan.tier as "basic" | "premium",
+                               interval: yearly ? "year" : "month",
+                             });
+                           }}
+                           disabled={providerCreateCheckout.isPending}
+                         >
+                           {providerCreateCheckout.isPending ? (
+                             <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                           ) : null}
+                           {providerCreateCheckout.isPending ? "Loading..." : (!user ? "Start 14-Day Free Trial" : `Select ${plan.name}`)}
+                         </Button>
+                         {!user && (
+                           <button
+                             className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+                             onClick={() => {
+                               localStorage.setItem("ologycrew_selected_plan", JSON.stringify({
+                                 tier: plan.tier,
+                                 name: plan.name,
+                                 price: yearly ? plan.yearlyPrice.toFixed(2) : plan.monthlyPrice.toFixed(2),
+                                 interval: yearly ? "year" : "month",
+                                 audience: "provider",
+                               }));
+                               navigate(`/signup?plan=${plan.tier}&audience=provider`);
+                             }}
+                           >
+                             Or subscribe now
+                           </button>
+                         )}
+                       </div>
+                     )}
+                   </CardContent>
                   </Card>
                 );
               })}
@@ -559,7 +578,7 @@ export default function CustomerPricing() {
                     key={plan.tier}
                     className={`relative flex flex-col overflow-visible ${
                       plan.popular ? `${plan.borderColor} border-2 shadow-lg` : ""
-                    } ${isCurrent ? "ring-2 ring-primary" : ""}`}
+                    } ${isCurrent && user ? "ring-2 ring-primary" : ""}`}
                   >
                     {plan.popular && (
                       <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 bg-blue-500 text-white border-0 px-4 py-1 shadow-sm">
