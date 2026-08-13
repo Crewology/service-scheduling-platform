@@ -476,7 +476,7 @@ export default function CustomerPricing() {
                             Downgrade
                           </Button>
                         ) : (
-                          <Button variant="outline" className="w-full" onClick={() => navigate("/provider/onboarding")}>
+                          <Button variant="outline" className="w-full" onClick={() => { if (!user) { localStorage.setItem("ologycrew_selected_plan", JSON.stringify({ tier: "free", name: "Starter", price: "0", interval: "month", audience: "provider" })); navigate("/signup?plan=free&audience=provider"); } else { navigate("/provider/onboarding"); } }}>
                             Get Started Free
                           </Button>
                         )
