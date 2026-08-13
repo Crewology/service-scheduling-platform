@@ -796,6 +796,7 @@ export default function ProviderOnboarding() {
 
   // Check if provider already has an active subscription (skip plan step)
   const hasActivePlan = !!currentSubscription?.subscription && currentSubscription.currentTier !== "free";
+  const hasUsedTrial = currentSubscription?.subscription?.trialEndsAt != null;
 
   // Derive visible steps: skip step 1 (Plan) if already subscribed to a paid plan
   const STEPS = useMemo(() => {
@@ -1449,7 +1450,7 @@ export default function ProviderOnboarding() {
                   }`}
                   onClick={() => setSelectedTier("basic")}
                 >
-                  <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] px-2">14-Day Free Trial</Badge>
+                  {!hasUsedTrial && <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] px-2">14-Day Free Trial</Badge>}
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                       <Zap className="h-4 w-4 text-blue-600 dark:text-blue-400" />
@@ -1553,7 +1554,7 @@ export default function ProviderOnboarding() {
               </div>
 
               {/* 14-day Pro Trial Banner */}
-              {(!currentSubscription?.subscription || currentSubscription?.currentTier === "free") && (
+              {!hasUsedTrial && (!currentSubscription?.subscription || currentSubscription?.currentTier === "free") && (
                 <div className="p-4 rounded-lg bg-gradient-to-r from-blue-500/10 to-primary/10 border border-blue-500/20">
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0 mt-0.5">
@@ -1595,7 +1596,7 @@ export default function ProviderOnboarding() {
                       disabled={selectFreeTier.isPending}
                     >
                       {selectFreeTier.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                      Start with Free
+                      {hasUsedTrial ? "Continue with Free" : "Start with Free"}
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   ) : selectedTier === "basic" ? (
@@ -1604,7 +1605,7 @@ export default function ProviderOnboarding() {
                       disabled={startTrial.isPending}
                     >
                       {startTrial.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                      Start 14-Day Pro Trial
+                      {hasUsedTrial ? "Select Pro" : "Start 14-Day Pro Trial"}
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   ) : selectedTier === "premium" ? (
@@ -1613,7 +1614,7 @@ export default function ProviderOnboarding() {
                       disabled={startTrial.isPending}
                     >
                       {startTrial.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                      Start 14-Day Business Trial
+                      {hasUsedTrial ? "Select Business" : "Start 14-Day Business Trial"}
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   ) : (
