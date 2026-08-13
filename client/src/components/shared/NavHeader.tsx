@@ -791,37 +791,108 @@ export function NavHeader() {
                   </Link>
                 </div>
               )}
-
-              {/* App-Style Grid Navigation - matches landing page tiles exactly */}
+              {/* Tile Grid Navigation */}
               <div className="flex-1 px-5 py-5 overflow-y-auto">
-                <MobileMenuTiles
-                  isAuthenticated={isAuthenticated}
-                  isProvider={isProvider}
-                  isAdmin={isAdmin}
-                  isProviderView={isProviderView}
-                  unreadMessages={unreadMessages}
-                  onClose={() => setMobileMenuOpen(false)}
-                />
-              </div>
-
-              {/* Footer Actions */}
-              <div className="px-4 py-4 border-t mt-auto space-y-2">
-                {!pwaInstalled && (
-                  <button
-                    className="flex items-center gap-3 w-full px-3 py-3 rounded-lg hover:bg-muted/50 active:bg-muted transition-colors"
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      pwaInstall();
-                    }}
-                  >
-                    <Download className="h-5 w-5 text-muted-foreground" />
-                    <span className="text-[15px] font-medium">Install App</span>
-                  </button>
+                {isAuthenticated ? (
+                  <div className="grid grid-cols-4 gap-2">
+                    <Link href="/account" onClick={() => setMobileMenuOpen(false)}>
+                      <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
+                        <div className="h-11 w-11 rounded-2xl bg-slate-100 flex items-center justify-center">
+                          <User className="h-6 w-6 text-slate-600" />
+                        </div>
+                        <span className="text-[11px] font-medium text-center leading-tight">My Account</span>
+                      </div>
+                    </Link>
+                    {myProfile?.profileSlug && (
+                      <Link href={`/${myProfile.profileSlug}`} onClick={() => setMobileMenuOpen(false)}>
+                        <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
+                          <div className="h-11 w-11 rounded-2xl bg-teal-100 flex items-center justify-center">
+                            <ExternalLink className="h-6 w-6 text-teal-600" />
+                          </div>
+                          <span className="text-[11px] font-medium text-center leading-tight">My Page</span>
+                        </div>
+                      </Link>
+                    )}
+                    {myProfile && (
+                      <Link href="/provider/calendar" onClick={() => setMobileMenuOpen(false)}>
+                        <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
+                          <div className="h-11 w-11 rounded-2xl bg-blue-100 flex items-center justify-center">
+                            <Calendar className="h-6 w-6 text-blue-600" />
+                          </div>
+                          <span className="text-[11px] font-medium text-center leading-tight">My Calendar</span>
+                        </div>
+                      </Link>
+                    )}
+                    <Link href={isProviderView ? "/provider/subscription" : "/customer/subscription"} onClick={() => setMobileMenuOpen(false)}>
+                      <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
+                        <div className="h-11 w-11 rounded-2xl bg-emerald-100 flex items-center justify-center">
+                          <CreditCard className="h-6 w-6 text-emerald-600" />
+                        </div>
+                        <span className="text-[11px] font-medium text-center leading-tight">My Subscription</span>
+                      </div>
+                    </Link>
+                    <Link href={isProviderView ? "/provider/billing" : "/customer/billing"} onClick={() => setMobileMenuOpen(false)}>
+                      <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
+                        <div className="h-11 w-11 rounded-2xl bg-orange-100 flex items-center justify-center">
+                          <FileText className="h-6 w-6 text-orange-600" />
+                        </div>
+                        <span className="text-[11px] font-medium text-center leading-tight">Billing History</span>
+                      </div>
+                    </Link>
+                    <Link href="/notification-settings" onClick={() => setMobileMenuOpen(false)}>
+                      <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
+                        <div className="h-11 w-11 rounded-2xl bg-gray-100 flex items-center justify-center">
+                          <Settings className="h-6 w-6 text-gray-600" />
+                        </div>
+                        <span className="text-[11px] font-medium text-center leading-tight">Settings</span>
+                      </div>
+                    </Link>
+                    {!pwaInstalled && (
+                      <button onClick={() => { setMobileMenuOpen(false); pwaInstall(); }} className="w-full">
+                        <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
+                          <div className="h-11 w-11 rounded-2xl bg-indigo-100 flex items-center justify-center">
+                            <Download className="h-6 w-6 text-indigo-600" />
+                          </div>
+                          <span className="text-[11px] font-medium text-center leading-tight">Install App</span>
+                        </div>
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-4 gap-2">
+                    <Link href="/browse" onClick={() => setMobileMenuOpen(false)}>
+                      <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
+                        <div className="h-11 w-11 rounded-2xl bg-blue-100 flex items-center justify-center">
+                          <Compass className="h-6 w-6 text-blue-600" />
+                        </div>
+                        <span className="text-[11px] font-medium text-center leading-tight">Browse</span>
+                      </div>
+                    </Link>
+                    <Link href="/pricing" onClick={() => setMobileMenuOpen(false)}>
+                      <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
+                        <div className="h-11 w-11 rounded-2xl bg-emerald-100 flex items-center justify-center">
+                          <CreditCard className="h-6 w-6 text-emerald-600" />
+                        </div>
+                        <span className="text-[11px] font-medium text-center leading-tight">Pricing</span>
+                      </div>
+                    </Link>
+                    <Link href="/help" onClick={() => setMobileMenuOpen(false)}>
+                      <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
+                        <div className="h-11 w-11 rounded-2xl bg-cyan-100 flex items-center justify-center">
+                          <HelpCircle className="h-6 w-6 text-cyan-600" />
+                        </div>
+                        <span className="text-[11px] font-medium text-center leading-tight">Help</span>
+                      </div>
+                    </Link>
+                  </div>
                 )}
-                {isAuthenticated && (
+              </div>
+              {/* Log Out */}
+              {isAuthenticated && (
+                <div className="px-4 py-4 border-t mt-auto">
                   <MobileLogoutButton onClose={() => setMobileMenuOpen(false)} />
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         )}
