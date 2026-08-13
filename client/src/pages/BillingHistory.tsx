@@ -159,7 +159,7 @@ export default function BillingHistory() {
         {trialStatus.data && (
           <Card className="mb-6 border-primary/20 bg-primary/5">
             <CardContent className="p-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                     <CreditCard className="h-5 w-5 text-primary" />
@@ -225,53 +225,48 @@ export default function BillingHistory() {
               </div>
             ) : (
               <div className="space-y-1">
-                {data.items.map((item, idx) => (
-                  <div
-                    key={item.id}
-                    className={`flex items-center gap-4 p-4 rounded-lg hover:bg-muted/30 transition-colors ${
-                      idx < data.items.length - 1 ? "border-b border-border/50" : ""
-                    }`}
-                  >
-                    {/* Icon */}
-                    <div className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center shrink-0">
-                      {getTypeIcon(item.type)}
+               {data.items.map((item, idx) => (
+                 <div
+                   key={item.id}
+                    className={`flex flex-col gap-2 p-4 rounded-lg hover:bg-muted/30 transition-colors ${
+                     idx < data.items.length - 1 ? "border-b border-border/50" : ""
+                   }`}
+                 >
+                    {/* Row 1: Icon + Description + Amount */}
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-full bg-muted/50 flex items-center justify-center shrink-0 mt-0.5">
+                        {getTypeIcon(item.type)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm leading-snug">{item.description}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{formatDateTime(item.date)}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        {item.amount !== null && item.amount > 0 ? (
+                          <p className="font-semibold text-sm">{formatCents(item.amount)}</p>
+                        ) : item.amount === null ? (
+                          <p className="text-sm text-muted-foreground">—</p>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">$0.00</p>
+                        )}
+                      </div>
                     </div>
-
-                    {/* Description */}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{item.description}</p>
-                      <p className="text-xs text-muted-foreground">{formatDateTime(item.date)}</p>
-                    </div>
-
-                    {/* Amount */}
-                    <div className="text-right shrink-0">
-                      {item.amount !== null && item.amount > 0 ? (
-                        <p className="font-semibold text-sm">{formatCents(item.amount)}</p>
-                      ) : item.amount === null ? (
-                        <p className="text-sm text-muted-foreground">—</p>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">$0.00</p>
-                      )}
-                    </div>
-
-                    {/* Status */}
-                    <div className="shrink-0">{getStatusBadge(item.status)}</div>
-
-                    {/* Download PDF */}
-                    <div className="shrink-0 w-8">
-                      {item.invoicePdfUrl ? (
+                    {/* Row 2: Status + Download (aligned under description) */}
+                    <div className="flex items-center gap-2 pl-12">
+                      {getStatusBadge(item.status)}
+                      {item.invoicePdfUrl && (
                         <a
                           href={item.invoicePdfUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-muted-foreground hover:text-foreground transition-colors"
+                          className="text-muted-foreground hover:text-foreground transition-colors ml-auto"
                           title="Download Invoice PDF"
                         >
                           <Download className="h-4 w-4" />
                         </a>
-                      ) : null}
-                    </div>
-                  </div>
+                      )}
+                   </div>
+                 </div>
                 ))}
 
                 {/* Load More */}
