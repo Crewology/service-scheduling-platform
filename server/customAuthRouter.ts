@@ -414,6 +414,13 @@ router.get("/api/auth/google/callback", async (req: Request, res: Response) => {
         } else {
           redirectPath = "/";
         }
+        // Persist the selected plan tier in the user record
+        if (planTier) {
+          await db.updateUserProfile(finalUser.id, {
+            pendingPlanTier: planTier,
+            pendingPlanAudience: audience,
+          } as any);
+        }
       } else {
         redirectPath = "/select-role";
       }

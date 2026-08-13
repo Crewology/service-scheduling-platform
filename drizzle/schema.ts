@@ -50,6 +50,9 @@ export const users = mysqlTable("users", {
   passwordResetExpires: timestamp("passwordResetExpires"),
   authProvider: mysqlEnum("authProvider", ["email", "google", "manus"]).default("manus"),
   googleId: varchar("googleId", { length: 255 }),
+  // Pending plan selection (persisted from pricing page, cleared after activation)
+  pendingPlanTier: varchar("pendingPlanTier", { length: 20 }),
+  pendingPlanAudience: varchar("pendingPlanAudience", { length: 20 }),
 });
 
 export type User = typeof users.$inferSelect;

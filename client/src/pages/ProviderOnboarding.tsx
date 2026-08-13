@@ -787,7 +787,7 @@ export default function ProviderOnboarding() {
   const [selectedTier, setSelectedTier] = useState<"free" | "basic" | "premium" | null>(null);
   const [billingInterval, setBillingInterval] = useState<"month" | "year">("month");
 
-  // Pre-select plan from pricing page selection (stored in localStorage)
+  // Pre-select plan from pricing page selection (localStorage first, then DB fallback)
   useEffect(() => {
     const stored = localStorage.getItem("ologycrew_selected_plan");
     if (stored && !selectedTier) {
@@ -796,10 +796,26 @@ export default function ProviderOnboarding() {
         if (plan.audience === "provider" && ["free", "basic", "premium"].includes(plan.tier)) {
           setSelectedTier(plan.tier as "free" | "basic" | "premium");
           if (plan.interval === "year") setBillingInterval("year");
+          return;
         }
       } catch {}
     }
-  }, []);
+    // Fallback: read from user's pendingPlanTier in DB (survives across devices/sessions)
+    if (!selectedTier && user && (user as any).pendingPlanTier) {
+      const tier = (user as any).pendingPlanTier;
+      if (["free", "basic", "premium"].includes(tier)) {
+        setSelectedTier(tier as "free" | "basic" | "premium");
+        // Also store in localStorage for the auto-activation logic
+        localStorage.setItem("ologycrew_selected_plan", JSON.stringify({
+          tier,
+          audience: (user as any).pendingPlanAudience || "provider",
+          name: tier === "free" ? "Starter" : tier === "basic" ? "Pro" : "Business",
+          price: tier === "free" ? "0" : tier === "basic" ? "12" : "20",
+          interval: "month",
+        }));
+      }
+    }
+  }, [user]);
   // Pre-populate profile form from existing provider data
   useEffect(() => {
     if (existingProvider) {
@@ -933,6 +949,8 @@ export default function ProviderOnboarding() {
             await startTrial.mutateAsync({ tier: plan.tier });
           }
           localStorage.removeItem("ologycrew_selected_plan");
+          // Clear the pending plan from the user's DB record
+          try { await utils.client.auth.clearPendingPlan.mutate(); } catch {}
         }
       } catch (err) {
         // Plan activation is best-effort during profile creation

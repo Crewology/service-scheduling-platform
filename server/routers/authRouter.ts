@@ -57,6 +57,10 @@ export const authRouter = router({
       return { success: true, role: input.role };
     }),
 
+  clearPendingPlan: protectedProcedure.mutation(async ({ ctx }) => {
+    await db.updateUserProfile(ctx.user.id, { pendingPlanTier: null, pendingPlanAudience: null } as any);
+    return { success: true };
+  }),
   logout: publicProcedure.mutation(({ ctx }) => {
     // Clear cookie with ALL possible attribute combinations to handle proxy inconsistencies
     const baseCookieOpts = { httpOnly: true, path: "/" };
