@@ -1694,7 +1694,7 @@ export default function ProviderOnboarding() {
                       size="sm"
                       variant="outline"
                       className="shrink-0 border-blue-500/30 text-blue-600 dark:text-blue-400 hover:bg-blue-500/10"
-                      onClick={() => startTrial.mutate()}
+                      onClick={() => { if (!existingProvider) { setSelectedTier("basic"); setCurrentStep(2); } else { startTrial.mutate(); } }}
                       disabled={startTrial.isPending}
                     >
                       {startTrial.isPending ? (
@@ -1717,7 +1717,11 @@ export default function ProviderOnboarding() {
                   {(!selectedTier || selectedTier === currentSubscription?.currentTier) ? (
                     <Button
                       onClick={() => {
-                        if (!currentSubscription?.subscription) {
+                        if (!existingProvider) {
+                          // No provider profile yet - just advance, plan activates after profile creation
+                          if (!selectedTier) setSelectedTier("free");
+                          setCurrentStep(2);
+                        } else if (!currentSubscription?.subscription) {
                           selectFreeTier.mutate();
                         } else {
                           setCurrentStep(2);
@@ -1731,7 +1735,13 @@ export default function ProviderOnboarding() {
                     </Button>
                   ) : selectedTier === "free" ? (
                     <Button
-                      onClick={() => selectFreeTier.mutate()}
+                      onClick={() => {
+                        if (!existingProvider) {
+                          setCurrentStep(2);
+                        } else {
+                          selectFreeTier.mutate();
+                        }
+                      }}
                       disabled={selectFreeTier.isPending}
                     >
                       {selectFreeTier.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
@@ -1740,7 +1750,13 @@ export default function ProviderOnboarding() {
                     </Button>
                   ) : selectedTier === "basic" ? (
                     <Button
-                      onClick={() => startTrial.mutate({ tier: "basic" })}
+                      onClick={() => {
+                        if (!existingProvider) {
+                          setCurrentStep(2);
+                        } else {
+                          startTrial.mutate({ tier: "basic" });
+                        }
+                      }}
                       disabled={startTrial.isPending}
                     >
                       {startTrial.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
@@ -1749,7 +1765,13 @@ export default function ProviderOnboarding() {
                     </Button>
                   ) : selectedTier === "premium" ? (
                     <Button
-                      onClick={() => startTrial.mutate({ tier: "premium" })}
+                      onClick={() => {
+                        if (!existingProvider) {
+                          setCurrentStep(2);
+                        } else {
+                          startTrial.mutate({ tier: "premium" });
+                        }
+                      }}
                       disabled={startTrial.isPending}
                     >
                       {startTrial.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
