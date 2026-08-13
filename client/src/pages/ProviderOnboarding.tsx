@@ -921,6 +921,25 @@ export default function ProviderOnboarding() {
       }
     }
 
+    // Auto-activate plan from localStorage after profile is created
+    const storedPlan = localStorage.getItem("ologycrew_selected_plan");
+    if (storedPlan && !currentSubscription?.subscription) {
+      try {
+        const plan = JSON.parse(storedPlan);
+        if (plan.audience === "provider") {
+          if (plan.tier === "free") {
+            await selectFreeTier.mutateAsync();
+          } else if (plan.tier === "basic" || plan.tier === "premium") {
+            await startTrial.mutateAsync({ tier: plan.tier });
+          }
+          localStorage.removeItem("ologycrew_selected_plan");
+        }
+      } catch (err) {
+        // Plan activation is best-effort during profile creation
+        console.error("[Onboarding] Auto-plan activation failed:", err);
+      }
+    }
+
     setCurrentStep(3);
   };
   const handleUpdateProfile = async () => {

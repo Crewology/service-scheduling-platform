@@ -137,17 +137,20 @@ export default function SignUp() {
 
   const handleGoogleSignUp = () => {
     const origin = window.location.origin;
-    // Pass audience from selected plan so server can auto-assign role
+    // Pass audience and planTier from selected plan
     let audience = "";
+    let planTier = "";
     try {
       const stored = localStorage.getItem("ologycrew_selected_plan");
       if (stored) {
         const plan = JSON.parse(stored);
         audience = plan.audience || "";
+        planTier = plan.tier || "";
       }
     } catch {}
     const params = new URLSearchParams({ origin });
     if (audience) params.set("audience", audience);
+    if (planTier) params.set("planTier", planTier);
     window.location.href = `/api/auth/google?${params.toString()}`;
   };
 
