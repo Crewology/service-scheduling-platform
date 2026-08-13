@@ -1414,6 +1414,11 @@ export default function ProviderOnboarding() {
                   }`}
                   onClick={() => setSelectedTier("free")}
                 >
+                  {currentSubscription?.currentTier === "free" && (
+                    <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 z-10">
+                      <Badge className="bg-green-600 text-white border-0 shadow-sm whitespace-nowrap text-[10px] px-2">Current Plan</Badge>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
                       <Star className="h-4 w-4 text-gray-600 dark:text-gray-400" />
@@ -1434,11 +1439,18 @@ export default function ProviderOnboarding() {
                     <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-600 shrink-0" /> Basic public profile</li>
                     <li className="flex items-center gap-1.5"><CheckCircle className="h-3.5 w-3.5 text-green-600 shrink-0" /> Booking management</li>
                   </ul>
-                  {(selectedTier === "free" || (currentSubscription?.currentTier === "free" && !selectedTier)) && (
-                    <div className="absolute top-3 right-3">
-                      <CheckCircle className="h-5 w-5 text-primary" />
-                    </div>
-                  )}
+                  {/* Action button */}
+                  <div className="mt-4">
+                    {currentSubscription?.currentTier === "free" ? (
+                      <Button variant="outline" size="sm" className="w-full" disabled>
+                        Current Plan
+                      </Button>
+                    ) : (
+                      <Button variant="outline" size="sm" className="w-full" onClick={(e) => { e.stopPropagation(); setSelectedTier("free"); }}>
+                        Select Starter
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Basic Tier */}
@@ -1450,7 +1462,13 @@ export default function ProviderOnboarding() {
                   }`}
                   onClick={() => setSelectedTier("basic")}
                 >
-                  {!hasUsedTrial && <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] px-2">14-Day Free Trial</Badge>}
+                  {currentSubscription?.currentTier === "basic" ? (
+                    <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 z-10">
+                      <Badge className="bg-green-600 text-white border-0 shadow-sm whitespace-nowrap text-[10px] px-2">Current Plan</Badge>
+                    </div>
+                  ) : !hasUsedTrial ? (
+                    <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] px-2">14-Day Free Trial</Badge>
+                  ) : null}
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                       <Zap className="h-4 w-4 text-blue-600 dark:text-blue-400" />
@@ -1490,11 +1508,18 @@ export default function ProviderOnboarding() {
                       </Badge>
                     </div>
                   )}
-                  {(selectedTier === "basic" || currentSubscription?.currentTier === "basic") && (
-                    <div className="absolute top-3 right-3">
-                      <CheckCircle className="h-5 w-5 text-primary" />
-                    </div>
-                  )}
+                  {/* Action button */}
+                  <div className="mt-4">
+                    {currentSubscription?.currentTier === "basic" ? (
+                      <Button variant="outline" size="sm" className="w-full" disabled>
+                        Current Plan
+                      </Button>
+                    ) : (
+                      <Button variant="outline" size="sm" className="w-full" onClick={(e) => { e.stopPropagation(); setSelectedTier("basic"); }}>
+                        {!hasUsedTrial ? "Start Free Trial" : "Select Pro"}
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Premium Tier */}
@@ -1506,6 +1531,11 @@ export default function ProviderOnboarding() {
                   }`}
                   onClick={() => setSelectedTier("premium")}
                 >
+                  {currentSubscription?.currentTier === "premium" && (
+                    <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 z-10">
+                      <Badge className="bg-green-600 text-white border-0 shadow-sm whitespace-nowrap text-[10px] px-2">Current Plan</Badge>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
                       <Crown className="h-4 w-4 text-amber-600 dark:text-amber-400" />
@@ -1545,11 +1575,18 @@ export default function ProviderOnboarding() {
                       </Badge>
                     </div>
                   )}
-                  {(selectedTier === "premium" || currentSubscription?.currentTier === "premium") && (
-                    <div className="absolute top-3 right-3">
-                      <CheckCircle className="h-5 w-5 text-primary" />
-                    </div>
-                  )}
+                  {/* Action button */}
+                  <div className="mt-4">
+                    {currentSubscription?.currentTier === "premium" ? (
+                      <Button variant="outline" size="sm" className="w-full" disabled>
+                        Current Plan
+                      </Button>
+                    ) : (
+                      <Button variant="outline" size="sm" className="w-full" onClick={(e) => { e.stopPropagation(); setSelectedTier("premium"); }}>
+                        {!hasUsedTrial ? "Start Free Trial" : "Select Business"}
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -1590,13 +1627,29 @@ export default function ProviderOnboarding() {
               </div>
               <div className="flex justify-end pt-4">
                 <div className="flex gap-2">
-                  {selectedTier === "free" || (!selectedTier && (!currentSubscription?.subscription || currentSubscription?.currentTier === "free")) ? (
+                  {/* If no tier change selected (current plan stays), just continue */}
+                  {(!selectedTier || selectedTier === currentSubscription?.currentTier) ? (
+                    <Button
+                      onClick={() => {
+                        if (!currentSubscription?.subscription) {
+                          selectFreeTier.mutate();
+                        } else {
+                          setCurrentStep(2);
+                        }
+                      }}
+                      disabled={selectFreeTier.isPending}
+                    >
+                      {selectFreeTier.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                      Continue
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  ) : selectedTier === "free" ? (
                     <Button
                       onClick={() => selectFreeTier.mutate()}
                       disabled={selectFreeTier.isPending}
                     >
                       {selectFreeTier.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                      {hasUsedTrial ? "Continue" : "Start with Free"}
+                      Switch to Starter
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   ) : selectedTier === "basic" ? (
@@ -1605,7 +1658,7 @@ export default function ProviderOnboarding() {
                       disabled={startTrial.isPending}
                     >
                       {startTrial.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                      {hasUsedTrial ? "Select Pro" : "Start 14-Day Pro Trial"}
+                      {!hasUsedTrial ? "Start 14-Day Pro Trial" : "Select Pro"}
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   ) : selectedTier === "premium" ? (
@@ -1614,16 +1667,11 @@ export default function ProviderOnboarding() {
                       disabled={startTrial.isPending}
                     >
                       {startTrial.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                      {hasUsedTrial ? "Select Business" : "Start 14-Day Business Trial"}
+                      {!hasUsedTrial ? "Start 14-Day Business Trial" : "Select Business"}
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   ) : (
-                    <Button
-                      onClick={() => {
-                        // Already has a subscription, just advance
-                        setCurrentStep(2);
-                      }}
-                    >
+                    <Button onClick={() => setCurrentStep(2)}>
                       Continue
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
