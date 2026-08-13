@@ -1352,7 +1352,7 @@ export default function ProviderOnboarding() {
                   onClick={() => setCurrentStep(5)}
                   disabled={(myServices?.length ?? 0) === 0}
                 >
-                  {hasActivePlan ? "Connect Payments" : "Choose Your Plan"}
+                  Continue
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               </div>
