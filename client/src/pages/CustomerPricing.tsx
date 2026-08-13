@@ -502,7 +502,7 @@ export default function CustomerPricing() {
                          Downgrade
                       </Button>
                     ) : (
-                       <div className="space-y-2">
+                       
                          <Button
                            className="w-full"
                            variant={plan.popular ? "default" : "outline"}
@@ -530,24 +530,7 @@ export default function CustomerPricing() {
                            ) : null}
                            {providerCreateCheckout.isPending ? "Loading..." : (!user ? "Start 14-Day Free Trial" : `Select ${plan.name}`)}
                          </Button>
-                         {!user && (
-                           <button
-                             className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
-                             onClick={() => {
-                               localStorage.setItem("ologycrew_selected_plan", JSON.stringify({
-                                 tier: plan.tier,
-                                 name: plan.name,
-                                 price: yearly ? plan.yearlyPrice.toFixed(2) : plan.monthlyPrice.toFixed(2),
-                                 interval: yearly ? "year" : "month",
-                                 audience: "provider",
-                               }));
-                               navigate(`/signup?plan=${plan.tier}&audience=provider`);
-                             }}
-                           >
-                             Or subscribe now
-                           </button>
-                         )}
-                       </div>
+                       
                      )}
                    </CardContent>
                   </Card>
@@ -690,7 +673,7 @@ export default function CustomerPricing() {
                           Downgrade
                         </Button>
                       ) : (
-                        <div className="space-y-2">
+                        
                           <Button
                            className="w-full"
                            variant={plan.popular ? "default" : "outline"}
@@ -717,33 +700,7 @@ export default function CustomerPricing() {
                             )}
                             {customerStartTrial.isPending ? "Starting..." : "Start 14-Day Free Trial"}
                           </Button>
-                          <Button
-                           variant="ghost"
-                           size="sm"
-                           className="w-full text-xs text-muted-foreground"
-                           onClick={() => {
-                             if (!user) {
-                                localStorage.setItem("ologycrew_selected_plan", JSON.stringify({
-                                  tier: plan.tier,
-                                  name: plan.name,
-                                  price: yearly ? plan.yearlyPrice.toFixed(2) : plan.monthlyPrice.toFixed(2),
-                                  interval: yearly ? "year" : "month",
-                                  audience: "customer",
-                                }));
-                                navigate(`/signup?plan=${plan.tier}&audience=customer`);
-                                return;
-                              }
-                             customerCreateCheckout.mutate({
-                                tier: plan.tier as "pro" | "business",
-                                interval: yearly ? "year" : "month",
-                                withTrial: false,
-                              });
-                            }}
-                            disabled={customerCreateCheckout.isPending}
-                          >
-                            {customerCreateCheckout.isPending ? "Loading..." : "Or subscribe now"}
-                          </Button>
-                        </div>
+                        
                       )}
                     </CardContent>
                   </Card>
