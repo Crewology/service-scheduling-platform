@@ -681,6 +681,13 @@ export default function ProviderOnboarding() {
     },
     onError: (err) => toast.error(err.message),
   });
+  const updateProvider = trpc.provider.update.useMutation({
+    onSuccess: () => {
+      utils.provider.getMyProfile.invalidate();
+      toast.success("Profile updated!");
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
   const uploadProfilePhoto = trpc.provider.uploadProfilePhoto.useMutation({
     onSuccess: (data) => {
@@ -897,6 +904,30 @@ export default function ProviderOnboarding() {
     }
 
     setCurrentStep(3);
+  const handleUpdateProfile = async () => {
+    if (!businessName.trim() || !businessType) {
+      toast.error("Business name and type are required");
+      return;
+    }
+    await updateProvider.mutateAsync({
+      businessName: businessName.trim(),
+      description: description || undefined,
+      city: city || undefined,
+      state: state || undefined,
+      postalCode: postalCode || undefined,
+      serviceRadiusMiles: acceptsMobile ? serviceRadius : undefined,
+      acceptsMobile,
+      acceptsFixedLocation,
+      acceptsVirtual,
+    });
+    // Upload new photo if changed
+    if (photoPreview && photoPreview.startsWith("data:")) {
+      const base64 = photoPreview.split(",")[1];
+      const contentType = photoPreview.split(";")[0].split(":")[1];
+      uploadProfilePhoto.mutate({ photoData: base64, contentType: contentType as "image/jpeg" | "image/png" | "image/webp" | "image/gif" });
+    }
+    setCurrentStep(3);
+  };
   };
 
   const handleSaveCategories = () => {
@@ -1019,17 +1050,7 @@ export default function ProviderOnboarding() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {existingProvider ? (
-                <div className="text-center py-8">
-                  <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold">{existingProvider.businessName}</h3>
-                  <p className="text-muted-foreground mt-1">Profile created</p>
-                  <Button className="mt-4" onClick={() => setCurrentStep(3)}>
-                    Continue <ChevronRight className="h-4 w-4 ml-1" />
-                  </Button>
-                </div>
-              ) : (
-                <>
+              <>
                   {/* Profile Photo */}
                   <div className="flex flex-col items-center gap-3">
                     <div
@@ -1150,15 +1171,29 @@ export default function ProviderOnboarding() {
                     </div>
                   )}
 
-                  <div className="flex justify-end">
-                    <Button onClick={handleCreateProfile} disabled={createProvider.isPending}>
-                      {createProvider.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                      Create Profile & Continue
-                      <ChevronRight className="h-4 w-4 ml-1" />
-                    </Button>
+                  <div className="flex justify-between">
+                    {existingProvider && (
+                      <Button variant="outline" onClick={() => setCurrentStep(3)}>
+                        Skip <ChevronRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    )}
+                    <div className="ml-auto">
+                      {existingProvider ? (
+                        <Button onClick={handleUpdateProfile} disabled={updateProvider.isPending}>
+                          {updateProvider.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                          Save Changes & Continue
+                          <ChevronRight className="h-4 w-4 ml-1" />
+                        </Button>
+                      ) : (
+                        <Button onClick={handleCreateProfile} disabled={createProvider.isPending}>
+                          {createProvider.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                          Create Profile & Continue
+                          <ChevronRight className="h-4 w-4 ml-1" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </>
-              )}
             </CardContent>
           </Card>
         )}
