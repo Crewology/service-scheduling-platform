@@ -1486,11 +1486,15 @@ export default function ProviderOnboarding() {
                   }`}
                   onClick={() => setSelectedTier("free")}
                 >
-                  {currentSubscription?.currentTier === "free" && (
+                  {currentSubscription?.currentTier === "free" ? (
                     <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 z-10">
                       <Badge className="bg-green-600 text-white border-0 shadow-sm whitespace-nowrap text-[10px] px-2">Current Plan</Badge>
                     </div>
-                  )}
+                  ) : selectedTier === "free" && !currentSubscription?.subscription ? (
+                    <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 z-10">
+                      <Badge className="bg-gray-600 text-white border-0 shadow-sm whitespace-nowrap text-[10px] px-2">Your Selected Plan</Badge>
+                    </div>
+                  ) : null}
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
                       <Star className="h-4 w-4 text-gray-600 dark:text-gray-400" />
@@ -1537,6 +1541,10 @@ export default function ProviderOnboarding() {
                   {currentSubscription?.currentTier === "basic" ? (
                     <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 z-10">
                       <Badge className="bg-green-600 text-white border-0 shadow-sm whitespace-nowrap text-[10px] px-2">Current Plan</Badge>
+                    </div>
+                  ) : selectedTier === "basic" && !currentSubscription?.subscription ? (
+                    <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 z-10">
+                      <Badge className="bg-primary text-primary-foreground border-0 shadow-sm whitespace-nowrap text-[10px] px-2">Your Selected Plan</Badge>
                     </div>
                   ) : !hasUsedTrial ? (
                     <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] px-2">14-Day Free Trial</Badge>
@@ -1603,11 +1611,17 @@ export default function ProviderOnboarding() {
                   }`}
                   onClick={() => setSelectedTier("premium")}
                 >
-                  {currentSubscription?.currentTier === "premium" && (
+                  {currentSubscription?.currentTier === "premium" ? (
                     <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 z-10">
                       <Badge className="bg-green-600 text-white border-0 shadow-sm whitespace-nowrap text-[10px] px-2">Current Plan</Badge>
                     </div>
-                  )}
+                  ) : selectedTier === "premium" && !currentSubscription?.subscription ? (
+                    <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 z-10">
+                      <Badge className="bg-amber-500 text-white border-0 shadow-sm whitespace-nowrap text-[10px] px-2">Your Selected Plan</Badge>
+                    </div>
+                  ) : !hasUsedTrial ? (
+                    <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-amber-500 text-white text-[10px] px-2">14-Day Free Trial</Badge>
+                  ) : null}
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
                       <Crown className="h-4 w-4 text-amber-600 dark:text-amber-400" />
@@ -1663,7 +1677,7 @@ export default function ProviderOnboarding() {
               </div>
 
               {/* 14-day Pro Trial Banner */}
-              {!hasUsedTrial && (!currentSubscription?.subscription || currentSubscription?.currentTier === "free") && (
+              {!hasUsedTrial && !selectedTier && (!currentSubscription?.subscription || currentSubscription?.currentTier === "free") && (
                 <div className="p-4 rounded-lg bg-gradient-to-r from-blue-500/10 to-primary/10 border border-blue-500/20">
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0 mt-0.5">
