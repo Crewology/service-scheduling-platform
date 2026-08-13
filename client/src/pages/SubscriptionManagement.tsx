@@ -330,7 +330,7 @@ export default function SubscriptionManagement() {
         )}
 
         {/* Start Trial CTA for free users who haven't tried yet */}
-        {currentTier === "free" && !trialStatus?.isTrialing && !trialStatus?.trialExpired && (
+        {currentTier === "free" && !trialStatus?.isTrialing && !trialStatus?.trialExpired && !trialStatus?.hasUsedTrial && (
           <div className="mb-6 p-4 rounded-lg bg-gradient-to-r from-blue-500/10 to-primary/10 border border-blue-500/20">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
