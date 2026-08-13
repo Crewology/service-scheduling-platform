@@ -628,7 +628,7 @@ export default function CustomerPricing() {
 
                       {/* CTA */}
                       {plan.tier === "free" ? (
-                        isCurrent ? (
+                        isCurrent && user ? (
                           <Button variant="outline" disabled className="w-full">
                             Current Plan
                           </Button>
@@ -645,8 +645,8 @@ export default function CustomerPricing() {
                             Downgrade
                           </Button>
                         ) : (
-                          <Button variant="outline" className="w-full" onClick={() => navigate("/browse")}>
-                            Start Booking Free
+                          <Button variant="outline" className="w-full" onClick={() => { if (!user) { localStorage.setItem("ologycrew_selected_plan", JSON.stringify({ tier: "free", name: "Individual", price: "0", interval: "month", audience: "customer" })); navigate("/signup?plan=free&audience=customer"); } else { navigate("/browse"); } }}>
+                            {user ? "Start Booking Free" : "Get Started Free"}
                           </Button>
                         )
                       ) : isCurrent ? (
