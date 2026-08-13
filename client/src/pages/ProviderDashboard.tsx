@@ -1814,7 +1814,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
         </>}
 
         {/* Main Content Tabs - Consolidated from 12 to 6 */}
-        <Tabs defaultValue="bookings" className="space-y-6" value={activeTab} onValueChange={setActiveTab}>
+        <Tabs id="dashboard-tabs" defaultValue="bookings" className="space-y-6 scroll-mt-16" value={activeTab} onValueChange={(v) => { setActiveTab(v); document.getElementById("dashboard-tabs")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}>
           {/* Desktop Tab Bar */}
           {!hideChrome && <div className="hidden md:block">
             <TabsList className="inline-flex h-auto gap-1 w-full p-1">
@@ -1839,7 +1839,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
               ].map(({ value, icon: Icon, label }) => (
                 <button
                   key={value}
-                  onClick={() => setActiveTab(value)}
+                  onClick={() => { setActiveTab(value); document.getElementById("dashboard-tabs")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
                   className={`flex flex-col items-center justify-center gap-0.5 text-[10px] transition-colors ${
                     activeTab === value
                       ? "text-primary font-semibold"
