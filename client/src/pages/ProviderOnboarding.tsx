@@ -1818,7 +1818,7 @@ export default function ProviderOnboarding() {
                       </Button>
                     </>
                   )}
-                  <Button
+                  {existingProvider?.payoutEnabled && <Button
                     onClick={() => {
                       toast.success("Welcome to OlogyCrew! Your profile is live.");
                       setLocation("/provider/dashboard");
@@ -1826,7 +1826,7 @@ export default function ProviderOnboarding() {
                   >
                     <Rocket className="h-4 w-4 mr-1" />
                     Go to Dashboard
-                  </Button>
+                  </Button>}
                 </div>
               </div>
             </CardContent>
