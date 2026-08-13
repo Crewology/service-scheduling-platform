@@ -439,6 +439,14 @@ function UserMenuDropdown({ user }: { user: any }) {
             <Settings className="h-4 w-4 text-muted-foreground" />
             Settings
           </Link>
+          <Link
+            href="/help"
+            className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors"
+            onClick={() => setOpen(false)}
+          >
+            <HelpCircle className="h-4 w-4 text-muted-foreground" />
+            Help
+          </Link>
           {user?.role === "admin" && (
             <>
               <div className="border-t my-1" />
@@ -845,6 +853,14 @@ export function NavHeader() {
                           <Settings className="h-6 w-6 text-gray-600" />
                         </div>
                         <span className="text-[11px] font-medium text-center leading-tight">Settings</span>
+                      </div>
+                    </Link>
+                    <Link href="/help" onClick={() => setMobileMenuOpen(false)}>
+                      <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
+                        <div className="h-11 w-11 rounded-2xl bg-cyan-100 flex items-center justify-center">
+                          <HelpCircle className="h-6 w-6 text-cyan-600" />
+                        </div>
+                        <span className="text-[11px] font-medium text-center leading-tight">Help</span>
                       </div>
                     </Link>
                     {!pwaInstalled && (
