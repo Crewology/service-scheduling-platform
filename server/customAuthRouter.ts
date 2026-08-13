@@ -429,6 +429,13 @@ router.get("/api/auth/google/callback", async (req: Request, res: Response) => {
     } else {
       // Both customers and providers go to OlogyCrew landing page
       redirectPath = "/";
+    // Also persist plan tier for returning users who log in with a plan selected
+    if (planTier && finalUser.hasSelectedRole) {
+      await db.updateUserProfile(finalUser.id, {
+        pendingPlanTier: planTier,
+        pendingPlanAudience: audience || (finalUser.role === "provider" ? "provider" : "customer"),
+      } as any);
+    }
     }
 
     return res.redirect(302, redirectPath);
