@@ -290,6 +290,7 @@ router.get("/api/auth/google/callback", async (req: Request, res: Response) => {
       audience = stateData.audience || "";
       planTier = stateData.planTier || "";
     } catch {
+      console.log("[Google Auth] State data - audience:", audience, "planTier:", planTier);
       origin = `${req.protocol}://${req.get("host")}`;
     }
 
