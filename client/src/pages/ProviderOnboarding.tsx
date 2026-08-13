@@ -800,6 +800,24 @@ export default function ProviderOnboarding() {
       } catch {}
     }
   }, []);
+  // Pre-populate profile form from existing provider data
+  useEffect(() => {
+    if (existingProvider) {
+      setBusinessName(existingProvider.businessName || "");
+      setBusinessType(existingProvider.businessType || "");
+      setDescription(existingProvider.description || "");
+      setCity(existingProvider.city || "");
+      setState(existingProvider.state || "");
+      setPostalCode(existingProvider.postalCode || "");
+      setAcceptsMobile(existingProvider.acceptsMobile ?? false);
+      setAcceptsFixedLocation(existingProvider.acceptsFixedLocation ?? true);
+      setAcceptsVirtual(existingProvider.acceptsVirtual ?? false);
+      setServiceRadius(existingProvider.serviceRadiusMiles || 25);
+      if (existingProvider.profilePhotoUrl) {
+        setPhotoPreview(existingProvider.profilePhotoUrl);
+      }
+    }
+  }, [existingProvider]);
 
   // Check if provider already has an active subscription (skip plan step)
   const hasActivePlan = !!currentSubscription?.subscription && currentSubscription.currentTier !== "free";
