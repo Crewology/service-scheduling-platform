@@ -904,6 +904,7 @@ export default function ProviderOnboarding() {
     }
 
     setCurrentStep(3);
+  };
   const handleUpdateProfile = async () => {
     if (!businessName.trim() || !businessType) {
       toast.error("Business name and type are required");
@@ -927,7 +928,6 @@ export default function ProviderOnboarding() {
       uploadProfilePhoto.mutate({ photoData: base64, contentType: contentType as "image/jpeg" | "image/png" | "image/webp" | "image/gif" });
     }
     setCurrentStep(3);
-  };
   };
 
   const handleSaveCategories = () => {
