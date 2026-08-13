@@ -98,6 +98,46 @@ export default function LoggedInHome() {
     }
   }, [isProviderView, user?.role, isAdmin, onboardingStatus, setLocation]);
 
+  // Auto-activate customer plan from pendingPlanTier or localStorage after signup
+  const customerStartTrial = trpc.customerSubscription.startTrial.useMutation({
+    onSuccess: () => {
+      localStorage.removeItem("ologycrew_selected_plan");
+      // Clear pending plan from DB
+      try { clearPendingPlan.mutate(); } catch {}
+    },
+  });
+  const clearPendingPlan = trpc.auth.clearPendingPlan.useMutation();
+  useEffect(() => {
+    if (!user || user.role === "provider" || isAdmin) return;
+    // Check pendingPlanTier from DB or localStorage
+    const pendingTier = (user as any).pendingPlanTier;
+    const pendingAudience = (user as any).pendingPlanAudience;
+    if (pendingTier && pendingAudience === "customer") {
+      if (pendingTier === "pro" || pendingTier === "business") {
+        customerStartTrial.mutate({ tier: pendingTier });
+      } else {
+        // Free tier is default, just clear the pending
+        clearPendingPlan.mutate();
+        localStorage.removeItem("ologycrew_selected_plan");
+      }
+      return;
+    }
+    // Also check localStorage as fallback
+    const stored = localStorage.getItem("ologycrew_selected_plan");
+    if (stored) {
+      try {
+        const plan = JSON.parse(stored);
+        if (plan.audience === "customer" && (plan.tier === "pro" || plan.tier === "business")) {
+          customerStartTrial.mutate({ tier: plan.tier });
+        } else {
+          localStorage.removeItem("ologycrew_selected_plan");
+        }
+      } catch {
+        localStorage.removeItem("ologycrew_selected_plan");
+      }
+    }
+  }, [user]);
+
   // Show loading while checking onboarding status for providers
   if (isProviderView && user?.role === "provider" && !isAdmin && onboardingLoading) {
     return (
