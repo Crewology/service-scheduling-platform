@@ -1596,7 +1596,7 @@ export default function ProviderOnboarding() {
                       disabled={selectFreeTier.isPending}
                     >
                       {selectFreeTier.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                      {hasUsedTrial ? "Continue with Free" : "Start with Free"}
+                      {hasUsedTrial ? "Continue" : "Start with Free"}
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   ) : selectedTier === "basic" ? (
