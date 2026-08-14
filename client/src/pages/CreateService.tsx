@@ -42,7 +42,7 @@ export default function CreateService() {
   const createService = trpc.service.create.useMutation({
     onSuccess: () => {
       toast.success("Service created successfully!");
-      setLocation("/provider/dashboard");
+      setLocation("/provider/services");
     },
     onError: (error) => {
       if (error.message?.includes("plan allows up to") || error.data?.code === "FORBIDDEN") {
@@ -506,7 +506,7 @@ export default function CreateService() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => setLocation("/provider/dashboard")}
+              onClick={() => setLocation("/provider/services")}
               className="flex-1"
             >
               Cancel
