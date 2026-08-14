@@ -1877,7 +1877,7 @@ export default function ProviderOnboarding() {
                         variant="ghost"
                         onClick={() => {
                           toast.success("Welcome! You can set up payments later from your dashboard.");
-                          setLocation("/provider/dashboard");
+                          setLocation("/");
                         }}
                       >
                         Skip for now
