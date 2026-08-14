@@ -207,6 +207,22 @@ export default function LoggedInHome() {
         )}
 
         {/* Launchpad Grid */}
+        {/* Payment setup reminder for providers who skipped step 5 */}
+        {isProviderView && onboardingStatus?.steps1to4Complete && !onboardingStatus?.hasStripe && (
+          <Link href="/provider/onboarding?step=5">
+            <div className="w-full p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-4 hover:bg-amber-100 transition-colors cursor-pointer mb-4">
+              <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                <CreditCard className="h-5 w-5 text-amber-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-amber-900">Set up payments to get paid</p>
+                <p className="text-xs text-amber-700">Connect Stripe to receive payments from bookings. Only takes a few minutes.</p>
+              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+            </div>
+          </Link>
+        )}
+
         <div className="grid grid-cols-4 gap-3 sm:gap-6">
           {allTiles.map((tile, index) => (
             <Link key={`${tile.label}-${tile.href}`} href={tile.href}>
