@@ -148,7 +148,7 @@ export default function CreateService() {
       <div className="container py-4">
         <PageHeader
           title="Create New Service"
-          breadcrumbs={[{ label: "Dashboard", href: "/provider/dashboard" }, { label: "Create Service" }]}
+          breadcrumbs={[{ label: "Dashboard", href: "/provider/dashboard" }, { label: "Services", href: "/provider/services" }, { label: "Create Service" }]}
         />
       </div>
 
