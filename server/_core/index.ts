@@ -219,6 +219,8 @@ Sitemap: ${baseUrl}/sitemap.xml`;
 
   // Custom auth routes (email/password + Google OAuth)
   const customAuthRouter = (await import("../customAuthRouter")).default;
+  const publicApiRouter = (await import("../publicApiRouter")).default;
+  app.use("/api/public", publicApiRouter);
   app.use(customAuthRouter);
 
   // Legacy OAuth callback under /api/oauth/callback (kept for existing sessions)

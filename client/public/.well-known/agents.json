@@ -1,0 +1,47 @@
+{
+  "name": "OlogyCrew",
+  "description": "Service scheduling and booking platform. 48+ categories of service providers including audio visual crew, barbers, DJs, fitness trainers, photographers, handymen, and more. Providers list services with pricing and availability. Customers browse, book, and pay.",
+  "url": "https://ologycrew.com",
+  "logo": "https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png",
+  "api": {
+    "type": "rest",
+    "url": "https://ologycrew.com/api/public",
+    "documentation": "https://ologycrew.com/api/public/docs"
+  },
+  "capabilities": {
+    "search_services": {
+      "description": "Search for services by keyword, category, location, or price range",
+      "endpoint": "GET /api/public/services",
+      "parameters": {
+        "q": "Search query (keyword)",
+        "category": "Category slug or name",
+        "city": "City name",
+        "state": "State abbreviation",
+        "minPrice": "Minimum price",
+        "maxPrice": "Maximum price",
+        "limit": "Results per page (default 20, max 50)",
+        "offset": "Pagination offset"
+      }
+    },
+    "get_provider": {
+      "description": "Get a provider's full profile including services, categories, and availability",
+      "endpoint": "GET /api/public/providers/:slug"
+    },
+    "check_availability": {
+      "description": "Check a provider's available time slots for a specific date",
+      "endpoint": "GET /api/public/availability/:providerId",
+      "parameters": {
+        "date": "Date in YYYY-MM-DD format",
+        "serviceId": "Optional service ID to check duration-specific slots"
+      }
+    },
+    "list_categories": {
+      "description": "List all service categories with service counts",
+      "endpoint": "GET /api/public/categories"
+    }
+  },
+  "supported_actions": ["search", "browse", "check_availability"],
+  "authentication": "none_required_for_read",
+  "rate_limit": "60 requests per minute",
+  "contact": "support@ologycrew.com"
+}

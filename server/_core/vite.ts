@@ -6,14 +6,17 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import viteConfig from "../../vite.config";
 import { getProviderOgTags, getServiceOgTags, getCategoryOgTags, getHomepageOgTags } from "../ogTags";
+import { getProviderJsonLd, getHomepageJsonLd } from "../structuredData";
 
 async function injectOgTags(url: string, template: string, origin: string): Promise<string> {
   let ogTags = "";
+  let jsonLd = "";
 
   // Provider profile pages (/p/:slug)
   const providerMatch = url.match(/^\/p\/([^/?#]+)/);
   if (providerMatch) {
     ogTags = await getProviderOgTags(providerMatch[1], origin);
+    jsonLd = await getProviderJsonLd(providerMatch[1], origin);
   }
 
   // Clean provider profile URLs (/:slug) — check after /p/ but before other routes
@@ -25,6 +28,7 @@ async function injectOgTags(url: string, template: string, origin: string): Prom
       const slug = cleanSlugMatch[1];
       if (!knownRoutes.includes(slug) && !slug.startsWith('p/')) {
         ogTags = await getProviderOgTags(slug, origin);
+          jsonLd = await getProviderJsonLd(slug, origin);
       }
     }
   }
@@ -156,6 +160,14 @@ async function injectOgTags(url: string, template: string, origin: string): Prom
 
   if (ogTags) {
     template = template.replace("</head>", `    ${ogTags}\n  </head>`);
+  }
+
+  // Inject JSON-LD structured data for AI agent discoverability
+  if (!jsonLd && (url === "/" || url === "/?")) {
+    jsonLd = getHomepageJsonLd(origin);
+  }
+  if (jsonLd) {
+    template = template.replace("</head>", `    ${jsonLd}\n  </head>`);
   }
 
   return template;

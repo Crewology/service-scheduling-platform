@@ -2539,3 +2539,9 @@
 - [x] Plan-aware signup: pricing page passes selected plan to signup, signup page displays selected plan badge, onboarding pre-selects the plan
 - [x] Gate provider landing page: redirect to /provider/onboarding until steps 1-4 (Plan, Profile, Skills, Services) are complete. Remove progress bar from landing page.
 - [x] Fix homepage OG image for social sharing: use the branded "Your Business. Your Customers. Your Money." hero image instead of the logged-in dashboard screenshot
+
+## Phase 1 Agentic: AI Agent Discoverability
+- [x] Add Schema.org JSON-LD structured data to provider profile pages (LocalBusiness, Service, Offer)
+- [x] Add Schema.org JSON-LD to service listing pages (Service, AggregateRating)
+- [x] Create agents.json at /.well-known/agents.json describing platform capabilities
+- [x] Build public read-only REST API: GET /api/public/services (search), GET /api/public/providers/:slug, GET /api/public/availability/:providerId
