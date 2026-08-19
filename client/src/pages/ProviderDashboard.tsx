@@ -1374,6 +1374,20 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
   const { data: services } = trpc.service.listMine.useQuery(undefined, {
     enabled: !!provider,
   });
+  // Auto-open edit modal from URL param (e.g., from onboarding page)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const editId = params.get("edit");
+    if (editId && services) {
+      const svc = services.find((s: any) => s.id === parseInt(editId));
+      if (svc) {
+        openEditService(svc);
+        params.delete("edit");
+        const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
+        window.history.replaceState({}, "", newUrl);
+      }
+    }
+  }, [services]);
 
   const { data: mySubscription } = trpc.subscription.mySubscription.useQuery(undefined, {
     enabled: !!provider,

@@ -1413,7 +1413,7 @@ export default function ProviderOnboarding() {
                                 </div>
                               </div>
                               <div className="flex items-center gap-2">
-                              <button onClick={() => window.location.href = `/provider/services/edit/${service.id}`} className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" title="Edit service"><Pencil className="h-3.5 w-3.5" /></button>
+                              <button onClick={() => window.location.href = `/provider/dashboard?tab=services&edit=${service.id}`} className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" title="Edit service"><Pencil className="h-3.5 w-3.5" /></button>
                               <button onClick={() => { if (confirm(`Delete "${service.name}"?`)) deleteService.mutate({ id: service.id }); }} className="p-1.5 rounded-md hover:bg-red-50 text-muted-foreground hover:text-red-600 transition-colors" title="Delete service"><Trash2 className="h-3.5 w-3.5" /></button>
                               <div className="text-right">
                                 <span className="font-semibold text-sm text-primary">
