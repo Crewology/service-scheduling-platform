@@ -32,6 +32,7 @@ import {
   HelpCircle,
   Clock,
   LayoutDashboard,
+  LayoutGrid,
   Compass,
   Award,
   ShieldCheck,
@@ -638,6 +639,12 @@ export function NavHeader() {
           <div className="hidden lg:flex items-center gap-1">
             {isAuthenticated ? (
               <>
+                {/* Home / Dashboard Grid */}
+                <Link href="/">
+                  <Button variant="ghost" size="icon" className="relative h-9 w-9" title="Home">
+                    <LayoutGrid className="h-4 w-4" />
+                  </Button>
+                </Link>
                 {/* Browse Services */}
                 <Link href="/browse">
                   <Button variant="ghost" size="icon" className="relative h-9 w-9" title="Browse Services">
@@ -720,6 +727,12 @@ export function NavHeader() {
 
           {/* Mobile actions: Browse + AI Assistant + Notifications + Search + Hamburger */}
           <div className="flex lg:hidden items-center gap-1">
+            {/* Home / Dashboard Grid (mobile) */}
+            <Link href="/">
+              <Button variant="ghost" size="icon" className="relative h-10 w-10" title="Home">
+                <LayoutGrid className="h-5 w-5" />
+              </Button>
+            </Link>
             {/* Browse Services (mobile) */}
             <Link href="/browse">
               <Button variant="ghost" size="icon" className="relative h-10 w-10" title="Browse Services">
