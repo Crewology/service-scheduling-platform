@@ -2938,7 +2938,7 @@ function PartnerSplitPanel() {
             <CardTitle className="text-2xl">{formatCurrency(summary?.totalRevenue || 0)}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-muted-foreground">All tracked revenue</p>
+            <p className="text-xs text-muted-foreground">All subscription & booking revenue</p>
           </CardContent>
         </Card>
 
@@ -2955,10 +2955,15 @@ function PartnerSplitPanel() {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Partner Share (40%)</CardDescription>
-            <CardTitle className="text-2xl text-blue-600">{formatCurrency(summary?.totalTransferred || 0)}</CardTitle>
+            <CardTitle className="text-2xl text-blue-600">{formatCurrency((summary as any)?.partnerOwed || 0)}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-muted-foreground">Transferred to partner</p>
+            <p className="text-xs text-muted-foreground">
+              {formatCurrency(summary?.totalTransferred || 0)} transferred
+              {((summary as any)?.partnerOutstanding || 0) > 0 && (
+                <span className="text-amber-600 ml-1">• {formatCurrency((summary as any)?.partnerOutstanding || 0)} outstanding</span>
+              )}
+            </p>
           </CardContent>
         </Card>
 

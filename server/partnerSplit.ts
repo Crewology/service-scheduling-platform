@@ -274,25 +274,33 @@ export async function getPartnerTransferSummaryFiltered(options?: {
   const [totals] = await db
     .select({
       totalTransferred: sql<string>`COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0)`,
-      totalRevenue: sql<string>`COALESCE(SUM(CASE WHEN status = 'completed' THEN totalRevenue ELSE 0 END), 0)`,
+      totalRevenue: sql<string>`COALESCE(SUM(totalRevenue), 0)`,
       totalCount: sql<number>`COUNT(*)`,
       completedCount: sql<number>`SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END)`,
       failedCount: sql<number>`SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END)`,
-      subscriptionRevenue: sql<string>`COALESCE(SUM(CASE WHEN status = 'completed' AND (sourceType = 'provider_subscription' OR sourceType = 'customer_subscription') THEN amount ELSE 0 END), 0)`,
-      bookingFeeRevenue: sql<string>`COALESCE(SUM(CASE WHEN status = 'completed' AND sourceType = 'booking_platform_fee' THEN amount ELSE 0 END), 0)`,
+      subscriptionRevenue: sql<string>`COALESCE(SUM(CASE WHEN (sourceType = 'provider_subscription' OR sourceType = 'customer_subscription') THEN totalRevenue ELSE 0 END), 0)`,
+      bookingFeeRevenue: sql<string>`COALESCE(SUM(CASE WHEN sourceType = 'booking_platform_fee' THEN totalRevenue ELSE 0 END), 0)`,
+      failedPartnerAmount: sql<string>`COALESCE(SUM(CASE WHEN status = 'failed' THEN amount ELSE 0 END), 0)`,
     })
     .from(partnerTransfers)
     .where(whereClause);
 
+  const totalRev = parseFloat(totals?.totalRevenue || "0");
+  const totalTransferred = parseFloat(totals?.totalTransferred || "0");
+  const partnerOwed = Math.round(totalRev * (PARTNER_SPLIT_PERCENTAGE / 100) * 100) / 100;
+
   return {
-    totalTransferred: parseFloat(totals?.totalTransferred || "0"),
-    totalRevenue: parseFloat(totals?.totalRevenue || "0"),
-    platformShare: parseFloat(totals?.totalRevenue || "0") - parseFloat(totals?.totalTransferred || "0"),
+    totalTransferred,
+    totalRevenue: totalRev,
+    platformShare: Math.round(totalRev * (PLATFORM_SPLIT_PERCENTAGE / 100) * 100) / 100,
+    partnerOwed,
+    partnerOutstanding: Math.round((partnerOwed - totalTransferred) * 100) / 100,
     totalCount: Number(totals?.totalCount || 0),
     completedCount: Number(totals?.completedCount || 0),
     failedCount: Number(totals?.failedCount || 0),
     subscriptionRevenue: parseFloat(totals?.subscriptionRevenue || "0"),
     bookingFeeRevenue: parseFloat(totals?.bookingFeeRevenue || "0"),
+    failedPartnerAmount: parseFloat(totals?.failedPartnerAmount || "0"),
     splitPercentage: { partner: PARTNER_SPLIT_PERCENTAGE, platform: PLATFORM_SPLIT_PERCENTAGE },
   };
 }
@@ -315,8 +323,8 @@ export async function getMonthlyRevenueBreakdown(options?: {
   const results = await db
     .select({
       month: sql<string>`DATE_FORMAT(createdAt, '%Y-%m')`,
-      totalRevenue: sql<string>`COALESCE(SUM(CASE WHEN status = 'completed' THEN totalRevenue ELSE 0 END), 0)`,
-      partnerShare: sql<string>`COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0)`,
+      totalRevenue: sql<string>`COALESCE(SUM(totalRevenue), 0)`,
+      partnerShare: sql<string>`COALESCE(SUM(amount), 0)`,
       transferCount: sql<number>`COUNT(*)`,
     })
     .from(partnerTransfers)
