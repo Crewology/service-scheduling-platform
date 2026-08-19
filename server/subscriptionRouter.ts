@@ -346,6 +346,62 @@ export const subscriptionRouter = router({
         customerId = customer.id;
       }
 
+      // SAFEGUARD: Check if there's a recently canceled subscription on this customer
+      // that still has remaining time in its billing period. If so, create a new subscription
+      // with the customer's existing payment method instead of a full checkout session.
+      // This prevents duplicate charges when users downgrade and immediately re-upgrade.
+      if (customerId) {
+        try {
+          const recentSubs = await stripe.subscriptions.list({
+            customer: customerId,
+            status: "canceled",
+            limit: 5,
+          });
+
+          // Find a subscription canceled within the last hour (likely a downgrade/re-upgrade cycle)
+          const oneHourAgo = Math.floor(Date.now() / 1000) - 3600;
+          const recentlyCanceled = recentSubs.data.find(s =>
+            s.canceled_at && s.canceled_at > oneHourAgo
+          );
+
+          if (recentlyCanceled) {
+            // Check if customer has a payment method on file
+            const customer = await stripe.customers.retrieve(customerId);
+            if (customer && !customer.deleted && customer.invoice_settings?.default_payment_method) {
+              // Create a new subscription directly (no checkout needed) using existing payment method
+              const newSub = await stripe.subscriptions.create({
+                customer: customerId,
+                items: [{ price: priceId }],
+                default_payment_method: customer.invoice_settings.default_payment_method as string,
+                proration_behavior: "create_prorations",
+                metadata: {
+                  providerId: provider.id.toString(),
+                  tier: input.tier,
+                  type: "provider_subscription",
+                },
+              });
+
+              // Update local subscription record
+              await db.upsertProviderSubscription({
+                providerId: provider.id,
+                tier: input.tier,
+                status: "active",
+                stripeSubscriptionId: newSub.id,
+                stripeCustomerId: customerId,
+                currentPeriodStart: new Date(((newSub as any).current_period_start || Math.floor(Date.now() / 1000)) * 1000),
+                currentPeriodEnd: new Date(((newSub as any).current_period_end || Math.floor(Date.now() / 1000) + 30 * 86400) * 1000),
+              });
+
+              const tierName = input.tier === "premium" ? "Business" : "Pro";
+              return { url: null, message: `Re-upgraded to ${tierName}! Your existing payment method was used. Any prorated credit from the downgrade has been applied.` };
+            }
+          }
+        } catch (err: any) {
+          // If anything fails in the safeguard check, fall through to normal checkout
+          console.warn("[Subscription] Safeguard check failed, proceeding with normal checkout:", err.message);
+        }
+      }
+
       const sessionParams: Stripe.Checkout.SessionCreateParams = {
         customer: customerId,
         payment_method_types: ["card"],

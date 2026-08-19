@@ -2563,3 +2563,8 @@
 ## Feature: Admin Users Tab - Plan Column
 - [x] Update getAllUsers to join subscription data (provider_subscriptions + customer_subscriptions)
 - [x] Add Plan column with colored badges to Admin Users tab
+
+## Fix: Prevent Duplicate Subscription Charges on Upgrade/Downgrade Cycling
+- [x] Check for existing canceled subscription with remaining billing period before creating new checkout
+- [x] Reactivate canceled subscription instead of creating new one when within same billing cycle
+- [x] Apply prorated credit automatically when reactivating
