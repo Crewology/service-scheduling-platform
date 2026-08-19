@@ -23,21 +23,42 @@ export async function getProviderOgTags(slug: string, origin: string): Promise<s
     const title = `${businessName} on OlogyCrew`;
     const url = `${origin}/${slug}`;
 
-    // Build description from available data
-    const parts: string[] = [];
-    if (provider.description) {
-      const desc = provider.description.length > 150
-        ? provider.description.slice(0, 147) + "..."
-        : provider.description;
-      parts.push(escapeHtml(desc));
-    }
-    if (provider.city || provider.state) {
+    // Build rich description: bio + service names + location + CTA
+    let description = "";
+    try {
+      const providerServices = await db.getServicesByProviderId(provider.id);
+      const serviceNames = providerServices.map((s: any) => s.name.trim()).slice(0, 4);
       const location = [provider.city, provider.state].filter(Boolean).join(", ");
-      parts.push(escapeHtml(location));
+
+      if (provider.description) {
+        // Use provider's own bio (truncated) as primary description
+        const bio = provider.description.length > 100
+          ? provider.description.slice(0, 97) + "..."
+          : provider.description;
+        const parts = [escapeHtml(bio)];
+        if (serviceNames.length > 0) {
+          parts.push(serviceNames.join(", "));
+        }
+        if (location) parts.push(location);
+        parts.push("Book on OlogyCrew");
+        description = parts.join(" \u2022 ");
+      } else if (serviceNames.length > 0) {
+        // No bio — list services as the description
+        const parts = [serviceNames.join(", ")];
+        if (location) parts.push(location);
+        parts.push("Book on OlogyCrew");
+        description = parts.join(" \u2022 ");
+      } else {
+        // Fallback
+        const parts: string[] = [];
+        if (location) parts.push(location);
+        parts.push("Book on OlogyCrew");
+        description = `Book services from ${businessName}` + (parts.length > 0 ? " \u2022 " + parts.join(" \u2022 ") : "");
+      }
+    } catch (e) {
+      // Fallback if service fetch fails
+      description = `Book services from ${businessName} on OlogyCrew`;
     }
-    const description = parts.length > 0
-      ? parts.join(" \u2022 ")
-      : `Book services from ${businessName} on OlogyCrew`;
 
     // Generate or retrieve cached OG image
     let imageUrl = await getCachedOgImage(`provider:${slug}`, () => generateProviderOgImage(slug));

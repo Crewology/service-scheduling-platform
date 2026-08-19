@@ -162,6 +162,7 @@ async function injectOgTags(url: string, template: string, origin: string): Prom
     // Remove default OG tags from index.html before injecting page-specific ones
     // Social media crawlers use the FIRST og: tags they find, so we must remove defaults
     template = template.replace(/<meta property="og:[^"]*" content="[^"]*"\s*\/>\s*\n?/g, "");
+    template = template.replace(/<meta name="twitter:[^"]*" content="[^"]*"\s*\/>\s*\n?/g, "");
     template = template.replace("</head>", `    ${ogTags}\n  </head>`);
   }
 

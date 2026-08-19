@@ -80,6 +80,20 @@ export async function generateServiceOgImage(
     const serviceTypeLabel = typeLabels[service.serviceType] || service.serviceType;
     const categoryName = category?.name || "";
 
+
+    // Fetch the OlogyCrew clock logo for branding
+    let logoDataUri = "";
+    try {
+      const logoUrl = "https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png";
+      const logoResponse = await fetch(logoUrl);
+      if (logoResponse.ok) {
+        const logoBuffer = Buffer.from(await logoResponse.arrayBuffer());
+        const resizedLogo = await sharp(logoBuffer).resize(72, 72, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } }).png().toBuffer();
+        logoDataUri = `data:image/png;base64,${resizedLogo.toString("base64")}`;
+      }
+    } catch (e) {
+      console.error("[OG Image] Failed to fetch logo for service OG:", e);
+    }
     const fontData = await loadFont();
 
     const svg = await satori(
