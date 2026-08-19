@@ -2553,3 +2553,13 @@
 - [x] 2FA: Integrate into Google OAuth login flow
 - [x] 2FA: Build verification code entry page
 - [x] 2FA: Build enable/disable toggle in Account settings
+- [ ] Plan-aware signup: pricing page passes selected plan to signup, signup page displays selected plan badge, onboarding pre-selects the plan
+
+## Fix: Partner Split Insufficient Funds Error
+- [x] Add source_transaction parameter to executePartnerTransfer to tie transfers to specific charges
+- [x] Update handleInvoicePaymentSucceeded to extract charge ID from invoice and pass to transfer
+- [ ] Retry previously failed transfers with source_transaction fix (requires new payment to test)
+
+## Feature: Admin Users Tab - Plan Column
+- [x] Update getAllUsers to join subscription data (provider_subscriptions + customer_subscriptions)
+- [x] Add Plan column with colored badges to Admin Users tab

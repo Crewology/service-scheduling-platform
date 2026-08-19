@@ -213,11 +213,26 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   if (platformFee > 0) {
     try {
+      // Extract charge ID from the checkout session's payment intent for source_transaction
+      let bookingChargeId: string | undefined;
+      if (session.payment_intent) {
+        try {
+          const piId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent.id;
+          const paymentIntent = await stripe.paymentIntents.retrieve(piId);
+          if (paymentIntent.latest_charge) {
+            bookingChargeId = typeof paymentIntent.latest_charge === "string" ? paymentIntent.latest_charge : paymentIntent.latest_charge.id;
+          }
+        } catch (err: any) {
+          console.warn(`[Stripe] Could not get charge ID for booking split: ${err.message}`);
+        }
+      }
+
       const splitResult = await executePartnerTransfer({
         totalRevenue: platformFee,
         sourceType: "booking_platform_fee",
         sourceId: session.payment_intent as string || session.id,
         sourceDescription: `Booking #${booking.bookingNumber} platform fee (1% of $${bookingAmount.toFixed(2)}) - ${service?.name || "Service"} by ${provider?.businessName || "Provider"}`,
+        chargeId: bookingChargeId,
       });
       if (splitResult.success) {
         console.log(`[Partner Split] Booking ${booking.bookingNumber}: platform fee $${platformFee.toFixed(2)}, partner share $${splitResult.amount}`);
@@ -557,6 +572,50 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
     return;
   }
 
+  // Extract the charge ID from the invoice for source_transaction
+  // This ties the transfer to the specific charge, preventing "insufficient funds" errors
+  // that occur when Stripe auto-pays out the platform balance before the transfer
+  let chargeId: string | undefined;
+
+  // In newer Stripe API versions, charge/payment_intent are on invoice.payments items
+  // Try to get the charge from the invoice's payments list
+  try {
+    if (invoice.payments?.data?.length) {
+      const payment = invoice.payments.data[0];
+      if (payment.payment?.charge) {
+        chargeId = typeof payment.payment.charge === "string" ? payment.payment.charge : payment.payment.charge.id;
+        console.log(`[Stripe] Invoice ${invoice.id} has charge from payments: ${chargeId}`);
+      } else if (payment.payment?.payment_intent) {
+        // Get charge from the payment intent
+        const piId = typeof payment.payment.payment_intent === "string" ? payment.payment.payment_intent : payment.payment.payment_intent.id;
+        const paymentIntent = await stripe.paymentIntents.retrieve(piId);
+        if (paymentIntent.latest_charge) {
+          chargeId = typeof paymentIntent.latest_charge === "string" ? paymentIntent.latest_charge : paymentIntent.latest_charge.id;
+          console.log(`[Stripe] Got charge from payment intent: ${chargeId}`);
+        }
+      }
+    } else {
+      // Fallback: list invoice payments via API
+      const invoicePayments = await stripe.invoicePayments.list({ invoice: invoice.id, limit: 1 });
+      if (invoicePayments.data.length > 0) {
+        const ip = invoicePayments.data[0];
+        if (ip.payment?.payment_intent) {
+          const piId = typeof ip.payment.payment_intent === "string" ? ip.payment.payment_intent : ip.payment.payment_intent.id;
+          const paymentIntent = await stripe.paymentIntents.retrieve(piId);
+          if (paymentIntent.latest_charge) {
+            chargeId = typeof paymentIntent.latest_charge === "string" ? paymentIntent.latest_charge : paymentIntent.latest_charge.id;
+            console.log(`[Stripe] Got charge from listed payment intent: ${chargeId}`);
+          }
+        } else if (ip.payment?.charge) {
+          chargeId = typeof ip.payment.charge === "string" ? ip.payment.charge : ip.payment.charge.id;
+          console.log(`[Stripe] Got charge from listed invoice payment: ${chargeId}`);
+        }
+      }
+    }
+  } catch (err: any) {
+    console.warn(`[Stripe] Could not extract charge ID from invoice: ${err.message}`);
+  }
+
   // Get subscription ID from parent details
   const subscriptionId = subscriptionDetails
     ? (typeof subscriptionDetails.subscription === "string"
@@ -597,6 +656,7 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
     sourceType,
     sourceId: invoice.id,
     sourceDescription,
+    chargeId,
   });
 
   if (result.success) {

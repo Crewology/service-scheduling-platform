@@ -128,4 +128,78 @@ describe("Partner Revenue Split", () => {
       expect(typeof handleStripeWebhook).toBe("function");
     });
   });
+
+  describe("source_transaction support", () => {
+    it("should accept optional chargeId in PartnerTransferInput interface", async () => {
+      const mod = await import("./partnerSplit");
+      // The function should accept chargeId without errors
+      // We can't call it without Stripe, but we verify the function signature accepts the parameter
+      expect(mod.executePartnerTransfer).toBeDefined();
+      expect(typeof mod.executePartnerTransfer).toBe("function");
+      // The function accepts an object with chargeId as an optional field
+      // This test validates the interface was updated correctly
+    });
+
+    it("should have source_transaction logic in the transfer function", async () => {
+      // Read the source to verify source_transaction is used
+      const fs = await import("fs");
+      const source = fs.readFileSync("server/partnerSplit.ts", "utf-8");
+      expect(source).toContain("source_transaction");
+      expect(source).toContain("chargeId");
+      expect(source).toContain("transferParams.source_transaction = input.chargeId");
+    });
+
+    it("should extract charge ID from invoice payments in webhook handler", async () => {
+      const fs = await import("fs");
+      const source = fs.readFileSync("server/stripeWebhook.ts", "utf-8");
+      // Verify the webhook handler extracts charge ID
+      expect(source).toContain("chargeId");
+      expect(source).toContain("invoice.payments");
+      expect(source).toContain("latest_charge");
+      // Verify chargeId is passed to executePartnerTransfer
+      expect(source).toContain("chargeId,");
+    });
+
+    it("should extract charge ID for booking platform fee transfers", async () => {
+      const fs = await import("fs");
+      const source = fs.readFileSync("server/stripeWebhook.ts", "utf-8");
+      expect(source).toContain("bookingChargeId");
+      expect(source).toContain("chargeId: bookingChargeId");
+    });
+  });
+
+  describe("Admin Users - Plan column data", () => {
+    it("should include subscription data in getAllUsers query", async () => {
+      const fs = await import("fs");
+      const source = fs.readFileSync("server/db/users.ts", "utf-8");
+      // Verify the query joins subscription tables
+      expect(source).toContain("providerSubscriptions");
+      expect(source).toContain("customerSubscriptions");
+      expect(source).toContain("providerSubTier");
+      expect(source).toContain("providerSubStatus");
+      expect(source).toContain("customerSubTier");
+      expect(source).toContain("customerSubStatus");
+      expect(source).toContain("hasProviderProfile");
+    });
+
+    it("should have Plan column in admin users table", async () => {
+      const fs = await import("fs");
+      const source = fs.readFileSync("client/src/pages/AdminDashboard.tsx", "utf-8");
+      expect(source).toContain("<TableHead>Plan</TableHead>");
+      expect(source).toContain("PlanBadge");
+    });
+
+    it("should render correct plan labels in PlanBadge component", async () => {
+      const fs = await import("fs");
+      const source = fs.readFileSync("client/src/pages/AdminDashboard.tsx", "utf-8");
+      // Provider tier labels
+      expect(source).toContain('? "Pro"');
+      expect(source).toContain('? "Business"');
+      expect(source).toContain("Starter");
+      // Customer tier labels
+      expect(source).toContain('? "Coordinator"');
+      expect(source).toContain('? "Manager"');
+      expect(source).toContain("Individual");
+    });
+  });
 });

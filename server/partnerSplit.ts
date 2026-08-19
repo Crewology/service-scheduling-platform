@@ -19,6 +19,7 @@ interface PartnerTransferInput {
   sourceType: TransferSourceType;
   sourceId: string; // Stripe invoice ID, payment intent ID, etc.
   sourceDescription: string; // Human-readable description
+  chargeId?: string; // Stripe charge ID for source_transaction (ties transfer to specific charge)
 }
 
 /**
@@ -75,7 +76,10 @@ export async function executePartnerTransfer(input: PartnerTransferInput): Promi
   const amountInCents = Math.round(partnerAmount * 100);
 
   try {
-    const transfer = await stripe.transfers.create({
+    // Build transfer params — use source_transaction when a charge ID is available
+    // This ties the transfer to the specific charge, avoiding "insufficient funds" errors
+    // that occur when Stripe auto-pays out the platform balance before the transfer
+    const transferParams: Stripe.TransferCreateParams = {
       amount: amountInCents,
       currency: "usd",
       destination: partnerAccountId,
@@ -86,7 +90,14 @@ export async function executePartnerTransfer(input: PartnerTransferInput): Promi
         splitPercentage: PARTNER_SPLIT_PERCENTAGE.toString(),
         totalRevenue: input.totalRevenue.toFixed(2),
       },
-    });
+    };
+
+    if (input.chargeId) {
+      transferParams.source_transaction = input.chargeId;
+      console.log(`[Partner Split] Using source_transaction: ${input.chargeId}`);
+    }
+
+    const transfer = await stripe.transfers.create(transferParams);
 
     await recordTransfer({
       amount: partnerAmount,

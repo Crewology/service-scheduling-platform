@@ -2595,6 +2595,7 @@ function UsersFilterPanel({ suspendUser, unsuspendUser }: { suspendUser: any; un
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Role</TableHead>
+                    <TableHead>Plan</TableHead>
                     <TableHead>Joined</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
@@ -2637,6 +2638,9 @@ function UsersFilterPanel({ suspendUser, unsuspendUser }: { suspendUser: any; un
                             </Badge>
                           )}
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <PlanBadge user={u} />
                       </TableCell>
                       <TableCell className="text-muted-foreground">{formatDate(u.createdAt)}</TableCell>
                       <TableCell>
@@ -2756,6 +2760,67 @@ function UsersFilterPanel({ suspendUser, unsuspendUser }: { suspendUser: any; un
 // ============================================================================
 // PARTNER REVENUE SPLIT PANEL
 // ============================================================================
+
+/** Plan badge for the admin Users table */
+function PlanBadge({ user }: { user: any }) {
+  const badges: React.ReactNode[] = [];
+
+  // Provider subscription
+  if (user.providerSubTier && user.providerSubTier !== "free") {
+    const isActive = user.providerSubStatus === "active" || user.providerSubStatus === "trialing";
+    const tierLabel = user.providerSubTier === "basic" ? "Pro" : user.providerSubTier === "premium" ? "Business" : user.providerSubTier;
+    const trialSuffix = user.providerSubStatus === "trialing" ? " (trial)" : "";
+    badges.push(
+      <Badge
+        key="prov"
+        variant="secondary"
+        className={isActive
+          ? "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900 dark:text-blue-300 dark:border-blue-800"
+          : "bg-gray-100 text-gray-500 border-gray-200 line-through"
+        }
+      >
+        {tierLabel}{trialSuffix}
+      </Badge>
+    );
+  } else if (user.hasProviderProfile || user.role === "provider") {
+    badges.push(
+      <Badge key="prov-free" variant="outline" className="text-gray-500 border-gray-300">
+        Starter
+      </Badge>
+    );
+  }
+
+  // Customer subscription
+  if (user.customerSubTier && user.customerSubTier !== "free") {
+    const isActive = user.customerSubStatus === "active" || user.customerSubStatus === "trialing";
+    const tierLabel = user.customerSubTier === "pro" ? "Coordinator" : user.customerSubTier === "business" ? "Manager" : user.customerSubTier;
+    const trialSuffix = user.customerSubStatus === "trialing" ? " (trial)" : "";
+    badges.push(
+      <Badge
+        key="cust"
+        variant="secondary"
+        className={isActive
+          ? "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900 dark:text-emerald-300 dark:border-emerald-800"
+          : "bg-gray-100 text-gray-500 border-gray-200 line-through"
+        }
+      >
+        {tierLabel}{trialSuffix}
+      </Badge>
+    );
+  } else if (user.role === "customer") {
+    badges.push(
+      <Badge key="cust-free" variant="outline" className="text-gray-500 border-gray-300">
+        Individual
+      </Badge>
+    );
+  }
+
+  if (badges.length === 0) {
+    return <span className="text-xs text-muted-foreground">—</span>;
+  }
+
+  return <div className="flex gap-1 flex-wrap">{badges}</div>;
+}
 
 function WebhookStatusBanner() {
   const { data: webhookStatus } = trpc.admin.getWebhookStatus.useQuery();

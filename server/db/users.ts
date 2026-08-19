@@ -1,4 +1,4 @@
-import { eq, and, inArray, isNull, not, or } from "drizzle-orm";
+import { eq, and, inArray, isNull, not, or, sql } from "drizzle-orm";
 import {
   InsertUser,
   users,
@@ -135,7 +135,39 @@ export async function getAllUsers() {
   const db = await getDb();
   if (!db) return [];
 
-  return await db.select().from(users).where(isNull(users.deletedAt)).orderBy(users.createdAt);
+  const results = await db
+    .select({
+      id: users.id,
+      openId: users.openId,
+      name: users.name,
+      email: users.email,
+      loginMethod: users.loginMethod,
+      role: users.role,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      phone: users.phone,
+      profilePhotoUrl: users.profilePhotoUrl,
+      emailVerified: users.emailVerified,
+      hasSelectedRole: users.hasSelectedRole,
+      createdAt: users.createdAt,
+      updatedAt: users.updatedAt,
+      lastSignedIn: users.lastSignedIn,
+      deletedAt: users.deletedAt,
+      adminRole: users.adminRole,
+      authProvider: users.authProvider,
+      hasProviderProfile: sql<boolean>`CASE WHEN ${serviceProviders.id} IS NOT NULL THEN true ELSE false END`.as('hasProviderProfile'),
+      providerSubTier: providerSubscriptions.tier,
+      providerSubStatus: providerSubscriptions.status,
+      customerSubTier: customerSubscriptions.tier,
+      customerSubStatus: customerSubscriptions.status,
+    })
+    .from(users)
+    .leftJoin(serviceProviders, eq(users.id, serviceProviders.userId))
+    .leftJoin(providerSubscriptions, eq(serviceProviders.id, providerSubscriptions.providerId))
+    .leftJoin(customerSubscriptions, eq(users.id, customerSubscriptions.userId))
+    .orderBy(users.createdAt);
+
+  return results;
 }
 
 // ============================================================================
