@@ -315,23 +315,33 @@ export async function generateServiceOgImage(
                         gap: "12px",
                       },
                       children: [
-                        {
-                          type: "div",
-                          props: {
-                            style: {
-                              width: "36px",
-                              height: "36px",
-                              borderRadius: "50%",
-                              background: "#22c55e",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontSize: "18px",
-                              fontWeight: 700,
+                        logoDataUri
+                        ? {
+                            type: "img",
+                            props: {
+                              src: logoDataUri,
+                              width: 36,
+                              height: 36,
+                              style: { borderRadius: "50%" },
                             },
-                            children: "O",
+                          }
+                        : {
+                            type: "div",
+                            props: {
+                              style: {
+                                width: "36px",
+                                height: "36px",
+                                borderRadius: "50%",
+                                background: "#22c55e",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "18px",
+                                fontWeight: 700,
+                              },
+                              children: "O",
+                            },
                           },
-                        },
                         {
                           type: "div",
                           props: {
@@ -424,6 +434,21 @@ export async function generateProviderOgImage(
         console.error('[OG Image] Failed to fetch/resize profile photo:', e);
       }
     }
+
+    // Fetch the OlogyCrew clock logo for branding
+    let logoDataUri = '';
+    try {
+      const logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png';
+      const logoResponse = await fetch(logoUrl);
+      if (logoResponse.ok) {
+        const logoBuffer = Buffer.from(await logoResponse.arrayBuffer());
+        const resizedLogo = await sharp(logoBuffer).resize(72, 72, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } }).png().toBuffer();
+        logoDataUri = `data:image/png;base64,${resizedLogo.toString('base64')}`;
+      }
+    } catch (e) {
+      console.error('[OG Image] Failed to fetch logo for provider OG:', e);
+    }
+
     const businessName = provider.businessName || "Provider";
     const description = provider.description
       ? provider.description.length > 120
@@ -726,23 +751,33 @@ export async function generateProviderOgImage(
                         gap: "12px",
                       },
                       children: [
-                        {
-                          type: "div",
-                          props: {
-                            style: {
-                              width: "36px",
-                              height: "36px",
-                              borderRadius: "50%",
-                              background: "#3b82f6",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontSize: "18px",
-                              fontWeight: 700,
+                        logoDataUri
+                        ? {
+                            type: "img",
+                            props: {
+                              src: logoDataUri,
+                              width: 36,
+                              height: 36,
+                              style: { borderRadius: "50%" },
                             },
-                            children: "O",
+                          }
+                        : {
+                            type: "div",
+                            props: {
+                              style: {
+                                width: "36px",
+                                height: "36px",
+                                borderRadius: "50%",
+                                background: "#22c55e",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "18px",
+                                fontWeight: 700,
+                              },
+                              children: "O",
+                            },
                           },
-                        },
                         {
                           type: "div",
                           props: {
