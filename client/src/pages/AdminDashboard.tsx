@@ -184,7 +184,7 @@ function SubscriptionAnalyticsPanel() {
               </div>
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium">Business ($79/mo)</span>
+                  <span className="text-sm font-medium">Business ($20/mo)</span>
                   <span className="text-sm text-muted-foreground">{analytics.tiers.premium} ({premiumPct.toFixed(0)}%)</span>
                 </div>
                 <div className="h-3 bg-muted rounded-full overflow-hidden">
