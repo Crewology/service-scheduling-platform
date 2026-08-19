@@ -82,12 +82,14 @@ function AddServiceDialog({
   categoryId,
   categoryName,
   onSuccess,
+  editingService,
 }: {
   open: boolean;
   onClose: () => void;
   categoryId: number;
   categoryName: string;
   onSuccess: () => void;
+  editingService?: any;
 }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -96,6 +98,22 @@ function AddServiceDialog({
   const [basePrice, setBasePrice] = useState("");
   const [hourlyRate, setHourlyRate] = useState("");
   const [duration, setDuration] = useState(60);
+
+  // Pre-populate fields when editing
+  useEffect(() => {
+    if (editingService) {
+      setName(editingService.name || "");
+      setDescription(editingService.description || "");
+      setServiceType(editingService.serviceType || "fixed_location");
+      setPricingModel(editingService.pricingModel || "fixed");
+      setBasePrice(editingService.basePrice || "");
+      setHourlyRate(editingService.hourlyRate || "");
+      setDuration(editingService.durationMinutes || 60);
+    } else {
+      setName(""); setDescription(""); setBasePrice(""); setHourlyRate("");
+      setServiceType("fixed_location"); setPricingModel("fixed"); setDuration(60);
+    }
+  }, [editingService]);
 
   const createService = trpc.service.create.useMutation({
     onSuccess: () => {
@@ -110,12 +128,21 @@ function AddServiceDialog({
     onError: (err) => toast.error(err.message),
   });
 
+  const updateService = trpc.service.update.useMutation({
+    onSuccess: () => {
+      toast.success(`Service "${name}" updated!`);
+      onSuccess();
+      onClose();
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   const handleSubmit = () => {
     if (!name.trim()) {
       toast.error("Service name is required");
       return;
     }
-    createService.mutate({
+    const data = {
       name: name.trim(),
       categoryId,
       description: description || undefined,
@@ -124,7 +151,12 @@ function AddServiceDialog({
       basePrice: pricingModel === "fixed" || pricingModel === "package" ? basePrice : undefined,
       hourlyRate: pricingModel === "hourly" ? hourlyRate : undefined,
       durationMinutes: duration,
-    });
+    };
+    if (editingService) {
+      updateService.mutate({ id: editingService.id, ...data });
+    } else {
+      createService.mutate(data);
+    }
   };
 
   return (
@@ -133,7 +165,7 @@ function AddServiceDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Plus className="h-5 w-5" />
-            Add Service to {categoryName}
+            {editingService ? `Edit ${editingService.name}` : `Add Service to ${categoryName}`}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
@@ -673,6 +705,7 @@ export default function ProviderOnboarding() {
 
   // Step 3: Services
   const [addServiceDialogOpen, setAddServiceDialogOpen] = useState(false);
+  const [editingServiceData, setEditingServiceData] = useState<any>(null);
   const [addServiceCategoryId, setAddServiceCategoryId] = useState<number>(0);
   const [addServiceCategoryName, setAddServiceCategoryName] = useState("");
 
@@ -1413,7 +1446,7 @@ export default function ProviderOnboarding() {
                                 </div>
                               </div>
                               <div className="flex items-center gap-2">
-                              <button onClick={() => window.location.href = `/provider/dashboard?tab=services&edit=${service.id}`} className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" title="Edit service"><Pencil className="h-3.5 w-3.5" /></button>
+                              <button onClick={() => { setEditingServiceData(service); setAddServiceCategoryId(service.categoryId); setAddServiceCategoryName(categories?.find((c: any) => c.id === service.categoryId)?.name || ""); setAddServiceDialogOpen(true); }} className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" title="Edit service"><Pencil className="h-3.5 w-3.5" /></button>
                               <button onClick={() => { if (confirm(`Delete "${service.name}"?`)) deleteService.mutate({ id: service.id }); }} className="p-1.5 rounded-md hover:bg-red-50 text-muted-foreground hover:text-red-600 transition-colors" title="Delete service"><Trash2 className="h-3.5 w-3.5" /></button>
                               <div className="text-right">
                                 <span className="font-semibold text-sm text-primary">
@@ -1918,7 +1951,8 @@ export default function ProviderOnboarding() {
       {/* Add Service Dialog */}
       <AddServiceDialog
         open={addServiceDialogOpen}
-        onClose={() => setAddServiceDialogOpen(false)}
+        onClose={() => { setAddServiceDialogOpen(false); setEditingServiceData(null); }}
+        editingService={editingServiceData}
         categoryId={addServiceCategoryId}
         categoryName={addServiceCategoryName}
         onSuccess={() => {
