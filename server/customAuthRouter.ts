@@ -9,6 +9,7 @@ import * as db from "./db";
 import { EmailProvider } from "./notifications/providers/email";
 import { checkRateLimit, getClientIp, RATE_LIMITS } from "./rateLimiter";
 import { isDisposableEmail, getDisposableEmailError } from "./disposableEmails";
+import { generateTwoFactorCode, sendTwoFactorEmail, verifyTwoFactorCode, hasTwoFactorEnabled, createTrustedDevice, isDeviceTrusted } from "./twoFactor";
 
 const router = Router();
 
@@ -439,10 +440,100 @@ router.get("/api/auth/google/callback", async (req: Request, res: Response) => {
     }
     }
 
+    // Check if 2FA is enabled for this user
+    if (finalUser.twoFactorEnabled) {
+      const trustedToken = req.cookies?.ologycrew_trusted_device;
+      if (!trustedToken || !(await isDeviceTrusted(finalUser.id, trustedToken))) {
+        // Generate and send 2FA code, redirect to verification page
+        const code = await generateTwoFactorCode(finalUser.id);
+        await sendTwoFactorEmail(finalUser.email!, code, finalUser.firstName || finalUser.name || undefined);
+        return res.redirect(302, `/verify-2fa?userId=${finalUser.id}&redirect=${encodeURIComponent(redirectPath)}`);
+      }
+    }
     return res.redirect(302, redirectPath);
   } catch (error) {
     console.error("[Google Auth] Callback failed:", error);
     return res.redirect("/login?error=callback_failed");
+  }
+});
+
+
+// ============================================================================
+// TWO-FACTOR AUTHENTICATION
+// ============================================================================
+router.post("/api/auth/verify-2fa", async (req: Request, res: Response) => {
+  try {
+    const { userId, code, trustDevice } = req.body;
+    if (!userId || !code) {
+      return res.status(400).json({ error: "User ID and code are required" });
+    }
+
+    const isValid = await verifyTwoFactorCode(userId, code);
+    if (!isValid) {
+      return res.status(401).json({ error: "Invalid or expired code. Please try again." });
+    }
+
+    // Code is valid - create session
+    const user = await db.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    await db.upsertUser({ openId: user.openId, lastSignedIn: new Date() });
+    const sessionToken = await sdk.createSessionToken(user.openId, {
+      name: user.name || "",
+      expiresInMs: ONE_YEAR_MS,
+    });
+    const cookieOptions = getSessionCookieOptions(req);
+    res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+
+    // Trust this device if requested
+    if (trustDevice) {
+      const deviceToken = await createTrustedDevice(userId, req.headers["user-agent"]);
+      res.cookie("ologycrew_trusted_device", deviceToken, {
+        ...cookieOptions,
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      });
+    }
+
+    return res.json({
+      success: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        emailVerified: user.emailVerified,
+        hasSelectedRole: user.hasSelectedRole,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("[Auth] 2FA verification failed:", error);
+    return res.status(500).json({ error: "Verification failed. Please try again." });
+  }
+});
+
+router.post("/api/auth/resend-2fa", async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.body;
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
+
+    const user = await db.getUserById(userId);
+    if (!user || !user.email) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const code = await generateTwoFactorCode(userId);
+    await sendTwoFactorEmail(user.email, code, user.firstName || user.name || undefined);
+
+    return res.json({ success: true, message: "New code sent to your email" });
+  } catch (error) {
+    console.error("[Auth] Resend 2FA failed:", error);
+    return res.status(500).json({ error: "Failed to resend code. Please try again." });
   }
 });
 

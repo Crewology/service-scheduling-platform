@@ -2545,3 +2545,11 @@
 - [x] Add Schema.org JSON-LD to service listing pages (Service, AggregateRating)
 - [x] Create agents.json at /.well-known/agents.json describing platform capabilities
 - [x] Build public read-only REST API: GET /api/public/services (search), GET /api/public/providers/:slug, GET /api/public/availability/:providerId
+- [x] 2FA: Add twoFactorEnabled field to users table
+- [x] 2FA: Create twoFactorCodes table for storing verification codes
+- [x] 2FA: Create trustedDevices table for 30-day device trust
+- [x] 2FA: Server-side code generation, verification, and email sending
+- [x] 2FA: Integrate into email/password login flow
+- [x] 2FA: Integrate into Google OAuth login flow
+- [x] 2FA: Build verification code entry page
+- [x] 2FA: Build enable/disable toggle in Account settings

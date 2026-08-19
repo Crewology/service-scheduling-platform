@@ -53,10 +53,36 @@ export const users = mysqlTable("users", {
   // Pending plan selection (persisted from pricing page, cleared after activation)
   pendingPlanTier: varchar("pendingPlanTier", { length: 20 }),
   pendingPlanAudience: varchar("pendingPlanAudience", { length: 20 }),
+  // Two-Factor Authentication
+  twoFactorEnabled: boolean("twoFactorEnabled").default(false),
 });
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
+
+/**
+ * Two-Factor Authentication codes (email-based 6-digit codes)
+ */
+export const twoFactorCodes = mysqlTable("two_factor_codes", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  code: varchar("code", { length: 6 }).notNull(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  used: boolean("used").default(false),
+  createdAt: timestamp("createdAt").defaultNow(),
+});
+
+/**
+ * Trusted devices for 2FA (skip code for 30 days)
+ */
+export const trustedDevices = mysqlTable("trusted_devices", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  deviceToken: varchar("deviceToken", { length: 64 }).notNull(),
+  userAgent: text("userAgent"),
+  expiresAt: timestamp("expiresAt").notNull(),
+  createdAt: timestamp("createdAt").defaultNow(),
+});
 
 /**
  * Service provider profiles

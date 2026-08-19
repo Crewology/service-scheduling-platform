@@ -260,6 +260,28 @@ export const authRouter = router({
       return { url };
     }),
 
+  // Two-Factor Authentication
+  enable2FA: protectedProcedure.mutation(async ({ ctx }) => {
+    const { setTwoFactorEnabled, generateTwoFactorCode, sendTwoFactorEmail } = await import("../twoFactor");
+    await setTwoFactorEnabled(ctx.user.id, true);
+    // Send a test code to verify email works
+    const code = await generateTwoFactorCode(ctx.user.id);
+    const user = await db.getUserById(ctx.user.id);
+    if (user?.email) {
+      await sendTwoFactorEmail(user.email, code, user.firstName || user.name || undefined);
+    }
+    return { success: true, message: "2FA enabled. A verification code has been sent to your email to confirm." };
+  }),
+  disable2FA: protectedProcedure.mutation(async ({ ctx }) => {
+    const { setTwoFactorEnabled } = await import("../twoFactor");
+    await setTwoFactorEnabled(ctx.user.id, false);
+    return { success: true };
+  }),
+  get2FAStatus: protectedProcedure.query(async ({ ctx }) => {
+    const user = await db.getUserById(ctx.user.id);
+    return { enabled: user?.twoFactorEnabled ?? false };
+  }),
+
   removeProfilePhoto: protectedProcedure
     .mutation(async ({ ctx }) => {
       await db.updateUserProfile(ctx.user.id, { profilePhotoUrl: null });

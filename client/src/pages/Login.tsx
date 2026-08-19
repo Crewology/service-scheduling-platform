@@ -54,6 +54,13 @@ export default function Login() {
         return;
       }
 
+      // If 2FA is required, redirect to verification page
+      if (data.requires2FA) {
+        sessionStorage.setItem("2fa_userId", String(data.userId));
+        sessionStorage.setItem("2fa_email", data.email || "");
+        window.location.href = `/verify-2fa?userId=${data.userId}&email=${encodeURIComponent(data.email || "")}`;
+        return;
+      }
       // If account uses Google sign-in, auto-redirect to Google OAuth
       if (data.redirectToGoogle) {
         const origin = window.location.origin;

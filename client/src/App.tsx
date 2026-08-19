@@ -30,6 +30,7 @@ import SignUp from "./pages/SignUp";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
+import Verify2FA from "./pages/Verify2FA";
 import RoleSelection from "./pages/RoleSelection";
 import ProviderOnboarding from "./pages/ProviderOnboarding";
 
@@ -108,6 +109,7 @@ function Router() {
       <Route path="/forgot-password" component={ForgotPassword} />
       <Route path="/reset-password" component={ResetPassword} />
       <Route path="/verify-email" component={VerifyEmail} />
+      <Route path="/verify-2fa" component={Verify2FA} />
       <Route path="/select-role" component={RoleSelection} />
       <Route path="/" component={Home} />
       <Route path="/browse" component={Browse} />
