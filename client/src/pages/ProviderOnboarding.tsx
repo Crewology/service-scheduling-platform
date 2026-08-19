@@ -42,7 +42,7 @@ import {
 } from "lucide-react";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { MessageSquareQuote, HelpCircle, ChevronDown } from "lucide-react";
+import { MessageSquareQuote, HelpCircle, ChevronDown, Pencil, Trash2 } from "lucide-react";
 import { formatPrice } from "@shared/formatPrice";
 
 // ============================================================================
@@ -647,6 +647,10 @@ export default function ProviderOnboarding() {
   });
   const { data: myServices, refetch: refetchMyServices } = trpc.service.listMine.useQuery(undefined, {
     enabled: !!existingProvider,
+  });
+  const deleteService = trpc.service.delete.useMutation({
+    onSuccess: () => { toast.success("Service deleted"); refetchMyServices(); },
+    onError: (err: any) => toast.error(err.message),
   });
 
   // Step 1: Profile
@@ -1408,6 +1412,9 @@ export default function ProviderOnboarding() {
                                   <span>{getServiceTypeLabel(service.serviceType, service.categoryId)}</span>
                                 </div>
                               </div>
+                              <div className="flex items-center gap-2">
+                              <button onClick={() => window.location.href = `/provider/services/edit/${service.id}`} className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" title="Edit service"><Pencil className="h-3.5 w-3.5" /></button>
+                              <button onClick={() => { if (confirm(`Delete "${service.name}"?`)) deleteService.mutate({ id: service.id }); }} className="p-1.5 rounded-md hover:bg-red-50 text-muted-foreground hover:text-red-600 transition-colors" title="Delete service"><Trash2 className="h-3.5 w-3.5" /></button>
                               <div className="text-right">
                                 <span className="font-semibold text-sm text-primary">
                                   {service.pricingModel === "fixed" && `${formatPrice(parseFloat(service.basePrice || "0"))}`}
@@ -1417,6 +1424,7 @@ export default function ProviderOnboarding() {
                                   {service.pricingModel === "consultation" && "Free"}
                                 </span>
                               </div>
+                            </div>
                             </div>
                           ))}
                         </div>
