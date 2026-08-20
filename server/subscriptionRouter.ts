@@ -348,52 +348,12 @@ export const subscriptionRouter = router({
 
       // SAFEGUARD: Check if there's a recently canceled subscription on this customer
       // If there's an active subscription scheduled for cancellation (cancel_at_period_end),
-      // simply reactivate it by removing the cancellation. No new charge needed.
-      // Also check for recently canceled subscriptions to reactivate with existing payment method.
+      // SAFEGUARD: If there's a recently canceled subscription (within 1 hour),
+      // use the existing payment method to create a new subscription directly
+      // instead of redirecting to a full checkout page. The prorated credit from
+      // the cancellation will be automatically applied by Stripe.
       if (customerId) {
         try {
-          // First: Check for active subscriptions with cancel_at_period_end = true
-          const activeSubs = await stripe.subscriptions.list({
-            customer: customerId,
-            status: "active",
-            limit: 5,
-          });
-
-          const pendingCancel = activeSubs.data.find(s => s.cancel_at_period_end);
-          if (pendingCancel) {
-            // Reactivate by removing the scheduled cancellation — NO new charge
-            const reactivatedSub = await stripe.subscriptions.update(pendingCancel.id, {
-              cancel_at_period_end: false,
-            });
-
-            // If they're upgrading to a different tier, also update the price
-            const currentItem = pendingCancel.items.data[0];
-            const currentPriceId = currentItem?.price.id;
-            if (currentPriceId !== priceId) {
-              await stripe.subscriptions.update(pendingCancel.id, {
-                items: [{
-                  id: currentItem.id,
-                  price: priceId,
-                }],
-                proration_behavior: "create_prorations",
-              });
-            }
-
-            // Update local subscription record
-            await db.upsertProviderSubscription({
-              providerId: provider.id,
-              tier: input.tier,
-              status: "active",
-              stripeSubscriptionId: pendingCancel.id,
-              stripeCustomerId: customerId,
-              cancelAtPeriodEnd: false,
-            });
-
-            const tierName = input.tier === "premium" ? "Business" : "Pro";
-            return { url: null, message: `Reactivated ${tierName} plan! No additional charge — your existing subscription has been restored.` };
-          }
-
-          // Second: Check for recently canceled subscriptions (immediate cancels from before this fix)
           const recentSubs = await stripe.subscriptions.list({
             customer: customerId,
             status: "canceled",
@@ -559,13 +519,12 @@ export const subscriptionRouter = router({
       if (targetTier === "free") {
         if (sub.stripeSubscriptionId) {
           try {
-            // Instead of immediately canceling, schedule cancellation at period end
-            // This allows the user to re-upgrade without being charged again
-            await stripe.subscriptions.update(sub.stripeSubscriptionId, {
-              cancel_at_period_end: true,
+            // Cancel the subscription immediately with proration credit
+            await stripe.subscriptions.cancel(sub.stripeSubscriptionId, {
+              prorate: true,
             });
           } catch (err: any) {
-            console.error("[Downgrade] Failed to schedule subscription cancellation:", err.message);
+            console.error("[Downgrade] Failed to cancel Stripe subscription:", err.message);
             // If subscription is already cancelled in Stripe, continue
             if (!err.message?.includes("No such subscription")) {
               throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to downgrade subscription" });
@@ -577,13 +536,12 @@ export const subscriptionRouter = router({
         await db.upsertProviderSubscription({
           providerId: provider.id,
           tier: "free",
-          status: "cancelled",
-          cancelAtPeriodEnd: true,
-          // Keep stripeSubscriptionId so we can reactivate if they re-upgrade
-          stripeSubscriptionId: sub.stripeSubscriptionId || undefined,
-          stripeCustomerId: sub.stripeCustomerId || undefined,
-          currentPeriodStart: sub.currentPeriodStart || undefined,
-          currentPeriodEnd: sub.currentPeriodEnd || undefined,
+          status: "active",
+          cancelAtPeriodEnd: false,
+          stripeSubscriptionId: undefined,
+          stripeCustomerId: sub.stripeCustomerId || undefined, // Keep customer ID for future re-subscribe
+          currentPeriodStart: undefined,
+          currentPeriodEnd: undefined,
         });
 
         // Send downgrade notification
@@ -600,7 +558,7 @@ export const subscriptionRouter = router({
           });
         }
 
-        return { success: true, newTier: "free" as const, message: "Downgraded to Starter. Your paid features remain active until the end of your current billing period. You can re-upgrade anytime without being charged again." };
+        return { success: true, newTier: "free" as const, message: "Downgraded to Starter (Free). A prorated credit has been applied to your account for any future upgrades." };
       }
 
       // If downgrading from premium to basic, switch the subscription price immediately

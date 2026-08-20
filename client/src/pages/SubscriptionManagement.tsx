@@ -705,7 +705,7 @@ export default function SubscriptionManagement() {
                 <strong>{downgradeTarget === "free" ? "Starter (Free)" : "Pro"}</strong>.
               </p>
               <p>
-                This change takes effect <strong>immediately</strong>. You'll receive a prorated credit for the unused time on your current plan.
+                This change takes effect immediately. A prorated credit for the unused time on your current plan will be applied to your account for any future upgrades.
               </p>
               {downgradeTarget === "free" && (
                 <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm">

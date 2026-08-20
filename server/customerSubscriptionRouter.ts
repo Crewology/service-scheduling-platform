@@ -164,48 +164,7 @@ export const customerSubscriptionRouter = router({
       // to reactivate instead of creating a new charge.
       if (customerId) {
         try {
-          // First: Check for active subscriptions with cancel_at_period_end = true
-          const activeSubs = await stripe.subscriptions.list({
-            customer: customerId,
-            status: "active",
-            limit: 5,
-          });
-
-          const pendingCancel = activeSubs.data.find(s => s.cancel_at_period_end);
-          if (pendingCancel) {
-            // Reactivate by removing the scheduled cancellation — NO new charge
-            await stripe.subscriptions.update(pendingCancel.id, {
-              cancel_at_period_end: false,
-            });
-
-            // If upgrading to a different tier, also update the price
-            const currentItem = pendingCancel.items.data[0];
-            const currentPriceId = currentItem?.price.id;
-            if (currentPriceId !== priceId) {
-              await stripe.subscriptions.update(pendingCancel.id, {
-                items: [{
-                  id: currentItem.id,
-                  price: priceId,
-                }],
-                proration_behavior: "create_prorations",
-              });
-            }
-
-            // Update local subscription record
-            await db.upsertCustomerSubscription({
-              userId: ctx.user.id,
-              tier: input.tier,
-              status: "active",
-              stripeSubscriptionId: pendingCancel.id,
-              stripeCustomerId: customerId,
-              cancelAtPeriodEnd: false,
-            });
-
-            const tierName = input.tier === "pro" ? "Coordinator" : "Manager";
-            return { url: null, message: `Reactivated ${tierName} plan! No additional charge — your existing subscription has been restored.` };
-          }
-
-          // Second: Check for recently canceled subscriptions (from before this fix)
+          // Check for recently canceled subscriptions (within 1 hour) to use existing payment method
           const recentSubs = await stripe.subscriptions.list({
             customer: customerId,
             status: "canceled",
