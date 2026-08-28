@@ -1,5 +1,8 @@
 # OlogyCrew Service Scheduling Platform — TODO
 
+## Bug Investigation: Development Preview Error
+- [x] Identify and resolve the error currently shown in the development preview
+
 ## Completed Features (Phases 1–17)
 
 ### Foundation & Core
@@ -2568,3 +2571,10 @@
 - [x] Check for existing canceled subscription with remaining billing period before creating new checkout
 - [x] Reactivate canceled subscription instead of creating new one when within same billing cycle
 - [x] Apply prorated credit automatically when reactivating
+
+## UX Planning: Focused Provider and Customer Experiences
+- [x] Specify a simplified provider dashboard that replaces the equal-weight launchpad grid
+- [x] Define provider desktop and mobile wireframes, hierarchy, navigation, states, and progressive disclosure
+- [x] Specify a distinctive customer landing, discovery, booking, payment, and rebooking flow
+- [x] Define customer desktop and mobile wireframes, contextual actions, trust signals, and advanced-tool placement
+- [x] Create a phased implementation roadmap with measurable UX success criteria
