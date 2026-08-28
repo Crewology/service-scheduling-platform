@@ -97,6 +97,11 @@ import AdminDashboard from "./pages/AdminDashboard";
 import EmailPreview from "./pages/EmailPreview";
 import UserDetailPage from "./pages/admin/UserDetailPage";
 
+// Isolated UX review prototypes
+import ProviderOverviewPrototype from "./pages/prototype/ProviderOverviewPrototype";
+import CustomerHomePrototype from "./pages/prototype/CustomerHomePrototype";
+import AdaptiveBookingPrototype from "./pages/prototype/AdaptiveBookingPrototype";
+
 // Not Found
 import NotFound from "./pages/NotFound";
 
@@ -111,6 +116,9 @@ function Router() {
       <Route path="/verify-email" component={VerifyEmail} />
       <Route path="/verify-2fa" component={Verify2FA} />
       <Route path="/select-role" component={RoleSelection} />
+      <Route path="/preview/provider-overview" component={ProviderOverviewPrototype} />
+      <Route path="/preview/customer-home" component={CustomerHomePrototype} />
+      <Route path="/preview/adaptive-booking" component={AdaptiveBookingPrototype} />
       <Route path="/" component={Home} />
       <Route path="/browse" component={Browse} />
       <Route path="/experiences" component={Experiences} />
@@ -194,7 +202,8 @@ function AppContent() {
   }, [authLoading]);
 
   // Hide footer on embed pages and admin dashboard
-  const hideFooter = location.startsWith("/embed") || location.startsWith("/admin");
+  const isPrototype = location.startsWith("/preview/");
+  const hideFooter = location.startsWith("/embed") || location.startsWith("/admin") || isPrototype;
 
   // Scroll to top on route change
   useEffect(() => {
@@ -222,8 +231,8 @@ function AppContent() {
         <Router />
       </RoleGuard>
       {!hideFooter && <Footer />}
-      <PWAInstallBanner />
-      {!location.startsWith("/embed") && <HelpChatWidget />}
+      {!isPrototype && <PWAInstallBanner />}
+      {!location.startsWith("/embed") && !isPrototype && <HelpChatWidget />}
     </>
   );
 }

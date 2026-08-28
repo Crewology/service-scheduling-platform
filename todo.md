@@ -2523,22 +2523,22 @@
 - [x] Fix "All Services Widget" quick link preview — kept embed widget URL with proper OG tags, hardcoded ologycrew.com domain for all shareable links, and fixed fallback OG image for unmatched routes
 - [x] Fix embed widget crash when selecting a booked time slot — widgetRouter was returning undefined bookingTime (field was startTime in DB), added defensive guards in shared timeSlots utilities
 - [x] Fix long-duration services (4+ hrs) not showing all available time slots — removed duration-fits-in-schedule constraint for long services, use 30-min overlap window instead of full duration for conflict detection
-- [ ] Rewrite homepage hero and sections with "digital home for your business" positioning and comparison table
+- [x] Rewrite homepage hero and sections with "digital home for your business" positioning and comparison table
 - [x] Rewrite homepage hero and sections with "digital home for your business" positioning and comparison table
 - [x] Update pricing/plans page with "No Gatekeeping" philosophy lead-in
 - [x] Reframe provider onboarding language as "building your digital home"
 - [x] Add prominent "Share your OlogyCrew link" section to provider dashboard with usage suggestions
 - [x] Add "Get your own page" CTA on public provider pages for visitor conversion
-- [ ] Update OG tags and images for social sharing to reflect new brand messaging
 - [x] Update OG tags and images for social sharing to reflect new brand messaging
-- [ ] Change provider profile URLs from /p/slug to top-level /Slug (e.g. ologycrew.com/GaryChisolmAudio) for a cleaner business identity
+- [x] Update OG tags and images for social sharing to reflect new brand messaging
+- [x] Change provider profile URLs from /p/slug to top-level /Slug (e.g. ologycrew.com/GaryChisolmAudio) for a cleaner business identity
 - [x] Change provider profile URLs from /p/slug to top-level /slug (e.g. ologycrew.com/chisolm-audio) for a cleaner business identity — /p/ kept for backward compat
 - [x] Add Accountants, Attorneys & Legal Services, and Catering & Food Services categories (IDs 219-221) with emojis 🧮 ⚖️ 🍴
 - [x] Experiences Phase 1: Add database fields (maxGuests, minGuests, pricePerPerson, whatsIncluded) to services table
 - [x] Experiences Phase 1: Add EXPERIENCES & EVENTS category with emoji
 - [x] Experiences Phase 1: Create dedicated /experiences browse page with visual card layout
 - [x] Experiences Phase 1: Update service creation form to support experience mode (guest count, per-person pricing, what's included)
-- [ ] Plan-aware signup: pricing page passes selected plan to signup, signup page displays selected plan badge, onboarding pre-selects the plan
+- [x] Plan-aware signup: pricing page passes selected plan to signup, signup page displays selected plan badge, onboarding pre-selects the plan
 - [x] Plan-aware signup: pricing page passes selected plan to signup, signup page displays selected plan badge, onboarding pre-selects the plan
 - [x] Gate provider landing page: redirect to /provider/onboarding until steps 1-4 (Plan, Profile, Skills, Services) are complete. Remove progress bar from landing page.
 - [x] Fix homepage OG image for social sharing: use the branded "Your Business. Your Customers. Your Money." hero image instead of the logged-in dashboard screenshot
@@ -2556,12 +2556,12 @@
 - [x] 2FA: Integrate into Google OAuth login flow
 - [x] 2FA: Build verification code entry page
 - [x] 2FA: Build enable/disable toggle in Account settings
-- [ ] Plan-aware signup: pricing page passes selected plan to signup, signup page displays selected plan badge, onboarding pre-selects the plan
+- [x] Plan-aware signup: pricing page passes selected plan to signup, signup page displays selected plan badge, onboarding pre-selects the plan
 
 ## Fix: Partner Split Insufficient Funds Error
 - [x] Add source_transaction parameter to executePartnerTransfer to tie transfers to specific charges
 - [x] Update handleInvoicePaymentSucceeded to extract charge ID from invoice and pass to transfer
-- [ ] Retry previously failed transfers with source_transaction fix (requires new payment to test)
+- [x] Retry previously failed transfers with source_transaction fix — confirmed by successful live partner split
 
 ## Feature: Admin Users Tab - Plan Column
 - [x] Update getAllUsers to join subscription data (provider_subscriptions + customer_subscriptions)
@@ -2578,3 +2578,11 @@
 - [x] Specify a distinctive customer landing, discovery, booking, payment, and rebooking flow
 - [x] Define customer desktop and mobile wireframes, contextual actions, trust signals, and advanced-tool placement
 - [x] Create a phased implementation roadmap with measurable UX success criteria
+
+## UX Prototype: Focused Provider and Customer Experiences
+- [x] Add isolated review routes that do not replace the current production provider, customer, or booking flows
+- [x] Build the responsive provider Overview prototype with Needs Attention and functional Quick Actions
+- [x] Build the responsive customer landing prototype with need-first search and one-tap rebooking
+- [x] Build an adaptive booking prototype that switches between direct booking and quote request paths
+- [x] Add focused Vitest coverage for prototype state and routing behavior
+- [x] Verify all prototype screens and interactions on desktop and mobile
