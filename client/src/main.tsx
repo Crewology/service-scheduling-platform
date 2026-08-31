@@ -9,7 +9,9 @@ import { BadgeManager } from "./components/BadgeManager";
 import { ViewModeProvider } from "./contexts/ViewModeContext";
 import { PWAInstallProvider } from "./contexts/PWAInstallContext";
 import { getLoginUrl } from "./const";
+import { getApiRetryAfterSeconds, isApiRateLimitError, shouldRetryApiQuery, shouldShowRateLimitNotice } from "./lib/apiErrorHandling";
 import "./index.css";
+import { toast } from "sonner";
 
 // Handle post-logout cleanup: clear all client-side state when redirected from /api/auth/logout
 (function handleLogoutCleanup() {
@@ -35,6 +37,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
+      retry: shouldRetryApiQuery,
     },
   },
 });
@@ -65,10 +68,24 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
   window.location.href = getLoginUrl();
 };
 
+const showRateLimitRecovery = (error: unknown) => {
+  if (!isApiRateLimitError(error) || !shouldShowRateLimitNotice()) return;
+  const retryAfterSeconds = getApiRetryAfterSeconds(error);
+  const retryGuidance = retryAfterSeconds
+    ? `Try again in about ${Math.max(1, Math.ceil(retryAfterSeconds / 60))} minute${retryAfterSeconds > 60 ? "s" : ""}.`
+    : "Wait a moment, then try the action again.";
+
+  toast.error("OlogyCrew is catching up", {
+    description: `${retryGuidance} You do not need to sign in again or restart your setup.`,
+    duration: 8000,
+  });
+};
+
 queryClient.getQueryCache().subscribe(event => {
   if (event.type === "updated" && event.action.type === "error") {
     const error = event.query.state.error;
     redirectToLoginIfUnauthorized(error);
+    showRateLimitRecovery(error);
     console.error("[API Query Error]", error);
   }
 });
@@ -77,6 +94,7 @@ queryClient.getMutationCache().subscribe(event => {
   if (event.type === "updated" && event.action.type === "error") {
     const error = event.mutation.state.error;
     redirectToLoginIfUnauthorized(error);
+    showRateLimitRecovery(error);
     console.error("[API Mutation Error]", error);
   }
 });

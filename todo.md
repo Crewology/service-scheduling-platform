@@ -2586,3 +2586,9 @@
 - [x] Build an adaptive booking prototype that switches between direct booking and quote request paths
 - [x] Add focused Vitest coverage for prototype state and routing behavior
 - [x] Verify all prototype screens and interactions on desktop and mobile
+
+## Fix: Unexpected “Too Many Requests” Error
+- [x] Identify the endpoint and client action triggering HTTP 429 responses in development or production
+- [x] Correct any automatic request loop or overly broad rate-limit policy without weakening abuse protection
+- [x] Add a user-friendly retry message and recovery behavior for legitimate rate-limit responses
+- [x] Add focused Vitest coverage and verify the affected flow in the preview

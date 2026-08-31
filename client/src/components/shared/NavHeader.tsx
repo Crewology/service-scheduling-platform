@@ -56,6 +56,7 @@ import { useViewMode } from "@/contexts/ViewModeContext";
 import { usePWAInstallContext } from "@/contexts/PWAInstallContext";
 
 function NotificationDropdown() {
+  const { isAuthenticated } = useAuth();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const utils = trpc.useUtils();
@@ -64,10 +65,14 @@ function NotificationDropdown() {
   // Fetch initial data (polling as fallback, but SSE will push updates)
   const { data: notifData } = trpc.notification.list.useQuery(
     { unreadOnly: false },
-    { refetchInterval: sseConnected ? 60000 : 15000 } // Slower polling when SSE is active
+    {
+      enabled: isAuthenticated && open,
+      refetchInterval: open ? (sseConnected ? false : 60000) : false,
+    }
   );
   const { data: countData } = trpc.notification.unreadCount.useQuery(undefined, {
-    refetchInterval: sseConnected ? 60000 : 15000,
+    enabled: isAuthenticated,
+    refetchInterval: sseConnected ? false : 60000,
   });
 
   // Real-time SSE connection
@@ -91,6 +96,7 @@ function NotificationDropdown() {
     // Invalidate message-related queries
     utils.notification.list.invalidate();
     utils.notification.unreadCount.invalidate();
+    utils.message.unreadCount.invalidate();
 
     toast(`Message from ${data.senderName || "Someone"}`, {
       description: data.messagePreview?.slice(0, 80) || "New message received",
@@ -99,7 +105,7 @@ function NotificationDropdown() {
   }, [utils]);
 
   useSSE({
-    enabled: true,
+    enabled: isAuthenticated,
     onNotification: handleSSENotification,
     onUnreadCount: handleSSEUnreadCount,
     onNewMessage: handleSSENewMessage,
@@ -601,10 +607,10 @@ export function NavHeader() {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Unread message count (polls every 15s)
+  // Poll slowly as a fallback; SSE invalidates this query immediately for new messages.
   const { data: unreadCount } = trpc.message.unreadCount.useQuery(undefined, {
     enabled: isAuthenticated,
-    refetchInterval: 15000,
+    refetchInterval: 60000,
   });
 
   // Check for provider profile as fallback (in case role hasn't been updated yet)
@@ -686,7 +692,7 @@ export function NavHeader() {
                 <CreditBadge />
 
                 {/* Notifications Dropdown */}
-                <NotificationDropdown />
+                {isAuthenticated && <NotificationDropdown />}
 
                 {/* Search */}
                 <Link href="/search">

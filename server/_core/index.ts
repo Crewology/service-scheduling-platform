@@ -10,6 +10,7 @@ import { serveStatic, setupVite } from "./vite";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { sdk } from "./sdk";
+import { API_RATE_LIMITS, getApiRateLimitKey, sendRateLimitResponse } from "../apiRateLimit";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -55,26 +56,44 @@ async function startServer() {
 
   // PRIORITY 2: Rate limiting
   const generalLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 600, // 600 requests per 15 min per IP
-    standardHeaders: true,
+    windowMs: API_RATE_LIMITS.general.windowMs,
+    limit: API_RATE_LIMITS.general.limit,
+    identifier: API_RATE_LIMITS.general.identifier,
+    standardHeaders: "draft-8",
     legacyHeaders: false,
-    message: { error: "Too many requests, please try again later." },
+    keyGenerator: getApiRateLimitKey,
+    handler: sendRateLimitResponse,
     validate: { xForwardedForHeader: false },
     skip: (req) => {
-      // Skip rate limiting for auth routes and Stripe webhooks
-      return req.path.startsWith("/api/auth/") || req.path === "/api/stripe/webhook";
+      // Auth has endpoint-specific limits. Webhooks must never be blocked by browser traffic.
+      return req.path.startsWith("/api/auth/") ||
+        req.path === "/api/stripe/webhook" ||
+        req.path === "/api/twilio/sms";
     },
   });
-  const sensitiveLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100, // 100 requests per 15 min for sensitive endpoints
-    standardHeaders: true,
+  const writeLimiter = rateLimit({
+    windowMs: API_RATE_LIMITS.write.windowMs,
+    limit: API_RATE_LIMITS.write.limit,
+    identifier: API_RATE_LIMITS.write.identifier,
+    standardHeaders: "draft-8",
     legacyHeaders: false,
-    message: { error: "Too many attempts, please try again later." },
+    keyGenerator: getApiRateLimitKey,
+    handler: sendRateLimitResponse,
+    validate: { xForwardedForHeader: false },
+    skip: (req) => req.method === "GET" || req.method === "HEAD" || req.method === "OPTIONS",
+  });
+  const sensitiveLimiter = rateLimit({
+    windowMs: API_RATE_LIMITS.sensitive.windowMs,
+    limit: API_RATE_LIMITS.sensitive.limit,
+    identifier: API_RATE_LIMITS.sensitive.identifier,
+    standardHeaders: "draft-8",
+    legacyHeaders: false,
+    keyGenerator: getApiRateLimitKey,
+    handler: sendRateLimitResponse,
     validate: { xForwardedForHeader: false },
   });
   app.use("/api/", generalLimiter);
+  app.use("/api/trpc", writeLimiter);
   app.use("/api/oauth/", sensitiveLimiter);
   app.use("/api/export/", sensitiveLimiter);
 

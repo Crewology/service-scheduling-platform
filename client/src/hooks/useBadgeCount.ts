@@ -15,8 +15,8 @@ export function useBadgeCount() {
     undefined,
     {
       enabled: !!user,
-      refetchInterval: 60_000, // Refresh every minute
-      refetchOnWindowFocus: true,
+      refetchInterval: 120_000,
+      refetchOnWindowFocus: false,
     }
   );
   const unreadCount = data?.count ?? 0;

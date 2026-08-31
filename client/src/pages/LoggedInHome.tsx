@@ -79,12 +79,9 @@ export default function LoggedInHome() {
   const [, setLocation] = useLocation();
 
   // Fetch quick stats
-  const { data: unreadMessages } = trpc.message.unreadCount.useQuery(undefined, {
-    refetchInterval: 30000,
-  });
-  const { data: unreadNotifications } = trpc.notification.unreadCount.useQuery(undefined, {
-    refetchInterval: 30000,
-  });
+  // The shared header owns background refresh; these observers reuse its query cache.
+  const { data: unreadMessages } = trpc.message.unreadCount.useQuery();
+  const { data: unreadNotifications } = trpc.notification.unreadCount.useQuery();
 
   // Fetch provider profile to check onboarding completion (only for providers)
   const { data: onboardingStatus, isLoading: onboardingLoading } = trpc.provider.getOnboardingStatus.useQuery(undefined, {
