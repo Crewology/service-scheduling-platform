@@ -2592,3 +2592,8 @@
 - [x] Correct any automatic request loop or overly broad rate-limit policy without weakening abuse protection
 - [x] Add a user-friendly retry message and recovery behavior for legitimate rate-limit responses
 - [x] Add focused Vitest coverage and verify the affected flow in the preview
+
+## Fix: Published Prototype Review Links Returning 404
+- [x] Verify the clean production prototype URLs load successfully after publishing
+- [x] Prevent accidental trailing backticks (`%60`) in copied prototype links from causing a confusing 404
+- [x] Test provider, customer, direct-booking, and quote-request review links on the production domain

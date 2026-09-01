@@ -11,6 +11,7 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { sdk } from "./sdk";
 import { API_RATE_LIMITS, getApiRateLimitKey, sendRateLimitResponse } from "../apiRateLimit";
+import { normalizePrototypeReviewUrl } from "../previewRouteNormalization";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -41,6 +42,16 @@ async function startServer() {
     const proto = req.headers['x-forwarded-proto'];
     if (proto === 'http' && req.hostname !== 'localhost' && !req.hostname.startsWith('127.')) {
       return res.redirect(301, `https://${req.hostname}${req.originalUrl}`);
+    }
+    next();
+  });
+
+  // Copying an inline Markdown link can accidentally include the closing backtick.
+  // Redirect only prototype review URLs; all other routes remain untouched.
+  app.use((req, res, next) => {
+    const normalizedUrl = normalizePrototypeReviewUrl(req.originalUrl);
+    if (normalizedUrl) {
+      return res.redirect(302, normalizedUrl);
     }
     next();
   });
