@@ -24,6 +24,8 @@ import { ShareProfile } from "@/components/ShareProfile";
 import { HelpTip, HelpBanner } from "@/components/shared/HelpTip";
 import { formatPrice } from "@shared/formatPrice";
 import { PaymentMethods } from "@/components/PaymentMethods";
+import { AdaptiveQuoteRequestCard } from "@/components/booking/AdaptiveQuoteRequestCard";
+import { getAdaptiveBookingDecision } from "../../../shared/adaptiveBooking";
 
 
 type BookingStep = "date" | "time" | "details" | "confirm";
@@ -119,7 +121,11 @@ export default function ServiceDetail() {
   const { user, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
   const searchString = useSearch();
-  const fromProvider = new URLSearchParams(searchString).get("from_provider");
+  const entryContext = useMemo(() => new URLSearchParams(searchString), [searchString]);
+  const fromProvider = entryContext.get("from_provider");
+  const initialIntent = entryContext.get("intent") || "";
+  const initialLocation = entryContext.get("location") || "";
+  const timingHint = entryContext.get("timing") || "";
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState("");
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
@@ -529,7 +535,8 @@ export default function ServiceDetail() {
       return customDurationPrice;
     }
     if (service.pricingModel === "fixed" && service.basePrice) return parseFloat(service.basePrice);
-    if (service.pricingModel === "hourly" && service.hourlyRate) return parseFloat(service.hourlyRate);
+    if (service.pricingModel === "hourly" && (service.hourlyRate || service.basePrice)) return parseFloat(service.hourlyRate || service.basePrice || "0");
+    if (service.pricingModel === "package" && service.basePrice) return parseFloat(service.basePrice);
     return 0;
   };
 
@@ -574,6 +581,7 @@ export default function ServiceDetail() {
   const supportsMultiDay = service ? MULTI_DAY_CATEGORIES.has(service.categoryId) : false;
   const supportsRecurring = service ? RECURRING_CATEGORIES.has(service.categoryId) : false;
   const hasMultipleTypes = supportsMultiDay || supportsRecurring;
+  const adaptiveDecision = service ? getAdaptiveBookingDecision(service) : null;
 
   // Compute multi-day total days
   const multiDayCount = useMemo(() => {
@@ -758,8 +766,11 @@ export default function ServiceDetail() {
     if (service.pricingModel === "fixed" && service.basePrice) {
       return `${formatPrice(parseFloat(service.basePrice))}`;
     }
-    if (service.pricingModel === "hourly" && service.hourlyRate) {
-      return `${formatPrice(parseFloat(service.hourlyRate))}/hour`;
+    if (service.pricingModel === "hourly" && (service.hourlyRate || service.basePrice)) {
+      return `${formatPrice(parseFloat(service.hourlyRate || service.basePrice || "0"))}/hour`;
+    }
+    if (service.pricingModel === "package" && service.basePrice) {
+      return `${formatPrice(parseFloat(service.basePrice))}`;
     }
     if (service.pricingModel === "custom_quote") {
       return "Custom Quote";
@@ -939,11 +950,11 @@ export default function ServiceDetail() {
                   </div>
                 </div>
 
-                {!(provider as any)?.isOfficial && (
+                {adaptiveDecision?.mode !== "quote" && !(provider as any)?.isOfficial && (
                   <PaymentMethods size="sm" className="mt-2" />
                 )}
 
-                {service.depositRequired && (
+                {adaptiveDecision?.mode !== "quote" && service.depositRequired && (
                   <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 p-4 rounded-lg">
                     <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
                     <div>
@@ -960,7 +971,7 @@ export default function ServiceDetail() {
             </Card>
 
             {/* Payment & Security FAQ */}
-            {!(provider as any)?.isOfficial && (
+            {adaptiveDecision?.mode !== "quote" && !(provider as any)?.isOfficial && (
               <Card>
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-2">
@@ -1036,14 +1047,34 @@ export default function ServiceDetail() {
 
           {/* Booking Panel - Right Column */}
           <div className="lg:col-span-1">
+            {adaptiveDecision?.mode === "quote" ? (
+              <AdaptiveQuoteRequestCard
+                decision={adaptiveDecision}
+                service={{
+                  id: service.id,
+                  name: service.name,
+                  categoryId: service.categoryId,
+                  serviceType: service.serviceType,
+                }}
+                provider={provider}
+                initialIntent={initialIntent}
+                initialLocation={initialLocation}
+                timingHint={timingHint}
+              />
+            ) : (
             <Card className="sticky top-20 shadow-medium">
               <CardHeader className="pb-3">
+                {adaptiveDecision ? (
+                  <Badge className="mb-1 w-fit border-[#b9d9e8] bg-[#edf8fc] text-[#174a73] hover:bg-[#edf8fc]">
+                    {adaptiveDecision.label}
+                  </Badge>
+                ) : null}
                 <div className="flex items-center gap-2">
-                  <CardTitle className="text-xl">Book This Service</CardTitle>
+                  <CardTitle className="text-xl">{adaptiveDecision?.heading || "Book This Service"}</CardTitle>
                   <HelpTip text="Select a date, choose an available time slot, add any special requests, then confirm and pay. Grayed-out slots are already booked." variant="info" />
                 </div>
                 <CardDescription>
-                  Follow the steps below to complete your booking
+                  {adaptiveDecision?.explanation || "Follow the steps below to complete your booking"}
                 </CardDescription>
                 {/* Step indicator */}
                 <div className="flex items-center gap-2 mt-3">
@@ -2414,6 +2445,7 @@ export default function ServiceDetail() {
                 )}
               </CardContent>
             </Card>
+            )}
           </div>
         </div>
       </div>

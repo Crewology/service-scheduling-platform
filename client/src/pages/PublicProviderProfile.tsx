@@ -4,6 +4,7 @@ import { useParams, Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { formatDuration } from "../../../shared/duration";
 import { getServiceTypeLabel } from "../../../shared/serviceTypeLabels";
+import { adaptiveServiceHref, getAdaptiveBookingDecision } from "../../../shared/adaptiveBooking";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -732,8 +733,12 @@ export default function PublicProviderProfile() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {filteredServices.map((service: any) => {
                     const cat = categories?.find((c: any) => c.id === service.categoryId);
+                    const decision = getAdaptiveBookingDecision(service);
+                    const serviceHref = adaptiveServiceHref(service.id, {
+                      providerSlug: provider.profileSlug || provider.id,
+                    });
                     return (
-                      <Link key={service.id} href={`/service/${service.id}?from_provider=${provider.profileSlug || provider.id}`}>
+                      <Link key={service.id} href={serviceHref}>
                         <Card className="hover:border-primary/30 hover:shadow-md transition-all cursor-pointer overflow-hidden h-full">
                           <ServiceCardPhoto serviceId={service.id} />
                           <CardContent className="p-4">
@@ -744,6 +749,12 @@ export default function PublicProviderProfile() {
                               </Badge>
                             )}
                             <h3 className="font-semibold text-foreground">{service.name}</h3>
+                            <Badge className={`mt-2 text-[11px] ${decision.mode === "direct"
+                              ? "border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-50"
+                              : "border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-50"}`}
+                            >
+                              {decision.mode === "direct" ? "Check availability" : "Request quote"}
+                            </Badge>
                             {service.description && (
                               <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{service.description}</p>
                             )}
@@ -949,20 +960,29 @@ export default function PublicProviderProfile() {
                       Choose from {services.length} service{services.length !== 1 ? "s" : ""} across {categories?.length || 1} categor{(categories?.length || 1) !== 1 ? "ies" : "y"}
                     </p>
                     <div className="space-y-2">
-                      {services.slice(0, 3).map((service: any) => (
-<Link key={service.id} href={`/service/${service.id}?from_provider=${provider.profileSlug || provider.id}`}>
+                      {services.slice(0, 3).map((service: any) => {
+                        const decision = getAdaptiveBookingDecision(service);
+                        const serviceHref = adaptiveServiceHref(service.id, {
+                          providerSlug: provider.profileSlug || provider.id,
+                        });
+                        return (
+<Link key={service.id} href={serviceHref}>
                            <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer">
                             <span className="text-sm font-medium truncate flex-1">{service.name}</span>
-                            <span className="text-sm font-semibold text-primary ml-2">
+                            <span className="text-right text-sm font-semibold text-primary ml-2">
                               {service.pricingModel === "fixed" && formatCurrency(service.basePrice)}
                               {service.pricingModel === "hourly" && `${formatCurrency(service.hourlyRate)}/hr`}
                               {service.pricingModel === "package" && formatCurrency(service.basePrice)}
                               {service.pricingModel === "custom_quote" && "Quote"}
                               {service.pricingModel === "consultation" && "Free"}
+                              <span className="block text-[10px] font-medium text-muted-foreground">
+                                {decision.mode === "direct" ? "Book" : "Request"}
+                              </span>
                             </span>
                           </div>
                         </Link>
-                      ))}
+                        );
+                      })}
                     </div>
                     {services.length > 3 && (
                       <p className="text-xs text-muted-foreground text-center">

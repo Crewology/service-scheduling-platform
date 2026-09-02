@@ -2619,3 +2619,14 @@
 - [x] Preserve customer plans, saved providers, referrals, messages, notifications, admin access, role switching, and provider-home isolation
 - [x] Add focused Vitest coverage for customer-home data mapping, search, rebooking, routing, and access isolation
 - [x] Verify the integrated customer landing page on desktop and mobile before checkpointing
+
+## Adaptive Booking — Phase 3 Integration
+- [x] Map current service pricing, availability, booking, quote, multi-day, recurring, mobile, and payment flows before changing entry behavior
+- [x] Define deterministic, explainable routing rules for direct booking versus quote requests using real service data
+- [x] Build a shared adaptive booking entry that clearly explains why a service can be booked or needs a quote
+- [x] Route fixed-price, hourly, package, free, and otherwise standardized services into existing direct availability and checkout
+- [x] Route custom, contact-for-pricing, scope-dependent, and eligible event/project services into the existing quote-request flow
+- [x] Preserve multi-day, recurring, mobile, virtual, free-service, payment, referral, promotion, and conflict safeguards
+- [x] Connect live search results and provider service cards to adaptive entry while preserving all existing deep links
+- [x] Add focused Vitest coverage for every adaptive-routing variant and route-isolation safeguard
+- [x] Verify direct-booking and quote-request paths on desktop and mobile before checkpointing

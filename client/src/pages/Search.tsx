@@ -4,6 +4,7 @@ import { Link, useSearch } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { formatDuration } from "../../../shared/duration";
 import { getServiceTypeLabel } from "../../../shared/serviceTypeLabels";
+import { adaptiveServiceHref, getAdaptiveBookingDecision } from "../../../shared/adaptiveBooking";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -557,12 +558,20 @@ export default function Search() {
                       Services ({services.length})
                     </h2>
                     <div className="space-y-3">
-                      {services.map((service: any) => (
+                      {services.map((service: any) => {
+                        const decision = getAdaptiveBookingDecision(service);
+                        const serviceHref = adaptiveServiceHref(service.id, {
+                          providerSlug: service.providerSlug,
+                          intent: keyword,
+                          location,
+                          timing: requestedTiming,
+                        });
+                        return (
                         <Card key={service.id} className="hover:shadow-md transition-shadow overflow-hidden">
                           <CardContent className="p-4 sm:p-6">
                             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                               <div className="flex-1 min-w-0">
-                                <Link href={`/service/${service.id}`}>
+                                <Link href={serviceHref}>
                                   <h3 className="text-base sm:text-lg font-semibold hover:text-primary cursor-pointer truncate">
                                     {service.name}
                                   </h3>
@@ -570,7 +579,7 @@ export default function Search() {
                                 {/* Provider business name with photo */}
                                 {service.businessName && (
                                   <div className="flex items-center gap-2 mt-1">
-                                    <Link href={service.providerSlug ? `/p/${service.providerSlug}` : "#"}>
+                                    <Link href={service.providerSlug ? `/${service.providerSlug}` : "#"}>
                                       <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
                                         {service.providerProfilePhotoUrl ? (
                                           <img src={service.providerProfilePhotoUrl} alt={service.businessName} className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
@@ -591,6 +600,12 @@ export default function Search() {
                                 </p>
 
                                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-3 text-xs sm:text-sm">
+                                  <Badge className={decision.mode === "direct"
+                                    ? "border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-50"
+                                    : "border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-50"}
+                                  >
+                                    {decision.label}
+                                  </Badge>
                                   <div className="flex items-center gap-1">
                                     <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                                     <span className="font-medium">
@@ -622,14 +637,17 @@ export default function Search() {
                               {/* Favorite + Book Now button */}
                               <div className="sm:shrink-0 flex items-center gap-2">
                                 <FavoriteButtonSearch providerId={service.providerId} />
-                                <Link href={`/service/${service.id}`}>
-                                  <Button className="w-full sm:w-auto">Book Now</Button>
+                                <Link href={serviceHref}>
+                                  <Button className="w-full sm:w-auto">
+                                    {decision.mode === "direct" ? "Check availability" : "Request quote"}
+                                  </Button>
                                 </Link>
                               </div>
                             </div>
                           </CardContent>
                         </Card>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
