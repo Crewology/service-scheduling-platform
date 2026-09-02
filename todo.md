@@ -2608,3 +2608,14 @@
 - [x] Preserve onboarding gating, provider/customer switching, admin access, mobile navigation, and current customer home
 - [x] Add focused Vitest coverage for provider Overview data mapping, routing, empty states, and access gating
 - [x] Verify the integrated provider workspace on desktop and mobile before checkpointing
+
+## Customer Landing Redesign — Phase 2 Integration
+- [x] Map the approved customer prototype to real bookings, quotes, providers, services, and current live routes
+- [x] Add one consolidated customer-home data contract for actions awaiting response, upcoming bookings, and past services
+- [x] Replace only the customer app-grid home with the need-first landing page
+- [x] Connect the primary search bar to live service search while preserving customer intent context
+- [x] Build real Needs Your Action and Upcoming sections with clear empty and error states
+- [x] Build one-tap rebooking from eligible past completed services without fabricated history
+- [x] Preserve customer plans, saved providers, referrals, messages, notifications, admin access, role switching, and provider-home isolation
+- [x] Add focused Vitest coverage for customer-home data mapping, search, rebooking, routing, and access isolation
+- [x] Verify the integrated customer landing page on desktop and mobile before checkpointing

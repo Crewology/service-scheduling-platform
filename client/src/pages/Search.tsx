@@ -214,20 +214,25 @@ export default function Search() {
   const searchString = useSearch();
   const urlParams = useMemo(() => new URLSearchParams(searchString), [searchString]);
   const initialQuery = urlParams.get("q") || "";
+  const initialLocation = urlParams.get("location") || "";
+  const requestedTiming = urlParams.get("timing") || "";
 
   const [keyword, setKeyword] = useState(initialQuery);
   const [categoryId, setCategoryId] = useState<number | undefined>();
   const [priceRange, setPriceRange] = useState([0, 1000]);
   const [sortBy, setSortBy] = useState<"price" | "rating" | "distance">("rating");
-  const [location, setLocation] = useState("");
+  const [location, setLocation] = useState(initialLocation);
   const [freeEstimatesOnly, setFreeEstimatesOnly] = useState(false);
   const [emergencyServiceOnly, setEmergencyServiceOnly] = useState(false);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   // Sync keyword when URL changes (e.g. navigating from homepage again)
   useEffect(() => {
-    const q = new URLSearchParams(searchString).get("q");
+    const params = new URLSearchParams(searchString);
+    const q = params.get("q");
+    const nextLocation = params.get("location");
     if (q) setKeyword(q);
+    if (nextLocation !== null) setLocation(nextLocation);
   }, [searchString]);
 
   // Debounce keyword and location so API calls only fire after 300ms of inactivity
@@ -337,6 +342,11 @@ export default function Search() {
                   ? `Results for "${keyword}"`
                   : "Find the perfect service provider for your needs"}
               </p>
+              {requestedTiming ? (
+                <p className="mt-1 text-xs font-medium text-[#174a73]">
+                  Requested timing: {requestedTiming}
+                </p>
+              ) : null}
             </div>
             {/* Mobile filter toggle */}
             <Button

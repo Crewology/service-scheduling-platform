@@ -30,7 +30,7 @@ export function ViewModeProvider({ children }: { children: ReactNode }) {
   const { user, isAuthenticated } = useAuth();
   const isAdmin = user?.role === "admin";
   // Check if admin also has a provider profile
-  const { data: providerProfile } = trpc.provider.getMyProfile.useQuery(undefined, {
+  const { data: providerProfile, isLoading: providerProfileLoading } = trpc.provider.getMyProfile.useQuery(undefined, {
     enabled: isAuthenticated && isAdmin,
   });
   // A user can act as provider if their role is provider OR if they're admin with a provider profile
@@ -39,6 +39,11 @@ export function ViewModeProvider({ children }: { children: ReactNode }) {
   // Initialize from localStorage, defaulting to provider view for providers
   const [viewMode, setViewModeState] = useState<ViewMode>(() => {
     if (typeof window === "undefined") return "customer";
+    const requested = new URLSearchParams(window.location.search).get("view");
+    if (requested === "customer" || requested === "provider") {
+      localStorage.setItem(STORAGE_KEY, requested);
+      return requested;
+    }
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored === "customer" || stored === "provider") return stored;
     return "customer"; // Default, will be updated when user loads
@@ -49,6 +54,7 @@ export function ViewModeProvider({ children }: { children: ReactNode }) {
   // When user loads/changes, set appropriate default
   useEffect(() => {
     if (!user) return;
+    if (isAdmin && providerProfileLoading) return;
     if (isProvider) {
       // If provider and no stored preference, default to provider view
       const stored = localStorage.getItem(STORAGE_KEY);
@@ -61,11 +67,18 @@ export function ViewModeProvider({ children }: { children: ReactNode }) {
       setViewModeState("customer");
       localStorage.removeItem(STORAGE_KEY);
     }
-  }, [user, isProvider]);
+  }, [user, isProvider, isAdmin, providerProfileLoading]);
 
   // Auto-switch view mode based on route navigation
   useEffect(() => {
     if (!isProvider) return;
+
+    const requested = new URLSearchParams(window.location.search).get("view");
+    if ((requested === "customer" || requested === "provider") && requested !== viewMode) {
+      setViewModeState(requested);
+      localStorage.setItem(STORAGE_KEY, requested);
+      return;
+    }
     
     // Provider routes → switch to provider view
     const providerRoutes = ["/provider/dashboard", "/provider/", "/booking-detail/"];
