@@ -2,15 +2,14 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { useViewMode } from "@/contexts/ViewModeContext";
 import { trpc } from "@/lib/trpc";
 import { NavHeader } from "@/components/shared/NavHeader";
+import ProviderWorkspaceOverview from "@/pages/ProviderWorkspaceOverview";
 import { Link } from "wouter";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
 import {
-  Search, Calendar, MessageSquare, Heart, FileText, Users,
-  BarChart3, CreditCard, Image, Tag, Settings, Bell,
-  Grid3X3, Gift, Clock, Briefcase, Star, ShieldCheck,
-  LayoutDashboard, UserCircle, Compass, BookOpen, Rocket,
-  Award, HelpCircle, UserCog
+  Search, MessageSquare, Heart, Users, CreditCard, Bell,
+  Gift, Clock, Star, ShieldCheck, LayoutDashboard, Compass,
+  BookOpen, Award
 } from "lucide-react";
 
 // Launchpad tile definition
@@ -21,25 +20,6 @@ interface LaunchpadTile {
   color: string; // bg color for icon container
   iconColor: string; // icon stroke/fill color
 }
-
-// Provider tiles
-const PROVIDER_TILES: LaunchpadTile[] = [
-  { label: "Dashboard", icon: <LayoutDashboard className="h-7 w-7" />, href: "/provider/dashboard", color: "bg-gray-100", iconColor: "text-gray-700" },
-  { label: "Profile", icon: <UserCog className="h-7 w-7" />, href: "/provider/onboarding", color: "bg-violet-100", iconColor: "text-violet-600" },
-  { label: "Bookings", icon: <Calendar className="h-7 w-7" />, href: "/my-bookings", color: "bg-blue-100", iconColor: "text-blue-600" },
-  { label: "Services", icon: <Briefcase className="h-7 w-7" />, href: "/provider/services", color: "bg-purple-100", iconColor: "text-purple-600" },
-  { label: "Schedule", icon: <Clock className="h-7 w-7" />, href: "/provider/availability", color: "bg-green-100", iconColor: "text-green-600" },
-  { label: "Messages", icon: <MessageSquare className="h-7 w-7" />, href: "/messages", color: "bg-sky-100", iconColor: "text-sky-600" },
-  { label: "Analytics", icon: <BarChart3 className="h-7 w-7" />, href: "/provider/analytics", color: "bg-amber-100", iconColor: "text-amber-700" },
-  { label: "Payouts", icon: <CreditCard className="h-7 w-7" />, href: "/provider/payouts", color: "bg-emerald-100", iconColor: "text-emerald-600" },
-  { label: "Boost", icon: <Rocket className="h-7 w-7" />, href: "/provider/promotions", color: "bg-gradient-to-br from-purple-100 to-pink-100", iconColor: "text-purple-600" },
-  { label: "My Page", icon: <UserCircle className="h-7 w-7" />, href: "/provider/my-page", color: "bg-teal-100", iconColor: "text-teal-600" },
-  { label: "Invoices", icon: <FileText className="h-7 w-7" />, href: "/provider/invoices", color: "bg-orange-100", iconColor: "text-orange-600" },
-  { label: "Widgets", icon: <Grid3X3 className="h-7 w-7" />, href: "/provider/widgets", color: "bg-rose-100", iconColor: "text-rose-600" },
-  { label: "Reviews", icon: <Star className="h-7 w-7" />, href: "/provider/reviews", color: "bg-teal-100", iconColor: "text-teal-600" },
-  { label: "Featured", icon: <Award className="h-7 w-7" />, href: "/featured", color: "bg-yellow-100", iconColor: "text-yellow-600" },
-  { label: "Plans", icon: <ShieldCheck className="h-7 w-7" />, href: "/provider/subscription", color: "bg-rose-100", iconColor: "text-rose-600" },
-];
 
 // Customer tiles
 const CUSTOMER_TILES: LaunchpadTile[] = [
@@ -80,8 +60,8 @@ export default function LoggedInHome() {
 
   // Fetch quick stats
   // The shared header owns background refresh; these observers reuse its query cache.
-  const { data: unreadMessages } = trpc.message.unreadCount.useQuery();
-  const { data: unreadNotifications } = trpc.notification.unreadCount.useQuery();
+  const { data: unreadMessages } = trpc.message.unreadCount.useQuery(undefined, { enabled: !isProviderView });
+  const { data: unreadNotifications } = trpc.notification.unreadCount.useQuery(undefined, { enabled: !isProviderView });
 
   // Fetch provider profile to check onboarding completion (only for providers)
   const { data: onboardingStatus, isLoading: onboardingLoading } = trpc.provider.getOnboardingStatus.useQuery(undefined, {
@@ -147,7 +127,20 @@ export default function LoggedInHome() {
     );
   }
 
-  const tiles = isProviderView ? PROVIDER_TILES : CUSTOMER_TILES;
+  if (isProviderView && user?.role === "provider" && !isAdmin && onboardingStatus && !onboardingStatus.steps1to4Complete) {
+    return null;
+  }
+
+  if (isProviderView) {
+    return (
+      <div className="min-h-screen bg-[#f7faff]">
+        <NavHeader />
+        <ProviderWorkspaceOverview />
+      </div>
+    );
+  }
+
+  const tiles = CUSTOMER_TILES;
   // Prepend admin tiles, then deduplicate by href to avoid key collisions
   const allTiles = isAdmin
     ? [...ADMIN_TILES, ...tiles].filter((tile, idx, arr) => arr.findIndex(t => t.href === tile.href) === idx)
@@ -173,7 +166,7 @@ export default function LoggedInHome() {
             {greeting()}, {firstName}
           </h1>
           <p className="text-muted-foreground text-sm sm:text-base">
-            {isProviderView ? "Manage your business" : "What would you like to do today?"}
+            What would you like to do today?
           </p>
         </div>
 
@@ -203,23 +196,7 @@ export default function LoggedInHome() {
           </div>
         )}
 
-        {/* Launchpad Grid */}
-        {/* Payment setup reminder for providers who skipped step 5 */}
-        {isProviderView && onboardingStatus?.steps1to4Complete && !onboardingStatus?.hasStripe && (
-          <Link href="/provider/onboarding?step=5">
-            <div className="w-full p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-4 hover:bg-amber-100 transition-colors cursor-pointer mb-4">
-              <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-                <CreditCard className="h-5 w-5 text-amber-600" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-amber-900">Set up payments to get paid</p>
-                <p className="text-xs text-amber-700">Connect Stripe to receive payments from bookings. Only takes a few minutes.</p>
-              </div>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-            </div>
-          </Link>
-        )}
-
+        {/* Customer launchpad grid (provider view uses the focused workspace above). */}
         <div className="grid grid-cols-4 gap-3 sm:gap-6">
           {allTiles.map((tile, index) => (
             <Link key={`${tile.label}-${tile.href}`} href={tile.href}>
@@ -238,8 +215,7 @@ export default function LoggedInHome() {
         {/* Role indicator */}
         <div className="text-center mt-10 sm:mt-12">
           <p className="text-xs text-muted-foreground hidden sm:block">
-            Viewing as <span className="font-medium capitalize">{isProviderView ? "Provider" : "Customer"}</span>
-            {isProviderView && " · Switch to Customer view from the top menu"}
+            Viewing as <span className="font-medium">Customer</span>
           </p>
         </div>
       </div>

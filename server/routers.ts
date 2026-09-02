@@ -39,6 +39,7 @@ import { helpChatRouter } from "./helpChatRouter";
 import { promotionRouter } from "./promotionRouter";
 import { invoiceRouter } from "./invoiceRouter";
 import { socialMediaRouter } from "./routers/socialMediaRouter";
+import { providerOverviewRouter } from "./providerOverviewRouter";
 
 export const appRouter = router({
   system: systemRouter,
@@ -72,6 +73,7 @@ export const appRouter = router({
   promotion: promotionRouter,
   invoice: invoiceRouter,
   socialMedia: socialMediaRouter,
+  providerOverview: providerOverviewRouter,
 });
 
 export type AppRouter = typeof appRouter;

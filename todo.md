@@ -2597,3 +2597,14 @@
 - [x] Verify the clean production prototype URLs load successfully after publishing
 - [x] Prevent accidental trailing backticks (`%60`) in copied prototype links from causing a confusing 404
 - [x] Test provider, customer, direct-booking, and quote-request review links on the production domain
+
+## Provider Workspace Redesign — Phase 1 Integration
+- [x] Map every approved prototype section to real provider queries, mutations, and existing live routes
+- [x] Replace only the completed provider launchpad with a real-data Overview workspace
+- [x] Build real Needs Attention items for booking requests, quote requests, overdue invoices, and setup blockers
+- [x] Build a real Today schedule with timezone-aware booking data and conflict/setup states
+- [x] Connect Quick Actions to existing service, calendar, invoice, profile-share, and analytics destinations
+- [x] Build Business Pulse from current provider analytics without fabricated metrics
+- [x] Preserve onboarding gating, provider/customer switching, admin access, mobile navigation, and current customer home
+- [x] Add focused Vitest coverage for provider Overview data mapping, routing, empty states, and access gating
+- [x] Verify the integrated provider workspace on desktop and mobile before checkpointing
