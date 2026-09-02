@@ -153,20 +153,20 @@ function SubscriptionAnalyticsPanel() {
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{formatCurrency(analytics.mrr)}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              {analytics.activeSubscribers} paid subscriber{analytics.activeSubscribers !== 1 ? 's' : ''}
+              {analytics.payingSubscribers} revenue-generating subscription{analytics.payingSubscribers !== 1 ? 's' : ''}
             </p>
           </CardContent>
         </Card>
 
         <Card className="border-l-4 border-l-blue-500">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Active Subscribers</CardTitle>
+            <CardTitle className="text-sm font-medium">Paid-Plan Access</CardTitle>
             <Crown className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{analytics.activeSubscribers}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              of {analytics.totalProviders} total providers
+              {analytics.providerActiveSubscribers} provider · {analytics.customerActiveSubscribers} customer
             </p>
           </CardContent>
         </Card>
@@ -213,7 +213,7 @@ function SubscriptionAnalyticsPanel() {
               <BarChart3 className="h-5 w-5" />
               Tier Distribution
             </CardTitle>
-            <CardDescription>Breakdown of providers by subscription tier</CardDescription>
+            <CardDescription>Effective provider access after lifecycle rules</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Visual bar chart */}
@@ -2820,21 +2820,33 @@ function UsersFilterPanel({ suspendUser, unsuspendUser }: { suspendUser: any; un
 function PlanBadge({ user }: { user: any }) {
   const badges: React.ReactNode[] = [];
 
+  const lifecycleSuffix = (state?: string, accessEndsAt?: string | Date | null) => {
+    if (state === "trialing") return " (trial)";
+    if (state === "past_due_grace") return " (payment due)";
+    if (state === "cancelling") {
+      if (!accessEndsAt) return " (ending)";
+      return ` (ends ${new Date(accessEndsAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })})`;
+    }
+    return "";
+  };
+
+  const needsBillingAction = (configuredTier: string | null | undefined, effectiveTier: string | null | undefined, requiresAction?: boolean) =>
+    !!requiresAction && !!configuredTier && configuredTier !== "free" && effectiveTier === "free";
+
   // Provider subscription
   if (user.providerSubTier && user.providerSubTier !== "free") {
-    const isActive = user.providerSubStatus === "active" || user.providerSubStatus === "trialing";
     const tierLabel = user.providerSubTier === "basic" ? "Pro" : user.providerSubTier === "premium" ? "Business" : user.providerSubTier;
-    const trialSuffix = user.providerSubStatus === "trialing" ? " (trial)" : "";
+    const needsAttention = user.providerRequiresBillingAction || user.providerEntitlementState === "cancelling";
     badges.push(
       <Badge
         key="prov"
         variant="secondary"
-        className={isActive
-          ? "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900 dark:text-blue-300 dark:border-blue-800"
-          : "bg-gray-100 text-gray-500 border-gray-200 line-through"
-        }
+        className={needsAttention
+          ? "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900 dark:text-amber-200 dark:border-amber-800"
+          : "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900 dark:text-blue-300 dark:border-blue-800"}
+        title={`Provider entitlement: ${user.providerEntitlementState || "active"}`}
       >
-        {tierLabel}{trialSuffix}
+        {tierLabel}{lifecycleSuffix(user.providerEntitlementState, user.providerAccessEndsAt)}
       </Badge>
     );
   } else if (user.hasProviderProfile || user.role === "provider") {
@@ -2843,23 +2855,25 @@ function PlanBadge({ user }: { user: any }) {
         Starter
       </Badge>
     );
+    if (needsBillingAction(user.providerConfiguredTier, user.providerSubTier, user.providerRequiresBillingAction)) {
+      badges.push(<Badge key="prov-action" variant="destructive">Provider billing action</Badge>);
+    }
   }
 
   // Customer subscription
   if (user.customerSubTier && user.customerSubTier !== "free") {
-    const isActive = user.customerSubStatus === "active" || user.customerSubStatus === "trialing";
     const tierLabel = user.customerSubTier === "pro" ? "Coordinator" : user.customerSubTier === "business" ? "Manager" : user.customerSubTier;
-    const trialSuffix = user.customerSubStatus === "trialing" ? " (trial)" : "";
+    const needsAttention = user.customerRequiresBillingAction || user.customerEntitlementState === "cancelling";
     badges.push(
       <Badge
         key="cust"
         variant="secondary"
-        className={isActive
-          ? "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900 dark:text-emerald-300 dark:border-emerald-800"
-          : "bg-gray-100 text-gray-500 border-gray-200 line-through"
-        }
+        className={needsAttention
+          ? "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900 dark:text-amber-200 dark:border-amber-800"
+          : "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900 dark:text-emerald-300 dark:border-emerald-800"}
+        title={`Customer entitlement: ${user.customerEntitlementState || "active"}`}
       >
-        {tierLabel}{trialSuffix}
+        {tierLabel}{lifecycleSuffix(user.customerEntitlementState, user.customerAccessEndsAt)}
       </Badge>
     );
   } else if (user.role === "customer") {
@@ -2868,6 +2882,9 @@ function PlanBadge({ user }: { user: any }) {
         Individual
       </Badge>
     );
+    if (needsBillingAction(user.customerConfiguredTier, user.customerSubTier, user.customerRequiresBillingAction)) {
+      badges.push(<Badge key="cust-action" variant="destructive">Customer billing action</Badge>);
+    }
   }
 
   if (badges.length === 0) {
@@ -2881,19 +2898,20 @@ function WebhookStatusBanner() {
   const { data: webhookStatus } = trpc.admin.getWebhookStatus.useQuery();
   if (!webhookStatus) return null;
   const isHealthy = webhookStatus.configured && webhookStatus.webhookSecretSet && webhookStatus.partnerAccountSet;
+  const verificationUnavailable = !webhookStatus.configured && !!webhookStatus.error && webhookStatus.webhookSecretSet && webhookStatus.partnerAccountSet;
   return (
-    <div className={`rounded-lg border p-3 flex items-center gap-3 ${isHealthy ? 'border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950' : 'border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950'}`}>
-      <div className={`h-2.5 w-2.5 rounded-full ${isHealthy ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
+    <div className={`rounded-lg border p-3 flex items-center gap-3 ${isHealthy ? 'border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950' : verificationUnavailable ? 'border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950' : 'border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950'}`}>
+      <div className={`h-2.5 w-2.5 rounded-full ${isHealthy ? 'bg-green-500' : verificationUnavailable ? 'bg-amber-500' : 'bg-red-500'} animate-pulse`} />
       <div className="flex-1">
-        <p className={`text-sm font-medium ${isHealthy ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
-          {isHealthy ? 'Webhook Active' : 'Webhook Issue Detected'}
+        <p className={`text-sm font-medium ${isHealthy ? 'text-green-700 dark:text-green-300' : verificationUnavailable ? 'text-amber-800 dark:text-amber-200' : 'text-red-700 dark:text-red-300'}`}>
+          {isHealthy ? 'Webhook Active' : verificationUnavailable ? 'Stripe verification unavailable in this environment' : 'Webhook Issue Detected'}
         </p>
         <p className="text-xs text-muted-foreground">
-          {webhookStatus.endpoints?.[0]?.url || 'No endpoint configured'}
+          {webhookStatus.endpoints?.[0]?.url || (verificationUnavailable ? 'Webhook secret and partner account are configured; endpoint status could not be queried.' : 'No endpoint configured')}
           {webhookStatus.endpoints?.[0]?.enabledEvents && ` (${webhookStatus.endpoints[0].enabledEvents.length} events)`}
         </p>
       </div>
-      {!isHealthy && (
+      {!isHealthy && !verificationUnavailable && (
         <div className="text-xs text-red-600 dark:text-red-400">
           {!webhookStatus.configured && 'No webhook endpoint '}
           {!webhookStatus.webhookSecretSet && 'Missing webhook secret '}
@@ -3058,7 +3076,7 @@ function PartnerSplitPanel() {
             <CardTitle className="text-2xl">{formatCurrency(summary?.totalRevenue || 0)}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-muted-foreground">All subscription & booking revenue</p>
+            <p className="text-xs text-muted-foreground">Gross revenue from unique split sources</p>
           </CardContent>
         </Card>
 
@@ -3095,6 +3113,7 @@ function PartnerSplitPanel() {
           <CardContent>
             <p className="text-xs text-muted-foreground">
               {summary?.failedCount ? <span className="text-red-500">{summary.failedCount} failed</span> : "All successful"}
+              {(summary?.deferredCount || 0) > 0 && <span className="text-amber-600 ml-1">• {summary?.deferredCount} below transfer minimum</span>}
             </p>
           </CardContent>
         </Card>
@@ -3128,7 +3147,7 @@ function PartnerSplitPanel() {
             <CardTitle className="text-lg">{formatCurrency(summary?.subscriptionRevenue || 0)}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-muted-foreground">Provider + Customer subscription partner share</p>
+            <p className="text-xs text-muted-foreground">Gross provider + customer subscription revenue</p>
           </CardContent>
         </Card>
 
@@ -3138,7 +3157,7 @@ function PartnerSplitPanel() {
             <CardTitle className="text-lg">{formatCurrency(summary?.bookingFeeRevenue || 0)}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-muted-foreground">1% platform fee partner share</p>
+            <p className="text-xs text-muted-foreground">Gross 1% booking-fee revenue subject to the split</p>
           </CardContent>
         </Card>
       </div>

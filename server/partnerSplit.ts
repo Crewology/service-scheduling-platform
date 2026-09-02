@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import { ENV } from "./_core/env";
 import { getDb } from "./db/connection";
-import { partnerTransfers } from "../drizzle/schema";
+import { partnerTransfers, type PartnerTransfer } from "../drizzle/schema";
 import { desc, eq, sql, and, gte, lte } from "drizzle-orm";
 
 const stripe = new Stripe(ENV.stripeSecretKey, {
@@ -97,7 +97,9 @@ export async function executePartnerTransfer(input: PartnerTransferInput): Promi
       console.log(`[Partner Split] Using source_transaction: ${input.chargeId}`);
     }
 
-    const transfer = await stripe.transfers.create(transferParams);
+    const transfer = await stripe.transfers.create(transferParams, {
+      idempotencyKey: `ologycrew-partner-${input.sourceType}-${input.sourceId}-${partnerAccountId}`,
+    });
 
     await recordTransfer({
       amount: partnerAmount,
@@ -211,42 +213,68 @@ export async function getPartnerTransfers(options?: {
  * Get partner transfer summary statistics
  */
 export async function getPartnerTransferSummary() {
-  const db = await getDb();
-  if (!db) {
-    return {
-      totalTransferred: 0,
+  return getPartnerTransferSummaryFiltered();
+}
+
+export function summarizePartnerTransferRows(rows: PartnerTransfer[]) {
+  const sources = new Map<string, {
+    sourceType: TransferSourceType;
+    totalRevenue: number;
+    partnerOwed: number;
+    transferred: number;
+    hasFailure: boolean;
+    isDeferred: boolean;
+  }>();
+
+  for (const row of rows) {
+    const key = `${row.sourceType}:${row.sourceId || `row-${row.id}`}`;
+    const current = sources.get(key) || {
+      sourceType: row.sourceType,
       totalRevenue: 0,
-      platformShare: 0,
-      totalCount: 0,
-      completedCount: 0,
-      failedCount: 0,
-      subscriptionRevenue: 0,
-      bookingFeeRevenue: 0,
-      splitPercentage: { partner: PARTNER_SPLIT_PERCENTAGE, platform: PLATFORM_SPLIT_PERCENTAGE },
+      partnerOwed: 0,
+      transferred: 0,
+      hasFailure: false,
+      isDeferred: false,
     };
+    current.totalRevenue = Math.max(current.totalRevenue, Number(row.totalRevenue || 0));
+    current.partnerOwed = Math.max(current.partnerOwed, Number(row.amount || 0));
+    if (row.status === "completed" && row.stripeTransferId) {
+      current.transferred = Math.max(current.transferred, Number(row.amount || 0));
+    }
+    current.hasFailure ||= row.status === "failed";
+    current.isDeferred ||= row.status === "completed" && !row.stripeTransferId && row.errorMessage?.includes("below Stripe minimum") === true;
+    sources.set(key, current);
   }
 
-  const [totals] = await db
-    .select({
-      totalTransferred: sql<string>`COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0)`,
-      totalRevenue: sql<string>`COALESCE(SUM(CASE WHEN status = 'completed' THEN totalRevenue ELSE 0 END), 0)`,
-      totalCount: sql<number>`COUNT(*)`,
-      completedCount: sql<number>`SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END)`,
-      failedCount: sql<number>`SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END)`,
-      subscriptionRevenue: sql<string>`COALESCE(SUM(CASE WHEN status = 'completed' AND (sourceType = 'provider_subscription' OR sourceType = 'customer_subscription') THEN amount ELSE 0 END), 0)`,
-      bookingFeeRevenue: sql<string>`COALESCE(SUM(CASE WHEN status = 'completed' AND sourceType = 'booking_platform_fee' THEN amount ELSE 0 END), 0)`,
-    })
-    .from(partnerTransfers);
+  const uniqueSources = Array.from(sources.values());
+  const totalRevenue = uniqueSources.reduce((sum, source) => sum + source.totalRevenue, 0);
+  const totalTransferred = uniqueSources.reduce((sum, source) => sum + source.transferred, 0);
+  const partnerOwed = uniqueSources.reduce((sum, source) => sum + source.partnerOwed, 0);
+  const subscriptionRevenue = uniqueSources
+    .filter(source => source.sourceType === "provider_subscription" || source.sourceType === "customer_subscription")
+    .reduce((sum, source) => sum + source.totalRevenue, 0);
+  const bookingFeeRevenue = uniqueSources
+    .filter(source => source.sourceType === "booking_platform_fee")
+    .reduce((sum, source) => sum + source.totalRevenue, 0);
+  const completedCount = uniqueSources.filter(source => source.transferred > 0).length;
+  const deferredCount = uniqueSources.filter(source => source.transferred === 0 && source.isDeferred).length;
+  const failedCount = uniqueSources.filter(source => source.transferred === 0 && source.hasFailure && !source.isDeferred).length;
 
   return {
-    totalTransferred: parseFloat(totals?.totalTransferred || "0"),
-    totalRevenue: parseFloat(totals?.totalRevenue || "0"),
-    platformShare: parseFloat(totals?.totalRevenue || "0") - parseFloat(totals?.totalTransferred || "0"),
-    totalCount: Number(totals?.totalCount || 0),
-    completedCount: Number(totals?.completedCount || 0),
-    failedCount: Number(totals?.failedCount || 0),
-    subscriptionRevenue: parseFloat(totals?.subscriptionRevenue || "0"),
-    bookingFeeRevenue: parseFloat(totals?.bookingFeeRevenue || "0"),
+    totalTransferred: Math.round(totalTransferred * 100) / 100,
+    totalRevenue: Math.round(totalRevenue * 100) / 100,
+    platformShare: Math.round(totalRevenue * (PLATFORM_SPLIT_PERCENTAGE / 100) * 100) / 100,
+    partnerOwed: Math.round(partnerOwed * 100) / 100,
+    partnerOutstanding: Math.round(Math.max(0, partnerOwed - totalTransferred) * 100) / 100,
+    totalCount: uniqueSources.length,
+    completedCount,
+    failedCount,
+    deferredCount,
+    subscriptionRevenue: Math.round(subscriptionRevenue * 100) / 100,
+    bookingFeeRevenue: Math.round(bookingFeeRevenue * 100) / 100,
+    failedPartnerAmount: Math.round(uniqueSources
+      .filter(source => source.transferred === 0 && source.hasFailure && !source.isDeferred)
+      .reduce((sum, source) => sum + source.partnerOwed, 0) * 100) / 100,
     splitPercentage: { partner: PARTNER_SPLIT_PERCENTAGE, platform: PLATFORM_SPLIT_PERCENTAGE },
   };
 }
@@ -267,6 +295,7 @@ export async function getPartnerTransferSummaryFiltered(options?: {
       totalCount: 0,
       completedCount: 0,
       failedCount: 0,
+      deferredCount: 0,
       subscriptionRevenue: 0,
       bookingFeeRevenue: 0,
       splitPercentage: { partner: PARTNER_SPLIT_PERCENTAGE, platform: PLATFORM_SPLIT_PERCENTAGE },
@@ -281,39 +310,8 @@ export async function getPartnerTransferSummaryFiltered(options?: {
     conditions.push(lte(partnerTransfers.createdAt, options.endDate));
   }
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-
-  const [totals] = await db
-    .select({
-      totalTransferred: sql<string>`COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0)`,
-      totalRevenue: sql<string>`COALESCE(SUM(totalRevenue), 0)`,
-      totalCount: sql<number>`COUNT(*)`,
-      completedCount: sql<number>`SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END)`,
-      failedCount: sql<number>`SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END)`,
-      subscriptionRevenue: sql<string>`COALESCE(SUM(CASE WHEN (sourceType = 'provider_subscription' OR sourceType = 'customer_subscription') THEN totalRevenue ELSE 0 END), 0)`,
-      bookingFeeRevenue: sql<string>`COALESCE(SUM(CASE WHEN sourceType = 'booking_platform_fee' THEN totalRevenue ELSE 0 END), 0)`,
-      failedPartnerAmount: sql<string>`COALESCE(SUM(CASE WHEN status = 'failed' THEN amount ELSE 0 END), 0)`,
-    })
-    .from(partnerTransfers)
-    .where(whereClause);
-
-  const totalRev = parseFloat(totals?.totalRevenue || "0");
-  const totalTransferred = parseFloat(totals?.totalTransferred || "0");
-  const partnerOwed = Math.round(totalRev * (PARTNER_SPLIT_PERCENTAGE / 100) * 100) / 100;
-
-  return {
-    totalTransferred,
-    totalRevenue: totalRev,
-    platformShare: Math.round(totalRev * (PLATFORM_SPLIT_PERCENTAGE / 100) * 100) / 100,
-    partnerOwed,
-    partnerOutstanding: Math.round((partnerOwed - totalTransferred) * 100) / 100,
-    totalCount: Number(totals?.totalCount || 0),
-    completedCount: Number(totals?.completedCount || 0),
-    failedCount: Number(totals?.failedCount || 0),
-    subscriptionRevenue: parseFloat(totals?.subscriptionRevenue || "0"),
-    bookingFeeRevenue: parseFloat(totals?.bookingFeeRevenue || "0"),
-    failedPartnerAmount: parseFloat(totals?.failedPartnerAmount || "0"),
-    splitPercentage: { partner: PARTNER_SPLIT_PERCENTAGE, platform: PLATFORM_SPLIT_PERCENTAGE },
-  };
+  const rows = await db.select().from(partnerTransfers).where(whereClause);
+  return summarizePartnerTransferRows(rows);
 }
 
 /**
@@ -331,27 +329,30 @@ export async function getMonthlyRevenueBreakdown(options?: {
   startDate.setDate(1);
   startDate.setHours(0, 0, 0, 0);
 
-  const results = await db
-    .select({
-      month: sql<string>`DATE_FORMAT(createdAt, '%Y-%m')`,
-      totalRevenue: sql<string>`COALESCE(SUM(totalRevenue), 0)`,
-      partnerShare: sql<string>`COALESCE(SUM(amount), 0)`,
-      transferCount: sql<number>`COUNT(*)`,
-    })
-    .from(partnerTransfers)
+  const rows = await db.select().from(partnerTransfers)
     .where(gte(partnerTransfers.createdAt, startDate))
-    .groupBy(sql`DATE_FORMAT(createdAt, '%Y-%m')`)
-    .orderBy(sql`DATE_FORMAT(createdAt, '%Y-%m')`);
+    .orderBy(partnerTransfers.createdAt);
+  const rowsByMonth = new Map<string, PartnerTransfer[]>();
+  const sourceMonth = new Map<string, string>();
 
-  return results.map((row) => {
-    const totalRev = parseFloat(row.totalRevenue || "0");
-    const partnerAmt = parseFloat(row.partnerShare || "0");
+  for (const row of rows) {
+    const sourceKey = `${row.sourceType}:${row.sourceId || `row-${row.id}`}`;
+    const month = sourceMonth.get(sourceKey) || row.createdAt.toISOString().slice(0, 7);
+    sourceMonth.set(sourceKey, month);
+    rowsByMonth.set(month, [...(rowsByMonth.get(month) || []), row]);
+  }
+
+  return Array.from(rowsByMonth.entries()).map(([month, monthRows]) => {
+    const summary = summarizePartnerTransferRows(monthRows);
     return {
-      month: row.month,
-      totalRevenue: totalRev,
-      platformShare: totalRev - partnerAmt,
-      partnerShare: partnerAmt,
-      transferCount: Number(row.transferCount || 0),
+      month,
+      totalRevenue: summary.totalRevenue,
+      platformShare: summary.platformShare,
+      partnerShare: summary.partnerOwed,
+      partnerTransferred: summary.totalTransferred,
+      transferCount: summary.completedCount,
+      failedCount: summary.failedCount,
+      outstanding: summary.partnerOutstanding,
     };
   });
 }

@@ -2665,7 +2665,7 @@
 - [x] Implement shared server/client entitlement contracts and remove conflicting hardcoded plan rules
 - [x] Reconcile pricing pages, onboarding, current-plan displays, upgrade/downgrade, cancellation, renewal, refund, and reactivation behavior
 - [x] Reconcile Stripe Connect, payment collection, invoicing, analytics, custom URL, saved-provider, bulk-quote, and other plan-gated access
-- [ ] Reconcile entitlement-dependent emails, notifications, and admin plan records
+- [x] Reconcile entitlement-dependent emails, notifications, and admin plan records
 - [ ] Add comprehensive entitlement and billing lifecycle regression coverage
 
 ## Provider Trust and Verification Taxonomy

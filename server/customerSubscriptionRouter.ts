@@ -8,6 +8,7 @@ import { ENV } from "./_core/env";
 import { sendNotification } from "./notifications";
 import { customerHasFeature, resolveCustomerEntitlement } from "../shared/entitlements";
 import { requireStripeSubscriptionPeriodEnd } from "./stripeSubscriptionLifecycle";
+import { createSubscriptionInAppNotice } from "./subscriptionNotifications";
 
 const stripe = new Stripe(ENV.stripeSecretKey, { apiVersion: "2026-01-28.clover" as any });
 
@@ -135,12 +136,33 @@ export const customerSubscriptionRouter = router({
           const reactivated = await stripe.subscriptions.update(existingSubForCheck.stripeSubscriptionId, {
             cancel_at_period_end: false,
           });
+          const accessEndsAt = requireStripeSubscriptionPeriodEnd(reactivated as any);
           await db.upsertCustomerSubscription({
             userId: ctx.user.id,
             tier: input.tier,
             status: "active",
             cancelAtPeriodEnd: false,
-            currentPeriodEnd: requireStripeSubscriptionPeriodEnd(reactivated as any),
+            currentPeriodEnd: accessEndsAt,
+          });
+          if (ctx.user.email) {
+            await sendNotification({
+              type: "subscription_resumed",
+              channel: "email",
+              recipient: { userId: ctx.user.id, email: ctx.user.email, name: ctx.user.name || undefined },
+              data: {
+                customerName: ctx.user.name || undefined,
+                tier: CUSTOMER_TIERS[input.tier].name,
+                accessEndsAt: accessEndsAt.toISOString(),
+                noNewCharge: true,
+              },
+            });
+          }
+          await createSubscriptionInAppNotice({
+            userId: ctx.user.id,
+            type: "subscription_resumed",
+            title: `${CUSTOMER_TIERS[input.tier].name} will continue`,
+            message: `The scheduled cancellation was removed. No new charge was created; the current period continues through ${accessEndsAt.toLocaleDateString("en-US")}.`,
+            actionUrl: "/customer/subscription",
           });
           return { url: null, message: `Your ${CUSTOMER_TIERS[input.tier].name} plan will continue. No new charge was created.` };
         }
@@ -380,6 +402,13 @@ export const customerSubscriptionRouter = router({
                 },
               });
             }
+            await createSubscriptionInAppNotice({
+              userId: ctx.user.id,
+              type: "subscription_downgraded",
+              title: "Individual downgrade scheduled",
+              message: `${CUSTOMER_TIERS[currentTier].name} remains active through ${periodEnd.toLocaleDateString("en-US")}. Individual begins after that date.`,
+              actionUrl: "/customer/subscription",
+            });
 
             return {
               success: true,
@@ -763,6 +792,29 @@ export const customerSubscriptionRouter = router({
         invoicePdfUrl: string | null;
       }> = [];
 
+      const entitlement = resolveCustomerEntitlement(sub);
+      if (sub && entitlement.state === "cancelling" && entitlement.accessEndsAt) {
+        events.push({
+          id: `cancelling_${sub.userId}`,
+          type: "subscription_change",
+          date: new Date(sub.updatedAt || Date.now()).toISOString(),
+          description: `Individual scheduled for ${entitlement.accessEndsAt.toLocaleDateString("en-US")}; paid access continues until then`,
+          amount: null,
+          status: "scheduled",
+          invoicePdfUrl: null,
+        });
+      } else if (sub && entitlement.requiresBillingAction) {
+        events.push({
+          id: `billing_action_${sub.userId}`,
+          type: "subscription_change",
+          date: new Date(sub.updatedAt || Date.now()).toISOString(),
+          description: "Subscription billing needs attention",
+          amount: null,
+          status: "action_required",
+          invoicePdfUrl: null,
+        });
+      }
+
       if (!sub?.stripeCustomerId) {
         // No Stripe customer yet — return events from DB only
         if (sub?.status === "trialing" && sub.trialEndsAt) {
@@ -789,7 +841,7 @@ export const customerSubscriptionRouter = router({
           });
         }
 
-        return { items: events, hasMore: false };
+        return { items: events, hasMore: false, nextCursor: null };
       }
 
       // Fetch invoices from Stripe
@@ -829,7 +881,7 @@ export const customerSubscriptionRouter = router({
             status: sub.status,
             invoicePdfUrl: null,
           });
-          return { items: events, hasMore: false };
+          return { items: events, hasMore: false, nextCursor: null };
         }
         throw err;
       }
@@ -879,7 +931,7 @@ export const customerSubscriptionRouter = router({
         (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
       );
 
-      return { items: allItems, hasMore: invoices.has_more };
+      return { items: allItems, hasMore: invoices.has_more, nextCursor: invoices.data[invoices.data.length - 1]?.id || null };
     }),
 
   // Check if user can save more providers (used before toggling favorite)

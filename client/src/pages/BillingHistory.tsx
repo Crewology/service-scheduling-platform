@@ -88,6 +88,18 @@ function getStatusBadge(status: string) {
           Ended
         </Badge>
       );
+    case "scheduled":
+      return (
+        <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border-0">
+          <Clock className="h-3 w-3 mr-1" /> Scheduled
+        </Badge>
+      );
+    case "action_required":
+      return (
+        <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 border-0">
+          <AlertCircle className="h-3 w-3 mr-1" /> Action required
+        </Badge>
+      );
     default:
       return (
         <Badge variant="outline">
@@ -123,7 +135,7 @@ export default function BillingHistory() {
     cursor ? { limit: 25, startingAfter: cursor } : { limit: 25 }
   );
 
-  const trialStatus = trpc.subscription.checkTrialStatus.useQuery();
+  const subscriptionSummary = trpc.subscription.mySubscription.useQuery();
 
   if (!user) {
     return (
@@ -156,7 +168,7 @@ export default function BillingHistory() {
         </div>
 
         {/* Current Plan Summary */}
-        {trialStatus.data && (
+        {subscriptionSummary.data && (
           <Card className="mb-6 border-primary/20 bg-primary/5">
             <CardContent className="p-4">
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
@@ -166,14 +178,20 @@ export default function BillingHistory() {
                   </div>
                   <div>
                     <p className="font-medium">
-                      Current Plan: <span className="capitalize">{trialStatus.data.currentTier === "premium" ? "Business" : trialStatus.data.currentTier === "basic" ? "Pro" : "Starter"}</span>
+                      Current Plan: <span>{subscriptionSummary.data.currentTier === "premium" ? "Business" : subscriptionSummary.data.currentTier === "basic" ? "Pro" : "Starter"}</span>
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {trialStatus.data.isTrialing
-                        ? `Trial ends in ${trialStatus.data.daysRemaining} days`
-                        : trialStatus.data.trialExpired
-                        ? "Trial expired — please upgrade or downgrade"
-                        : "Active subscription"}
+                      {subscriptionSummary.data.entitlement.state === "trialing" && subscriptionSummary.data.entitlement.accessEndsAt
+                        ? `Trial access through ${formatDate(subscriptionSummary.data.entitlement.accessEndsAt.toISOString())}`
+                        : subscriptionSummary.data.entitlement.state === "cancelling" && subscriptionSummary.data.entitlement.accessEndsAt
+                        ? `${subscriptionSummary.data.currentTier === "premium" ? "Business" : "Pro"} remains active through ${formatDate(subscriptionSummary.data.entitlement.accessEndsAt.toISOString())}; Starter begins after`
+                        : subscriptionSummary.data.entitlement.state === "past_due_grace" && subscriptionSummary.data.entitlement.accessEndsAt
+                        ? `Payment due — paid access available through ${formatDate(subscriptionSummary.data.entitlement.accessEndsAt.toISOString())}`
+                        : subscriptionSummary.data.entitlement.requiresBillingAction
+                        ? "Billing action required to restore paid access"
+                        : subscriptionSummary.data.currentTier === "free"
+                        ? "Starter plan active"
+                        : "Active paid subscription"}
                     </p>
                   </div>
                 </div>
@@ -276,10 +294,7 @@ export default function BillingHistory() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        const lastItem = data.items[data.items.length - 1];
-                        if (lastItem && lastItem.id.startsWith("in_")) {
-                          setCursor(lastItem.id);
-                        }
+                        if (data.nextCursor) setCursor(data.nextCursor);
                       }}
                     >
                       Load More

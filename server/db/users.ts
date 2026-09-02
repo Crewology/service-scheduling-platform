@@ -37,6 +37,7 @@ import {
 } from "../../drizzle/schema";
 import { ENV } from "../_core/env";
 import { getDb } from "./connection";
+import { resolveCustomerEntitlement, resolveProviderEntitlement } from "../../shared/entitlements";
 
 // ============================================================================
 // USER MANAGEMENT
@@ -156,10 +157,21 @@ export async function getAllUsers() {
       adminRole: users.adminRole,
       authProvider: users.authProvider,
       hasProviderProfile: sql<boolean>`CASE WHEN ${serviceProviders.id} IS NOT NULL THEN true ELSE false END`.as('hasProviderProfile'),
+      providerId: serviceProviders.id,
       providerSubTier: providerSubscriptions.tier,
       providerSubStatus: providerSubscriptions.status,
+      providerSubTrialEndsAt: providerSubscriptions.trialEndsAt,
+      providerSubCurrentPeriodEnd: providerSubscriptions.currentPeriodEnd,
+      providerSubCancelAtPeriodEnd: providerSubscriptions.cancelAtPeriodEnd,
+      providerSubStripeSubscriptionId: providerSubscriptions.stripeSubscriptionId,
+      providerSubStripeCustomerId: providerSubscriptions.stripeCustomerId,
       customerSubTier: customerSubscriptions.tier,
       customerSubStatus: customerSubscriptions.status,
+      customerSubTrialEndsAt: customerSubscriptions.trialEndsAt,
+      customerSubCurrentPeriodEnd: customerSubscriptions.currentPeriodEnd,
+      customerSubCancelAtPeriodEnd: customerSubscriptions.cancelAtPeriodEnd,
+      customerSubStripeSubscriptionId: customerSubscriptions.stripeSubscriptionId,
+      customerSubStripeCustomerId: customerSubscriptions.stripeCustomerId,
     })
     .from(users)
     .leftJoin(serviceProviders, eq(users.id, serviceProviders.userId))
@@ -167,7 +179,47 @@ export async function getAllUsers() {
     .leftJoin(customerSubscriptions, eq(users.id, customerSubscriptions.userId))
     .orderBy(users.createdAt);
 
-  return results;
+  return results.map(row => {
+    const providerEntitlement = resolveProviderEntitlement(row.providerId ? {
+      tier: row.providerSubTier,
+      status: row.providerSubStatus,
+      trialEndsAt: row.providerSubTrialEndsAt,
+      currentPeriodEnd: row.providerSubCurrentPeriodEnd,
+      cancelAtPeriodEnd: row.providerSubCancelAtPeriodEnd,
+      stripeSubscriptionId: row.providerSubStripeSubscriptionId,
+      stripeCustomerId: row.providerSubStripeCustomerId,
+    } : null);
+    const customerEntitlement = resolveCustomerEntitlement(row.customerSubTier ? {
+      tier: row.customerSubTier,
+      status: row.customerSubStatus,
+      trialEndsAt: row.customerSubTrialEndsAt,
+      currentPeriodEnd: row.customerSubCurrentPeriodEnd,
+      cancelAtPeriodEnd: row.customerSubCancelAtPeriodEnd,
+      stripeSubscriptionId: row.customerSubStripeSubscriptionId,
+      stripeCustomerId: row.customerSubStripeCustomerId,
+    } : null);
+    const {
+      providerSubStripeSubscriptionId: _providerStripeSubscriptionId,
+      providerSubStripeCustomerId: _providerStripeCustomerId,
+      customerSubStripeSubscriptionId: _customerStripeSubscriptionId,
+      customerSubStripeCustomerId: _customerStripeCustomerId,
+      ...adminRow
+    } = row;
+
+    return {
+      ...adminRow,
+      providerConfiguredTier: row.providerSubTier,
+      providerSubTier: providerEntitlement.effectiveTier,
+      providerEntitlementState: providerEntitlement.state,
+      providerAccessEndsAt: providerEntitlement.accessEndsAt,
+      providerRequiresBillingAction: providerEntitlement.requiresBillingAction,
+      customerConfiguredTier: row.customerSubTier,
+      customerSubTier: customerEntitlement.effectiveTier,
+      customerEntitlementState: customerEntitlement.state,
+      customerAccessEndsAt: customerEntitlement.accessEndsAt,
+      customerRequiresBillingAction: customerEntitlement.requiresBillingAction,
+    };
+  });
 }
 
 // ============================================================================

@@ -9,10 +9,55 @@ import { sendPushNotification } from "./notifications/pushHelper";
 import { executePartnerTransfer } from "./partnerSplit";
 import { generateInvoicePdf } from "./services/invoicePdf";
 import { getStripeSubscriptionPeriod, mapStripeSubscriptionStatus } from "./stripeSubscriptionLifecycle";
+import { CUSTOMER_PLANS, PROVIDER_PLANS } from "../shared/entitlements";
+import { createSubscriptionInAppNotice } from "./subscriptionNotifications";
 
 const stripe = new Stripe(ENV.stripeSecretKey, {
   apiVersion: "2026-01-28.clover",
 });
+
+export function getInvoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
+  const subscription = invoice.parent?.subscription_details?.subscription ?? (invoice as any).subscription;
+  if (!subscription) return null;
+  return typeof subscription === "string" ? subscription : subscription.id;
+}
+
+async function getSubscriptionNotificationContext(subscription: Stripe.Subscription) {
+  const type = subscription.metadata?.type;
+  const tier = subscription.metadata?.tier;
+  if (type === "customer_subscription") {
+    const userId = Number(subscription.metadata?.userId);
+    if (!userId || (tier !== "pro" && tier !== "business")) return null;
+    const user = await db.getUserById(userId);
+    if (!user?.email) return null;
+    return {
+      recipient: { userId, email: user.email, name: user.name || undefined },
+      data: {
+        customerName: user.name || undefined,
+        tier: CUSTOMER_PLANS[tier].name,
+        billingUrl: "/customer/subscription",
+      },
+      currentStatus: (await db.getCustomerSubscription(userId))?.status,
+    };
+  }
+
+  const providerId = Number(subscription.metadata?.providerId);
+  if (!providerId || (tier !== "basic" && tier !== "premium")) return null;
+  const provider = await db.getProviderById(providerId);
+  if (!provider) return null;
+  const user = await db.getUserById(provider.userId);
+  if (!user?.email) return null;
+  return {
+    recipient: { userId: user.id, email: user.email, name: user.name || undefined },
+    data: {
+      customerName: user.name || undefined,
+      businessName: provider.businessName || undefined,
+      tier: PROVIDER_PLANS[tier].name,
+      billingUrl: "/provider/subscription",
+    },
+    currentStatus: (await db.getProviderSubscription(providerId))?.status,
+  };
+}
 
 export async function handleStripeWebhook(req: Request, res: Response) {
   const sig = req.headers["stripe-signature"];
@@ -431,6 +476,7 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
       console.error("[Stripe] Missing userId or tier in customer subscription metadata");
       return;
     }
+    const existingSub = await db.getCustomerSubscription(parseInt(userId));
     await db.upsertCustomerSubscription({
       userId: parseInt(userId),
       tier,
@@ -442,6 +488,31 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
       trialEndsAt: subscription.trial_end ? new Date(subscription.trial_end * 1000) : undefined,
       cancelAtPeriodEnd: subscription.cancel_at_period_end,
     });
+    const tierOrder = { free: 0, pro: 1, business: 2 } as const;
+    const previousTier = existingSub?.tier || "free";
+    if (stripeStatus === "active" && tierOrder[tier] > tierOrder[previousTier]) {
+      const user = await db.getUserById(parseInt(userId));
+      if (user?.email) {
+        await sendNotification({
+          type: "subscription_upgraded",
+          channel: "email",
+          recipient: { userId: user.id, email: user.email, name: user.name || undefined },
+          data: {
+            customerName: user.name || undefined,
+            tier: CUSTOMER_PLANS[tier].name,
+            previousTier: CUSTOMER_PLANS[previousTier].name,
+            amount: String(CUSTOMER_PLANS[tier].monthlyPrice),
+          },
+        });
+        await createSubscriptionInAppNotice({
+          userId: user.id,
+          type: "subscription_upgraded",
+          title: `Plan upgraded to ${CUSTOMER_PLANS[tier].name}`,
+          message: `Your ${CUSTOMER_PLANS[tier].name} customer-plan access is active.`,
+          actionUrl: "/customer/subscription",
+        });
+      }
+    }
     console.log(`[Stripe] Customer subscription ${subscription.id} updated for user ${userId}: ${tier} (${stripeStatus})`);
     return;
   }
@@ -490,6 +561,13 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
             amount: String(SUBSCRIPTION_TIERS[tier].monthlyPrice),
           },
         });
+        await createSubscriptionInAppNotice({
+          userId: user.id,
+          type: "subscription_upgraded",
+          title: `Plan upgraded to ${SUBSCRIPTION_TIERS[tier].name}`,
+          message: `${SUBSCRIPTION_TIERS[tier].name} provider access is active for ${provider.businessName || "your business"}.`,
+          actionUrl: "/provider/subscription",
+        });
       }
     }
   }
@@ -514,6 +592,22 @@ async function handleSubscriptionCancelled(subscription: Stripe.Subscription) {
       cancelAtPeriodEnd: false,
       currentPeriodEnd: subscription.ended_at ? new Date(subscription.ended_at * 1000) : new Date(),
     });
+    const user = await db.getUserById(parseInt(userId));
+    if (user?.email) {
+      await sendNotification({
+        type: "subscription_cancelled",
+        channel: "email",
+        recipient: { userId: user.id, email: user.email, name: user.name || undefined },
+        data: { customerName: user.name || undefined, tier: CUSTOMER_PLANS.free.name },
+      });
+      await createSubscriptionInAppNotice({
+        userId: user.id,
+        type: "subscription_cancelled",
+        title: "Customer subscription ended",
+        message: "Paid customer-plan access has ended. Your account is now on Individual.",
+        actionUrl: "/customer/subscription",
+      });
+    }
     console.log(`[Stripe] Customer subscription cancelled for user ${userId}`);
     return;
   }
@@ -543,7 +637,14 @@ async function handleSubscriptionCancelled(subscription: Stripe.Subscription) {
         type: "subscription_cancelled",
         channel: "email",
         recipient: { userId: user.id, email: user.email, name: user.name || "Provider" },
-        data: { businessName: provider.businessName },
+        data: { customerName: user.name || undefined, businessName: provider.businessName, tier: `${PROVIDER_PLANS.free.name} (Free)` },
+      });
+      await createSubscriptionInAppNotice({
+        userId: user.id,
+        type: "subscription_cancelled",
+        title: "Provider subscription ended",
+        message: "Paid provider access has ended. Your business is now on Starter.",
+        actionUrl: "/provider/subscription",
       });
     }
   }
@@ -552,7 +653,37 @@ async function handleSubscriptionCancelled(subscription: Stripe.Subscription) {
 async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
   const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
   console.log(`[Stripe] Invoice payment failed for customer: ${customerId}`);
-  // The subscription status will be updated via customer.subscription.updated event
+  const subscriptionId = getInvoiceSubscriptionId(invoice);
+  if (!subscriptionId) return;
+
+  try {
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    const context = await getSubscriptionNotificationContext(subscription);
+    await handleSubscriptionUpdate(subscription);
+    if (!context) return;
+    const { currentPeriodEnd } = getStripeSubscriptionPeriod(subscription as any);
+    await sendNotification({
+      type: "subscription_payment_failed",
+      channel: "email",
+      recipient: context.recipient,
+      data: {
+        ...context.data,
+        amount: `$${((invoice.amount_due || 0) / 100).toFixed(2)}`,
+        accessEndsAt: currentPeriodEnd && currentPeriodEnd > new Date() ? currentPeriodEnd.toISOString() : undefined,
+      },
+    });
+    await createSubscriptionInAppNotice({
+      userId: context.recipient.userId,
+      type: "subscription_payment_failed",
+      title: "Subscription payment needs attention",
+      message: currentPeriodEnd && currentPeriodEnd > new Date()
+        ? `Update billing to keep ${context.data.tier} access after ${currentPeriodEnd.toLocaleDateString("en-US")}.`
+        : `Update billing to restore ${context.data.tier} access.`,
+      actionUrl: context.data.billingUrl,
+    });
+  } catch (error: any) {
+    console.error(`[Stripe] Failed to synchronize subscription payment failure for ${subscriptionId}:`, error.message);
+  }
 }
 
 async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
@@ -619,20 +750,21 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
     console.warn(`[Stripe] Could not extract charge ID from invoice: ${err.message}`);
   }
 
-  // Get subscription ID from parent details
-  const subscriptionId = subscriptionDetails
-    ? (typeof subscriptionDetails.subscription === "string"
-      ? subscriptionDetails.subscription
-      : subscriptionDetails.subscription?.id)
-    : null;
+  const subscriptionId = getInvoiceSubscriptionId(invoice);
 
   // Try to get subscription metadata to determine type
   let sourceType: "provider_subscription" | "customer_subscription" = "provider_subscription";
   let sourceDescription = "";
+  let subscriptionForNotification: Stripe.Subscription | null = null;
+  let previousSubscriptionStatus: string | undefined;
 
   try {
     if (subscriptionId) {
       const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      subscriptionForNotification = subscription;
+      const notificationContext = await getSubscriptionNotificationContext(subscription);
+      previousSubscriptionStatus = notificationContext?.currentStatus;
+      await handleSubscriptionUpdate(subscription);
       const subType = subscription.metadata?.type;
       const tier = subscription.metadata?.tier;
 
@@ -651,6 +783,41 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
   } catch (err: any) {
     console.warn(`[Stripe] Could not retrieve subscription ${subscriptionId}: ${err.message}`);
     sourceDescription = `Subscription payment - Invoice ${invoice.id}`;
+  }
+
+  if (subscriptionForNotification) {
+    try {
+      const context = await getSubscriptionNotificationContext(subscriptionForNotification);
+      if (context) {
+        const { currentPeriodEnd } = getStripeSubscriptionPeriod(subscriptionForNotification as any);
+        const isRestored = (invoice as any).attempt_count > 1
+          || previousSubscriptionStatus === "past_due"
+          || previousSubscriptionStatus === "incomplete";
+        if (isRestored || invoice.billing_reason === "subscription_cycle") {
+          await sendNotification({
+            type: isRestored ? "subscription_payment_restored" : "subscription_renewed",
+            channel: "email",
+            recipient: context.recipient,
+            data: {
+              ...context.data,
+              amount: `$${amountPaid.toFixed(2)}`,
+              accessEndsAt: currentPeriodEnd?.toISOString(),
+            },
+          });
+          await createSubscriptionInAppNotice({
+            userId: context.recipient.userId,
+            type: isRestored ? "subscription_payment_restored" : "subscription_renewed",
+            title: isRestored ? "Subscription payment restored" : "Subscription renewed",
+            message: isRestored
+              ? `${context.data.tier} paid-plan access is active again.`
+              : `${context.data.tier} renewed${currentPeriodEnd ? ` through ${currentPeriodEnd.toLocaleDateString("en-US")}` : ""}.`,
+            actionUrl: context.data.billingUrl,
+          });
+        }
+      }
+    } catch (error: any) {
+      console.error(`[Stripe] Failed to send subscription payment success notification for ${subscriptionId}:`, error.message);
+    }
   }
 
   // Execute the 40% partner transfer

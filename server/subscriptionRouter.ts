@@ -9,6 +9,8 @@ import { sendTrialStartedNotification, checkAndSendTrialMilestoneNotification } 
 import { sendNotification } from "./notifications";
 import { TRIAL_DAYS, providerHasFeature, resolveProviderEntitlement } from "../shared/entitlements";
 import { requireStripeSubscriptionPeriodEnd } from "./stripeSubscriptionLifecycle";
+import { getSubscriptionAnalytics as getEffectiveSubscriptionAnalytics } from "./db/payments";
+import { createSubscriptionInAppNotice } from "./subscriptionNotifications";
 
 const stripe = new Stripe(ENV.stripeSecretKey, {
   apiVersion: "2026-01-28.clover" as any,
@@ -311,12 +313,34 @@ export const subscriptionRouter = router({
           const reactivated = await stripe.subscriptions.update(currentSub.stripeSubscriptionId, {
             cancel_at_period_end: false,
           });
+          const accessEndsAt = requireStripeSubscriptionPeriodEnd(reactivated as any);
           await db.upsertProviderSubscription({
             providerId: provider.id,
             tier: input.tier,
             status: "active",
             cancelAtPeriodEnd: false,
-            currentPeriodEnd: requireStripeSubscriptionPeriodEnd(reactivated as any),
+            currentPeriodEnd: accessEndsAt,
+          });
+          if (ctx.user.email) {
+            await sendNotification({
+              type: "subscription_resumed",
+              channel: "email",
+              recipient: { userId: ctx.user.id, email: ctx.user.email, name: ctx.user.name || undefined },
+              data: {
+                customerName: ctx.user.name || undefined,
+                businessName: provider.businessName || undefined,
+                tier: SUBSCRIPTION_TIERS[input.tier].name,
+                accessEndsAt: accessEndsAt.toISOString(),
+                noNewCharge: true,
+              },
+            });
+          }
+          await createSubscriptionInAppNotice({
+            userId: ctx.user.id,
+            type: "subscription_resumed",
+            title: `${SUBSCRIPTION_TIERS[input.tier].name} will continue`,
+            message: `The scheduled cancellation was removed. No new charge was created; the current period continues through ${accessEndsAt.toLocaleDateString("en-US")}.`,
+            actionUrl: "/provider/subscription",
           });
           return { url: null, message: `Your ${SUBSCRIPTION_TIERS[input.tier].name} plan will continue. No new charge was created.` };
         }
@@ -521,6 +545,13 @@ export const subscriptionRouter = router({
                 },
               });
             }
+            await createSubscriptionInAppNotice({
+              userId: ctx.user.id,
+              type: "subscription_downgraded",
+              title: "Starter downgrade scheduled",
+              message: `${SUBSCRIPTION_TIERS[currentTier].name} remains active through ${periodEnd.toLocaleDateString("en-US")}. Starter begins after that date.`,
+              actionUrl: "/provider/subscription",
+            });
 
             return {
               success: true,
@@ -852,6 +883,29 @@ export const subscriptionRouter = router({
           invoicePdfUrl: string | null;
         }> = [];
 
+        const entitlement = resolveProviderEntitlement(sub);
+        if (sub && entitlement.state === "cancelling" && entitlement.accessEndsAt) {
+          events.push({
+            id: `cancelling_${sub.providerId}`,
+            type: "subscription_change",
+            date: new Date(sub.updatedAt || Date.now()).toISOString(),
+            description: `Starter scheduled for ${entitlement.accessEndsAt.toLocaleDateString("en-US")}; paid access continues until then`,
+            amount: null,
+            status: "scheduled",
+            invoicePdfUrl: null,
+          });
+        } else if (sub && entitlement.requiresBillingAction) {
+          events.push({
+            id: `billing_action_${sub.providerId}`,
+            type: "subscription_change",
+            date: new Date(sub.updatedAt || Date.now()).toISOString(),
+            description: "Subscription billing needs attention",
+            amount: null,
+            status: "action_required",
+            invoicePdfUrl: null,
+          });
+        }
+
         // Add trial start event if applicable
         if (sub?.status === "trialing" && sub.currentPeriodStart) {
           events.push({
@@ -878,7 +932,7 @@ export const subscriptionRouter = router({
           });
         }
 
-        return { items: events, hasMore: false };
+        return { items: events, hasMore: false, nextCursor: null };
       }
 
       // Fetch invoices from Stripe
@@ -931,6 +985,29 @@ export const subscriptionRouter = router({
         invoicePdfUrl: string | null;
       }> = [];
 
+      const entitlement = resolveProviderEntitlement(sub);
+      if (entitlement.state === "cancelling" && entitlement.accessEndsAt) {
+        events.push({
+          id: `cancelling_${sub.providerId}`,
+          type: "subscription_change",
+          date: new Date(sub.updatedAt || Date.now()).toISOString(),
+          description: `Starter scheduled for ${entitlement.accessEndsAt.toLocaleDateString("en-US")}; paid access continues until then`,
+          amount: null,
+          status: "scheduled",
+          invoicePdfUrl: null,
+        });
+      } else if (entitlement.requiresBillingAction) {
+        events.push({
+          id: `billing_action_${sub.providerId}`,
+          type: "subscription_change",
+          date: new Date(sub.updatedAt || Date.now()).toISOString(),
+          description: "Subscription billing needs attention",
+          amount: null,
+          status: "action_required",
+          invoicePdfUrl: null,
+        });
+      }
+
       // Add trial event if applicable
       if (sub.status === "trialing" || (sub.trialEndsAt && new Date(sub.trialEndsAt) > new Date(sub.currentPeriodStart || 0))) {
         events.push({
@@ -949,14 +1026,14 @@ export const subscriptionRouter = router({
         (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
       );
 
-      return { items: allItems, hasMore: invoices.has_more };
+      return { items: allItems, hasMore: invoices.has_more, nextCursor: invoices.data[invoices.data.length - 1]?.id || null };
     }),
 
   // Admin: get subscription analytics
-  analytics: protectedProcedure.query(async ({ ctx }) => {
+  getAnalytics: protectedProcedure.query(async ({ ctx }) => {
     if (ctx.user.role !== "admin") {
       throw new TRPCError({ code: "FORBIDDEN", message: "Admin only" });
     }
-    return await db.getSubscriptionAnalytics();
+    return await getEffectiveSubscriptionAnalytics();
   }),
 });

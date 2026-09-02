@@ -40,6 +40,7 @@ const dbMocks = vi.hoisted(() => ({
   upsertCustomerSubscription: vi.fn(),
   getActiveServiceCount: vi.fn(),
   getUserFavoriteCount: vi.fn(),
+  createNotification: vi.fn().mockResolvedValue({ insertId: 1 }),
 }));
 
 vi.mock("stripe", () => ({

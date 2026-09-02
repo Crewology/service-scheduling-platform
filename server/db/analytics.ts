@@ -171,10 +171,10 @@ export async function getPushAnalytics(): Promise<{
     .where(gte(pushSubscriptions.createdAt, new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)));
 
   return {
-    totalSubscriptions: totals?.totalSubscriptions ?? 0,
-    activeSubscriptions: totals?.activeSubscriptions ?? 0,
-    inactiveSubscriptions: totals?.inactiveSubscriptions ?? 0,
-    uniqueUsers: totals?.uniqueUsers ?? 0,
-    recentSubscriptions: recent?.count ?? 0,
+    totalSubscriptions: Number(totals?.totalSubscriptions ?? 0),
+    activeSubscriptions: Number(totals?.activeSubscriptions ?? 0),
+    inactiveSubscriptions: Number(totals?.inactiveSubscriptions ?? 0),
+    uniqueUsers: Number(totals?.uniqueUsers ?? 0),
+    recentSubscriptions: Number(recent?.count ?? 0),
   };
 }

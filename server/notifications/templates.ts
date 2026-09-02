@@ -213,20 +213,21 @@ OlogyCrew Team
     },
 
     subscription_cancelled: {
-      subject: `Subscription Cancelled - ${data.businessName || 'Your Account'}`,
+      subject: `Subscription Ended - ${data.businessName || data.tier || 'Your Account'}`,
       body: `
-Hello,
+Hello${data.customerName ? ' ' + data.customerName : ''},
 
-Your OlogyCrew subscription has been cancelled.
+Your OlogyCrew subscription has ended.
 
-**Business:** ${data.businessName || 'Your Account'}
+${data.businessName ? `**Business:** ${data.businessName}` : ''}
+**Current Plan:** ${data.tier || 'Free plan'}
 
-Your account has been downgraded to the Starter tier. You can resubscribe at any time from your provider dashboard.
+Paid-plan access has ended. Your account data is preserved, and you can start a new paid subscription from your subscription settings at any time.
 
 Best regards,
 OlogyCrew Team
       `.trim(),
-      smsBody: `Your OlogyCrew subscription has been cancelled. Visit your dashboard to resubscribe.`,
+      smsBody: `Your OlogyCrew subscription has ended and your account is now on ${data.tier || 'the free plan'}.`,
     },
 
     subscription_updated: {
@@ -277,14 +278,18 @@ Your OlogyCrew subscription has been downgraded.
 ${data.previousTier ? `**Previous Plan:** ${data.previousTier}` : ''}
 ${data.businessName ? `**Business:** ${data.businessName}` : ''}
 
-Your plan change is effective immediately. A prorated credit has been applied to your account for the unused portion of your previous plan.
+${data.accessEndsAt
+  ? `Your current paid access remains active through **${new Date(data.accessEndsAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}**. The new plan begins after that date. Reactivating before then removes the scheduled cancellation without a new charge.`
+  : 'This paid-plan change is effective immediately. Stripe applies the prorated billing adjustment to your existing subscription.'}
 
 You can upgrade again at any time from your subscription settings.
 
 Best regards,
 OlogyCrew Team
       `.trim(),
-      smsBody: `Your OlogyCrew plan has been downgraded to ${data.tier}. You can upgrade again anytime.`,
+      smsBody: data.accessEndsAt
+        ? `Your ${data.previousTier || 'paid plan'} stays active until ${new Date(data.accessEndsAt).toLocaleDateString('en-US')}; ${data.tier} starts after that.`
+        : `Your OlogyCrew plan has changed to ${data.tier}. Stripe applies any prorated billing adjustment.`,
     },
 
     subscription_paused: {
@@ -300,8 +305,8 @@ ${data.resumeDate ? `**Resumes On:** ${data.resumeDate}` : ''}
 
 While paused:
 • You won't be charged
-• Your profile and data are preserved
-• Customers cannot book new appointments
+• Your account data is preserved
+• Paid-plan capabilities are unavailable
 • Existing bookings remain unaffected
 
 You can resume your subscription at any time from your dashboard.
@@ -321,13 +326,71 @@ Welcome back! Your OlogyCrew subscription has been resumed.
 
 **Plan:** ${data.tier || 'Your Plan'}
 ${data.businessName ? `**Business:** ${data.businessName}` : ''}
+${data.accessEndsAt ? `**Current period through:** ${new Date(data.accessEndsAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}` : ''}
 
-Your profile is now active again and customers can book appointments. All your previous settings and data have been preserved.
+Your paid-plan capabilities are active again. All your previous settings and data have been preserved.${data.noNewCharge ? ' The scheduled cancellation was removed and no new charge was created.' : ''}
 
 Best regards,
 OlogyCrew Team
       `.trim(),
       smsBody: `Your OlogyCrew subscription is active again! Welcome back.`,
+    },
+
+    subscription_payment_failed: {
+      subject: `Subscription Payment Needs Attention - ${data.tier || 'OlogyCrew Plan'}`,
+      body: `
+Hello${data.customerName ? ' ' + data.customerName : ''},
+
+Stripe could not complete your latest OlogyCrew subscription payment.
+
+**Plan:** ${data.tier || 'Your paid plan'}
+${data.businessName ? `**Business:** ${data.businessName}` : ''}
+${data.accessEndsAt ? `**Current access through:** ${new Date(data.accessEndsAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}` : '**Paid access:** Temporarily suspended until billing is resolved'}
+
+Please update your payment method from your subscription settings. Your saved account data is preserved.
+
+[Manage Billing](${data.billingUrl || '/pricing'})
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `Your OlogyCrew subscription payment failed. Update billing to keep or restore ${data.tier || 'paid-plan'} access.`,
+    },
+
+    subscription_payment_restored: {
+      subject: `Subscription Payment Restored - ${data.tier || 'OlogyCrew Plan'}`,
+      body: `
+Hello${data.customerName ? ' ' + data.customerName : ''},
+
+Your subscription payment has been completed and paid-plan access is active again.
+
+**Plan:** ${data.tier || 'Your paid plan'}
+${data.businessName ? `**Business:** ${data.businessName}` : ''}
+
+No account setup or saved data was lost.
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `Your OlogyCrew subscription payment is restored and ${data.tier || 'paid-plan'} access is active.`,
+    },
+
+    subscription_renewed: {
+      subject: `Subscription Renewed - ${data.tier || 'OlogyCrew Plan'}`,
+      body: `
+Hello${data.customerName ? ' ' + data.customerName : ''},
+
+Your OlogyCrew subscription has renewed successfully.
+
+**Plan:** ${data.tier || 'Your paid plan'}
+${data.amount ? `**Amount Paid:** ${data.amount}` : ''}
+${data.accessEndsAt ? `**Access renewed through:** ${new Date(data.accessEndsAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}` : ''}
+${data.businessName ? `**Business:** ${data.businessName}` : ''}
+
+Best regards,
+OlogyCrew Team
+      `.trim(),
+      smsBody: `Your ${data.tier || 'OlogyCrew'} subscription renewed successfully${data.accessEndsAt ? ` through ${new Date(data.accessEndsAt).toLocaleDateString('en-US')}` : ''}.`,
     },
 
     refund_processed: {

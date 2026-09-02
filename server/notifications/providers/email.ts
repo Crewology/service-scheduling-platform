@@ -32,7 +32,7 @@ function getSenderForType(type?: string): { email: string; name: string } {
   if (!type) return EMAIL_SENDERS.noreply;
 
   // Support-related emails
-  const supportTypes = ['payment_failed', 'refund_processed', 'subscription_cancelled'];
+  const supportTypes = ['payment_failed', 'refund_processed', 'subscription_cancelled', 'subscription_payment_failed'];
   if (supportTypes.includes(type)) return EMAIL_SENDERS.support;
 
   // General/informational emails
@@ -40,6 +40,7 @@ function getSenderForType(type?: string): { email: string; name: string } {
     'welcome_customer', 'welcome_provider', 'referral_signup',
     'referral_completed', 'referral_welcome', 'trial_started',
     'waitlist_spot_available', 'subscription_upgraded', 'subscription_updated',
+    'subscription_payment_restored', 'subscription_renewed',
   ];
   if (infoTypes.includes(type)) return EMAIL_SENDERS.info;
 

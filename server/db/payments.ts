@@ -3,11 +3,13 @@ import {
   payments,
   bookings,
   providerSubscriptions,
+  customerSubscriptions,
   serviceProviders,
   type ProviderSubscription,
+  type CustomerSubscription,
 } from "../../drizzle/schema";
 import { getDb } from "./connection";
-import { PROVIDER_PLANS, resolveProviderEntitlement } from "../../shared/entitlements";
+import { CUSTOMER_PLANS, PROVIDER_PLANS, resolveCustomerEntitlement, resolveProviderEntitlement } from "../../shared/entitlements";
 
 // ============================================================================
 // PAYMENT MANAGEMENT
@@ -120,47 +122,109 @@ export async function getProviderEntitlement(providerId: number) {
   return resolveProviderEntitlement(sub);
 }
 
-export async function getSubscriptionAnalytics() {
-  const database = await getDb();
-  if (!database) return {
-    tiers: { free: 0, basic: 0, premium: 0, trialing: 0 },
-    mrr: 0, churnRate: 0, totalProviders: 0, activeSubscribers: 0,
-    cancelledThisMonth: 0, newThisMonth: 0,
-    conversionRates: { freeToBasic: 0, basicToPremium: 0 },
-  };
-
-  const now = new Date();
+export function summarizeProviderSubscriptionAnalytics(
+  subs: ProviderSubscription[],
+  totalProviders: number,
+  now = new Date(),
+) {
   const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const subs = await database.select().from(providerSubscriptions);
-  const allProviders = await database.select({ count: sql<number>`COUNT(*)` }).from(serviceProviders);
-  const totalProviders = allProviders[0]?.count ?? 0;
-
-  const active = subs.filter(s => s.status === "active" || s.status === "trialing");
-  const cancelled = subs.filter(s => s.status === "cancelled");
-  const cancelledThisMonth = cancelled.filter(s => s.updatedAt && new Date(s.updatedAt) >= firstOfMonth).length;
-  const newThisMonth = subs.filter(s => s.createdAt && new Date(s.createdAt) >= firstOfMonth).length;
-
-  const basic = active.filter(s => s.tier === "basic").length;
-  const premium = active.filter(s => s.tier === "premium").length;
-  const trialing = subs.filter(s => s.status === "trialing").length;
-  const freeCount = totalProviders - basic - premium;
-
-  const mrr = (basic * PROVIDER_PLANS.basic.monthlyPrice) + (premium * PROVIDER_PLANS.premium.monthlyPrice);
-  const activeAtStart = active.length - newThisMonth + cancelledThisMonth;
+  const resolved = subs.map(sub => ({ sub, entitlement: resolveProviderEntitlement(sub, now) }));
+  const active = resolved.filter(({ entitlement }) => entitlement.hasPaidAccess);
+  const paying = resolved.filter(({ sub, entitlement }) =>
+    entitlement.hasPaidAccess && sub.status === "active" && !!sub.stripeSubscriptionId
+  );
+  const cancelled = subs.filter(sub => sub.status === "cancelled");
+  const cancelledThisMonth = cancelled.filter(sub => sub.updatedAt && new Date(sub.updatedAt) >= firstOfMonth).length;
+  const newThisMonth = subs.filter(sub => sub.createdAt && new Date(sub.createdAt) >= firstOfMonth && sub.tier !== "free").length;
+  const basic = active.filter(({ entitlement }) => entitlement.effectiveTier === "basic").length;
+  const premium = active.filter(({ entitlement }) => entitlement.effectiveTier === "premium").length;
+  const trialing = resolved.filter(({ entitlement }) => entitlement.state === "trialing").length;
+  const freeCount = Math.max(0, totalProviders - basic - premium);
+  const mrr = paying.reduce((total, { sub, entitlement }) => {
+    const plan = PROVIDER_PLANS[entitlement.effectiveTier];
+    const periodStart = sub.currentPeriodStart ? new Date(sub.currentPeriodStart).getTime() : 0;
+    const periodEnd = sub.currentPeriodEnd ? new Date(sub.currentPeriodEnd).getTime() : 0;
+    const periodDays = periodStart && periodEnd ? (periodEnd - periodStart) / 86_400_000 : 0;
+    return total + (periodDays > 300 ? plan.yearlyPrice / 12 : plan.monthlyPrice);
+  }, 0);
+  const activeAtStart = Math.max(0, active.length - newThisMonth + cancelledThisMonth);
   const churnRate = activeAtStart > 0 ? (cancelledThisMonth / activeAtStart) * 100 : 0;
-  const everBasicOrHigher = subs.filter(s => s.tier === "basic" || s.tier === "premium").length;
-  const everPremium = subs.filter(s => s.tier === "premium").length;
+  const everBasicOrHigher = subs.filter(sub => sub.tier === "basic" || sub.tier === "premium").length;
+  const everPremium = subs.filter(sub => sub.tier === "premium").length;
   const freeToBasic = totalProviders > 0 ? (everBasicOrHigher / totalProviders) * 100 : 0;
   const basicToPremium = everBasicOrHigher > 0 ? (everPremium / everBasicOrHigher) * 100 : 0;
 
   return {
     tiers: { free: freeCount, basic, premium, trialing },
-    mrr, churnRate: Math.round(churnRate * 10) / 10,
-    totalProviders, activeSubscribers: basic + premium,
-    cancelledThisMonth, newThisMonth,
+    mrr: Math.round(mrr * 100) / 100,
+    churnRate: Math.round(churnRate * 10) / 10,
+    totalProviders,
+    activeSubscribers: basic + premium,
+    payingSubscribers: paying.length,
+    trialingSubscribers: trialing,
+    graceSubscribers: resolved.filter(({ entitlement }) => entitlement.state === "past_due_grace").length,
+    scheduledCancellations: resolved.filter(({ entitlement }) => entitlement.isScheduledToCancel).length,
+    cancelledThisMonth,
+    newThisMonth,
     conversionRates: {
       freeToBasic: Math.round(freeToBasic * 10) / 10,
       basicToPremium: Math.round(basicToPremium * 10) / 10,
     },
+  };
+}
+
+export function summarizeCustomerSubscriptionAnalytics(subs: CustomerSubscription[], now = new Date()) {
+  const resolved = subs.map(sub => ({ sub, entitlement: resolveCustomerEntitlement(sub, now) }));
+  const active = resolved.filter(({ entitlement }) => entitlement.hasPaidAccess);
+  const paying = resolved.filter(({ sub, entitlement }) =>
+    entitlement.hasPaidAccess && sub.status === "active" && !!sub.stripeSubscriptionId
+  );
+  const mrr = paying.reduce((total, { sub, entitlement }) => {
+    const plan = CUSTOMER_PLANS[entitlement.effectiveTier];
+    const periodStart = sub.currentPeriodStart ? new Date(sub.currentPeriodStart).getTime() : 0;
+    const periodEnd = sub.currentPeriodEnd ? new Date(sub.currentPeriodEnd).getTime() : 0;
+    const periodDays = periodStart && periodEnd ? (periodEnd - periodStart) / 86_400_000 : 0;
+    return total + (periodDays > 300 ? plan.yearlyPrice / 12 : plan.monthlyPrice);
+  }, 0);
+
+  return {
+    activeSubscribers: active.length,
+    payingSubscribers: paying.length,
+    trialingSubscribers: resolved.filter(({ entitlement }) => entitlement.state === "trialing").length,
+    graceSubscribers: resolved.filter(({ entitlement }) => entitlement.state === "past_due_grace").length,
+    scheduledCancellations: resolved.filter(({ entitlement }) => entitlement.isScheduledToCancel).length,
+    mrr: Math.round(mrr * 100) / 100,
+  };
+}
+
+export async function getSubscriptionAnalytics() {
+  const database = await getDb();
+  if (!database) return {
+    tiers: { free: 0, basic: 0, premium: 0, trialing: 0 },
+    mrr: 0, churnRate: 0, totalProviders: 0, activeSubscribers: 0,
+    payingSubscribers: 0, trialingSubscribers: 0, graceSubscribers: 0, scheduledCancellations: 0,
+    providerActiveSubscribers: 0, customerActiveSubscribers: 0, providerMrr: 0, customerMrr: 0,
+    cancelledThisMonth: 0, newThisMonth: 0,
+    conversionRates: { freeToBasic: 0, basicToPremium: 0 },
+  };
+
+  const subs = await database.select().from(providerSubscriptions);
+  const customerSubs = await database.select().from(customerSubscriptions);
+  const allProviders = await database.select({ count: sql<number>`COUNT(*)` }).from(serviceProviders);
+  const totalProviders = allProviders[0]?.count ?? 0;
+  const providerSummary = summarizeProviderSubscriptionAnalytics(subs, totalProviders);
+  const customerSummary = summarizeCustomerSubscriptionAnalytics(customerSubs);
+  return {
+    ...providerSummary,
+    mrr: Math.round((providerSummary.mrr + customerSummary.mrr) * 100) / 100,
+    activeSubscribers: providerSummary.activeSubscribers + customerSummary.activeSubscribers,
+    payingSubscribers: providerSummary.payingSubscribers + customerSummary.payingSubscribers,
+    trialingSubscribers: providerSummary.trialingSubscribers + customerSummary.trialingSubscribers,
+    graceSubscribers: providerSummary.graceSubscribers + customerSummary.graceSubscribers,
+    scheduledCancellations: providerSummary.scheduledCancellations + customerSummary.scheduledCancellations,
+    providerActiveSubscribers: providerSummary.activeSubscribers,
+    customerActiveSubscribers: customerSummary.activeSubscribers,
+    providerMrr: providerSummary.mrr,
+    customerMrr: customerSummary.mrr,
   };
 }

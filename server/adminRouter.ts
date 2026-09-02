@@ -5,6 +5,7 @@ import { TRPCError } from "@trpc/server";
 import { ENV } from "./_core/env";
 import { createAuditEntry, getAuditLog, getAuditLogForTarget } from "./db/auditLog";
 import { getAdminTeamMembers, promoteToAdmin, demoteFromAdmin, updateAdminRole, searchUsersForAdmin } from "./db/adminTeam";
+import { getSubscriptionAnalytics as getEffectiveSubscriptionAnalytics } from "./db/payments";
 
 // Admin-only procedure that checks if user has admin role
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -131,7 +132,7 @@ export const adminRouter = router({
 
   // Get subscription analytics
   getSubscriptionAnalytics: adminProcedure.query(async () => {
-    return await db.getSubscriptionAnalytics();
+    return await getEffectiveSubscriptionAnalytics();
   }),
 
   // Get booking source analytics (widget vs direct)
@@ -626,12 +627,13 @@ export const adminRouter = router({
         partnerAccountId: ENV.partnerStripeAccountId || null,
       };
     } catch (err: any) {
+      const { ENV } = await import("./_core/env");
       return {
         configured: false,
         endpoints: [],
-        webhookSecretSet: false,
-        partnerAccountSet: false,
-        partnerAccountId: null,
+        webhookSecretSet: !!ENV.stripeWebhookSecret,
+        partnerAccountSet: !!ENV.partnerStripeAccountId,
+        partnerAccountId: ENV.partnerStripeAccountId || null,
         error: err.message,
       };
     }

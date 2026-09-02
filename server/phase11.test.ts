@@ -8,7 +8,7 @@ import * as db from "./db";
 
 function createAuthContext(role: "customer" | "provider" | "admin", userId: number, name: string, email?: string) {
   return {
-    user: { id: userId, openId: `test-p11-${userId}`, name, role, email },
+    user: { id: userId, openId: `test-p11-${userId}`, name, role, email, emailVerified: true },
     req: { headers: { origin: "http://localhost:3000" } } as any,
   };
 }
@@ -30,6 +30,7 @@ describe("Phase 11: Notifications, Reminders, Admin Trigger", () => {
       name: "P11 Provider",
       email: `p11provider${suffix}@test.com`,
       role: "provider",
+      emailVerified: true,
     });
     const pUser = await db.getUserByOpenId(`test-p11-provider-${suffix}`);
     providerUserId = pUser!.id;
@@ -71,6 +72,7 @@ describe("Phase 11: Notifications, Reminders, Admin Trigger", () => {
       name: "P11 Customer",
       email: `p11customer${suffix}@test.com`,
       role: "customer",
+      emailVerified: true,
     });
     const cUser = await db.getUserByOpenId(`test-p11-customer-${suffix}`);
     customerUserId = cUser!.id;
@@ -105,7 +107,7 @@ describe("Phase 11: Notifications, Reminders, Admin Trigger", () => {
       remainingAmount: "75.75",
     });
     bookingId = booking.id;
-  });
+  }, 30_000);
 
   // ============================================================================
   // Notification Router Tests

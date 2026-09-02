@@ -22,6 +22,9 @@ export type NotificationType =
   | 'subscription_downgraded'
   | 'subscription_paused'
   | 'subscription_resumed'
+  | 'subscription_payment_failed'
+  | 'subscription_payment_restored'
+  | 'subscription_renewed'
   | 'refund_processed'
   | 'quote_request_new'
   | 'quote_response_received'
@@ -63,6 +66,11 @@ export interface NotificationData {
   date?: string;
   time?: string;
   message?: string;
+  tier?: string;
+  previousTier?: string;
+  businessName?: string;
+  accessEndsAt?: string;
+  billingUrl?: string;
   [key: string]: any;
 }
 
