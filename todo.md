@@ -93,15 +93,18 @@
 ---
 
 ## Known Future Enhancements (Not Blocking)
-- [ ] Additional OAuth providers (Google, Apple) — user has credentials, awaiting implementation
+- [x] Custom Google OAuth provider implemented for OlogyCrew authentication
+- [ ] Add Apple Sign In as an additional authentication option when Apple credentials are available
 - [x] Profile photo upload for customers — implemented with auth.uploadProfilePhoto endpoint
-- [ ] System health monitoring in admin dashboard
-- [ ] Frontend component tests (currently server-only)
+- [x] System health monitoring in admin dashboard — live critical-service readiness, database latency, uptime, memory, and realtime client telemetry
+- [x] Frontend component tests — standardized jsdom/Testing Library harness with rendered adaptive, provider workspace, and customer workspace component suites
 - [x] Payment receipt PDF generation — implemented in invoicing system
-- [ ] Real-time WebSocket messaging (currently 5s polling)
-- [ ] Upgrade prompts when subscription limits are reached
-- [ ] Service editing flow improvements
-- [ ] Email unsubscribe granularity per notification type
+- [x] Real-time messaging via SSE — new messages, typing indicators, read receipts, and unread counts with polling only as a connection fallback
+- [x] Evaluate true WebSocket messaging — retain the working autoscale-compatible SSE transport and polling fallback; no current product requirement justifies a persistent WebSocket replacement
+- [x] Upgrade prompts for service and photo limits use the shared upgrade dialog/banner with backend enforcement
+- [x] Complete shared upgrade-prompt coverage across saved-provider, custom-slug, analytics, bulk-quote, payment-setup, and other plan-gated surfaces
+- [x] Service editing flow improvements — inline provider onboarding editor and full dashboard edit dialog implemented
+- [x] Email unsubscribe granularity per notification type — booking, reminder, message, payment, and marketing email preferences implemented
 
 ## Hotfix: Provider Role & Onboarding Testing
 - [x] Fix owner account role to provider so provider dashboard is accessible
@@ -2173,7 +2176,8 @@
 - [x] Admin UI: AdminSocialMedia.tsx (post history, preview, publish now, delete)
 - [x] Social Media tab added to AdminDashboard.tsx
 - [x] Unit tests: social-media.test.ts (4 tests passing)
-- [ ] User to add API credentials (FACEBOOK_PAGE_ACCESS_TOKEN, FACEBOOK_PAGE_ID, INSTAGRAM_BUSINESS_ACCOUNT_ID, LINKEDIN_ACCESS_TOKEN, LINKEDIN_ORGANIZATION_ID)
+- [x] Facebook Page and LinkedIn API credentials configured
+- [ ] Connect an Instagram Business account and provide its account ID before enabling Instagram publishing
 
 ## Social Media - Create Post Button
 - [x] Add "Create Post" button to Social Media admin tab

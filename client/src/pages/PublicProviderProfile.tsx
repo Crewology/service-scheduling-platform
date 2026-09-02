@@ -5,6 +5,8 @@ import { trpc } from "@/lib/trpc";
 import { formatDuration } from "../../../shared/duration";
 import { getServiceTypeLabel } from "../../../shared/serviceTypeLabels";
 import { adaptiveServiceHref, getAdaptiveBookingDecision } from "../../../shared/adaptiveBooking";
+import { AdaptiveModeBadge } from "@/components/booking/AdaptiveModeBadge";
+import { SaveProviderButton } from "@/components/SaveProviderButton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -118,32 +120,7 @@ function ServiceCardPhoto({ serviceId }: { serviceId: number }) {
 }
 
 function FavoriteButton({ providerId }: { providerId: number }) {
-  const { user } = useAuth();
-  const utils = trpc.useUtils();
-  const { data: favData } = trpc.provider.checkFavorite.useQuery(
-    { providerId },
-    { enabled: !!user }
-  );
-  const toggle = trpc.provider.toggleFavorite.useMutation({
-    onSuccess: (result) => {
-      utils.provider.checkFavorite.invalidate({ providerId });
-      utils.provider.myFavorites.invalidate();
-      toast.success(result.favorited ? "Added to saved providers" : "Removed from saved providers");
-    },
-  });
-  if (!user) return null;
-  const isFav = favData?.favorited ?? false;
-  return (
-    <Button
-      variant="ghost"
-      size="icon"
-      className={`h-9 w-9 rounded-full ${isFav ? "text-red-500 hover:text-red-600" : "text-muted-foreground hover:text-red-500"}`}
-      onClick={() => toggle.mutate({ providerId })}
-      disabled={toggle.isPending}
-    >
-      <Heart className={`h-5 w-5 ${isFav ? "fill-current" : ""}`} />
-    </Button>
-  );
+  return <SaveProviderButton providerId={providerId} className="h-9 w-9" iconClassName="h-5 w-5" stopPropagation={false} />;
 }
 
 function PortfolioGrid({ portfolio, categories }: { portfolio: any[]; categories: any[] }) {
@@ -749,12 +726,7 @@ export default function PublicProviderProfile() {
                               </Badge>
                             )}
                             <h3 className="font-semibold text-foreground">{service.name}</h3>
-                            <Badge className={`mt-2 text-[11px] ${decision.mode === "direct"
-                              ? "border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-50"
-                              : "border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-50"}`}
-                            >
-                              {decision.mode === "direct" ? "Check availability" : "Request quote"}
-                            </Badge>
+                            <AdaptiveModeBadge decision={decision} copy="action" className="mt-2 text-[11px]" />
                             {service.description && (
                               <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{service.description}</p>
                             )}

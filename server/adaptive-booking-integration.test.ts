@@ -145,6 +145,7 @@ describe("adaptive booking decisions", () => {
 describe("adaptive booking integration", () => {
   const serviceDetail = readFileSync(resolve(root, "client/src/pages/ServiceDetail.tsx"), "utf8");
   const quoteCard = readFileSync(resolve(root, "client/src/components/booking/AdaptiveQuoteRequestCard.tsx"), "utf8");
+  const adaptiveBadge = readFileSync(resolve(root, "client/src/components/booking/AdaptiveModeBadge.tsx"), "utf8");
   const search = readFileSync(resolve(root, "client/src/pages/Search.tsx"), "utf8");
   const providerProfile = readFileSync(resolve(root, "client/src/pages/PublicProviderProfile.tsx"), "utf8");
 
@@ -171,7 +172,8 @@ describe("adaptive booking integration", () => {
     expect(search).toContain("adaptiveServiceHref(service.id");
     expect(search).toContain('decision.mode === "direct" ? "Check availability" : "Request quote"');
     expect(providerProfile).toContain("adaptiveServiceHref(service.id");
-    expect(providerProfile).toContain('decision.mode === "direct" ? "Check availability" : "Request quote"');
+    expect(providerProfile).toContain('<AdaptiveModeBadge decision={decision} copy="action"');
+    expect(adaptiveBadge).toContain('decision.mode === "direct" ? "Check availability" : "Request quote"');
     expect(serviceDetail).toContain('useParams<{ id: string }>()');
   });
 

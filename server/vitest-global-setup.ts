@@ -22,6 +22,11 @@ export async function teardown() {
     return;
   }
 
+  if (!db) {
+    console.log("[vitest-global-setup] Database is unavailable, skipping cleanup");
+    return;
+  }
+
   try {
     // Find all test user IDs (multiple patterns used by tests)
     const testUsers = await db.select({ id: users.id })

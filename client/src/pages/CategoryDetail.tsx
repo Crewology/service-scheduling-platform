@@ -12,6 +12,7 @@ import { NavHeader } from "@/components/shared/NavHeader";
 import { OfficialBadge } from "@/components/OfficialBadge";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
+import { SaveProviderButton } from "@/components/SaveProviderButton";
 
 const CATEGORY_ICONS: Record<number, string> = {
   15: "\ud83c\udfac", 170: "\ud83d\udc88", 7: "\u2702\ufe0f", 126: "\ud83d\udd12", 195: "\ud83d\udc83", 202: "\ud83d\udd28",
@@ -52,31 +53,7 @@ function ResponseTimeBadge({ providerId }: { providerId: number }) {
 }
 
 function FavoriteButton({ providerId }: { providerId: number }) {
-  const { user } = useAuth();
-  const utils = trpc.useUtils();
-  const { data: favData } = trpc.provider.checkFavorite.useQuery(
-    { providerId },
-    { enabled: !!user }
-  );
-  const toggle = trpc.provider.toggleFavorite.useMutation({
-    onSuccess: (result) => {
-      utils.provider.checkFavorite.invalidate({ providerId });
-      utils.provider.myFavorites.invalidate();
-      toast.success(result.favorited ? "Saved to favorites" : "Removed from favorites");
-    },
-  });
-  if (!user) return null;
-  const isFav = favData?.favorited ?? false;
-  return (
-    <button
-      className={`p-1.5 rounded-full transition-colors ${isFav ? "text-red-500 hover:text-red-600" : "text-muted-foreground hover:text-red-500"}`}
-      onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle.mutate({ providerId }); }}
-      disabled={toggle.isPending}
-      title={isFav ? "Remove from favorites" : "Save to favorites"}
-    >
-      <Heart className={`h-4 w-4 ${isFav ? "fill-current" : ""}`} />
-    </button>
-  );
+  return <SaveProviderButton providerId={providerId} />;
 }
 
 function AvailabilityQuickView({ providerId }: { providerId: number }) {

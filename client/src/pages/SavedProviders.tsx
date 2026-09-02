@@ -21,6 +21,7 @@ export default function SavedProviders() {
   const { user, loading: authLoading } = useAuth();
   const [, navigate] = useLocation();
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [upgradeReason, setUpgradeReason] = useState<"saved_providers" | "folders" | "bulk_quotes">("saved_providers");
   const [activeFolder, setActiveFolder] = useState<number | null>(null); // null = "All"
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
@@ -49,6 +50,7 @@ export default function SavedProviders() {
     },
     onError: (err: any) => {
       if (err.data?.code === "FORBIDDEN") {
+        setUpgradeReason("saved_providers");
         setUpgradeOpen(true);
       } else {
         toast.error(err.message);
@@ -65,6 +67,7 @@ export default function SavedProviders() {
     },
     onError: (err: any) => {
       if (err.data?.code === "FORBIDDEN") {
+        setUpgradeReason("folders");
         setUpgradeOpen(true);
       } else {
         toast.error(err.message);
@@ -671,7 +674,7 @@ export default function SavedProviders() {
               <p className="text-sm text-muted-foreground mb-4">
                 Group your saved providers by project, category, or location. Available on Coordinator and Manager plans.
               </p>
-              <Button variant="outline" onClick={() => setUpgradeOpen(true)}>
+              <Button variant="outline" onClick={() => { setUpgradeReason("folders"); setUpgradeOpen(true); }}>
                 <Sparkles className="h-4 w-4 mr-2" />
                 Upgrade to Unlock Folders
               </Button>
@@ -693,11 +696,13 @@ export default function SavedProviders() {
           ? folders.find((f: any) => f.id === activeFolder)?.name
           : undefined
         }
+        onUpgradeRequired={() => { setUpgradeReason("bulk_quotes"); setUpgradeOpen(true); }}
       />
 
       <UpgradeModal
         open={upgradeOpen}
         onOpenChange={setUpgradeOpen}
+        reason={upgradeReason}
         currentTier={tier}
         currentCount={count}
         limit={limit === -1 ? undefined : limit}

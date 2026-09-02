@@ -76,6 +76,60 @@ import { NavHeader } from "@/components/shared/NavHeader";
 import { TeamManagementPanel } from "./admin/TeamManagementPanel";
 import { AuditLogPanel } from "./admin/AuditLogPanel";
 
+function SystemHealthOverview() {
+  const { data, isLoading, refetch, isFetching } = trpc.admin.getSystemHealth.useQuery(undefined, {
+    refetchInterval: 60_000,
+    retry: 1,
+  });
+
+  if (isLoading || !data) {
+    return <Card className="mb-6"><CardContent className="p-5 text-sm text-muted-foreground">Checking platform health…</CardContent></Card>;
+  }
+
+  const healthItems = [
+    { label: "Database", ready: data.database.ready, detail: data.database.ready ? `${data.database.latencyMs} ms response` : data.database.error || "Unavailable", icon: Activity },
+    { label: "Payments", ready: data.integrations.payments, detail: data.integrations.payments ? "Stripe and partner split configured" : "Configuration required", icon: DollarSign },
+    { label: "Email", ready: data.integrations.email, detail: data.integrations.email ? "SendGrid configured" : "Configuration required", icon: Mail },
+    { label: "Realtime", ready: data.realtime.ready, detail: `${data.realtime.connectedClients} connected · ${data.realtime.transport}`, icon: Wifi },
+  ];
+
+  return (
+    <Card className={`mb-6 border-l-4 ${data.status === "healthy" ? "border-l-emerald-500" : "border-l-amber-500"}`}>
+      <CardHeader className="pb-3">
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-lg"><Activity className="h-5 w-5" />System Health</CardTitle>
+            <CardDescription>
+              {data.status === "healthy" ? "Critical services are ready" : "One or more critical services need attention"}
+              {` · ${Math.floor(data.uptimeSeconds / 3600)}h uptime · ${data.memory.heapUsedMb} MB heap`}
+            </CardDescription>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
+            <RefreshCw className={`mr-2 h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />Refresh
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {healthItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div key={item.label} className="rounded-xl border bg-muted/20 p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2"><Icon className="h-4 w-4 text-muted-foreground" /><span className="text-sm font-medium">{item.label}</span></div>
+                  <span className={`h-2.5 w-2.5 rounded-full ${item.ready ? "bg-emerald-500" : "bg-amber-500"}`} aria-label={item.ready ? `${item.label} ready` : `${item.label} needs attention`} />
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">{item.detail}</p>
+              </div>
+            );
+          })}
+        </div>
+        <p className="mt-3 text-right text-[11px] text-muted-foreground">Checked {new Date(data.checkedAt).toLocaleTimeString()}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
 function SubscriptionAnalyticsPanel() {
   const { data: analytics, isLoading } = trpc.admin.getSubscriptionAnalytics.useQuery();
 
@@ -473,6 +527,7 @@ export default function AdminDashboard() {
 
           {/* Overview Tab */}
           <TabsContent value="overview">
+            <SystemHealthOverview />
             <div className="grid md:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>

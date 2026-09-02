@@ -10,6 +10,7 @@ type UpgradeReason =
   | "service_limit"
   | "photo_limit"
   | "custom_slug"
+  | "payments"
   | "priority_search"
   | "analytics"
   | "featured_listing"
@@ -42,6 +43,11 @@ const REASON_MESSAGES: Record<UpgradeReason, { title: string; description: strin
   custom_slug: {
     title: "Custom Profile URL",
     description: "Get a custom profile URL (e.g., ologycrew.com/your-business-name) to make your profile easier to share.",
+    minTier: "basic",
+  },
+  payments: {
+    title: "Accept Payments on OlogyCrew",
+    description: "Upgrade to Pro or Business to connect Stripe, collect booking payments, and manage payouts.",
     minTier: "basic",
   },
   priority_search: {

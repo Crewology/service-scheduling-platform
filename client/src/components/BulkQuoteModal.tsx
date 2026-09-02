@@ -12,6 +12,7 @@ import {
   Send, Loader2, CheckCircle2, AlertCircle, Users, Calendar, MapPin, Clock,
 } from "lucide-react";
 import { toast } from "sonner";
+import { isPlanGateError } from "@/lib/upgradeGate";
 
 interface BulkQuoteModalProps {
   open: boolean;
@@ -23,9 +24,10 @@ interface BulkQuoteModalProps {
     categories?: Array<{ id: number; name: string }>;
   }>;
   folderName?: string;
+  onUpgradeRequired?: () => void;
 }
 
-export default function BulkQuoteModal({ open, onOpenChange, providers, folderName }: BulkQuoteModalProps) {
+export default function BulkQuoteModal({ open, onOpenChange, providers, folderName, onUpgradeRequired }: BulkQuoteModalProps) {
   const [step, setStep] = useState<"select" | "compose" | "result">("select");
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set(providers.map(p => p.providerId)));
   const [title, setTitle] = useState("");
@@ -46,6 +48,11 @@ export default function BulkQuoteModal({ open, onOpenChange, providers, folderNa
       toast.success(`Quote requests sent to ${data.totalSent} providers!`);
     },
     onError: (err: any) => {
+      if (isPlanGateError(err)) {
+        onOpenChange(false);
+        onUpgradeRequired?.();
+        return;
+      }
       toast.error(err.message || "Failed to send bulk quote requests");
     },
   });

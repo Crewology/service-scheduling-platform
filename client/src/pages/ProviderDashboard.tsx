@@ -77,6 +77,7 @@ import { getServiceTypeLabel } from "../../../shared/serviceTypeLabels";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { Checkbox } from "@/components/ui/checkbox";
 import { UpgradePrompt, UpgradeBanner } from "@/components/UpgradePrompt";
+import { isPlanGateError } from "@/lib/upgradeGate";
 import { TrustBadge, TrustScoreProgress } from "@/components/TrustBadge";
 import { TrialStatusBanner } from "@/components/TrialBanner";
 import { HelpTip, HelpBanner } from "@/components/shared/HelpTip";
@@ -117,6 +118,7 @@ function ServicePhotosManager({ serviceId, onClose, maxPhotos = 1 }: { serviceId
 // STRIPE CONNECT SECTION
 // ============================================================================
 function StripeConnectSection({ provider, currentTier }: { provider: any; currentTier?: string }) {
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
   const { data: connectStatus, isLoading } = trpc.stripeConnect.getStatus.useQuery();
   const { data: balance } = trpc.stripeConnect.getBalance.useQuery(undefined, {
     enabled: connectStatus?.connected && connectStatus?.chargesEnabled,
@@ -170,7 +172,7 @@ function StripeConnectSection({ provider, currentTier }: { provider: any; curren
                   Upgrade your plan to start accepting payments from clients.
                 </p>
               </div>
-              <Button size="lg" onClick={() => window.location.href = "/provider/subscription"}>
+              <Button size="lg" onClick={() => setUpgradeOpen(true)}>
                 Upgrade Your Plan
               </Button>
             </CardContent>
@@ -220,6 +222,12 @@ function StripeConnectSection({ provider, currentTier }: { provider: any; curren
             </div>
           </CardContent>
         </Card>
+        <UpgradePrompt
+          open={upgradeOpen}
+          onClose={() => setUpgradeOpen(false)}
+          reason="payments"
+          currentTier={(currentTier || "free") as "free" | "basic" | "premium"}
+        />
       </div>
     );
   }
@@ -325,10 +333,11 @@ function StripeConnectSection({ provider, currentTier }: { provider: any; curren
 // ============================================================================
 // PUBLIC PROFILE SECTION
 // ============================================================================
-function PublicProfileSection({ provider }: { provider: any }) {
+function PublicProfileSection({ provider, currentTier }: { provider: any; currentTier: "free" | "basic" | "premium" }) {
   const utils = trpc.useUtils();
   const [editingSlug, setEditingSlug] = useState(false);
   const [slugInput, setSlugInput] = useState("");
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   const generateSlug = trpc.provider.generateSlug.useMutation({
     onSuccess: (data) => {
@@ -344,7 +353,13 @@ function PublicProfileSection({ provider }: { provider: any }) {
       setEditingSlug(false);
       toast.success(`Profile URL updated to /${data.slug}`);
     },
-    onError: (err) => toast.error(err.message),
+    onError: (err) => {
+      if (isPlanGateError(err)) {
+        setUpgradeOpen(true);
+        return;
+      }
+      toast.error(err.message);
+    },
   });
 
   const profileUrl = provider.profileSlug
@@ -480,6 +495,12 @@ function PublicProfileSection({ provider }: { provider: any }) {
           </ul>
         </CardContent>
       </Card>
+      <UpgradePrompt
+        open={upgradeOpen}
+        onClose={() => setUpgradeOpen(false)}
+        reason="custom_slug"
+        currentTier={currentTier}
+      />
     </div>
   );
 }
@@ -2649,7 +2670,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
           {/* === MY PAGE TAB (Public Profile + Analytics + Embed Widget) === */}
           <TabsContent value="my-page" className="space-y-6 pb-20 md:pb-0">
           <SectionErrorBoundary fallbackTitle="My Page couldn't load">
-            <PublicProfileSection provider={provider} />
+            <PublicProfileSection provider={provider} currentTier={currentTier} />
 
           {/* Analytics sub-section inside My Page */}
             <div>

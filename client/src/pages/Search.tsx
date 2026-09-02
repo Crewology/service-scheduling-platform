@@ -5,6 +5,8 @@ import { trpc } from "@/lib/trpc";
 import { formatDuration } from "../../../shared/duration";
 import { getServiceTypeLabel } from "../../../shared/serviceTypeLabels";
 import { adaptiveServiceHref, getAdaptiveBookingDecision } from "../../../shared/adaptiveBooking";
+import { AdaptiveModeBadge } from "@/components/booking/AdaptiveModeBadge";
+import { SaveProviderButton } from "@/components/SaveProviderButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -183,31 +185,7 @@ function renderFilters(opts: {
 }
 
 function FavoriteButtonSearch({ providerId }: { providerId: number }) {
-  const { user } = useAuth();
-  const utils = trpc.useUtils();
-  const { data: favData } = trpc.provider.checkFavorite.useQuery(
-    { providerId },
-    { enabled: !!user }
-  );
-  const toggle = trpc.provider.toggleFavorite.useMutation({
-    onSuccess: (result) => {
-      utils.provider.checkFavorite.invalidate({ providerId });
-      utils.provider.myFavorites.invalidate();
-      toast.success(result.favorited ? "Saved to favorites" : "Removed from favorites");
-    },
-  });
-  if (!user) return null;
-  const isFav = favData?.favorited ?? false;
-  return (
-    <button
-      className={`p-1.5 rounded-full transition-colors ${isFav ? "text-red-500 hover:text-red-600" : "text-muted-foreground hover:text-red-500"}`}
-      onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle.mutate({ providerId }); }}
-      disabled={toggle.isPending}
-      title={isFav ? "Remove from favorites" : "Save to favorites"}
-    >
-      <Heart className={`h-4 w-4 ${isFav ? "fill-current" : ""}`} />
-    </button>
-  );
+  return <SaveProviderButton providerId={providerId} />;
 }
 
 export default function Search() {
@@ -600,12 +578,7 @@ export default function Search() {
                                 </p>
 
                                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-3 text-xs sm:text-sm">
-                                  <Badge className={decision.mode === "direct"
-                                    ? "border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-50"
-                                    : "border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-50"}
-                                  >
-                                    {decision.label}
-                                  </Badge>
+                                  <AdaptiveModeBadge decision={decision} />
                                   <div className="flex items-center gap-1">
                                     <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                                     <span className="font-medium">

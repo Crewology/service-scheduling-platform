@@ -36,6 +36,12 @@ export const adminRouter = router({
     return await db.getAdminStats();
   }),
 
+  // Compact operational health for the admin Overview. No secret values are returned.
+  getSystemHealth: adminProcedure.query(async () => {
+    const { getSystemHealthSnapshot } = await import("./systemHealth");
+    return await getSystemHealthSnapshot();
+  }),
+
   // List all users (with optional pagination)
   listUsers: adminProcedure
     .input(z.object({

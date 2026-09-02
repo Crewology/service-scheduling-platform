@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ShareProfile } from "@/components/ShareProfile";
+import { UpgradePrompt } from "@/components/UpgradePrompt";
+import { isPlanGateError } from "@/lib/upgradeGate";
 import { toast } from "sonner";
 import {
   Link2,
@@ -26,6 +28,10 @@ export default function ProviderMyPage() {
   const utils = trpc.useUtils();
   const [editingSlug, setEditingSlug] = useState(false);
   const [slugInput, setSlugInput] = useState("");
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const { data: subscription } = trpc.subscription.mySubscription.useQuery(undefined, {
+    enabled: Boolean(user),
+  });
 
   const generateSlug = trpc.provider.generateSlug.useMutation({
     onSuccess: (data) => {
@@ -41,7 +47,13 @@ export default function ProviderMyPage() {
       setEditingSlug(false);
       toast.success(`Profile URL updated to /${data.slug}`);
     },
-    onError: (err: any) => toast.error(err.message),
+    onError: (err: any) => {
+      if (isPlanGateError(err)) {
+        setUpgradeOpen(true);
+        return;
+      }
+      toast.error(err.message);
+    },
   });
 
   if (!isAuthenticated || providerLoading) {
@@ -278,6 +290,12 @@ export default function ProviderMyPage() {
           </>
         )}
       </div>
+      <UpgradePrompt
+        open={upgradeOpen}
+        onClose={() => setUpgradeOpen(false)}
+        reason="custom_slug"
+        currentTier={(subscription?.currentTier || "free") as "free" | "basic" | "premium"}
+      />
     </div>
   );
 }

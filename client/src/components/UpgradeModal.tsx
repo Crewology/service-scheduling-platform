@@ -9,6 +9,7 @@ import { toast } from "sonner";
 interface UpgradeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  reason?: "saved_providers" | "folders" | "bulk_quotes" | "analytics";
   currentTier?: string;
   currentCount?: number;
   limit?: number;
@@ -53,8 +54,28 @@ const tiers = [
   },
 ];
 
-export default function UpgradeModal({ open, onOpenChange, currentTier = "free", currentCount, limit }: UpgradeModalProps) {
+const REASON_COPY = {
+  saved_providers: {
+    title: "Save More Providers",
+    description: "Upgrade your plan to save more trusted providers and keep your service relationships organized.",
+  },
+  folders: {
+    title: "Organize Providers into Folders",
+    description: "Coordinator and Manager plans let you group saved providers by project, category, or location.",
+  },
+  bulk_quotes: {
+    title: "Send Bulk Quote Requests",
+    description: "Compare several providers at once by upgrading to a plan that includes bulk quote requests.",
+  },
+  analytics: {
+    title: "Unlock Booking Analytics",
+    description: "Manager includes booking trends, service spending, and reporting tools for larger operations.",
+  },
+};
+
+export default function UpgradeModal({ open, onOpenChange, reason = "saved_providers", currentTier = "free", currentCount, limit }: UpgradeModalProps) {
   const [, navigate] = useLocation();
+  const reasonCopy = REASON_COPY[reason];
   const createCheckout = trpc.customerSubscription.createCheckout.useMutation({
     onSuccess: (data) => {
       if (data.url) {
@@ -76,13 +97,13 @@ export default function UpgradeModal({ open, onOpenChange, currentTier = "free",
               <div className="p-2 rounded-full bg-amber-500/10">
                 <Heart className="h-5 w-5 text-amber-700" />
               </div>
-              <DialogTitle className="text-xl">Save More Providers</DialogTitle>
+              <DialogTitle className="text-xl">{reasonCopy.title}</DialogTitle>
             </div>
             <DialogDescription className="text-base">
-              {currentCount !== undefined && limit !== undefined ? (
+              {reason === "saved_providers" && currentCount !== undefined && limit !== undefined ? (
                 <>You've saved <strong>{currentCount}</strong> of <strong>{limit}</strong> providers on the {currentTier === "free" ? "Individual" : currentTier === "pro" ? "Coordinator" : "Manager"} plan. Upgrade to save more!</>
               ) : (
-                <>Upgrade your plan to save more providers and unlock premium features.</>
+                <>{reasonCopy.description}</>
               )}
             </DialogDescription>
           </DialogHeader>

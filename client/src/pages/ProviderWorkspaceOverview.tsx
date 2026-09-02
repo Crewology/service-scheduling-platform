@@ -1,6 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { ProviderPulseStat } from "@/components/workspace/ProviderPulseStat";
 import { trpc } from "@/lib/trpc";
 import {
   AlertCircle,
@@ -250,10 +251,10 @@ export default function ProviderWorkspaceOverview() {
           <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_18px_50px_-38px_rgba(15,23,42,0.5)] sm:p-6">
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">Business pulse</p><h2 className="mt-1 text-xl font-bold text-slate-950">This month at a glance</h2></div><Link href="/provider/analytics" className="self-start text-sm font-semibold text-[#174a73] hover:underline">View analytics</Link></div>
             <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-              <PulseStat icon={Banknote} label="Collected" value={formatMoney(data.pulse.collectedThisMonth)} change="Completed services this month" />
-              <PulseStat icon={BriefcaseBusiness} label="Completed jobs" value={String(data.pulse.completedThisMonth)} change={`${data.pulse.upcomingCount} upcoming`} />
-              <PulseStat icon={Users} label="Customers" value={String(data.pulse.totalCustomers)} change={`${data.pulse.returningCustomers} returning`} />
-              <PulseStat icon={Star} label="Average rating" value={data.pulse.totalReviews > 0 ? data.pulse.averageRating.toFixed(1) : "New"} change={`${data.pulse.totalReviews} ${data.pulse.totalReviews === 1 ? "review" : "reviews"}`} />
+              <ProviderPulseStat icon={Banknote} label="Collected" value={formatMoney(data.pulse.collectedThisMonth)} detail="Completed services this month" />
+              <ProviderPulseStat icon={BriefcaseBusiness} label="Completed jobs" value={String(data.pulse.completedThisMonth)} detail={`${data.pulse.upcomingCount} upcoming`} />
+              <ProviderPulseStat icon={Users} label="Customers" value={String(data.pulse.totalCustomers)} detail={`${data.pulse.returningCustomers} returning`} />
+              <ProviderPulseStat icon={Star} label="Average rating" value={data.pulse.totalReviews > 0 ? data.pulse.averageRating.toFixed(1) : "New"} detail={`${data.pulse.totalReviews} ${data.pulse.totalReviews === 1 ? "review" : "reviews"}`} />
             </div>
           </section>
         </main>
@@ -270,10 +271,6 @@ function QuickAction({ href, icon: Icon, label, detail }: { href: string; icon: 
   return <Link href={href} title={`${label}: ${detail}`} className="group rounded-2xl border border-slate-200 p-3 text-left transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md active:scale-[0.98] sm:p-4"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#174a73]"><Icon className="h-5 w-5" /></span><span className="mt-3 block text-sm font-semibold text-slate-950">{label}</span><span className="mt-0.5 block text-xs leading-snug text-slate-500">{detail}</span></Link>;
 }
 
-
-function PulseStat({ icon: Icon, label, value, change }: { icon: typeof Banknote; label: string; value: string; change: string }) {
-  return <div className="rounded-2xl bg-slate-50 p-4"><div className="flex items-center gap-2 text-slate-500"><Icon className="h-4 w-4" /><span className="text-xs font-medium">{label}</span></div><p className="mt-3 text-2xl font-bold tracking-tight text-slate-950">{value}</p><p className="mt-1 text-xs text-slate-500">{change}</p></div>;
-}
 
 function ProviderWorkspaceSkeleton() {
   return <div className="container max-w-7xl py-8"><div className="grid animate-pulse gap-6 lg:grid-cols-[232px_minmax(0,1fr)]"><div className="hidden h-96 rounded-2xl bg-slate-100 lg:block" /><div><div className="h-44 rounded-[28px] bg-slate-200" /><div className="mt-6 space-y-3"><div className="h-20 rounded-2xl bg-slate-100" /><div className="h-20 rounded-2xl bg-slate-100" /></div><div className="mt-6 grid gap-6 xl:grid-cols-2"><div className="h-72 rounded-3xl bg-slate-100" /><div className="h-72 rounded-3xl bg-slate-100" /></div></div></div></div>;
