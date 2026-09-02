@@ -17,3 +17,11 @@ Every response that reaches OlogyCrew includes `X-OlogyCrew-Origin: application`
 ## Recovery
 
 An upstream preview-gateway block is temporary. Wait briefly, then reload the preview. Production traffic on OlogyCrew.com is governed by the separate production application policy and is not changed by this development-only safeguard.
+
+## Vite Hot-Reload WebSocket
+
+The development-only console error `[vite] failed to connect to websocket (WebSocket closed without opened)` has the same upstream cause. Vite is correctly attached to OlogyCrew's HTTP server, and both the local server and the preview gateway return a valid `101 Switching Protocols` WebSocket handshake when the gateway is available. The latest disconnect occurred without an OlogyCrew or Vite server restart, while the preview gateway was also intermittently returning its plain-text `429` page.
+
+After the gateway cooldown, the same development URL loaded normally and the browser console was clear. No alternate HMR host, port, or path should be forced in project code: the current same-server setup is correct, and changing it would bypass the managed preview routing contract.
+
+This error cannot affect the published site. Production contains no `/@vite/client` reference and does not run Vite HMR. It is also unrelated to OlogyCrew's application SSE messaging, which uses `/api/sse/notifications` and remains unchanged.

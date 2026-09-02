@@ -2651,3 +2651,10 @@
 - [x] Disable or isolate broad read throttling in development while retaining production abuse protection and sensitive/write limits
 - [x] Add recurrence regression coverage and verify sustained development navigation without application-generated HTTP 429 responses
 - [x] Document the confirmed cause and permanent development-preview safeguard
+
+## Fix: Vite Development HMR WebSocket Disconnect
+- [x] Confirm whether Vite is listening for HMR connections when the browser reports `WebSocket closed without opened`
+- [x] Correlate browser disconnects with server restarts, preview-gateway throttling, and WebSocket upgrade requests
+- [x] Determine no alternate project-level HMR configuration is appropriate because the same-server local and proxied upgrade handshakes are correct
+- [x] Verify normal page loading and HMR recovery without changing production SSE messaging
+- [x] Document the managed preview-gateway limitation and the correct recovery action
