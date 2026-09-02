@@ -7,6 +7,7 @@ import * as db from "./db";
 import { SUBSCRIPTION_TIERS, STRIPE_PRODUCT_NAME, getTrialDays, type SubscriptionTier } from "./products";
 import { sendTrialStartedNotification, checkAndSendTrialMilestoneNotification } from "./trialNotifications";
 import { sendNotification } from "./notifications";
+import { TRIAL_DAYS, resolveProviderEntitlement } from "../shared/entitlements";
 
 const stripe = new Stripe(ENV.stripeSecretKey, {
   apiVersion: "2026-01-28.clover" as any,
@@ -95,7 +96,7 @@ export const subscriptionRouter = router({
 
     // Start 14-day trial (no credit card required)
     const now = new Date();
-    const trialEnd = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+    const trialEnd = new Date(now.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
 
     await db.upsertProviderSubscription({
       providerId: provider.id,
@@ -113,7 +114,7 @@ export const subscriptionRouter = router({
       userId: user.id,
       email: user.email || undefined,
       providerName: provider.businessName,
-      daysRemaining: 14,
+      daysRemaining: TRIAL_DAYS,
       trialEndsAt: trialEnd,
     }).catch(err => console.error("[Trial] Failed to send trial_started notification:", err));
 
@@ -127,6 +128,7 @@ export const subscriptionRouter = router({
 
     const sub = await db.getProviderSubscription(provider.id);
     if (!sub) return null;
+    const entitlement = resolveProviderEntitlement(sub);
 
     // If trialing, check if expired
     if (sub.status === "trialing" && sub.trialEndsAt) {
@@ -183,7 +185,8 @@ export const subscriptionRouter = router({
         trialTier: sub.tier,
         daysRemaining,
         trialEndsAt: sub.trialEndsAt,
-        currentTier: sub.tier,
+        currentTier: entitlement.effectiveTier,
+        entitlement,
         showUrgentNudge: daysRemaining <= 3,
         hasUsedTrial: true,
       };
@@ -198,7 +201,8 @@ export const subscriptionRouter = router({
       trialTier: null,
       daysRemaining: 0,
       trialEndsAt: null,
-      currentTier: sub.tier,
+      currentTier: entitlement.effectiveTier,
+      entitlement,
       hasUsedTrial,
     };
   }),
@@ -233,6 +237,7 @@ export const subscriptionRouter = router({
 
     const subscription = await db.getProviderSubscription(provider.id);
     const tier = await db.getProviderTier(provider.id);
+    const entitlement = resolveProviderEntitlement(subscription);
     const serviceCount = await db.getActiveServiceCount(provider.id);
     const tierConfig = SUBSCRIPTION_TIERS[tier];
 
@@ -253,6 +258,7 @@ export const subscriptionRouter = router({
     return {
       subscription,
       currentTier: tier,
+      entitlement,
       currentInterval,
       tierConfig,
       usage: {
@@ -294,6 +300,19 @@ export const subscriptionRouter = router({
         } else {
         const currentItem = stripeSub.items.data[0];
         const currentInterval = currentItem?.price.recurring?.interval as "month" | "year" || "month";
+        if (stripeSub.cancel_at_period_end && currentSub.tier === input.tier && currentInterval === input.interval) {
+          const reactivated = await stripe.subscriptions.update(currentSub.stripeSubscriptionId, {
+            cancel_at_period_end: false,
+          });
+          await db.upsertProviderSubscription({
+            providerId: provider.id,
+            tier: input.tier,
+            status: "active",
+            cancelAtPeriodEnd: false,
+            currentPeriodEnd: new Date(((reactivated as any).current_period_end || Math.floor(Date.now() / 1000) + 30 * 86400) * 1000),
+          });
+          return { url: null, message: `Your ${SUBSCRIPTION_TIERS[input.tier].name} plan will continue. No new charge was created.` };
+        }
         if (currentSub.tier === input.tier && currentInterval === input.interval) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Already subscribed to this tier and interval" });
         }
@@ -311,6 +330,7 @@ export const subscriptionRouter = router({
               price: newPriceId,
             }],
             proration_behavior: "create_prorations",
+            cancel_at_period_end: false,
           });
 
           // Update local subscription record for tier upgrades
@@ -319,6 +339,7 @@ export const subscriptionRouter = router({
               providerId: provider.id,
               tier: input.tier,
               status: "active",
+              cancelAtPeriodEnd: false,
             });
           }
 
@@ -490,7 +511,7 @@ export const subscriptionRouter = router({
       return { allowed, currentTier: tier, requiredTier };
     }),
 
-  // Downgrade subscription immediately (with prorated credit)
+  // Downgrade paid subscriptions without taking away already-purchased access.
   downgrade: protectedProcedure
     .input(z.object({
       targetTier: z.enum(["free", "basic"]),
@@ -515,24 +536,56 @@ export const subscriptionRouter = router({
         throw new TRPCError({ code: "BAD_REQUEST", message: "Target tier must be lower than current tier" });
       }
 
-      // If downgrading to free, cancel the Stripe subscription immediately with proration
+      // Paid plan → Starter: schedule cancellation at period end. This avoids
+      // duplicate charges and keeps the provider's purchased access unambiguous.
       if (targetTier === "free") {
         if (sub.stripeSubscriptionId) {
           try {
-            // Cancel the subscription immediately with proration credit
-            await stripe.subscriptions.cancel(sub.stripeSubscriptionId, {
-              prorate: true,
+            const stripeSubscription = await stripe.subscriptions.update(sub.stripeSubscriptionId, {
+              cancel_at_period_end: true,
             });
+            const periodEnd = new Date(((stripeSubscription as any).current_period_end || Math.floor(Date.now() / 1000) + 30 * 86400) * 1000);
+
+            await db.upsertProviderSubscription({
+              providerId: provider.id,
+              tier: currentTier,
+              status: "active",
+              cancelAtPeriodEnd: true,
+              stripeSubscriptionId: sub.stripeSubscriptionId,
+              stripeCustomerId: sub.stripeCustomerId || undefined,
+              currentPeriodEnd: periodEnd,
+            });
+
+            if (ctx.user.email) {
+              await sendNotification({
+                type: "subscription_downgraded",
+                channel: "email",
+                recipient: { userId: ctx.user.id, email: ctx.user.email, name: ctx.user.name || undefined },
+                data: {
+                  tier: "Starter (Free)",
+                  previousTier: SUBSCRIPTION_TIERS[currentTier].name,
+                  businessName: provider.businessName || undefined,
+                  accessEndsAt: periodEnd.toISOString(),
+                },
+              });
+            }
+
+            return {
+              success: true,
+              newTier: currentTier,
+              scheduledTier: "free" as const,
+              accessEndsAt: periodEnd,
+              message: `${SUBSCRIPTION_TIERS[currentTier].name} remains active until ${periodEnd.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}. Starter begins after that date.`,
+            };
           } catch (err: any) {
-            console.error("[Downgrade] Failed to cancel Stripe subscription:", err.message);
-            // If subscription is already cancelled in Stripe, continue
+            console.error("[Downgrade] Failed to schedule Stripe cancellation:", err.message);
             if (!err.message?.includes("No such subscription")) {
               throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to downgrade subscription" });
             }
           }
         }
 
-        // Update local subscription record
+        // Trials or legacy local grants have no Stripe period to preserve.
         await db.upsertProviderSubscription({
           providerId: provider.id,
           tier: "free",
@@ -558,7 +611,7 @@ export const subscriptionRouter = router({
           });
         }
 
-        return { success: true, newTier: "free" as const, message: "Downgraded to Starter (Free). A prorated credit has been applied to your account for any future upgrades." };
+        return { success: true, newTier: "free" as const, message: "Downgraded to Starter (Free)." };
       }
 
       // If downgrading from premium to basic, switch the subscription price immediately

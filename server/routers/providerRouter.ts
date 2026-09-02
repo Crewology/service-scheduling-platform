@@ -319,8 +319,7 @@ export const providerRouter = router({
       if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
       // Enforce category limit based on subscription tier
       const { canProviderAddCategory, SUBSCRIPTION_TIERS } = await import("../products");
-      const subscription = await db.getProviderSubscription(provider.id);
-      const tier = ((subscription?.tier as import("../products").SubscriptionTier) || "free");
+      const tier = await db.getProviderTier(provider.id);
       const maxCategories = SUBSCRIPTION_TIERS[tier].limits.maxCategories;
       if (input.categoryIds.length > maxCategories) {
         throw new TRPCError({
@@ -339,8 +338,7 @@ export const providerRouter = router({
       if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
       // Enforce category limit based on subscription tier
       const { canProviderAddCategory, SUBSCRIPTION_TIERS } = await import("../products");
-      const subscription = await db.getProviderSubscription(provider.id);
-      const tier = ((subscription?.tier as import("../products").SubscriptionTier) || "free");
+      const tier = await db.getProviderTier(provider.id);
       const currentCategories = await db.getProviderCategories(provider.id);
       if (!canProviderAddCategory(tier, currentCategories.length)) {
         throw new TRPCError({

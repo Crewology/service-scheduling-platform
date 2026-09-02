@@ -1768,7 +1768,7 @@ export default function ProviderOnboarding() {
 
               {/* All plans include */}
               <div className="text-center text-xs text-muted-foreground">
-                All plans include: 1% transaction fee on bookings &middot; Stripe payments &middot; Booking management &middot; Customer messaging
+                All plans include: Booking management &middot; Customer messaging &middot; A public provider page. Pro and Business add Stripe payment collection and invoicing.
               </div>
               <div className="flex justify-end pt-4">
                 <div className="flex gap-2">

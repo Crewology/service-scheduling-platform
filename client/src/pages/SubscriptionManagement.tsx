@@ -36,21 +36,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { PROVIDER_PLANS } from "@shared/entitlements";
 
 const PLANS = [
   {
     tier: "free" as const,
-    name: "Starter",
-    monthlyPrice: 0,
-    yearlyPrice: 0,
+    name: PROVIDER_PLANS.free.name,
+    monthlyPrice: PROVIDER_PLANS.free.monthlyPrice,
+    yearlyPrice: PROVIDER_PLANS.free.yearlyPrice,
     description: "Get started and list your services — no cost, no commitment.",
     icon: Star,
     features: [
-      { text: "1 service category", included: true },
-      { text: "Up to 3 services", included: true },
-      { text: "1 photo per service", included: true },
+      { text: `${PROVIDER_PLANS.free.limits.maxCategories} service category`, included: true },
+      { text: `Up to ${PROVIDER_PLANS.free.limits.maxServices} services`, included: true },
+      { text: `${PROVIDER_PLANS.free.limits.maxPhotosPerService} photo per service`, included: true },
       { text: "Basic public profile", included: true },
       { text: "Standard search placement", included: true },
+      { text: "Stripe payment collection", included: false },
       { text: "Invoicing & branded receipts", included: false },
       { text: "Tip collection (Zelle, Cash App, Venmo)", included: true },
       { text: "1% transaction fee", included: true },
@@ -63,19 +65,20 @@ const PLANS = [
   },
   {
     tier: "basic" as const,
-    name: "Pro",
-    monthlyPrice: 12,
-    yearlyPrice: 120.96,
+    name: PROVIDER_PLANS.basic.name,
+    monthlyPrice: PROVIDER_PLANS.basic.monthlyPrice,
+    yearlyPrice: PROVIDER_PLANS.basic.yearlyPrice,
     description: "For providers offering multiple service categories — grow your reach.",
     icon: Zap,
     features: [
       { text: "14-day free trial", included: true },
-      { text: "Up to 5 service categories", included: true },
-      { text: "Up to 10 services", included: true },
-      { text: "3 photos per service", included: true },
+      { text: `Up to ${PROVIDER_PLANS.basic.limits.maxCategories} service categories`, included: true },
+      { text: `Up to ${PROVIDER_PLANS.basic.limits.maxServices} services`, included: true },
+      { text: `${PROVIDER_PLANS.basic.limits.maxPhotosPerService} photos per service`, included: true },
       { text: "Custom profile URL slug", included: true },
       { text: "Priority search placement", included: true },
       { text: "Business analytics", included: true },
+      { text: "Stripe payment collection", included: true },
       { text: "Invoicing & receipts", included: true },
       { text: "Tip collection (Zelle, Cash App, Venmo)", included: true },
       { text: "1% transaction fee", included: true },
@@ -87,9 +90,9 @@ const PLANS = [
   },
   {
     tier: "premium" as const,
-    name: "Business",
-    monthlyPrice: 20,
-    yearlyPrice: 192.00,
+    name: PROVIDER_PLANS.premium.name,
+    monthlyPrice: PROVIDER_PLANS.premium.monthlyPrice,
+    yearlyPrice: PROVIDER_PLANS.premium.yearlyPrice,
     description: "Unlimited everything for established businesses and full-service pros.",
     icon: Crown,
     features: [
@@ -101,6 +104,7 @@ const PLANS = [
       { text: "Featured listing badge", included: true },
       { text: "Top search placement", included: true },
       { text: "Full analytics suite", included: true },
+      { text: "Stripe payment collection", included: true },
       { text: "Invoicing & receipts", included: true },
       { text: "Tip collection (Zelle, Cash App, Venmo)", included: true },
       { text: "1% transaction fee", included: true },
@@ -358,7 +362,7 @@ export default function SubscriptionManagement() {
         {/* Current Plan Badge */}
         {currentTier !== "free" && (
           <div className="mb-8 p-4 rounded-lg bg-primary/5 border border-primary/20">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <Crown className="h-5 w-5 text-primary" />
                 <div>
@@ -373,7 +377,7 @@ export default function SubscriptionManagement() {
                   {currentSub?.subscription?.status === "active" && (
                     <p className="text-sm text-muted-foreground">
                       {currentSub.subscription.cancelAtPeriodEnd 
-                        ? "Cancels at end of billing period" 
+                        ? `Cancels on ${new Date(currentSub.entitlement.accessEndsAt || currentSub.subscription.currentPeriodEnd!).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}. Starter begins after that date.`
                         : "Active and renewing"}
                     </p>
                   )}
@@ -384,7 +388,7 @@ export default function SubscriptionManagement() {
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {currentSub?.subscription?.status === "paused" ? (
                   <Button 
                     variant="default" 
@@ -401,14 +405,29 @@ export default function SubscriptionManagement() {
                   </Button>
                 ) : currentSub?.subscription?.status === "active" ? (
                   <>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setShowPauseDialog(true)}
-                    >
-                      <Pause className="h-4 w-4 mr-1" />
-                      Pause Plan
-                    </Button>
+                    {currentSub.subscription.cancelAtPeriodEnd ? (
+                      <Button
+                        size="sm"
+                        onClick={() => subscribe.mutate({
+                          tier: currentTier as "basic" | "premium",
+                          interval: currentSub.currentInterval,
+                          withTrial: false,
+                        })}
+                        disabled={subscribe.isPending}
+                      >
+                        {subscribe.isPending ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Play className="h-4 w-4 mr-1" />}
+                        Keep Current Plan
+                      </Button>
+                    ) : (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setShowPauseDialog(true)}
+                      >
+                        <Pause className="h-4 w-4 mr-1" />
+                        Pause Plan
+                      </Button>
+                    )}
                     <Button 
                       variant="outline" 
                       size="sm"

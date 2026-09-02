@@ -7,6 +7,7 @@ import {
   type ProviderSubscription,
 } from "../../drizzle/schema";
 import { getDb } from "./connection";
+import { PROVIDER_PLANS, resolveProviderEntitlement } from "../../shared/entitlements";
 
 // ============================================================================
 // PAYMENT MANAGEMENT
@@ -111,9 +112,12 @@ export async function upsertProviderSubscription(data: {
 
 export async function getProviderTier(providerId: number): Promise<"free" | "basic" | "premium"> {
   const sub = await getProviderSubscription(providerId);
-  if (!sub) return "free";
-  if (sub.status !== "active" && sub.status !== "trialing" && sub.status !== "paused") return "free";
-  return sub.tier;
+  return resolveProviderEntitlement(sub).effectiveTier;
+}
+
+export async function getProviderEntitlement(providerId: number) {
+  const sub = await getProviderSubscription(providerId);
+  return resolveProviderEntitlement(sub);
 }
 
 export async function getSubscriptionAnalytics() {
@@ -141,7 +145,7 @@ export async function getSubscriptionAnalytics() {
   const trialing = subs.filter(s => s.status === "trialing").length;
   const freeCount = totalProviders - basic - premium;
 
-  const mrr = (basic * 29) + (premium * 79);
+  const mrr = (basic * PROVIDER_PLANS.basic.monthlyPrice) + (premium * PROVIDER_PLANS.premium.monthlyPrice);
   const activeAtStart = active.length - newThisMonth + cancelledThisMonth;
   const churnRate = activeAtStart > 0 ? (cancelledThisMonth / activeAtStart) * 100 : 0;
   const everBasicOrHigher = subs.filter(s => s.tier === "basic" || s.tier === "premium").length;

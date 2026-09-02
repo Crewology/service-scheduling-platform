@@ -12,117 +12,16 @@ export const PLATFORM_FEE_PERCENTAGE = 0.01; // 1% platform fee on all bookings
 
 // ─── Subscription Tiers ───────────────────────────────────────────────────────
 
-export type SubscriptionTier = "free" | "basic" | "premium";
+import {
+  PROVIDER_PLANS,
+  TRIAL_DAYS,
+  type ProviderPlanConfig,
+  type ProviderTier,
+} from "../shared/entitlements";
 
-export interface TierConfig {
-  name: string;
-  tier: SubscriptionTier;
-  monthlyPrice: number; // USD
-  yearlyPrice: number;  // USD (annual billing discount)
-  features: string[];
-  limits: {
-    maxServices: number;
-    maxCategories: number;
-    maxPhotosPerService: number;
-    prioritySearch: boolean;
-    customBranding: boolean;
-    analyticsAccess: boolean;
-    premiumSupport: boolean;
-    featuredListing: boolean;
-    customSlug: boolean;
-  };
-}
-
-export const SUBSCRIPTION_TIERS: Record<SubscriptionTier, TierConfig> = {
-  free: {
-    name: "Starter",
-    tier: "free",
-    monthlyPrice: 0,
-    yearlyPrice: 0,
-    features: [
-      "1 service category",
-      "Up to 3 active services",
-      "1 photo per service",
-      "Basic public profile",
-      "Standard search placement",
-      "Booking management",
-      "Customer messaging",
-      "Invoicing & receipts",
-    ],
-    limits: {
-      maxServices: 3,
-      maxCategories: 1,
-      maxPhotosPerService: 1,
-      prioritySearch: false,
-      customBranding: false,
-      analyticsAccess: false,
-      premiumSupport: false,
-      featuredListing: false,
-      customSlug: false,
-    },
-  },
-  basic: {
-    name: "Pro",
-    tier: "basic",
-    monthlyPrice: 12,
-    yearlyPrice: 120.96, // ~$10.08/mo (16% off)
-    features: [
-      "Up to 5 service categories",
-      "Up to 10 active services",
-      "3 photos per service",
-      "Custom profile URL slug",
-      "Priority search placement",
-      "Business analytics dashboard",
-      "Booking management",
-      "Customer messaging",
-      "Invoicing & receipts",
-      "Email notifications",
-    ],
-    limits: {
-      maxServices: 10,
-      maxCategories: 5,
-      maxPhotosPerService: 3,
-      prioritySearch: true,
-      customBranding: false,
-      analyticsAccess: true,
-      premiumSupport: false,
-      featuredListing: false,
-      customSlug: true,
-    },
-  },
-  premium: {
-    name: "Business",
-    tier: "premium",
-    monthlyPrice: 20,
-    yearlyPrice: 192.00, // ~$16.00/mo (20% off)
-    features: [
-      "Unlimited service categories",
-      "Unlimited active services",
-      "5 photos per service",
-      "Custom profile URL slug",
-      "Featured listing badge",
-      "Top search placement",
-      "Full analytics suite",
-      "Custom branding on profile",
-      "Priority customer support",
-      "Booking management",
-      "Customer messaging",
-      "Invoicing & receipts",
-      "Email & SMS notifications",
-    ],
-    limits: {
-      maxServices: 999, // effectively unlimited
-      maxCategories: 999, // effectively unlimited
-      maxPhotosPerService: 5,
-      prioritySearch: true,
-      customBranding: true,
-      analyticsAccess: true,
-      premiumSupport: true,
-      featuredListing: true,
-      customSlug: true,
-    },
-  },
-};
+export type SubscriptionTier = ProviderTier;
+export type TierConfig = ProviderPlanConfig;
+export const SUBSCRIPTION_TIERS = PROVIDER_PLANS;
 
 // ─── Stripe Price IDs ─────────────────────────────────────────────────────────
 // These will be created dynamically on first use via the subscription router
@@ -176,5 +75,5 @@ export function canProviderAddCategory(tier: SubscriptionTier, currentCount: num
 }
 
 export function getTrialDays(): number {
-  return 14;
+  return TRIAL_DAYS;
 }

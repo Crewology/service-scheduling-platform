@@ -39,8 +39,7 @@ export const serviceRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider to create services" });
       }
       const existingServices = await db.getServicesByProviderId(provider.id);
-      const subscription = await db.getProviderSubscription(provider.id);
-      const tier = ((subscription?.tier as import("../products").SubscriptionTier) || "free");
+      const tier = await db.getProviderTier(provider.id);
       const { canProviderAddService, SUBSCRIPTION_TIERS } = await import("../products");
       if (!canProviderAddService(tier, existingServices.length)) {
         throw new TRPCError({ 

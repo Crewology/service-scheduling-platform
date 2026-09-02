@@ -6,6 +6,7 @@ import * as db from "./db";
 import { CUSTOMER_TIERS, CUSTOMER_STRIPE_PRODUCT_NAME, type CustomerTier } from "./customerSubscription";
 import { ENV } from "./_core/env";
 import { sendNotification } from "./notifications";
+import { resolveCustomerEntitlement } from "../shared/entitlements";
 
 const stripe = new Stripe(ENV.stripeSecretKey, { apiVersion: "2026-01-28.clover" as any });
 
@@ -70,6 +71,7 @@ export const customerSubscriptionRouter = router({
   getSubscription: protectedProcedure.query(async ({ ctx }) => {
     const subscription = await db.getCustomerSubscription(ctx.user.id);
     const tier = await db.getCustomerTier(ctx.user.id);
+    const entitlement = resolveCustomerEntitlement(subscription);
     const favoriteCount = await db.getUserFavoriteCount(ctx.user.id);
     const tierConfig = CUSTOMER_TIERS[tier];
 
@@ -90,6 +92,7 @@ export const customerSubscriptionRouter = router({
     return {
       subscription,
       currentTier: tier,
+      entitlement,
       currentInterval,
       tierConfig,
       usage: {
@@ -122,6 +125,19 @@ export const customerSubscriptionRouter = router({
         if (stripeSub.status !== "canceled" && stripeSub.status !== "incomplete_expired") {
         const currentItem = stripeSub.items.data[0];
         const currentInterval = currentItem?.price.recurring?.interval as "month" | "year" || "month";
+        if (stripeSub.cancel_at_period_end && currentInterval === input.interval) {
+          const reactivated = await stripe.subscriptions.update(existingSubForCheck.stripeSubscriptionId, {
+            cancel_at_period_end: false,
+          });
+          await db.upsertCustomerSubscription({
+            userId: ctx.user.id,
+            tier: input.tier,
+            status: "active",
+            cancelAtPeriodEnd: false,
+            currentPeriodEnd: new Date(((reactivated as any).current_period_end || Math.floor(Date.now() / 1000) + 30 * 86400) * 1000),
+          });
+          return { url: null, message: `Your ${CUSTOMER_TIERS[input.tier].name} plan will continue. No new charge was created.` };
+        }
         if (currentInterval === input.interval) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Already subscribed to this tier and interval" });
         }
@@ -133,6 +149,7 @@ export const customerSubscriptionRouter = router({
             price: newPriceId,
           }],
           proration_behavior: "create_prorations",
+          cancel_at_period_end: false,
         });
         return { url: null, message: `Switched to ${input.interval === "year" ? "annual" : "monthly"} billing. Proration applied.` };
         }
@@ -348,7 +365,7 @@ export const customerSubscriptionRouter = router({
       return { data: JSON.stringify(bookings, null, 2), count: bookings.length, format: "json" as const };
     }),
 
-  // Downgrade subscription immediately (with prorated credit)
+  // Downgrade paid subscriptions without taking away already-purchased access.
   downgrade: protectedProcedure
     .input(z.object({
       targetTier: z.enum(["free", "pro"]),
@@ -370,9 +387,42 @@ export const customerSubscriptionRouter = router({
       if (targetTier === "free") {
         if (sub?.stripeSubscriptionId) {
           try {
-            await stripe.subscriptions.update(sub.stripeSubscriptionId, {
+            const stripeSubscription = await stripe.subscriptions.update(sub.stripeSubscriptionId, {
               cancel_at_period_end: true,
             });
+            const periodEnd = new Date(((stripeSubscription as any).current_period_end || Math.floor(Date.now() / 1000) + 30 * 86400) * 1000);
+
+            await db.upsertCustomerSubscription({
+              userId: ctx.user.id,
+              tier: currentTier,
+              status: "active",
+              cancelAtPeriodEnd: true,
+              stripeSubscriptionId: sub.stripeSubscriptionId,
+              stripeCustomerId: sub.stripeCustomerId || undefined,
+              currentPeriodEnd: periodEnd,
+            });
+
+            if (ctx.user.email) {
+              await sendNotification({
+                type: "subscription_downgraded",
+                channel: "email",
+                recipient: { userId: ctx.user.id, email: ctx.user.email, name: ctx.user.name || undefined },
+                data: {
+                  tier: "Individual",
+                  previousTier: CUSTOMER_TIERS[currentTier].name,
+                  customerName: ctx.user.name || undefined,
+                  accessEndsAt: periodEnd.toISOString(),
+                },
+              });
+            }
+
+            return {
+              success: true,
+              newTier: currentTier,
+              scheduledTier: "free" as const,
+              accessEndsAt: periodEnd,
+              message: `${CUSTOMER_TIERS[currentTier].name} remains active until ${periodEnd.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}. Individual begins after that date.`,
+            };
           } catch (err: any) {
             console.error("[Customer Downgrade] Failed to schedule subscription cancellation:", err.message);
             if (!err.message?.includes("No such subscription")) {
@@ -384,10 +434,12 @@ export const customerSubscriptionRouter = router({
         await db.upsertCustomerSubscription({
           userId: ctx.user.id,
           tier: "free",
-          status: "cancelled",
-          cancelAtPeriodEnd: true,
-          stripeSubscriptionId: sub?.stripeSubscriptionId || undefined,
+          status: "active",
+          cancelAtPeriodEnd: false,
+          stripeSubscriptionId: undefined,
           stripeCustomerId: sub?.stripeCustomerId || undefined,
+          currentPeriodStart: undefined,
+          currentPeriodEnd: undefined,
         });
 
         // Send downgrade notification
@@ -404,7 +456,7 @@ export const customerSubscriptionRouter = router({
           });
         }
 
-        return { success: true, newTier: "free" as const, message: "Downgraded to Individual. Your paid features remain active until the end of your current billing period. You can re-upgrade anytime without being charged again." };
+        return { success: true, newTier: "free" as const, message: "Downgraded to Individual." };
       }
 
       // If downgrading from business to pro, switch the subscription price immediately
@@ -650,6 +702,7 @@ export const customerSubscriptionRouter = router({
   checkTrialStatus: protectedProcedure.query(async ({ ctx }) => {
     const sub = await db.getCustomerSubscription(ctx.user.id);
     if (!sub) return null;
+    const entitlement = resolveCustomerEntitlement(sub);
 
     // If trialing, check if expired
     if (sub.status === "trialing" && sub.trialEndsAt) {
@@ -701,7 +754,8 @@ export const customerSubscriptionRouter = router({
         trialExpired: false,
         daysRemaining,
         trialEndsAt: sub.trialEndsAt,
-        currentTier: sub.tier,
+        currentTier: entitlement.effectiveTier,
+        entitlement,
         showUrgentNudge: daysRemaining <= 3,
         requiresPayment: false,
         hasUsedTrial: true,
@@ -716,7 +770,8 @@ export const customerSubscriptionRouter = router({
       trialExpired: false,
       daysRemaining: 0,
       trialEndsAt: null,
-      currentTier: sub.tier,
+      currentTier: entitlement.effectiveTier,
+      entitlement,
       requiresPayment: false,
       hasUsedTrial,
     };

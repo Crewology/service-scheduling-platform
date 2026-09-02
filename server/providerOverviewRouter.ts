@@ -15,6 +15,7 @@ import {
   hasProviderScheduleConflict,
   providerDateKey,
 } from "./providerOverviewLogic";
+import { providerHasFeature, resolveProviderEntitlement } from "../shared/entitlements";
 
 const localDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
@@ -39,8 +40,9 @@ export const providerOverviewRouter = router({
         getCustomerRetention(provider.id),
       ]);
 
-      const tier = subscription?.tier || "free";
-      const canUseInvoices = tier !== "free";
+      const entitlement = resolveProviderEntitlement(subscription);
+      const tier = entitlement.effectiveTier;
+      const canUseInvoices = providerHasFeature(tier, "invoicing");
       const invoices = canUseInvoices ? await getInvoicesByProvider(provider.id) : [];
       const serviceNames = new Map(services.map((service) => [service.id, service.name]));
       const activeStatuses = ACTIVE_PROVIDER_BOOKING_STATUSES;

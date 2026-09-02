@@ -30,17 +30,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { CUSTOMER_PLANS } from "@shared/entitlements";
 
 const PLANS = [
   {
     tier: "free" as const,
-    name: "Individual",
-    monthlyPrice: 0,
-    yearlyPrice: 0,
+    name: CUSTOMER_PLANS.free.name,
+    monthlyPrice: CUSTOMER_PLANS.free.monthlyPrice,
+    yearlyPrice: CUSTOMER_PLANS.free.yearlyPrice,
     description: "Basic access to browse and book services.",
     icon: Heart,
     features: [
-      { text: "Save up to 5 providers", included: true },
+      { text: `Save up to ${CUSTOMER_PLANS.free.savedProviderLimit} providers`, included: true },
       { text: "Book any service", included: true },
       { text: "Message providers", included: true },
       { text: "Leave reviews", included: true },
@@ -53,14 +54,14 @@ const PLANS = [
   },
   {
     tier: "pro" as const,
-    name: "Coordinator",
-    monthlyPrice: 12,
-    yearlyPrice: 120.96,
+    name: CUSTOMER_PLANS.pro.name,
+    monthlyPrice: CUSTOMER_PLANS.pro.monthlyPrice,
+    yearlyPrice: CUSTOMER_PLANS.pro.yearlyPrice,
     description: "Enhanced features for frequent users — save more, book faster.",
     icon: Star,
     features: [
       { text: "14-day free trial", included: true },
-      { text: "Save up to 50 providers", included: true },
+      { text: `Save up to ${CUSTOMER_PLANS.pro.savedProviderLimit} providers`, included: true },
       { text: "Priority booking requests", included: true },
       { text: "Organize providers into folders", included: true },
       { text: "Book any service", included: true },
@@ -74,9 +75,9 @@ const PLANS = [
   },
   {
     tier: "business" as const,
-    name: "Manager",
-    monthlyPrice: 20,
-    yearlyPrice: 192.00,
+    name: CUSTOMER_PLANS.business.name,
+    monthlyPrice: CUSTOMER_PLANS.business.monthlyPrice,
+    yearlyPrice: CUSTOMER_PLANS.business.yearlyPrice,
     description: "Full access with analytics, exports, and unlimited providers.",
     icon: Crown,
     features: [
@@ -333,7 +334,7 @@ export default function AccountSubscription() {
         {/* Current Plan Badge */}
         {currentTier !== "free" && (
           <div className="mb-8 p-4 rounded-lg bg-primary/5 border border-primary/20">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <Crown className="h-5 w-5 text-primary" />
                 <div>
@@ -348,7 +349,7 @@ export default function AccountSubscription() {
                   {subData?.subscription?.status === "active" && (
                     <p className="text-sm text-muted-foreground">
                       {subData.subscription.cancelAtPeriodEnd 
-                        ? "Cancels at end of billing period" 
+                        ? `Cancels on ${new Date(subData.entitlement.accessEndsAt || subData.subscription.currentPeriodEnd!).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}. Individual begins after that date.`
                         : "Active and renewing"}
                     </p>
                   )}
@@ -359,7 +360,7 @@ export default function AccountSubscription() {
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {subData?.subscription?.status === "paused" ? (
                   <Button 
                     variant="default" 
@@ -376,14 +377,29 @@ export default function AccountSubscription() {
                   </Button>
                 ) : subData?.subscription?.status === "active" ? (
                   <>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setShowPauseDialog(true)}
-                    >
-                      <Pause className="h-4 w-4 mr-1" />
-                      Pause Plan
-                    </Button>
+                    {subData.subscription.cancelAtPeriodEnd ? (
+                      <Button
+                        size="sm"
+                        onClick={() => subscribe.mutate({
+                          tier: currentTier as "pro" | "business",
+                          interval: subData.currentInterval,
+                          withTrial: false,
+                        })}
+                        disabled={subscribe.isPending}
+                      >
+                        {subscribe.isPending ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Play className="h-4 w-4 mr-1" />}
+                        Keep Current Plan
+                      </Button>
+                    ) : (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setShowPauseDialog(true)}
+                      >
+                        <Pause className="h-4 w-4 mr-1" />
+                        Pause Plan
+                      </Button>
+                    )}
                     <Button 
                       variant="outline" 
                       size="sm"

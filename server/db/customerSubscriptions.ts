@@ -2,6 +2,7 @@ import { eq, sql } from "drizzle-orm";
 import { customerSubscriptions, customerFavorites } from "../../drizzle/schema";
 import type { CustomerSubscription } from "../../drizzle/schema";
 import { getDb } from "./connection";
+import { resolveCustomerEntitlement } from "../../shared/entitlements";
 
 export async function getCustomerSubscription(userId: number): Promise<CustomerSubscription | undefined> {
   const db = await getDb();
@@ -16,8 +17,12 @@ export async function getCustomerSubscription(userId: number): Promise<CustomerS
 
 export async function getCustomerTier(userId: number): Promise<"free" | "pro" | "business"> {
   const sub = await getCustomerSubscription(userId);
-  if (!sub || sub.status === "cancelled" || sub.status === "incomplete") return "free";
-  return sub.tier;
+  return resolveCustomerEntitlement(sub).effectiveTier;
+}
+
+export async function getCustomerEntitlement(userId: number) {
+  const sub = await getCustomerSubscription(userId);
+  return resolveCustomerEntitlement(sub);
 }
 
 export async function getUserFavoriteCount(userId: number): Promise<number> {

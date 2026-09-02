@@ -2658,3 +2658,31 @@
 - [x] Determine no alternate project-level HMR configuration is appropriate because the same-server local and proxied upgrade handshakes are correct
 - [x] Verify normal page loading and HMR recovery without changing production SSE messaging
 - [x] Document the managed preview-gateway limitation and the correct recovery action
+
+## Entitlement Reconciliation — Authoritative Subscription and Billing Model
+- [x] Audit every provider and customer plan definition, price, limit, trial, and entitlement across shared constants, UI, backend authorization, Stripe, emails, notifications, and admin reporting
+- [x] Define one authoritative provider/customer entitlement matrix and lifecycle state model
+- [x] Implement shared server/client entitlement contracts and remove conflicting hardcoded plan rules
+- [x] Reconcile pricing pages, onboarding, current-plan displays, upgrade/downgrade, cancellation, renewal, refund, and reactivation behavior
+- [ ] Reconcile Stripe Connect, payment collection, invoicing, analytics, custom URL, saved-provider, bulk-quote, and other plan-gated access
+- [ ] Reconcile entitlement-dependent emails, notifications, and admin plan records
+- [ ] Add comprehensive entitlement and billing lifecycle regression coverage
+
+## Provider Trust and Verification Taxonomy
+- [ ] Audit all current provider verification fields, workflows, badges, admin controls, and public trust claims
+- [ ] Define precise identity, business, license, insurance, completed-booking, and review trust states with evidence and expiry rules
+- [ ] Align the database schema and production database with the authoritative trust taxonomy
+- [ ] Add provider-facing trust status, evidence submission, and clear explanations without overstating verification
+- [ ] Add admin verification review controls, audit history, rejection reasons, and expiry handling
+- [ ] Add accurate public provider trust indicators and explanations
+- [ ] Keep demo/test providers and unverified claims from appearing as verified marketplace supply
+- [ ] Add comprehensive trust taxonomy and authorization regression coverage
+
+## Clean-Account Lifecycle Test Matrix
+- [ ] Create a safe clean-account test strategy that does not fabricate public reviews, ratings, or testimonials
+- [ ] Test customer signup, authentication, role selection, plan activation, discovery, booking, quotes, checkout, messaging, completion, review eligibility, and rebooking
+- [ ] Test provider signup, plan selection, onboarding, category, service, availability, public page, booking/quote response, messaging, payment, completion, and review lifecycle
+- [ ] Test free, paid, trial, upgrade, downgrade, cancellation, renewal, refund, failed payment, reactivation, and duplicate-charge safeguards
+- [ ] Test Stripe connection, invoice access, provider/customer switching, mobile responsiveness, notifications, and email behavior
+- [ ] Document every lifecycle result, correct all discovered defects, and rerun affected journeys
+- [ ] Run final combined regression, zero-error TypeScript, production build, and desktop/mobile verification

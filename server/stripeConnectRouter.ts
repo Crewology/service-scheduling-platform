@@ -20,8 +20,7 @@ export const stripeConnectRouter = router({
       if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider profile not found" });
 
       // Free accounts cannot connect a payment account — must upgrade first
-      const subscription = await db.getProviderSubscription(provider.id);
-      const currentTier = subscription?.tier || "free";
+      const currentTier = await db.getProviderTier(provider.id);
       if (currentTier === "free") {
         throw new TRPCError({
           code: "FORBIDDEN",

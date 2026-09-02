@@ -23,15 +23,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { CUSTOMER_PLANS, PROVIDER_PLANS } from "@shared/entitlements";
 
 // ─── PROVIDER PLANS ────────────────────────────────────────────────────────────
 
 const providerPlans = [
   {
     tier: "free" as const,
-    name: "Starter",
-    monthlyPrice: 0,
-    yearlyPrice: 0,
+    name: PROVIDER_PLANS.free.name,
+    monthlyPrice: PROVIDER_PLANS.free.monthlyPrice,
+    yearlyPrice: PROVIDER_PLANS.free.yearlyPrice,
     icon: Star,
     color: "text-muted-foreground",
     bgColor: "bg-muted",
@@ -39,16 +40,17 @@ const providerPlans = [
     description: "Get started and list your services — no cost, no commitment.",
     highlights: [
       { text: "Free Forever", icon: Star },
-      { text: "1 service category", icon: Layers },
-      { text: "Up to 3 services", icon: Briefcase },
-      { text: "1 photo per service", icon: Camera },
+      { text: `${PROVIDER_PLANS.free.limits.maxCategories} service category`, icon: Layers },
+      { text: `Up to ${PROVIDER_PLANS.free.limits.maxServices} services`, icon: Briefcase },
+      { text: `${PROVIDER_PLANS.free.limits.maxPhotosPerService} photo per service`, icon: Camera },
     ],
     features: [
       { text: "Basic public profile", included: true },
       { text: "Standard search placement", included: true },
       { text: "Booking management", included: true },
       { text: "Customer messaging", included: true },
-      { text: "Invoicing & receipts", included: true },
+      { text: "Stripe payment collection", included: false },
+      { text: "Invoicing & receipts", included: false },
       { text: "Tip collection (Zelle, Cash App, Venmo)", included: true },
       { text: "1% transaction fee", included: true },
       { text: "Priority search placement", included: false },
@@ -60,9 +62,9 @@ const providerPlans = [
   },
   {
     tier: "basic" as const,
-    name: "Pro",
-    monthlyPrice: 12,
-    yearlyPrice: 10.08,
+    name: PROVIDER_PLANS.basic.name,
+    monthlyPrice: PROVIDER_PLANS.basic.monthlyPrice,
+    yearlyPrice: PROVIDER_PLANS.basic.yearlyPrice / 12,
     icon: Zap,
     color: "text-blue-500",
     bgColor: "bg-blue-500/10",
@@ -71,15 +73,16 @@ const providerPlans = [
     description: "For providers offering multiple service categories — grow your reach.",
     highlights: [
       { text: "14 Day Free Trial", icon: Clock },
-      { text: "Up to 5 categories", icon: Layers },
-      { text: "Up to 10 services", icon: Briefcase },
-      { text: "3 photos per service", icon: Camera },
+      { text: `Up to ${PROVIDER_PLANS.basic.limits.maxCategories} categories`, icon: Layers },
+      { text: `Up to ${PROVIDER_PLANS.basic.limits.maxServices} services`, icon: Briefcase },
+      { text: `${PROVIDER_PLANS.basic.limits.maxPhotosPerService} photos per service`, icon: Camera },
     ],
     features: [
       { text: "Enhanced public profile", included: true },
       { text: "Custom profile URL slug", included: true },
       { text: "Priority search placement", included: true },
       { text: "Business analytics", included: true },
+      { text: "Stripe payment collection", included: true },
       { text: "1% transaction fee", included: true },
       { text: "Email support", included: true },
       { text: "Booking management", included: true },
@@ -92,9 +95,9 @@ const providerPlans = [
   },
   {
     tier: "premium" as const,
-    name: "Business",
-    monthlyPrice: 20,
-    yearlyPrice: 16.00,
+    name: PROVIDER_PLANS.premium.name,
+    monthlyPrice: PROVIDER_PLANS.premium.monthlyPrice,
+    yearlyPrice: PROVIDER_PLANS.premium.yearlyPrice / 12,
     icon: Crown,
     color: "text-amber-700 dark:text-amber-400",
     bgColor: "bg-amber-500/10",
@@ -112,6 +115,7 @@ const providerPlans = [
       { text: "Featured listing badge", included: true },
       { text: "Top search placement", included: true },
       { text: "Full analytics suite", included: true },
+      { text: "Stripe payment collection", included: true },
       { text: "1% transaction fee", included: true },
       { text: "Invoicing & receipts", included: true },
       { text: "Tip collection (Zelle, Cash App, Venmo)", included: true },
@@ -128,9 +132,9 @@ const providerPlans = [
 const customerPlans = [
   {
     tier: "free" as const,
-    name: "Individual",
-    monthlyPrice: 0,
-    yearlyPrice: 0,
+    name: CUSTOMER_PLANS.free.name,
+    monthlyPrice: CUSTOMER_PLANS.free.monthlyPrice,
+    yearlyPrice: CUSTOMER_PLANS.free.yearlyPrice,
     icon: Heart,
     color: "text-muted-foreground",
     bgColor: "bg-muted",
@@ -138,7 +142,7 @@ const customerPlans = [
     description: "Perfect for individuals booking personal services occasionally.",
     highlights: [
       { text: "Free Forever", icon: Star },
-      { text: "Save up to 5 providers", icon: Heart },
+      { text: `Save up to ${CUSTOMER_PLANS.free.savedProviderLimit} providers`, icon: Heart },
       { text: "Book any service", icon: Briefcase },
       { text: "Message providers", icon: MessageSquare },
     ],
@@ -156,9 +160,9 @@ const customerPlans = [
   },
   {
     tier: "pro" as const,
-    name: "Coordinator",
-    monthlyPrice: 12,
-    yearlyPrice: 10.08,
+    name: CUSTOMER_PLANS.pro.name,
+    monthlyPrice: CUSTOMER_PLANS.pro.monthlyPrice,
+    yearlyPrice: CUSTOMER_PLANS.pro.yearlyPrice / 12,
     icon: Zap,
     color: "text-blue-500",
     bgColor: "bg-blue-500/10",
@@ -167,7 +171,7 @@ const customerPlans = [
     description: "For frequent bookers and small event planners managing multiple providers.",
     highlights: [
       { text: "14 Day Free Trial", icon: Clock },
-      { text: "Save up to 50 providers", icon: Heart },
+      { text: `Save up to ${CUSTOMER_PLANS.pro.savedProviderLimit} providers`, icon: Heart },
       { text: "Priority booking", icon: Star },
       { text: "Organize into folders", icon: FolderHeart },
     ],
@@ -184,9 +188,9 @@ const customerPlans = [
   },
   {
     tier: "business" as const,
-    name: "Manager",
-    monthlyPrice: 20,
-    yearlyPrice: 16.00,
+    name: CUSTOMER_PLANS.business.name,
+    monthlyPrice: CUSTOMER_PLANS.business.monthlyPrice,
+    yearlyPrice: CUSTOMER_PLANS.business.yearlyPrice / 12,
     icon: Crown,
     color: "text-amber-700 dark:text-amber-400",
     bgColor: "bg-amber-500/10",
@@ -372,7 +376,7 @@ export default function CustomerPricing() {
           <>
             <div className="text-center mb-8">
               <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
-                Build your digital home on OlogyCrew. All plans include your own profile page, booking management, customer messaging, and secure payments — no lead fees, no gatekeeping.
+                Build your digital home on OlogyCrew. Every plan includes your profile, booking management, and customer messaging. Pro and Business add secure payment collection and invoicing — with no lead fees.
               </p>
             </div>
 
@@ -723,7 +727,7 @@ export default function CustomerPricing() {
                   },
                   {
                     q: "Can I accept payments on the free plan?",
-                    a: "Yes! All providers can accept payments through Stripe Connect on any plan, including Starter. Paid plans unlock additional features like more categories, photos, and priority placement.",
+                    a: "Secure Stripe payment collection and provider invoicing are included with Pro and Business. Starter providers can list services, manage bookings, and message customers, then upgrade when they are ready to collect payments through OlogyCrew.",
                   },
                   {
                     q: "What is the 1% transaction fee?",
