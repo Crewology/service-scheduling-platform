@@ -39,10 +39,11 @@ describe("provider workspace Overview", () => {
     expect([...ACTIVE_PROVIDER_BOOKING_STATUSES]).toEqual(["pending", "confirmed", "in_progress"]);
   });
 
-  it("replaces only the provider branch and preserves the customer launchpad", () => {
+  it("replaces only the provider branch and preserves the focused customer workspace", () => {
     expect(homeSource).toContain("<ProviderWorkspaceOverview />");
-    expect(homeSource).toContain("const CUSTOMER_TILES");
-    expect(homeSource).toContain("const tiles = CUSTOMER_TILES");
+    expect(homeSource).toContain("<CustomerWorkspaceHome />");
+    expect(homeSource).not.toContain("PROVIDER_TILES");
+    expect(homeSource).not.toContain("CUSTOMER_TILES");
   });
 
   it("keeps onboarding gating ahead of the live provider Overview", () => {
@@ -51,9 +52,10 @@ describe("provider workspace Overview", () => {
     );
   });
 
-  it("uses one real-data Overview query and disables duplicate customer badge queries", () => {
+  it("uses one real-data Overview query without restoring duplicate launchpad badge queries", () => {
     expect(overviewSource).toContain("trpc.providerOverview.get.useQuery");
-    expect(homeSource).toContain("enabled: !isProviderView");
+    expect(homeSource).not.toContain("getUnreadCount.useQuery");
+    expect(homeSource).not.toContain("countUnread.useQuery");
   });
 
   it("maps the four approved information groups and six provider destinations", () => {

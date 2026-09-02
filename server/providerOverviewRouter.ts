@@ -10,6 +10,8 @@ import { getServicesByProviderId } from "./db/services";
 import { getUserById } from "./db/users";
 import {
   ACTIVE_PROVIDER_BOOKING_STATUSES,
+  formatProviderDate,
+  formatProviderTime,
   hasProviderScheduleConflict,
   providerDateKey,
 } from "./providerOverviewLogic";
@@ -69,7 +71,7 @@ export const providerOverviewRouter = router({
           kind: "booking" as const,
           tone: "time" as const,
           title: `Confirm ${serviceNames.get(booking.serviceId) || "booking"}`,
-          detail: `${booking.customerName || "A customer"} requested ${providerDateKey(booking.bookingDate)} at ${booking.startTime}.`,
+          detail: `${booking.customerName || "A customer"} requested ${formatProviderDate(booking.bookingDate)} at ${formatProviderTime(booking.startTime)}.`,
           timestamp: booking.createdAt,
           actionLabel: "Review request",
           href: "/provider/dashboard?tab=bookings",
@@ -107,7 +109,7 @@ export const providerOverviewRouter = router({
           kind: "invoice" as const,
           tone: "operational" as const,
           title: `${invoice.invoiceNumber} is overdue`,
-          detail: `${invoice.customerName || "Customer"} · $${(invoice.total / 100).toFixed(2)} was due ${providerDateKey(invoice.dueDate)}.`,
+          detail: `${invoice.customerName || "Customer"} · $${(invoice.total / 100).toFixed(2)} was due ${formatProviderDate(invoice.dueDate)}.`,
           timestamp: invoice.dueDate || invoice.createdAt,
           actionLabel: "View invoice",
           href: "/provider/invoices",

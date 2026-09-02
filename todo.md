@@ -2630,3 +2630,13 @@
 - [x] Connect live search results and provider service cards to adaptive entry while preserving all existing deep links
 - [x] Add focused Vitest coverage for every adaptive-routing variant and route-isolation safeguard
 - [x] Verify direct-booking and quote-request paths on desktop and mobile before checkpointing
+
+## Integrated Experience — Release Hardening
+- [x] Verify provider/customer role switching consistently opens the correct redesigned home without flashes or stale state
+- [x] Verify provider Overview navigation and customer focused tools have no missing or duplicate destinations on desktop and mobile
+- [x] Verify customer search intent survives the full home → search → service handoff
+- [x] Verify standardized services preserve direct, multi-day, recurring, free, mobile, virtual, promotion, referral, and payment behavior
+- [x] Verify custom services preserve guided quote creation, authentication, provider ownership, validation, and existing quote management
+- [x] Verify one-tap rebooking opens an eligible live service with the correct provider and adaptive mode
+- [x] Correct any loading, empty, error, route, or helper-copy inconsistencies discovered during integrated testing
+- [x] Run combined focused tests, production build, and final desktop/mobile visual checks

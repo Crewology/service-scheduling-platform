@@ -25,9 +25,9 @@ describe("customer workspace home", () => {
     expect([...CUSTOMER_UPCOMING_STATUSES]).toEqual(["pending", "confirmed", "in_progress"]);
   });
 
-  it("builds a one-tap rebooking URL with provider context", () => {
-    const href = customerRebookHref(330003, "chisolm-audio");
-    expect(href).toBe("/service/330003?rebook=1&from_provider=chisolm-audio");
+  it("builds a one-tap adaptive rebooking URL with provider and prior-service context", () => {
+    const href = customerRebookHref(330003, "chisolm-audio", "A1");
+    expect(href).toBe("/service/330003?entry=adaptive&rebook=1&from_provider=chisolm-audio&intent=Rebook+A1");
   });
 
   it("preserves need, place, and timing search context", () => {

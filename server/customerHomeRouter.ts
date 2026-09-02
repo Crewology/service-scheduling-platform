@@ -157,7 +157,7 @@ export const customerHomeRouter = router({
           providerRating: numericAmount(booking.providerRating),
           providerReviewCount: booking.providerReviewCount,
           lastBookedDate: booking.bookingDate,
-          href: customerRebookHref(booking.serviceId, booking.providerSlug),
+          href: customerRebookHref(booking.serviceId, booking.providerSlug, booking.serviceName),
         }));
 
       return {
@@ -167,4 +167,3 @@ export const customerHomeRouter = router({
       };
     }),
 });
-

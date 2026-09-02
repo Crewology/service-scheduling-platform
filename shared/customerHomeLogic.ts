@@ -6,9 +6,10 @@ export function customerDateKey(value: string | Date | null | undefined): string
   return String(value).slice(0, 10);
 }
 
-export function customerRebookHref(serviceId: number, providerSlug?: string | null): string {
-  const params = new URLSearchParams({ rebook: "1" });
+export function customerRebookHref(serviceId: number, providerSlug?: string | null, serviceName?: string | null): string {
+  const params = new URLSearchParams({ entry: "adaptive", rebook: "1" });
   if (providerSlug) params.set("from_provider", providerSlug);
+  if (serviceName?.trim()) params.set("intent", `Rebook ${serviceName.trim()}`);
   return `/service/${serviceId}?${params.toString()}`;
 }
 
@@ -18,4 +19,3 @@ export function customerSearchHref(input: { query: string; location?: string; ti
   if (input.timing && input.timing !== "Any time") params.set("timing", input.timing);
   return `/search?${params.toString()}`;
 }
-

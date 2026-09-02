@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { adaptiveServiceHref, getAdaptiveBookingDecision } from "../shared/adaptiveBooking";
+import { customerRebookHref } from "../shared/customerHomeLogic";
+import { formatProviderDate, formatProviderTime } from "./providerOverviewLogic";
 
 const root = resolve(__dirname, "..");
 
@@ -171,5 +173,16 @@ describe("adaptive booking integration", () => {
     expect(providerProfile).toContain("adaptiveServiceHref(service.id");
     expect(providerProfile).toContain('decision.mode === "direct" ? "Check availability" : "Request quote"');
     expect(serviceDetail).toContain('useParams<{ id: string }>()');
+  });
+
+  it("preserves adaptive mode, provider context, and prior service intent when rebooking", () => {
+    const href = customerRebookHref(930001, "chisolm-audio", "Audio Enhancement");
+    expect(href).toBe("/service/930001?entry=adaptive&rebook=1&from_provider=chisolm-audio&intent=Rebook+Audio+Enhancement");
+  });
+
+  it("formats provider attention dates and times as readable customer-facing copy", () => {
+    expect(formatProviderDate("2026-08-03")).toBe("Aug 3, 2026");
+    expect(formatProviderTime("10:30:00")).toBe("10:30 AM");
+    expect(formatProviderTime("17:05:00")).toBe("5:05 PM");
   });
 });
