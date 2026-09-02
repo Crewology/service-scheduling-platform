@@ -1074,8 +1074,16 @@ function VerificationDocumentsTab() {
   const { data: documents, isLoading } = trpc.verification.myDocuments.useQuery();
   const utils = trpc.useUtils();
   const [uploading, setUploading] = useState(false);
-  const [selectedType, setSelectedType] = useState<string>("identity");
+  const [selectedType, setSelectedType] = useState<"identity" | "business_license" | "professional_license" | "insurance" | "background_check">("identity");
   const [deletingDocId, setDeletingDocId] = useState<number | null>(null);
+  const [evidenceForm, setEvidenceForm] = useState({
+    documentLabel: "Government ID",
+    issuer: "",
+    credentialIdentifier: "",
+    jurisdiction: "",
+    issuedDate: "",
+    expirationDate: "",
+  });
 
   const deleteDoc = trpc.verification.deleteDocument.useMutation({
     onSuccess: () => {
@@ -1102,12 +1110,26 @@ function VerificationDocumentsTab() {
       toast.error("File must be under 10MB");
       return;
     }
+    if (!evidenceForm.documentLabel.trim()) {
+      toast.error("Add a document label before uploading");
+      return;
+    }
+    if (selectedType === "insurance" && !evidenceForm.expirationDate) {
+      toast.error("Insurance evidence requires an expiration date");
+      return;
+    }
     setUploading(true);
     const reader = new FileReader();
     reader.onload = () => {
       const base64 = (reader.result as string).split(",")[1];
       uploadDoc.mutate({
-        documentType: selectedType as any,
+        documentType: selectedType,
+        documentLabel: evidenceForm.documentLabel.trim(),
+        issuer: evidenceForm.issuer.trim() || undefined,
+        credentialIdentifier: evidenceForm.credentialIdentifier.trim() || undefined,
+        jurisdiction: evidenceForm.jurisdiction.trim() || undefined,
+        issuedDate: evidenceForm.issuedDate || undefined,
+        expirationDate: evidenceForm.expirationDate || undefined,
         documentData: base64,
         contentType: file.type || "application/pdf",
       });
@@ -1118,15 +1140,19 @@ function VerificationDocumentsTab() {
 
   const docTypes = [
     { value: "identity", label: "Government ID", description: "Driver's license, passport, or state ID" },
-    { value: "business_license", label: "Business License", description: "Business registration or license" },
+    { value: "business_license", label: "Business Registration", description: "Business registration or formation evidence" },
+    { value: "professional_license", label: "Professional License", description: "Occupational or professional license" },
     { value: "insurance", label: "Insurance Certificate", description: "Liability or professional insurance" },
     { value: "background_check", label: "Background Check", description: "Background check clearance" },
   ];
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "approved": return <Badge className="bg-green-100 text-green-800">Approved</Badge>;
+      case "approved":
+      case "verified": return <Badge className="bg-green-100 text-green-800">Evidence reviewed</Badge>;
       case "rejected": return <Badge variant="destructive">Rejected</Badge>;
+      case "expired": return <Badge className="bg-amber-100 text-amber-800">Expired</Badge>;
+      case "revoked": return <Badge variant="destructive">Revoked</Badge>;
       default: return <Badge variant="secondary">Pending Review</Badge>;
     }
   };
@@ -1136,10 +1162,10 @@ function VerificationDocumentsTab() {
       <div>
         <h2 className="text-2xl font-bold flex items-center gap-2">
           <Shield className="h-6 w-6 text-blue-600" />
-          Verification Documents
+          Verification Evidence
         </h2>
         <p className="text-muted-foreground mt-1">
-          Upload documents to verify your identity and business credentials. Verified providers earn a trust badge.
+          Submit evidence for separate identity, business, license, insurance, or background-check review. Uploading a document is not approval, and OlogyCrew does not issue a blanket “verified provider” claim.
         </p>
       </div>
 
@@ -1154,7 +1180,10 @@ function VerificationDocumentsTab() {
             {docTypes.map((dt) => (
               <button
                 key={dt.value}
-                onClick={() => setSelectedType(dt.value)}
+                onClick={() => {
+                  setSelectedType(dt.value as typeof selectedType);
+                  setEvidenceForm(form => ({ ...form, documentLabel: dt.label }));
+                }}
                 className={`p-3 rounded-lg border text-left transition-colors ${
                   selectedType === dt.value
                     ? "border-primary bg-primary/5"
@@ -1166,6 +1195,32 @@ function VerificationDocumentsTab() {
                 <p className="text-xs text-muted-foreground mt-1">{dt.description}</p>
               </button>
             ))}
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="space-y-1">
+              <Label>Document label *</Label>
+              <Input value={evidenceForm.documentLabel} onChange={e => setEvidenceForm({ ...evidenceForm, documentLabel: e.target.value })} placeholder="e.g. Georgia Electrical License" />
+            </div>
+            <div className="space-y-1">
+              <Label>Issuer or carrier</Label>
+              <Input value={evidenceForm.issuer} onChange={e => setEvidenceForm({ ...evidenceForm, issuer: e.target.value })} placeholder="Issuing agency or insurer" />
+            </div>
+            <div className="space-y-1">
+              <Label>Credential or policy ID</Label>
+              <Input value={evidenceForm.credentialIdentifier} onChange={e => setEvidenceForm({ ...evidenceForm, credentialIdentifier: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label>Jurisdiction</Label>
+              <Input value={evidenceForm.jurisdiction} onChange={e => setEvidenceForm({ ...evidenceForm, jurisdiction: e.target.value })} placeholder="e.g. Georgia" />
+            </div>
+            <div className="space-y-1">
+              <Label>Issue date</Label>
+              <Input type="date" value={evidenceForm.issuedDate} onChange={e => setEvidenceForm({ ...evidenceForm, issuedDate: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label>Expiration date {selectedType === "insurance" ? "*" : ""}</Label>
+              <Input type="date" value={evidenceForm.expirationDate} onChange={e => setEvidenceForm({ ...evidenceForm, expirationDate: e.target.value })} />
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <label className="cursor-pointer">
@@ -1206,49 +1261,58 @@ function VerificationDocumentsTab() {
                   <div className="flex items-center gap-3">
                     <FileText className="h-5 w-5 text-muted-foreground" />
                     <div>
-                      <p className="font-medium capitalize">{doc.documentType.replace("_", " ")}</p>
+                      <p className="font-medium">{doc.documentLabel || doc.documentType.replaceAll("_", " ")}</p>
                       <p className="text-xs text-muted-foreground">
                         Uploaded {new Date(doc.createdAt).toLocaleDateString()}
                       </p>
                       {doc.rejectionReason && doc.verificationStatus === "rejected" && (
                         <p className="text-xs text-red-600 mt-1">Reason: {doc.rejectionReason}</p>
                       )}
+                      {doc.revocationReason && doc.verificationStatus === "revoked" && (
+                        <p className="text-xs text-red-600 mt-1">Revoked: {doc.revocationReason}</p>
+                      )}
+                      {doc.expirationDate && (
+                        <p className="text-xs text-muted-foreground">Expires {new Date(`${doc.expirationDate}T00:00:00`).toLocaleDateString()}</p>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    {getStatusBadge(doc.verificationStatus)}
-                    <a href={doc.documentUrl} target="_blank" rel="noopener noreferrer">
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </a>
-                    {deletingDocId === doc.id ? (
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => deleteDoc.mutate({ documentId: doc.id })}
-                          disabled={deleteDoc.isPending}
-                        >
-                          {deleteDoc.isPending ? "Deleting..." : "Confirm"}
-                        </Button>
+                    {getStatusBadge(doc.state || doc.verificationStatus)}
+                    <Button variant="ghost" size="sm" onClick={async () => {
+                      try {
+                        const result = await utils.client.verification.viewDocument.query({ documentId: doc.id });
+                        window.open(result.url, "_blank", "noopener,noreferrer");
+                      } catch (error: any) {
+                        toast.error(error.message || "Unable to open document");
+                      }
+                    }}>
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    {(doc.verificationStatus === "pending" || doc.verificationStatus === "rejected") && (
+                      deletingDocId === doc.id ? (
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => deleteDoc.mutate({ documentId: doc.id })}
+                            disabled={deleteDoc.isPending}
+                          >
+                            {deleteDoc.isPending ? "Deleting..." : "Confirm"}
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => setDeletingDocId(null)}>
+                            Cancel
+                          </Button>
+                        </div>
+                      ) : (
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => setDeletingDocId(null)}
+                          className="text-muted-foreground hover:text-destructive"
+                          onClick={() => setDeletingDocId(doc.id)}
                         >
-                          Cancel
+                          <Trash2 className="h-4 w-4" />
                         </Button>
-                      </div>
-                    ) : (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-muted-foreground hover:text-destructive"
-                        onClick={() => setDeletingDocId(doc.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      )
                     )}
                   </div>
                 </div>
@@ -1267,15 +1331,15 @@ function VerificationDocumentsTab() {
 export default function ProviderDashboard(props: { initialTab?: string; hideChrome?: boolean } & Record<string, any> = {}) {
   const { initialTab, hideChrome } = props;
   const { user, isAuthenticated, loading } = useAuth();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const { isProviderView } = useViewMode();
 
   // Redirect to My Bookings if user switches to customer view
   useEffect(() => {
-    if (!isProviderView) {
+    if (!isProviderView && location !== "/my-bookings") {
       setLocation("/my-bookings");
     }
-  }, [isProviderView, setLocation]);
+  }, [isProviderView, location, setLocation]);
 
   const utils = trpc.useUtils();
 
@@ -1425,6 +1489,9 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
 
   const { data: provider } = trpc.provider.getMyProfile.useQuery(undefined, {
     enabled: isAuthenticated,
+  });
+  const { data: trustProfile } = trpc.verification.myTrustProfile.useQuery(undefined, {
+    enabled: isAuthenticated && !!provider,
   });
   
   const { data: services } = trpc.service.listMine.useQuery(undefined, {
@@ -1682,9 +1749,13 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2">Welcome back, {provider.businessName}!</h1>
             <p className="text-muted-foreground">Manage your services, bookings, and availability</p>
             <div className="flex items-center gap-2 mt-2">
-              <Badge variant={provider.verificationStatus === "verified" ? "default" : "secondary"}>
-                {provider.verificationStatus}
-              </Badge>
+              {trustProfile?.isOfficialDemo ? (
+                <Badge variant="secondary">Official OlogyCrew demo</Badge>
+              ) : (
+                <Badge variant={trustProfile?.evidence.identity.state === "verified" ? "default" : "secondary"}>
+                  Identity evidence: {trustProfile?.evidence.identity.state.replace("_", " ") || "not submitted"}
+                </Badge>
+              )}
               {provider.averageRating && parseFloat(provider.averageRating) > 0 && (
                 <span className="text-sm text-muted-foreground flex items-center gap-1">
                   <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
@@ -3031,7 +3102,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
               <ReferProviderCard />
             </div>
 
-            {/* Verification Documents sub-section */}
+            {/* Verification evidence sub-section */}
             <div className="border-t pt-6">
               <VerificationDocumentsTab />
             </div>

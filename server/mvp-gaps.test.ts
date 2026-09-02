@@ -153,17 +153,14 @@ describe("Availability Delete", () => {
 });
 
 describe("Admin Provider Verification", () => {
-  it("should have updateProviderVerification procedure", async () => {
+  it("should reject legacy blanket provider verification updates", async () => {
     const ctx = createAuthContext("admin");
-    // Verify the procedure exists with correct input schema
-    try {
-      await caller(ctx).admin.updateProviderVerification({
+    await expect(
+      caller(ctx).admin.updateProviderVerification({
         providerId: 999999,
         verificationStatus: "verified",
-      });
-    } catch (e) {
-      // Expected - provider doesn't exist, but procedure and schema work
-    }
+      })
+    ).rejects.toThrow("evidence-specific");
   });
 
   it("should reject non-admin from verification updates", async () => {

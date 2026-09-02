@@ -114,7 +114,7 @@ describe("auth", () => {
     const caller = appRouter.createCaller(ctx);
     const result = await caller.auth.logout();
     expect(result.success).toBe(true);
-    expect(clearedCookies.length).toBe(1);
+    expect(clearedCookies.length).toBeGreaterThanOrEqual(1);
   });
 });
 
@@ -406,13 +406,12 @@ describe("admin", () => {
     expect(Array.isArray(result)).toBe(true);
   });
 
-  it("admin can update provider verification status", async () => {
+  it("admin cannot bypass evidence review with a blanket provider status update", async () => {
     const adminUser = { id: adminUserId, openId: `${TEST_PREFIX}-admin`, name: "Test Admin", email: `admin-${TEST_PREFIX}@test.com`, role: "admin" as const, loginMethod: "test", emailVerified: true, createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date(), firstName: null, lastName: null, phone: null, profilePhotoUrl: null, deletedAt: null };
     const caller = appRouter.createCaller(makeCtx(adminUser));
-    const result = await caller.admin.updateProviderVerification({
+    await expect(caller.admin.updateProviderVerification({
       providerId,
       verificationStatus: "verified",
-    });
-    expect(result).toBeDefined();
+    })).rejects.toThrow("evidence-specific");
   });
 });

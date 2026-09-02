@@ -398,7 +398,7 @@ export default function PublicProviderProfile() {
     );
   }
 
-  const { provider, services, reviews, categories, profilePhoto } = data;
+  const { provider, services, reviews, categories, profilePhoto, trustProfile } = data;
   const avgRating = parseFloat(provider.averageRating || "0");
   const displayName = (name: string) =>
     name.split(" ").map((w: string) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
@@ -1020,30 +1020,46 @@ export default function PublicProviderProfile() {
                   <p>Member since {new Date(provider.createdAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}</p>
                 </div>
 
-                {/* Trust & Credentials */}
-                {(provider.trustLevel && provider.trustLevel !== "new") || provider.insuranceVerified || provider.backgroundCheckVerified ? (
+                {/* Evidence and OlogyCrew activity are intentionally separate signals. */}
+                {trustProfile && (
                   <>
                     <Separator />
-                    <div className="space-y-2">
-                      {provider.trustLevel && provider.trustLevel !== "new" && (
-                        <div className="flex items-center gap-2">
-                          <TrustBadge level={provider.trustLevel} size="md" showTooltip={false} />
-                          <span className="text-xs text-muted-foreground">Provider</span>
+                    {trustProfile.isOfficialDemo ? (
+                      <div className="space-y-1">
+                        <p className="flex items-center gap-1.5 text-sm font-medium text-blue-700">
+                          <Shield className="w-4 h-4" /> Official OlogyCrew demo
+                        </p>
+                        <p className="text-xs text-muted-foreground">Demo profiles do not carry provider verification claims.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {trustProfile.publicEvidence.length > 0 && (
+                          <div className="space-y-2">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Evidence reviewed by OlogyCrew</p>
+                            {trustProfile.publicEvidence.map(signal => (
+                              <div key={signal.type} className="rounded-lg bg-emerald-50 p-2.5 text-sm text-emerald-900">
+                                <p className="flex items-center gap-1.5 font-medium"><Shield className="h-4 w-4" /> {signal.label}</p>
+                                {signal.expiresAt && <p className="mt-1 text-xs text-emerald-800">Current through {new Date(signal.expiresAt).toLocaleDateString()}</p>}
+                                <p className="mt-1 text-xs text-emerald-800">{signal.publicExplanation}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <div className="space-y-2">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">OlogyCrew activity</p>
+                          <p className="text-sm">{trustProfile.activity.completedBookingsLabel}</p>
+                          <p className="text-sm">{trustProfile.activity.reviewsLabel}</p>
+                          {trustProfile.standing.level !== "new" && (
+                            <div>
+                              <p className="text-sm font-medium">{trustProfile.standing.label}</p>
+                              <p className="text-xs text-muted-foreground">{trustProfile.standing.explanation} This is not credential verification.</p>
+                            </div>
+                          )}
                         </div>
-                      )}
-                      {provider.insuranceVerified && (
-                        <p className="flex items-center gap-1.5 text-sm text-green-600">
-                          <Shield className="w-4 h-4" /> Insured
-                        </p>
-                      )}
-                      {provider.backgroundCheckVerified && (
-                        <p className="flex items-center gap-1.5 text-sm text-green-600">
-                          <Shield className="w-4 h-4" /> Background Check
-                        </p>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </>
-                ) : null}
+                )}
               </CardContent>
             </Card>
 

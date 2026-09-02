@@ -473,7 +473,7 @@ export async function generateProviderOgImage(
     const rating = parseFloat(provider.averageRating || "0");
     const reviewCount = provider.totalReviews || 0;
     const trustLevel = provider.trustLevel || "new";
-    const trustBadgeText = trustLevel === "top_pro" ? "Top Pro" : trustLevel === "trusted" ? "Trusted" : trustLevel === "rising" ? "Rising" : "";
+    const trustBadgeText = trustLevel === "top_pro" ? "Top Activity" : trustLevel === "trusted" ? "Established" : trustLevel === "rising" ? "Building History" : "";
     const trustBadgeColor = trustLevel === "top_pro" ? "#f59e0b" : trustLevel === "trusted" ? "#22c55e" : trustLevel === "rising" ? "#3b82f6" : "";
 
     const fontData = await loadFont();

@@ -1,8 +1,8 @@
 /**
  * Automated Trust Score System
  * 
- * Calculates a 0-100 trust score for providers based on objective criteria.
- * The score maps to trust levels: New (0-19), Rising (20-49), Trusted (50-79), Top Pro (80-100).
+ * Calculates a 0-100 provider-standing score from profile and OlogyCrew activity criteria.
+ * Internal enum values are retained for compatibility; public labels never imply credential verification.
  * 
  * Criteria and weights:
  * - Profile Completeness (25 pts): photo, bio, address, business type, services listed
@@ -197,22 +197,22 @@ export const TRUST_LEVEL_CONFIG: Record<TrustLevel, {
     icon: "UserPlus",
   },
   rising: {
-    label: "Rising",
-    description: "Building their reputation",
+    label: "Building History",
+    description: "Building profile completeness and OlogyCrew activity",
     color: "text-blue-600 dark:text-blue-400",
     bgColor: "bg-blue-100 dark:bg-blue-900/30",
     icon: "TrendingUp",
   },
   trusted: {
-    label: "Trusted",
-    description: "Established provider with proven track record",
+    label: "Established",
+    description: "Has established profile and OlogyCrew activity signals",
     color: "text-green-600 dark:text-green-400",
     bgColor: "bg-green-100 dark:bg-green-900/30",
     icon: "ShieldCheck",
   },
   top_pro: {
-    label: "Top Pro",
-    description: "Elite provider with exceptional service",
+    label: "Top Activity",
+    description: "Has strong profile and OlogyCrew activity signals",
     color: "text-amber-600 dark:text-amber-400",
     bgColor: "bg-amber-100 dark:bg-amber-900/30",
     icon: "Award",

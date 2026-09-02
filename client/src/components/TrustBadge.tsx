@@ -19,22 +19,22 @@ const TRUST_CONFIG: Record<TrustLevel, {
     icon: UserPlus,
   },
   rising: {
-    label: "Rising",
-    description: "Building their reputation",
+    label: "Building History",
+    description: "Building profile completeness and OlogyCrew activity",
     colorClass: "text-blue-600 dark:text-blue-400",
     bgClass: "bg-blue-50 dark:bg-blue-900/30",
     icon: TrendingUp,
   },
   trusted: {
-    label: "Trusted",
-    description: "Proven track record with great reviews",
+    label: "Established",
+    description: "Established profile and OlogyCrew activity signals; not credential verification",
     colorClass: "text-green-600 dark:text-green-400",
     bgClass: "bg-green-50 dark:bg-green-900/30",
-    icon: ShieldCheck,
+    icon: TrendingUp,
   },
   top_pro: {
-    label: "Top Pro",
-    description: "Elite provider with exceptional service",
+    label: "Top Activity",
+    description: "Strong profile and OlogyCrew activity signals; not credential verification",
     colorClass: "text-amber-700 dark:text-amber-400",
     bgClass: "bg-amber-50 dark:bg-amber-900/30",
     icon: Award,
@@ -50,8 +50,8 @@ interface TrustBadgeProps {
 }
 
 /**
- * Displays a trust level badge with icon and optional label.
- * Shows a tooltip with the trust level description on hover.
+ * Displays a provider-standing badge with icon and optional label.
+ * Provider standing is separate from evidence review and credential verification.
  */
 export function TrustBadge({ level, size = "md", showLabel = true, showTooltip = true, className }: TrustBadgeProps) {
   const config = TRUST_CONFIG[level];
@@ -88,7 +88,7 @@ export function TrustBadge({ level, size = "md", showLabel = true, showTooltip =
       <Tooltip>
         <TooltipTrigger asChild>{badge}</TooltipTrigger>
         <TooltipContent side="top" className="max-w-[200px]">
-          <p className="font-medium">{config.label} Provider</p>
+          <p className="font-medium">{config.label}</p>
           <p className="text-xs text-muted-foreground">{config.description}</p>
         </TooltipContent>
       </Tooltip>
@@ -120,9 +120,9 @@ export function TrustScoreProgress({ score, level, breakdown, tips }: TrustScore
   // Level thresholds
   const thresholds = [
     { level: "new" as TrustLevel, min: 0, label: "New" },
-    { level: "rising" as TrustLevel, min: 20, label: "Rising" },
-    { level: "trusted" as TrustLevel, min: 50, label: "Trusted" },
-    { level: "top_pro" as TrustLevel, min: 80, label: "Top Pro" },
+    { level: "rising" as TrustLevel, min: 20, label: "Building History" },
+    { level: "trusted" as TrustLevel, min: 50, label: "Established" },
+    { level: "top_pro" as TrustLevel, min: 80, label: "Top Activity" },
   ];
 
   const currentIdx = thresholds.findIndex(t => t.level === level);
@@ -141,7 +141,7 @@ export function TrustScoreProgress({ score, level, breakdown, tips }: TrustScore
             <Icon className="h-5 w-5" />
           </span>
           <div>
-            <p className="font-semibold">{config.label} Provider</p>
+            <p className="font-semibold">{config.label}</p>
             <p className="text-xs text-muted-foreground">{config.description}</p>
           </div>
         </div>

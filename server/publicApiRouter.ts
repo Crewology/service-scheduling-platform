@@ -86,6 +86,7 @@ router.get("/providers/:slug", async (req, res) => {
     const user = await db.getUserById(provider.userId);
     const services = await db.getServicesByProviderId(provider.id);
     const categories = await db.getProviderCategories(provider.id);
+    const trustProfile = await db.getProviderTrustProfile(provider.id);
 
     res.json({
       success: true,
@@ -98,9 +99,16 @@ router.get("/providers/:slug", async (req, res) => {
         state: provider.state,
         profileUrl: `https://ologycrew.com/${provider.profileSlug}`,
         profilePhoto: user?.profilePhotoUrl || null,
-        averageRating: provider.averageRating ? Number(provider.averageRating) : null,
-        totalReviews: provider.totalReviews || 0,
-        verified: provider.verificationStatus === "verified",
+        averageRating: provider.isOfficial ? null : provider.averageRating ? Number(provider.averageRating) : null,
+        totalReviews: provider.isOfficial ? 0 : provider.totalReviews || 0,
+        verified: trustProfile?.identityReviewed || false,
+        verifiedMeaning: "Government identity evidence reviewed by OlogyCrew; this does not verify service quality, safety, or suitability.",
+        trust: trustProfile ? {
+          evidenceReviewed: trustProfile.publicEvidence,
+          activity: trustProfile.activity,
+          standing: trustProfile.standing,
+          explanation: trustProfile.publicExplanation,
+        } : null,
         categories: categories.map((c: any) => ({
           id: c.id,
           name: c.name,

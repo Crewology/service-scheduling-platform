@@ -118,13 +118,13 @@ export const serviceRouter = router({
       }
       if (input.minPrice !== undefined) {
         results = results.filter(s => {
-          if (!s.basePrice) return true; // Include custom_quote / no-price services
+          if (!s.basePrice) return false;
           return parseFloat(s.basePrice) >= input.minPrice!;
         });
       }
       if (input.maxPrice !== undefined) {
         results = results.filter(s => {
-          if (!s.basePrice) return true; // Include custom_quote / no-price services
+          if (!s.basePrice) return false;
           return parseFloat(s.basePrice) <= input.maxPrice!;
         });
       }

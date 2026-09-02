@@ -13,7 +13,7 @@ export function Footer() {
           <div>
             <h3 className="font-bold text-xl mb-4">OlogyCrew</h3>
             <p className="text-sm opacity-80">
-              Connecting customers with trusted service professionals.
+              Connecting customers with service professionals across everyday, business, and event needs.
             </p>
           </div>
           <div>

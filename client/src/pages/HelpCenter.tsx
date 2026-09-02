@@ -299,11 +299,11 @@ const guideSections: GuideSection[] = [
         linkText: "Manage Promo Codes",
       },
       {
-        title: "Trust Badges & Reputation",
+        title: "Provider Standing & Evidence Review",
         content:
-          "OlogyCrew uses an automated Trust Score system to help customers identify reliable providers. Your trust level is calculated from five factors:\n\n\u2022 Profile Completeness (25%) \u2014 Photo, bio, contact info, and business details\n\u2022 Stripe Verification (20%) \u2014 Having a connected and verified Stripe account\n\u2022 Booking History (25%) \u2014 Number of completed bookings and completion rate\n\u2022 Customer Reviews (20%) \u2014 Average rating and number of reviews\n\u2022 Account Age (10%) \u2014 How long you've been on the platform\n\nBased on your score, you earn one of four trust levels:\n\u2022 New \u2014 Just getting started (score 0-29)\n\u2022 Rising \u2014 Building your reputation (score 30-59)\n\u2022 Trusted \u2014 Established provider (score 60-84)\n\u2022 Top Pro \u2014 Elite provider status (score 85-100)\n\nYour trust badge appears on your profile and in search results. Higher trust levels rank you higher in search. Check your Trust Score breakdown and improvement tips on My Dashboard.",
+          "OlogyCrew keeps provider standing separate from evidence review. Standing is an automated profile-and-activity score based on profile completeness, payment setup, completed OlogyCrew bookings, booking-linked reviews, and account age. Its public labels are New (0–19), Building History (20–49), Established (50–79), and Top Activity (80–100). Standing is not credential verification.\n\nIdentity, business registration, professional license, insurance, and background-check evidence are submitted and reviewed separately. Uploading evidence creates a Pending state; only current, approved evidence receives a specific ‘reviewed’ label. A reviewed signal does not guarantee quality, safety, or suitability.",
         link: "/provider/dashboard",
-        linkText: "View Your Trust Score",
+        linkText: "View Your Provider Standing",
       },
       {
         title: "14-Day Pro Trial",
@@ -517,7 +517,7 @@ const faqItems: FAQItem[] = [
   {
     question: "How do I get more visibility as a provider?",
     answer:
-      "Your visibility is determined by your Trust Score and subscription tier. Build your Trust Score by completing your profile, uploading quality portfolio photos, connecting Stripe, earning positive reviews, and completing bookings. Higher trust levels (Rising, Trusted, Top Pro) rank you higher in search results. Upgrading to Pro or Business adds a tier boost to your search ranking. The combination of trust score and subscription tier determines your final placement.",
+      "Your visibility is influenced by provider standing and subscription tier. Build standing by completing your profile, uploading quality portfolio work, setting up eligible payments, completing OlogyCrew bookings, and earning reviews tied to completed bookings. The standing labels are Building History, Established, and Top Activity; they describe profile and platform activity, not credential verification. Pro and Business add the search-priority benefit defined by the plan catalog.",
     category: "Providers",
   },
   {
@@ -623,9 +623,9 @@ const faqItems: FAQItem[] = [
     category: "General",
   },
   {
-    question: "What are Trust Badges and how do I earn one?",
+    question: "What are provider standing and evidence-review badges?",
     answer:
-      "Trust Badges are automatically earned based on your Trust Score, which is calculated from your profile completeness, Stripe verification, booking history, customer reviews, and account age. There are four levels: New (0-29), Rising (30-59), Trusted (60-84), and Top Pro (85-100). Your badge appears on your profile and in search results. Higher trust levels also rank you higher in search. Check your Trust Score breakdown and improvement tips on My Dashboard.",
+      "Provider standing is automatically calculated from profile completeness and OlogyCrew activity. The labels are New (0–19), Building History (20–49), Established (50–79), and Top Activity (80–100). Standing is not credential verification. Evidence-review badges are separate: OlogyCrew displays a specific identity, business registration, professional license, insurance, or background-check label only after that evidence is approved and current. Uploading a document alone does not earn a badge.",
     category: "Providers",
   },
   {

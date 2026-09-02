@@ -112,9 +112,18 @@ export {
   deleteQuoteRequest,
 } from "./db/quotes";
 
-// Verification document deletion
+// Evidence-based provider verification
 export {
+  uploadVerificationDocument,
+  getProviderDocuments,
+  getAllPendingDocuments,
+  getAllDocumentsForAdmin,
+  reviewVerificationDocument,
+  revokeVerificationDocument,
   deleteVerificationDocument,
+  getDocumentById,
+  syncProviderIdentityCompatibilityStatus,
+  getProviderTrustProfile,
 } from "./db/verification";
 
 // Booking sessions (multi-day & recurring)

@@ -335,6 +335,7 @@ export default function AdminDashboard() {
   const { data: users, isLoading: usersLoading } = trpc.admin.listUsers.useQuery(undefined, { enabled: isAdmin });
   const { data: providers, isLoading: providersLoading } = trpc.admin.listProviders.useQuery(undefined, { enabled: isAdmin });
   const { data: bookings, isLoading: bookingsLoading } = trpc.admin.listBookings.useQuery(undefined, { enabled: isAdmin });
+  const { data: pendingEvidence } = trpc.verification.listPending.useQuery(undefined, { enabled: isAdmin });
 
   const suspendUser = trpc.admin.suspendUser.useMutation({
     onSuccess: () => {
@@ -349,24 +350,6 @@ export default function AdminDashboard() {
     onSuccess: () => {
       utils.admin.listUsers.invalidate();
       toast.success("User unsuspended");
-    },
-    onError: (err) => toast.error(err.message),
-  });
-
-  const verifyProvider = trpc.admin.verifyProvider.useMutation({
-    onSuccess: () => {
-      utils.admin.listProviders.invalidate();
-      utils.admin.getStats.invalidate();
-      toast.success("Provider approved");
-    },
-    onError: (err) => toast.error(err.message),
-  });
-
-  const rejectProvider = trpc.admin.rejectProvider.useMutation({
-    onSuccess: () => {
-      utils.admin.listProviders.invalidate();
-      utils.admin.getStats.invalidate();
-      toast.success("Provider rejected");
     },
     onError: (err) => toast.error(err.message),
   });
@@ -438,7 +421,7 @@ export default function AdminDashboard() {
             <CardContent>
               <div className="text-2xl font-bold">{stats?.totalProviders || 0}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                {stats?.pendingVerifications || 0} pending verification
+                {pendingEvidence?.length || 0} pending evidence review{pendingEvidence?.length === 1 ? "" : "s"}
               </p>
             </CardContent>
           </Card>
@@ -531,30 +514,23 @@ export default function AdminDashboard() {
             <div className="grid md:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Pending Verifications</CardTitle>
-                  <CardDescription>Providers awaiting verification</CardDescription>
+                  <CardTitle>Pending Evidence Reviews</CardTitle>
+                  <CardDescription>Submitted provider evidence awaiting an admin decision</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {providers?.filter((p: any) => p.verificationStatus === "pending").length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-4">No pending verifications</p>
+                  {!pendingEvidence || pendingEvidence.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">No pending evidence</p>
                   ) : (
                     <div className="space-y-3">
-                      {providers?.filter((p: any) => p.verificationStatus === "pending").slice(0, 5).map((provider: any) => (
-                        <div key={provider.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 py-2 border-b last:border-0">
+                      {pendingEvidence.slice(0, 5).map((item: any) => (
+                        <div key={item.document.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 py-2 border-b last:border-0">
                           <div className="min-w-0">
-                            <p className="text-sm font-medium truncate">{provider.businessName}</p>
-                            <p className="text-xs text-muted-foreground capitalize">{provider.businessType?.replace('_', ' ')}</p>
+                            <p className="text-sm font-medium truncate">{item.providerName}</p>
+                            <p className="text-xs text-muted-foreground">{item.document.documentLabel || item.document.documentType.replaceAll("_", " ")}</p>
                           </div>
-                          <div className="flex gap-1 shrink-0">
-                            <Button size="sm" className="text-xs px-2" onClick={() => verifyProvider.mutate({ providerId: provider.id })} disabled={verifyProvider.isPending}>
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              Verify
-                            </Button>
-                            <Button size="sm" variant="outline" className="text-xs px-2" onClick={() => rejectProvider.mutate({ providerId: provider.id, reason: "Does not meet requirements" })} disabled={rejectProvider.isPending}>
-                              <XCircle className="h-3 w-3 mr-1" />
-                              Reject
-                            </Button>
-                          </div>
+                          <Button size="sm" variant="outline" className="text-xs px-2" onClick={() => setActiveTab("documents")}>
+                            Review evidence
+                          </Button>
                         </div>
                       ))}
                     </div>
@@ -665,7 +641,7 @@ export default function AdminDashboard() {
               )}
             </Card>
 
-            <ProvidersFilterPanel verifyProvider={verifyProvider} rejectProvider={rejectProvider} toggleProviderActive={toggleProviderActive} />
+            <ProvidersFilterPanel toggleProviderActive={toggleProviderActive} />
           </TabsContent>
 
           {/* Bookings Tab */}
@@ -966,11 +942,12 @@ function ReviewModerationPanel() {
 // DOCUMENT REVIEW PANEL
 // ============================================================================
 function DocumentReviewPanel() {
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved" | "rejected" | "revoked">("all");
   const [docSearch, setDocSearch] = useState("");
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [selectedDocId, setSelectedDocId] = useState<number | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+  const [reviewAction, setReviewAction] = useState<"reject" | "revoke">("reject");
   const utils = trpc.useUtils();
 
   const { data: documents, isLoading } = trpc.verification.listAll.useQuery(
@@ -979,7 +956,7 @@ function DocumentReviewPanel() {
 
   const reviewDoc = trpc.verification.review.useMutation({
     onSuccess: (data) => {
-      toast.success(`Document ${data.status}`);
+      toast.success(`Evidence ${data.state}`);
       utils.verification.listAll.invalidate();
       setRejectDialogOpen(false);
       setRejectReason("");
@@ -987,10 +964,31 @@ function DocumentReviewPanel() {
     onError: (e) => toast.error(e.message),
   });
 
+  const revokeDoc = trpc.verification.revoke.useMutation({
+    onSuccess: () => {
+      toast.success("Evidence revoked");
+      utils.verification.listAll.invalidate();
+      setRejectDialogOpen(false);
+      setRejectReason("");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const openDocument = async (documentId: number) => {
+    try {
+      const result = await utils.client.verification.viewDocument.query({ documentId });
+      window.open(result.url, "_blank", "noopener,noreferrer");
+    } catch (error: any) {
+      toast.error(error.message || "Unable to open document");
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "approved": return <Badge className="bg-green-100 text-green-800">Approved</Badge>;
       case "rejected": return <Badge variant="destructive">Rejected</Badge>;
+      case "expired": return <Badge className="bg-amber-100 text-amber-800">Expired</Badge>;
+      case "revoked": return <Badge variant="destructive">Revoked</Badge>;
       default: return <Badge variant="secondary">Pending</Badge>;
     }
   };
@@ -1000,10 +998,10 @@ function DocumentReviewPanel() {
       <CardHeader>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <CardTitle>Verification Documents</CardTitle>
-            <CardDescription>Review and approve provider documents</CardDescription>
+            <CardTitle>Provider Evidence Review</CardTitle>
+            <CardDescription>Review each identity, business, license, insurance, or background-check record independently</CardDescription>
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select value={statusFilter} onValueChange={value => setStatusFilter(value as typeof statusFilter)}>
             <SelectTrigger className="w-full sm:w-[150px]">
               <SelectValue placeholder="Filter" />
             </SelectTrigger>
@@ -1012,6 +1010,7 @@ function DocumentReviewPanel() {
               <SelectItem value="pending">Pending</SelectItem>
               <SelectItem value="approved">Approved</SelectItem>
               <SelectItem value="rejected">Rejected</SelectItem>
+              <SelectItem value="revoked">Revoked</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -1056,18 +1055,22 @@ function DocumentReviewPanel() {
                 if (!docSearch.trim()) return true;
                 const q = docSearch.toLowerCase();
                 return (item.providerName || "").toLowerCase().includes(q) ||
-                  (item.documentType || "").toLowerCase().includes(q);
+                  (item.document.documentType || "").toLowerCase().includes(q) ||
+                  (item.document.documentLabel || "").toLowerCase().includes(q) ||
+                  (item.document.issuer || "").toLowerCase().includes(q);
               }).map((item: any) => (
                 <TableRow key={item.document.id}>
                   <TableCell className="font-medium">{item.providerName}</TableCell>
-                  <TableCell className="capitalize">{item.document.documentType.replace("_", " ")}</TableCell>
-                  <TableCell>{getStatusBadge(item.document.verificationStatus)}</TableCell>
+                  <TableCell>
+                    <p className="font-medium">{item.document.documentLabel || item.document.documentType.replaceAll("_", " ")}</p>
+                    <p className="text-xs text-muted-foreground">{[item.document.issuer, item.document.jurisdiction].filter(Boolean).join(" · ") || item.document.documentType.replaceAll("_", " ")}</p>
+                    {item.document.expirationDate && <p className="text-xs text-muted-foreground">Expires {new Date(`${item.document.expirationDate}T00:00:00`).toLocaleDateString()}</p>}
+                  </TableCell>
+                  <TableCell>{getStatusBadge(item.document.state || item.document.verificationStatus)}</TableCell>
                   <TableCell>{new Date(item.document.createdAt).toLocaleDateString()}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
-                      <a href={item.document.documentUrl} target="_blank" rel="noopener noreferrer">
-                        <Button size="sm" variant="ghost"><Eye className="h-4 w-4" /></Button>
-                      </a>
+                      <Button size="sm" variant="ghost" onClick={() => openDocument(item.document.id)}><Eye className="h-4 w-4" /></Button>
                       {item.document.verificationStatus === "pending" && (
                         <>
                           <Button
@@ -1081,12 +1084,23 @@ function DocumentReviewPanel() {
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => { setSelectedDocId(item.document.id); setRejectDialogOpen(true); }}
+                            onClick={() => { setReviewAction("reject"); setSelectedDocId(item.document.id); setRejectDialogOpen(true); }}
                             disabled={reviewDoc.isPending}
                           >
                             <XCircle className="h-4 w-4 text-red-500" />
                           </Button>
                         </>
+                      )}
+                      {item.document.verificationStatus === "approved" && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          title="Revoke approved evidence"
+                          onClick={() => { setReviewAction("revoke"); setSelectedDocId(item.document.id); setRejectDialogOpen(true); }}
+                          disabled={revokeDoc.isPending}
+                        >
+                          <XCircle className="h-4 w-4 text-red-500" />
+                        </Button>
                       )}
                     </div>
                   </TableCell>
@@ -1097,15 +1111,15 @@ function DocumentReviewPanel() {
           </div>
         )}
       </CardContent>
-      {/* Reject Dialog */}
+      {/* Reject or revoke evidence dialog */}
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Reject Document</DialogTitle>
-            <DialogDescription>Provide a reason for rejection</DialogDescription>
+            <DialogTitle>{reviewAction === "revoke" ? "Revoke Approved Evidence" : "Reject Evidence"}</DialogTitle>
+            <DialogDescription>{reviewAction === "revoke" ? "Revocation removes the public signal but preserves the audit history." : "Provide a reason the provider can use when submitting replacement evidence."}</DialogDescription>
           </DialogHeader>
           <Input
-            placeholder="Reason for rejection..."
+            placeholder={reviewAction === "revoke" ? "Reason for revocation..." : "Reason for rejection..."}
             value={rejectReason}
             onChange={(e) => setRejectReason(e.target.value)}
           />
@@ -1113,10 +1127,14 @@ function DocumentReviewPanel() {
             <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>Cancel</Button>
             <Button
               variant="destructive"
-              onClick={() => selectedDocId && reviewDoc.mutate({ documentId: selectedDocId, status: "rejected", rejectionReason: rejectReason })}
-              disabled={!rejectReason.trim()}
+              onClick={() => {
+                if (!selectedDocId) return;
+                if (reviewAction === "revoke") revokeDoc.mutate({ documentId: selectedDocId, reason: rejectReason });
+                else reviewDoc.mutate({ documentId: selectedDocId, status: "rejected", rejectionReason: rejectReason });
+              }}
+              disabled={rejectReason.trim().length < 5 || reviewDoc.isPending || revokeDoc.isPending}
             >
-              Reject
+              {reviewAction === "revoke" ? "Revoke Evidence" : "Reject Evidence"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -2225,7 +2243,7 @@ function PushAnalyticsPanel() {
 // ============================================================================
 // PROVIDERS FILTER PANEL
 // ============================================================================
-function ProvidersFilterPanel({ verifyProvider, rejectProvider, toggleProviderActive }: { verifyProvider: any; rejectProvider: any; toggleProviderActive: any }) {
+function ProvidersFilterPanel({ toggleProviderActive }: { toggleProviderActive: any }) {
   const [providerSearch, setProviderSearch] = useState("");
   const [verificationFilter, setVerificationFilter] = useState("all");
   const [providerPage, setProviderPage] = useState(1);
@@ -2331,7 +2349,7 @@ function ProvidersFilterPanel({ verifyProvider, rejectProvider, toggleProviderAc
                     <TableHead>Business Name</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Location</TableHead>
-                    <TableHead>Verification</TableHead>
+                    <TableHead>Identity Evidence</TableHead>
                     <TableHead>
                       <button
                         className="flex items-center gap-1 hover:text-foreground transition-colors"
@@ -2373,12 +2391,14 @@ function ProvidersFilterPanel({ verifyProvider, rejectProvider, toggleProviderAc
                       <TableCell>
                         <Badge
                           variant={
-                            provider.verificationStatus === "verified" ? "default" :
-                            provider.verificationStatus === "pending" ? "secondary" :
-                            "destructive"
+                            provider.trustProfile?.evidence.identity.state === "verified" ? "default" :
+                            ["rejected", "revoked"].includes(provider.trustProfile?.evidence.identity.state) ? "destructive" :
+                            "secondary"
                           }
                         >
-                          {provider.verificationStatus === "verified" ? "approved" : provider.verificationStatus}
+                          {provider.trustProfile?.isOfficialDemo
+                            ? "official demo"
+                            : provider.trustProfile?.evidence.identity.state.replace("_", " ") || "not submitted"}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -2395,21 +2415,7 @@ function ProvidersFilterPanel({ verifyProvider, rejectProvider, toggleProviderAc
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1 flex-wrap">
-                          {provider.verificationStatus === "pending" && (
-                            <>
-                              <Button size="sm" onClick={() => { verifyProvider.mutate({ providerId: provider.id }); utils.admin.searchProvidersFiltered.invalidate(); }} disabled={verifyProvider.isPending}>
-                                Verify
-                              </Button>
-                              <Button size="sm" variant="outline" onClick={() => { rejectProvider.mutate({ providerId: provider.id, reason: "Does not meet requirements" }); utils.admin.searchProvidersFiltered.invalidate(); }} disabled={rejectProvider.isPending}>
-                                Reject
-                              </Button>
-                            </>
-                          )}
-                          {provider.verificationStatus === "rejected" && (
-                            <Button size="sm" variant="outline" onClick={() => { verifyProvider.mutate({ providerId: provider.id }); utils.admin.searchProvidersFiltered.invalidate(); }} disabled={verifyProvider.isPending}>
-                              Re-verify
-                            </Button>
-                          )}
+                          <span className="self-center text-xs text-muted-foreground">Review evidence in Documents</span>
                           <Button
                             size="sm"
                             variant={provider.isActive ? "outline" : "default"}

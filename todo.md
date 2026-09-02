@@ -2669,14 +2669,14 @@
 - [ ] Add comprehensive entitlement and billing lifecycle regression coverage
 
 ## Provider Trust and Verification Taxonomy
-- [ ] Audit all current provider verification fields, workflows, badges, admin controls, and public trust claims
-- [ ] Define precise identity, business, license, insurance, completed-booking, and review trust states with evidence and expiry rules
-- [ ] Align the database schema and production database with the authoritative trust taxonomy
-- [ ] Add provider-facing trust status, evidence submission, and clear explanations without overstating verification
-- [ ] Add admin verification review controls, audit history, rejection reasons, and expiry handling
-- [ ] Add accurate public provider trust indicators and explanations
-- [ ] Keep demo/test providers and unverified claims from appearing as verified marketplace supply
-- [ ] Add comprehensive trust taxonomy and authorization regression coverage
+- [x] Audit all current provider verification fields, workflows, badges, admin controls, and public trust claims
+- [x] Define precise identity, business, license, insurance, completed-booking, and review trust states with evidence and expiry rules
+- [x] Align the database schema and production database with the authoritative trust taxonomy
+- [x] Add provider-facing trust status, evidence submission, and clear explanations without overstating verification
+- [x] Add admin verification review controls, audit history, rejection reasons, and expiry handling
+- [x] Add accurate public provider trust indicators and explanations
+- [x] Keep demo/test providers and unverified claims from appearing as verified marketplace supply
+- [x] Add comprehensive trust taxonomy and authorization regression coverage
 
 ## Clean-Account Lifecycle Test Matrix
 - [ ] Create a safe clean-account test strategy that does not fabricate public reviews, ratings, or testimonials
@@ -2689,3 +2689,6 @@
 - [x] Require every real booking checkout to use both an effective paid provider entitlement and a payout-ready connected Stripe account
 - [x] Remove legacy recently-cancelled auto-resubscribe behavior that could silently create a newly chargeable subscription
 - [x] Replace stale immediate-downgrade/prorated-credit copy and guard missing access-end dates in provider and customer subscription screens
+- [x] Exclude custom or missing-price services when customers explicitly apply a numeric price range
+- [x] Update legacy verification tests to require verified-email fixtures, immutable evidence history, and rejection of blanket provider verification
+- [x] Move provider dashboard redirect logic out of render so evidence-tab navigation does not trigger React cross-component update errors

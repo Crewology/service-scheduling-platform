@@ -480,9 +480,6 @@ export default function Search() {
                                     {provider.trustLevel && provider.trustLevel !== "new" && (
                                       <TrustBadge level={provider.trustLevel} size="sm" showLabel={false} />
                                     )}
-                                    {!provider.trustLevel && provider.verificationStatus === "verified" && (
-                                      <BadgeCheck className="h-4 w-4 text-blue-500 shrink-0" />
-                                    )}
                                   </div>
                                   {/* Categories */}
                                   {provider.categories && provider.categories.length > 0 && (

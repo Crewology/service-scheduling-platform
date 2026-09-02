@@ -93,11 +93,24 @@ export const providerRouter = router({
     .query(async ({ input }) => {
       const provider = await db.getProviderById(input.id);
       if (!provider) return null;
-      const effectiveTier = await db.getProviderTier(provider.id);
+      const [effectiveTier, trustProfile] = await Promise.all([
+        db.getProviderTier(provider.id),
+        db.getProviderTrustProfile(provider.id),
+      ]);
       // Security: Strip sensitive internal fields from public response
-      const { stripeAccountId, ...safeProvider } = provider;
+      const {
+        stripeAccountId,
+        verificationStatus: _legacyVerificationStatus,
+        insuranceVerified: _legacyInsuranceVerified,
+        backgroundCheckVerified: _legacyBackgroundCheckVerified,
+        ...safeProviderRaw
+      } = provider;
+      const safeProvider = provider.isOfficial
+        ? { ...safeProviderRaw, averageRating: "0.00", totalReviews: 0, totalBookings: 0 }
+        : safeProviderRaw;
       return {
         ...safeProvider,
+        trustProfile,
         canAcceptPlatformPayments:
           !provider.isOfficial &&
           provider.payoutEnabled === true &&
@@ -147,7 +160,7 @@ export const providerRouter = router({
     }),
 
   /**
-   * Get spotlight providers: Top Pro and Trusted providers sorted by trust score.
+   * Get spotlight providers with Established or Top Activity standing, sorted by the internal standing score.
    * Used for the "Provider Spotlight" section on the homepage.
    */
   getSpotlightProviders: publicProcedure.query(async () => {
@@ -407,26 +420,37 @@ export const providerRouter = router({
     .query(async ({ input }) => {
       const provider = await db.getProviderBySlug(input.slug);
       if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider not found" });
-      const [providerServices, providerReviews, providerCats] = await Promise.all([
+      const [providerServices, providerReviews, providerCats, trustProfile] = await Promise.all([
         db.getServicesByProvider(provider.id),
         db.getProviderReviewsPublic(provider.id),
         db.getProviderCategories(provider.id),
+        db.getProviderTrustProfile(provider.id),
       ]);
       // Enrich categories
       const allCategories = await db.getAllCategories();
       const categoryMap = new Map(allCategories.map(c => [c.id, c]));
       const categories = providerCats.map(pc => categoryMap.get(pc.categoryId)).filter(Boolean);
       
-            // Get user info for profile photo
+      // Get user info for profile photo
       const user = await db.getUserById(provider.userId);
       // Security: Strip sensitive internal fields from public response
-      const { stripeAccountId, ...safeProvider } = provider;
+      const {
+        stripeAccountId,
+        verificationStatus: _legacyVerificationStatus,
+        insuranceVerified: _legacyInsuranceVerified,
+        backgroundCheckVerified: _legacyBackgroundCheckVerified,
+        ...safeProviderRaw
+      } = provider;
+      const safeProvider = provider.isOfficial
+        ? { ...safeProviderRaw, averageRating: "0.00", totalReviews: 0, totalBookings: 0 }
+        : safeProviderRaw;
       return { 
         provider: safeProvider, 
         services: providerServices, 
-        reviews: providerReviews, 
+        reviews: provider.isOfficial ? [] : providerReviews,
         categories,
         profilePhoto: user?.profilePhotoUrl || null,
+        trustProfile,
       };
     }),
 

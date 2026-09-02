@@ -63,7 +63,11 @@ export const adminRouter = router({
       limit: z.number().default(50),
     }).optional())
     .query(async ({ input }) => {
-      const allProviders = await db.getAllProviders();
+      const providers = await db.getAllProviders();
+      const allProviders = await Promise.all(providers.map(async (provider: any) => ({
+        ...provider,
+        trustProfile: await db.getProviderTrustProfile(provider.id),
+      })));
       if (!input) return allProviders;
       const offset = (input.page - 1) * input.limit;
       return allProviders.slice(offset, offset + input.limit);
@@ -106,19 +110,21 @@ export const adminRouter = router({
   // Verify a provider
   verifyProvider: adminProcedure
     .input(z.object({ providerId: z.number() }))
-    .mutation(async ({ ctx, input }) => {
-      await db.updateProviderVerification(input.providerId, "verified");
-      await createAuditEntry({ actorId: ctx.user.id, action: "verify_provider", targetType: "provider", targetId: input.providerId });
-      return { success: true };
+    .mutation(async () => {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Blanket provider verification is retired. Review the provider's individual evidence records instead.",
+      });
     }),
 
   // Reject provider verification
   rejectProvider: adminProcedure
     .input(z.object({ providerId: z.number(), reason: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      await db.updateProviderVerification(input.providerId, "rejected");
-      await createAuditEntry({ actorId: ctx.user.id, action: "reject_provider", targetType: "provider", targetId: input.providerId, details: { reason: input.reason } });
-      return { success: true };
+    .mutation(async () => {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Blanket provider rejection is retired. Reject the relevant evidence record with a reason instead.",
+      });
     }),
 
   // Toggle provider active/inactive status
@@ -163,10 +169,11 @@ export const adminRouter = router({
       verificationStatus: z.enum(["pending", "verified", "rejected"]),
       reason: z.string().optional(),
     }))
-    .mutation(async ({ input }) => {
-      await db.updateProviderVerification(input.providerId, input.verificationStatus);
-      const provider = await db.getProviderById(input.providerId);
-      return provider;
+    .mutation(async () => {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Provider verification is evidence-specific. Use the document review workflow.",
+      });
     }),
 
   // Review Moderation
@@ -311,6 +318,7 @@ export const adminRouter = router({
 
       // Get provider profile if exists
       const provider = await db.getProviderByUserId(input.userId);
+      const providerTrustProfile = provider ? await db.getProviderTrustProfile(provider.id) : null;
 
       // Get bookings as customer
       const customerBookings = await db.getCustomerBookings(input.userId);
@@ -342,7 +350,7 @@ export const adminRouter = router({
 
       return {
         user,
-        provider,
+        provider: provider ? { ...provider, trustProfile: providerTrustProfile } : null,
         customerBookings: customerBookings.slice(0, 20), // Last 20
         providerBookings: providerBookings.slice(0, 20),
         reviewsGiven: reviewsGiven.slice(0, 20),
@@ -416,7 +424,11 @@ export const adminRouter = router({
       limit: z.number().default(20),
     }))
     .query(async ({ input }) => {
-      const allProviders = await db.getAllProviders();
+      const providers = await db.getAllProviders();
+      const allProviders = await Promise.all(providers.map(async (provider: any) => ({
+        ...provider,
+        trustProfile: await db.getProviderTrustProfile(provider.id),
+      })));
       let filtered = allProviders;
 
       // Text search
@@ -431,7 +443,7 @@ export const adminRouter = router({
 
       // Verification status filter
       if (input.verificationStatus) {
-        filtered = filtered.filter((p: any) => p.verificationStatus === input.verificationStatus);
+        filtered = filtered.filter((p: any) => p.trustProfile?.compatibilityVerificationStatus === input.verificationStatus);
       }
 
       // Sorting

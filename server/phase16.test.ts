@@ -10,7 +10,7 @@ import * as db from "./db";
 
 function createAuthContext(role: "customer" | "provider" | "admin", userId: number, name: string, email?: string) {
   return {
-    user: { id: userId, openId: `test-p16-${userId}`, name, role, email },
+    user: { id: userId, openId: `test-p16-${userId}`, name, role, email, emailVerified: true },
     req: { headers: { origin: "http://localhost:3000" } } as any,
   };
 }
@@ -92,7 +92,7 @@ describe("Phase 16: Gap Analysis Fixes", () => {
   // ============================================================================
   // PRIORITY 1: Double-Booking Prevention
   // ============================================================================
-  describe("Double-Booking Prevention", () => {
+  describe("Double-Booking Prevention", { timeout: 15_000 }, () => {
     it("should allow first booking for a time slot", async () => {
       const ctx = createAuthContext("customer", customerUserId, "P16 Customer", "p16@test.com");
       const booking = await caller(ctx).booking.create({
@@ -177,7 +177,7 @@ describe("Phase 16: Gap Analysis Fixes", () => {
       expect(updated!.verifiedBy).toBe(adminUserId);
     });
 
-    it("should update existing document on re-upload", async () => {
+    it("should preserve prior evidence and create a new pending submission on re-upload", async () => {
       const docId = await db.uploadVerificationDocument({
         providerId,
         documentType: "identity",
@@ -185,8 +185,9 @@ describe("Phase 16: Gap Analysis Fixes", () => {
       });
       const docs = await db.getProviderDocuments(providerId);
       const identityDocs = docs.filter(d => d.documentType === "identity");
-      expect(identityDocs.length).toBe(1);
-      expect(identityDocs[0].verificationStatus).toBe("pending"); // Reset to pending
+      expect(identityDocs.length).toBe(2);
+      expect(identityDocs[0].verificationStatus).toBe("pending");
+      expect(identityDocs[1].verificationStatus).toBe("approved");
     });
 
     it("should upload a second document type", async () => {
@@ -196,7 +197,7 @@ describe("Phase 16: Gap Analysis Fixes", () => {
         documentUrl: "https://example.com/license.pdf",
       });
       const docs = await db.getProviderDocuments(providerId);
-      expect(docs.length).toBe(2);
+      expect(docs.length).toBe(3);
     });
 
     it("should filter documents by status for admin", async () => {

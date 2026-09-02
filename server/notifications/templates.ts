@@ -824,8 +824,8 @@ Congratulations and welcome to **OlogyCrew**! Your provider profile is now live 
 
 [Go to Provider Dashboard](/provider/dashboard)
 
-**Build Your Trust Score:**
-OlogyCrew uses a **Trust Score** system to highlight reliable providers. Complete bookings on time, earn great reviews, and maintain a fast response time to climb the ranks from **New** to **Trusted** to **Top Pro**.
+**Build Your Provider Standing:**
+Complete your profile, finish OlogyCrew bookings, and earn booking-linked reviews to progress from **New** to **Building History**, **Established**, and **Top Activity**. Provider standing reflects profile and platform activity; it is separate from identity, business, license, insurance, or background-check evidence review.
 
 **Need Help?**
 Visit our Help Center anytime for tips on growing your business on OlogyCrew.

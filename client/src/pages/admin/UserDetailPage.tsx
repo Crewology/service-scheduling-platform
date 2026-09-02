@@ -313,12 +313,14 @@ export default function UserDetailPage() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Verification</p>
+                  <p className="text-sm text-muted-foreground">Identity Evidence</p>
                   <Badge variant={
-                    provider.verificationStatus === "verified" ? "default" :
-                    provider.verificationStatus === "rejected" ? "destructive" : "secondary"
+                    provider.trustProfile?.evidence.identity.state === "verified" ? "default" :
+                    ["rejected", "revoked"].includes(provider.trustProfile?.evidence.identity.state || "") ? "destructive" : "secondary"
                   }>
-                    {provider.verificationStatus || "pending"}
+                    {provider.trustProfile?.isOfficialDemo
+                      ? "official demo"
+                      : provider.trustProfile?.evidence.identity.state.replace("_", " ") || "not submitted"}
                   </Badge>
                 </div>
                 <div>
