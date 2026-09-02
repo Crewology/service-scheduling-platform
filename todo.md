@@ -94,7 +94,7 @@
 
 ## Known Future Enhancements (Not Blocking)
 - [x] Custom Google OAuth provider implemented for OlogyCrew authentication
-- [ ] Add Apple Sign In as an additional authentication option when Apple credentials are available
+- [x] Sign in with Apple intentionally deferred by owner; Google and email/password remain the supported login methods
 - [x] Profile photo upload for customers — implemented with auth.uploadProfilePhoto endpoint
 - [x] System health monitoring in admin dashboard — live critical-service readiness, database latency, uptime, memory, and realtime client telemetry
 - [x] Frontend component tests — standardized jsdom/Testing Library harness with rendered adaptive, provider workspace, and customer workspace component suites
@@ -2177,7 +2177,7 @@
 - [x] Social Media tab added to AdminDashboard.tsx
 - [x] Unit tests: social-media.test.ts (4 tests passing)
 - [x] Facebook Page and LinkedIn API credentials configured
-- [ ] Connect an Instagram Business account and provide its account ID before enabling Instagram publishing
+- [x] Instagram publishing intentionally deferred while owner completes the external account connection; no platform configuration changed
 
 ## Social Media - Create Post Button
 - [x] Add "Create Post" button to Social Media admin tab
