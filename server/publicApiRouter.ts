@@ -79,7 +79,7 @@ router.get("/services", async (req, res) => {
 router.get("/providers/:slug", async (req, res) => {
   try {
     const provider = await db.getProviderBySlug(req.params.slug);
-    if (!provider) {
+    if (!provider || !provider.isActive) {
       return res.status(404).json({ success: false, error: "Provider not found" });
     }
 

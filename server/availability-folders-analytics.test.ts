@@ -98,8 +98,8 @@ describe("Provider Availability Exceptions", () => {
       }
       
       expect(dates).toHaveLength(7);
-      expect(dates[0]).toBe("2026-04-21"); // Monday
-      expect(dates[6]).toBe("2026-04-27"); // Sunday
+      expect(dates[0]).toBe("2026-04-20"); // Monday
+      expect(dates[6]).toBe("2026-04-26"); // Sunday
     });
 
     it("should generate date range for custom period", () => {

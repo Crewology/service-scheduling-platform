@@ -13,7 +13,7 @@ describe("entitlement-aware customer payment surfaces", () => {
   it("publishes only a boolean payment-availability signal, not the connected account identifier", () => {
     expect(providerRouter).toContain("canAcceptPlatformPayments:");
     expect(providerRouter).toContain('providerHasFeature(effectiveTier, "paymentCollection")');
-    expect(providerRouter).toContain("const { stripeAccountId, ...safeProvider } = provider");
+    expect(providerRouter).toMatch(/const\s*\{\s*stripeAccountId,[\s\S]*\.\.\.safeProviderRaw\s*\}\s*=\s*provider/);
   });
 
   it("routes priced bookings to payment only when the provider can collect on-platform", () => {

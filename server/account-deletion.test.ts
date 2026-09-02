@@ -3,6 +3,15 @@ import { appRouter } from "./routers";
 import { COOKIE_NAME } from "../shared/const";
 import type { TrpcContext } from "./_core/context";
 
+vi.mock("./accountDeletionEmail", () => ({
+  sendAccountDeletionEmail: vi.fn().mockResolvedValue(true),
+}));
+
+vi.mock("./_core/notification", async importOriginal => {
+  const original = await importOriginal<Record<string, unknown>>();
+  return { ...original, notifyOwner: vi.fn().mockResolvedValue(true) };
+});
+
 type CookieCall = {
   name: string;
   options: Record<string, unknown>;
@@ -40,6 +49,7 @@ function createContext(overrides: Partial<AuthenticatedUser> = {}): {
       clearCookie: (name: string, options: Record<string, unknown>) => {
         clearedCookies.push({ name, options });
       },
+      cookie: () => {},
     } as TrpcContext["res"],
   };
 
@@ -55,6 +65,7 @@ function createUnauthContext(): TrpcContext {
     } as TrpcContext["req"],
     res: {
       clearCookie: () => {},
+      cookie: () => {},
     } as TrpcContext["res"],
   };
 }

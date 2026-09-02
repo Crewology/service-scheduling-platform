@@ -2666,7 +2666,7 @@
 - [x] Reconcile pricing pages, onboarding, current-plan displays, upgrade/downgrade, cancellation, renewal, refund, and reactivation behavior
 - [x] Reconcile Stripe Connect, payment collection, invoicing, analytics, custom URL, saved-provider, bulk-quote, and other plan-gated access
 - [x] Reconcile entitlement-dependent emails, notifications, and admin plan records
-- [ ] Add comprehensive entitlement and billing lifecycle regression coverage
+- [x] Add comprehensive entitlement and billing lifecycle regression coverage
 
 ## Provider Trust and Verification Taxonomy
 - [x] Audit all current provider verification fields, workflows, badges, admin controls, and public trust claims
@@ -2679,16 +2679,25 @@
 - [x] Add comprehensive trust taxonomy and authorization regression coverage
 
 ## Clean-Account Lifecycle Test Matrix
-- [ ] Create a safe clean-account test strategy that does not fabricate public reviews, ratings, or testimonials
-- [ ] Test customer signup, authentication, role selection, plan activation, discovery, booking, quotes, checkout, messaging, completion, review eligibility, and rebooking
-- [ ] Test provider signup, plan selection, onboarding, category, service, availability, public page, booking/quote response, messaging, payment, completion, and review lifecycle
-- [ ] Test free, paid, trial, upgrade, downgrade, cancellation, renewal, refund, failed payment, reactivation, and duplicate-charge safeguards
-- [ ] Test Stripe connection, invoice access, provider/customer switching, mobile responsiveness, notifications, and email behavior
-- [ ] Document every lifecycle result, correct all discovered defects, and rerun affected journeys
-- [ ] Run final combined regression, zero-error TypeScript, production build, and desktop/mobile verification
+- [x] Create a safe clean-account test strategy that does not fabricate public reviews, ratings, or testimonials
+- [x] Test customer signup, authentication, role selection, plan activation, discovery, booking, quotes, checkout, messaging, completion, review eligibility, and rebooking
+- [x] Test provider signup, plan selection, onboarding, category, service, availability, public page, booking/quote response, messaging, payment, completion, and review lifecycle
+- [x] Test free, paid, trial, upgrade, downgrade, cancellation, renewal, refund, failed payment, reactivation, and duplicate-charge safeguards
+- [x] Test Stripe connection, invoice access, provider/customer switching, mobile responsiveness, notifications, and email behavior
+- [x] Document every lifecycle result, correct all discovered defects, and rerun affected journeys
+- [x] Run final combined regression, zero-error TypeScript, production build, and desktop/mobile verification
 - [x] Require every real booking checkout to use both an effective paid provider entitlement and a payout-ready connected Stripe account
 - [x] Remove legacy recently-cancelled auto-resubscribe behavior that could silently create a newly chargeable subscription
 - [x] Replace stale immediate-downgrade/prorated-credit copy and guard missing access-end dates in provider and customer subscription screens
 - [x] Exclude custom or missing-price services when customers explicitly apply a numeric price range
 - [x] Update legacy verification tests to require verified-email fixtures, immutable evidence history, and rejection of blanket provider verification
 - [x] Move provider dashboard redirect logic out of render so evidence-tab navigation does not trigger React cross-component update errors
+- [x] Expand automated test cleanup so clean-account runs cannot leave orphaned subscriptions, sessions, favorites, folders, invoices, audit entries, authentication factors, or push subscriptions
+- [x] Prevent inactive or suspended providers from appearing through public provider lists, direct profile endpoints, and the public agent API while preserving provider/admin account access
+- [x] Update lifecycle fixtures for multi-variant secure cookie clearing and the verified-email role-selection security gate
+- [x] Reconcile obsolete login/onboarding navigation, entitlement privacy, and SSE polling source-contract tests with the approved current product behavior
+- [x] Mock account-deletion, welcome, owner, and other external notification delivery in clean-account database tests so no real email, SMS, push, or owner alert is sent
+- [x] Calculate cancellation refunds from the captured payment amount rather than the unpaid booking total, returning zero for free or unpaid bookings and respecting partial-payment amounts
+- [x] Restrict provider booking status mutations to the owning provider or an administrator so customers must use the policy-aware cancellation path and cannot self-confirm, complete, or refund bookings
+- [x] Enable optional two-factor authentication only after the verification-code email is accepted, keeping the account disabled and returning a clear error when delivery fails
+- [x] Narrow global test cleanup to unmistakable test prefixes and non-deliverable domains so it cannot delete legitimate deleted-user records or unrelated example-domain accounts

@@ -77,12 +77,17 @@ export const serviceRouter = router({
   getById: publicProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ input }) => {
-      return await db.getServiceById(input.id);
+      const service = await db.getServiceById(input.id);
+      if (!service || !service.isActive) return null;
+      const provider = await db.getProviderById(service.providerId);
+      return provider?.isActive ? service : null;
     }),
     
   listByProvider: publicProcedure
     .input(z.object({ providerId: z.number() }))
     .query(async ({ input }) => {
+      const provider = await db.getProviderById(input.providerId);
+      if (!provider?.isActive) return [];
       return await db.getServicesByProviderId(input.providerId);
     }),
     

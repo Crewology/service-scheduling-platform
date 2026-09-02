@@ -92,7 +92,7 @@ export const providerRouter = router({
     .input(z.object({ id: z.number() }))
     .query(async ({ input }) => {
       const provider = await db.getProviderById(input.id);
-      if (!provider) return null;
+      if (!provider || !provider.isActive) return null;
       const [effectiveTier, trustProfile] = await Promise.all([
         db.getProviderTier(provider.id),
         db.getProviderTrustProfile(provider.id),
@@ -130,7 +130,7 @@ export const providerRouter = router({
       isActive: z.boolean().optional(),
     }).optional())
     .query(async ({ input }) => {
-      return await db.getAllProviders(input || {});
+      return await db.getAllProviders({ ...(input || {}), isActive: true });
     }),
 
   search: publicProcedure
@@ -419,7 +419,7 @@ export const providerRouter = router({
     .input(z.object({ slug: z.string() }))
     .query(async ({ input }) => {
       const provider = await db.getProviderBySlug(input.slug);
-      if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider not found" });
+      if (!provider || !provider.isActive) throw new TRPCError({ code: "NOT_FOUND", message: "Provider not found" });
       const [providerServices, providerReviews, providerCats, trustProfile] = await Promise.all([
         db.getServicesByProvider(provider.id),
         db.getProviderReviewsPublic(provider.id),

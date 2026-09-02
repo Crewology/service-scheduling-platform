@@ -34,6 +34,11 @@ export const bookingRouter = router({
       const service = await db.getServiceById(input.serviceId);
       if (!service) throw new TRPCError({ code: "NOT_FOUND", message: "Service not found" });
 
+      const publicProvider = await db.getProviderById(service.providerId);
+      if (!service.isActive || !publicProvider?.isActive) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Service is not currently available" });
+      }
+
       // Require email verification before allowing bookings
       if (!ctx.user.emailVerified) {
         throw new TRPCError({
@@ -346,14 +351,19 @@ export const bookingRouter = router({
       if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
       
       const provider = await db.getProviderByUserId(ctx.user.id);
-      if (booking.customerId !== ctx.user.id && booking.providerId !== provider?.id && ctx.user.role !== "admin") {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+      const isProviderOwner = booking.providerId === provider?.id;
+      const isAdmin = ctx.user.role === "admin";
+      if (!isProviderOwner && !isAdmin) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only the provider or an administrator can update booking status. Customers must use the cancellation action.",
+        });
       }
       
       const additionalData: any = {};
       if (input.status === "cancelled") {
         additionalData.cancellationReason = input.cancellationReason;
-        additionalData.cancelledBy = booking.customerId === ctx.user.id ? "customer" : "provider";
+        additionalData.cancelledBy = isAdmin ? "admin" : "provider";
       }
 
       // Prevent marking as completed before the booking's scheduled end time
@@ -526,7 +536,10 @@ export const bookingRouter = router({
       const service = await db.getServiceById(booking.serviceId);
       const bookingDateTime = new Date(`${booking.bookingDate}T${booking.startTime}`);
       const hoursUntilBooking = (bookingDateTime.getTime() - Date.now()) / (1000 * 60 * 60);
-      const totalPaid = parseFloat(booking.totalAmount || "0");
+      const payment = await db.getPaymentByBookingId(input.bookingId);
+      const capturedAmount = payment?.status === "captured" ? parseFloat(payment.amount || "0") : 0;
+      const previouslyRefunded = payment ? parseFloat(payment.refundAmount || "0") : 0;
+      const refundablePaidAmount = Math.max(0, capturedAmount - previouslyRefunded);
 
       let refundPercentage = 0;
       let refundReason = "";
@@ -550,9 +563,7 @@ export const bookingRouter = router({
         }
       }
 
-      const refundAmount = (totalPaid * refundPercentage / 100).toFixed(2);
-
-      const payment = await db.getPaymentByBookingId(input.bookingId);
+      const refundAmount = (refundablePaidAmount * refundPercentage / 100).toFixed(2);
       let stripeRefundId: string | undefined;
 
       if (payment?.stripePaymentIntentId && parseFloat(refundAmount) > 0) {

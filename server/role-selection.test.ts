@@ -1,7 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 import * as db from "./db";
+
+vi.mock("./notifications", async importOriginal => {
+  const original = await importOriginal<Record<string, unknown>>();
+  return { ...original, sendNotification: vi.fn().mockResolvedValue({ success: true }) };
+});
 
 type AuthenticatedUser = NonNullable<TrpcContext["user"]>;
 
@@ -16,6 +21,7 @@ async function createTestUser(role: "customer" | "provider" | "admin" = "custome
     email: `rolesel${id}@example.com`,
     name: `RoleSel Test User ${id}`,
     role,
+    emailVerified: true,
   });
 
   const dbUser = await db.getUserByOpenId(openId);
@@ -32,7 +38,7 @@ async function createTestUser(role: "customer" | "provider" | "admin" = "custome
     lastName: null,
     phone: null,
     profilePhotoUrl: null,
-    emailVerified: false,
+    emailVerified: true,
     hasSelectedRole: dbUser.hasSelectedRole,
     createdAt: dbUser.createdAt,
     updatedAt: dbUser.updatedAt,

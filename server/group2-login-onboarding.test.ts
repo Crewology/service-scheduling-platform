@@ -6,7 +6,7 @@ import path from "path";
  * Group 2 Tests: Login & Onboarding Flow
  * 
  * Tests cover:
- * 1. Post-login redirects (providers → dashboard, customers → browse)
+ * 1. Post-login redirects (providers → dashboard, customers → need-first home)
  * 2. Role selection page behavior
  * 3. Plans link in navigation
  * 4. Get Started button links to /pricing
@@ -77,12 +77,12 @@ describe("Group 2: Login & Onboarding Flow", () => {
       expect(roleSelectionContent).toContain("Offer My Services");
     });
 
-    it("should redirect customer to /browse after selection", () => {
+    it("should redirect customer to the need-first home after selection", () => {
       const roleSelectionContent = fs.readFileSync(
         path.resolve(__dirname, "../client/src/pages/RoleSelection.tsx"),
         "utf-8"
       );
-      expect(roleSelectionContent).toContain('setLocation("/browse")');
+      expect(roleSelectionContent).toContain('setLocation("/")');
     });
 
     it("should redirect provider to /provider/onboarding after selection", () => {
@@ -120,23 +120,23 @@ describe("Group 2: Login & Onboarding Flow", () => {
   });
 
   describe("Navigation - Plans link", () => {
-    it("should have Plans link in desktop navigation", () => {
+    it("should have a desktop Get Started link to pricing", () => {
       const navContent = fs.readFileSync(
         path.resolve(__dirname, "../client/src/components/shared/NavHeader.tsx"),
         "utf-8"
       );
       expect(navContent).toContain('href="/pricing"');
-      expect(navContent).toContain(">Plans<");
+      expect(navContent).toContain("Get Started");
     });
 
-    it("should have Plans link in mobile navigation", () => {
+    it("should have a Pricing link in mobile navigation", () => {
       const navContent = fs.readFileSync(
         path.resolve(__dirname, "../client/src/components/shared/NavHeader.tsx"),
         "utf-8"
       );
-      // Mobile menu should also have Plans
+      // Mobile menu should also expose pricing.
       const mobileMenuSection = navContent.split("Mobile Menu")[1] || navContent;
-      expect(mobileMenuSection).toContain("Plans");
+      expect(mobileMenuSection).toContain("Pricing");
     });
 
     it("should have Get Started button linking to /pricing (not login)", () => {
@@ -158,13 +158,13 @@ describe("Group 2: Login & Onboarding Flow", () => {
   });
 
   describe("Plans link in footer", () => {
-    it("should have Plans & Pricing in the Home page footer", () => {
-      const homeContent = fs.readFileSync(
-        path.resolve(__dirname, "../client/src/pages/Home.tsx"),
+    it("should have Plans & Pricing in the shared site footer", () => {
+      const footerContent = fs.readFileSync(
+        path.resolve(__dirname, "../client/src/components/shared/Footer.tsx"),
         "utf-8"
       );
-      expect(homeContent).toContain("Plans & Pricing");
-      expect(homeContent).toContain('href="/pricing"');
+      expect(footerContent).toContain("Plans & Pricing");
+      expect(footerContent).toContain('href="/pricing"');
     });
   });
 

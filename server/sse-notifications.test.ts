@@ -421,7 +421,7 @@ describe("Frontend SSE integration", () => {
     expect(content).toContain("handleSSENewMessage");
     // Should show toast for new notifications
     expect(content).toContain("toast(");
-    // Should use slower polling when SSE is connected
-    expect(content).toContain("sseConnected ? 60000 : 15000");
+    // Poll only as a fallback; a healthy SSE connection is authoritative.
+    expect(content.match(/sseConnected \? false : 60000/g)?.length).toBeGreaterThanOrEqual(2);
   });
 });

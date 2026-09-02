@@ -55,28 +55,18 @@ describe("auth.logout", () => {
 
     expect(result).toEqual({ success: true });
 
-    // Should call clearCookie
-    expect(clearedCookies).toHaveLength(1);
-    expect(clearedCookies[0]?.name).toBe(COOKIE_NAME);
-    expect(clearedCookies[0]?.options).toMatchObject({
-      secure: true,
-      sameSite: "none",
-      httpOnly: true,
-      path: "/",
-    });
+    // Clear every secure/proxy-compatible cookie attribute variant.
+    expect(clearedCookies).toHaveLength(4);
+    expect(clearedCookies.every(call => call.name === COOKIE_NAME)).toBe(true);
+    expect(new Set(clearedCookies.map(call => `${call.options.sameSite}:${call.options.secure}`))).toEqual(
+      new Set(["none:true", "none:false", "lax:true", "lax:false"]),
+    );
+    expect(clearedCookies.every(call => call.options.httpOnly === true && call.options.path === "/")).toBe(true);
 
     // Should also set cookie to empty with maxAge: 0 (belt-and-suspenders)
-    expect(setCookies).toHaveLength(1);
-    expect(setCookies[0]?.name).toBe(COOKIE_NAME);
-    expect(setCookies[0]?.value).toBe("");
-    expect(setCookies[0]?.options).toMatchObject({
-      maxAge: 0,
-      secure: true,
-      sameSite: "none",
-      httpOnly: true,
-      path: "/",
-    });
-    expect(setCookies[0]?.options.expires).toBeInstanceOf(Date);
+    expect(setCookies).toHaveLength(4);
+    expect(setCookies.every(call => call.name === COOKIE_NAME && call.value === "")).toBe(true);
+    expect(setCookies.every(call => call.options.maxAge === 0 && call.options.expires instanceof Date)).toBe(true);
   });
 
   it("works even when user is not authenticated (publicProcedure)", async () => {
@@ -103,7 +93,7 @@ describe("auth.logout", () => {
     const result = await caller.auth.logout();
 
     expect(result).toEqual({ success: true });
-    expect(clearedCookies).toHaveLength(1);
-    expect(setCookies).toHaveLength(1);
+    expect(clearedCookies).toHaveLength(4);
+    expect(setCookies).toHaveLength(4);
   });
 });
