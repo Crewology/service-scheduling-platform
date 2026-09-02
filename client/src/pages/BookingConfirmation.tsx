@@ -351,6 +351,17 @@ export default function BookingConfirmation() {
               </p>
             </CardContent>
           </Card>
+        ) : !(provider as any)?.canAcceptPlatformPayments ? (
+          <Card className="mb-6 border-blue-200 bg-blue-50/60">
+            <CardHeader>
+              <CardTitle>Payment Arranged with Provider</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                This provider is not currently accepting online payments through OlogyCrew. No charge has been created. The provider can confirm your booking and arrange payment directly with you.
+              </p>
+            </CardContent>
+          </Card>
         ) : (
         <Card className="mb-6">
           <CardHeader>
@@ -595,7 +606,7 @@ export default function BookingConfirmation() {
           )}
 
           <div className="flex gap-4">
-            {user && booking.customerId === user.id && !(provider as any)?.isOfficial && depositAmount && !(booking as any).depositPaidAt && (
+            {user && booking.customerId === user.id && !(provider as any)?.isOfficial && (provider as any)?.canAcceptPlatformPayments && depositAmount && !(booking as any).depositPaidAt && (
               <Button
                 onClick={() => handlePayment()}
                 disabled={createCheckout.isPending}
@@ -610,7 +621,7 @@ export default function BookingConfirmation() {
                 )}
               </Button>
             )}
-            {user && booking.customerId === user.id && !(provider as any)?.isOfficial && !depositAmount && !(booking as any).paidAt && booking.status === "confirmed" && (
+            {user && booking.customerId === user.id && !(provider as any)?.isOfficial && (provider as any)?.canAcceptPlatformPayments && !depositAmount && !(booking as any).paidAt && booking.status === "confirmed" && (
               <Button
                 onClick={() => handlePayment()}
                 disabled={createCheckout.isPending}

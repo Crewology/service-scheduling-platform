@@ -7,6 +7,7 @@ import { CUSTOMER_TIERS, CUSTOMER_STRIPE_PRODUCT_NAME, type CustomerTier } from 
 import { ENV } from "./_core/env";
 import { sendNotification } from "./notifications";
 import { resolveCustomerEntitlement } from "../shared/entitlements";
+import { requireStripeSubscriptionPeriodEnd } from "./stripeSubscriptionLifecycle";
 
 const stripe = new Stripe(ENV.stripeSecretKey, { apiVersion: "2026-01-28.clover" as any });
 
@@ -116,16 +117,21 @@ export const customerSubscriptionRouter = router({
       withTrial: z.boolean().default(true),
     }))
     .mutation(async ({ ctx, input }) => {
-      const currentTier = await db.getCustomerTier(ctx.user.id);
       const existingSubForCheck = await db.getCustomerSubscription(ctx.user.id);
-      if (currentTier === input.tier && existingSubForCheck?.stripeSubscriptionId) {
-        // Same tier but possibly different interval - update in-place with proration
+      if (existingSubForCheck?.stripeSubscriptionId) {
+        // Reuse every retained live Stripe subscription instead of creating a duplicate.
         const stripeSub = await stripe.subscriptions.retrieve(existingSubForCheck.stripeSubscriptionId);
         // If the Stripe subscription is canceled (e.g., trial ended), skip update and create new checkout
         if (stripeSub.status !== "canceled" && stripeSub.status !== "incomplete_expired") {
+        if (["past_due", "unpaid", "paused", "incomplete"].includes(stripeSub.status)) {
+          throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message: "Resolve the existing subscription in billing settings before changing plans.",
+          });
+        }
         const currentItem = stripeSub.items.data[0];
         const currentInterval = currentItem?.price.recurring?.interval as "month" | "year" || "month";
-        if (stripeSub.cancel_at_period_end && currentInterval === input.interval) {
+        if (stripeSub.cancel_at_period_end && existingSubForCheck.tier === input.tier && currentInterval === input.interval) {
           const reactivated = await stripe.subscriptions.update(existingSubForCheck.stripeSubscriptionId, {
             cancel_at_period_end: false,
           });
@@ -134,14 +140,20 @@ export const customerSubscriptionRouter = router({
             tier: input.tier,
             status: "active",
             cancelAtPeriodEnd: false,
-            currentPeriodEnd: new Date(((reactivated as any).current_period_end || Math.floor(Date.now() / 1000) + 30 * 86400) * 1000),
+            currentPeriodEnd: requireStripeSubscriptionPeriodEnd(reactivated as any),
           });
           return { url: null, message: `Your ${CUSTOMER_TIERS[input.tier].name} plan will continue. No new charge was created.` };
         }
-        if (currentInterval === input.interval) {
+        if (existingSubForCheck.tier === input.tier && currentInterval === input.interval) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Already subscribed to this tier and interval" });
         }
-        // Different interval on same tier - update the subscription in-place with proration
+
+        const tierOrder: Record<CustomerTier, number> = { free: 0, pro: 1, business: 2 };
+        if (tierOrder[input.tier] < tierOrder[existingSubForCheck.tier as CustomerTier]) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Use the downgrade action to move to a lower plan." });
+        }
+
+        // Upgrade or change the interval in place, clearing any pending cancellation.
         const newPriceId = await getOrCreateCustomerStripePrice(input.tier, input.interval);
         await stripe.subscriptions.update(existingSubForCheck.stripeSubscriptionId, {
           items: [{
@@ -151,7 +163,19 @@ export const customerSubscriptionRouter = router({
           proration_behavior: "create_prorations",
           cancel_at_period_end: false,
         });
-        return { url: null, message: `Switched to ${input.interval === "year" ? "annual" : "monthly"} billing. Proration applied.` };
+        await db.upsertCustomerSubscription({
+          userId: ctx.user.id,
+          tier: input.tier,
+          status: "active",
+          cancelAtPeriodEnd: false,
+        });
+        const isUpgrade = tierOrder[input.tier] > tierOrder[existingSubForCheck.tier as CustomerTier];
+        return {
+          url: null,
+          message: isUpgrade
+            ? `Upgraded to ${CUSTOMER_TIERS[input.tier].name}. Proration applied to the existing subscription.`
+            : `Switched to ${input.interval === "year" ? "annual" : "monthly"} billing. Proration applied.`,
+        };
         }
       }
 
@@ -176,63 +200,6 @@ export const customerSubscriptionRouter = router({
       // Check if user has already used a trial (reuse existingSub from above)
       const hasUsedTrial = existingSub?.trialEndsAt != null;
       const shouldApplyTrial = input.withTrial && !hasUsedTrial;
-
-      // SAFEGUARD: Check for pending-cancel or recently canceled subscriptions
-      // to reactivate instead of creating a new charge.
-      if (customerId) {
-        try {
-          // Check for recently canceled subscriptions (within 1 hour) to use existing payment method
-          const recentSubs = await stripe.subscriptions.list({
-            customer: customerId,
-            status: "canceled",
-            limit: 5,
-          });
-
-          // Find a subscription canceled within the last hour (likely a downgrade/re-upgrade cycle)
-          const oneHourAgo = Math.floor(Date.now() / 1000) - 3600;
-          const recentlyCanceled = recentSubs.data.find(s =>
-            s.canceled_at && s.canceled_at > oneHourAgo
-          );
-
-          if (recentlyCanceled) {
-            // Check if customer has a payment method on file
-            const customer = await stripe.customers.retrieve(customerId);
-            if (customer && !customer.deleted && customer.invoice_settings?.default_payment_method) {
-              // Create a new subscription directly (no checkout needed) using existing payment method
-              const newSubParams: any = {
-                customer: customerId,
-                items: [{ price: priceId }],
-                default_payment_method: customer.invoice_settings.default_payment_method as string,
-                proration_behavior: "create_prorations",
-                metadata: {
-                  userId: ctx.user.id.toString(),
-                  tier: input.tier,
-                  type: "customer_subscription",
-                },
-              };
-
-              const newSub = await stripe.subscriptions.create(newSubParams);
-
-              // Update local subscription record
-              await db.upsertCustomerSubscription({
-                userId: ctx.user.id,
-                tier: input.tier,
-                status: "active",
-                stripeSubscriptionId: newSub.id,
-                stripeCustomerId: customerId,
-                currentPeriodStart: new Date(((newSub as any).current_period_start || Math.floor(Date.now() / 1000)) * 1000),
-                currentPeriodEnd: new Date(((newSub as any).current_period_end || Math.floor(Date.now() / 1000) + 30 * 86400) * 1000),
-              });
-
-              const tierName = input.tier === "pro" ? "Coordinator" : "Manager";
-              return { url: null, message: `Re-upgraded to ${tierName}! Your existing payment method was used. Any prorated credit from the downgrade has been applied.` };
-            }
-          }
-        } catch (err: any) {
-          // If anything fails in the safeguard check, fall through to normal checkout
-          console.warn("[Customer Subscription] Safeguard check failed, proceeding with normal checkout:", err.message);
-        }
-      }
 
       const sessionParams: Stripe.Checkout.SessionCreateParams = {
         customer: customerId,
@@ -390,7 +357,7 @@ export const customerSubscriptionRouter = router({
             const stripeSubscription = await stripe.subscriptions.update(sub.stripeSubscriptionId, {
               cancel_at_period_end: true,
             });
-            const periodEnd = new Date(((stripeSubscription as any).current_period_end || Math.floor(Date.now() / 1000) + 30 * 86400) * 1000);
+            const periodEnd = requireStripeSubscriptionPeriodEnd(stripeSubscription as any);
 
             await db.upsertCustomerSubscription({
               userId: ctx.user.id,
@@ -487,12 +454,14 @@ export const customerSubscriptionRouter = router({
               price: newPriceId,
             }],
             proration_behavior: "create_prorations",
+            cancel_at_period_end: false,
           });
 
           await db.upsertCustomerSubscription({
             userId: ctx.user.id,
             tier: "pro",
             status: "active",
+            cancelAtPeriodEnd: false,
           });
 
           // Send downgrade notification

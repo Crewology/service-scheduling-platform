@@ -4,6 +4,7 @@ import * as db from "../db";
 import { TRPCError } from "@trpc/server";
 import { canCustomerSaveMore, CUSTOMER_TIERS } from "../customerSubscription";
 import { invalidateOgImageCache } from "../ogTags";
+import { providerHasFeature } from "@shared/entitlements";
 
 export const providerRouter = router({
   create: protectedProcedure
@@ -92,9 +93,17 @@ export const providerRouter = router({
     .query(async ({ input }) => {
       const provider = await db.getProviderById(input.id);
       if (!provider) return null;
+      const effectiveTier = await db.getProviderTier(provider.id);
       // Security: Strip sensitive internal fields from public response
       const { stripeAccountId, ...safeProvider } = provider;
-      return safeProvider;
+      return {
+        ...safeProvider,
+        canAcceptPlatformPayments:
+          !provider.isOfficial &&
+          provider.payoutEnabled === true &&
+          !!stripeAccountId &&
+          providerHasFeature(effectiveTier, "paymentCollection"),
+      };
     }),
     
   getMine: protectedProcedure.query(async ({ ctx }) => {

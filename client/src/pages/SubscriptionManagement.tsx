@@ -377,7 +377,9 @@ export default function SubscriptionManagement() {
                   {currentSub?.subscription?.status === "active" && (
                     <p className="text-sm text-muted-foreground">
                       {currentSub.subscription.cancelAtPeriodEnd 
-                        ? `Cancels on ${new Date(currentSub.entitlement.accessEndsAt || currentSub.subscription.currentPeriodEnd!).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}. Starter begins after that date.`
+                        ? (currentSub.entitlement.accessEndsAt || currentSub.subscription.currentPeriodEnd
+                          ? `Cancels on ${new Date((currentSub.entitlement.accessEndsAt || currentSub.subscription.currentPeriodEnd) as Date | string).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}. Starter begins after that date.`
+                          : "Cancellation is scheduled for the end of the current billing period. Starter begins afterward.")
                         : "Active and renewing"}
                     </p>
                   )}
@@ -724,13 +726,16 @@ export default function SubscriptionManagement() {
                 <strong>{downgradeTarget === "free" ? "Starter (Free)" : "Pro"}</strong>.
               </p>
               <p>
-                This change takes effect immediately. A prorated credit for the unused time on your current plan will be applied to your account for any future upgrades.
+                {downgradeTarget === "free"
+                  ? "Your current paid plan and features remain active through the end of this billing period. Starter begins afterward. You can keep your current plan before then without a new charge."
+                  : "The move to Pro takes effect immediately. Stripe applies any prorated billing adjustment to your existing subscription."}
               </p>
               {downgradeTarget === "free" && (
                 <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm">
                   <p className="font-medium text-amber-800 dark:text-amber-200 mb-1">You'll lose access to:</p>
                   <ul className="text-amber-700 dark:text-amber-300 space-y-1 text-xs">
                     <li>• Priority search placement</li>
+                    <li>• Payment collection and invoicing</li>
                     <li>• Extra service listings (limited to 3)</li>
                     <li>• Additional photo uploads (limited to 1 per service)</li>
                     <li>• Analytics dashboard</li>

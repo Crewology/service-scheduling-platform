@@ -349,7 +349,9 @@ export default function AccountSubscription() {
                   {subData?.subscription?.status === "active" && (
                     <p className="text-sm text-muted-foreground">
                       {subData.subscription.cancelAtPeriodEnd 
-                        ? `Cancels on ${new Date(subData.entitlement.accessEndsAt || subData.subscription.currentPeriodEnd!).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}. Individual begins after that date.`
+                        ? (subData.entitlement.accessEndsAt || subData.subscription.currentPeriodEnd
+                          ? `Cancels on ${new Date((subData.entitlement.accessEndsAt || subData.subscription.currentPeriodEnd) as Date | string).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}. Individual begins after that date.`
+                          : "Cancellation is scheduled for the end of the current billing period. Individual begins afterward.")
                         : "Active and renewing"}
                     </p>
                   )}
@@ -693,7 +695,9 @@ export default function AccountSubscription() {
                 <strong>{downgradeTarget === "free" ? "Individual (Free)" : "Coordinator"}</strong>.
               </p>
               <p>
-                This change takes effect <strong>immediately</strong>. You'll receive a prorated credit for the unused time on your current plan.
+                {downgradeTarget === "free"
+                  ? "Your current paid plan and features remain active through the end of this billing period. Individual begins afterward. You can keep your current plan before then without a new charge."
+                  : "The move to Coordinator takes effect immediately. Stripe applies any prorated billing adjustment to your existing subscription."}
               </p>
               {downgradeTarget === "free" && (
                 <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm">

@@ -8,6 +8,7 @@ import { sendNotification } from "./notifications";
 import { sendPushNotification } from "./notifications/pushHelper";
 import { executePartnerTransfer } from "./partnerSplit";
 import { generateInvoicePdf } from "./services/invoicePdf";
+import { getStripeSubscriptionPeriod, mapStripeSubscriptionStatus } from "./stripeSubscriptionLifecycle";
 
 const stripe = new Stripe(ENV.stripeSecretKey, {
   apiVersion: "2026-01-28.clover",
@@ -418,11 +419,9 @@ async function handleRefund(charge: Stripe.Charge) {
 
 async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   const subscriptionType = subscription.metadata?.type;
-  const stripeStatus = subscription.status === "active" ? "active"
-    : subscription.status === "trialing" ? "trialing"
-    : subscription.status === "past_due" ? "past_due"
-    : "incomplete";
+  const stripeStatus = mapStripeSubscriptionStatus(subscription.status);
   const stripeCustomerId = typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id || "";
+  const { currentPeriodStart, currentPeriodEnd } = getStripeSubscriptionPeriod(subscription as any);
 
   // Handle customer subscriptions
   if (subscriptionType === "customer_subscription") {
@@ -438,8 +437,8 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
       stripeSubscriptionId: subscription.id,
       stripeCustomerId,
       status: stripeStatus,
-      currentPeriodStart: new Date(subscription.start_date * 1000),
-      currentPeriodEnd: subscription.ended_at ? new Date(subscription.ended_at * 1000) : undefined,
+      currentPeriodStart,
+      currentPeriodEnd,
       trialEndsAt: subscription.trial_end ? new Date(subscription.trial_end * 1000) : undefined,
       cancelAtPeriodEnd: subscription.cancel_at_period_end,
     });
@@ -466,8 +465,8 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
     stripeSubscriptionId: subscription.id,
     stripeCustomerId,
     status: stripeStatus,
-    currentPeriodStart: new Date(subscription.start_date * 1000),
-    currentPeriodEnd: subscription.ended_at ? new Date(subscription.ended_at * 1000) : undefined,
+    currentPeriodStart,
+    currentPeriodEnd,
     trialEndsAt: subscription.trial_end ? new Date(subscription.trial_end * 1000) : undefined,
     cancelAtPeriodEnd: subscription.cancel_at_period_end,
   });
@@ -512,6 +511,8 @@ async function handleSubscriptionCancelled(subscription: Stripe.Subscription) {
       stripeSubscriptionId: subscription.id,
       stripeCustomerId,
       status: "cancelled",
+      cancelAtPeriodEnd: false,
+      currentPeriodEnd: subscription.ended_at ? new Date(subscription.ended_at * 1000) : new Date(),
     });
     console.log(`[Stripe] Customer subscription cancelled for user ${userId}`);
     return;
@@ -527,6 +528,8 @@ async function handleSubscriptionCancelled(subscription: Stripe.Subscription) {
     stripeSubscriptionId: subscription.id,
     stripeCustomerId,
     status: "cancelled",
+    cancelAtPeriodEnd: false,
+    currentPeriodEnd: subscription.ended_at ? new Date(subscription.ended_at * 1000) : new Date(),
   });
 
   console.log(`[Stripe] Subscription cancelled for provider ${providerId}`);

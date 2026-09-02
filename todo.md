@@ -2686,3 +2686,6 @@
 - [ ] Test Stripe connection, invoice access, provider/customer switching, mobile responsiveness, notifications, and email behavior
 - [ ] Document every lifecycle result, correct all discovered defects, and rerun affected journeys
 - [ ] Run final combined regression, zero-error TypeScript, production build, and desktop/mobile verification
+- [x] Require every real booking checkout to use both an effective paid provider entitlement and a payout-ready connected Stripe account
+- [x] Remove legacy recently-cancelled auto-resubscribe behavior that could silently create a newly chargeable subscription
+- [x] Replace stale immediate-downgrade/prorated-credit copy and guard missing access-end dates in provider and customer subscription screens

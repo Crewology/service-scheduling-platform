@@ -8,6 +8,7 @@ import { SUBSCRIPTION_TIERS, STRIPE_PRODUCT_NAME, getTrialDays, type Subscriptio
 import { sendTrialStartedNotification, checkAndSendTrialMilestoneNotification } from "./trialNotifications";
 import { sendNotification } from "./notifications";
 import { TRIAL_DAYS, resolveProviderEntitlement } from "../shared/entitlements";
+import { requireStripeSubscriptionPeriodEnd } from "./stripeSubscriptionLifecycle";
 
 const stripe = new Stripe(ENV.stripeSecretKey, {
   apiVersion: "2026-01-28.clover" as any,
@@ -284,8 +285,8 @@ export const subscriptionRouter = router({
 
       const currentSub = await db.getProviderSubscription(provider.id);
 
-      // Handle existing active subscribers with a Stripe subscription
-      if (currentSub?.status === "active" && currentSub.stripeSubscriptionId) {
+      // Reuse every retained live Stripe subscription instead of creating a duplicate.
+      if (currentSub?.stripeSubscriptionId) {
         const stripeSub = await stripe.subscriptions.retrieve(currentSub.stripeSubscriptionId);
 
         // If the Stripe subscription is actually canceled (e.g., trial ended without payment),
@@ -298,6 +299,12 @@ export const subscriptionRouter = router({
             status: "cancelled",
           });
         } else {
+        if (["past_due", "unpaid", "paused", "incomplete"].includes(stripeSub.status)) {
+          throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message: "Resolve the existing subscription in billing settings before changing plans.",
+          });
+        }
         const currentItem = stripeSub.items.data[0];
         const currentInterval = currentItem?.price.recurring?.interval as "month" | "year" || "month";
         if (stripeSub.cancel_at_period_end && currentSub.tier === input.tier && currentInterval === input.interval) {
@@ -309,7 +316,7 @@ export const subscriptionRouter = router({
             tier: input.tier,
             status: "active",
             cancelAtPeriodEnd: false,
-            currentPeriodEnd: new Date(((reactivated as any).current_period_end || Math.floor(Date.now() / 1000) + 30 * 86400) * 1000),
+            currentPeriodEnd: requireStripeSubscriptionPeriodEnd(reactivated as any),
           });
           return { url: null, message: `Your ${SUBSCRIPTION_TIERS[input.tier].name} plan will continue. No new charge was created.` };
         }
@@ -321,6 +328,10 @@ export const subscriptionRouter = router({
         const tierOrder: Record<string, number> = { free: 0, basic: 1, premium: 2 };
         const isUpgrade = tierOrder[input.tier] > tierOrder[currentSub.tier];
         const isSameTierIntervalSwitch = currentSub.tier === input.tier && currentInterval !== input.interval;
+
+        if (tierOrder[input.tier] < tierOrder[currentSub.tier]) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Use the downgrade action to move to a lower plan." });
+        }
 
         if (isSameTierIntervalSwitch || isUpgrade) {
           const newPriceId = await getOrCreateStripePrice(input.tier, input.interval);
@@ -365,64 +376,6 @@ export const subscriptionRouter = router({
           },
         });
         customerId = customer.id;
-      }
-
-      // SAFEGUARD: Check if there's a recently canceled subscription on this customer
-      // If there's an active subscription scheduled for cancellation (cancel_at_period_end),
-      // SAFEGUARD: If there's a recently canceled subscription (within 1 hour),
-      // use the existing payment method to create a new subscription directly
-      // instead of redirecting to a full checkout page. The prorated credit from
-      // the cancellation will be automatically applied by Stripe.
-      if (customerId) {
-        try {
-          const recentSubs = await stripe.subscriptions.list({
-            customer: customerId,
-            status: "canceled",
-            limit: 5,
-          });
-
-          // Find a subscription canceled within the last hour (likely a downgrade/re-upgrade cycle)
-          const oneHourAgo = Math.floor(Date.now() / 1000) - 3600;
-          const recentlyCanceled = recentSubs.data.find(s =>
-            s.canceled_at && s.canceled_at > oneHourAgo
-          );
-
-          if (recentlyCanceled) {
-            // Check if customer has a payment method on file
-            const customer = await stripe.customers.retrieve(customerId);
-            if (customer && !customer.deleted && customer.invoice_settings?.default_payment_method) {
-              // Create a new subscription directly (no checkout needed) using existing payment method
-              const newSub = await stripe.subscriptions.create({
-                customer: customerId,
-                items: [{ price: priceId }],
-                default_payment_method: customer.invoice_settings.default_payment_method as string,
-                proration_behavior: "create_prorations",
-                metadata: {
-                  providerId: provider.id.toString(),
-                  tier: input.tier,
-                  type: "provider_subscription",
-                },
-              });
-
-              // Update local subscription record
-              await db.upsertProviderSubscription({
-                providerId: provider.id,
-                tier: input.tier,
-                status: "active",
-                stripeSubscriptionId: newSub.id,
-                stripeCustomerId: customerId,
-                currentPeriodStart: new Date(((newSub as any).current_period_start || Math.floor(Date.now() / 1000)) * 1000),
-                currentPeriodEnd: new Date(((newSub as any).current_period_end || Math.floor(Date.now() / 1000) + 30 * 86400) * 1000),
-              });
-
-              const tierName = input.tier === "premium" ? "Business" : "Pro";
-              return { url: null, message: `Re-upgraded to ${tierName}! Your existing payment method was used. Any prorated credit from the downgrade has been applied.` };
-            }
-          }
-        } catch (err: any) {
-          // If anything fails in the safeguard check, fall through to normal checkout
-          console.warn("[Subscription] Safeguard check failed, proceeding with normal checkout:", err.message);
-        }
       }
 
       const sessionParams: Stripe.Checkout.SessionCreateParams = {
@@ -544,7 +497,7 @@ export const subscriptionRouter = router({
             const stripeSubscription = await stripe.subscriptions.update(sub.stripeSubscriptionId, {
               cancel_at_period_end: true,
             });
-            const periodEnd = new Date(((stripeSubscription as any).current_period_end || Math.floor(Date.now() / 1000) + 30 * 86400) * 1000);
+            const periodEnd = requireStripeSubscriptionPeriodEnd(stripeSubscription as any);
 
             await db.upsertProviderSubscription({
               providerId: provider.id,
@@ -648,6 +601,7 @@ export const subscriptionRouter = router({
               price: newPriceId,
             }],
             proration_behavior: "create_prorations", // Immediate prorated credit
+            cancel_at_period_end: false,
           });
 
           // Update local subscription record
@@ -655,6 +609,7 @@ export const subscriptionRouter = router({
             providerId: provider.id,
             tier: "basic",
             status: "active",
+            cancelAtPeriodEnd: false,
           });
 
           // Send downgrade notification
@@ -723,6 +678,14 @@ export const subscriptionRouter = router({
           price: newPriceId,
         }],
         proration_behavior: "create_prorations",
+        cancel_at_period_end: false,
+      });
+
+      await db.upsertProviderSubscription({
+        providerId: provider.id,
+        tier: sub.tier,
+        status: "active",
+        cancelAtPeriodEnd: false,
       });
 
       return {

@@ -1,9 +1,11 @@
 import { z } from "zod";
 import { protectedProcedure, router } from "./_core/trpc";
+import { TRPCError } from "@trpc/server";
 import Stripe from "stripe";
 import { ENV } from "./_core/env";
 import * as db from "./db";
 import { getReferralCreditBalance, spendReferralCredits } from "./db/referrals";
+import { providerHasFeature } from "@shared/entitlements";
 
 const stripe = new Stripe(ENV.stripeSecretKey, {
   apiVersion: "2026-01-28.clover" as any,
@@ -76,6 +78,20 @@ export const stripeRouter = router({
           console.error("[Stripe] Failed to create demo booking notification:", err);
         }
         return { url: null, paidWithCredits: false, creditApplied: "0.00", isDemo: true };
+      }
+
+      const providerTier = await db.getProviderTier(provider.id);
+      if (!providerHasFeature(providerTier, "paymentCollection")) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "This provider is not currently accepting payments through OlogyCrew. No charge was created.",
+        });
+      }
+      if (!provider.stripeAccountId || !provider.payoutEnabled) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "This provider has not finished payment setup. Your booking is saved, but no charge was created.",
+        });
       }
 
       // Determine amount to charge (deposit or full amount)
@@ -182,15 +198,13 @@ export const stripeRouter = router({
         allow_promotion_codes: true,
       };
 
-      // If provider has a connected Stripe account, use destination charges
-      if (provider.stripeAccountId && provider.payoutEnabled) {
-        sessionOptions.payment_intent_data = {
-          application_fee_amount: platformFeeInCents,
-          transfer_data: {
-            destination: provider.stripeAccountId,
-          },
-        };
-      }
+      // Every non-demo booking charge must settle to an entitled, payout-ready provider.
+      sessionOptions.payment_intent_data = {
+        application_fee_amount: platformFeeInCents,
+        transfer_data: {
+          destination: provider.stripeAccountId,
+        },
+      };
 
       const session = await stripe.checkout.sessions.create(sessionOptions);
       return { url: session.url, paidWithCredits: false, creditApplied: creditApplied.toFixed(2) };

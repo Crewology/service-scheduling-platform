@@ -143,6 +143,7 @@ export default function ServiceDetail() {
     { id: service?.providerId || 0 },
     { enabled: !!service }
   );
+  const canAcceptPlatformPayments = !!(provider as any)?.canAcceptPlatformPayments;
   const { data: reviews } = trpc.review.listByProvider.useQuery(
     { providerId: service?.providerId || 0 },
     { enabled: !!service }
@@ -348,11 +349,14 @@ export default function ServiceDetail() {
         return;
       }
       const isPriced = service?.pricingModel !== "custom_quote" && service?.pricingModel !== "consultation";
-      if (isPriced && (service?.requireUpfrontPayment || paymentChoice === "pay_now")) {
+      const paymentRequested = isPriced && (service?.requireUpfrontPayment || paymentChoice === "pay_now");
+      if (paymentRequested && canAcceptPlatformPayments) {
         toast.success("Booking created! Redirecting to payment...");
         handlePayment(data.id);
       } else {
-        toast.success("Booking request sent! The provider will confirm your booking.");
+        toast.success(paymentRequested && !canAcceptPlatformPayments
+          ? "Booking request sent! This provider will arrange payment after confirming."
+          : "Booking request sent! The provider will confirm your booking.");
         setLocation(`/booking/${data.id}`);
       }
     },
@@ -375,11 +379,14 @@ export default function ServiceDetail() {
         return;
       }
       const isPriced = service?.pricingModel !== "custom_quote" && service?.pricingModel !== "consultation";
-      if (isPriced && (service?.requireUpfrontPayment || paymentChoice === "pay_now")) {
+      const paymentRequested = isPriced && (service?.requireUpfrontPayment || paymentChoice === "pay_now");
+      if (paymentRequested && canAcceptPlatformPayments) {
         toast.success("Multi-day booking created! Redirecting to payment...");
         handlePayment(data.id);
       } else {
-        toast.success("Multi-day booking request sent! The provider will confirm your booking.");
+        toast.success(paymentRequested && !canAcceptPlatformPayments
+          ? "Multi-day booking request sent! This provider will arrange payment after confirming."
+          : "Multi-day booking request sent! The provider will confirm your booking.");
         setLocation(`/booking/${data.id}`);
       }
     },
@@ -402,11 +409,14 @@ export default function ServiceDetail() {
         return;
       }
       const isPriced = service?.pricingModel !== "custom_quote" && service?.pricingModel !== "consultation";
-      if (isPriced && (service?.requireUpfrontPayment || paymentChoice === "pay_now")) {
+      const paymentRequested = isPriced && (service?.requireUpfrontPayment || paymentChoice === "pay_now");
+      if (paymentRequested && canAcceptPlatformPayments) {
         toast.success("Recurring booking created! Redirecting to payment...");
         handlePayment(data.id);
       } else {
-        toast.success("Recurring booking request sent! The provider will confirm your booking.");
+        toast.success(paymentRequested && !canAcceptPlatformPayments
+          ? "Recurring booking request sent! This provider will arrange payment after confirming."
+          : "Recurring booking request sent! The provider will confirm your booking.");
         setLocation(`/booking/${data.id}`);
       }
     },
@@ -2320,7 +2330,7 @@ export default function ServiceDetail() {
                           ) : "Complete Demo Booking (Free)"}
                         </Button>
                       </div>
-                    ) : service.pricingModel !== "custom_quote" && service.pricingModel !== "consultation" && getNumericPrice() > 0 && !service.requireUpfrontPayment ? (
+                    ) : service.pricingModel !== "custom_quote" && service.pricingModel !== "consultation" && getNumericPrice() > 0 && !service.requireUpfrontPayment && canAcceptPlatformPayments ? (
                       <div className="space-y-3">
                         <p className="text-sm font-medium text-center text-muted-foreground">How would you like to pay?</p>
                         <div className="grid grid-cols-2 gap-3">
@@ -2389,7 +2399,7 @@ export default function ServiceDetail() {
                             <Loader2 className="h-4 w-4 animate-spin" />
                             Processing your booking...
                           </span>
-                        ) : service.requireUpfrontPayment
+                        ) : service.requireUpfrontPayment && canAcceptPlatformPayments
                           ? (service.depositRequired ? "Pay Deposit & Book" : "Pay & Book")
                           : bookingType === "multi_day"
                           ? `Confirm ${multiDayCount}-Day Booking`
