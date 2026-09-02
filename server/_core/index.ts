@@ -35,6 +35,14 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
+  const isProduction = process.env.NODE_ENV === "production";
+
+  // Distinguishes OlogyCrew responses from preview-gateway responses during
+  // diagnostics. An upstream response will not contain this application header.
+  app.use((_req, res, next) => {
+    res.setHeader("X-OlogyCrew-Origin", "application");
+    next();
+  });
 
   // PRIORITY 1: Force HTTPS in production
   // Cloudflare/reverse proxy sets x-forwarded-proto header
@@ -103,7 +111,14 @@ async function startServer() {
     handler: sendRateLimitResponse,
     validate: { xForwardedForHeader: false },
   });
-  app.use("/api/", generalLimiter);
+  // Broad read throttling is a production abuse-control layer. The managed
+  // development preview has its own upstream gateway limits, so applying both
+  // creates a confusing double-limit during active testing and visual review.
+  if (isProduction) {
+    app.use("/api/", generalLimiter);
+  } else {
+    console.log("[RateLimit] Development: broad API read limiter disabled; write and sensitive limits remain active");
+  }
   app.use("/api/trpc", writeLimiter);
   app.use("/api/oauth/", sensitiveLimiter);
   app.use("/api/export/", sensitiveLimiter);

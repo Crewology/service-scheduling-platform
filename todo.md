@@ -2644,3 +2644,10 @@
 - [x] Verify one-tap rebooking opens an eligible live service with the correct provider and adaptive mode
 - [x] Correct any loading, empty, error, route, or helper-copy inconsistencies discovered during integrated testing
 - [x] Run combined focused tests, production build, and final desktop/mobile visual checks
+
+## Fix: Recurring Development Preview Rate Limit
+- [x] Identify whether the recurring 429 response originates from OlogyCrew middleware, the preview proxy, or browser automation infrastructure
+- [x] Trace the exact request path, client key, counter state, and request pattern that triggers the development block
+- [x] Disable or isolate broad read throttling in development while retaining production abuse protection and sensitive/write limits
+- [x] Add recurrence regression coverage and verify sustained development navigation without application-generated HTTP 429 responses
+- [x] Document the confirmed cause and permanent development-preview safeguard

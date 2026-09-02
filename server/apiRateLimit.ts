@@ -6,6 +6,7 @@ export const API_RATE_LIMITS = {
     windowMs: 15 * 60 * 1000,
     limit: 1200,
     identifier: "general-api",
+    productionOnly: true,
   },
   write: {
     windowMs: 15 * 60 * 1000,
@@ -56,4 +57,3 @@ export function sendRateLimitResponse(req: Request, res: Response) {
   res.setHeader("Retry-After", payload.retryAfterSeconds.toString());
   res.status(429).json(payload);
 }
-

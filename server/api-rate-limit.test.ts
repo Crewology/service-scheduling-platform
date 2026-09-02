@@ -40,6 +40,7 @@ describe("global API rate-limit protection", () => {
 
   it("keeps a stricter write limit while allowing normal multi-tab reading", () => {
     expect(API_RATE_LIMITS.general.limit).toBe(1200);
+    expect(API_RATE_LIMITS.general.productionOnly).toBe(true);
     expect(API_RATE_LIMITS.write.limit).toBe(300);
     expect(API_RATE_LIMITS.sensitive.limit).toBe(100);
     expect(API_RATE_LIMITS.write.limit).toBeLessThan(API_RATE_LIMITS.general.limit);
@@ -78,6 +79,10 @@ describe("client-side 429 recovery", () => {
 });
 
 describe("background request reduction", () => {
+  const serverSource = readFileSync(
+    resolve(projectRoot, "server/_core/index.ts"),
+    "utf8",
+  );
   const headerSource = readFileSync(
     resolve(projectRoot, "client/src/components/shared/NavHeader.tsx"),
     "utf8",
@@ -105,5 +110,15 @@ describe("background request reduction", () => {
       homeSource.indexOf("// Fetch provider profile"),
     );
     expect(quickStats).not.toContain("refetchInterval");
+  });
+
+  it("does not apply broad read throttling inside the managed development preview", () => {
+    expect(serverSource).toContain('if (isProduction) {\n    app.use("/api/", generalLimiter);');
+    expect(serverSource).toContain('app.use("/api/trpc", writeLimiter)');
+    expect(serverSource).toContain('app.use("/api/oauth/", sensitiveLimiter)');
+  });
+
+  it("marks application responses so upstream preview throttling can be identified", () => {
+    expect(serverSource).toContain('res.setHeader("X-OlogyCrew-Origin", "application")');
   });
 });
