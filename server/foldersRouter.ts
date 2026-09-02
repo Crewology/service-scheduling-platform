@@ -2,13 +2,25 @@ import { z } from "zod";
 import { router, protectedProcedure } from "./_core/trpc";
 import * as db from "./db";
 import { TRPCError } from "@trpc/server";
+import { customerHasFeature, type CustomerTier } from "@shared/entitlements";
+
+async function requireFolderEntitlement(userId: number): Promise<CustomerTier> {
+  const tier = await db.getCustomerTier(userId);
+  if (!customerHasFeature(tier, "savedProviderFolders")) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Folders are available for Coordinator and Manager subscribers. Upgrade to organize your saved providers.",
+    });
+  }
+  return tier;
+}
 
 export const foldersRouter = router({
   list: protectedProcedure
     .query(async ({ ctx }) => {
       // Check subscription tier - folders are Pro/Business only
       const tier = await db.getCustomerTier(ctx.user.id);
-      if (tier === "free") {
+      if (!customerHasFeature(tier, "savedProviderFolders")) {
         return { folders: [], tier: "free" as const, canUseFolders: false };
       }
       const folders = await db.getUserFolders(ctx.user.id);
@@ -22,13 +34,7 @@ export const foldersRouter = router({
       icon: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      const tier = await db.getCustomerTier(ctx.user.id);
-      if (tier === "free") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Folders are available for Coordinator and Manager subscribers. Upgrade to organize your saved providers.",
-        });
-      }
+      const tier = await requireFolderEntitlement(ctx.user.id);
       
       // Pro: max 10 folders, Business: max 50
       const existing = await db.getUserFolders(ctx.user.id);
@@ -51,6 +57,7 @@ export const foldersRouter = router({
       icon: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
+      await requireFolderEntitlement(ctx.user.id);
       const { folderId, ...data } = input;
       return db.updateFolder(folderId, ctx.user.id, data);
     }),
@@ -58,6 +65,7 @@ export const foldersRouter = router({
   delete: protectedProcedure
     .input(z.object({ folderId: z.number() }))
     .mutation(async ({ ctx, input }) => {
+      await requireFolderEntitlement(ctx.user.id);
       return db.deleteFolder(input.folderId, ctx.user.id);
     }),
 
@@ -67,6 +75,7 @@ export const foldersRouter = router({
       folderId: z.number().nullable(),
     }))
     .mutation(async ({ ctx, input }) => {
+      await requireFolderEntitlement(ctx.user.id);
       return db.moveToFolder(input.favoriteId, ctx.user.id, input.folderId);
     }),
 
@@ -76,6 +85,7 @@ export const foldersRouter = router({
       folderId: z.number().nullable(),
     }))
     .mutation(async ({ ctx, input }) => {
+      await requireFolderEntitlement(ctx.user.id);
       return db.bulkMoveToFolder(ctx.user.id, input.providerIds, input.folderId);
     }),
 });

@@ -52,7 +52,7 @@ const providerPlans = [
       { text: "Stripe payment collection", included: false },
       { text: "Invoicing & receipts", included: false },
       { text: "Tip collection (Zelle, Cash App, Venmo)", included: true },
-      { text: "1% transaction fee", included: true },
+      { text: "1% transaction fee on OlogyCrew payments", included: false },
       { text: "Priority search placement", included: false },
       { text: "Analytics dashboard", included: false },
       { text: "Custom branding", included: false },
@@ -731,11 +731,11 @@ export default function CustomerPricing() {
                   },
                   {
                     q: "What is the 1% transaction fee?",
-                    a: "OlogyCrew takes a small 1% fee on each booking transaction to maintain the platform. This applies to all plans equally — no hidden fees.",
+                    a: "OlogyCrew takes a 1% fee when a Pro or Business provider collects a booking payment through the platform. Starter does not include Stripe payment collection, so the fee does not apply there.",
                   },
                   {
                     q: "Can I cancel or downgrade anytime?",
-                    a: "Yes! You can cancel or downgrade at any time. Changes take effect immediately and you'll receive a prorated credit for any unused time on your current plan.",
+                    a: "Yes. A move to Starter is scheduled for the end of your current paid period, so you keep paid access until that date and can reactivate without another charge. Paid-tier or billing-interval changes apply to the existing Stripe subscription with proration.",
                   },
                   {
                     q: "Is there a free trial for Pro?",
@@ -771,7 +771,7 @@ export default function CustomerPricing() {
                   },
                   {
                     q: "Can I cancel anytime?",
-                    a: "Yes! Cancel or downgrade at any time. Changes take effect immediately and you'll receive a prorated credit for any unused time.",
+                    a: "Yes. A move to Individual is scheduled for the end of your current paid period, so you keep paid access until that date and can reactivate without another charge. Paid-tier or billing-interval changes apply to the existing Stripe subscription with proration.",
                   },
                   {
                     q: "Is there a free trial for Coordinator or Manager?",
@@ -811,23 +811,27 @@ export default function CustomerPricing() {
             </DialogTitle>
             <DialogDescription className="text-left space-y-3 pt-2">
               <p>
-                Are you sure you want to downgrade? This change takes effect <strong>immediately</strong>.
-                You'll receive a prorated credit for the unused time on your current plan.
+                {downgradeTarget === "free" ? (
+                  <>This change will take effect at the <strong>end of your current paid period</strong>. You keep your current plan until then and can reactivate it before that date without a new charge.</>
+                ) : (
+                  <>This paid-plan change takes effect <strong>immediately</strong>. Stripe applies the prorated billing adjustment to your existing subscription.</>
+                )}
               </p>
               {audience === "provider" && downgradeTarget === "free" && (
                 <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm">
-                  <p className="font-medium text-amber-800 dark:text-amber-200 mb-1">You'll lose access to:</p>
+                  <p className="font-medium text-amber-800 dark:text-amber-200 mb-1">At the end of the paid period, you'll lose access to:</p>
                   <ul className="text-amber-700 dark:text-amber-300 space-y-1 text-xs">
                     <li>• Extra service categories (limited to 1)</li>
                     <li>• Extra services (limited to 3)</li>
                     <li>• Priority search placement</li>
                     <li>• Analytics dashboard</li>
+                    <li>• Stripe payment collection and invoicing</li>
                   </ul>
                 </div>
               )}
               {audience === "customer" && downgradeTarget === "free" && (
                 <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm">
-                  <p className="font-medium text-amber-800 dark:text-amber-200 mb-1">You'll lose access to:</p>
+                  <p className="font-medium text-amber-800 dark:text-amber-200 mb-1">At the end of the paid period, you'll lose access to:</p>
                   <ul className="text-amber-700 dark:text-amber-300 space-y-1 text-xs">
                     <li>• Priority booking requests</li>
                     <li>• Extra saved providers (limited to 5)</li>

@@ -59,3 +59,41 @@ describe("subscription cancellation and reactivation surfaces", () => {
     }
   });
 });
+
+describe("reconciled plan claims and paid-feature surfaces", () => {
+  const providerPlans = read("client/src/pages/SubscriptionManagement.tsx");
+  const publicPlans = read("client/src/pages/CustomerPricing.tsx");
+  const customerTrial = read("client/src/components/CustomerTrialBanner.tsx");
+  const helpCenter = read("client/src/pages/HelpCenter.tsx");
+  const helpAssistant = read("server/helpChatRouter.ts");
+  const providerDashboard = read("client/src/pages/ProviderDashboard.tsx");
+  const providerOverview = read("server/providerOverviewRouter.ts");
+  const serviceSearch = read("server/db/services.ts");
+
+  it("does not present Starter as a Stripe payment or transaction-fee plan", () => {
+    for (const source of [providerPlans, publicPlans]) {
+      expect(source).toContain('{ text: "1% transaction fee on OlogyCrew payments", included: false }');
+    }
+    expect(providerPlans).not.toContain("All plans include a low 1% transaction fee");
+  });
+
+  it("does not promise Manager-only bulk quotes, analytics, or exports to Coordinator trials", () => {
+    expect(helpCenter).not.toContain("up to 5 bulk quote requests");
+    expect(helpAssistant).not.toContain("5 bulk quote requests");
+    expect(customerTrial).toContain('planLabel === "Manager"');
+    expect(customerTrial).toContain("up to 50 saved providers, priority booking requests, and provider folders");
+  });
+
+  it("explains retained Stripe accounts while effective payment collection is paused", () => {
+    expect(providerDashboard).toContain("Payment Collection Paused");
+    expect(providerDashboard).toContain("Your connected Stripe account and payout history remain available");
+    expect(providerOverview).toContain("!canCollectPayments || !provider.payoutEnabled");
+  });
+
+  it("ranks valid trial, grace, and legacy cancellation access without boosting expired states", () => {
+    expect(serviceSearch.match(/const hasPaidSearchAccess/g)?.length).toBe(2);
+    expect(serviceSearch).toContain("trialEndsAt} > NOW()");
+    expect(serviceSearch).toContain("currentPeriodEnd} > NOW()");
+    expect(serviceSearch).toContain("cancelAtPeriodEnd} = true");
+  });
+});

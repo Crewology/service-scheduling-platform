@@ -31,6 +31,9 @@ export function CustomerTrialCountdownBanner({
     : null;
 
   const planLabel = tierName || "Coordinator";
+  const trialBenefits = planLabel === "Manager"
+    ? "unlimited saved providers, folders, bulk quote requests, analytics, and booking exports"
+    : "up to 50 saved providers, priority booking requests, and provider folders";
 
   return (
     <div
@@ -80,8 +83,8 @@ export function CustomerTrialCountdownBanner({
 
           <p className="text-xs text-muted-foreground mt-1">
             {isUrgent
-              ? "Don't lose access to saved providers, priority booking, analytics, and more. Subscribe now to keep your features."
-              : "You have access to extra saved providers, priority booking, advanced filters, and analytics during your trial."}
+              ? `Don't lose access to ${trialBenefits}. Subscribe now to keep your features.`
+              : `Your ${planLabel} trial includes ${trialBenefits}.`}
           </p>
 
           <div className="flex items-center gap-2 mt-2">
@@ -128,8 +131,7 @@ export function CustomerTrialExpiredGate({ onDowngrade }: { onDowngrade?: () => 
         <div>
           <h2 className="text-2xl font-bold">Your 14-Day Trial Has Ended</h2>
           <p className="text-muted-foreground mt-2">
-            Your free trial has expired. To continue using premium features like
-            extra saved providers, priority booking, analytics, and booking exports, please subscribe to a plan.
+            Your free trial has expired. Subscribe to restore the features included with your selected paid plan, or continue with Individual for core booking and messaging.
           </p>
         </div>
 

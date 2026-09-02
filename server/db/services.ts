@@ -212,9 +212,15 @@ export async function searchServices(searchTerm: string) {
   const term = `%${searchTerm}%`;
   // Search services by name/description AND by provider business name
   // Priority ranking: trust score (primary) + subscription tier boost (secondary)
+  const hasPaidSearchAccess = sql<boolean>`(
+    ${providerSubscriptions.status} = 'active'
+    OR (${providerSubscriptions.status} = 'trialing' AND ${providerSubscriptions.trialEndsAt} > NOW())
+    OR (${providerSubscriptions.status} = 'past_due' AND ${providerSubscriptions.currentPeriodEnd} > NOW())
+    OR (${providerSubscriptions.status} = 'cancelled' AND ${providerSubscriptions.cancelAtPeriodEnd} = true AND ${providerSubscriptions.currentPeriodEnd} > NOW())
+  )`;
   const tierBoost = sql<number>`CASE 
-    WHEN ${providerSubscriptions.tier} = 'premium' AND ${providerSubscriptions.status} IN ('active', 'trialing') THEN 30
-    WHEN ${providerSubscriptions.tier} = 'basic' AND ${providerSubscriptions.status} IN ('active', 'trialing') THEN 15
+    WHEN ${providerSubscriptions.tier} = 'premium' AND ${hasPaidSearchAccess} THEN 30
+    WHEN ${providerSubscriptions.tier} = 'basic' AND ${hasPaidSearchAccess} THEN 15
     ELSE 0
   END`;
   const rankScore = sql<number>`(COALESCE(${serviceProviders.trustScore}, 0) + ${tierBoost})`;
@@ -279,9 +285,15 @@ export async function searchProviders(searchTerm: string) {
   if (!db) return [];
   const term = `%${searchTerm}%`;
   // Priority ranking: trust score (primary) + subscription tier boost (secondary)
+  const hasPaidSearchAccess = sql<boolean>`(
+    ${providerSubscriptions.status} = 'active'
+    OR (${providerSubscriptions.status} = 'trialing' AND ${providerSubscriptions.trialEndsAt} > NOW())
+    OR (${providerSubscriptions.status} = 'past_due' AND ${providerSubscriptions.currentPeriodEnd} > NOW())
+    OR (${providerSubscriptions.status} = 'cancelled' AND ${providerSubscriptions.cancelAtPeriodEnd} = true AND ${providerSubscriptions.currentPeriodEnd} > NOW())
+  )`;
   const tierBoost = sql<number>`CASE 
-    WHEN ${providerSubscriptions.tier} = 'premium' AND ${providerSubscriptions.status} IN ('active', 'trialing') THEN 30
-    WHEN ${providerSubscriptions.tier} = 'basic' AND ${providerSubscriptions.status} IN ('active', 'trialing') THEN 15
+    WHEN ${providerSubscriptions.tier} = 'premium' AND ${hasPaidSearchAccess} THEN 30
+    WHEN ${providerSubscriptions.tier} = 'basic' AND ${hasPaidSearchAccess} THEN 15
     ELSE 0
   END`;
   const rankScore = sql<number>`(COALESCE(${serviceProviders.trustScore}, 0) + ${tierBoost})`;

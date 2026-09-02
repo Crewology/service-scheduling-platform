@@ -4,6 +4,7 @@ import Stripe from "stripe";
 import { ENV } from "./_core/env";
 import * as db from "./db";
 import { TRPCError } from "@trpc/server";
+import { providerHasFeature } from "@shared/entitlements";
 
 const stripe = new Stripe(ENV.stripeSecretKey!, {
   apiVersion: "2026-01-28.clover" as any,
@@ -21,7 +22,7 @@ export const stripeConnectRouter = router({
 
       // Free accounts cannot connect a payment account — must upgrade first
       const currentTier = await db.getProviderTier(provider.id);
-      if (currentTier === "free") {
+      if (!providerHasFeature(currentTier, "paymentCollection")) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Payment account setup requires a Pro or Business subscription. Please upgrade your plan first.",
@@ -131,6 +132,8 @@ export const stripeConnectRouter = router({
   getStatus: protectedProcedure.query(async ({ ctx }) => {
     const provider = await db.getProviderByUserId(ctx.user.id);
     if (!provider) throw new TRPCError({ code: "NOT_FOUND", message: "Provider profile not found" });
+    const currentTier = await db.getProviderTier(provider.id);
+    const hasPaymentEntitlement = providerHasFeature(currentTier, "paymentCollection");
 
     if (!provider.stripeAccountId) {
       return {
@@ -139,6 +142,8 @@ export const stripeConnectRouter = router({
         chargesEnabled: false,
         payoutsEnabled: false,
         detailsSubmitted: false,
+        paymentCollectionEnabled: false,
+        requiresPaidPlan: !hasPaymentEntitlement,
       };
     }
 
@@ -163,6 +168,8 @@ export const stripeConnectRouter = router({
         chargesEnabled: account.charges_enabled || false,
         payoutsEnabled: account.payouts_enabled || false,
         detailsSubmitted: account.details_submitted || false,
+        paymentCollectionEnabled: hasPaymentEntitlement && !!account.charges_enabled && !!account.payouts_enabled,
+        requiresPaidPlan: !hasPaymentEntitlement,
       };
     } catch (error) {
       console.error("[StripeConnect] Error retrieving account:", error);
@@ -172,6 +179,8 @@ export const stripeConnectRouter = router({
         chargesEnabled: false,
         payoutsEnabled: provider.payoutEnabled,
         detailsSubmitted: provider.stripeOnboardingComplete,
+        paymentCollectionEnabled: hasPaymentEntitlement && provider.payoutEnabled,
+        requiresPaidPlan: !hasPaymentEntitlement,
       };
     }
   }),
@@ -208,6 +217,13 @@ export const stripeConnectRouter = router({
       const provider = await db.getProviderByUserId(ctx.user.id);
       if (!provider?.stripeAccountId) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "No Stripe account connected. Please start the onboarding process first." });
+      }
+      const currentTier = await db.getProviderTier(provider.id);
+      if (!providerHasFeature(currentTier, "paymentCollection")) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Complete payment setup is available on Pro or Business. Your Stripe account connection has been retained.",
+        });
       }
 
       try {

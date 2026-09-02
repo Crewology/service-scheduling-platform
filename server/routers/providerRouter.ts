@@ -4,7 +4,7 @@ import * as db from "../db";
 import { TRPCError } from "@trpc/server";
 import { canCustomerSaveMore, CUSTOMER_TIERS } from "../customerSubscription";
 import { invalidateOgImageCache } from "../ogTags";
-import { providerHasFeature } from "@shared/entitlements";
+import { customerHasFeature, providerHasFeature } from "@shared/entitlements";
 
 export const providerRouter = router({
   create: protectedProcedure
@@ -381,6 +381,13 @@ export const providerRouter = router({
   analytics: protectedProcedure.query(async ({ ctx }) => {
     const provider = await db.getProviderByUserId(ctx.user.id);
     if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
+    const tier = await db.getProviderTier(provider.id);
+    if (!providerHasFeature(tier, "analyticsAccess")) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Business analytics are available on Pro and Business. Upgrade to view detailed performance insights.",
+      });
+    }
     const [bookingTrends, topServices, customerRetention, bookingSources, refundAnalytics] = await Promise.all([
       db.getBookingTrends(provider.id),
       db.getTopServices(provider.id),
@@ -438,7 +445,7 @@ export const providerRouter = router({
       const provider = await db.getProviderByUserId(ctx.user.id);
       if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
       const tier = await db.getProviderTier(provider.id);
-      if (tier === "free") {
+      if (!providerHasFeature(tier, "customSlug")) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Custom profile URLs are available on the Pro plan and above. Upgrade to customize your link." });
       }
       const existing = await db.getProviderBySlug(input.slug);
@@ -1131,10 +1138,10 @@ export const providerRouter = router({
     .mutation(async ({ ctx, input }) => {
       // Gate behind Pro/Business subscription
       const tier = await db.getCustomerTier(ctx.user.id);
-      if (tier === "free") {
+      if (!customerHasFeature(tier, "bulkQuoteRequests")) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Bulk quote requests require a Pro or Business subscription. Upgrade to unlock this feature.",
+          message: "Bulk quote requests require a Manager subscription. Upgrade to unlock this feature.",
         });
       }
 

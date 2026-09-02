@@ -43,6 +43,10 @@ export default function MyBookings() {
   const [, setLocation] = useLocation();
   const { canSwitch, isProviderView } = useViewMode();
   const bookingView = isProviderView ? "provider" : "customer";
+  const { data: customerSubscription } = trpc.customerSubscription.getSubscription.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+  const canExportBookings = bookingView === "customer" && customerSubscription?.currentTier === "business";
 
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
@@ -372,7 +376,7 @@ export default function MyBookings() {
                 )}
               </>
             )}
-          <DropdownMenu>
+          {canExportBookings && <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="gap-2" disabled={isOffline}>
                 <Download className="h-4 w-4" />
@@ -399,7 +403,7 @@ export default function MyBookings() {
                 Download PDF
               </DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>
+          </DropdownMenu>}
           </div>
         </div>
 

@@ -7,11 +7,12 @@ import * as invoiceDb from "./db/invoices";
 import { getProviderByUserId } from "./db/providers";
 import { getUserById } from "./db/users";
 import { getProviderTier } from "./db/payments";
+import { providerHasFeature } from "@shared/entitlements";
 
 // Helper: check if provider has paid tier (Basic or Premium)
 async function requirePaidTier(providerId: number) {
   const tier = await getProviderTier(providerId);
-  if (tier === "free") {
+  if (!providerHasFeature(tier, "invoicing")) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "Invoicing is available for Pro and Business subscribers. Upgrade your plan to create and send invoices.",
@@ -134,10 +135,10 @@ export const invoiceRouter = router({
 
   // Provider: get all their invoices (paid tiers only)
   getMyInvoices: protectedProcedure.query(async ({ ctx }) => {
-    const provider = await getProviderByUserId(ctx.user.id);
-    if (!provider) return { invoices: [], tier: "free" as const, canUseInvoices: false };
-    const tier = await getProviderTier(provider.id);
-    if (tier === "free") return { invoices: [], tier: "free" as const, canUseInvoices: false };
+      const provider = await getProviderByUserId(ctx.user.id);
+      if (!provider) return { invoices: [], tier: "free" as const, canUseInvoices: false };
+      const tier = await getProviderTier(provider.id);
+      if (!providerHasFeature(tier, "invoicing")) return { invoices: [], tier: "free" as const, canUseInvoices: false };
     const invoices = await invoiceDb.getInvoicesByProvider(provider.id);
     return { invoices, tier, canUseInvoices: true };
   }),

@@ -7,7 +7,7 @@ import * as db from "./db";
 import { SUBSCRIPTION_TIERS, STRIPE_PRODUCT_NAME, getTrialDays, type SubscriptionTier } from "./products";
 import { sendTrialStartedNotification, checkAndSendTrialMilestoneNotification } from "./trialNotifications";
 import { sendNotification } from "./notifications";
-import { TRIAL_DAYS, resolveProviderEntitlement } from "../shared/entitlements";
+import { TRIAL_DAYS, providerHasFeature, resolveProviderEntitlement } from "../shared/entitlements";
 import { requireStripeSubscriptionPeriodEnd } from "./stripeSubscriptionLifecycle";
 
 const stripe = new Stripe(ENV.stripeSecretKey, {
@@ -449,13 +449,12 @@ export const subscriptionRouter = router({
       if (!provider) return { allowed: false, currentTier: "free" as const, requiredTier: "basic" as const };
 
       const tier = await db.getProviderTier(provider.id);
-      const limits = SUBSCRIPTION_TIERS[tier].limits;
-      const allowed = limits[input.feature] === true;
+      const allowed = providerHasFeature(tier, input.feature);
 
       // Find minimum tier that allows this feature
       let requiredTier: SubscriptionTier = "premium";
       for (const t of ["free", "basic", "premium"] as SubscriptionTier[]) {
-        if (SUBSCRIPTION_TIERS[t].limits[input.feature]) {
+        if (providerHasFeature(t, input.feature)) {
           requiredTier = t;
           break;
         }

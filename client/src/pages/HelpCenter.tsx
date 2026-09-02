@@ -347,7 +347,7 @@ const guideSections: GuideSection[] = [
       {
         title: "Customer Subscription Plans",
         content:
-          "Booking services on OlogyCrew is always free. Customers who manage multiple providers or large crews can optionally upgrade for enhanced organization and priority features:\n\n• Individual (Free) — Save up to 5 providers, book any service, message providers, leave reviews, request quotes\n\n• Coordinator ($12/mo or $10.08/mo billed annually) — Save up to 50 providers, priority booking requests, organize providers into folders, up to 5 bulk quote requests\n\n• Manager ($20/mo or $16.00/mo billed annually) — Unlimited saved providers, unlimited bulk quote requests, booking analytics & spend reports, dedicated support\n\nThe Manager plan is ideal for logistics managers, agencies, and production companies who coordinate large crews or book many providers regularly.",
+          "Booking services on OlogyCrew is always free. Customers who manage multiple providers or large crews can optionally upgrade for enhanced organization and priority features:\n\n• Individual (Free) — Save up to 5 providers, book any service, message providers, leave reviews, request quotes\n\n• Coordinator ($12/mo or $10.08/mo billed annually) — Save up to 50 providers, priority booking requests, and organize providers into folders\n\n• Manager ($20/mo or $16.00/mo billed annually) — Unlimited saved providers, bulk quote requests, booking analytics & spend reports, booking exports, and dedicated support\n\nThe Manager plan is ideal for logistics managers, agencies, and production companies who coordinate large crews or book many providers regularly.",
         link: "/pricing",
         linkText: "View Pricing",
       },

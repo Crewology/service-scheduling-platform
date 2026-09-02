@@ -43,6 +43,7 @@ export const providerOverviewRouter = router({
       const entitlement = resolveProviderEntitlement(subscription);
       const tier = entitlement.effectiveTier;
       const canUseInvoices = providerHasFeature(tier, "invoicing");
+      const canCollectPayments = providerHasFeature(tier, "paymentCollection");
       const invoices = canUseInvoices ? await getInvoicesByProvider(provider.id) : [];
       const serviceNames = new Map(services.map((service) => [service.id, service.name]));
       const activeStatuses = ACTIVE_PROVIDER_BOOKING_STATUSES;
@@ -118,18 +119,18 @@ export const providerOverviewRouter = router({
         }));
 
       const setupItems = [];
-      if (!provider.payoutEnabled) {
+      if (!canCollectPayments || !provider.payoutEnabled) {
         setupItems.push({
           id: "setup-payments",
           kind: "setup" as const,
           tone: "critical" as const,
-          title: canUseInvoices ? "Finish payment setup" : "Payment collection is paused on Starter",
-          detail: canUseInvoices
+          title: canCollectPayments ? "Finish payment setup" : "Payment collection is paused on Starter",
+          detail: canCollectPayments
             ? "Complete Stripe setup before customers can pay through OlogyCrew."
             : "Upgrade to Pro or Business to connect Stripe and collect payments.",
           timestamp: provider.updatedAt,
-          actionLabel: canUseInvoices ? "Finish setup" : "View plans",
-          href: canUseInvoices ? "/provider/onboarding?step=5" : "/provider/subscription",
+          actionLabel: canCollectPayments ? "Finish setup" : "View plans",
+          href: canCollectPayments ? "/provider/onboarding?step=5" : "/provider/subscription",
         });
       }
       if (!provider.profileSlug) {

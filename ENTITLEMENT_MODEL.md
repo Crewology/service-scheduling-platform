@@ -65,9 +65,9 @@ Provider and customer accounts may each use one fourteen-day trial during the li
 
 ## Lifecycle operations
 
-An explicit OlogyCrew downgrade from a paid plan to free is immediate. Stripe cancellation must request proration and immediate invoice finalization so the resulting credit is recorded before a same-day re-upgrade. The local record becomes an active free entitlement while retaining the Stripe customer ID, trial history, and cancellation audit context.
+An explicit OlogyCrew downgrade from a paid plan to free is scheduled for the end of the already-paid billing period. Stripe sets `cancel_at_period_end=true`; the local record keeps the paid tier, `status=active`, the exact current-period end, and paid access until that date. Stripe connection data is retained, but payment collection is governed by the effective entitlement at every transaction boundary.
 
-An upgrade or paid-tier change on an active Stripe subscription updates the existing subscription item with Stripe proration. Re-upgrading after an immediate cancellation creates a new subscription only after Stripe has finalized the cancellation credit; the existing default payment method may be reused only when the calculated invoice balance and customer credit are visible to Stripe.
+Selecting the same paid tier and billing interval before a scheduled cancellation takes effect removes `cancel_at_period_end` from the existing Stripe subscription and creates no Checkout Session or new charge. An upgrade, paid-tier downgrade, or interval change on a live Stripe subscription updates the existing subscription item with Stripe proration and clears any scheduled cancellation. A fully ended subscription requires an explicit new checkout; OlogyCrew never silently creates a replacement subscription from recently cancelled history.
 
 A cancellation scheduled through the Stripe customer portal does not immediately remove paid access. Stripe remains authoritative for the active period; the local record retains the paid tier, `status=active`, `cancelAtPeriodEnd=true`, and the exact period end. The cancellation webhook converts the record to the free plan only when Stripe ends the subscription.
 

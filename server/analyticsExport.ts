@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import PDFDocument from "pdfkit";
 import { sdk } from "./_core/sdk";
 import * as db from "./db";
-import { CUSTOMER_TIERS } from "./customerSubscription";
+import { CUSTOMER_PLANS, customerHasFeature } from "@shared/entitlements";
 
 /**
  * Verify the user from the session cookie using the SDK.
@@ -515,10 +515,9 @@ export async function handleAnalyticsPDFExport(req: Request, res: Response) {
 
     // Check Business tier
     const tier = await db.getCustomerTier(user.id);
-    const tierConfig = CUSTOMER_TIERS[tier];
-    if (!tierConfig.perks.bookingAnalytics) {
+    if (!customerHasFeature(tier, "bookingExports")) {
       return res.status(403).json({
-        error: "Booking analytics PDF export is available for Business subscribers.",
+        error: "Booking analytics PDF export is available for Manager subscribers.",
       });
     }
 
@@ -566,7 +565,7 @@ export async function handleAnalyticsPDFExport(req: Request, res: Response) {
     doc.pipe(res);
 
     // ── Render sections ──
-    renderHeader(doc, user.name || "Customer", dateRange, tierConfig.name);
+    renderHeader(doc, user.name || "Customer", dateRange, CUSTOMER_PLANS[tier].name);
     renderSummaryCards(doc, summary);
     doc.moveDown(1);
     renderMonthlySpendingChart(doc, monthlySpending);

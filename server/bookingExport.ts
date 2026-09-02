@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import PDFDocument from "pdfkit";
-import { getCustomerBookingsWithDetails } from "./db";
+import { getCustomerBookingsWithDetails, getCustomerTier } from "./db";
 import { sdk } from "./_core/sdk";
+import { customerHasFeature } from "@shared/entitlements";
 
 /**
  * Verify the user from the session cookie using the SDK.
@@ -44,6 +45,10 @@ export async function handleCSVExport(req: Request, res: Response) {
     const user = await getUserFromRequest(req);
     if (!user) {
       return res.status(401).json({ error: "Authentication required" });
+    }
+    const tier = await getCustomerTier(user.id);
+    if (!customerHasFeature(tier, "bookingExports")) {
+      return res.status(403).json({ error: "Booking exports are available for Manager subscribers." });
     }
 
     const status = req.query.status as string | undefined;
@@ -104,6 +109,10 @@ export async function handlePDFExport(req: Request, res: Response) {
     const user = await getUserFromRequest(req);
     if (!user) {
       return res.status(401).json({ error: "Authentication required" });
+    }
+    const tier = await getCustomerTier(user.id);
+    if (!customerHasFeature(tier, "bookingExports")) {
+      return res.status(403).json({ error: "Booking exports are available for Manager subscribers." });
     }
 
     const status = req.query.status as string | undefined;

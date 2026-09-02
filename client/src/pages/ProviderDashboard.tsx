@@ -151,7 +151,7 @@ function StripeConnectSection({ provider, currentTier }: { provider: any; curren
 
   // Not connected yet
   if (!connectStatus?.connected) {
-    const isFree = !currentTier || currentTier === "free";
+    const isFree = connectStatus?.requiresPaidPlan ?? (!currentTier || currentTier === "free");
     return (
       <div className="space-y-6">
         <div>
@@ -227,6 +227,41 @@ function StripeConnectSection({ provider, currentTier }: { provider: any; curren
           onClose={() => setUpgradeOpen(false)}
           reason="payments"
           currentTier={(currentTier || "free") as "free" | "basic" | "premium"}
+        />
+      </div>
+    );
+  }
+
+  if (connectStatus.requiresPaidPlan) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold">Payment Collection Paused</h2>
+          <p className="text-muted-foreground mt-1">Your Stripe connection is retained, but Starter does not include on-platform payment collection.</p>
+        </div>
+        <Card className="border-amber-500/30 bg-amber-500/5">
+          <CardContent className="py-8 text-center space-y-4">
+            <AlertCircle className="w-12 h-12 text-amber-600 mx-auto" />
+            <div>
+              <h3 className="text-lg font-semibold">Upgrade to Resume Customer Payments</h3>
+              <p className="text-sm text-muted-foreground max-w-md mx-auto mt-2">
+                Upgrade to Pro or Business to resume collecting booking payments and using invoices. Your connected Stripe account and payout history remain available.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+              <Button onClick={() => setUpgradeOpen(true)}>View Paid Plans</Button>
+              <Button variant="outline" onClick={() => getDashboardLink.mutate()} disabled={getDashboardLink.isPending}>
+                <ExternalLink className="w-4 h-4 mr-2" />
+                {getDashboardLink.isPending ? "Loading..." : "Open Stripe Dashboard"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+        <UpgradePrompt
+          open={upgradeOpen}
+          onClose={() => setUpgradeOpen(false)}
+          reason="payments"
+          currentTier="free"
         />
       </div>
     );
@@ -3899,7 +3934,7 @@ function OnboardingChecklist({
     const hasCategories = (myCategories?.length || 0) > 0;
     const hasServices = (services?.length || 0) > 0;
     const hasPortfolio = (portfolio?.length || 0) > 0;
-    const hasStripe = stripeStatus?.connected && stripeStatus?.chargesEnabled;
+    const hasStripe = stripeStatus?.paymentCollectionEnabled;
     const hasAvailability = (mySchedule?.length || 0) > 0;
 
     return [

@@ -33,7 +33,7 @@ FOR CUSTOMERS:
 
 CUSTOMER SUBSCRIPTION TIERS:
 - Individual (Free): Save up to 5 providers, book any service, message, reviews, quotes
-- Coordinator ($12/mo): Save up to 50 providers, priority booking, folders, 5 bulk quote requests
+- Coordinator ($12/mo): Save up to 50 providers, priority booking requests, and provider folders
 - Manager ($20/mo): Unlimited saves, unlimited bulk quotes, analytics & spend reports, dedicated support
 
 FOR PROVIDERS:

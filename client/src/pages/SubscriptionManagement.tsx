@@ -55,7 +55,7 @@ const PLANS = [
       { text: "Stripe payment collection", included: false },
       { text: "Invoicing & branded receipts", included: false },
       { text: "Tip collection (Zelle, Cash App, Venmo)", included: true },
-      { text: "1% transaction fee", included: true },
+      { text: "1% transaction fee on OlogyCrew payments", included: false },
       { text: "Multiple categories", included: false },
       { text: "Analytics dashboard", included: false },
       { text: "Custom branding", included: false },
@@ -263,7 +263,7 @@ export default function SubscriptionManagement() {
             <h1 className="text-2xl sm:text-3xl font-bold">My Provider Plan Subscription</h1>
           </div>
           <p className="text-muted-foreground text-lg">
-            Grow your business with more categories, services, and visibility. All plans include a low 1% transaction fee.
+            Grow your business with more categories, services, and visibility. Pro and Business include Stripe payment collection and invoicing with a 1% OlogyCrew transaction fee.
           </p>
         </div>
 

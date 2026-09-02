@@ -6,7 +6,7 @@ import * as db from "./db";
 import { CUSTOMER_TIERS, CUSTOMER_STRIPE_PRODUCT_NAME, type CustomerTier } from "./customerSubscription";
 import { ENV } from "./_core/env";
 import { sendNotification } from "./notifications";
-import { resolveCustomerEntitlement } from "../shared/entitlements";
+import { customerHasFeature, resolveCustomerEntitlement } from "../shared/entitlements";
 import { requireStripeSubscriptionPeriodEnd } from "./stripeSubscriptionLifecycle";
 
 const stripe = new Stripe(ENV.stripeSecretKey, { apiVersion: "2026-01-28.clover" as any });
@@ -258,8 +258,7 @@ export const customerSubscriptionRouter = router({
   // Booking analytics (Business tier only)
   bookingAnalytics: protectedProcedure.query(async ({ ctx }) => {
     const tier = await db.getCustomerTier(ctx.user.id);
-    const tierConfig = CUSTOMER_TIERS[tier];
-    if (!tierConfig.perks.bookingAnalytics) {
+    if (!customerHasFeature(tier, "bookingAnalytics")) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "Booking analytics is available for Manager subscribers. Upgrade to access spending insights.",
@@ -286,8 +285,7 @@ export const customerSubscriptionRouter = router({
     }))
     .query(async ({ ctx, input }) => {
       const tier = await db.getCustomerTier(ctx.user.id);
-      const tierConfig = CUSTOMER_TIERS[tier];
-      if (!tierConfig.perks.bookingAnalytics) {
+      if (!customerHasFeature(tier, "bookingExports")) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Booking export is available for Manager subscribers.",
