@@ -2,8 +2,8 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { MobileRoleViewToggle } from "@/components/shared/MobileRoleViewToggle";
 import { CustomerEmptyState } from "@/components/workspace/CustomerEmptyState";
-import { useViewMode } from "@/contexts/ViewModeContext";
 import { trpc } from "@/lib/trpc";
 import { customerSearchHref } from "../../../shared/customerHomeLogic";
 import {
@@ -81,7 +81,6 @@ function firstName(name?: string | null, explicit?: string | null) {
 
 export default function CustomerWorkspaceHome() {
   const { user } = useAuth();
-  const { canSwitch, setViewMode } = useViewMode();
   const [, setLocation] = useLocation();
   const [date] = useState(() => localDateKey());
   const [query, setQuery] = useState("");
@@ -115,7 +114,7 @@ export default function CustomerWorkspaceHome() {
 
   return (
     <div className="container max-w-7xl py-5 pb-28 sm:py-8 md:pb-10">
-      {canSwitch ? <div className="mb-4 flex justify-center sm:hidden"><div className="inline-flex rounded-full border bg-white p-1 shadow-sm"><button type="button" onClick={() => setViewMode("provider")} className="rounded-full px-4 py-1.5 text-sm font-medium text-slate-500">Provider</button><button type="button" className="rounded-full bg-[#174a73] px-4 py-1.5 text-sm font-medium text-white shadow-sm">Customer</button></div></div> : null}
+      <MobileRoleViewToggle active="customer" />
 
       <section className="relative overflow-hidden rounded-[30px] bg-[#0e3c5f] px-5 py-8 text-white shadow-[0_28px_80px_-44px_rgba(14,60,95,0.9)] sm:px-8 sm:py-10 lg:px-12 lg:py-12">
         <div className="absolute inset-0 opacity-60 [background-image:radial-gradient(circle_at_16%_20%,rgba(85,189,232,0.25),transparent_30%),radial-gradient(circle_at_84%_0%,rgba(74,222,128,0.12),transparent_26%)]" />

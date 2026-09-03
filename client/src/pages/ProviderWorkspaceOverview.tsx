@@ -1,6 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { MobileRoleViewToggle } from "@/components/shared/MobileRoleViewToggle";
 import { ProviderPulseStat } from "@/components/workspace/ProviderPulseStat";
 import { trpc } from "@/lib/trpc";
 import {
@@ -154,6 +155,7 @@ export default function ProviderWorkspaceOverview() {
 
   return (
     <div className="container max-w-7xl py-5 pb-28 sm:py-8 lg:pb-10">
+      <MobileRoleViewToggle active="provider" />
       <div className="grid gap-6 lg:grid-cols-[232px_minmax(0,1fr)]">
         <aside className="hidden lg:block">
           <div className="sticky top-24 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_18px_50px_-34px_rgba(15,23,42,0.45)]">

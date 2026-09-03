@@ -2701,3 +2701,9 @@
 - [x] Restrict provider booking status mutations to the owning provider or an administrator so customers must use the policy-aware cancellation path and cannot self-confirm, complete, or refund bookings
 - [x] Enable optional two-factor authentication only after the verification-code email is accepted, keeping the account disabled and returning a clear error when delivery fails
 - [x] Narrow global test cleanup to unmistakable test prefixes and non-deliverable domains so it cannot delete legitimate deleted-user records or unrelated example-domain accounts
+
+## Fix: Mobile Provider/Customer Toggle Missing on Provider Home
+- [x] Compare the provider and customer mobile home shells and identify why the role toggle renders only in customer view
+- [x] Restore the Provider/Customer toggle beneath the mobile header on provider home without changing the approved Overview workspace
+- [x] Verify active role styling, provider/customer navigation, desktop behavior, and mobile responsive placement
+- [x] Add focused regression coverage and save a validated checkpoint
