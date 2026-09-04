@@ -70,6 +70,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { Link, useSearch } from "wouter";
 import AdminSocialMedia from "./AdminSocialMedia";
+import { AdminTermsManagement } from "./admin/AdminTermsManagement";
 import { formatCurrency, formatDate } from "@/lib/dateUtils";
 import { formatTimeForDisplay } from "@shared/timeSlots";
 import { NavHeader } from "@/components/shared/NavHeader";
@@ -473,6 +474,10 @@ export default function AdminDashboard() {
                 <FileText className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
                 Documents
               </TabsTrigger>
+              {user?.adminRole === "super_admin" ? <TabsTrigger value="legal" className="whitespace-nowrap text-xs md:text-sm">
+                <FileText className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
+                Legal Terms
+              </TabsTrigger> : null}
               <TabsTrigger value="support" className="whitespace-nowrap text-xs md:text-sm">
                 <MessageSquare className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
                 Support
@@ -766,6 +771,10 @@ export default function AdminDashboard() {
           {/* Social Media Tab */}
           <TabsContent value="social-media">
             <AdminSocialMedia />
+          </TabsContent>
+
+          <TabsContent value="legal">
+            <AdminTermsManagement />
           </TabsContent>
 
           {/* Platform Settings Tab */}

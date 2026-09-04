@@ -489,6 +489,68 @@ export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
 
 /**
+ * Versioned Terms of Use managed by the platform owner.
+ * The June 24, 2026 static Terms remain the immutable baseline; later versions
+ * are stored here so published and superseded revisions stay accessible.
+ */
+export const termsVersions = mysqlTable("terms_versions", {
+  id: int("id").autoincrement().primaryKey(),
+  version: varchar("version", { length: 50 }).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  summary: text("summary").notNull(),
+  content: text("content").notNull(),
+  status: mysqlEnum("status", ["draft", "published", "superseded", "archived"]).default("draft").notNull(),
+  audience: mysqlEnum("audience", ["all", "customers", "providers"]).default("all").notNull(),
+  acceptanceMode: mysqlEnum("acceptanceMode", ["notice", "explicit"]).default("notice").notNull(),
+  effectiveAt: timestamp("effectiveAt").notNull(),
+  materialArbitrationChanges: boolean("materialArbitrationChanges").default(false).notNull(),
+  arbitrationSection: varchar("arbitrationSection", { length: 50 }),
+  optOutDeadline: timestamp("optOutDeadline"),
+  contactEmail: varchar("contactEmail", { length: 320 }).notNull(),
+  companyAddress: varchar("companyAddress", { length: 500 }).notNull(),
+  createdBy: int("createdBy").notNull().references(() => users.id),
+  publishedBy: int("publishedBy").references(() => users.id),
+  publishedAt: timestamp("publishedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  versionUnique: unique("terms_version_unique").on(table.version),
+  statusEffectiveIdx: index("terms_status_effective_idx").on(table.status, table.effectiveAt),
+}));
+
+export type TermsVersion = typeof termsVersions.$inferSelect;
+export type InsertTermsVersion = typeof termsVersions.$inferInsert;
+
+/**
+ * One durable delivery and acknowledgment record per user and Terms version.
+ * Delivery fields make publish/retry idempotent; shown/accepted fields preserve
+ * what the user actually saw without inferring legal acceptance silently.
+ */
+export const userTermsNotices = mysqlTable("user_terms_notices", {
+  id: int("id").autoincrement().primaryKey(),
+  termsVersionId: int("termsVersionId").notNull().references(() => termsVersions.id),
+  userId: int("userId").notNull().references(() => users.id),
+  inAppNotifiedAt: timestamp("inAppNotifiedAt"),
+  emailStatus: mysqlEnum("emailStatus", ["pending", "sent", "failed", "skipped"]).default("pending").notNull(),
+  emailSentAt: timestamp("emailSentAt"),
+  emailLastAttemptAt: timestamp("emailLastAttemptAt"),
+  emailFailureReason: varchar("emailFailureReason", { length: 500 }),
+  shownAt: timestamp("shownAt"),
+  acknowledgedAt: timestamp("acknowledgedAt"),
+  acceptedAt: timestamp("acceptedAt"),
+  acceptanceMethod: mysqlEnum("acceptanceMethod", ["acknowledged", "explicit"]),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  versionUserUnique: unique("terms_notice_version_user_unique").on(table.termsVersionId, table.userId),
+  userPendingIdx: index("terms_notice_user_pending_idx").on(table.userId, table.acknowledgedAt),
+  deliveryStatusIdx: index("terms_notice_delivery_status_idx").on(table.termsVersionId, table.emailStatus),
+}));
+
+export type UserTermsNotice = typeof userTermsNotices.$inferSelect;
+export type InsertUserTermsNotice = typeof userTermsNotices.$inferInsert;
+
+/**
  * Verification documents
  */
 export const verificationDocuments = mysqlTable("verification_documents", {

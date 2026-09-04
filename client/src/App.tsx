@@ -9,6 +9,7 @@ import { RoleGuard } from "./components/RoleGuard";
 import { ProviderOnlyGuard } from "./components/ProviderOnlyGuard";
 import { Footer } from "./components/shared/Footer";
 import { HelpChatWidget } from "./components/HelpChatWidget";
+import { TermsUpdateBanner } from "./components/TermsUpdateBanner";
 import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -228,6 +229,7 @@ function AppContent() {
   return (
     <>
       <RoleGuard>
+        <TermsUpdateBanner />
         <Router />
       </RoleGuard>
       {!hideFooter && <Footer />}

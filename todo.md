@@ -2707,3 +2707,14 @@
 - [x] Restore the Provider/Customer toggle beneath the mobile header on provider home without changing the approved Overview workspace
 - [x] Verify active role styling, provider/customer navigation, desktop behavior, and mobile responsive placement
 - [x] Add focused regression coverage and save a validated checkpoint
+
+## Feature: Versioned Terms Update Notifications
+- [x] Audit current Terms pages, legal consent fields, email/in-app notification infrastructure, admin controls, and background-job support
+- [x] Choose the owner-controlled immediate or scheduled publication workflow and document its operational safeguards
+- [x] Add versioned Terms metadata and per-user shown/accepted records with a reviewed additive migration
+- [x] Add administrator controls to draft, preview, publish, and monitor a Terms update without allowing duplicate sends
+- [x] Deliver the approved Terms update notice by email and in-app notification with effective date, direct links, audience, and optional legally approved arbitration language
+- [x] Present a persistent user notice, record the Terms version shown or accepted, and preserve access to prior published versions
+- [x] Add authorization, validation, idempotency, delivery, acceptance, and responsive UI regression coverage
+- [x] Run zero-error TypeScript, production build, desktop/mobile review, and save a validated checkpoint
+- [x] Hide published-version actions in the Legal Terms empty state until an actual published or superseded version is selected

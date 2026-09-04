@@ -42,6 +42,8 @@ import {
   services,
   trustedDevices,
   twoFactorCodes,
+  termsVersions,
+  userTermsNotices,
   users,
   verificationDocuments,
   waitlistEntries,
@@ -112,6 +114,10 @@ export async function teardown() {
       or(inArray(referrals.referrerId, testUserIds), inArray(referrals.refereeId, testUserIds)),
     );
     const testReferralIds = testReferralRows.map(referral => referral.id);
+    const testTermsRows = await db.select({ id: termsVersions.id }).from(termsVersions).where(
+      or(inArray(termsVersions.createdBy, testUserIds), inArray(termsVersions.publishedBy, testUserIds)),
+    );
+    const testTermsIds = testTermsRows.map(termsVersion => termsVersion.id);
 
     console.log(`[vitest-global-setup] Found ${testUserIds.length} test accounts and ${testProviderIds.length} test providers to clean up`);
     await db.execute(sql`SET FOREIGN_KEY_CHECKS = 0`);
@@ -156,6 +162,12 @@ export async function teardown() {
     await db.delete(waitlistEntries).where(inArray(waitlistEntries.userId, testUserIds));
     await db.delete(messages).where(or(inArray(messages.senderId, testUserIds), inArray(messages.recipientId, testUserIds)));
     await db.delete(notifications).where(inArray(notifications.userId, testUserIds));
+    await db.delete(userTermsNotices).where(inArray(userTermsNotices.userId, testUserIds));
+    if (testTermsIds.length) {
+      await db.delete(userTermsNotices).where(inArray(userTermsNotices.termsVersionId, testTermsIds));
+      await db.delete(auditLog).where(and(eq(auditLog.targetType, "terms_version"), inArray(auditLog.targetId, testTermsIds)));
+      await db.delete(termsVersions).where(inArray(termsVersions.id, testTermsIds));
+    }
     await db.delete(quoteRequests).where(inArray(quoteRequests.customerId, testUserIds));
     await db.delete(auditLog).where(or(
       inArray(auditLog.actorId, testUserIds),

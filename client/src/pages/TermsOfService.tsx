@@ -1,7 +1,34 @@
 import { NavHeader } from "@/components/shared/NavHeader";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { trpc } from "@/lib/trpc";
+import { CheckCircle2, Loader2 } from "lucide-react";
+import { Streamdown } from "streamdown";
+import { toast } from "sonner";
+import { useSearch } from "wouter";
+import type { inferRouterOutputs } from "@trpc/server";
+import type { AppRouter } from "../../../server/routers";
+
+type ManagedTermsVersion = NonNullable<inferRouterOutputs<AppRouter>["terms"]["current"]>;
 
 export default function TermsOfService() {
+  const search = useSearch();
+  const requestedVersion = new URLSearchParams(search).get("version") || undefined;
+  const { data: managedVersion, isLoading } = trpc.terms.current.useQuery(requestedVersion ? { version: requestedVersion } : undefined);
+
+  if (managedVersion) return <ManagedTermsOfService version={managedVersion} />;
+  if (isLoading && requestedVersion && requestedVersion !== "2026-06-24") {
+    return <div className="min-h-screen bg-background"><NavHeader /><main className="container flex max-w-3xl items-center justify-center py-24"><Loader2 className="h-6 w-6 animate-spin text-primary" /><span className="ml-3 text-muted-foreground">Loading Terms version…</span></main></div>;
+  }
+  if (requestedVersion && requestedVersion !== "2026-06-24") {
+    return <div className="min-h-screen bg-background"><NavHeader /><main className="container max-w-3xl py-12"><PageHeader title="Terms version not found" backHref="/terms" breadcrumbs={[{ label: "Terms of Use" }, { label: requestedVersion }]} /><p className="mt-4 text-muted-foreground">This Terms version is not published or does not exist.</p><Button asChild className="mt-6"><a href="/terms">View current Terms</a></Button></main></div>;
+  }
+
+  return <BaselineTermsOfService />;
+}
+
+function BaselineTermsOfService() {
   return (
     <div className="min-h-screen bg-background">
       <NavHeader />
@@ -229,7 +256,49 @@ export default function TermsOfService() {
             </p>
           </section>
         </div>
+        <TermsVersionHistory currentVersion="2026-06-24" />
       </main>
     </div>
   );
+}
+
+function ManagedTermsOfService({ version }: { version: ManagedTermsVersion }) {
+  const { isAuthenticated } = useAuth();
+  const utils = trpc.useUtils();
+  const { data: pendingNotice } = trpc.terms.pendingNotice.useQuery(undefined, { enabled: isAuthenticated });
+  const acknowledge = trpc.terms.acknowledge.useMutation({
+    onSuccess: async () => {
+      await utils.terms.pendingNotice.invalidate();
+      toast.success(version.acceptanceMode === "explicit" ? "Updated Terms accepted" : "Terms update acknowledged");
+    },
+    onError: (error) => toast.error("Could not record your response", { description: error.message }),
+  });
+  const effectiveDate = new Date(version.effectiveAt).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" });
+  const matchingNoticeId = pendingNotice?.version.version === version.version ? pendingNotice.noticeId : null;
+
+  return (
+    <div className="min-h-screen bg-background">
+      <NavHeader />
+      <main className="container max-w-3xl py-12">
+        <PageHeader title={version.title} backHref="/" breadcrumbs={[{ label: "Terms of Use" }, { label: version.version }]} />
+        <div className="mt-4 flex flex-col justify-between gap-3 rounded-2xl border border-blue-200 bg-blue-50 p-4 sm:flex-row sm:items-center">
+          <div><p className="text-sm font-semibold text-blue-950">Version {version.version}</p><p className="mt-1 text-sm text-blue-800">Effective {effectiveDate}{version.status === "superseded" ? " · Prior version" : ""}</p></div>
+          {matchingNoticeId ? <Button disabled={acknowledge.isPending} onClick={() => acknowledge.mutate({ noticeId: matchingNoticeId })}>{acknowledge.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}{version.acceptanceMode === "explicit" ? "Accept updated Terms" : "Acknowledge update"}</Button> : null}
+        </div>
+        <p className="mt-6 rounded-xl bg-slate-50 p-4 text-sm leading-6 text-slate-700"><strong>What changed:</strong> {version.summary}</p>
+        {version.materialArbitrationChanges ? <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm leading-6 text-amber-950"><strong>Arbitration Agreement update:</strong> Review Section {version.arbitrationSection}.{version.optOutDeadline ? ` The stated opt-out deadline is ${new Date(version.optOutDeadline).toLocaleDateString()}.` : ""}</div> : null}
+        <div className="prose prose-neutral mt-8 max-w-none dark:prose-invert"><Streamdown>{version.content}</Streamdown></div>
+        <div className="mt-10 border-t pt-6 text-sm text-muted-foreground"><p>Questions about this version may be sent to <a className="text-primary hover:underline" href={`mailto:${version.contactEmail}`}>{version.contactEmail}</a>.</p><p className="mt-2">OlogyCrew LLC · {version.companyAddress}</p></div>
+        <TermsVersionHistory currentVersion={version.version} />
+      </main>
+    </div>
+  );
+}
+
+function TermsVersionHistory({ currentVersion }: { currentVersion: string }) {
+  const { data: history = [] } = trpc.terms.history.useQuery();
+  const priorVersions = history.filter((item) => item.version !== currentVersion);
+  if (priorVersions.length === 0) return null;
+
+  return <section className="mt-10 border-t pt-6" aria-labelledby="terms-history-heading"><h2 id="terms-history-heading" className="text-lg font-semibold">Prior Terms versions</h2><div className="mt-3 flex flex-wrap gap-2">{priorVersions.map((item) => <a key={item.version} href={`/terms?version=${encodeURIComponent(item.version)}`} className="rounded-full border bg-white px-3 py-1.5 text-sm text-slate-600 hover:border-blue-300 hover:text-[#176f9e]">{item.version}</a>)}</div></section>;
 }

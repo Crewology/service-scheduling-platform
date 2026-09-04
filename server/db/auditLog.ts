@@ -26,9 +26,13 @@ export type AuditAction =
   | "delete_user"
   | "activate_provider"
   | "deactivate_provider"
-  | "bulk_delete_users";
+  | "bulk_delete_users"
+  | "create_terms_draft"
+  | "update_terms_draft"
+  | "publish_terms_version"
+  | "retry_terms_delivery";
 
-export type TargetType = "user" | "provider" | "review" | "booking" | "document" | "system";
+export type TargetType = "user" | "provider" | "review" | "booking" | "document" | "system" | "terms_version";
 
 /**
  * Record an admin action in the audit log.
