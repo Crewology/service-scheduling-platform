@@ -2718,3 +2718,12 @@
 - [x] Add authorization, validation, idempotency, delivery, acceptance, and responsive UI regression coverage
 - [x] Run zero-error TypeScript, production build, desktop/mobile review, and save a validated checkpoint
 - [x] Hide published-version actions in the Legal Terms empty state until an actual published or superseded version is selected
+
+## Planning: Native Provider Customer Relationship Layer
+- [x] Inventory existing booking, quote, messaging, invoice, subscription, notification, rebooking, role, consent, and admin integration points
+- [x] Define the native CRM domain model, system boundaries, event architecture, automation safety model, permissions, privacy rules, and phased implementation strategy
+- [x] Specify the proposed additive database schema, relationships, indexes, lifecycle enums, derived data, retention, and migration order
+- [x] Detail provider CRM information architecture, desktop/mobile user flows, empty/loading/error states, and exact wireframe descriptions
+- [x] Draft the first-release PRD with goals, personas, scope, requirements, entitlements, analytics, acceptance criteria, rollout, and exclusions
+- [x] Cross-check architecture, wireframes, and PRD for shared terminology, feasible platform reuse, non-surveillance admin boundaries, and approved relationship-layer positioning
+- [x] Deliver the coordinated CRM planning package without changing live application behavior
