@@ -2,6 +2,7 @@ import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { z } from "zod";
 import * as db from "../db";
 import { TRPCError } from "@trpc/server";
+import { queueCrmReviewProjection } from "../crm/sourceHooks";
 
 export const reviewRouter = router({
   listByCustomer: protectedProcedure
@@ -37,6 +38,7 @@ export const reviewRouter = router({
       
       await db.addReviewResponse(input.reviewId, input.responseText);
       const updated = await db.getReviewById(input.reviewId);
+      queueCrmReviewProjection(input.reviewId);
       return updated!;
     }),
   
@@ -66,6 +68,7 @@ export const reviewRouter = router({
       });
       
       const created = await db.getReviewByBookingId(input.bookingId);
+      if (created) queueCrmReviewProjection(created.id);
 
       // Recalculate provider trust score after new review
       try {

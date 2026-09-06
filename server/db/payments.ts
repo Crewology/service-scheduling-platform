@@ -62,6 +62,48 @@ export async function updatePaymentStatus(paymentId: number, status: string, add
   await db.update(payments).set(updateData).where(eq(payments.id, paymentId));
 }
 
+export async function upsertBookingPaymentByStripeIntent(input: {
+  bookingId: number;
+  paymentType: "deposit" | "final" | "full";
+  amount: string;
+  currency?: string;
+  status: "pending" | "authorized" | "captured" | "failed" | "cancelled";
+  stripePaymentIntentId: string;
+  failureReason?: string | null;
+  processedAt?: Date | null;
+}) {
+  const database = await getDb();
+  if (!database) throw new Error("Database not available");
+  await database.insert(payments).values({
+    bookingId: input.bookingId,
+    paymentType: input.paymentType,
+    amount: input.amount,
+    currency: (input.currency || "USD").toUpperCase(),
+    status: input.status,
+    stripePaymentIntentId: input.stripePaymentIntentId,
+    failureReason: input.failureReason ?? null,
+    processedAt: input.processedAt ?? null,
+  }).onDuplicateKeyUpdate({
+    set: {
+      bookingId: input.bookingId,
+      paymentType: input.paymentType,
+      amount: input.amount,
+      currency: (input.currency || "USD").toUpperCase(),
+      status: sql`CASE
+        WHEN ${payments.status} = 'refunded' THEN 'refunded'
+        WHEN ${payments.status} = 'captured' AND ${input.status} = 'failed' THEN 'captured'
+        ELSE ${input.status}
+      END`,
+      failureReason: sql`CASE
+        WHEN ${payments.status} IN ('captured', 'refunded') AND ${input.status} = 'failed' THEN ${payments.failureReason}
+        ELSE ${input.failureReason ?? null}
+      END`,
+      processedAt: input.processedAt ?? null,
+    },
+  });
+  return getPaymentByStripePaymentIntentId(input.stripePaymentIntentId);
+}
+
 // ============================================================================
 // SUBSCRIPTION HELPERS
 // ============================================================================

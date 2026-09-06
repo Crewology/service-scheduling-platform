@@ -11,6 +11,7 @@ import { generateInvoicePdf } from "./services/invoicePdf";
 import { getStripeSubscriptionPeriod, mapStripeSubscriptionStatus } from "./stripeSubscriptionLifecycle";
 import { CUSTOMER_PLANS, PROVIDER_PLANS } from "../shared/entitlements";
 import { createSubscriptionInAppNotice } from "./subscriptionNotifications";
+import { queueCrmBookingProjection, queueCrmInvoiceProjection } from "./crm/sourceHooks";
 
 const stripe = new Stripe(ENV.stripeSecretKey, {
   apiVersion: "2026-01-28.clover",
@@ -186,6 +187,20 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     return;
   }
 
+  const stripePaymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id;
+  if (stripePaymentIntentId) {
+    const fallbackAmount = paymentType === "deposit" ? booking.depositAmount || "0" : booking.totalAmount || "0";
+    await db.upsertBookingPaymentByStripeIntent({
+      bookingId: booking.id,
+      paymentType: paymentType === "deposit" ? "deposit" : "full",
+      amount: session.amount_total != null ? (session.amount_total / 100).toFixed(2) : fallbackAmount,
+      currency: session.currency || "usd",
+      status: "captured",
+      stripePaymentIntentId,
+      processedAt: new Date(),
+    });
+  }
+
   // Update booking with payment information
   if (paymentType === "deposit") {
     await db.updateBookingStatus(parseInt(bookingId), booking.status, {
@@ -200,6 +215,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     });
     console.log(`[Stripe] Full payment recorded for booking ${bookingId}`);
   }
+  queueCrmBookingProjection(booking.id);
 
   // Send email notifications
   const customer = await db.getUserById(booking.customerId);
@@ -293,7 +309,23 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
 async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
   console.log("[Stripe] Payment succeeded:", paymentIntent.id);
-  // Additional payment success handling if needed
+  const bookingId = Number(paymentIntent.metadata?.bookingId || 0);
+  if (!bookingId) return;
+  const paymentType = paymentIntent.metadata?.paymentType === "deposit"
+    ? "deposit" as const
+    : paymentIntent.metadata?.paymentType === "final"
+      ? "final" as const
+      : "full" as const;
+  await db.upsertBookingPaymentByStripeIntent({
+    bookingId,
+    paymentType,
+    amount: ((paymentIntent.amount_received || paymentIntent.amount) / 100).toFixed(2),
+    currency: paymentIntent.currency,
+    status: "captured",
+    stripePaymentIntentId: paymentIntent.id,
+    processedAt: new Date(),
+  });
+  queueCrmBookingProjection(bookingId);
 }
 
 async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
@@ -301,13 +333,31 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
 
   // Find the booking associated with this payment intent
   const payment = await db.getPaymentByStripePaymentIntentId(paymentIntent.id);
-  if (!payment || !payment.bookingId) {
+  const bookingId = payment?.bookingId || Number(paymentIntent.metadata?.bookingId || 0);
+  if (!bookingId) {
     console.log(`[Stripe] No booking found for failed payment_intent: ${paymentIntent.id}`);
     return;
   }
 
-  const booking = await db.getBookingById(payment.bookingId);
+  const booking = await db.getBookingById(bookingId);
   if (!booking) return;
+
+  const paymentType = payment?.paymentType === "deposit" || paymentIntent.metadata?.paymentType === "deposit"
+    ? "deposit" as const
+    : payment?.paymentType === "final" || paymentIntent.metadata?.paymentType === "final"
+      ? "final" as const
+      : "full" as const;
+  await db.upsertBookingPaymentByStripeIntent({
+    bookingId,
+    paymentType,
+    amount: payment?.amount || (paymentIntent.amount / 100).toFixed(2),
+    currency: payment?.currency || paymentIntent.currency,
+    status: "failed",
+    stripePaymentIntentId: paymentIntent.id,
+    failureReason: paymentIntent.last_payment_error?.message || "Stripe payment failed",
+    processedAt: new Date(),
+  });
+  queueCrmBookingProjection(bookingId);
 
   const customer = await db.getUserById(booking.customerId);
   const service = await db.getServiceById(booking.serviceId);
@@ -392,6 +442,7 @@ async function handleRefund(charge: Stripe.Charge) {
 
   // Send refund confirmation notification to customer
   const booking = payment.bookingId ? await db.getBookingById(payment.bookingId) : null;
+  if (payment.bookingId) queueCrmBookingProjection(payment.bookingId);
   if (booking) {
     const customer = await db.getUserById(booking.customerId);
     if (customer?.email) {
@@ -892,6 +943,7 @@ async function handleInvoicePayment(session: Stripe.Checkout.Session) {
     paidAt: new Date(),
     stripePaymentIntentId: session.payment_intent as string,
   });
+  if (invoice.customerId > 0 && invoice.type === "invoice") queueCrmInvoiceProjection(invoice.id);
 
   // Generate receipt PDF if not already generated
   if (!invoice.pdfUrl) {

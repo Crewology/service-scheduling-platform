@@ -2,6 +2,7 @@ import { protectedProcedure, router } from "../_core/trpc";
 import { z } from "zod";
 import * as db from "../db";
 import { TRPCError } from "@trpc/server";
+import { queueCrmConversationProjection, queueCrmMessageProjection } from "../crm/sourceHooks";
 import { invokeLLM } from "../_core/llm";
 
 // ─── Demo Provider Auto-Reply ────────────────────────────────────────────────
@@ -215,6 +216,7 @@ export const messageRouter = router({
       
       const msgs = await db.getConversationMessages(conversationId);
       const newMsg = msgs[msgs.length - 1]!;
+      queueCrmMessageProjection(newMsg.id);
 
       await pushMessageNotifications(
         ctx.user.id,
@@ -419,13 +421,15 @@ export const messageRouter = router({
       const ids = [ctx.user.id, input.recipientId].sort((a, b) => a - b);
       const conversationId = `conv-${ids[0]}-${ids[1]}`;
       
-      await db.createMessage({
+      const messageResult = await db.createMessage({
         conversationId,
         senderId: ctx.user.id,
         recipientId: input.recipientId,
         messageText: input.messageText,
         attachmentUrl: input.attachmentUrl || null,
       });
+      const messageId = Number(messageResult?.[0]?.insertId ?? 0);
+      if (messageId > 0) queueCrmMessageProjection(messageId);
       
       await pushMessageNotifications(
         ctx.user.id,
@@ -466,6 +470,7 @@ export const messageRouter = router({
     .input(z.object({ conversationId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       await db.markMessagesAsRead(input.conversationId, ctx.user.id);
+      queueCrmConversationProjection(input.conversationId);
       
       // Determine the other user in the conversation and push read receipt
       try {

@@ -435,6 +435,13 @@
       "when": 1788719877956,
       "tag": "0061_bouncy_kang",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "5",
+      "when": 1788734679868,
+      "tag": "0062_fine_pyro",
+      "breakpoints": true
     }
   ]
 }

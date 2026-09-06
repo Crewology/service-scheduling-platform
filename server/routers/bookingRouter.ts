@@ -3,6 +3,7 @@ import { z } from "zod";
 import * as db from "../db";
 import { TRPCError } from "@trpc/server";
 import { formatTimeForDisplay } from "@shared/timeSlots";
+import { queueCrmBookingProjection } from "../crm/sourceHooks";
 
 export const bookingRouter = router({
   create: protectedProcedure
@@ -168,6 +169,7 @@ export const bookingRouter = router({
       
       const booking = await db.getBookingById(bookingId);
       if (!booking) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to retrieve created booking" });
+      queueCrmBookingProjection(bookingId);
 
       // Record promo code redemption
       if (input.promoCodeId && promoDiscount > 0) {
@@ -381,6 +383,7 @@ export const bookingRouter = router({
       
       await db.updateBookingStatus(input.id, input.status, additionalData);
       const updated = await db.getBookingById(input.id);
+      queueCrmBookingProjection(input.id);
 
       try {
         const { sendNotification } = await import("../notifications");
@@ -595,6 +598,7 @@ export const bookingRouter = router({
         cancelledBy,
         cancelledAt: new Date(),
       });
+      queueCrmBookingProjection(input.bookingId);
 
       const { sendNotification } = await import("../notifications");
       const { sendPushNotification } = await import("../notifications/pushHelper");
@@ -891,6 +895,7 @@ export const bookingRouter = router({
       await db.createBookingSessions(sessions);
 
       const booking = await db.getBookingById(bookingId);
+      queueCrmBookingProjection(bookingId);
 
       // Send notification
       try {
@@ -1081,6 +1086,7 @@ export const bookingRouter = router({
       await db.createBookingSessions(sessions);
 
       const booking = await db.getBookingById(bookingId);
+      queueCrmBookingProjection(bookingId);
 
       // Send notification
       try {

@@ -204,6 +204,12 @@ export const stripeRouter = router({
         transfer_data: {
           destination: provider.stripeAccountId,
         },
+        metadata: {
+          bookingId: booking.id.toString(),
+          customerId: ctx.user.id.toString(),
+          providerId: provider.id.toString(),
+          paymentType: service.depositRequired ? "deposit" : "full",
+        },
       };
 
       const session = await stripe.checkout.sessions.create(sessionOptions);

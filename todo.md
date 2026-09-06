@@ -2747,3 +2747,21 @@
 - [x] Add focused schema, uniqueness, tenant isolation, entitlement lifecycle, policy, privacy, idempotency, deletion, and test-cleanup regressions
 - [x] Confirm all Customers rollout flags remain off, no backfill or managed schedule runs, no Customers UI is exposed, and no provider relationship message can be sent
 - [x] Run zero-error TypeScript, production build, focused and adjacent regressions, then save a validated Phase 1 checkpoint
+
+## Customers Release 1 Implementation — Phase 2 Projection
+- [x] Audit authoritative booking, quote, payment, invoice, message, review, account-deletion, entitlement, and managed-job mutation boundaries against the approved event contract
+- [x] Implement an idempotent Customers projector that derives eligible provider/customer relationships, lifecycle stage, interaction dates, booking totals, and captured value from authoritative records
+- [x] Implement safe append-only source events with strict metadata and provider-scoped idempotency without storing message bodies, payment secrets, addresses, or unrestricted snapshots
+- [x] Wire approved source hooks for booking, quote, captured payment/refund, eligible conversation, paid standalone invoice, and booking-linked review lifecycle events
+- [x] Keep source writes authoritative and make projection failures non-destructive, observable, and repairable without changing booking, quote, payment, invoice, message, or review outcomes
+- [x] Add owner-only private dry-run, bounded backfill, reconciliation, rebuild, and repair procedures without exposing rollout state through public platform settings
+- [x] Add count, exclusion, source-parity, lag, failure, and last-success metrics suitable for private pilot approval
+- [x] Prove repeated live hooks, backfills, and repair runs are idempotent and preserve provider tenant isolation
+- [x] Confirm all rollout flags remain off, no managed job is scheduled, no Customers route or UI is exposed, and no relationship message can be sent
+- [x] Run focused and adjacent regressions, zero-error TypeScript, production build, and save a validated Phase 2 checkpoint
+- [x] Persist successful and failed Stripe booking payments idempotently to the authoritative payment record before projecting financial events or notifying the customer
+- [x] Make Customers projection rebuild delete and regenerate only derived projection data while preserving provider-authored notes, tasks, preferences, drafts, manual stages, rules, and saved segments
+- [x] Run database-backed Vitest files sequentially so reserved-identity cleanup cannot delete another concurrently executing suite’s fixtures
+- [x] Make message source-hook ID extraction tolerant of existing database test doubles and update adjacent payment/review/Stripe fixtures for the current PaymentIntent metadata and verified-email security gate
+- [x] Mock email, push, and review notification delivery in the legacy review, quote, and Stripe Connect suites so Phase 2 validation cannot send real messages or time out on external providers
+- [x] Keep owner dry-run metrics separate from the live resumable backfill cursor and remove stale dry-run cursor state so a future apply run cannot skip eligible relationships

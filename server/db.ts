@@ -148,6 +148,11 @@ export {
   getCustomerSubscriptionAnalytics,
 } from "./db/customerSubscriptions";
 
+// Booking payment lifecycle helpers
+export {
+  upsertBookingPaymentByStripeIntent,
+} from "./db/payments";
+
 // Service packages
 export {
   createPackage,

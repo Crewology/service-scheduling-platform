@@ -92,3 +92,13 @@ export async function getCrmPilotProviderIds(): Promise<number[]> {
     return [];
   }
 }
+
+export async function setCrmPilotProviderIds(
+  providerIds: number[],
+  updatedByUserId?: number | null,
+): Promise<void> {
+  const normalized = Array.from(new Set(providerIds.filter((value) => Number.isInteger(value) && value > 0)))
+    .sort((a, b) => a - b)
+    .slice(0, 500);
+  await upsertCrmOperationalSetting("customersPilotProviderIds", JSON.stringify(normalized), updatedByUserId);
+}

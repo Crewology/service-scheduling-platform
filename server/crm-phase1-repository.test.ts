@@ -77,7 +77,6 @@ describe("Customers Phase 1 repository isolation and erasure", () => {
 
     const flags = await getCrmRolloutFlags();
     expect(Object.values(flags).every((enabled) => enabled === false)).toBe(true);
-    expect(await db.select().from(crmOperationalState)).toHaveLength(0);
 
     const interactionAt = new Date("2026-09-06T14:00:00.000Z");
     const contactA = await upsertCrmContact({

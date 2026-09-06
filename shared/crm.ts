@@ -154,6 +154,11 @@ export const CRM_PRIVATE_SETTING_KEYS = [
   "customersProjectionRepairTaskUid",
   "customersTimeRulesTaskUid",
   "customersProjectionCursor",
+  "customersProjectionMetrics",
+  "customersProjectionLastSuccessAt",
+  "customersProjectionLastError",
+  "customersBackfillCursor",
+  "customersBackfillLastRunId",
 ] as const;
 export type CrmPrivateSettingKey = (typeof CRM_PRIVATE_SETTING_KEYS)[number];
 

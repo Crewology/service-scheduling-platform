@@ -109,10 +109,10 @@ describe("booking payment entitlement boundary", () => {
     const result = await stripeRouter.createCaller(ctx()).createCheckoutSession({ bookingId: booking.id });
 
     expect(stripeMocks.checkout.sessions.create).toHaveBeenCalledWith(expect.objectContaining({
-      payment_intent_data: {
+      payment_intent_data: expect.objectContaining({
         application_fee_amount: 100,
         transfer_data: { destination: "acct_provider" },
-      },
+      }),
     }));
     expect(result.url).toBe("https://checkout.stripe.test/session");
   });

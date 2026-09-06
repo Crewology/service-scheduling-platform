@@ -5,6 +5,7 @@ import { TRPCError } from "@trpc/server";
 import { canCustomerSaveMore, CUSTOMER_TIERS } from "../customerSubscription";
 import { invalidateOgImageCache } from "../ogTags";
 import { customerHasFeature, providerHasFeature } from "@shared/entitlements";
+import { queueCrmBookingProjection, queueCrmQuoteProjection } from "../crm/sourceHooks";
 
 export const providerRouter = router({
   create: protectedProcedure
@@ -861,6 +862,7 @@ export const providerRouter = router({
         location: input.location,
         attachmentUrls: input.attachmentUrls ? JSON.stringify(input.attachmentUrls) : undefined,
       });
+      queueCrmQuoteProjection(result.id);
 
       // Send notification to provider about new quote request
       try {
@@ -946,6 +948,7 @@ export const providerRouter = router({
         providerNotes: input.providerNotes,
         validUntil: new Date(Date.now() + input.validDays * 24 * 60 * 60 * 1000),
       });
+      queueCrmQuoteProjection(input.quoteId);
 
       // Send notification to customer about quote response
       try {
@@ -1007,6 +1010,7 @@ export const providerRouter = router({
       }
 
       await db.updateQuoteStatus(input.quoteId, input.status, input.reason);
+      queueCrmQuoteProjection(input.quoteId);
 
       // If accepted, auto-create a booking from the quote
       let bookingId: number | null = null;
@@ -1052,6 +1056,8 @@ export const providerRouter = router({
 
           // Link quote to booking
           await db.linkQuoteToBooking(quote.id, bookingId);
+          queueCrmQuoteProjection(quote.id);
+          queueCrmBookingProjection(bookingId);
           console.log(`[Quote] Auto-created booking #${bookingNumber} from quote #${quote.id}`);
         } catch (err) {
           console.error("[Quote] Failed to auto-create booking from accepted quote:", err);
@@ -1189,6 +1195,7 @@ export const providerRouter = router({
             batchId,
           });
           results.push({ providerId, quoteId: result.id, success: true });
+          queueCrmQuoteProjection(result.id);
 
           // Send notification to each provider
           try {

@@ -1,4 +1,5 @@
 export * from "./contacts";
+export * from "./contacts";
 export * from "./drafts";
 export * from "./events";
 export * from "./notes";

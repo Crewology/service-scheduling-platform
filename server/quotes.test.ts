@@ -2,6 +2,19 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 
+vi.mock("./notifications", async importOriginal => {
+  const original = await importOriginal<Record<string, unknown>>();
+  return {
+    ...original,
+    sendNotification: vi.fn().mockResolvedValue({ success: true }),
+    sendMultiChannelNotification: vi.fn().mockResolvedValue({ email: true, sms: true }),
+  };
+});
+
+vi.mock("./notifications/pushHelper", () => ({
+  sendPushNotification: vi.fn().mockResolvedValue(undefined),
+}));
+
 // ============================================================================
 // HELPERS
 // ============================================================================

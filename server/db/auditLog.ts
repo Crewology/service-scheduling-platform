@@ -30,7 +30,12 @@ export type AuditAction =
   | "create_terms_draft"
   | "update_terms_draft"
   | "publish_terms_version"
-  | "retry_terms_delivery";
+  | "retry_terms_delivery"
+  | "update_customers_rollout"
+  | "run_customers_dry_run"
+  | "run_customers_backfill"
+  | "run_customers_repair"
+  | "rebuild_customers_projection";
 
 export type TargetType = "user" | "provider" | "review" | "booking" | "document" | "system" | "terms_version";
 

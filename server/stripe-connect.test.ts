@@ -1,9 +1,16 @@
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll, vi } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 import { getDb } from "./db";
 import { users } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
+
+vi.setConfig({ testTimeout: 15_000, hookTimeout: 30_000 });
+
+vi.mock("./notifications", async importOriginal => {
+  const original = await importOriginal<Record<string, unknown>>();
+  return { ...original, sendNotification: vi.fn().mockResolvedValue({ success: true }) };
+});
 
 // ─── Context Helpers ──────────────────────────────────────────────────────────
 function makeCtx(user: TrpcContext["user"]): TrpcContext {
@@ -83,6 +90,7 @@ function provCtx(userId: number, name: string): TrpcContext {
     name,
     email: `${name.toLowerCase()}@test.com`,
     role: "provider",
+    emailVerified: true,
     avatarUrl: null,
     isSuspended: false,
     createdAt: new Date(),

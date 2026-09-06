@@ -412,6 +412,7 @@ export const payments = mysqlTable("payments", {
 }, (table) => ({
   bookingTypeIdx: index("booking_type_idx").on(table.bookingId, table.paymentType),
   statusIdx: index("status_idx").on(table.status),
+  stripePaymentIntentUnique: unique("payments_stripe_payment_intent_unique").on(table.stripePaymentIntentId),
 }));
 
 export type Payment = typeof payments.$inferSelect;

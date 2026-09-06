@@ -1,9 +1,18 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 import { upsertUser, getDb } from "./db";
 import { users } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
+
+vi.mock("./notifications", async importOriginal => {
+  const original = await importOriginal<Record<string, unknown>>();
+  return { ...original, sendNotification: vi.fn().mockResolvedValue({ success: true }) };
+});
+
+vi.mock("./notifications/pushHelper", () => ({
+  sendPushNotification: vi.fn().mockResolvedValue(undefined),
+}));
 
 type AuthenticatedUser = NonNullable<TrpcContext["user"]>;
 
@@ -38,7 +47,7 @@ async function createTestUser(openId: string, name: string, role: "customer" | "
     lastName: null,
     phone: null,
     profilePhotoUrl: null,
-    emailVerified: false,
+    emailVerified: true,
     deletedAt: null,
   };
 }

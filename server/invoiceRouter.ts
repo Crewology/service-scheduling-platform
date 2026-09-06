@@ -8,6 +8,7 @@ import { getProviderByUserId } from "./db/providers";
 import { getUserById } from "./db/users";
 import { getProviderTier } from "./db/payments";
 import { providerHasFeature } from "@shared/entitlements";
+import { queueCrmInvoiceProjection } from "./crm/sourceHooks";
 
 // Helper: check if provider has paid tier (Basic or Premium)
 async function requirePaidTier(providerId: number) {
@@ -129,6 +130,7 @@ export const invoiceRouter = router({
         },
         lineItems
       );
+      if (input.customerId) queueCrmInvoiceProjection(result.id);
 
       return result;
     }),
@@ -219,6 +221,7 @@ export const invoiceRouter = router({
       if (isCustomer && invoice.status === "sent") {
         await invoiceDb.updateInvoiceStatus(invoice.id, "viewed");
         invoice.status = "viewed";
+        queueCrmInvoiceProjection(invoice.id);
       }
 
       return invoice;
@@ -261,6 +264,7 @@ export const invoiceRouter = router({
       // Update status and PDF URL
       await invoiceDb.updateInvoiceStatus(input.invoiceId, "sent", { pdfUrl });
       await invoiceDb.updateInvoicePdfUrl(input.invoiceId, pdfUrl);
+      queueCrmInvoiceProjection(input.invoiceId);
 
       // Send email notification to customer (works for both system and non-system customers)
       if (customerEmail) {
@@ -377,6 +381,7 @@ export const invoiceRouter = router({
       if (invoice.providerId !== provider.id) throw new TRPCError({ code: "FORBIDDEN" });
 
       await invoiceDb.updateInvoiceStatus(input.invoiceId, "paid", { paidAt: new Date() });
+      queueCrmInvoiceProjection(input.invoiceId);
       return { success: true };
     }),
 
@@ -394,6 +399,7 @@ export const invoiceRouter = router({
       if (invoice.status === "paid") throw new TRPCError({ code: "BAD_REQUEST", message: "Cannot cancel a paid invoice" });
 
       await invoiceDb.updateInvoiceStatus(input.invoiceId, "cancelled");
+      queueCrmInvoiceProjection(input.invoiceId);
       return { success: true };
     }),
 });
