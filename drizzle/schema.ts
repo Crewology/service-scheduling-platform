@@ -654,6 +654,9 @@ export const notificationPreferences = mysqlTable("notification_preferences", {
   messageEmail: boolean("messageEmail").default(true).notNull(),
   paymentEmail: boolean("paymentEmail").default(true).notNull(),
   marketingEmail: boolean("marketingEmail").default(false).notNull(),
+  // Provider-initiated relationship messages created through Customers.
+  // Defaults off and may only be narrowed by a provider-level contact preference.
+  relationshipMessageEnabled: boolean("relationshipMessageEnabled").default(false).notNull(),
   // Per-type SMS toggles
   bookingSms: boolean("bookingSms").default(true).notNull(),
   reminderSms: boolean("reminderSms").default(true).notNull(),
@@ -1273,3 +1276,250 @@ export const socialPosts = mysqlTable("social_posts", {
 });
 export type SocialPost = typeof socialPosts.$inferSelect;
 export type InsertSocialPost = typeof socialPosts.$inferInsert;
+
+// ============================================================================
+// CUSTOMERS — PROVIDER-OWNED RELATIONSHIP PROJECTION
+// ============================================================================
+
+export const crmContacts = mysqlTable("crm_contacts", {
+  id: int("id").primaryKey().autoincrement(),
+  providerId: int("providerId").notNull().references(() => serviceProviders.id),
+  customerId: int("customerId").notNull().references(() => users.id),
+  derivedStage: mysqlEnum("derivedStage", ["lead", "quoted", "booked", "customer", "repeat_customer", "dormant"]).default("lead").notNull(),
+  manualStage: mysqlEnum("manualStage", ["lead", "quoted", "booked", "customer", "repeat_customer", "dormant", "archived"]),
+  archivedAt: timestamp("archivedAt"),
+  archivedByUserId: int("archivedByUserId").references(() => users.id),
+  firstInteractionAt: timestamp("firstInteractionAt").notNull(),
+  lastInteractionAt: timestamp("lastInteractionAt").notNull(),
+  lastInboundAt: timestamp("lastInboundAt"),
+  lastOutboundAt: timestamp("lastOutboundAt"),
+  nextBookingAt: timestamp("nextBookingAt"),
+  completedBookingCount: int("completedBookingCount").default(0).notNull(),
+  cancelledBookingCount: int("cancelledBookingCount").default(0).notNull(),
+  noShowCount: int("noShowCount").default(0).notNull(),
+  capturedValueCents: int("capturedValueCents").default(0).notNull(),
+  openTaskCount: int("openTaskCount").default(0).notNull(),
+  lastProjectedAt: timestamp("lastProjectedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => [
+  unique("crm_contact_provider_customer_unique").on(table.providerId, table.customerId),
+  index("crm_contact_provider_stage_idx").on(table.providerId, table.derivedStage, table.lastInteractionAt),
+  index("crm_contact_provider_manual_stage_idx").on(table.providerId, table.manualStage, table.lastInteractionAt),
+  index("crm_contact_provider_next_booking_idx").on(table.providerId, table.nextBookingAt),
+  index("crm_contact_customer_idx").on(table.customerId),
+]);
+export type CrmContact = typeof crmContacts.$inferSelect;
+export type InsertCrmContact = typeof crmContacts.$inferInsert;
+
+export const crmAutomationRules = mysqlTable("crm_automation_rules", {
+  id: int("id").primaryKey().autoincrement(),
+  providerId: int("providerId").references(() => serviceProviders.id),
+  scopeKey: varchar("scopeKey", { length: 64 }).notNull(),
+  ruleKey: mysqlEnum("ruleKey", ["quote_follow_up", "quote_expiring", "booking_confirmation", "overdue_invoice", "rebooking_opportunity", "archived_relationship_review"]).notNull(),
+  version: int("version").default(1).notNull(),
+  actionType: mysqlEnum("actionType", ["create_task", "create_draft"]).notNull(),
+  enabled: boolean("enabled").default(false).notNull(),
+  inactivityDays: int("inactivityDays"),
+  configuration: json("configuration").$type<Record<string, string | number | boolean | null>>(),
+  createdByUserId: int("createdByUserId").references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => [
+  unique("crm_rule_scope_key_version_unique").on(table.scopeKey, table.ruleKey, table.version),
+  index("crm_rule_provider_enabled_idx").on(table.providerId, table.enabled),
+]);
+export type CrmAutomationRule = typeof crmAutomationRules.$inferSelect;
+export type InsertCrmAutomationRule = typeof crmAutomationRules.$inferInsert;
+
+export const crmActivityEvents = mysqlTable("crm_activity_events", {
+  id: int("id").primaryKey().autoincrement(),
+  eventKey: varchar("eventKey", { length: 191 }).notNull(),
+  providerId: int("providerId").notNull().references(() => serviceProviders.id),
+  customerId: int("customerId").notNull().references(() => users.id),
+  contactId: int("contactId").notNull().references(() => crmContacts.id),
+  eventType: mysqlEnum("eventType", [
+    "quote.requested", "quote.sent", "quote.accepted", "quote.declined", "quote.expired", "quote.booked",
+    "booking.created", "booking.confirmed", "booking.started", "booking.completed", "booking.cancelled", "booking.no_show", "booking.refunded",
+    "payment.captured", "payment.failed", "refund.confirmed",
+    "invoice.created", "invoice.sent", "invoice.viewed", "invoice.paid", "invoice.overdue", "invoice.cancelled",
+    "message.sent", "message.read", "review.received", "review.response_added",
+    "contact.stage_changed", "task.created", "task.completed", "task.dismissed", "draft.created", "draft.sent",
+  ]).notNull(),
+  entityType: mysqlEnum("entityType", ["quote", "booking", "payment", "invoice", "message", "review", "contact", "task", "draft"]).notNull(),
+  entityId: int("entityId").notNull(),
+  summary: varchar("summary", { length: 255 }).notNull(),
+  metadata: json("metadata").$type<Record<string, unknown>>().notNull(),
+  occurredAt: timestamp("occurredAt").notNull(),
+  projectedAt: timestamp("projectedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => [
+  unique("crm_event_key_unique").on(table.eventKey),
+  index("crm_event_provider_contact_time_idx").on(table.providerId, table.contactId, table.occurredAt),
+  index("crm_event_provider_type_time_idx").on(table.providerId, table.eventType, table.occurredAt),
+  index("crm_event_entity_idx").on(table.entityType, table.entityId),
+  index("crm_event_projection_idx").on(table.projectedAt, table.id),
+]);
+export type CrmActivityEvent = typeof crmActivityEvents.$inferSelect;
+export type InsertCrmActivityEvent = typeof crmActivityEvents.$inferInsert;
+
+export const crmContactStageHistory = mysqlTable("crm_contact_stage_history", {
+  id: int("id").primaryKey().autoincrement(),
+  providerId: int("providerId").notNull().references(() => serviceProviders.id),
+  customerId: int("customerId").notNull().references(() => users.id),
+  contactId: int("contactId").notNull().references(() => crmContacts.id),
+  previousStage: mysqlEnum("previousStage", ["lead", "quoted", "booked", "customer", "repeat_customer", "dormant", "archived"]),
+  nextStage: mysqlEnum("nextStage", ["lead", "quoted", "booked", "customer", "repeat_customer", "dormant", "archived"]).notNull(),
+  source: mysqlEnum("source", ["system", "provider", "repair"]).notNull(),
+  reason: varchar("reason", { length: 255 }).notNull(),
+  actorUserId: int("actorUserId").references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => [
+  index("crm_stage_history_provider_contact_idx").on(table.providerId, table.contactId, table.createdAt),
+]);
+export type CrmContactStageHistory = typeof crmContactStageHistory.$inferSelect;
+export type InsertCrmContactStageHistory = typeof crmContactStageHistory.$inferInsert;
+
+export const crmContactNotes = mysqlTable("crm_contact_notes", {
+  id: int("id").primaryKey().autoincrement(),
+  providerId: int("providerId").notNull().references(() => serviceProviders.id),
+  customerId: int("customerId").notNull().references(() => users.id),
+  contactId: int("contactId").notNull().references(() => crmContacts.id),
+  authorUserId: int("authorUserId").notNull().references(() => users.id),
+  body: text("body").notNull(),
+  deletedAt: timestamp("deletedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => [
+  index("crm_note_provider_contact_idx").on(table.providerId, table.contactId, table.createdAt),
+  index("crm_note_author_idx").on(table.authorUserId),
+]);
+export type CrmContactNote = typeof crmContactNotes.$inferSelect;
+export type InsertCrmContactNote = typeof crmContactNotes.$inferInsert;
+
+export const crmContactPreferences = mysqlTable("crm_contact_preferences", {
+  id: int("id").primaryKey().autoincrement(),
+  providerId: int("providerId").notNull().references(() => serviceProviders.id),
+  customerId: int("customerId").notNull().references(() => users.id),
+  contactId: int("contactId").notNull().references(() => crmContacts.id),
+  relationshipMessagesAllowed: boolean("relationshipMessagesAllowed"),
+  doNotContact: boolean("doNotContact").default(false).notNull(),
+  reason: varchar("reason", { length: 255 }),
+  source: mysqlEnum("source", ["customer", "provider", "system"]).default("system").notNull(),
+  updatedByUserId: int("updatedByUserId").references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => [
+  unique("crm_preference_contact_unique").on(table.contactId),
+  index("crm_preference_provider_customer_idx").on(table.providerId, table.customerId),
+]);
+export type CrmContactPreference = typeof crmContactPreferences.$inferSelect;
+export type InsertCrmContactPreference = typeof crmContactPreferences.$inferInsert;
+
+export const crmTasks = mysqlTable("crm_tasks", {
+  id: int("id").primaryKey().autoincrement(),
+  providerId: int("providerId").notNull().references(() => serviceProviders.id),
+  customerId: int("customerId").notNull().references(() => users.id),
+  contactId: int("contactId").notNull().references(() => crmContacts.id),
+  ruleId: int("ruleId").references(() => crmAutomationRules.id),
+  taskType: mysqlEnum("taskType", ["respond_to_quote", "quote_expiring", "confirm_booking", "overdue_invoice", "rebooking_opportunity", "relationship_review", "manual_follow_up"]).notNull(),
+  state: mysqlEnum("state", ["open", "snoozed", "completed", "dismissed"]).default("open").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  dueAt: timestamp("dueAt"),
+  snoozedUntil: timestamp("snoozedUntil"),
+  completedAt: timestamp("completedAt"),
+  dismissedAt: timestamp("dismissedAt"),
+  dedupeKey: varchar("dedupeKey", { length: 191 }),
+  createdByUserId: int("createdByUserId").references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => [
+  unique("crm_task_dedupe_unique").on(table.dedupeKey),
+  index("crm_task_provider_state_due_idx").on(table.providerId, table.state, table.dueAt),
+  index("crm_task_provider_contact_idx").on(table.providerId, table.contactId),
+]);
+export type CrmTask = typeof crmTasks.$inferSelect;
+export type InsertCrmTask = typeof crmTasks.$inferInsert;
+
+export const crmMessageDrafts = mysqlTable("crm_message_drafts", {
+  id: int("id").primaryKey().autoincrement(),
+  providerId: int("providerId").notNull().references(() => serviceProviders.id),
+  customerId: int("customerId").notNull().references(() => users.id),
+  contactId: int("contactId").notNull().references(() => crmContacts.id),
+  ruleId: int("ruleId").references(() => crmAutomationRules.id),
+  taskId: int("taskId").references(() => crmTasks.id),
+  state: mysqlEnum("state", ["draft", "sent", "discarded"]).default("draft").notNull(),
+  body: text("body").notNull(),
+  sentMessageId: int("sentMessageId").references(() => messages.id),
+  approvedByUserId: int("approvedByUserId").references(() => users.id),
+  approvedAt: timestamp("approvedAt"),
+  sentAt: timestamp("sentAt"),
+  discardedAt: timestamp("discardedAt"),
+  dedupeKey: varchar("dedupeKey", { length: 191 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => [
+  unique("crm_draft_dedupe_unique").on(table.dedupeKey),
+  index("crm_draft_provider_state_idx").on(table.providerId, table.state, table.createdAt),
+  index("crm_draft_provider_contact_idx").on(table.providerId, table.contactId),
+]);
+export type CrmMessageDraft = typeof crmMessageDrafts.$inferSelect;
+export type InsertCrmMessageDraft = typeof crmMessageDrafts.$inferInsert;
+
+export const crmAutomationRuns = mysqlTable("crm_automation_runs", {
+  id: int("id").primaryKey().autoincrement(),
+  providerId: int("providerId").notNull().references(() => serviceProviders.id),
+  customerId: int("customerId").notNull().references(() => users.id),
+  contactId: int("contactId").notNull().references(() => crmContacts.id),
+  ruleId: int("ruleId").notNull().references(() => crmAutomationRules.id),
+  status: mysqlEnum("status", ["succeeded", "failed", "skipped"]).notNull(),
+  dedupeKey: varchar("dedupeKey", { length: 191 }).notNull(),
+  outputTaskId: int("outputTaskId").references(() => crmTasks.id),
+  outputDraftId: int("outputDraftId").references(() => crmMessageDrafts.id),
+  errorCode: varchar("errorCode", { length: 100 }),
+  startedAt: timestamp("startedAt").notNull(),
+  finishedAt: timestamp("finishedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => [
+  unique("crm_run_dedupe_unique").on(table.dedupeKey),
+  index("crm_run_provider_status_idx").on(table.providerId, table.status, table.createdAt),
+  index("crm_run_rule_idx").on(table.ruleId, table.createdAt),
+]);
+export type CrmAutomationRun = typeof crmAutomationRuns.$inferSelect;
+export type InsertCrmAutomationRun = typeof crmAutomationRuns.$inferInsert;
+
+export const crmSavedSegments = mysqlTable("crm_saved_segments", {
+  id: int("id").primaryKey().autoincrement(),
+  providerId: int("providerId").notNull().references(() => serviceProviders.id),
+  name: varchar("name", { length: 100 }).notNull(),
+  filters: json("filters").$type<{
+    stages?: Array<"lead" | "quoted" | "booked" | "customer" | "repeat_customer" | "dormant" | "archived">;
+    hasOpenTasks?: boolean;
+    minCapturedValueCents?: number;
+    maxCapturedValueCents?: number;
+    inactiveDaysAtLeast?: number;
+  }>().notNull(),
+  createdByUserId: int("createdByUserId").notNull().references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => [
+  unique("crm_segment_provider_name_unique").on(table.providerId, table.name),
+  index("crm_segment_provider_idx").on(table.providerId, table.updatedAt),
+]);
+export type CrmSavedSegment = typeof crmSavedSegments.$inferSelect;
+export type InsertCrmSavedSegment = typeof crmSavedSegments.$inferInsert;
+
+// Private Customers operational state. This is intentionally not exposed through
+// the public platform-settings procedures.
+export const crmOperationalState = mysqlTable("crm_operational_state", {
+  id: int("id").primaryKey().autoincrement(),
+  settingKey: varchar("settingKey", { length: 100 }).notNull(),
+  settingValue: text("settingValue").notNull(),
+  updatedByUserId: int("updatedByUserId").references(() => users.id),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => [
+  unique("crm_operational_setting_key_unique").on(table.settingKey),
+]);
+export type CrmOperationalState = typeof crmOperationalState.$inferSelect;
+export type InsertCrmOperationalState = typeof crmOperationalState.$inferInsert;

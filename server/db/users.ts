@@ -34,6 +34,17 @@ import {
   quoteRequests,
   waitlistEntries,
   auditLog,
+  crmContacts,
+  crmActivityEvents,
+  crmContactNotes,
+  crmTasks,
+  crmContactStageHistory,
+  crmContactPreferences,
+  crmMessageDrafts,
+  crmAutomationRules,
+  crmAutomationRuns,
+  crmSavedSegments,
+  crmOperationalState,
 } from "../../drizzle/schema";
 import { ENV } from "../_core/env";
 import { getDb } from "./connection";
@@ -359,6 +370,7 @@ export async function deleteUserAccount(userId: number): Promise<{
   bookingSessionsDeleted: number;
   paymentsDeleted: number;
   promoCodesDeleted: number;
+  crmRecordsDeleted: number;
 }> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -375,6 +387,7 @@ export async function deleteUserAccount(userId: number): Promise<{
   let reviewsAnonymized = 0;
   let referralDataDeleted = 0;
   let pushSubscriptionsDeleted = 0;
+  let crmRecordsDeleted = 0;
 
   // 1. Anonymize and soft-delete the user
   await db.update(users).set({
@@ -514,6 +527,50 @@ export async function deleteUserAccount(userId: number): Promise<{
     .from(serviceProviders)
     .where(eq(serviceProviders.userId, userId))
     .limit(1);
+
+  // Remove all provider-owned and customer-owned Customers projection data.
+  // Authoritative source records continue to follow their existing cleanup rules.
+  try {
+    const providerId = providerRows[0]?.id;
+    const contactCondition = providerId
+      ? or(eq(crmContacts.customerId, userId), eq(crmContacts.providerId, providerId))
+      : eq(crmContacts.customerId, userId);
+    const contactRows = await db.select({ id: crmContacts.id }).from(crmContacts).where(contactCondition);
+    const contactIds = contactRows.map((contact) => contact.id);
+
+    if (contactIds.length > 0) {
+      const runsResult = await db.delete(crmAutomationRuns).where(inArray(crmAutomationRuns.contactId, contactIds));
+      const draftsResult = await db.delete(crmMessageDrafts).where(inArray(crmMessageDrafts.contactId, contactIds));
+      const tasksResult = await db.delete(crmTasks).where(inArray(crmTasks.contactId, contactIds));
+      const eventsResult = await db.delete(crmActivityEvents).where(inArray(crmActivityEvents.contactId, contactIds));
+      const notesResult = await db.delete(crmContactNotes).where(inArray(crmContactNotes.contactId, contactIds));
+      const preferencesResult = await db.delete(crmContactPreferences).where(inArray(crmContactPreferences.contactId, contactIds));
+      const stagesResult = await db.delete(crmContactStageHistory).where(inArray(crmContactStageHistory.contactId, contactIds));
+      const contactsResult = await db.delete(crmContacts).where(inArray(crmContacts.id, contactIds));
+      crmRecordsDeleted += [
+        runsResult,
+        draftsResult,
+        tasksResult,
+        eventsResult,
+        notesResult,
+        preferencesResult,
+        stagesResult,
+        contactsResult,
+      ].reduce((total, result) => total + (result[0]?.affectedRows ?? 0), 0);
+    }
+
+    if (providerId) {
+      const segmentResult = await db.delete(crmSavedSegments).where(eq(crmSavedSegments.providerId, providerId));
+      crmRecordsDeleted += segmentResult[0]?.affectedRows ?? 0;
+      const ruleResult = await db.delete(crmAutomationRules).where(eq(crmAutomationRules.providerId, providerId));
+      crmRecordsDeleted += ruleResult[0]?.affectedRows ?? 0;
+    }
+
+    await db.update(crmOperationalState).set({ updatedByUserId: null })
+      .where(eq(crmOperationalState.updatedByUserId, userId));
+  } catch (e) {
+    console.warn(`[DeleteAccount] Customers cleanup: ${(e as Error).message}`);
+  }
 
   if (providerRows.length > 0) {
     const providerId = providerRows[0].id;
@@ -718,6 +775,7 @@ export async function deleteUserAccount(userId: number): Promise<{
       emailEnabled: false,
       pushEnabled: false,
       smsEnabled: false,
+      relationshipMessageEnabled: false,
     }).where(eq(notificationPreferences.userId, userId));
   } catch {
     // Preferences row may not exist — that's fine
@@ -754,6 +812,7 @@ export async function deleteUserAccount(userId: number): Promise<{
     bookingSessionsDeleted,
     paymentsDeleted,
     promoCodesDeleted,
+    crmRecordsDeleted,
   });
 
   return {
@@ -773,6 +832,7 @@ export async function deleteUserAccount(userId: number): Promise<{
     bookingSessionsDeleted,
     paymentsDeleted,
     promoCodesDeleted,
+    crmRecordsDeleted,
   };
 }
 

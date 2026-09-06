@@ -47,6 +47,17 @@ import {
   users,
   verificationDocuments,
   waitlistEntries,
+  crmContacts,
+  crmActivityEvents,
+  crmContactNotes,
+  crmTasks,
+  crmContactStageHistory,
+  crmContactPreferences,
+  crmMessageDrafts,
+  crmAutomationRules,
+  crmAutomationRuns,
+  crmSavedSegments,
+  crmOperationalState,
 } from "../drizzle/schema";
 import { and, eq, inArray, or, sql } from "drizzle-orm";
 
@@ -121,6 +132,29 @@ export async function teardown() {
 
     console.log(`[vitest-global-setup] Found ${testUserIds.length} test accounts and ${testProviderIds.length} test providers to clean up`);
     await db.execute(sql`SET FOREIGN_KEY_CHECKS = 0`);
+
+    const crmRelationshipCondition = testProviderIds.length
+      ? or(inArray(crmContacts.customerId, testUserIds), inArray(crmContacts.providerId, testProviderIds))
+      : inArray(crmContacts.customerId, testUserIds);
+    const testCrmContacts = await db.select({ id: crmContacts.id }).from(crmContacts).where(crmRelationshipCondition);
+    const testCrmContactIds = testCrmContacts.map((contact) => contact.id);
+    if (testCrmContactIds.length) {
+      await db.delete(crmAutomationRuns).where(inArray(crmAutomationRuns.contactId, testCrmContactIds));
+      await db.delete(crmMessageDrafts).where(inArray(crmMessageDrafts.contactId, testCrmContactIds));
+      await db.delete(crmTasks).where(inArray(crmTasks.contactId, testCrmContactIds));
+      await db.delete(crmActivityEvents).where(inArray(crmActivityEvents.contactId, testCrmContactIds));
+      await db.delete(crmContactNotes).where(inArray(crmContactNotes.contactId, testCrmContactIds));
+      await db.delete(crmContactPreferences).where(inArray(crmContactPreferences.contactId, testCrmContactIds));
+      await db.delete(crmContactStageHistory).where(inArray(crmContactStageHistory.contactId, testCrmContactIds));
+      await db.delete(crmContacts).where(inArray(crmContacts.id, testCrmContactIds));
+    }
+    if (testProviderIds.length) {
+      await db.delete(crmSavedSegments).where(inArray(crmSavedSegments.providerId, testProviderIds));
+      await db.delete(crmAutomationRules).where(inArray(crmAutomationRules.providerId, testProviderIds));
+    }
+    await db.delete(crmAutomationRules).where(inArray(crmAutomationRules.createdByUserId, testUserIds));
+    await db.update(crmOperationalState).set({ updatedByUserId: null })
+      .where(inArray(crmOperationalState.updatedByUserId, testUserIds));
 
     if (testBookingIds.length) {
       await db.delete(bookingSessions).where(inArray(bookingSessions.bookingId, testBookingIds));
@@ -201,8 +235,11 @@ export async function teardown() {
     const remainingProviders = testProviderIds.length
       ? await db.select({ id: serviceProviders.id }).from(serviceProviders).where(inArray(serviceProviders.id, testProviderIds))
       : [];
-    if (remainingUsers.length || remainingProviders.length) {
-      throw new Error(`Cleanup verification failed: ${remainingUsers.length} users and ${remainingProviders.length} providers remain`);
+    const remainingCrmContacts = testCrmContactIds.length
+      ? await db.select({ id: crmContacts.id }).from(crmContacts).where(inArray(crmContacts.id, testCrmContactIds))
+      : [];
+    if (remainingUsers.length || remainingProviders.length || remainingCrmContacts.length) {
+      throw new Error(`Cleanup verification failed: ${remainingUsers.length} users, ${remainingProviders.length} providers, and ${remainingCrmContacts.length} Customers contacts remain`);
     }
     console.log(`[vitest-global-setup] Successfully cleaned up ${testUserIds.length} test accounts and all dependent data`);
   } catch (error: any) {

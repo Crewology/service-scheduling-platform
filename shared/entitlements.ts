@@ -15,7 +15,16 @@ export type ProviderFeature =
   | "customBranding"
   | "featuredListing"
   | "smsNotifications"
-  | "premiumSupport";
+  | "premiumSupport"
+  | "customerHistory"
+  | "crmNotes"
+  | "crmFollowUps"
+  | "crmDrafts"
+  | "crmStageOverrides"
+  | "crmSegments"
+  | "crmRetentionAnalytics"
+  | "crmAdvancedAnalytics"
+  | "crmAutomationControls";
 
 export type CustomerFeature =
   | "directBooking"
@@ -110,6 +119,15 @@ export const PROVIDER_PLANS: Record<ProviderTier, ProviderPlanConfig> = {
       featuredListing: false,
       smsNotifications: false,
       premiumSupport: false,
+      customerHistory: true,
+      crmNotes: false,
+      crmFollowUps: false,
+      crmDrafts: false,
+      crmStageOverrides: false,
+      crmSegments: false,
+      crmRetentionAnalytics: false,
+      crmAdvancedAnalytics: false,
+      crmAutomationControls: false,
     },
   },
   basic: {
@@ -152,6 +170,15 @@ export const PROVIDER_PLANS: Record<ProviderTier, ProviderPlanConfig> = {
       featuredListing: false,
       smsNotifications: false,
       premiumSupport: false,
+      customerHistory: true,
+      crmNotes: true,
+      crmFollowUps: true,
+      crmDrafts: true,
+      crmStageOverrides: true,
+      crmSegments: false,
+      crmRetentionAnalytics: true,
+      crmAdvancedAnalytics: false,
+      crmAutomationControls: false,
     },
   },
   premium: {
@@ -197,6 +224,15 @@ export const PROVIDER_PLANS: Record<ProviderTier, ProviderPlanConfig> = {
       featuredListing: true,
       smsNotifications: true,
       premiumSupport: true,
+      customerHistory: true,
+      crmNotes: true,
+      crmFollowUps: true,
+      crmDrafts: true,
+      crmStageOverrides: true,
+      crmSegments: true,
+      crmRetentionAnalytics: true,
+      crmAdvancedAnalytics: true,
+      crmAutomationControls: true,
     },
   },
 };

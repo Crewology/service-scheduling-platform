@@ -428,6 +428,13 @@
       "when": 1788548689052,
       "tag": "0060_calm_tiger_shark",
       "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "5",
+      "when": 1788719877956,
+      "tag": "0061_bouncy_kang",
+      "breakpoints": true
     }
   ]
 }

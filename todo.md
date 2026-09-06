@@ -2734,3 +2734,16 @@
 - [x] Document what already exists and can be reused, what must be added, what must be modified, and what must remain unchanged
 - [x] Identify specification conflicts, tenant/privacy/entitlement risks, event-projection failure boundaries, backfill hazards, migration ordering, and rollback requirements
 - [x] Deliver the Phase 0 assessment and wait for explicit owner approval before changing production behavior or database schema
+
+## Customers Release 1 Implementation — Phase 1 Foundation
+- [x] Add authoritative shared Customers stages, event names, task states/types, draft states, safe event metadata schemas, rule allow-list, feature keys, and rollout flag keys
+- [x] Add lifecycle-aware provider Customers entitlements for Starter history, Pro relationship tools, and Business segments, retention analytics, and automation controls
+- [x] Add private server-side rollout, managed-job, and pilot configuration that cannot leak through the existing public platform-settings procedures
+- [x] Add reviewed additive Customers schema for contacts, events, notes, tasks, stage history, preferences, drafts, rule definitions/runs, saved segments, and private operational state
+- [x] Apply the additive migration without altering or deleting existing booking, quote, service, message, payment, invoice, review, subscription, trust, notification, authentication, or Terms data
+- [x] Add provider-scoped Customers repositories with mandatory tenant predicates and no client-supplied provider ownership
+- [x] Add pure relationship eligibility, stage precedence, captured-value, global-plus-relationship consent, deterministic task/draft rule, safe event payload, and archive restoration policies
+- [x] Extend account deletion and clean-account teardown for every Customers table in safe dependency order
+- [x] Add focused schema, uniqueness, tenant isolation, entitlement lifecycle, policy, privacy, idempotency, deletion, and test-cleanup regressions
+- [x] Confirm all Customers rollout flags remain off, no backfill or managed schedule runs, no Customers UI is exposed, and no provider relationship message can be sent
+- [x] Run zero-error TypeScript, production build, focused and adjacent regressions, then save a validated Phase 1 checkpoint
