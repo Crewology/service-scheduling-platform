@@ -2727,3 +2727,10 @@
 - [x] Draft the first-release PRD with goals, personas, scope, requirements, entitlements, analytics, acceptance criteria, rollout, and exclusions
 - [x] Cross-check architecture, wireframes, and PRD for shared terminology, feasible platform reuse, non-surveillance admin boundaries, and approved relationship-layer positioning
 - [x] Deliver the coordinated CRM planning package without changing live application behavior
+
+## Customers Release 1 Implementation — Phase 0 Approval Gate
+- [x] Inspect and map the current provider workspace, provider navigation, customer home, bookings, quotes, services, calendar, payments, Stripe, invoices, messages, reviews, notifications, analytics, entitlements, authentication, role switching, schema, and managed jobs
+- [x] Compare the current implementation against the three approved Customers specifications without reinterpreting or expanding Release 1
+- [x] Document what already exists and can be reused, what must be added, what must be modified, and what must remain unchanged
+- [x] Identify specification conflicts, tenant/privacy/entitlement risks, event-projection failure boundaries, backfill hazards, migration ordering, and rollback requirements
+- [x] Deliver the Phase 0 assessment and wait for explicit owner approval before changing production behavior or database schema
