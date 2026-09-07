@@ -49,11 +49,12 @@ export async function setCrmPhase2PrivateConfig(input: {
   projectionWrites?: boolean;
   repairJobs?: boolean;
   readUi?: boolean;
+  providerWrites?: boolean;
   actorUserId: number;
 }) {
   const effectivePilotProviderIds = input.pilotProviderIds ?? await getCrmPilotProviderIds();
-  if ((input.projectionWrites === true || input.repairJobs === true || input.readUi === true) && effectivePilotProviderIds.length === 0) {
-    throw new Error("At least one private pilot provider is required before Customers projection, repair, or read UI can be enabled");
+  if ((input.projectionWrites === true || input.repairJobs === true || input.readUi === true || input.providerWrites === true) && effectivePilotProviderIds.length === 0) {
+    throw new Error("At least one private pilot provider is required before Customers projection, repair, read UI, or provider writes can be enabled");
   }
   if (input.pilotProviderIds) await setCrmPilotProviderIds(input.pilotProviderIds, input.actorUserId);
   if (typeof input.projectionWrites === "boolean") {
@@ -65,8 +66,10 @@ export async function setCrmPhase2PrivateConfig(input: {
   if (typeof input.readUi === "boolean") {
     await setCrmRolloutFlag(CRM_ROLLOUT_FLAGS.readUi, input.readUi, input.actorUserId);
   }
+  if (typeof input.providerWrites === "boolean") {
+    await setCrmRolloutFlag(CRM_ROLLOUT_FLAGS.providerWrites, input.providerWrites, input.actorUserId);
+  }
   for (const lockedFlag of [
-    CRM_ROLLOUT_FLAGS.providerWrites,
     CRM_ROLLOUT_FLAGS.recommendations,
     CRM_ROLLOUT_FLAGS.draftSending,
   ]) {

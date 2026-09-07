@@ -86,8 +86,8 @@ describe("Customers Phase 3 private read pilot", () => {
     mocks.getCrmContactReadModel.mockResolvedValue({ contact: { id: 9 }, events: [], hasMore: false, nextCursor: null });
   });
 
-  it("exposes only read procedures", () => {
-    expect(Object.keys(customersRouter._def.procedures).sort()).toEqual(["getAccess", "getContact", "getWorkspace"]);
+  it("preserves the Phase 3 read procedures alongside gated Phase 4 private tools", () => {
+    expect(Object.keys(customersRouter._def.procedures).sort()).toEqual(["createFollowUp", "createNote", "getAccess", "getContact", "getWorkspace", "setFollowUpState", "updateFollowUp"]);
   });
 
   it("keeps non-pilot providers out even when the read flag is enabled", async () => {
@@ -150,12 +150,12 @@ describe("Customers Phase 3 source contracts", () => {
     expect(app.match(/ProviderOnlyGuard featureName="Customers"/g)?.length).toBe(2);
   });
 
-  it("renders the four approved tabs and read-only pilot guidance", () => {
+  it("renders the four approved tabs and private-tools pilot guidance", () => {
     for (const label of ["Leads", "Customers", "Follow-ups", "Activity"]) expect(workspace).toContain(`label: "${label}"`);
-    expect(workspace).toContain("Read-only pilot");
-    expect(workspace).toContain("Nothing here sends a message or changes a booking.");
-    expect(workspace).not.toMatch(/Add note|Send message|Create task|Save segment/);
-    expect(detail).not.toMatch(/Add note|Send message|Create task|Save segment/);
+    expect(workspace).toContain("Private tools pilot");
+    expect(workspace).toContain("Nothing here sends a message, runs automatically, or changes a booking.");
+    expect(workspace).not.toMatch(/Send message|Save segment/);
+    expect(detail).not.toMatch(/Send message|Save segment/);
   });
 
   it("adds Customers to provider navigation only when private access is visible", () => {
@@ -188,9 +188,9 @@ describe("Customers Phase 3 source contracts", () => {
     expect(analyticsSource.match(/ne\(bookings\.customerId, serviceProviders\.userId\)/g)?.length).toBe(2);
   });
 
-  it("permits read UI configuration while keeping every write-oriented rollout locked off", () => {
+  it("permits private read and provider-write configuration while keeping future capabilities locked off", () => {
     expect(operations).toContain("readUi?: boolean");
-    expect(operations).toContain("CRM_ROLLOUT_FLAGS.providerWrites");
+    expect(operations).toContain("providerWrites?: boolean");
     expect(operations).toContain("CRM_ROLLOUT_FLAGS.recommendations");
     expect(operations).toContain("CRM_ROLLOUT_FLAGS.draftSending");
   });

@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, useSearch } from "wouter";
 import {
   Activity,
   ArrowLeft,
   ArrowRight,
+  CalendarClock,
   CalendarDays,
+  CheckCircle2,
   CircleDollarSign,
   Clock3,
   Filter,
@@ -14,8 +16,10 @@ import {
   Search,
   UserRoundSearch,
   Users,
+  XCircle,
 } from "lucide-react";
 import { MobileRoleViewToggle } from "@/components/shared/MobileRoleViewToggle";
+import { FollowUpTaskCard, type CustomerFollowUpTask } from "@/components/customers/FollowUpTaskCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -109,7 +113,8 @@ function ProviderCustomersNav({ active, businessName }: { active: "customers" | 
 
 export default function ProviderCustomers() {
   const [location, setLocation] = useLocation();
-  const query = useMemo(() => readQuery(location), [location]);
+  const locationSearch = useSearch();
+  const query = useMemo(() => readQuery(`${location}${locationSearch ? locationSearch.startsWith("?") ? locationSearch : `?${locationSearch}` : ""}`), [location, locationSearch]);
   const [search, setSearch] = useState(query.search);
   const access = trpc.customers.getAccess.useQuery();
   const workspace = trpc.customers.getWorkspace.useQuery({
@@ -140,7 +145,7 @@ export default function ProviderCustomers() {
     return <div className="container max-w-2xl py-12"><Card className="border-red-200"><CardContent className="p-8 text-center"><h1 className="text-2xl font-bold">We couldn’t load Customers</h1><p className="mt-2 text-sm text-slate-600">Your booking and customer data were not changed. Refresh this page or return to Overview.</p><Button asChild className="mt-5"><Link href="/">Return to Overview</Link></Button></CardContent></Card></div>;
   }
 
-  const { summary, contacts, activity, readOnlyReason } = workspace.data;
+  const { summary, contacts, activity, tasks, readOnlyReason } = workspace.data;
   const attention = contacts?.items.filter((item) => item.needsResponse).slice(0, 5) ?? [];
   return (
     <div className="container max-w-7xl py-5 pb-28 sm:py-8 lg:pb-10">
@@ -150,13 +155,13 @@ export default function ProviderCustomers() {
         <main className="min-w-0">
           <section className="rounded-[28px] bg-[#123f63] px-5 py-6 text-white shadow-[0_24px_70px_-38px_rgba(18,63,99,0.8)] sm:px-8 sm:py-8">
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-              <div><Badge className="border-white/20 bg-white/10 text-blue-50 hover:bg-white/10">Read-only pilot</Badge><h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Customers</h1><p className="mt-2 max-w-2xl text-sm text-blue-100 sm:text-base">Your relationships are organized automatically from your OlogyCrew activity.</p></div>
-              <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-blue-50"><LockKeyhole className="mr-2 inline h-4 w-4" />Nothing here sends a message or changes a booking.</div>
+              <div><Badge className="border-white/20 bg-white/10 text-blue-50 hover:bg-white/10">Private tools pilot</Badge><h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Customers</h1><p className="mt-2 max-w-2xl text-sm text-blue-100 sm:text-base">Your relationships are organized automatically from your OlogyCrew activity, with provider-private notes and manual follow-ups.</p></div>
+              <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-blue-50"><LockKeyhole className="mr-2 inline h-4 w-4" />Nothing here sends a message, runs automatically, or changes a booking.</div>
             </div>
           </section>
 
-          <nav className="mt-5 flex gap-1 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-1.5" aria-label="Customers sections">
-            {tabs.map((item) => <Link key={item.key} href={`/provider/customers?tab=${item.key}`} aria-current={query.tab === item.key ? "page" : undefined} className={`whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold ${query.tab === item.key ? "bg-[#eaf2ff] text-[#174a73]" : "text-slate-600 hover:bg-slate-50"}`}>{item.label}</Link>)}
+          <nav className="mt-5 grid grid-cols-4 gap-1 rounded-2xl border border-slate-200 bg-white p-1.5 sm:flex sm:overflow-x-auto" aria-label="Customers sections">
+            {tabs.map((item) => <Link key={item.key} href={`/provider/customers?tab=${item.key}`} aria-current={query.tab === item.key ? "page" : undefined} className={`whitespace-nowrap rounded-xl px-1.5 py-2.5 text-center text-xs font-semibold sm:px-4 sm:text-sm ${query.tab === item.key ? "bg-[#eaf2ff] text-[#174a73]" : "text-slate-600 hover:bg-slate-50"}`}>{item.label}</Link>)}
           </nav>
 
           <section className="mt-5 grid gap-3 sm:grid-cols-3" aria-label="Customer relationship summary">
@@ -172,7 +177,7 @@ export default function ProviderCustomers() {
             <Button type="submit">Search</Button>
           </form> : null}
 
-          {readOnlyReason ? <Card className="mt-5 border-blue-200 bg-blue-50/70"><CardContent className="p-6"><LockKeyhole className="h-6 w-6 text-[#174a73]" /><h2 className="mt-3 text-lg font-bold text-slate-950">Follow-ups are coming after the pilot</h2><p className="mt-1 text-sm text-slate-600">{readOnlyReason} Your current booking, quote, and message tools remain available.</p></CardContent></Card> : null}
+          {query.tab === "follow-ups" && tasks ? <FollowUpsPanel tasks={tasks} readOnlyReason={readOnlyReason} /> : null}
 
           {attention.length > 0 && query.tab === "leads" ? <section className="mt-6"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-700">Needs attention</p><div className="mt-3 grid gap-3">{attention.map((item) => <ContactRow key={`attention-${item.id}`} item={item} emphasize />)}</div></section> : null}
 
@@ -200,6 +205,28 @@ function ActivityRow({ event }: { event: any }) {
 
 function EmptyState() {
   return <Card className="mt-4 border-dashed"><CardContent className="p-8 text-center"><UserRoundSearch className="mx-auto h-8 w-8 text-slate-400" /><h3 className="mt-3 font-semibold text-slate-900">Your customer relationships will build automatically</h3><p className="mx-auto mt-1 max-w-md text-sm text-slate-500">When someone requests a quote, books a service, or has eligible OlogyCrew activity, the relationship appears here.</p><div className="mt-5 flex justify-center gap-2"><Button asChild variant="outline"><Link href="/provider/dashboard?tab=my-page">Share your page</Link></Button><Button asChild><Link href="/provider/services/new">Add a service</Link></Button></div></CardContent></Card>;
+}
+
+function FollowUpsPanel({ tasks, readOnlyReason }: { tasks: CustomerFollowUpTask[]; readOnlyReason: string | null }) {
+  const groups = groupTasks(tasks);
+  return <section className="mt-5 space-y-5"><div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-950"><strong>Manual and private.</strong> Follow-ups are reminders you manage yourself. They do not send a message, change a booking, or run automatically.</div>{tasks.length === 0 ? <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center"><Clock3 className="mx-auto h-9 w-9 text-slate-400" /><h2 className="mt-4 text-lg font-bold text-slate-900">No follow-ups yet</h2><p className="mt-2 text-sm text-slate-500">Open a customer relationship to create a private reminder for your next action.</p>{readOnlyReason ? <p className="mt-3 text-sm text-slate-500">{readOnlyReason}</p> : null}</div> : groups.map(({ key, ...group }) => <TaskGroup key={key} {...group} />)}</section>;
+}
+
+function groupTasks(tasks: CustomerFollowUpTask[]) {
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const tomorrowStart = todayStart + 24 * 60 * 60 * 1_000;
+  return [
+    { key: "overdue", title: "Overdue", description: "Open reminders whose due date has passed.", icon: CalendarClock, accent: "bg-red-50 text-red-700", tasks: tasks.filter(task => task.state === "open" && task.dueAt && new Date(task.dueAt).getTime() < todayStart) },
+    { key: "today", title: "Due today", description: "Open reminders due before the end of today.", icon: Clock3, accent: "bg-amber-50 text-amber-700", tasks: tasks.filter(task => task.state === "open" && task.dueAt && new Date(task.dueAt).getTime() >= todayStart && new Date(task.dueAt).getTime() < tomorrowStart) },
+    { key: "upcoming", title: "Upcoming & open", description: "Future or unscheduled reminders still in progress.", icon: ArrowRight, accent: "bg-blue-50 text-blue-700", tasks: tasks.filter(task => task.state === "open" && (!task.dueAt || new Date(task.dueAt).getTime() >= tomorrowStart)) },
+    { key: "completed", title: "Completed", description: "Follow-ups you marked complete.", icon: CheckCircle2, accent: "bg-emerald-50 text-emerald-700", tasks: tasks.filter(task => task.state === "completed") },
+    { key: "cancelled", title: "Cancelled", description: "Follow-ups you dismissed without completing.", icon: XCircle, accent: "bg-slate-100 text-slate-600", tasks: tasks.filter(task => task.state === "dismissed") },
+  ].filter(group => group.tasks.length > 0);
+}
+
+function TaskGroup({ title, description, icon: Icon, accent, tasks }: ReturnType<typeof groupTasks>[number]) {
+  return <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"><div className="flex items-start gap-3"><span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${accent}`}><Icon className="h-5 w-5" /></span><div><div className="flex items-center gap-2"><h2 className="text-lg font-bold text-slate-950">{title}</h2><Badge variant="outline">{tasks.length}</Badge></div><p className="mt-1 text-sm text-slate-500">{description}</p></div></div><div className="mt-4 space-y-3">{tasks.map(task => <FollowUpTaskCard key={task.id} task={task} showContact />)}</div></section>;
 }
 
 function CustomersSkeleton() {

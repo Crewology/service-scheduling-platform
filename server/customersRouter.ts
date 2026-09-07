@@ -1,6 +1,12 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { CRM_CONTACT_STAGES, CRM_EVENT_TYPES, CRM_ROLLOUT_FLAGS } from "../shared/crm";
+import {
+  CRM_CONTACT_STAGES,
+  CRM_EVENT_TYPES,
+  CRM_MAX_NOTE_LENGTH,
+  CRM_ROLLOUT_FLAGS,
+  CRM_TASK_STATES,
+} from "../shared/crm";
 import { protectedProcedure, router } from "./_core/trpc";
 import * as db from "./db";
 import {
@@ -8,20 +14,34 @@ import {
   getCrmWorkspaceSummary,
   isCrmRolloutEnabled,
   listCrmContactReadModels,
+  listCrmContactNotes,
   listCrmProviderActivity,
+  listCrmTaskReadModels,
+  createCrmContactNote,
+  createCrmTask,
+  updateCrmTask,
+  updateCrmTaskState,
+  appendCrmActivityEvent,
+  buildCrmEventKey,
+  CrmContactNotFoundError,
 } from "./db/crm";
 import { getCrmProviderAccess } from "./crm/access";
 
 async function resolveProviderAccess(userId: number) {
   const provider = await db.getProviderByUserId(userId);
-  if (!provider) return { provider: null, visible: false, entitlement: null };
-  const [access, readUiEnabled] = await Promise.all([
+  if (!provider) return { provider: null, access: null, visible: false, notesEnabled: false, followUpsEnabled: false, entitlement: null };
+  const [access, readUiEnabled, providerWritesEnabled] = await Promise.all([
     getCrmProviderAccess(provider.id),
     isCrmRolloutEnabled(CRM_ROLLOUT_FLAGS.readUi),
+    isCrmRolloutEnabled(CRM_ROLLOUT_FLAGS.providerWrites),
   ]);
+  const visible = Boolean(provider.isActive && access.isPilotProvider && readUiEnabled && access.can("customerHistory"));
   return {
     provider,
-    visible: Boolean(provider.isActive && access.isPilotProvider && readUiEnabled && access.can("customerHistory")),
+    access,
+    visible,
+    notesEnabled: Boolean(visible && providerWritesEnabled && access.can("crmNotes")),
+    followUpsEnabled: Boolean(visible && providerWritesEnabled && access.can("crmFollowUps")),
     entitlement: access.entitlement,
   };
 }
@@ -30,18 +50,67 @@ const customerReadProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   const access = await resolveProviderAccess(ctx.user.id);
   if (!access.provider) throw new TRPCError({ code: "FORBIDDEN", message: "A provider account is required" });
   if (!access.visible) throw new TRPCError({ code: "FORBIDDEN", message: "Customers is not enabled for this provider" });
-  return next({ ctx: { ...ctx, provider: access.provider, crmEntitlement: access.entitlement! } });
+  return next({ ctx: { ...ctx, provider: access.provider, crmEntitlement: access.entitlement!, crmAccess: access } });
 });
+
+const customerNoteWriteProcedure = customerReadProcedure.use(async ({ ctx, next }) => {
+  if (!ctx.crmAccess.notesEnabled) throw new TRPCError({ code: "FORBIDDEN", message: "Private customer notes are not enabled for this provider" });
+  return next({ ctx });
+});
+
+const customerFollowUpWriteProcedure = customerReadProcedure.use(async ({ ctx, next }) => {
+  if (!ctx.crmAccess.followUpsEnabled) throw new TRPCError({ code: "FORBIDDEN", message: "Customer follow-ups are not enabled for this provider" });
+  return next({ ctx });
+});
+
+const optionalDueDate = z.coerce.date().nullable().optional().refine(
+  value => value == null || value.getTime() >= Date.now() - 5 * 60_000,
+  "Follow-up due date cannot be in the past",
+);
+
+async function appendTaskEventSafely(input: {
+  providerId: number;
+  task: { id: number; customerId: number; contactId: number; taskType: string; createdAt: Date; updatedAt: Date };
+  eventType: "task.created" | "task.completed" | "task.dismissed";
+  summary: string;
+  occurredAt?: Date;
+}) {
+  try {
+    const occurredAt = input.occurredAt ?? (input.eventType === "task.created" ? input.task.createdAt : input.task.updatedAt);
+    await appendCrmActivityEvent({
+      providerId: input.providerId,
+      customerId: input.task.customerId,
+      contactId: input.task.contactId,
+      eventType: input.eventType,
+      entityType: "task",
+      entityId: input.task.id,
+      eventKey: buildCrmEventKey({ providerId: input.providerId, eventType: input.eventType, entityType: "task", entityId: input.task.id, occurrence: occurredAt.getTime() }),
+      summary: input.summary,
+      metadata: { taskId: input.task.id, taskType: input.task.taskType },
+      occurredAt,
+      projectedAt: null,
+    });
+  } catch (error) {
+    console.error("[Customers] Task activity append failed", {
+      providerId: input.providerId,
+      taskId: input.task.id,
+      eventType: input.eventType,
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+}
 
 export const customersRouter = router({
   getAccess: protectedProcedure.query(async ({ ctx }) => {
     const access = await resolveProviderAccess(ctx.user.id);
     return {
       visible: access.visible,
-      readOnly: true,
+      readOnly: !(access.notesEnabled || access.followUpsEnabled),
       businessName: access.provider?.businessName ?? null,
       effectiveTier: access.entitlement?.effectiveTier ?? "free",
-      providerWritesEnabled: false,
+      providerWritesEnabled: access.notesEnabled || access.followUpsEnabled,
+      notesEnabled: access.notesEnabled,
+      followUpsEnabled: access.followUpsEnabled,
       recommendationsEnabled: false,
       draftSendingEnabled: false,
     };
@@ -63,7 +132,19 @@ export const customersRouter = router({
         limit: input.limit,
         beforeId: input.beforeEventId,
       });
-      return { summary, contacts: null, activity, readOnlyReason: null };
+      return { summary, contacts: null, activity, tasks: null, readOnlyReason: null };
+    }
+    if (input.tab === "follow-ups") {
+      const tasks = ctx.crmAccess.followUpsEnabled
+        ? await listCrmTaskReadModels({ providerId: ctx.provider.id, limit: 200 })
+        : [];
+      return {
+        summary,
+        contacts: null,
+        activity: null,
+        tasks,
+        readOnlyReason: ctx.crmAccess.followUpsEnabled ? null : "Follow-up tools are not available with the provider's current access.",
+      };
     }
     const defaultStages = input.tab === "leads"
       ? (["lead", "quoted"] as const)
@@ -77,15 +158,13 @@ export const customersRouter = router({
       sort: input.sort,
       limit: input.limit,
       offset: input.offset,
-      openTasksOnly: input.tab === "follow-ups",
     });
     return {
       summary,
       contacts,
       activity: null,
-      readOnlyReason: input.tab === "follow-ups"
-        ? "Follow-up tasks and recommendations are not enabled in this read-only pilot."
-        : null,
+      tasks: null,
+      readOnlyReason: null,
     };
   }),
 
@@ -94,8 +173,88 @@ export const customersRouter = router({
     eventLimit: z.number().int().min(1).max(50).default(30),
     beforeEventId: z.number().int().positive().optional(),
   })).query(async ({ ctx, input }) => {
-    const result = await getCrmContactReadModel({ providerId: ctx.provider.id, ...input });
+    let result;
+    try {
+      result = await getCrmContactReadModel({ providerId: ctx.provider.id, ...input });
+    } catch (error) {
+      if (error instanceof CrmContactNotFoundError) throw new TRPCError({ code: "NOT_FOUND", message: "Customer relationship not found" });
+      throw error;
+    }
     if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "Customer relationship not found" });
-    return { ...result, readOnly: true, eventTypes: CRM_EVENT_TYPES };
+    const [notes, tasks] = await Promise.all([
+      ctx.crmAccess.notesEnabled ? listCrmContactNotes(ctx.provider.id, input.contactId) : Promise.resolve([]),
+      ctx.crmAccess.followUpsEnabled ? listCrmTaskReadModels({ providerId: ctx.provider.id, contactId: input.contactId, limit: 100 }) : Promise.resolve([]),
+    ]);
+    return { ...result, notes, tasks, readOnly: !(ctx.crmAccess.notesEnabled || ctx.crmAccess.followUpsEnabled), eventTypes: CRM_EVENT_TYPES };
+  }),
+
+  createNote: customerNoteWriteProcedure.input(z.object({
+    contactId: z.number().int().positive(),
+    body: z.string().trim().min(1).max(CRM_MAX_NOTE_LENGTH),
+  })).mutation(async ({ ctx, input }) => {
+    const noteId = await createCrmContactNote({
+      providerId: ctx.provider.id,
+      contactId: input.contactId,
+      authorUserId: ctx.user.id,
+      body: input.body,
+    });
+    return { success: true, noteId };
+  }),
+
+  createFollowUp: customerFollowUpWriteProcedure.input(z.object({
+    contactId: z.number().int().positive(),
+    title: z.string().trim().min(1).max(255),
+    description: z.string().trim().max(1_000).nullable().optional(),
+    dueAt: optionalDueDate,
+    requestId: z.string().uuid(),
+  })).mutation(async ({ ctx, input }) => {
+    const task = await createCrmTask({
+      providerId: ctx.provider.id,
+      contactId: input.contactId,
+      taskType: "manual_follow_up",
+      title: input.title,
+      description: input.description,
+      dueAt: input.dueAt,
+      dedupeKey: `manual-follow-up:${ctx.user.id}:${input.requestId}`,
+      createdByUserId: ctx.user.id,
+    });
+    if (!task) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Follow-up could not be created" });
+    await appendTaskEventSafely({
+      providerId: ctx.provider.id,
+      task,
+      eventType: "task.created",
+      summary: "Manual follow-up created",
+    });
+    return task;
+  }),
+
+  updateFollowUp: customerFollowUpWriteProcedure.input(z.object({
+    contactId: z.number().int().positive(),
+    taskId: z.number().int().positive(),
+    title: z.string().trim().min(1).max(255).optional(),
+    description: z.string().trim().max(1_000).nullable().optional(),
+    dueAt: optionalDueDate,
+  }).refine(value => value.title !== undefined || value.description !== undefined || value.dueAt !== undefined, "No follow-up changes were supplied")).mutation(async ({ ctx, input }) => {
+    return updateCrmTask({ providerId: ctx.provider.id, ...input });
+  }),
+
+  setFollowUpState: customerFollowUpWriteProcedure.input(z.object({
+    contactId: z.number().int().positive(),
+    taskId: z.number().int().positive(),
+    state: z.enum(CRM_TASK_STATES).refine(value => value !== "snoozed", "Snoozing is not enabled in this release"),
+  })).mutation(async ({ ctx, input }) => {
+    const transition = await updateCrmTaskState({ providerId: ctx.provider.id, ...input });
+    const task = transition.task;
+    if (transition.stateChanged && (input.state === "completed" || input.state === "dismissed")) {
+      const eventType = input.state === "completed" ? "task.completed" : "task.dismissed";
+      await appendTaskEventSafely({
+        providerId: ctx.provider.id,
+        task,
+        eventType,
+        summary: input.state === "completed" ? "Follow-up completed" : "Follow-up cancelled",
+        occurredAt: transition.transitionAt,
+      });
+    }
+    return task;
   }),
 });

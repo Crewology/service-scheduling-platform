@@ -2782,3 +2782,14 @@
 - [x] Exclude the provider owner’s own user account from that provider’s Customers projection, backfill, reconciliation, and read-only pilot data
 - [x] Exclude provider self-bookings from the provider Overview customer count so Business Pulse matches the Customers relationship workspace
 - [x] Update the Phase 1 rollout regression for the approved Phase 3 pilot so it allows read-only UI while still requiring projection-independent provider writes, recommendations, and draft sending to remain off
+
+## Customers Release 1 Implementation — Phase 4 Private Notes and Follow-ups
+- [x] Add pilot-scoped provider-private note create and list procedures with server-derived provider ownership, bounded content, immutable author identity, and no admin surveillance surface
+- [x] Add pilot-scoped manual follow-up create, edit, complete, reopen, and cancel procedures with due dates, status history, and cross-tenant protection; priority remains outside the approved Phase 4 scope
+- [x] Extend the Customers relationship detail with private notes and manual follow-up controls using the approved responsive interaction patterns
+- [x] Replace the Follow-ups placeholder with overdue, due today, upcoming, completed, and cancelled manual task views for the private pilot
+- [x] Keep task and note actions unavailable to non-pilots and lifecycle-ineligible plans even when a route or record ID is constructed
+- [x] Enable the private `customersProviderWrites` flag only for provider 1 after authorization and lifecycle tests pass
+- [x] Keep message drafts, relationship sending, automated recommendations, rule execution, saved segments, exports, schedules, and broader provider rollout disabled
+- [x] Add note privacy, tenant isolation, validation, task status, due-date, idempotency, deletion, entitlement, UI, and responsive regression coverage
+- [x] Run zero-error TypeScript, production build, desktop/mobile pilot review, and save a validated Phase 4 checkpoint
