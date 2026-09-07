@@ -7,7 +7,9 @@ import {
   createCrmTask,
   getCrmContactById,
   listCrmContactNotes,
+  listCrmStageHistory,
   listCrmTaskReadModels,
+  transitionCrmManualStage,
   updateCrmTask,
   updateCrmTaskState,
   upsertCrmContact,
@@ -103,5 +105,25 @@ describe("Customers Phase 4 repository task lifecycle", () => {
     expect(dismissed.task.dismissedAt).toBeInstanceOf(Date);
     expect(dismissed.task.completedAt).toBeNull();
     expect((await getCrmContactById(providerA.id, contactA.id)).openTaskCount).toBe(0);
+
+    await expect(transitionCrmManualStage({ providerId: providerB.id, contactId: contactA.id, stage: "archived", actorUserId: ownerB.id, reason: "Must not cross tenants" })).rejects.toThrow("not found");
+    const archived = await transitionCrmManualStage({ providerId: providerA.id, contactId: contactA.id, stage: "archived", actorUserId: ownerA.id, reason: "Provider archived relationship" });
+    expect(archived).toMatchObject({ previousStage: "customer", nextStage: "archived", stateChanged: true });
+    expect(archived.historyId).toBeGreaterThan(0);
+    expect((await getCrmContactById(providerA.id, contactA.id))).toMatchObject({ manualStage: "archived", archivedByUserId: ownerA.id });
+    const archivedRetry = await transitionCrmManualStage({ providerId: providerA.id, contactId: contactA.id, stage: "archived", actorUserId: ownerA.id, reason: "Retry" });
+    expect(archivedRetry).toMatchObject({ stateChanged: false, historyId: null });
+
+    const manualLead = await transitionCrmManualStage({ providerId: providerA.id, contactId: contactA.id, stage: "lead", actorUserId: ownerA.id, reason: "Provider set relationship stage to lead" });
+    expect(manualLead).toMatchObject({ previousStage: "archived", nextStage: "lead", stateChanged: true });
+    expect((await getCrmContactById(providerA.id, contactA.id))).toMatchObject({ manualStage: "lead", archivedAt: null, archivedByUserId: null });
+
+    const automatic = await transitionCrmManualStage({ providerId: providerA.id, contactId: contactA.id, stage: null, actorUserId: ownerA.id, reason: "Provider resumed automatic relationship stage" });
+    expect(automatic).toMatchObject({ previousStage: "lead", nextStage: "customer", stateChanged: true });
+    expect((await getCrmContactById(providerA.id, contactA.id))).toMatchObject({ manualStage: null, derivedStage: "customer" });
+    const history = await listCrmStageHistory(providerA.id, contactA.id);
+    expect(history).toHaveLength(3);
+    expect(history.every(row => row.source === "provider" && row.actorUserId === ownerA.id)).toBe(true);
+    expect(history.map(row => row.nextStage)).toEqual(["customer", "lead", "archived"]);
   }, 90_000);
 });

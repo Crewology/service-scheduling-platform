@@ -24,12 +24,13 @@ import {
   appendCrmActivityEvent,
   buildCrmEventKey,
   CrmContactNotFoundError,
+  transitionCrmManualStage,
 } from "./db/crm";
 import { getCrmProviderAccess } from "./crm/access";
 
 async function resolveProviderAccess(userId: number) {
   const provider = await db.getProviderByUserId(userId);
-  if (!provider) return { provider: null, access: null, visible: false, notesEnabled: false, followUpsEnabled: false, entitlement: null };
+  if (!provider) return { provider: null, access: null, visible: false, notesEnabled: false, followUpsEnabled: false, stageOverridesEnabled: false, entitlement: null };
   const [access, readUiEnabled, providerWritesEnabled] = await Promise.all([
     getCrmProviderAccess(provider.id),
     isCrmRolloutEnabled(CRM_ROLLOUT_FLAGS.readUi),
@@ -42,6 +43,7 @@ async function resolveProviderAccess(userId: number) {
     visible,
     notesEnabled: Boolean(visible && providerWritesEnabled && access.can("crmNotes")),
     followUpsEnabled: Boolean(visible && providerWritesEnabled && access.can("crmFollowUps")),
+    stageOverridesEnabled: Boolean(visible && providerWritesEnabled && access.can("crmStageOverrides")),
     entitlement: access.entitlement,
   };
 }
@@ -60,6 +62,11 @@ const customerNoteWriteProcedure = customerReadProcedure.use(async ({ ctx, next 
 
 const customerFollowUpWriteProcedure = customerReadProcedure.use(async ({ ctx, next }) => {
   if (!ctx.crmAccess.followUpsEnabled) throw new TRPCError({ code: "FORBIDDEN", message: "Customer follow-ups are not enabled for this provider" });
+  return next({ ctx });
+});
+
+const customerStageWriteProcedure = customerReadProcedure.use(async ({ ctx, next }) => {
+  if (!ctx.crmAccess.stageOverridesEnabled) throw new TRPCError({ code: "FORBIDDEN", message: "Manual relationship stages are not enabled for this provider" });
   return next({ ctx });
 });
 
@@ -100,17 +107,63 @@ async function appendTaskEventSafely(input: {
   }
 }
 
+async function appendStageEventSafely(input: {
+  providerId: number;
+  customerId: number;
+  contactId: number;
+  historyId: number;
+  previousStage: (typeof CRM_CONTACT_STAGES)[number];
+  nextStage: (typeof CRM_CONTACT_STAGES)[number];
+  reason: string;
+  summary: string;
+  changedAt: Date;
+}) {
+  try {
+    await appendCrmActivityEvent({
+      providerId: input.providerId,
+      customerId: input.customerId,
+      contactId: input.contactId,
+      eventType: "contact.stage_changed",
+      entityType: "contact",
+      entityId: input.contactId,
+      eventKey: buildCrmEventKey({
+        providerId: input.providerId,
+        eventType: "contact.stage_changed",
+        entityType: "contact",
+        entityId: input.contactId,
+        occurrence: input.historyId,
+      }),
+      summary: input.summary,
+      metadata: {
+        previousStage: input.previousStage,
+        nextStage: input.nextStage,
+        reason: input.reason,
+      },
+      occurredAt: input.changedAt,
+      projectedAt: null,
+    });
+  } catch (error) {
+    console.error("[Customers] Stage activity append failed", {
+      providerId: input.providerId,
+      contactId: input.contactId,
+      historyId: input.historyId,
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+}
+
 export const customersRouter = router({
   getAccess: protectedProcedure.query(async ({ ctx }) => {
     const access = await resolveProviderAccess(ctx.user.id);
     return {
       visible: access.visible,
-      readOnly: !(access.notesEnabled || access.followUpsEnabled),
+      readOnly: !(access.notesEnabled || access.followUpsEnabled || access.stageOverridesEnabled),
       businessName: access.provider?.businessName ?? null,
       effectiveTier: access.entitlement?.effectiveTier ?? "free",
-      providerWritesEnabled: access.notesEnabled || access.followUpsEnabled,
+      providerWritesEnabled: access.notesEnabled || access.followUpsEnabled || access.stageOverridesEnabled,
       notesEnabled: access.notesEnabled,
       followUpsEnabled: access.followUpsEnabled,
+      stageOverridesEnabled: access.stageOverridesEnabled,
       recommendationsEnabled: false,
       draftSendingEnabled: false,
     };
@@ -185,7 +238,52 @@ export const customersRouter = router({
       ctx.crmAccess.notesEnabled ? listCrmContactNotes(ctx.provider.id, input.contactId) : Promise.resolve([]),
       ctx.crmAccess.followUpsEnabled ? listCrmTaskReadModels({ providerId: ctx.provider.id, contactId: input.contactId, limit: 100 }) : Promise.resolve([]),
     ]);
-    return { ...result, notes, tasks, readOnly: !(ctx.crmAccess.notesEnabled || ctx.crmAccess.followUpsEnabled), eventTypes: CRM_EVENT_TYPES };
+    return { ...result, notes, tasks, readOnly: !(ctx.crmAccess.notesEnabled || ctx.crmAccess.followUpsEnabled || ctx.crmAccess.stageOverridesEnabled), eventTypes: CRM_EVENT_TYPES };
+  }),
+
+  setRelationshipStage: customerStageWriteProcedure.input(z.object({
+    contactId: z.number().int().positive(),
+    stage: z.enum(CRM_CONTACT_STAGES).nullable(),
+  })).mutation(async ({ ctx, input }) => {
+    const requestedLabel = input.stage?.replaceAll("_", " ") ?? "automatic";
+    const reason = input.stage
+      ? `Provider set relationship stage to ${requestedLabel}`
+      : "Provider resumed automatic relationship stage";
+    let transition;
+    try {
+      transition = await transitionCrmManualStage({
+        providerId: ctx.provider.id,
+        contactId: input.contactId,
+        stage: input.stage,
+        actorUserId: ctx.user.id,
+        reason,
+      });
+    } catch (error) {
+      if (error instanceof CrmContactNotFoundError) throw new TRPCError({ code: "NOT_FOUND", message: "Customer relationship not found" });
+      throw error;
+    }
+    if (transition.stateChanged && transition.historyId) {
+      await appendStageEventSafely({
+        providerId: ctx.provider.id,
+        customerId: transition.contact.customerId,
+        contactId: input.contactId,
+        historyId: transition.historyId,
+        previousStage: transition.previousStage,
+        nextStage: transition.nextStage,
+        reason,
+        summary: input.stage
+          ? `Relationship stage changed to ${transition.nextStage.replaceAll("_", " ")}`
+          : `Automatic relationship stage restored as ${transition.nextStage.replaceAll("_", " ")}`,
+        changedAt: transition.changedAt,
+      });
+    }
+    return {
+      contactId: input.contactId,
+      derivedStage: transition.contact.derivedStage,
+      manualStage: transition.contact.manualStage,
+      effectiveStage: transition.nextStage,
+      changed: transition.stateChanged,
+    };
   }),
 
   createNote: customerNoteWriteProcedure.input(z.object({

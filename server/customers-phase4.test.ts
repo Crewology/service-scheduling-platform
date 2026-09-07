@@ -18,6 +18,7 @@ const mocks = vi.hoisted(() => ({
   createCrmTask: vi.fn(),
   updateCrmTask: vi.fn(),
   updateCrmTaskState: vi.fn(),
+  transitionCrmManualStage: vi.fn(),
   appendCrmActivityEvent: vi.fn(),
 }));
 
@@ -41,6 +42,7 @@ vi.mock("./db/crm", async importOriginal => ({
   createCrmTask: mocks.createCrmTask,
   updateCrmTask: mocks.updateCrmTask,
   updateCrmTaskState: mocks.updateCrmTaskState,
+  transitionCrmManualStage: mocks.transitionCrmManualStage,
   appendCrmActivityEvent: mocks.appendCrmActivityEvent,
 }));
 
@@ -113,7 +115,7 @@ describe("Customers Phase 4 private notes and manual follow-ups", () => {
     mocks.getCrmProviderAccess.mockResolvedValue({
       entitlement,
       isPilotProvider: true,
-      can: (feature: string) => ["customerHistory", "crmNotes", "crmFollowUps"].includes(feature),
+      can: (feature: string) => ["customerHistory", "crmNotes", "crmFollowUps", "crmStageOverrides"].includes(feature),
     });
     enablePrivateWrites();
     mocks.getCrmWorkspaceSummary.mockResolvedValue({ total: 2, leads: 1, customers: 1, repeatCustomers: 0, needsResponse: 0, followUps: 1 });
@@ -126,6 +128,14 @@ describe("Customers Phase 4 private notes and manual follow-ups", () => {
     mocks.createCrmTask.mockResolvedValue(task);
     mocks.updateCrmTask.mockResolvedValue(task);
     mocks.updateCrmTaskState.mockImplementation(async ({ state }: { state: "open" | "completed" | "dismissed" }) => ({ task: { ...task, state, updatedAt: new Date("2026-09-06T13:00:00Z") }, stateChanged: true, transitionAt: new Date("2026-09-06T13:00:00Z") }));
+    mocks.transitionCrmManualStage.mockImplementation(async ({ stage }: { stage: "lead" | "quoted" | "booked" | "customer" | "repeat_customer" | "dormant" | "archived" | null }) => ({
+      contact: { id: 9, customerId: 72, derivedStage: "lead", manualStage: stage, updatedAt: new Date("2026-09-06T12:00:00Z") },
+      previousStage: "lead",
+      nextStage: stage ?? "lead",
+      historyId: 501,
+      stateChanged: true,
+      changedAt: new Date("2026-09-06T14:00:00Z"),
+    }));
     mocks.appendCrmActivityEvent.mockResolvedValue({ id: 91 });
   });
 
@@ -136,6 +146,7 @@ describe("Customers Phase 4 private notes and manual follow-ups", () => {
       providerWritesEnabled: true,
       notesEnabled: true,
       followUpsEnabled: true,
+      stageOverridesEnabled: true,
       recommendationsEnabled: false,
       draftSendingEnabled: false,
     });
@@ -144,6 +155,7 @@ describe("Customers Phase 4 private notes and manual follow-ups", () => {
     const flagOffCaller = customersRouter.createCaller(context());
     await expect(flagOffCaller.getAccess()).resolves.toMatchObject({ visible: true, readOnly: true, providerWritesEnabled: false });
     await expect(flagOffCaller.createNote({ contactId: 9, body: "Private" })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(flagOffCaller.setRelationshipStage({ contactId: 9, stage: "customer" })).rejects.toMatchObject({ code: "FORBIDDEN" });
 
     enablePrivateWrites();
     mocks.getCrmProviderAccess.mockResolvedValue({ entitlement, isPilotProvider: false, can: () => true });
@@ -248,6 +260,67 @@ describe("Customers Phase 4 private notes and manual follow-ups", () => {
     await expect(customersRouter.createCaller(context()).setFollowUpState({ contactId: 9, taskId: 31, state: "completed" })).resolves.toMatchObject({ id: 31, state: "completed" });
     expect(mocks.appendCrmActivityEvent).not.toHaveBeenCalled();
   });
+
+  it("sets and clears manual relationship stages with server-derived provider scope and safe history events", async () => {
+    const caller = customersRouter.createCaller(context());
+    await expect(caller.setRelationshipStage({ contactId: 9, stage: "customer", providerId: 999 } as never)).resolves.toMatchObject({
+      contactId: 9,
+      derivedStage: "lead",
+      manualStage: "customer",
+      effectiveStage: "customer",
+      changed: true,
+    });
+    expect(mocks.transitionCrmManualStage).toHaveBeenCalledWith({
+      providerId: 7,
+      contactId: 9,
+      stage: "customer",
+      actorUserId: 41,
+      reason: "Provider set relationship stage to customer",
+    });
+    expect(mocks.appendCrmActivityEvent).toHaveBeenCalledWith(expect.objectContaining({
+      providerId: 7,
+      customerId: 72,
+      contactId: 9,
+      eventType: "contact.stage_changed",
+      entityType: "contact",
+      entityId: 9,
+      summary: "Relationship stage changed to customer",
+      metadata: { previousStage: "lead", nextStage: "customer", reason: "Provider set relationship stage to customer" },
+      projectedAt: null,
+    }));
+    expect(JSON.stringify(mocks.appendCrmActivityEvent.mock.calls)).not.toMatch(/Private detail|note body|message body|address|payment/);
+
+    mocks.appendCrmActivityEvent.mockClear();
+    await expect(caller.setRelationshipStage({ contactId: 9, stage: null })).resolves.toMatchObject({ manualStage: null, effectiveStage: "lead" });
+    expect(mocks.transitionCrmManualStage).toHaveBeenLastCalledWith(expect.objectContaining({
+      providerId: 7,
+      contactId: 9,
+      stage: null,
+      actorUserId: 41,
+      reason: "Provider resumed automatic relationship stage",
+    }));
+    expect(mocks.appendCrmActivityEvent).toHaveBeenCalledWith(expect.objectContaining({
+      summary: "Automatic relationship stage restored as lead",
+      metadata: { previousStage: "lead", nextStage: "lead", reason: "Provider resumed automatic relationship stage" },
+    }));
+  });
+
+  it("does not append duplicate stage activity for a no-op and translates cross-tenant contacts to not found", async () => {
+    mocks.transitionCrmManualStage.mockResolvedValueOnce({
+      contact: { id: 9, customerId: 72, derivedStage: "lead", manualStage: "lead", updatedAt: new Date("2026-09-06T12:00:00Z") },
+      previousStage: "lead",
+      nextStage: "lead",
+      historyId: null,
+      stateChanged: false,
+      changedAt: new Date("2026-09-06T12:00:00Z"),
+    });
+    const caller = customersRouter.createCaller(context());
+    await expect(caller.setRelationshipStage({ contactId: 9, stage: "lead" })).resolves.toMatchObject({ changed: false });
+    expect(mocks.appendCrmActivityEvent).not.toHaveBeenCalled();
+
+    mocks.transitionCrmManualStage.mockRejectedValueOnce(new CrmContactNotFoundError());
+    await expect(caller.setRelationshipStage({ contactId: 999, stage: "customer" })).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
 });
 
 describe("Customers Phase 4 fixed product boundary", () => {
@@ -289,5 +362,45 @@ describe("Customers Phase 4 fixed product boundary", () => {
   it("preserves provider-authored task events during projection-only rebuilds", () => {
     expect(operationsSource).toContain('inArray(crmActivityEvents.entityType, ["quote", "booking", "payment", "invoice", "message", "review"])');
     expect(operationsSource).not.toContain('inArray(crmActivityEvents.entityType, ["quote", "booking", "payment", "invoice", "message", "review", "task"])');
+  });
+});
+
+describe("Customers Phase 5 manual relationship-stage boundary", () => {
+  const root = path.resolve(process.cwd());
+  const routerSource = fs.readFileSync(path.join(root, "server/customersRouter.ts"), "utf8");
+  const detailSource = fs.readFileSync(path.join(root, "client/src/pages/ProviderCustomerDetail.tsx"), "utf8");
+  const historySource = fs.readFileSync(path.join(root, "server/db/crm/stageHistory.ts"), "utf8");
+
+  it("uses the existing lifecycle entitlement and private write flag for every manual stage change", () => {
+    expect(routerSource).toContain('access.can("crmStageOverrides")');
+    expect(routerSource).toContain("ctx.crmAccess.stageOverridesEnabled");
+    expect(routerSource).toContain("providerId: ctx.provider.id");
+    expect(routerSource).toContain("actorUserId: ctx.user.id");
+    expect(routerSource).not.toMatch(/setRelationshipStage[\s\S]{0,400}input\.providerId/);
+  });
+
+  it("keeps stage changes atomic, immutable, reversible, and distinct from derived source state", () => {
+    expect(historySource).toContain("database.transaction(async transaction");
+    expect(historySource).toContain("manualStage: input.stage");
+    expect(historySource).toContain("nextStage = input.stage ?? contact.derivedStage");
+    expect(historySource).toContain('source: "provider"');
+    expect(historySource).toContain("crmContactStageHistory");
+    expect(historySource).not.toMatch(/delete\(crmContactStageHistory\)|update\(crmContactStageHistory\)/);
+  });
+
+  it("renders one simple responsive control with explicit automatic behavior and immediate workspace refresh", () => {
+    expect(detailSource).toContain("Relationship stage");
+    expect(detailSource).toContain("Automatic follows OlogyCrew activity.");
+    expect(detailSource).toContain("Automatic —");
+    expect(detailSource).toContain("Use automatic");
+    expect(detailSource).toContain("stageOverridesEnabled");
+    expect(detailSource).toContain("utils.customers.getWorkspace.invalidate()");
+    expect(detailSource).toContain("flex flex-col gap-3 sm:flex-row");
+  });
+
+  it("does not add messaging, automation, export, schedule, or broad-rollout controls", () => {
+    expect(routerSource).toContain("recommendationsEnabled: false");
+    expect(routerSource).toContain("draftSendingEnabled: false");
+    expect(detailSource).not.toMatch(/Send message|Generate draft|Run automation|Export customers|Schedule campaign/);
   });
 });

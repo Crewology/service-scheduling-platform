@@ -2793,3 +2793,15 @@
 - [x] Keep message drafts, relationship sending, automated recommendations, rule execution, saved segments, exports, schedules, and broader provider rollout disabled
 - [x] Add note privacy, tenant isolation, validation, task status, due-date, idempotency, deletion, entitlement, UI, and responsive regression coverage
 - [x] Run zero-error TypeScript, production build, desktop/mobile pilot review, and save a validated Phase 4 checkpoint
+
+## Customers Release 1 Implementation — Phase 5 Manual Relationship Stages
+- [x] Add a pilot-scoped manual-stage mutation guarded by active provider status, private pilot membership, lifecycle `crmStageOverrides` entitlement, read UI, and provider-write rollout flags
+- [x] Enforce provider/contact tenancy for every stage change and never accept a client-supplied provider ID
+- [x] Support choosing an approved Customers stage or clearing the override to resume the authoritative derived stage
+- [x] Append provider-authored stage history with previous and next effective stages without copying private notes, messages, addresses, or payment data
+- [x] Add a simple relationship-detail stage control with concise automatic-versus-manual helper copy and no Salesforce-style workflow complexity
+- [x] Reflect a saved or cleared stage immediately in relationship detail and Leads/Customers workspace placement
+- [x] Keep stage controls unavailable to non-pilots and lifecycle-ineligible providers even for constructed relationship IDs
+- [x] Keep drafts, sending, recommendations, rules, schedules, saved segments, exports, and broader rollout disabled
+- [x] Add focused router, repository, history, tenancy, entitlement, validation, UI contract, and responsive regressions
+- [x] Run adjacent tests, zero-error TypeScript, diff validation, production build, desktop/mobile review, final private-state verification, implementation report, and checkpoint

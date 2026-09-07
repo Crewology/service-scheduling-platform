@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useRoute } from "wouter";
-import { Activity, ArrowLeft, ArrowRight, CalendarDays, Clock3, DollarSign, Loader2, LockKeyhole, NotebookPen, Plus, UserRound } from "lucide-react";
+import { Activity, ArrowLeft, ArrowRight, CalendarDays, Clock3, DollarSign, Layers3, Loader2, LockKeyhole, NotebookPen, Plus, UserRound } from "lucide-react";
 import { MobileRoleViewToggle } from "@/components/shared/MobileRoleViewToggle";
 import { FollowUpTaskCard, type CustomerFollowUpTask } from "@/components/customers/FollowUpTaskCard";
 import { Badge } from "@/components/ui/badge";
@@ -9,10 +9,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { CRM_CONTACT_STAGES, type CrmContactStage } from "../../../shared/crm";
 import { ProviderCustomersNav, formatDate, formatMoney, relativeAge, stageLabels } from "./ProviderCustomers";
+
+const AUTOMATIC_STAGE_VALUE = "automatic";
+const relationshipStageOptions = CRM_CONTACT_STAGES.map(stage => [stage, stageLabels[stage]] as const);
 
 const localDateTimeValue = (value: Date | string | null | undefined) => {
   if (!value) return "";
@@ -33,6 +38,7 @@ export default function ProviderCustomerDetail() {
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
   const [taskDueAt, setTaskDueAt] = useState("");
+  const [stageSelection, setStageSelection] = useState<string>(AUTOMATIC_STAGE_VALUE);
 
   const refresh = async () => {
     await Promise.all([
@@ -76,6 +82,18 @@ export default function ProviderCustomerDetail() {
     onError: error => toast.error(error.message || "Follow-up state could not be changed"),
   });
 
+  const setRelationshipStage = trpc.customers.setRelationshipStage.useMutation({
+    onSuccess: async (_, variables) => {
+      await refresh();
+      toast.success(variables.stage ? `Stage set to ${stageLabels[variables.stage]}` : "Automatic stage restored");
+    },
+    onError: error => toast.error(error.message || "Relationship stage could not be changed"),
+  });
+
+  useEffect(() => {
+    setStageSelection(detail.data?.contact.manualStage ?? AUTOMATIC_STAGE_VALUE);
+  }, [detail.data?.contact.manualStage, contactId]);
+
   function closeTaskDialog() {
     setTaskDialogOpen(false);
     setEditingTask(null);
@@ -118,6 +136,12 @@ export default function ProviderCustomerDetail() {
 
   const { contact, events, notes, tasks } = detail.data;
   const taskPending = setFollowUpState.isPending;
+  const savedStageSelection = contact.manualStage ?? AUTOMATIC_STAGE_VALUE;
+
+  function saveRelationshipStage() {
+    const stage = stageSelection === AUTOMATIC_STAGE_VALUE ? null : stageSelection as CrmContactStage;
+    setRelationshipStage.mutate({ contactId, stage });
+  }
 
   return (
     <div className="container max-w-7xl py-5 pb-28 sm:py-8 lg:pb-10">
@@ -132,6 +156,8 @@ export default function ProviderCustomerDetail() {
               <div className="max-w-sm rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-blue-50"><LockKeyhole className="mr-2 inline h-4 w-4" />Notes and reminders are private. Nothing here sends a message or changes a booking.</div>
             </div>
           </section>
+
+          {access.data.stageOverridesEnabled && <section aria-labelledby="relationship-stage-heading" className="mt-5 rounded-3xl border border-blue-100 bg-white p-5 shadow-sm sm:p-6"><div className="flex items-start gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-[#174a73]"><Layers3 className="h-5 w-5" /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h2 id="relationship-stage-heading" className="text-lg font-bold text-slate-950">Relationship stage</h2><Badge variant="outline" className={contact.manualStage ? "border-blue-200 bg-blue-50 text-blue-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"}>{contact.manualStage ? "Manual" : "Automatic"}</Badge></div><p className="mt-1 text-sm leading-6 text-slate-600">Automatic follows OlogyCrew activity. A manual stage changes only where this relationship is organized—it never changes a booking, quote, payment, or message.</p></div></div><div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end"><div className="min-w-0 flex-1"><Label htmlFor="relationship-stage">Organize as</Label><Select value={stageSelection} onValueChange={setStageSelection}><SelectTrigger id="relationship-stage" className="mt-2 w-full bg-white"><SelectValue /></SelectTrigger><SelectContent><SelectItem value={AUTOMATIC_STAGE_VALUE}>Automatic — {stageLabels[contact.derivedStage]}</SelectItem>{relationshipStageOptions.map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent></Select><p className="mt-2 text-xs text-slate-500">Current automatic stage: {stageLabels[contact.derivedStage]}.{stageSelection === "archived" ? " Archived relationships are removed from Leads and Customers until restored." : ""}</p></div><Button onClick={saveRelationshipStage} disabled={stageSelection === savedStageSelection || setRelationshipStage.isPending} className="sm:min-w-32">{setRelationshipStage.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{stageSelection === AUTOMATIC_STAGE_VALUE ? "Use automatic" : "Save stage"}</Button></div></section>}
 
           <section className="mt-5 grid gap-3 sm:grid-cols-3"><Stat icon={CalendarDays} label="Completed bookings" value={String(contact.completedBookingCount)} /><Stat icon={DollarSign} label="Captured value" value={formatMoney(contact.capturedValueCents)} /><Stat icon={CalendarDays} label="Next booking" value={contact.nextBookingAt ? formatDate(contact.nextBookingAt) : "None"} /></section>
 
