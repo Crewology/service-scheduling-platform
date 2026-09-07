@@ -23,6 +23,9 @@ const mocks = vi.hoisted(() => ({
   createCrmMessageDraft: vi.fn(),
   updateCrmMessageDraft: vi.fn(),
   discardCrmMessageDraft: vi.fn(),
+  getCrmMessageDraftSendReadiness: vi.fn(),
+  sendCrmMessageDraft: vi.fn(),
+  queueCrmMessageProjection: vi.fn(),
   appendCrmActivityEvent: vi.fn(),
 }));
 
@@ -51,7 +54,13 @@ vi.mock("./db/crm", async importOriginal => ({
   createCrmMessageDraft: mocks.createCrmMessageDraft,
   updateCrmMessageDraft: mocks.updateCrmMessageDraft,
   discardCrmMessageDraft: mocks.discardCrmMessageDraft,
+  getCrmMessageDraftSendReadiness: mocks.getCrmMessageDraftSendReadiness,
+  sendCrmMessageDraft: mocks.sendCrmMessageDraft,
   appendCrmActivityEvent: mocks.appendCrmActivityEvent,
+}));
+
+vi.mock("./crm/sourceHooks", () => ({
+  queueCrmMessageProjection: mocks.queueCrmMessageProjection,
 }));
 
 import { CrmContactNotFoundError } from "./db/crm";
@@ -134,6 +143,10 @@ function enablePrivateWrites() {
   mocks.isCrmRolloutEnabled.mockImplementation(async (key: string) => [CRM_ROLLOUT_FLAGS.readUi, CRM_ROLLOUT_FLAGS.providerWrites].includes(key as never));
 }
 
+function enablePrivateSending() {
+  mocks.isCrmRolloutEnabled.mockImplementation(async (key: string) => [CRM_ROLLOUT_FLAGS.readUi, CRM_ROLLOUT_FLAGS.providerWrites, CRM_ROLLOUT_FLAGS.draftSending].includes(key as never));
+}
+
 describe("Customers Phase 4 private notes and manual follow-ups", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -155,6 +168,8 @@ describe("Customers Phase 4 private notes and manual follow-ups", () => {
     mocks.createCrmMessageDraft.mockResolvedValue(draft);
     mocks.updateCrmMessageDraft.mockResolvedValue(draft);
     mocks.discardCrmMessageDraft.mockResolvedValue({ ...draft, state: "discarded", discardedAt: new Date("2026-09-06T14:00:00Z") });
+    mocks.getCrmMessageDraftSendReadiness.mockResolvedValue({ allowed: true, reason: "allowed", customerId: 72 });
+    mocks.sendCrmMessageDraft.mockResolvedValue({ draftId: 61, messageId: 88, conversationId: "conv-41-72", sentAt: new Date("2026-09-06T15:00:00Z"), alreadySent: false });
     mocks.createCrmTask.mockResolvedValue(task);
     mocks.updateCrmTask.mockResolvedValue(task);
     mocks.updateCrmTaskState.mockImplementation(async ({ state }: { state: "open" | "completed" | "dismissed" }) => ({ task: { ...task, state, updatedAt: new Date("2026-09-06T13:00:00Z") }, stateChanged: true, transitionAt: new Date("2026-09-06T13:00:00Z") }));
@@ -192,9 +207,11 @@ describe("Customers Phase 4 private notes and manual follow-ups", () => {
     enablePrivateWrites();
     mocks.getCrmProviderAccess.mockResolvedValue({ entitlement, isPilotProvider: false, can: () => true });
     await expect(customersRouter.createCaller(context()).createFollowUp({ contactId: 9, title: "No access", requestId: crypto.randomUUID() })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(customersRouter.createCaller(context()).sendDraft({ contactId: 9, draftId: 61, confirmedBody: draft.body, confirmSend: true })).rejects.toMatchObject({ code: "FORBIDDEN" });
 
     mocks.getCrmProviderAccess.mockResolvedValue({ entitlement: { effectiveTier: "free", state: "active" }, isPilotProvider: true, can: (feature: string) => feature === "customerHistory" });
     await expect(customersRouter.createCaller(context()).createNote({ contactId: 9, body: "No entitlement" })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(customersRouter.createCaller(context()).sendDraft({ contactId: 9, draftId: 61, confirmedBody: draft.body, confirmSend: true })).rejects.toMatchObject({ code: "FORBIDDEN" });
 
     mocks.getProviderByUserId.mockResolvedValue({ ...provider, isActive: false });
     await expect(customersRouter.createCaller(context()).createFollowUp({ contactId: 9, title: "Inactive", requestId: crypto.randomUUID() })).rejects.toMatchObject({ code: "FORBIDDEN" });
@@ -211,10 +228,10 @@ describe("Customers Phase 4 private notes and manual follow-ups", () => {
 
   it("returns notes and tasks only after the provider-scoped relationship is resolved", async () => {
     const caller = customersRouter.createCaller(context());
-    await expect(caller.getContact({ contactId: 9, eventLimit: 30 })).resolves.toMatchObject({ notes: [], tasks: [], drafts: [] });
+    await expect(caller.getContact({ contactId: 9, eventLimit: 30 })).resolves.toMatchObject({ notes: [], tasks: [], drafts: [], draftSendReadiness: { enabled: false, allowed: false, reason: "sending_disabled" } });
     expect(mocks.listCrmContactNotes).toHaveBeenCalledWith(7, 9);
     expect(mocks.listCrmTaskReadModels).toHaveBeenCalledWith({ providerId: 7, contactId: 9, limit: 100 });
-    expect(mocks.listCrmMessageDrafts).toHaveBeenCalledWith(7, 9, ["draft"]);
+    expect(mocks.listCrmMessageDrafts).toHaveBeenCalledWith(7, 9, ["draft", "sent"]);
 
     mocks.getCrmContactReadModel.mockRejectedValueOnce(new CrmContactNotFoundError());
     await expect(caller.getContact({ contactId: 999, eventLimit: 30 })).rejects.toMatchObject({ code: "NOT_FOUND" });
@@ -229,13 +246,14 @@ describe("Customers Phase 4 private notes and manual follow-ups", () => {
       can: (feature: string) => feature === "customerHistory",
     });
     const caller = customersRouter.createCaller(context());
-    await expect(caller.getContact({ contactId: 9, eventLimit: 30 })).resolves.toMatchObject({ notes: [], tasks: [], drafts: [], readOnly: true });
+    await expect(caller.getContact({ contactId: 9, eventLimit: 30 })).resolves.toMatchObject({ notes: [], tasks: [], drafts: [], draftSendReadiness: { enabled: false }, readOnly: true });
     const followUps = await caller.getWorkspace({ tab: "follow-ups", sort: "attention", limit: 25, offset: 0 });
     expect(followUps.tasks).toEqual([]);
     expect(followUps.readOnlyReason).toContain("current access");
     expect(mocks.listCrmContactNotes).not.toHaveBeenCalled();
     expect(mocks.listCrmTaskReadModels).not.toHaveBeenCalled();
     expect(mocks.listCrmMessageDrafts).not.toHaveBeenCalled();
+    expect(mocks.getCrmMessageDraftSendReadiness).not.toHaveBeenCalled();
   });
 
   it("returns provider-scoped task rows for the Follow-ups tab", async () => {
@@ -389,6 +407,58 @@ describe("Customers Phase 4 private notes and manual follow-ups", () => {
     mocks.createCrmMessageDraft.mockRejectedValueOnce(new CrmMessageDraftIdempotencyConflictError());
     await expect(customersRouter.createCaller(context()).createDraft({ contactId: 10, body: "Conflict", requestId: crypto.randomUUID() })).rejects.toMatchObject({ code: "CONFLICT" });
   });
+
+  it("keeps sending behind the separate private flag even when draft editing is enabled", async () => {
+    const caller = customersRouter.createCaller(context());
+    await expect(caller.getAccess()).resolves.toMatchObject({ draftsEnabled: true, draftSendingEnabled: false });
+    await expect(caller.sendDraft({ contactId: 9, draftId: 61, confirmedBody: draft.body, confirmSend: true })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    expect(mocks.sendCrmMessageDraft).not.toHaveBeenCalled();
+  });
+
+  it("normalizes send-time customer permission without exposing preference internals", async () => {
+    enablePrivateSending();
+    const caller = customersRouter.createCaller(context());
+    await expect(caller.getAccess()).resolves.toMatchObject({ draftSendingEnabled: true });
+    await expect(caller.getContact({ contactId: 9, eventLimit: 30 })).resolves.toMatchObject({ draftSendReadiness: { enabled: true, allowed: true, reason: "allowed" } });
+    expect(mocks.getCrmMessageDraftSendReadiness).toHaveBeenCalledWith({ providerId: 7, contactId: 9, senderUserId: 41 });
+
+    mocks.getCrmMessageDraftSendReadiness.mockResolvedValueOnce({ allowed: false, reason: "global_opt_out", customerId: 72 });
+    await expect(caller.getContact({ contactId: 9, eventLimit: 30 })).resolves.toMatchObject({ draftSendReadiness: { enabled: true, allowed: false, reason: "permission_required" } });
+    mocks.getCrmMessageDraftSendReadiness.mockResolvedValueOnce({ allowed: false, reason: "relationship_archived", customerId: 72 });
+    await expect(caller.getContact({ contactId: 9, eventLimit: 30 })).resolves.toMatchObject({ draftSendReadiness: { enabled: true, allowed: false, reason: "relationship_unavailable" } });
+  });
+
+  it("requires deliberate confirmation and sends with server-derived provider and sender identity", async () => {
+    enablePrivateSending();
+    const caller = customersRouter.createCaller(context());
+    await expect(caller.sendDraft({ contactId: 9, draftId: 61, confirmedBody: draft.body, confirmSend: false } as never)).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(caller.sendDraft({ contactId: 9, draftId: 61, confirmedBody: `  ${draft.body}  `, confirmSend: true, providerId: 999, recipientId: 999 } as never)).resolves.toMatchObject({ messageId: 88, conversationHref: "/dm/conv-41-72", alreadySent: false });
+    expect(mocks.sendCrmMessageDraft).toHaveBeenCalledWith({ providerId: 7, contactId: 9, draftId: 61, senderUserId: 41, confirmedBody: draft.body });
+    expect(mocks.queueCrmMessageProjection).toHaveBeenCalledWith(88);
+  });
+
+  it("returns the original sent message on retry without queuing duplicate projection", async () => {
+    enablePrivateSending();
+    mocks.sendCrmMessageDraft.mockResolvedValueOnce({ draftId: 61, messageId: 88, conversationId: "conv-41-72", sentAt: new Date("2026-09-06T15:00:00Z"), alreadySent: true });
+    await expect(customersRouter.createCaller(context()).sendDraft({ contactId: 9, draftId: 61, confirmedBody: draft.body, confirmSend: true })).resolves.toMatchObject({ messageId: 88, alreadySent: true });
+    expect(mocks.queueCrmMessageProjection).not.toHaveBeenCalled();
+  });
+
+  it("translates consent, archive, availability, discarded, and version blocks without exposing records", async () => {
+    const { CrmMessageDraftSendBlockedError, CrmMessageDraftVersionConflictError } = await import("./db/crm");
+    enablePrivateSending();
+    const caller = customersRouter.createCaller(context());
+    for (const reason of ["global_opt_out", "relationship_opt_out", "provider_do_not_contact"] as const) {
+      mocks.sendCrmMessageDraft.mockRejectedValueOnce(new CrmMessageDraftSendBlockedError(reason));
+      await expect(caller.sendDraft({ contactId: 9, draftId: 61, confirmedBody: draft.body, confirmSend: true })).rejects.toMatchObject({ code: "PRECONDITION_FAILED", message: "This customer has not allowed relationship messages" });
+    }
+    mocks.sendCrmMessageDraft.mockRejectedValueOnce(new CrmMessageDraftSendBlockedError("relationship_archived"));
+    await expect(caller.sendDraft({ contactId: 9, draftId: 61, confirmedBody: draft.body, confirmSend: true })).rejects.toMatchObject({ code: "PRECONDITION_FAILED" });
+    mocks.sendCrmMessageDraft.mockRejectedValueOnce(new CrmMessageDraftSendBlockedError("draft_discarded"));
+    await expect(caller.sendDraft({ contactId: 9, draftId: 61, confirmedBody: draft.body, confirmSend: true })).rejects.toMatchObject({ code: "NOT_FOUND" });
+    mocks.sendCrmMessageDraft.mockRejectedValueOnce(new CrmMessageDraftVersionConflictError());
+    await expect(caller.sendDraft({ contactId: 9, draftId: 61, confirmedBody: draft.body, confirmSend: true })).rejects.toMatchObject({ code: "CONFLICT" });
+  });
 });
 
 describe("Customers Phase 4 fixed product boundary", () => {
@@ -409,10 +479,11 @@ describe("Customers Phase 4 fixed product boundary", () => {
     expect(detailSource).toContain("Saving this follow-up does not send any email, text, push notification, or customer message.");
   });
 
-  it("keeps drafts, sending, recommendations, automation, segments, exports, and schedules disabled", () => {
+  it("keeps recommendations, automation, segments, exports, and schedules disabled as later phases add separately gated drafts and sending", () => {
     expect(routerSource).toContain("recommendationsEnabled: false");
-    expect(routerSource).toContain("draftSendingEnabled: false");
-    expect(routerSource).not.toMatch(/sendRelationship|sendDraft|approveAndSend|createCrmAutomationRule|createCrmSavedSegment|exportCustomers|heartbeat|schedule/);
+    expect(routerSource).toContain("draftSendingEnabled: access.draftSendingEnabled");
+    expect(routerSource).toContain("customerDraftSendProcedure");
+    expect(routerSource).not.toMatch(/sendRelationship|approveAndSend|createCrmAutomationRule|createCrmSavedSegment|exportCustomers|heartbeat|schedule/);
     expect(workspaceSource).not.toMatch(/Send message|Export CSV|Save segment|Recommended follow-up/);
     expect(detailSource).not.toMatch(/Send message|Generate draft|Recommended follow-up/);
   });
@@ -466,10 +537,11 @@ describe("Customers Phase 5 manual relationship-stage boundary", () => {
     expect(detailSource).toContain("flex flex-col gap-3 sm:flex-row");
   });
 
-  it("does not add messaging, automation, export, schedule, or broad-rollout controls", () => {
+  it("keeps the manual-stage procedure separate from messaging, automation, export, and scheduling", () => {
+    const stageProcedure = routerSource.slice(routerSource.indexOf("setRelationshipStage:"), routerSource.indexOf("createNote:"));
+    expect(stageProcedure).not.toMatch(/sendDraft|sendCrmMessageDraft|automation|export|schedule/i);
     expect(routerSource).toContain("recommendationsEnabled: false");
-    expect(routerSource).toContain("draftSendingEnabled: false");
-    expect(detailSource).not.toMatch(/Send message|Generate draft|Run automation|Export customers|Schedule campaign/);
+    expect(detailSource).not.toMatch(/Generate draft|Run automation|Export customers|Schedule campaign/);
   });
 });
 
@@ -499,19 +571,77 @@ describe("Customers Phase 6 provider-reviewed draft-only boundary", () => {
     expect(schemaSource).toContain('relationshipMessageEnabled: boolean("relationshipMessageEnabled").default(false)');
   });
 
-  it("renders a simple provider review area with unmistakable unsent guidance and no send action", () => {
-    for (const text of ["Provider-reviewed", "Message drafts", "Sending disabled", "Private · Not sent", "Save draft", "Edit message draft", "Discard this draft?"]) expect(detailSource).toContain(text);
+  it("renders a simple provider review area whose editor saves only an unsent draft", () => {
+    for (const text of ["Provider-reviewed", "Message drafts", "Private · Not sent", "Save draft", "Edit message draft", "Discard this draft?"]) expect(detailSource).toContain(text);
     expect(detailSource).toContain("Saving creates only an unsent draft.");
     expect(detailSource).toContain("It does not create a message or send an email, text, or push notification.");
     expect(detailSource).toContain("maxLength={2000}");
-    expect(detailSource).not.toMatch(/Send draft|Send message|Approve and send|Generate draft|AI draft/);
+    const editor = detailSource.slice(detailSource.indexOf("open={draftDialogOpen}"), detailSource.indexOf("open={Boolean(discardingDraft)}"));
+    expect(editor).not.toMatch(/Send in-app message|Review & send|Generate draft|AI draft/);
   });
 
-  it("creates no message, notification, activity, automation, approval, or delivery side effect", () => {
-    const draftProcedures = routerSource.slice(routerSource.indexOf("createDraft:"), routerSource.indexOf("setRelationshipStage:"));
+  it("keeps create, edit, and discard free of message, notification, activity, automation, approval, or delivery side effects", () => {
+    const draftProcedures = routerSource.slice(routerSource.indexOf("createDraft:"), routerSource.indexOf("sendDraft:"));
     expect(draftProcedures).not.toMatch(/appendCrmActivityEvent|messages\)|sendEmail|sendSms|notify|approvedAt|sentAt|sentMessageId|automation/i);
     expect(draftProcedures).toContain("ruleId: null");
     expect(draftProcedures).toContain("taskId: null");
-    expect(routerSource).not.toMatch(/sendDraft|approveAndSend|sendRelationship/);
+  });
+});
+
+describe("Customers Phase 7 consent-aware draft sending boundary", () => {
+  const root = path.resolve(process.cwd());
+  const routerSource = fs.readFileSync(path.join(root, "server/customersRouter.ts"), "utf8");
+  const draftSource = fs.readFileSync(path.join(root, "server/db/crm/drafts.ts"), "utf8");
+  const detailSource = fs.readFileSync(path.join(root, "client/src/pages/ProviderCustomerDetail.tsx"), "utf8");
+  const notificationRouterSource = fs.readFileSync(path.join(root, "server/routers/notificationRouter.ts"), "utf8");
+  const notificationSettingsSource = fs.readFileSync(path.join(root, "client/src/pages/NotificationSettings.tsx"), "utf8");
+  const operationsSource = fs.readFileSync(path.join(root, "server/crm/operations.ts"), "utf8");
+  const operationsRouterSource = fs.readFileSync(path.join(root, "server/crmOperationsRouter.ts"), "utf8");
+
+  it("keeps customer permission default-off, explicit, reversible, and separate from external notification channels", () => {
+    expect(notificationRouterSource).toContain("relationshipMessageEnabled: z.boolean().optional()");
+    for (const text of ["Provider relationship messages", "Allow relationship messages", "This is off by default", "turn it off again at any time"]) expect(notificationSettingsSource).toContain(text);
+    expect(notificationSettingsSource).toContain("It does not enable marketing emails, texts, or push notifications");
+  });
+
+  it("requires the separate send flag and lifecycle draft entitlement beyond ordinary private draft writes", () => {
+    expect(routerSource).toContain("draftSendingFlagEnabled");
+    expect(routerSource).toContain("CRM_ROLLOUT_FLAGS.draftSending");
+    expect(routerSource).toContain('access.can("crmDrafts")');
+    expect(routerSource).toContain("customerDraftSendProcedure");
+    expect(routerSource).toContain("ctx.crmAccess.draftSendingEnabled");
+    expect(routerSource).not.toMatch(/sendDraft[\s\S]{0,600}input\.(providerId|recipientId|senderUserId)/);
+  });
+
+  it("permits the send flag only through the owner-only audited private rollout path", () => {
+    expect(operationsRouterSource).toContain('ctx.user.adminRole !== "super_admin"');
+    expect(operationsRouterSource).toContain("draftSending: z.boolean().optional()");
+    expect(operationsRouterSource).toContain('action: "update_customers_rollout"');
+    expect(operationsRouterSource).toContain("draftSending: status.flags.draftSending");
+    expect(operationsSource).toContain("draftSending?: boolean");
+    expect(operationsSource).toContain("setCrmRolloutFlag(CRM_ROLLOUT_FLAGS.draftSending, input.draftSending, input.actorUserId)");
+    expect(operationsSource).toContain("CRM_ROLLOUT_FLAGS.recommendations");
+  });
+
+  it("rechecks current consent and relationship state inside a row-locked atomic one-message transaction", () => {
+    expect(draftSource).toContain("database.transaction(async transaction");
+    expect(draftSource.match(/\.for\("update"\)/g)).toHaveLength(2);
+    expect(draftSource).toContain("evaluateRelationshipMessageConsent");
+    expect(draftSource).toContain("globalPreference?.relationshipMessageEnabled ?? false");
+    expect(draftSource).toContain("relationshipArchived");
+    expect(draftSource).toContain("draft.body !== confirmedBody");
+    expect(draftSource).toContain("transaction.insert(messages)");
+    expect(draftSource).toContain('state: "sent"');
+    expect(draftSource).toContain("sentMessageId: messageId");
+    expect(draftSource).toContain("approvedByUserId: input.senderUserId");
+    expect(draftSource).not.toMatch(/pushMessageNotifications|sendEmail|sendSms|sendPush|createNotification|notifyOwner/);
+  });
+
+  it("requires review of the exact body and shows normalized permission and sent-conversation states", () => {
+    for (const text of ["Review & send", "Send this in-app message?", "Exact message", "Permission and relationship access will be checked again now", "Send in-app message", "View conversation"]) expect(detailSource).toContain(text);
+    expect(detailSource).toContain("confirmedBody: sendingDraft.body");
+    expect(detailSource).toContain("confirmSend: true");
+    expect(detailSource).toContain("draftSendReadiness.reason === \"relationship_unavailable\"");
+    expect(detailSource).not.toMatch(/Generate draft|AI draft|Bulk send|Schedule message|Email customer|Text customer/);
   });
 });

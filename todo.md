@@ -2816,3 +2816,16 @@
 - [x] Keep AI generation, recommendations, automatic drafting, sending, rules, schedules, segments, exports, and broader rollout disabled
 - [x] Add focused router, repository, privacy, tenancy, lifecycle, validation, no-side-effect, UI-contract, and responsive regressions
 - [x] Run adjacent tests, zero-error TypeScript, diff validation, production build, desktop/mobile review, final private-state verification, implementation report, and checkpoint
+
+## Customers Release 1 Implementation — Phase 7 Consent-Aware Draft Sending
+- [x] Add a customer-facing relationship-message permission control that defaults off, uses clear opt-in language, and can be disabled again at any time
+- [x] Enforce send-time global customer permission plus relationship-level opt-out and do-not-contact restrictions without allowing a provider preference to expand customer consent
+- [x] Add a pilot-scoped send procedure guarded by active provider status, sole-pilot membership, lifecycle `crmDrafts` entitlement, read UI, provider writes, and private draft-sending rollout flag
+- [x] Derive provider, sender, relationship, customer, and draft ownership from authenticated and provider-scoped records; accept no client provider or recipient identity
+- [x] Require a deliberate provider confirmation for the exact draft body and reject discarded, already-sent, cross-relationship, or cross-provider drafts
+- [x] Atomically create exactly one existing OlogyCrew in-app message and mark the draft sent with sender approval, message link, and timestamps using retry-safe idempotency
+- [x] Keep Customers sending free of email, SMS, push, bulk-send, campaign, activity-body, AI, recommendation, automation, schedule, export, and external-delivery side effects
+- [x] Show clear consent availability, sent status, and existing-conversation destination in the relationship Drafts area without exposing private preference internals
+- [x] Enable `customersDraftSending` only through the audited owner-only path after authorization, consent, and idempotency tests pass, with provider 1 remaining the sole pilot
+- [x] Add focused preference, router, repository, atomicity, privacy, tenant-isolation, lifecycle, idempotency, no-external-delivery, UI-contract, and responsive regressions
+- [x] Run adjacent tests, zero-error TypeScript, diff validation, production build, desktop/mobile review, final private-state verification, implementation report, and checkpoint

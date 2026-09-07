@@ -37,7 +37,7 @@ describe("Customers Phase 1 approved release boundary", () => {
     expect(Object.values(CRM_ROLLOUT_FLAGS)).toHaveLength(6);
   });
 
-  it("limits the approved Customers route to the provider guard and exposes no background schedule or send operation", () => {
+  it("limits Customers to the provider guard, keeps background schedules absent, and isolates the later approved send transaction", () => {
     const root = path.resolve(import.meta.dirname, "..");
     const appSource = fs.readFileSync(path.join(root, "client/src/App.tsx"), "utf8");
     const routerSource = fs.readFileSync(path.join(root, "server/routers.ts"), "utf8");
@@ -47,7 +47,9 @@ describe("Customers Phase 1 approved release boundary", () => {
     expect(appSource.match(/ProviderOnlyGuard featureName="Customers"/g)?.length).toBe(2);
     expect(routerSource).toContain("customers: customersRouter");
     expect(serverSource).not.toMatch(/customersProjection|customersRepair|customersTimeRules/);
-    expect(draftSource).not.toMatch(/sendCrm|markCrmMessageDraftSent/);
+    expect(draftSource).toContain("export async function sendCrmMessageDraft");
+    expect(draftSource).toContain("database.transaction(async transaction");
+    expect(draftSource).not.toMatch(/setInterval|setTimeout|heartbeat|schedule|sendEmail|sendSms|sendPush/);
   });
 
   it("uses an additive schema migration and keeps operational state out of public settings", () => {

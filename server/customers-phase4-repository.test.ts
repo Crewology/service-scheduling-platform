@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { eq } from "drizzle-orm";
-import { serviceProviders, users } from "../drizzle/schema";
+import { and, eq } from "drizzle-orm";
+import { crmMessageDrafts, messages, notificationPreferences, notifications, serviceProviders, users } from "../drizzle/schema";
 import { getDb } from "./db/connection";
 import {
   createCrmContactNote,
@@ -8,14 +8,17 @@ import {
   createCrmTask,
   discardCrmMessageDraft,
   getCrmContactById,
+  getCrmMessageDraftSendReadiness,
   listCrmContactNotes,
   listCrmMessageDrafts,
   listCrmStageHistory,
   listCrmTaskReadModels,
+  sendCrmMessageDraft,
   transitionCrmManualStage,
   updateCrmMessageDraft,
   updateCrmTask,
   updateCrmTaskState,
+  upsertCrmContactPreference,
   upsertCrmContact,
 } from "./db/crm";
 import { teardown } from "./vitest-global-setup";
@@ -153,5 +156,83 @@ describe("Customers Phase 4 repository task lifecycle", () => {
     expect(await listCrmMessageDrafts(providerA.id, contactA.id)).toHaveLength(0);
     await expect(updateCrmMessageDraft({ providerId: providerA.id, contactId: contactA.id, draftId: draftA.id, body: "Cannot edit discarded" })).rejects.toThrow("draft not found");
     await expect(discardCrmMessageDraft(providerA.id, contactA.id, draftA.id)).rejects.toThrow("draft not found");
+  }, 90_000);
+
+  it("sends one consent-approved in-app message atomically and remains retry safe", async () => {
+    const db = await getDb();
+    if (!db) throw new Error("Database unavailable");
+    const runId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const ownerOpenId = `test-customers-phase7-owner-${runId}`;
+    const otherOwnerOpenId = `test-customers-phase7-other-owner-${runId}`;
+    const customerOpenId = `test-customers-phase7-customer-${runId}`;
+    const secondCustomerOpenId = `test-customers-phase7-customer-2-${runId}`;
+    await db.insert(users).values([
+      { openId: ownerOpenId, email: `${ownerOpenId}@example.invalid`, name: "Phase 7 Owner", role: "provider", loginMethod: "test", emailVerified: true },
+      { openId: otherOwnerOpenId, email: `${otherOwnerOpenId}@example.invalid`, name: "Phase 7 Other Owner", role: "provider", loginMethod: "test", emailVerified: true },
+      { openId: customerOpenId, email: `${customerOpenId}@example.invalid`, name: "Phase 7 Customer", role: "customer", loginMethod: "test", emailVerified: true },
+      { openId: secondCustomerOpenId, email: `${secondCustomerOpenId}@example.invalid`, name: "Phase 7 Customer Two", role: "customer", loginMethod: "test", emailVerified: true },
+    ]);
+    const [owner] = await db.select().from(users).where(eq(users.openId, ownerOpenId)).limit(1);
+    const [otherOwner] = await db.select().from(users).where(eq(users.openId, otherOwnerOpenId)).limit(1);
+    const [customer] = await db.select().from(users).where(eq(users.openId, customerOpenId)).limit(1);
+    const [secondCustomer] = await db.select().from(users).where(eq(users.openId, secondCustomerOpenId)).limit(1);
+    if (!owner || !otherOwner || !customer || !secondCustomer) throw new Error("Phase 7 test users were not created");
+
+    await db.insert(serviceProviders).values([
+      { userId: owner.id, businessName: `Phase 7 Provider ${runId}`, businessType: "sole_proprietor", profileSlug: `test-customers-phase7-${runId}`, isActive: true },
+      { userId: otherOwner.id, businessName: `Phase 7 Other Provider ${runId}`, businessType: "sole_proprietor", profileSlug: `test-customers-phase7-other-${runId}`, isActive: true },
+    ]);
+    const [provider] = await db.select().from(serviceProviders).where(eq(serviceProviders.userId, owner.id)).limit(1);
+    const [otherProvider] = await db.select().from(serviceProviders).where(eq(serviceProviders.userId, otherOwner.id)).limit(1);
+    if (!provider || !otherProvider) throw new Error("Phase 7 test providers were not created");
+
+    const interactionAt = new Date();
+    const contact = await upsertCrmContact({ providerId: provider.id, customerId: customer.id, derivedStage: "customer", firstInteractionAt: interactionAt, lastInteractionAt: interactionAt });
+    const secondContact = await upsertCrmContact({ providerId: provider.id, customerId: secondCustomer.id, derivedStage: "lead", firstInteractionAt: interactionAt, lastInteractionAt: interactionAt });
+    const otherContact = await upsertCrmContact({ providerId: otherProvider.id, customerId: customer.id, derivedStage: "customer", firstInteractionAt: interactionAt, lastInteractionAt: interactionAt });
+    if (!contact || !secondContact || !otherContact) throw new Error("Phase 7 test contacts were not created");
+
+    await expect(getCrmMessageDraftSendReadiness({ providerId: provider.id, contactId: contact.id, senderUserId: owner.id })).resolves.toMatchObject({ allowed: false, reason: "global_opt_out" });
+    await db.insert(notificationPreferences).values({ userId: customer.id, relationshipMessageEnabled: true });
+    await expect(getCrmMessageDraftSendReadiness({ providerId: provider.id, contactId: contact.id, senderUserId: owner.id })).resolves.toMatchObject({ allowed: true, reason: "allowed", customerId: customer.id });
+
+    await upsertCrmContactPreference({ providerId: provider.id, contactId: contact.id, relationshipMessagesAllowed: false, doNotContact: false, source: "customer", updatedByUserId: customer.id });
+    await expect(getCrmMessageDraftSendReadiness({ providerId: provider.id, contactId: contact.id, senderUserId: owner.id })).resolves.toMatchObject({ allowed: false, reason: "relationship_opt_out" });
+    await upsertCrmContactPreference({ providerId: provider.id, contactId: contact.id, relationshipMessagesAllowed: true, doNotContact: true, source: "provider", updatedByUserId: owner.id });
+    await expect(getCrmMessageDraftSendReadiness({ providerId: provider.id, contactId: contact.id, senderUserId: owner.id })).resolves.toMatchObject({ allowed: false, reason: "provider_do_not_contact" });
+    await upsertCrmContactPreference({ providerId: provider.id, contactId: contact.id, relationshipMessagesAllowed: null, doNotContact: false, source: "provider", updatedByUserId: owner.id });
+
+    const draft = await createCrmMessageDraft({ providerId: provider.id, contactId: contact.id, body: "  Consent-approved private draft  ", dedupeKey: `phase7:${runId}` });
+    if (!draft) throw new Error("Phase 7 draft was not created");
+    await expect(sendCrmMessageDraft({ providerId: provider.id, contactId: contact.id, draftId: draft.id, senderUserId: owner.id, confirmedBody: "Changed after review" })).rejects.toThrow("changed before confirmation");
+    expect(await db.select().from(messages).where(and(eq(messages.senderId, owner.id), eq(messages.recipientId, customer.id)))).toHaveLength(0);
+    await expect(sendCrmMessageDraft({ providerId: otherProvider.id, contactId: otherContact.id, draftId: draft.id, senderUserId: otherOwner.id, confirmedBody: draft.body })).rejects.toThrow("draft not found");
+    await expect(sendCrmMessageDraft({ providerId: provider.id, contactId: secondContact.id, draftId: draft.id, senderUserId: owner.id, confirmedBody: draft.body })).rejects.toThrow("draft not found");
+
+    const [firstSend, concurrentRetry] = await Promise.all([
+      sendCrmMessageDraft({ providerId: provider.id, contactId: contact.id, draftId: draft.id, senderUserId: owner.id, confirmedBody: draft.body }),
+      sendCrmMessageDraft({ providerId: provider.id, contactId: contact.id, draftId: draft.id, senderUserId: owner.id, confirmedBody: draft.body }),
+    ]);
+    expect(firstSend.messageId).toBe(concurrentRetry.messageId);
+    expect([firstSend.alreadySent, concurrentRetry.alreadySent].sort()).toEqual([false, true]);
+    const sentMessages = await db.select().from(messages).where(and(eq(messages.senderId, owner.id), eq(messages.recipientId, customer.id)));
+    expect(sentMessages).toHaveLength(1);
+    expect(sentMessages[0]).toMatchObject({ id: firstSend.messageId, conversationId: firstSend.conversationId, messageText: "Consent-approved private draft", attachmentUrl: null });
+    expect(await db.select().from(notifications).where(eq(notifications.userId, customer.id))).toHaveLength(0);
+    const [sentDraft] = await db.select().from(crmMessageDrafts).where(eq(crmMessageDrafts.id, draft.id)).limit(1);
+    expect(sentDraft).toMatchObject({ state: "sent", sentMessageId: firstSend.messageId, approvedByUserId: owner.id });
+    expect(sentDraft.approvedAt).toBeInstanceOf(Date);
+    expect(sentDraft.sentAt).toBeInstanceOf(Date);
+    await expect(updateCrmMessageDraft({ providerId: provider.id, contactId: contact.id, draftId: draft.id, body: "Cannot edit sent" })).rejects.toThrow("draft not found");
+    await expect(discardCrmMessageDraft(provider.id, contact.id, draft.id)).rejects.toThrow("draft not found");
+
+    await db.update(notificationPreferences).set({ relationshipMessageEnabled: false }).where(eq(notificationPreferences.userId, customer.id));
+    await expect(sendCrmMessageDraft({ providerId: provider.id, contactId: contact.id, draftId: draft.id, senderUserId: owner.id, confirmedBody: draft.body })).resolves.toMatchObject({ messageId: firstSend.messageId, alreadySent: true });
+    expect(await db.select().from(messages).where(and(eq(messages.senderId, owner.id), eq(messages.recipientId, customer.id)))).toHaveLength(1);
+
+    const discarded = await createCrmMessageDraft({ providerId: provider.id, contactId: contact.id, body: "Discard before send", dedupeKey: `phase7-discard:${runId}` });
+    if (!discarded) throw new Error("Discarded Phase 7 draft was not created");
+    await discardCrmMessageDraft(provider.id, contact.id, discarded.id);
+    await expect(sendCrmMessageDraft({ providerId: provider.id, contactId: contact.id, draftId: discarded.id, senderUserId: owner.id, confirmedBody: discarded.body })).rejects.toMatchObject({ reason: "draft_discarded" });
   }, 90_000);
 });

@@ -27,21 +27,27 @@ import {
   CrmContactNotFoundError,
   CrmMessageDraftIdempotencyConflictError,
   CrmMessageDraftNotFoundError,
+  CrmMessageDraftSendBlockedError,
+  CrmMessageDraftVersionConflictError,
   createCrmMessageDraft,
   discardCrmMessageDraft,
+  getCrmMessageDraftSendReadiness,
   listCrmMessageDrafts,
+  sendCrmMessageDraft,
   transitionCrmManualStage,
   updateCrmMessageDraft,
 } from "./db/crm";
 import { getCrmProviderAccess } from "./crm/access";
+import { queueCrmMessageProjection } from "./crm/sourceHooks";
 
 async function resolveProviderAccess(userId: number) {
   const provider = await db.getProviderByUserId(userId);
-  if (!provider) return { provider: null, access: null, visible: false, notesEnabled: false, followUpsEnabled: false, stageOverridesEnabled: false, draftsEnabled: false, entitlement: null };
-  const [access, readUiEnabled, providerWritesEnabled] = await Promise.all([
+  if (!provider) return { provider: null, access: null, visible: false, notesEnabled: false, followUpsEnabled: false, stageOverridesEnabled: false, draftsEnabled: false, draftSendingEnabled: false, entitlement: null };
+  const [access, readUiEnabled, providerWritesEnabled, draftSendingFlagEnabled] = await Promise.all([
     getCrmProviderAccess(provider.id),
     isCrmRolloutEnabled(CRM_ROLLOUT_FLAGS.readUi),
     isCrmRolloutEnabled(CRM_ROLLOUT_FLAGS.providerWrites),
+    isCrmRolloutEnabled(CRM_ROLLOUT_FLAGS.draftSending),
   ]);
   const visible = Boolean(provider.isActive && access.isPilotProvider && readUiEnabled && access.can("customerHistory"));
   return {
@@ -52,6 +58,7 @@ async function resolveProviderAccess(userId: number) {
     followUpsEnabled: Boolean(visible && providerWritesEnabled && access.can("crmFollowUps")),
     stageOverridesEnabled: Boolean(visible && providerWritesEnabled && access.can("crmStageOverrides")),
     draftsEnabled: Boolean(visible && providerWritesEnabled && access.can("crmDrafts")),
+    draftSendingEnabled: Boolean(visible && providerWritesEnabled && draftSendingFlagEnabled && access.can("crmDrafts")),
     entitlement: access.entitlement,
   };
 }
@@ -83,12 +90,28 @@ const customerDraftWriteProcedure = customerReadProcedure.use(async ({ ctx, next
   return next({ ctx });
 });
 
+const customerDraftSendProcedure = customerDraftWriteProcedure.use(async ({ ctx, next }) => {
+  if (!ctx.crmAccess.draftSendingEnabled) throw new TRPCError({ code: "FORBIDDEN", message: "Relationship message sending is not enabled for this provider" });
+  return next({ ctx });
+});
+
 function translateDraftError(error: unknown): never {
   if (error instanceof CrmContactNotFoundError || error instanceof CrmMessageDraftNotFoundError) {
     throw new TRPCError({ code: "NOT_FOUND", message: "Relationship message draft not found" });
   }
   if (error instanceof CrmMessageDraftIdempotencyConflictError) {
     throw new TRPCError({ code: "CONFLICT", message: "This draft request was already used for another relationship" });
+  }
+  if (error instanceof CrmMessageDraftVersionConflictError) {
+    throw new TRPCError({ code: "CONFLICT", message: "This draft changed. Review the latest text before sending" });
+  }
+  if (error instanceof CrmMessageDraftSendBlockedError) {
+    if (error.reason === "draft_discarded") throw new TRPCError({ code: "NOT_FOUND", message: "Relationship message draft not found" });
+    if (error.reason === "relationship_archived") throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Restore this relationship before sending a message" });
+    if (["global_opt_out", "relationship_opt_out", "provider_do_not_contact"].includes(error.reason)) {
+      throw new TRPCError({ code: "PRECONDITION_FAILED", message: "This customer has not allowed relationship messages" });
+    }
+    throw new TRPCError({ code: "PRECONDITION_FAILED", message: "This relationship is not currently available for messaging" });
   }
   throw error;
 }
@@ -189,7 +212,7 @@ export const customersRouter = router({
       stageOverridesEnabled: access.stageOverridesEnabled,
       draftsEnabled: access.draftsEnabled,
       recommendationsEnabled: false,
-      draftSendingEnabled: false,
+      draftSendingEnabled: access.draftSendingEnabled,
     };
   }),
 
@@ -258,12 +281,22 @@ export const customersRouter = router({
       throw error;
     }
     if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "Customer relationship not found" });
-    const [notes, tasks, drafts] = await Promise.all([
+    const [notes, tasks, drafts, sendReadiness] = await Promise.all([
       ctx.crmAccess.notesEnabled ? listCrmContactNotes(ctx.provider.id, input.contactId) : Promise.resolve([]),
       ctx.crmAccess.followUpsEnabled ? listCrmTaskReadModels({ providerId: ctx.provider.id, contactId: input.contactId, limit: 100 }) : Promise.resolve([]),
-      ctx.crmAccess.draftsEnabled ? listCrmMessageDrafts(ctx.provider.id, input.contactId, ["draft"]) : Promise.resolve([]),
+      ctx.crmAccess.draftsEnabled ? listCrmMessageDrafts(ctx.provider.id, input.contactId, ["draft", "sent"]) : Promise.resolve([]),
+      ctx.crmAccess.draftSendingEnabled
+        ? getCrmMessageDraftSendReadiness({ providerId: ctx.provider.id, contactId: input.contactId, senderUserId: ctx.user.id })
+        : Promise.resolve(null),
     ]);
-    return { ...result, notes, tasks, drafts, readOnly: !(ctx.crmAccess.notesEnabled || ctx.crmAccess.followUpsEnabled || ctx.crmAccess.stageOverridesEnabled || ctx.crmAccess.draftsEnabled), eventTypes: CRM_EVENT_TYPES };
+    const draftSendReadiness = !ctx.crmAccess.draftSendingEnabled
+      ? { enabled: false as const, allowed: false as const, reason: "sending_disabled" as const }
+      : sendReadiness?.allowed
+        ? { enabled: true as const, allowed: true as const, reason: "allowed" as const }
+        : { enabled: true as const, allowed: false as const, reason: sendReadiness?.reason === "relationship_archived" ? "relationship_unavailable" as const : "permission_required" as const };
+    const conversationId = `conv-${[ctx.user.id, result.contact.customerId].sort((a, b) => a - b).join("-")}`;
+    const draftRows = drafts.map(draft => ({ ...draft, conversationHref: draft.state === "sent" ? `/dm/${conversationId}` : null }));
+    return { ...result, notes, tasks, drafts: draftRows, draftSendReadiness, readOnly: !(ctx.crmAccess.notesEnabled || ctx.crmAccess.followUpsEnabled || ctx.crmAccess.stageOverridesEnabled || ctx.crmAccess.draftsEnabled), eventTypes: CRM_EVENT_TYPES };
   }),
 
   createDraft: customerDraftWriteProcedure.input(z.object({
@@ -306,6 +339,27 @@ export const customersRouter = router({
   })).mutation(async ({ ctx, input }) => {
     try {
       return await discardCrmMessageDraft(ctx.provider.id, input.contactId, input.draftId);
+    } catch (error) {
+      return translateDraftError(error);
+    }
+  }),
+
+  sendDraft: customerDraftSendProcedure.input(z.object({
+    contactId: z.number().int().positive(),
+    draftId: z.number().int().positive(),
+    confirmedBody: z.string().trim().min(1).max(CRM_MAX_DRAFT_LENGTH),
+    confirmSend: z.literal(true),
+  })).mutation(async ({ ctx, input }) => {
+    try {
+      const result = await sendCrmMessageDraft({
+        providerId: ctx.provider.id,
+        contactId: input.contactId,
+        draftId: input.draftId,
+        senderUserId: ctx.user.id,
+        confirmedBody: input.confirmedBody,
+      });
+      if (!result.alreadySent) queueCrmMessageProjection(result.messageId);
+      return { ...result, conversationHref: `/dm/${result.conversationId}` };
     } catch (error) {
       return translateDraftError(error);
     }

@@ -40,6 +40,7 @@ export const notificationRouter = router({
       messageEmail: z.boolean().optional(),
       paymentEmail: z.boolean().optional(),
       marketingEmail: z.boolean().optional(),
+      relationshipMessageEnabled: z.boolean().optional(),
       bookingSms: z.boolean().optional(),
       reminderSms: z.boolean().optional(),
       messageSms: z.boolean().optional(),

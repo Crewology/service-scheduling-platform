@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { getLoginUrl } from "@/const";
-import { ArrowLeft, Bell, Mail, MessageSquare, Loader2 } from "lucide-react";
+import { ArrowLeft, Bell, Mail, MessageSquare, Loader2, ShieldCheck } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
@@ -21,6 +21,7 @@ interface Prefs {
   messageEmail: boolean;
   paymentEmail: boolean;
   marketingEmail: boolean;
+  relationshipMessageEnabled: boolean;
   bookingSms: boolean;
   reminderSms: boolean;
   messageSms: boolean;
@@ -35,6 +36,7 @@ const DEFAULT_PREFS: Prefs = {
   messageEmail: true,
   paymentEmail: true,
   marketingEmail: false,
+  relationshipMessageEnabled: false,
   bookingSms: true,
   reminderSms: true,
   messageSms: false,
@@ -72,6 +74,7 @@ export default function NotificationSettings() {
         messageEmail: serverPrefs.messageEmail,
         paymentEmail: serverPrefs.paymentEmail,
         marketingEmail: serverPrefs.marketingEmail,
+        relationshipMessageEnabled: serverPrefs.relationshipMessageEnabled,
         bookingSms: serverPrefs.bookingSms,
         reminderSms: serverPrefs.reminderSms,
         messageSms: serverPrefs.messageSms,
@@ -141,6 +144,27 @@ export default function NotificationSettings() {
           <div className="space-y-6">
             {/* Push Notifications */}
             <PushNotificationSettings />
+
+            <Card className="border-blue-100 bg-blue-50/40">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <ShieldCheck className="h-5 w-5 text-[#174a73]" />
+                  Provider relationship messages
+                </CardTitle>
+                <CardDescription>
+                  Choose whether providers you have an OlogyCrew relationship with may send you an occasional in-app follow-up.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-start justify-between gap-5">
+                  <div className="min-w-0">
+                    <Label htmlFor="relationship-message-enabled" className="text-sm font-medium">Allow relationship messages</Label>
+                    <p className="mt-1 text-xs leading-5 text-muted-foreground">This is off by default. It does not enable marketing emails, texts, or push notifications, and you can turn it off again at any time.</p>
+                  </div>
+                  <Switch id="relationship-message-enabled" checked={prefs.relationshipMessageEnabled} onCheckedChange={() => toggle("relationshipMessageEnabled")} aria-label="Allow provider relationship messages" />
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Master Channel Toggles */}
             <Card>

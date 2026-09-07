@@ -71,16 +71,17 @@ describe("Phase 12: SMS, Notification Preferences, Unsubscribe", () => {
       expect(result).toBe(false);
     });
 
-    it("should fail gracefully when Twilio phone not configured", async () => {
+    it("should fail gracefully when the Twilio client is unavailable", async () => {
       const provider = new SMSProvider();
+      (provider as unknown as { initialized: boolean; client: null }).initialized = true;
+      (provider as unknown as { initialized: boolean; client: null }).client = null;
       const result = await provider.send({
         type: "booking_created",
         channel: "sms",
         recipient: { userId: 1, name: "Test", phone: "+15551234567" },
         data: { bookingNumber: "BK-001" },
       });
-      // Should return false since TWILIO_PHONE_NUMBER is likely not set in test
-      expect(typeof result).toBe("boolean");
+      expect(result).toBe(false);
     });
   });
 
@@ -131,6 +132,7 @@ describe("Phase 12: SMS, Notification Preferences, Unsubscribe", () => {
       expect(prefs.bookingEmail).toBe(true);
       expect(prefs.reminderEmail).toBe(true);
       expect(prefs.marketingEmail).toBe(false);
+      expect(prefs.relationshipMessageEnabled).toBe(false);
     });
 
     it("should update existing preferences", async () => {
@@ -180,6 +182,12 @@ describe("Phase 12: SMS, Notification Preferences, Unsubscribe", () => {
       await caller.notification.updatePreferences({ marketingEmail: false });
       prefs = await caller.notification.getPreferences();
       expect(prefs!.marketingEmail).toBe(false);
+    });
+
+    it("should explicitly opt into and back out of provider relationship messages", async () => {
+      const caller = appRouter.createCaller(createAuthContext("customer", customerUserId, "P12 Customer"));
+      await expect(caller.notification.updatePreferences({ relationshipMessageEnabled: true })).resolves.toMatchObject({ relationshipMessageEnabled: true });
+      await expect(caller.notification.updatePreferences({ relationshipMessageEnabled: false })).resolves.toMatchObject({ relationshipMessageEnabled: false });
     });
 
     it("should toggle individual SMS types", async () => {
