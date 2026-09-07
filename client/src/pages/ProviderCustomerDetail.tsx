@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useRoute } from "wouter";
-import { Activity, ArrowLeft, ArrowRight, CalendarDays, Clock3, DollarSign, Layers3, Loader2, LockKeyhole, NotebookPen, Plus, UserRound } from "lucide-react";
+import { Activity, ArrowLeft, ArrowRight, CalendarDays, Clock3, DollarSign, Layers3, Loader2, LockKeyhole, MessageSquareText, NotebookPen, Pencil, Plus, Trash2, UserRound } from "lucide-react";
 import { MobileRoleViewToggle } from "@/components/shared/MobileRoleViewToggle";
 import { FollowUpTaskCard, type CustomerFollowUpTask } from "@/components/customers/FollowUpTaskCard";
 import { Badge } from "@/components/ui/badge";
@@ -11,13 +11,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { trpc } from "@/lib/trpc";
+import { trpc, type RouterOutputs } from "@/lib/trpc";
 import { toast } from "sonner";
 import { CRM_CONTACT_STAGES, type CrmContactStage } from "../../../shared/crm";
 import { ProviderCustomersNav, formatDate, formatMoney, relativeAge, stageLabels } from "./ProviderCustomers";
 
 const AUTOMATIC_STAGE_VALUE = "automatic";
 const relationshipStageOptions = CRM_CONTACT_STAGES.map(stage => [stage, stageLabels[stage]] as const);
+type CustomerMessageDraft = RouterOutputs["customers"]["getContact"]["drafts"][number];
 
 const localDateTimeValue = (value: Date | string | null | undefined) => {
   if (!value) return "";
@@ -39,6 +40,10 @@ export default function ProviderCustomerDetail() {
   const [taskDescription, setTaskDescription] = useState("");
   const [taskDueAt, setTaskDueAt] = useState("");
   const [stageSelection, setStageSelection] = useState<string>(AUTOMATIC_STAGE_VALUE);
+  const [draftDialogOpen, setDraftDialogOpen] = useState(false);
+  const [editingDraft, setEditingDraft] = useState<CustomerMessageDraft | null>(null);
+  const [discardingDraft, setDiscardingDraft] = useState<CustomerMessageDraft | null>(null);
+  const [draftBody, setDraftBody] = useState("");
 
   const refresh = async () => {
     await Promise.all([
@@ -90,6 +95,33 @@ export default function ProviderCustomerDetail() {
     onError: error => toast.error(error.message || "Relationship stage could not be changed"),
   });
 
+  const createDraft = trpc.customers.createDraft.useMutation({
+    onSuccess: async () => {
+      closeDraftDialog();
+      await refresh();
+      toast.success("Unsent draft saved");
+    },
+    onError: error => toast.error(error.message || "Draft could not be saved"),
+  });
+
+  const updateDraft = trpc.customers.updateDraft.useMutation({
+    onSuccess: async () => {
+      closeDraftDialog();
+      await refresh();
+      toast.success("Draft updated");
+    },
+    onError: error => toast.error(error.message || "Draft could not be updated"),
+  });
+
+  const discardDraft = trpc.customers.discardDraft.useMutation({
+    onSuccess: async () => {
+      setDiscardingDraft(null);
+      await refresh();
+      toast.success("Draft discarded");
+    },
+    onError: error => toast.error(error.message || "Draft could not be discarded"),
+  });
+
   useEffect(() => {
     setStageSelection(detail.data?.contact.manualStage ?? AUTOMATIC_STAGE_VALUE);
   }, [detail.data?.contact.manualStage, contactId]);
@@ -130,11 +162,39 @@ export default function ProviderCustomerDetail() {
     createFollowUp.mutate({ contactId, title, description: taskDescription.trim() || null, dueAt, requestId: crypto.randomUUID() });
   }
 
+  function closeDraftDialog() {
+    setDraftDialogOpen(false);
+    setEditingDraft(null);
+    setDraftBody("");
+  }
+
+  function openCreateDraft() {
+    setEditingDraft(null);
+    setDraftBody("");
+    setDraftDialogOpen(true);
+  }
+
+  function openEditDraft(draft: CustomerMessageDraft) {
+    setEditingDraft(draft);
+    setDraftBody(draft.body);
+    setDraftDialogOpen(true);
+  }
+
+  function submitDraft() {
+    const body = draftBody.trim();
+    if (!body) return toast.error("Add draft text");
+    if (editingDraft) {
+      updateDraft.mutate({ contactId, draftId: editingDraft.id, body });
+      return;
+    }
+    createDraft.mutate({ contactId, body, requestId: crypto.randomUUID() });
+  }
+
   if (access.isLoading || detail.isLoading) return <div className="container max-w-7xl animate-pulse py-8"><div className="h-48 rounded-3xl bg-slate-200" /><div className="mt-5 h-96 rounded-3xl bg-slate-100" /></div>;
   if (!access.data?.visible) return <div className="container max-w-2xl py-12"><Card><CardContent className="p-8 text-center"><LockKeyhole className="mx-auto h-9 w-9 text-slate-400" /><h1 className="mt-4 text-2xl font-bold">Customers is not available for this account</h1><Button asChild className="mt-5"><Link href="/">Return home</Link></Button></CardContent></Card></div>;
   if (!detail.data || detail.error) return <div className="container max-w-2xl py-12"><Card><CardContent className="p-8 text-center"><UserRound className="mx-auto h-9 w-9 text-slate-400" /><h1 className="mt-4 text-2xl font-bold">Relationship not found</h1><p className="mt-2 text-sm text-slate-600">This relationship may not belong to your provider account.</p><Button asChild className="mt-5"><Link href="/provider/customers">Back to Customers</Link></Button></CardContent></Card></div>;
 
-  const { contact, events, notes, tasks } = detail.data;
+  const { contact, events, notes, tasks, drafts } = detail.data;
   const taskPending = setFollowUpState.isPending;
   const savedStageSelection = contact.manualStage ?? AUTOMATIC_STAGE_VALUE;
 
@@ -153,7 +213,7 @@ export default function ProviderCustomerDetail() {
           <section className="mt-4 rounded-[28px] bg-[#123f63] px-5 py-6 text-white shadow-[0_24px_70px_-38px_rgba(18,63,99,0.8)] sm:px-8 sm:py-8">
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
               <div><Badge className="border-white/20 bg-white/10 text-blue-50 hover:bg-white/10">Private tools pilot</Badge><h1 className="mt-3 text-3xl font-bold tracking-tight">{contact.customerName || "Customer"}</h1><p className="mt-1 text-sm text-blue-100">{stageLabels[contact.effectiveStage] || contact.effectiveStage} · Customer since {formatDate(contact.firstInteractionAt)}</p><p className="mt-1 text-sm text-blue-100">{contact.customerEmail || "Email unavailable"}</p></div>
-              <div className="max-w-sm rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-blue-50"><LockKeyhole className="mr-2 inline h-4 w-4" />Notes and reminders are private. Nothing here sends a message or changes a booking.</div>
+              <div className="max-w-sm rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-blue-50"><LockKeyhole className="mr-2 inline h-4 w-4" />Notes, reminders, and drafts are private. Nothing here contacts the customer or changes a booking.</div>
             </div>
           </section>
 
@@ -163,14 +223,24 @@ export default function ProviderCustomerDetail() {
 
           {access.data.followUpsEnabled && <section className="mt-6 rounded-3xl border border-blue-100 bg-white p-5 shadow-sm sm:p-6"><div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">Private reminders</p><h2 className="mt-1 text-xl font-bold text-slate-950">Follow-ups</h2><p className="mt-1 text-sm text-slate-500">Manually create the next action you want to remember. No customer message is sent.</p></div><Button onClick={openCreateTask}><Plus className="mr-2 h-4 w-4" />Add follow-up</Button></div><div className="mt-5 space-y-3">{tasks.length ? tasks.map(task => <FollowUpTaskCard key={task.id} task={task} isPending={taskPending} onEdit={openEditTask} onStateChange={(row, state) => setFollowUpState.mutate({ contactId, taskId: row.id, state })} />) : <EmptyTool icon={Clock3} title="No follow-ups yet" text="Create a private reminder for the next action you want to take." />}</div></section>}
 
+          {access.data.draftsEnabled && <section className="mt-6 rounded-3xl border border-violet-100 bg-white p-5 shadow-sm sm:p-6"><div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-700">Provider-reviewed</p><div className="mt-1 flex flex-wrap items-center gap-2"><h2 className="flex items-center gap-2 text-xl font-bold text-slate-950"><MessageSquareText className="h-5 w-5" />Message drafts</h2><Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">Sending disabled</Badge></div><p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">Write and review ideas for a future relationship message. Drafts stay private to your provider account and are not sent to the customer.</p></div><Button onClick={openCreateDraft}><Plus className="mr-2 h-4 w-4" />New draft</Button></div><div className="mt-5 space-y-3">{drafts.length ? drafts.map(draft => <article key={draft.id} className="rounded-2xl border border-violet-100 bg-violet-50/40 p-4"><div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><Badge variant="outline" className="border-violet-200 bg-white text-violet-800">Not sent</Badge><span className="text-xs text-slate-500">Updated {formatDate(draft.updatedAt)}</span></div><p className="mt-3 whitespace-pre-wrap break-words text-sm leading-6 text-slate-800">{draft.body}</p></div><div className="flex shrink-0 gap-2"><Button variant="outline" size="sm" onClick={() => openEditDraft(draft)}><Pencil className="mr-1.5 h-3.5 w-3.5" />Edit</Button><Button variant="outline" size="sm" className="border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800" onClick={() => setDiscardingDraft(draft)}><Trash2 className="mr-1.5 h-3.5 w-3.5" />Discard</Button></div></div></article>) : <EmptyTool icon={MessageSquareText} title="No message drafts yet" text="Create an unsent draft to review later. Nothing will be delivered." />}</div></section>}
+
           {access.data.notesEnabled && <section className="mt-6 rounded-3xl border border-blue-100 bg-white p-5 shadow-sm sm:p-6"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">Provider-private</p><h2 className="mt-1 flex items-center gap-2 text-xl font-bold text-slate-950"><NotebookPen className="h-5 w-5" />Notes</h2><p className="mt-1 text-sm text-slate-500">Only your provider account can see these notes. They are never shown to the customer or copied into activity.</p></div><div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4"><Label htmlFor="private-customer-note">Add a private note</Label><Textarea id="private-customer-note" className="mt-2 min-h-28 bg-white" maxLength={5000} value={noteBody} onChange={event => setNoteBody(event.target.value)} placeholder="Keep useful context for your next conversation or service…" /><div className="mt-3 flex items-center justify-between gap-3"><span className="text-xs text-slate-500">{noteBody.length.toLocaleString()} / 5,000</span><Button onClick={() => createNote.mutate({ contactId, body: noteBody })} disabled={!noteBody.trim() || createNote.isPending}>{createNote.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Save private note</Button></div></div><div className="mt-5 space-y-3">{notes.length ? notes.map(note => <article key={note.id} className="rounded-2xl border border-slate-200 bg-white p-4"><p className="whitespace-pre-wrap text-sm leading-6 text-slate-700">{note.body}</p><p className="mt-3 text-xs text-slate-500">Added {formatDate(note.createdAt)}</p></article>) : <EmptyTool icon={NotebookPen} title="No private notes yet" text="Add context you want to remember about this relationship." />}</div></section>}
 
-          <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 sm:p-6"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">Relationship history</p><h2 className="mt-1 text-xl font-bold text-slate-950">Activity</h2><p className="mt-1 text-sm text-slate-500">This timeline is derived from authoritative OlogyCrew records. Private note and follow-up details are not copied here.</p></div>{events.length ? <div className="mt-5">{events.map(event => { const row = <div className="grid grid-cols-[36px_minmax(0,1fr)_auto] gap-3 border-b border-slate-100 py-4 last:border-0"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 text-[#174a73]"><Activity className="h-4 w-4" /></span><div><p className="font-medium text-slate-900">{event.summary}</p><p className="mt-0.5 text-xs text-slate-500">{event.eventType.replaceAll(".", " ")}</p></div><div className="flex items-center gap-2"><span className="text-xs text-slate-500">{relativeAge(event.occurredAt)}</span>{event.sourceHref ? <ArrowRight className="h-4 w-4 text-slate-400" /> : null}</div></div>; return event.sourceHref ? <Link key={event.id} href={event.sourceHref} className="block rounded-xl px-2 hover:bg-slate-50">{row}</Link> : <div key={event.id}>{row}</div>; })}</div> : <p className="mt-6 rounded-2xl border border-dashed p-6 text-center text-sm text-slate-500">No relationship activity has been projected yet.</p>}</section>
+          <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 sm:p-6"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">Relationship history</p><h2 className="mt-1 text-xl font-bold text-slate-950">Activity</h2><p className="mt-1 text-sm text-slate-500">This timeline is derived from authoritative OlogyCrew records. Private notes, follow-up details, and draft text are not copied here.</p></div>{events.length ? <div className="mt-5">{events.map(event => { const row = <div className="grid grid-cols-[36px_minmax(0,1fr)_auto] gap-3 border-b border-slate-100 py-4 last:border-0"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 text-[#174a73]"><Activity className="h-4 w-4" /></span><div><p className="font-medium text-slate-900">{event.summary}</p><p className="mt-0.5 text-xs text-slate-500">{event.eventType.replaceAll(".", " ")}</p></div><div className="flex items-center gap-2"><span className="text-xs text-slate-500">{relativeAge(event.occurredAt)}</span>{event.sourceHref ? <ArrowRight className="h-4 w-4 text-slate-400" /> : null}</div></div>; return event.sourceHref ? <Link key={event.id} href={event.sourceHref} className="block rounded-xl px-2 hover:bg-slate-50">{row}</Link> : <div key={event.id}>{row}</div>; })}</div> : <p className="mt-6 rounded-2xl border border-dashed p-6 text-center text-sm text-slate-500">No relationship activity has been projected yet.</p>}</section>
         </main>
       </div>
 
       <Dialog open={taskDialogOpen} onOpenChange={open => open ? setTaskDialogOpen(true) : closeTaskDialog()}>
         <DialogContent className="sm:max-w-lg"><DialogHeader><DialogTitle>{editingTask ? "Edit follow-up" : "Add follow-up"}</DialogTitle><DialogDescription>Create a private manual reminder. The customer will not be contacted.</DialogDescription></DialogHeader><div className="space-y-4 py-2"><div><Label htmlFor="follow-up-title">Title</Label><Input id="follow-up-title" className="mt-2" maxLength={255} value={taskTitle} onChange={event => setTaskTitle(event.target.value)} placeholder="Check availability for the next event" /></div><div><Label htmlFor="follow-up-description">Private details <span className="font-normal text-slate-500">(optional)</span></Label><Textarea id="follow-up-description" className="mt-2 min-h-24" maxLength={1000} value={taskDescription} onChange={event => setTaskDescription(event.target.value)} placeholder="Add context for yourself. This is not a message." /></div><div><Label htmlFor="follow-up-due">Due date <span className="font-normal text-slate-500">(optional)</span></Label><Input id="follow-up-due" className="mt-2" type="datetime-local" value={taskDueAt} onChange={event => setTaskDueAt(event.target.value)} /></div><p className="rounded-xl bg-slate-50 p-3 text-sm text-slate-600">Saving this follow-up does not send any email, text, push notification, or customer message.</p></div><DialogFooter><Button variant="outline" onClick={closeTaskDialog}>Cancel</Button><Button onClick={submitTask} disabled={!taskTitle.trim() || createFollowUp.isPending || updateFollowUp.isPending}>{(createFollowUp.isPending || updateFollowUp.isPending) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{editingTask ? "Save changes" : "Create follow-up"}</Button></DialogFooter></DialogContent>
+      </Dialog>
+
+      <Dialog open={draftDialogOpen} onOpenChange={open => open ? setDraftDialogOpen(true) : closeDraftDialog()}>
+        <DialogContent className="sm:max-w-lg"><DialogHeader><DialogTitle>{editingDraft ? "Edit message draft" : "New message draft"}</DialogTitle><DialogDescription>Write a private draft for your own review. Sending is not available in this phase.</DialogDescription></DialogHeader><div className="space-y-3 py-2"><Label htmlFor="relationship-message-draft">Draft text</Label><Textarea id="relationship-message-draft" className="min-h-44" maxLength={2000} value={draftBody} onChange={event => setDraftBody(event.target.value)} placeholder="Write what you may want to say later…" /><div className="flex items-center justify-between gap-3 text-xs text-slate-500"><span>{draftBody.length.toLocaleString()} / 2,000</span><span>Private · Not sent</span></div><p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-900">Saving creates only an unsent draft. It does not create a message or send an email, text, or push notification.</p></div><DialogFooter><Button variant="outline" onClick={closeDraftDialog}>Cancel</Button><Button onClick={submitDraft} disabled={!draftBody.trim() || createDraft.isPending || updateDraft.isPending}>{(createDraft.isPending || updateDraft.isPending) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{editingDraft ? "Save changes" : "Save draft"}</Button></DialogFooter></DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(discardingDraft)} onOpenChange={open => { if (!open) setDiscardingDraft(null); }}>
+        <DialogContent className="sm:max-w-md"><DialogHeader><DialogTitle>Discard this draft?</DialogTitle><DialogDescription>This removes it from your active drafts. The customer will not be contacted.</DialogDescription></DialogHeader><DialogFooter><Button variant="outline" onClick={() => setDiscardingDraft(null)}>Keep draft</Button><Button variant="destructive" onClick={() => discardingDraft && discardDraft.mutate({ contactId, draftId: discardingDraft.id })} disabled={!discardingDraft || discardDraft.isPending}>{discardDraft.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Discard draft</Button></DialogFooter></DialogContent>
       </Dialog>
     </div>
   );

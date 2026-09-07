@@ -4,12 +4,16 @@ import { serviceProviders, users } from "../drizzle/schema";
 import { getDb } from "./db/connection";
 import {
   createCrmContactNote,
+  createCrmMessageDraft,
   createCrmTask,
+  discardCrmMessageDraft,
   getCrmContactById,
   listCrmContactNotes,
+  listCrmMessageDrafts,
   listCrmStageHistory,
   listCrmTaskReadModels,
   transitionCrmManualStage,
+  updateCrmMessageDraft,
   updateCrmTask,
   updateCrmTaskState,
   upsertCrmContact,
@@ -125,5 +129,29 @@ describe("Customers Phase 4 repository task lifecycle", () => {
     expect(history).toHaveLength(3);
     expect(history.every(row => row.source === "provider" && row.actorUserId === ownerA.id)).toBe(true);
     expect(history.map(row => row.nextStage)).toEqual(["customer", "lead", "archived"]);
+
+    const draftDedupeKey = `manual-draft:${ownerA.id}:${runId}`;
+    const draftA = await createCrmMessageDraft({ providerId: providerA.id, contactId: contactA.id, body: "  First private draft  ", dedupeKey: draftDedupeKey });
+    const duplicateDraftA = await createCrmMessageDraft({ providerId: providerA.id, contactId: contactA.id, body: "Retry must not overwrite", dedupeKey: draftDedupeKey });
+    if (!draftA || !duplicateDraftA) throw new Error("Phase 6 test draft was not created");
+    expect(duplicateDraftA).toMatchObject({ id: draftA.id, body: "First private draft", state: "draft", sentMessageId: null, approvedAt: null, sentAt: null });
+    await expect(createCrmMessageDraft({ providerId: providerA.id, contactId: secondContactA.id, body: "Must not cross-link", dedupeKey: draftDedupeKey })).rejects.toThrow("idempotency conflict");
+
+    const providerBDraft = await createCrmMessageDraft({ providerId: providerB.id, contactId: contactB.id, body: "Other provider draft", dedupeKey: draftDedupeKey });
+    expect(providerBDraft?.id).not.toBe(draftA.id);
+    expect(await listCrmMessageDrafts(providerA.id, contactA.id)).toHaveLength(1);
+    await expect(listCrmMessageDrafts(providerB.id, contactA.id)).rejects.toThrow("not found");
+    await expect(updateCrmMessageDraft({ providerId: providerA.id, contactId: secondContactA.id, draftId: draftA.id, body: "Cross contact" })).rejects.toThrow("draft not found");
+    await expect(updateCrmMessageDraft({ providerId: providerB.id, contactId: contactB.id, draftId: draftA.id, body: "Cross provider" })).rejects.toThrow("draft not found");
+
+    const updatedDraft = await updateCrmMessageDraft({ providerId: providerA.id, contactId: contactA.id, draftId: draftA.id, body: "  Revised private draft  " });
+    expect(updatedDraft).toMatchObject({ id: draftA.id, body: "Revised private draft", state: "draft" });
+    await expect(discardCrmMessageDraft(providerA.id, secondContactA.id, draftA.id)).rejects.toThrow("draft not found");
+    const discardedDraft = await discardCrmMessageDraft(providerA.id, contactA.id, draftA.id);
+    expect(discardedDraft).toMatchObject({ id: draftA.id, state: "discarded" });
+    expect(discardedDraft.discardedAt).toBeInstanceOf(Date);
+    expect(await listCrmMessageDrafts(providerA.id, contactA.id)).toHaveLength(0);
+    await expect(updateCrmMessageDraft({ providerId: providerA.id, contactId: contactA.id, draftId: draftA.id, body: "Cannot edit discarded" })).rejects.toThrow("draft not found");
+    await expect(discardCrmMessageDraft(providerA.id, contactA.id, draftA.id)).rejects.toThrow("draft not found");
   }, 90_000);
 });

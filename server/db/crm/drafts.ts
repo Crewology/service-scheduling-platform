@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { crmMessageDrafts } from "../../../drizzle/schema";
 import { CRM_MAX_DRAFT_LENGTH } from "../../../shared/crm";
 import { requireDb } from "../connection";
@@ -8,6 +8,32 @@ function normalizeDraft(body: string) {
   const value = body.trim();
   if (!value || value.length > CRM_MAX_DRAFT_LENGTH) throw new Error("Customers message draft is invalid");
   return value;
+}
+
+export class CrmMessageDraftNotFoundError extends Error {
+  constructor() {
+    super("Customers message draft not found");
+    this.name = "CrmMessageDraftNotFoundError";
+  }
+}
+
+export class CrmMessageDraftIdempotencyConflictError extends Error {
+  constructor() {
+    super("Customers message draft idempotency conflict");
+    this.name = "CrmMessageDraftIdempotencyConflictError";
+  }
+}
+
+async function requireCrmMessageDraftScope(providerId: number, contactId: number, draftId: number) {
+  await requireCrmContactScope(providerId, contactId);
+  const database = await requireDb();
+  const [draft] = await database.select().from(crmMessageDrafts).where(and(
+    eq(crmMessageDrafts.id, draftId),
+    eq(crmMessageDrafts.providerId, providerId),
+    eq(crmMessageDrafts.contactId, contactId),
+  )).limit(1);
+  if (!draft) throw new CrmMessageDraftNotFoundError();
+  return draft;
 }
 
 export async function createCrmMessageDraft(input: {
@@ -42,37 +68,55 @@ export async function createCrmMessageDraft(input: {
       eq(crmMessageDrafts.providerId, input.providerId),
       eq(crmMessageDrafts.contactId, input.contactId),
     )).orderBy(desc(crmMessageDrafts.id)).limit(1);
+  if (draft && draft.contactId !== input.contactId) throw new CrmMessageDraftIdempotencyConflictError();
   return draft;
 }
 
-export async function listCrmMessageDrafts(providerId: number, contactId?: number) {
+export async function listCrmMessageDrafts(providerId: number, contactId?: number, states: Array<"draft" | "sent" | "discarded"> = ["draft"]) {
   if (contactId) await requireCrmContactScope(providerId, contactId);
   const database = await requireDb();
   const condition = contactId
-    ? and(eq(crmMessageDrafts.providerId, providerId), eq(crmMessageDrafts.contactId, contactId))
-    : eq(crmMessageDrafts.providerId, providerId);
+    ? and(eq(crmMessageDrafts.providerId, providerId), eq(crmMessageDrafts.contactId, contactId), inArray(crmMessageDrafts.state, states))
+    : and(eq(crmMessageDrafts.providerId, providerId), inArray(crmMessageDrafts.state, states));
   return database.select().from(crmMessageDrafts).where(condition)
-    .orderBy(desc(crmMessageDrafts.createdAt), desc(crmMessageDrafts.id));
+    .orderBy(desc(crmMessageDrafts.updatedAt), desc(crmMessageDrafts.id));
 }
 
 export async function updateCrmMessageDraft(input: {
   providerId: number;
+  contactId: number;
   draftId: number;
   body: string;
 }) {
+  const existing = await requireCrmMessageDraftScope(input.providerId, input.contactId, input.draftId);
+  if (existing.state !== "draft") throw new CrmMessageDraftNotFoundError();
   const database = await requireDb();
-  return database.update(crmMessageDrafts).set({ body: normalizeDraft(input.body) }).where(and(
+  await database.update(crmMessageDrafts).set({ body: normalizeDraft(input.body) }).where(and(
     eq(crmMessageDrafts.id, input.draftId),
     eq(crmMessageDrafts.providerId, input.providerId),
+    eq(crmMessageDrafts.contactId, input.contactId),
     eq(crmMessageDrafts.state, "draft"),
   ));
+  const [updated] = await database.select().from(crmMessageDrafts).where(and(
+    eq(crmMessageDrafts.id, input.draftId),
+    eq(crmMessageDrafts.providerId, input.providerId),
+    eq(crmMessageDrafts.contactId, input.contactId),
+    eq(crmMessageDrafts.state, "draft"),
+  )).limit(1);
+  if (!updated) throw new CrmMessageDraftNotFoundError();
+  return updated;
 }
 
-export async function discardCrmMessageDraft(providerId: number, draftId: number) {
+export async function discardCrmMessageDraft(providerId: number, contactId: number, draftId: number) {
+  const existing = await requireCrmMessageDraftScope(providerId, contactId, draftId);
+  if (existing.state !== "draft") throw new CrmMessageDraftNotFoundError();
   const database = await requireDb();
-  return database.update(crmMessageDrafts).set({ state: "discarded", discardedAt: new Date() }).where(and(
+  const discardedAt = new Date();
+  await database.update(crmMessageDrafts).set({ state: "discarded", discardedAt }).where(and(
     eq(crmMessageDrafts.id, draftId),
     eq(crmMessageDrafts.providerId, providerId),
+    eq(crmMessageDrafts.contactId, contactId),
     eq(crmMessageDrafts.state, "draft"),
   ));
+  return { ...existing, state: "discarded" as const, discardedAt };
 }

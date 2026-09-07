@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
-import { CRM_MAX_NOTE_LENGTH, CRM_ROLLOUT_FLAGS } from "../shared/crm";
+import { CRM_MAX_DRAFT_LENGTH, CRM_MAX_NOTE_LENGTH, CRM_ROLLOUT_FLAGS } from "../shared/crm";
 import type { TrpcContext } from "./_core/context";
 
 const mocks = vi.hoisted(() => ({
@@ -19,6 +19,10 @@ const mocks = vi.hoisted(() => ({
   updateCrmTask: vi.fn(),
   updateCrmTaskState: vi.fn(),
   transitionCrmManualStage: vi.fn(),
+  listCrmMessageDrafts: vi.fn(),
+  createCrmMessageDraft: vi.fn(),
+  updateCrmMessageDraft: vi.fn(),
+  discardCrmMessageDraft: vi.fn(),
   appendCrmActivityEvent: vi.fn(),
 }));
 
@@ -43,6 +47,10 @@ vi.mock("./db/crm", async importOriginal => ({
   updateCrmTask: mocks.updateCrmTask,
   updateCrmTaskState: mocks.updateCrmTaskState,
   transitionCrmManualStage: mocks.transitionCrmManualStage,
+  listCrmMessageDrafts: mocks.listCrmMessageDrafts,
+  createCrmMessageDraft: mocks.createCrmMessageDraft,
+  updateCrmMessageDraft: mocks.updateCrmMessageDraft,
+  discardCrmMessageDraft: mocks.discardCrmMessageDraft,
   appendCrmActivityEvent: mocks.appendCrmActivityEvent,
 }));
 
@@ -67,6 +75,24 @@ const task = {
   dismissedAt: null,
   dedupeKey: "7:manual-follow-up:41:123",
   createdByUserId: 41,
+  createdAt: new Date("2026-09-06T12:00:00Z"),
+  updatedAt: new Date("2026-09-06T12:00:00Z"),
+};
+const draft = {
+  id: 61,
+  providerId: 7,
+  customerId: 72,
+  contactId: 9,
+  ruleId: null,
+  taskId: null,
+  state: "draft" as const,
+  body: "Checking in about your next service.",
+  sentMessageId: null,
+  approvedByUserId: null,
+  approvedAt: null,
+  sentAt: null,
+  discardedAt: null,
+  dedupeKey: "7:manual-draft:41:123",
   createdAt: new Date("2026-09-06T12:00:00Z"),
   updatedAt: new Date("2026-09-06T12:00:00Z"),
 };
@@ -115,7 +141,7 @@ describe("Customers Phase 4 private notes and manual follow-ups", () => {
     mocks.getCrmProviderAccess.mockResolvedValue({
       entitlement,
       isPilotProvider: true,
-      can: (feature: string) => ["customerHistory", "crmNotes", "crmFollowUps", "crmStageOverrides"].includes(feature),
+      can: (feature: string) => ["customerHistory", "crmNotes", "crmFollowUps", "crmStageOverrides", "crmDrafts"].includes(feature),
     });
     enablePrivateWrites();
     mocks.getCrmWorkspaceSummary.mockResolvedValue({ total: 2, leads: 1, customers: 1, repeatCustomers: 0, needsResponse: 0, followUps: 1 });
@@ -124,7 +150,11 @@ describe("Customers Phase 4 private notes and manual follow-ups", () => {
     mocks.listCrmTaskReadModels.mockResolvedValue([]);
     mocks.getCrmContactReadModel.mockResolvedValue({ contact: { id: 9 }, events: [], hasMore: false, nextCursor: null });
     mocks.listCrmContactNotes.mockResolvedValue([]);
+    mocks.listCrmMessageDrafts.mockResolvedValue([]);
     mocks.createCrmContactNote.mockResolvedValue(55);
+    mocks.createCrmMessageDraft.mockResolvedValue(draft);
+    mocks.updateCrmMessageDraft.mockResolvedValue(draft);
+    mocks.discardCrmMessageDraft.mockResolvedValue({ ...draft, state: "discarded", discardedAt: new Date("2026-09-06T14:00:00Z") });
     mocks.createCrmTask.mockResolvedValue(task);
     mocks.updateCrmTask.mockResolvedValue(task);
     mocks.updateCrmTaskState.mockImplementation(async ({ state }: { state: "open" | "completed" | "dismissed" }) => ({ task: { ...task, state, updatedAt: new Date("2026-09-06T13:00:00Z") }, stateChanged: true, transitionAt: new Date("2026-09-06T13:00:00Z") }));
@@ -147,6 +177,7 @@ describe("Customers Phase 4 private notes and manual follow-ups", () => {
       notesEnabled: true,
       followUpsEnabled: true,
       stageOverridesEnabled: true,
+      draftsEnabled: true,
       recommendationsEnabled: false,
       draftSendingEnabled: false,
     });
@@ -156,6 +187,7 @@ describe("Customers Phase 4 private notes and manual follow-ups", () => {
     await expect(flagOffCaller.getAccess()).resolves.toMatchObject({ visible: true, readOnly: true, providerWritesEnabled: false });
     await expect(flagOffCaller.createNote({ contactId: 9, body: "Private" })).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(flagOffCaller.setRelationshipStage({ contactId: 9, stage: "customer" })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(flagOffCaller.createDraft({ contactId: 9, body: "Private draft", requestId: crypto.randomUUID() })).rejects.toMatchObject({ code: "FORBIDDEN" });
 
     enablePrivateWrites();
     mocks.getCrmProviderAccess.mockResolvedValue({ entitlement, isPilotProvider: false, can: () => true });
@@ -179,9 +211,10 @@ describe("Customers Phase 4 private notes and manual follow-ups", () => {
 
   it("returns notes and tasks only after the provider-scoped relationship is resolved", async () => {
     const caller = customersRouter.createCaller(context());
-    await expect(caller.getContact({ contactId: 9, eventLimit: 30 })).resolves.toMatchObject({ notes: [], tasks: [] });
+    await expect(caller.getContact({ contactId: 9, eventLimit: 30 })).resolves.toMatchObject({ notes: [], tasks: [], drafts: [] });
     expect(mocks.listCrmContactNotes).toHaveBeenCalledWith(7, 9);
     expect(mocks.listCrmTaskReadModels).toHaveBeenCalledWith({ providerId: 7, contactId: 9, limit: 100 });
+    expect(mocks.listCrmMessageDrafts).toHaveBeenCalledWith(7, 9, ["draft"]);
 
     mocks.getCrmContactReadModel.mockRejectedValueOnce(new CrmContactNotFoundError());
     await expect(caller.getContact({ contactId: 999, eventLimit: 30 })).rejects.toMatchObject({ code: "NOT_FOUND" });
@@ -196,12 +229,13 @@ describe("Customers Phase 4 private notes and manual follow-ups", () => {
       can: (feature: string) => feature === "customerHistory",
     });
     const caller = customersRouter.createCaller(context());
-    await expect(caller.getContact({ contactId: 9, eventLimit: 30 })).resolves.toMatchObject({ notes: [], tasks: [], readOnly: true });
+    await expect(caller.getContact({ contactId: 9, eventLimit: 30 })).resolves.toMatchObject({ notes: [], tasks: [], drafts: [], readOnly: true });
     const followUps = await caller.getWorkspace({ tab: "follow-ups", sort: "attention", limit: 25, offset: 0 });
     expect(followUps.tasks).toEqual([]);
     expect(followUps.readOnlyReason).toContain("current access");
     expect(mocks.listCrmContactNotes).not.toHaveBeenCalled();
     expect(mocks.listCrmTaskReadModels).not.toHaveBeenCalled();
+    expect(mocks.listCrmMessageDrafts).not.toHaveBeenCalled();
   });
 
   it("returns provider-scoped task rows for the Follow-ups tab", async () => {
@@ -321,6 +355,40 @@ describe("Customers Phase 4 private notes and manual follow-ups", () => {
     mocks.transitionCrmManualStage.mockRejectedValueOnce(new CrmContactNotFoundError());
     await expect(caller.setRelationshipStage({ contactId: 999, stage: "customer" })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
+
+  it("creates only a provider-private manual draft with UUID idempotency and no delivery side effects", async () => {
+    const caller = customersRouter.createCaller(context());
+    const requestId = "1f3e1ff3-3ec5-4a76-b84f-9fd720de333e";
+    await expect(caller.createDraft({ contactId: 9, body: "  Checking in about your next service.  ", requestId, providerId: 999 } as never)).resolves.toMatchObject({ id: 61, state: "draft" });
+    expect(mocks.createCrmMessageDraft).toHaveBeenCalledWith({
+      providerId: 7,
+      contactId: 9,
+      body: "Checking in about your next service.",
+      dedupeKey: `manual-draft:41:${requestId}`,
+      ruleId: null,
+      taskId: null,
+    });
+    expect(mocks.appendCrmActivityEvent).not.toHaveBeenCalled();
+  });
+
+  it("validates draft content and keeps edit and discard contact scoped", async () => {
+    const caller = customersRouter.createCaller(context());
+    await expect(caller.createDraft({ contactId: 9, body: "   ", requestId: crypto.randomUUID() })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(caller.createDraft({ contactId: 9, body: "x".repeat(CRM_MAX_DRAFT_LENGTH + 1), requestId: crypto.randomUUID() })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await caller.updateDraft({ contactId: 9, draftId: 61, body: "  Revised private draft  " });
+    expect(mocks.updateCrmMessageDraft).toHaveBeenCalledWith({ providerId: 7, contactId: 9, draftId: 61, body: "Revised private draft" });
+    await caller.discardDraft({ contactId: 9, draftId: 61 });
+    expect(mocks.discardCrmMessageDraft).toHaveBeenCalledWith(7, 9, 61);
+    expect(mocks.appendCrmActivityEvent).not.toHaveBeenCalled();
+  });
+
+  it("returns provider-safe errors for cross-relationship drafts and idempotency conflicts", async () => {
+    const { CrmMessageDraftIdempotencyConflictError, CrmMessageDraftNotFoundError } = await import("./db/crm");
+    mocks.updateCrmMessageDraft.mockRejectedValueOnce(new CrmMessageDraftNotFoundError());
+    await expect(customersRouter.createCaller(context()).updateDraft({ contactId: 999, draftId: 61, body: "Probe" })).rejects.toMatchObject({ code: "NOT_FOUND" });
+    mocks.createCrmMessageDraft.mockRejectedValueOnce(new CrmMessageDraftIdempotencyConflictError());
+    await expect(customersRouter.createCaller(context()).createDraft({ contactId: 10, body: "Conflict", requestId: crypto.randomUUID() })).rejects.toMatchObject({ code: "CONFLICT" });
+  });
 });
 
 describe("Customers Phase 4 fixed product boundary", () => {
@@ -344,7 +412,7 @@ describe("Customers Phase 4 fixed product boundary", () => {
   it("keeps drafts, sending, recommendations, automation, segments, exports, and schedules disabled", () => {
     expect(routerSource).toContain("recommendationsEnabled: false");
     expect(routerSource).toContain("draftSendingEnabled: false");
-    expect(routerSource).not.toMatch(/createCrmMessageDraft|sendRelationship|createCrmAutomationRule|createCrmSavedSegment|exportCustomers|heartbeat|schedule/);
+    expect(routerSource).not.toMatch(/sendRelationship|sendDraft|approveAndSend|createCrmAutomationRule|createCrmSavedSegment|exportCustomers|heartbeat|schedule/);
     expect(workspaceSource).not.toMatch(/Send message|Export CSV|Save segment|Recommended follow-up/);
     expect(detailSource).not.toMatch(/Send message|Generate draft|Recommended follow-up/);
   });
@@ -402,5 +470,48 @@ describe("Customers Phase 5 manual relationship-stage boundary", () => {
     expect(routerSource).toContain("recommendationsEnabled: false");
     expect(routerSource).toContain("draftSendingEnabled: false");
     expect(detailSource).not.toMatch(/Send message|Generate draft|Run automation|Export customers|Schedule campaign/);
+  });
+});
+
+describe("Customers Phase 6 provider-reviewed draft-only boundary", () => {
+  const root = path.resolve(process.cwd());
+  const routerSource = fs.readFileSync(path.join(root, "server/customersRouter.ts"), "utf8");
+  const detailSource = fs.readFileSync(path.join(root, "client/src/pages/ProviderCustomerDetail.tsx"), "utf8");
+  const draftSource = fs.readFileSync(path.join(root, "server/db/crm/drafts.ts"), "utf8");
+  const schemaSource = fs.readFileSync(path.join(root, "drizzle/schema.ts"), "utf8");
+
+  it("uses the existing draft entitlement and private pilot write boundary", () => {
+    expect(routerSource).toContain('access.can("crmDrafts")');
+    expect(routerSource).toContain("ctx.crmAccess.draftsEnabled");
+    expect(routerSource).toContain("draftSendingEnabled: false");
+    expect(routerSource).toContain("providerId: ctx.provider.id");
+    expect(routerSource).not.toMatch(/createDraft[\s\S]{0,500}input\.providerId/);
+  });
+
+  it("keeps draft CRUD contact scoped, idempotent, editable only while active, and bounded to 2,000 characters", () => {
+    expect(routerSource).toContain("CRM_MAX_DRAFT_LENGTH");
+    expect(routerSource).toContain("requestId: z.string().uuid()");
+    expect(draftSource).toContain("buildProviderScopedDedupeKey");
+    expect(draftSource).toContain("draft.contactId !== input.contactId");
+    expect(draftSource).toContain('eq(crmMessageDrafts.state, "draft")');
+    expect(draftSource).toContain("requireCrmMessageDraftScope");
+    expect(draftSource).toContain("eq(crmMessageDrafts.contactId, contactId)");
+    expect(schemaSource).toContain('relationshipMessageEnabled: boolean("relationshipMessageEnabled").default(false)');
+  });
+
+  it("renders a simple provider review area with unmistakable unsent guidance and no send action", () => {
+    for (const text of ["Provider-reviewed", "Message drafts", "Sending disabled", "Private · Not sent", "Save draft", "Edit message draft", "Discard this draft?"]) expect(detailSource).toContain(text);
+    expect(detailSource).toContain("Saving creates only an unsent draft.");
+    expect(detailSource).toContain("It does not create a message or send an email, text, or push notification.");
+    expect(detailSource).toContain("maxLength={2000}");
+    expect(detailSource).not.toMatch(/Send draft|Send message|Approve and send|Generate draft|AI draft/);
+  });
+
+  it("creates no message, notification, activity, automation, approval, or delivery side effect", () => {
+    const draftProcedures = routerSource.slice(routerSource.indexOf("createDraft:"), routerSource.indexOf("setRelationshipStage:"));
+    expect(draftProcedures).not.toMatch(/appendCrmActivityEvent|messages\)|sendEmail|sendSms|notify|approvedAt|sentAt|sentMessageId|automation/i);
+    expect(draftProcedures).toContain("ruleId: null");
+    expect(draftProcedures).toContain("taskId: null");
+    expect(routerSource).not.toMatch(/sendDraft|approveAndSend|sendRelationship/);
   });
 });

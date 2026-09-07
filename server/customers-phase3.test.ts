@@ -87,7 +87,7 @@ describe("Customers Phase 3 private read pilot", () => {
   });
 
   it("preserves the Phase 3 read procedures alongside gated Phase 4 private tools", () => {
-    expect(Object.keys(customersRouter._def.procedures).sort()).toEqual(["createFollowUp", "createNote", "getAccess", "getContact", "getWorkspace", "setFollowUpState", "setRelationshipStage", "updateFollowUp"]);
+    expect(Object.keys(customersRouter._def.procedures).sort()).toEqual(["createDraft", "createFollowUp", "createNote", "discardDraft", "getAccess", "getContact", "getWorkspace", "setFollowUpState", "setRelationshipStage", "updateDraft", "updateFollowUp"]);
   });
 
   it("keeps non-pilot providers out even when the read flag is enabled", async () => {

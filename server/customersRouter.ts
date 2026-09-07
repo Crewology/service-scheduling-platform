@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   CRM_CONTACT_STAGES,
   CRM_EVENT_TYPES,
+  CRM_MAX_DRAFT_LENGTH,
   CRM_MAX_NOTE_LENGTH,
   CRM_ROLLOUT_FLAGS,
   CRM_TASK_STATES,
@@ -24,13 +25,19 @@ import {
   appendCrmActivityEvent,
   buildCrmEventKey,
   CrmContactNotFoundError,
+  CrmMessageDraftIdempotencyConflictError,
+  CrmMessageDraftNotFoundError,
+  createCrmMessageDraft,
+  discardCrmMessageDraft,
+  listCrmMessageDrafts,
   transitionCrmManualStage,
+  updateCrmMessageDraft,
 } from "./db/crm";
 import { getCrmProviderAccess } from "./crm/access";
 
 async function resolveProviderAccess(userId: number) {
   const provider = await db.getProviderByUserId(userId);
-  if (!provider) return { provider: null, access: null, visible: false, notesEnabled: false, followUpsEnabled: false, stageOverridesEnabled: false, entitlement: null };
+  if (!provider) return { provider: null, access: null, visible: false, notesEnabled: false, followUpsEnabled: false, stageOverridesEnabled: false, draftsEnabled: false, entitlement: null };
   const [access, readUiEnabled, providerWritesEnabled] = await Promise.all([
     getCrmProviderAccess(provider.id),
     isCrmRolloutEnabled(CRM_ROLLOUT_FLAGS.readUi),
@@ -44,6 +51,7 @@ async function resolveProviderAccess(userId: number) {
     notesEnabled: Boolean(visible && providerWritesEnabled && access.can("crmNotes")),
     followUpsEnabled: Boolean(visible && providerWritesEnabled && access.can("crmFollowUps")),
     stageOverridesEnabled: Boolean(visible && providerWritesEnabled && access.can("crmStageOverrides")),
+    draftsEnabled: Boolean(visible && providerWritesEnabled && access.can("crmDrafts")),
     entitlement: access.entitlement,
   };
 }
@@ -69,6 +77,21 @@ const customerStageWriteProcedure = customerReadProcedure.use(async ({ ctx, next
   if (!ctx.crmAccess.stageOverridesEnabled) throw new TRPCError({ code: "FORBIDDEN", message: "Manual relationship stages are not enabled for this provider" });
   return next({ ctx });
 });
+
+const customerDraftWriteProcedure = customerReadProcedure.use(async ({ ctx, next }) => {
+  if (!ctx.crmAccess.draftsEnabled) throw new TRPCError({ code: "FORBIDDEN", message: "Relationship message drafts are not enabled for this provider" });
+  return next({ ctx });
+});
+
+function translateDraftError(error: unknown): never {
+  if (error instanceof CrmContactNotFoundError || error instanceof CrmMessageDraftNotFoundError) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Relationship message draft not found" });
+  }
+  if (error instanceof CrmMessageDraftIdempotencyConflictError) {
+    throw new TRPCError({ code: "CONFLICT", message: "This draft request was already used for another relationship" });
+  }
+  throw error;
+}
 
 const optionalDueDate = z.coerce.date().nullable().optional().refine(
   value => value == null || value.getTime() >= Date.now() - 5 * 60_000,
@@ -157,13 +180,14 @@ export const customersRouter = router({
     const access = await resolveProviderAccess(ctx.user.id);
     return {
       visible: access.visible,
-      readOnly: !(access.notesEnabled || access.followUpsEnabled || access.stageOverridesEnabled),
+      readOnly: !(access.notesEnabled || access.followUpsEnabled || access.stageOverridesEnabled || access.draftsEnabled),
       businessName: access.provider?.businessName ?? null,
       effectiveTier: access.entitlement?.effectiveTier ?? "free",
-      providerWritesEnabled: access.notesEnabled || access.followUpsEnabled || access.stageOverridesEnabled,
+      providerWritesEnabled: access.notesEnabled || access.followUpsEnabled || access.stageOverridesEnabled || access.draftsEnabled,
       notesEnabled: access.notesEnabled,
       followUpsEnabled: access.followUpsEnabled,
       stageOverridesEnabled: access.stageOverridesEnabled,
+      draftsEnabled: access.draftsEnabled,
       recommendationsEnabled: false,
       draftSendingEnabled: false,
     };
@@ -234,11 +258,57 @@ export const customersRouter = router({
       throw error;
     }
     if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "Customer relationship not found" });
-    const [notes, tasks] = await Promise.all([
+    const [notes, tasks, drafts] = await Promise.all([
       ctx.crmAccess.notesEnabled ? listCrmContactNotes(ctx.provider.id, input.contactId) : Promise.resolve([]),
       ctx.crmAccess.followUpsEnabled ? listCrmTaskReadModels({ providerId: ctx.provider.id, contactId: input.contactId, limit: 100 }) : Promise.resolve([]),
+      ctx.crmAccess.draftsEnabled ? listCrmMessageDrafts(ctx.provider.id, input.contactId, ["draft"]) : Promise.resolve([]),
     ]);
-    return { ...result, notes, tasks, readOnly: !(ctx.crmAccess.notesEnabled || ctx.crmAccess.followUpsEnabled || ctx.crmAccess.stageOverridesEnabled), eventTypes: CRM_EVENT_TYPES };
+    return { ...result, notes, tasks, drafts, readOnly: !(ctx.crmAccess.notesEnabled || ctx.crmAccess.followUpsEnabled || ctx.crmAccess.stageOverridesEnabled || ctx.crmAccess.draftsEnabled), eventTypes: CRM_EVENT_TYPES };
+  }),
+
+  createDraft: customerDraftWriteProcedure.input(z.object({
+    contactId: z.number().int().positive(),
+    body: z.string().trim().min(1).max(CRM_MAX_DRAFT_LENGTH),
+    requestId: z.string().uuid(),
+  })).mutation(async ({ ctx, input }) => {
+    try {
+      const draft = await createCrmMessageDraft({
+        providerId: ctx.provider.id,
+        contactId: input.contactId,
+        body: input.body,
+        dedupeKey: `manual-draft:${ctx.user.id}:${input.requestId}`,
+        ruleId: null,
+        taskId: null,
+      });
+      if (!draft) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Relationship message draft could not be created" });
+      return draft;
+    } catch (error) {
+      if (error instanceof TRPCError) throw error;
+      return translateDraftError(error);
+    }
+  }),
+
+  updateDraft: customerDraftWriteProcedure.input(z.object({
+    contactId: z.number().int().positive(),
+    draftId: z.number().int().positive(),
+    body: z.string().trim().min(1).max(CRM_MAX_DRAFT_LENGTH),
+  })).mutation(async ({ ctx, input }) => {
+    try {
+      return await updateCrmMessageDraft({ providerId: ctx.provider.id, ...input });
+    } catch (error) {
+      return translateDraftError(error);
+    }
+  }),
+
+  discardDraft: customerDraftWriteProcedure.input(z.object({
+    contactId: z.number().int().positive(),
+    draftId: z.number().int().positive(),
+  })).mutation(async ({ ctx, input }) => {
+    try {
+      return await discardCrmMessageDraft(ctx.provider.id, input.contactId, input.draftId);
+    } catch (error) {
+      return translateDraftError(error);
+    }
   }),
 
   setRelationshipStage: customerStageWriteProcedure.input(z.object({

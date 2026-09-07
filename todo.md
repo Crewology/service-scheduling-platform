@@ -2805,3 +2805,14 @@
 - [x] Keep drafts, sending, recommendations, rules, schedules, saved segments, exports, and broader rollout disabled
 - [x] Add focused router, repository, history, tenancy, entitlement, validation, UI contract, and responsive regressions
 - [x] Run adjacent tests, zero-error TypeScript, diff validation, production build, desktop/mobile review, final private-state verification, implementation report, and checkpoint
+
+## Customers Release 1 Implementation — Phase 6 Provider-Reviewed Message Drafts
+- [x] Add pilot-scoped draft create, list, edit, and discard procedures guarded by active provider status, private pilot membership, lifecycle `crmDrafts` entitlement, read UI, and provider-write rollout flags
+- [x] Derive provider and author ownership from the authenticated session and enforce provider/contact tenancy for every draft operation
+- [x] Limit manually authored draft text to the approved 2,000-character contract and reject empty content
+- [x] Keep retained draft bodies unavailable when lifecycle draft entitlement is inactive, even for constructed relationship or draft IDs
+- [x] Add a simple relationship-detail Drafts area for creating, reviewing, editing, and discarding private drafts with unmistakable “not sent” guidance
+- [x] Ensure draft actions never create a message, email, SMS, push notification, activity send event, automation run, or delivery side effect
+- [x] Keep AI generation, recommendations, automatic drafting, sending, rules, schedules, segments, exports, and broader rollout disabled
+- [x] Add focused router, repository, privacy, tenancy, lifecycle, validation, no-side-effect, UI-contract, and responsive regressions
+- [x] Run adjacent tests, zero-error TypeScript, diff validation, production build, desktop/mobile review, final private-state verification, implementation report, and checkpoint
