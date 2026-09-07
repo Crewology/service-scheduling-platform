@@ -25,13 +25,14 @@ describe("Customers Phase 2 source-hook and rollout contract", () => {
     expect(stripe).toContain("queueCrmInvoiceProjection");
   });
 
-  it("keeps Customers private and unscheduled during Phase 2", () => {
+  it("keeps Customers pilot-only, write-disabled, and unscheduled after the approved read-only Phase 3 addition", () => {
     const app = source("client/src/App.tsx");
     const server = source("server/_core/index.ts");
     const router = source("server/crmOperationsRouter.ts");
     const settingsRouter = source("server/routers/platformSettingsRouter.ts");
 
-    expect(app).not.toContain('/provider/customers');
+    expect(app).toContain('path="/provider/customers"');
+    expect(app.match(/ProviderOnlyGuard featureName="Customers"/g)?.length).toBe(2);
     expect(server).not.toContain("runCrmProjectionBatch");
     expect(server).not.toContain("crmOperationsRouter");
     expect(settingsRouter).not.toContain("customersPilotProviderIds");

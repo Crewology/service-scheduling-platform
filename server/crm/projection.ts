@@ -42,6 +42,7 @@ export type CrmProjectionSkipReason =
   | "provider_not_in_pilot"
   | "provider_unavailable"
   | "customer_unavailable"
+  | "provider_self"
   | "reserved_test_identity"
   | "official_demo_excluded"
   | "no_qualifying_source";
@@ -194,6 +195,7 @@ export async function inspectCrmProjectionCandidate(
   const database = await requireDb();
   const [[provider], [customer], bookingRows, quoteRows, invoiceRows] = await Promise.all([
     database.select({
+      userId: serviceProviders.userId,
       isActive: serviceProviders.isActive,
       isOfficial: serviceProviders.isOfficial,
       deletedAt: serviceProviders.deletedAt,
@@ -219,6 +221,7 @@ export async function inspectCrmProjectionCandidate(
     providerDeleted: !!provider?.deletedAt || (!!provider && !provider.isActive && !includePrivatePilot),
     customerExists: !!customer,
     customerDeleted: !!customer?.deletedAt,
+    isProviderSelf: provider?.userId === customerId,
     isReservedTestIdentity: customer
       ? isReservedProjectionIdentity(customer) && !canProjectReservedIdentityForTest(allowReservedTestIdentity)
       : false,
@@ -297,6 +300,7 @@ export async function projectCrmRelationship(
     providerDeleted: !!provider?.deletedAt || (!!provider && !provider.isActive && !includePrivatePilot),
     customerExists: !!customer,
     customerDeleted: !!customer?.deletedAt,
+    isProviderSelf: provider?.userId === customerId,
     isReservedTestIdentity: customer
       ? isReservedProjectionIdentity(customer) && !canProjectReservedIdentityForTest(options.allowReservedTestIdentity)
       : false,
@@ -341,12 +345,10 @@ export async function projectCrmRelationship(
   ], now);
   const lastInteractionAt = lastDate(allInteractionDates, firstInteractionAt);
   const inboundDates = [
-    ...bookingRows.map((booking) => booking.createdAt),
-    ...quoteRows.map((quote) => quote.createdAt),
-    ...paymentRows.map((payment) => payment.processedAt ?? payment.createdAt),
-    ...invoiceRows.filter((invoice) => ["viewed", "paid"].includes(invoice.status)).map((invoice) => invoice.paidAt ?? invoice.updatedAt),
+    ...bookingRows.filter((booking) => booking.status === "pending").map((booking) => booking.createdAt),
+    ...quoteRows.filter((quote) => ["pending", "accepted"].includes(quote.status)).map((quote) => quote.updatedAt ?? quote.createdAt),
     ...messageRows.filter((message) => message.senderId === customerId).map((message) => message.createdAt),
-    ...reviewRows.map((review) => review.createdAt),
+    ...reviewRows.filter((review) => !review.respondedAt).map((review) => review.createdAt),
   ];
   const lastInboundAt = inboundDates.some(validDate) ? lastDate(inboundDates, firstInteractionAt) : null;
   const outboundDates = [

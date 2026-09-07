@@ -1,10 +1,11 @@
-import { eq, and, gte, desc, sql } from "drizzle-orm";
+import { eq, and, gte, desc, ne, sql } from "drizzle-orm";
 import {
   bookings,
   services,
   reviews,
   payments,
   pushSubscriptions,
+  serviceProviders,
   users,
 } from "../../drizzle/schema";
 import { getDb } from "./connection";
@@ -71,7 +72,12 @@ export async function getCustomerRetention(providerId: number) {
   const [totalResult] = await db.select({
     totalCustomers: sql<number>`COUNT(DISTINCT ${bookings.customerId})`,
     totalBookings: sql<number>`COUNT(*)`,
-  }).from(bookings).where(eq(bookings.providerId, providerId));
+  }).from(bookings)
+    .innerJoin(serviceProviders, eq(serviceProviders.id, bookings.providerId))
+    .where(and(
+      eq(bookings.providerId, providerId),
+      ne(bookings.customerId, serviceProviders.userId),
+    ));
 
   const [returningResult] = await db.select({
     returningCustomers: sql<number>`COUNT(*)`,
@@ -80,7 +86,11 @@ export async function getCustomerRetention(providerId: number) {
       customerId: bookings.customerId,
       bookingCount: sql<number>`COUNT(*)`.as("bookingCount"),
     }).from(bookings)
-      .where(eq(bookings.providerId, providerId))
+      .innerJoin(serviceProviders, eq(serviceProviders.id, bookings.providerId))
+      .where(and(
+        eq(bookings.providerId, providerId),
+        ne(bookings.customerId, serviceProviders.userId),
+      ))
       .groupBy(bookings.customerId)
       .having(sql`COUNT(*) >= 2`)
       .as("repeat_customers")

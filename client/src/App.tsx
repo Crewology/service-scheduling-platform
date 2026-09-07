@@ -65,6 +65,8 @@ import Receipts from "./pages/Receipts";
 import { ProviderBookings, ProviderServices, ProviderPayouts, ProviderPortfolio, ProviderQuotes } from "./pages/ProviderTabPage";
 import ProviderAnalyticsPage from "./pages/ProviderAnalyticsPage";
 import ProviderMyPage from "./pages/ProviderMyPage";
+import ProviderCustomers from "./pages/ProviderCustomers";
+import ProviderCustomerDetail from "./pages/ProviderCustomerDetail";
 
 // User features
 import UserProfile from "./pages/UserProfile";
@@ -128,6 +130,8 @@ function Router() {
       <Route path="/search" component={Search} />
       <Route path="/category/:slug" component={CategoryDetail} />
       <Route path="/provider/dashboard" component={ProviderDashboard} />
+      <Route path="/provider/customers/:contactId">{() => <ProviderOnlyGuard featureName="Customers"><ProviderCustomerDetail /></ProviderOnlyGuard>}</Route>
+      <Route path="/provider/customers">{() => <ProviderOnlyGuard featureName="Customers"><ProviderCustomers /></ProviderOnlyGuard>}</Route>
       <Route path="/provider/bookings">{() => { window.location.replace("/my-bookings"); return null; }}</Route>
       <Route path="/provider/services">{() => <ProviderOnlyGuard featureName="Services"><ProviderServices /></ProviderOnlyGuard>}</Route>
       <Route path="/provider/analytics">{() => <ProviderOnlyGuard featureName="Analytics"><ProviderAnalyticsPage /></ProviderOnlyGuard>}</Route>

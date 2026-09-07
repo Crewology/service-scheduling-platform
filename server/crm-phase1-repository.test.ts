@@ -76,7 +76,12 @@ describe("Customers Phase 1 repository isolation and erasure", () => {
     if (!providerA || !providerB) throw new Error("Customers test providers were not created");
 
     const flags = await getCrmRolloutFlags();
-    expect(Object.values(flags).every((enabled) => enabled === false)).toBe(true);
+    expect(flags).toMatchObject({
+      customersRepairJobs: false,
+      customersProviderWrites: false,
+      customersRecommendations: false,
+      customersDraftSending: false,
+    });
 
     const interactionAt = new Date("2026-09-06T14:00:00.000Z");
     const contactA = await upsertCrmContact({

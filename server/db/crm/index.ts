@@ -5,6 +5,7 @@ export * from "./events";
 export * from "./notes";
 export * from "./operationalState";
 export * from "./preferences";
+export * from "./readModel";
 export * from "./rules";
 export * from "./scope";
 export * from "./segments";

@@ -2765,3 +2765,20 @@
 - [x] Make message source-hook ID extraction tolerant of existing database test doubles and update adjacent payment/review/Stripe fixtures for the current PaymentIntent metadata and verified-email security gate
 - [x] Mock email, push, and review notification delivery in the legacy review, quote, and Stripe Connect suites so Phase 2 validation cannot send real messages or time out on external providers
 - [x] Keep owner dry-run metrics separate from the live resumable backfill cursor and remove stale dry-run cursor state so a future apply run cannot skip eligible relationships
+
+## Customers Release 1 Implementation — Phase 3 Read-Only Pilot
+- [x] Resolve the owner’s current provider record and configure it as the sole private Customers pilot without exposing the pilot allow-list publicly
+- [x] Add provider-scoped read-only Customers summary, tab list, filters, pagination, contact detail, activity timeline, and source-navigation procedures
+- [x] Enforce effective-plan capability checks and private-pilot access on every Customers read procedure using the server-derived provider identity
+- [x] Build `/provider/customers` with the approved Leads, Customers, Follow-ups, and Activity tabs plus clear read-only pilot guidance
+- [x] Build responsive list and relationship-detail experiences using projected data and links back to authoritative bookings, quotes, messages, invoices, and reviews
+- [x] Add the Customers entry to approved provider desktop/mobile navigation and Overview only for the private pilot; preserve all existing workspace destinations
+- [x] Run the owner-approved bounded backfill for the sole pilot provider, reconcile source parity, and retain private metrics without enabling global projection writes
+- [x] Keep notes, tasks, drafts, saved segments, automation controls, schedules, exports, and relationship message sending hidden and disabled
+- [x] Add pilot authorization, tenant isolation, entitlement, pagination, filtering, timeline privacy, empty/error, navigation, and responsive UI regression coverage
+- [x] Run zero-error TypeScript, production build, desktop/mobile pilot review, and save a validated Phase 3 checkpoint
+- [x] Limit Customers “Needs response” to currently actionable pending bookings, pending or accepted quotes, unanswered customer messages, and unresponded booking-linked reviews rather than completed or cancelled history
+- [x] Show the pilot provider’s actual business name in the Customers workspace shell instead of the generic “Your business” fallback
+- [x] Exclude the provider owner’s own user account from that provider’s Customers projection, backfill, reconciliation, and read-only pilot data
+- [x] Exclude provider self-bookings from the provider Overview customer count so Business Pulse matches the Customers relationship workspace
+- [x] Update the Phase 1 rollout regression for the approved Phase 3 pilot so it allows read-only UI while still requiring projection-independent provider writes, recommendations, and draft sending to remain off

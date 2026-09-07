@@ -45,6 +45,7 @@ export const crmOperationsRouter = router({
     pilotProviderIds: providerIdsSchema.optional(),
     projectionWrites: z.boolean().optional(),
     repairJobs: z.boolean().optional(),
+    readUi: z.boolean().optional(),
   })).mutation(async ({ ctx, input }) => {
     if (input.pilotProviderIds) await requireExistingProviders(input.pilotProviderIds);
     const status = await setCrmPhase2PrivateConfig({ ...input, actorUserId: ctx.user.id });
@@ -57,6 +58,7 @@ export const crmOperationsRouter = router({
         pilotProviderIds: status.pilotProviderIds,
         projectionWrites: status.flags.projectionWrites,
         repairJobs: status.flags.repairJobs,
+        readUi: status.flags.readUi,
       },
     });
     return status;

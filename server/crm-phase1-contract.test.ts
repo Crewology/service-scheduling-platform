@@ -37,14 +37,15 @@ describe("Customers Phase 1 approved release boundary", () => {
     expect(Object.values(CRM_ROLLOUT_FLAGS)).toHaveLength(6);
   });
 
-  it("does not expose a Customers route, public router, background schedule, or send operation", () => {
+  it("limits the approved Customers route to the provider guard and exposes no background schedule or send operation", () => {
     const root = path.resolve(import.meta.dirname, "..");
     const appSource = fs.readFileSync(path.join(root, "client/src/App.tsx"), "utf8");
     const routerSource = fs.readFileSync(path.join(root, "server/routers.ts"), "utf8");
     const serverSource = fs.readFileSync(path.join(root, "server/_core/index.ts"), "utf8");
     const draftSource = fs.readFileSync(path.join(root, "server/db/crm/drafts.ts"), "utf8");
-    expect(appSource).not.toContain('/provider/customers');
-    expect(routerSource).not.toMatch(/customers\s*:/i);
+    expect(appSource).toContain('path="/provider/customers"');
+    expect(appSource.match(/ProviderOnlyGuard featureName="Customers"/g)?.length).toBe(2);
+    expect(routerSource).toContain("customers: customersRouter");
     expect(serverSource).not.toMatch(/customersProjection|customersRepair|customersTimeRules/);
     expect(draftSource).not.toMatch(/sendCrm|markCrmMessageDraftSent/);
   });
@@ -101,6 +102,7 @@ describe("Customers relationship policy", () => {
       providerDeleted: false,
       customerExists: true,
       customerDeleted: false,
+      isProviderSelf: false,
       isReservedTestIdentity: false,
       isOfficialDemoProvider: false,
       hasBooking: false,
@@ -110,6 +112,7 @@ describe("Customers relationship policy", () => {
     };
     expect(evaluateRelationshipEligibility(baseline)).toMatchObject({ eligible: false, reason: "no_qualifying_source" });
     expect(evaluateRelationshipEligibility({ ...baseline, hasBooking: true })).toMatchObject({ eligible: true });
+    expect(evaluateRelationshipEligibility({ ...baseline, hasBooking: true, isProviderSelf: true })).toMatchObject({ eligible: false, reason: "provider_self" });
     expect(evaluateRelationshipEligibility({ ...baseline, hasQuote: true, isReservedTestIdentity: true })).toMatchObject({ eligible: false, reason: "reserved_test_identity" });
     expect(evaluateRelationshipEligibility({ ...baseline, hasBooking: true, isOfficialDemoProvider: true })).toMatchObject({ eligible: false, reason: "official_demo_excluded" });
     expect(evaluateRelationshipEligibility({ ...baseline, hasBooking: true, isOfficialDemoProvider: true, includePrivateDemoPilot: true })).toMatchObject({ eligible: true });

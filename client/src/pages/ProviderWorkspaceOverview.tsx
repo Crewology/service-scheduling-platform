@@ -30,7 +30,7 @@ import { useMemo, useState } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 
-const providerNav = [
+const baseProviderNav = [
   { label: "Overview", icon: LayoutDashboard, href: "/" },
   { label: "Bookings", icon: CalendarDays, href: "/provider/dashboard?tab=bookings" },
   { label: "Services", icon: BriefcaseBusiness, href: "/provider/dashboard?tab=services" },
@@ -93,6 +93,10 @@ export default function ProviderWorkspaceOverview() {
   const [shared, setShared] = useState(false);
   const [date] = useState(() => localDateKey());
   const { data, isLoading, error } = trpc.providerOverview.get.useQuery({ localDate: date });
+  const { data: customersAccess } = trpc.customers.getAccess.useQuery();
+  const providerNav = customersAccess?.visible
+    ? [...baseProviderNav.slice(0, 2), { label: "Customers", icon: Users, href: "/provider/customers" }, ...baseProviderNav.slice(2)]
+    : baseProviderNav;
 
   const firstName = user?.firstName || user?.name?.split(" ")[0] || "there";
   const todayLabel = useMemo(
@@ -255,7 +259,7 @@ export default function ProviderWorkspaceOverview() {
             <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
               <ProviderPulseStat icon={Banknote} label="Collected" value={formatMoney(data.pulse.collectedThisMonth)} detail="Completed services this month" />
               <ProviderPulseStat icon={BriefcaseBusiness} label="Completed jobs" value={String(data.pulse.completedThisMonth)} detail={`${data.pulse.upcomingCount} upcoming`} />
-              <ProviderPulseStat icon={Users} label="Customers" value={String(data.pulse.totalCustomers)} detail={`${data.pulse.returningCustomers} returning`} />
+              {customersAccess?.visible ? <Link href="/provider/customers" className="rounded-2xl outline-none ring-offset-2 focus-visible:ring-2 focus-visible:ring-blue-500"><ProviderPulseStat icon={Users} label="Customers" value={String(data.pulse.totalCustomers)} detail={`${data.pulse.returningCustomers} returning · Open Customers`} /></Link> : <ProviderPulseStat icon={Users} label="Customers" value={String(data.pulse.totalCustomers)} detail={`${data.pulse.returningCustomers} returning`} />}
               <ProviderPulseStat icon={Star} label="Average rating" value={data.pulse.totalReviews > 0 ? data.pulse.averageRating.toFixed(1) : "New"} detail={`${data.pulse.totalReviews} ${data.pulse.totalReviews === 1 ? "review" : "reviews"}`} />
             </div>
           </section>
@@ -263,7 +267,7 @@ export default function ProviderWorkspaceOverview() {
       </div>
 
       <nav className="fixed inset-x-3 bottom-3 z-30 grid grid-cols-5 rounded-2xl border border-slate-200 bg-white/95 p-1.5 shadow-2xl backdrop-blur lg:hidden" aria-label="Provider mobile navigation">
-        {[{ label: "Home", icon: LayoutDashboard, href: "/" }, { label: "Bookings", icon: CalendarDays, href: "/provider/dashboard?tab=bookings" }, { label: "Calendar", icon: CalendarClock, href: "/provider/dashboard?tab=schedule" }, { label: "Money", icon: CircleDollarSign, href: "/provider/dashboard?tab=finances" }, { label: "More", icon: MoreHorizontal, href: "/provider/dashboard?tab=settings" }].map((item) => { const Icon = item.icon; return <Link key={item.label} href={item.href} className={`flex flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-semibold ${item.label === "Home" ? "bg-blue-50 text-[#174a73]" : "text-slate-500"}`}><Icon className="h-4 w-4" />{item.label}</Link>; })}
+        {([{ label: "Home", icon: LayoutDashboard, href: "/" }, { label: "Bookings", icon: CalendarDays, href: "/provider/dashboard?tab=bookings" }, ...(customersAccess?.visible ? [{ label: "Customers", icon: Users, href: "/provider/customers" }] : [{ label: "Calendar", icon: CalendarClock, href: "/provider/dashboard?tab=schedule" }]), { label: "Money", icon: CircleDollarSign, href: "/provider/dashboard?tab=finances" }, { label: "More", icon: MoreHorizontal, href: "/provider/dashboard?tab=settings" }] as const).map((item) => { const Icon = item.icon; return <Link key={item.label} href={item.href} className={`flex flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-semibold ${item.label === "Home" ? "bg-blue-50 text-[#174a73]" : "text-slate-500"}`}><Icon className="h-4 w-4" />{item.label}</Link>; })}
       </nav>
     </div>
   );

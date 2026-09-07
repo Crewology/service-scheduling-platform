@@ -9,6 +9,7 @@ export type RelationshipEligibilityInput = {
   providerDeleted: boolean;
   customerExists: boolean;
   customerDeleted: boolean;
+  isProviderSelf: boolean;
   isReservedTestIdentity: boolean;
   isOfficialDemoProvider: boolean;
   includePrivateDemoPilot?: boolean;
@@ -20,11 +21,12 @@ export type RelationshipEligibilityInput = {
 
 export type RelationshipEligibilityResult =
   | { eligible: true; reason: "qualifying_source" }
-  | { eligible: false; reason: "provider_unavailable" | "customer_unavailable" | "reserved_test_identity" | "official_demo_excluded" | "no_qualifying_source" };
+  | { eligible: false; reason: "provider_unavailable" | "customer_unavailable" | "provider_self" | "reserved_test_identity" | "official_demo_excluded" | "no_qualifying_source" };
 
 export function evaluateRelationshipEligibility(input: RelationshipEligibilityInput): RelationshipEligibilityResult {
   if (!input.providerExists || input.providerDeleted) return { eligible: false, reason: "provider_unavailable" as const };
   if (!input.customerExists || input.customerDeleted) return { eligible: false, reason: "customer_unavailable" as const };
+  if (input.isProviderSelf) return { eligible: false, reason: "provider_self" as const };
   if (input.isReservedTestIdentity) return { eligible: false, reason: "reserved_test_identity" as const };
   if (input.isOfficialDemoProvider && !input.includePrivateDemoPilot) return { eligible: false, reason: "official_demo_excluded" as const };
   if (!(input.hasBooking || input.hasQuote || input.hasRegisteredCustomerInvoice || input.hasEligibleConversation)) {
