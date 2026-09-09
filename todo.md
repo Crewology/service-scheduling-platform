@@ -2831,8 +2831,8 @@
 - [x] Run adjacent tests, zero-error TypeScript, diff validation, production build, desktop/mobile review, final private-state verification, implementation report, and checkpoint
 
 ## Customers Private Pilot — Consent and One-Message Validation
-- [ ] Deferred pending customer availability: confirm which qualified Chisolm Audio customer account can legitimately exercise its own opt-in
-- [ ] Deferred pending customer availability: validate opt-in persistence, provider availability refresh, reversible opt-out, one deliberately confirmed message, conversation/timeline linkage, and zero external side effects
+- [x] Deferred by owner pending customer availability; no qualified Chisolm Audio customer account was accessed and no consent state was changed
+- [x] Deferred by owner pending customer availability; live opt-in persistence, provider availability refresh, reversible opt-out, one-message delivery, and conversation/timeline verification were not performed or claimed as passed
 
 ## Customers Release 1 Implementation — Phase 8 Pilot Monitoring and Rollout Readiness
 - [x] Define privacy-safe pilot health metrics using aggregate counts and status only, with no message body, note body, task description, address, payment secret, or unrestricted customer snapshot
