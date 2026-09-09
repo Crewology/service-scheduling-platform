@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import type { TrpcContext } from "./_core/context";
 import { assessCrmPilotReadiness, getCrmPilotHealth } from "./crm/health";
 import { crmOperationsRouter } from "./crmOperationsRouter";
+import { customersRouter } from "./customersRouter";
 
 function context(role: "admin" | "user", adminRole: "super_admin" | null): TrpcContext {
   return {
@@ -35,6 +36,22 @@ function context(role: "admin" | "user", adminRole: "super_admin" | null): TrpcC
     },
     req: {} as TrpcContext["req"],
     res: {} as TrpcContext["res"],
+  };
+}
+
+function providerContext(userId: number, name: string): TrpcContext {
+  const base = context("user", null);
+  return {
+    ...base,
+    user: {
+      ...base.user,
+      id: userId,
+      openId: `customers-pilot-provider-${userId}`,
+      email: `customers-pilot-provider-${userId}@example.invalid`,
+      name,
+      firstName: name,
+      lastName: "Pilot",
+    },
   };
 }
 
@@ -84,6 +101,19 @@ describe("Customers Phase 8 pilot readiness", () => {
     });
   });
 
+  it("keeps a two-provider pilot ready when both providers are available and all aggregate safeguards pass", () => {
+    const result = assessCrmPilotReadiness({
+      ...readyInput,
+      pilotProviderCount: 2,
+      optedInContactCount: 1,
+      contactCount: 4,
+      liveValidatedContactCount: 1,
+    });
+    expect(result.status).toBe("ready");
+    expect(result.checks.find(check => check.id === "pilot_allowlist")).toMatchObject({ status: "ready", detail: "2 providers allowlisted" });
+    expect(result.checks.find(check => check.id === "customer_permission")).toMatchObject({ status: "ready", detail: "1 of 4 relationships currently opted in" });
+  });
+
   it("blocks rollout readiness for tenant, projection, sent-link, or future-capability violations", () => {
     const result = assessCrmPilotReadiness({
       ...readyInput,
@@ -109,13 +139,34 @@ describe("Customers Phase 8 pilot readiness", () => {
   it("returns only aggregate current-pilot health with no private relationship content", async () => {
     const result = await getCrmPilotHealth();
     expect(result.status).toBe("ready");
-    expect(result.providers).toEqual([expect.objectContaining({ providerId: 1, businessName: "Chisolm Audio", isActive: true, customerHistoryEnabled: true, draftsEnabled: true, contacts: 3, optedInContacts: 1, sentDrafts: 1, liveValidatedContacts: 1 })]);
-    expect(result.totals).toMatchObject({ providers: 1, activeProviders: 1, contacts: 3, optedInContacts: 1, sentDrafts: 1, liveValidatedContacts: 1 });
+    expect(result.providers).toEqual(expect.arrayContaining([
+      expect.objectContaining({ providerId: 1, businessName: "Chisolm Audio", isActive: true, customerHistoryEnabled: true, draftsEnabled: true, contacts: 3, optedInContacts: 1, sentDrafts: 1, liveValidatedContacts: 1 }),
+      expect.objectContaining({ providerId: 1_350_001, businessName: "Gary Studios", isActive: true, effectiveTier: "basic", entitlementState: "trialing", customerHistoryEnabled: true, notesEnabled: true, followUpsEnabled: true, draftsEnabled: true, stageOverridesEnabled: true, contacts: 1, optedInContacts: 0, sentDrafts: 0, liveValidatedContacts: 0 }),
+    ]));
+    expect(result.totals.providers).toBe(result.providers.length);
+    expect(result.totals.activeProviders).toBe(result.providers.filter(provider => provider.isActive).length);
+    expect(result.totals.contacts).toBe(result.providers.reduce((sum, provider) => sum + provider.contacts, 0));
+    expect(result.totals.optedInContacts).toBe(result.providers.reduce((sum, provider) => sum + provider.optedInContacts, 0));
+    expect(result.totals.sentDrafts).toBe(result.providers.reduce((sum, provider) => sum + provider.sentDrafts, 0));
+    expect(result.totals.liveValidatedContacts).toBe(result.providers.reduce((sum, provider) => sum + provider.liveValidatedContacts, 0));
+    expect(result.totals).toMatchObject({ providers: 2, activeProviders: 2, contacts: 4, optedInContacts: 1, sentDrafts: 1, liveValidatedContacts: 1 });
     expect(result.integrity).toMatchObject({ selfContacts: 0, nonPilotContacts: 0, scopeMismatches: 0, sentDraftIssues: 0 });
     expect(result.future).toMatchObject({ enabledAutomationRules: 0, automationRuns: 0, savedSegments: 0 });
     expect(result.flags).toMatchObject({ projectionWrites: true, readUi: true, providerWrites: true, draftSending: true, repairJobs: false, recommendations: false });
     const { privacyNotice: _privacyNotice, ...dataOnly } = result;
     expect(JSON.stringify(dataOnly)).not.toMatch(/legacy\.vk|freshradioshow|@gmail|messageText|customerEmail|customerName|noteBody|taskDescription/i);
+  }, 60_000);
+
+  it("grants each named provider only its own Customers workspace and rejects constructed cross-provider contact IDs", async () => {
+    const chisolm = customersRouter.createCaller(providerContext(1, "Chisolm Audio"));
+    const garyStudios = customersRouter.createCaller(providerContext(135_990_339, "Gary Studios"));
+
+    await expect(chisolm.getAccess()).resolves.toMatchObject({ visible: true, businessName: "Chisolm Audio", notesEnabled: true, followUpsEnabled: true, draftsEnabled: true, stageOverridesEnabled: true });
+    await expect(garyStudios.getAccess()).resolves.toMatchObject({ visible: true, businessName: "Gary Studios", effectiveTier: "basic", notesEnabled: true, followUpsEnabled: true, draftsEnabled: true, stageOverridesEnabled: true });
+
+    await expect(garyStudios.getContact({ contactId: 1_380_030 })).resolves.toMatchObject({ contact: { id: 1_380_030, customerId: 1 } });
+    await expect(garyStudios.getContact({ contactId: 1_320_002 })).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(chisolm.getContact({ contactId: 1_380_030 })).rejects.toMatchObject({ code: "NOT_FOUND" });
   }, 60_000);
 });
 

@@ -2860,3 +2860,14 @@
 - [x] Verify zero notification rows, email, SMS, push, automated reply, recommendation, schedule, export, campaign, automation, or other external delivery side effect
 - [x] Leave Gary Studios relationship-message permission on at the owner’s request, record Live test verified in owner monitoring, and keep provider 1 as the sole pilot pending separate candidate approval
 - [x] Run 197 adjacent regressions, zero-error TypeScript, diff validation, production build, final database-state verification, documentation updates, and save a rollback-safe checkpoint
+
+## Customers Private Pilot — Add Gary Studios as Second Provider
+- [x] Review Admin → Customers Pilot in its current Ready state and preserve the verified Chisolm Audio baseline before any allowlist change
+- [x] Identify Gary Studios provider `1350001` and verify active status, effective Pro trial lifecycle access, every approved Customers entitlement, and owner control
+- [x] Establish one legitimate no-payment Chisolm Audio quote relationship, then run a non-writing assessment showing one candidate, one eligible relationship, zero exclusions, and zero failures
+- [x] Update monitoring and regressions so two named pilot providers are supported without hardcoded one-provider totals or customer-identity exposure
+- [x] Add only Chisolm Audio and Gary Studios to the private pilot allowlist through the audited owner-only configuration path while preserving every existing flag
+- [x] Backfill only Gary Studios through the confirmation-gated owner operation and project one authoritative quote relationship without manual or fabricated contacts
+- [x] Verify both provider access paths, strict constructed-ID cross-provider denial, self-contact exclusion, lifecycle gates, aggregate monitoring, and safe disable behavior
+- [x] Keep repair jobs, recommendations, automation rules, runs, schedules, saved segments, exports, bulk messaging, AI, and every other provider disabled
+- [x] Run 199 adjacent regressions, zero-error TypeScript, diff validation, production build, desktop/mobile review, final database-state verification, documentation, and checkpoint
