@@ -13,6 +13,7 @@ import {
   setCrmPhase2PrivateConfig,
 } from "./crm/operations";
 import { getCrmPilotHealth } from "./crm/health";
+import { getCrmBetaCandidateReadiness } from "./crm/betaReadiness";
 
 const ownerProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   if (ctx.user.role !== "admin" || ctx.user.adminRole !== "super_admin") {
@@ -42,6 +43,10 @@ async function requirePilotProviders(providerIds: number[]) {
 export const crmOperationsRouter = router({
   getStatus: ownerProcedure.query(() => getCrmPhase2PrivateStatus()),
   getPilotHealth: ownerProcedure.query(() => getCrmPilotHealth()),
+  assessBetaCandidate: ownerProcedure.input(z.object({
+    providerId: z.number().int().positive(),
+    hasReachableTester: z.boolean().default(false),
+  })).query(({ ctx, input }) => getCrmBetaCandidateReadiness({ ...input, actorUserId: ctx.user.id })),
 
   configure: ownerProcedure.input(z.object({
     pilotProviderIds: providerIdsSchema.optional(),

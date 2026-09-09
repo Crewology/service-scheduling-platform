@@ -21,6 +21,8 @@ If a privacy, consent, entitlement, message-link, or tenant-integrity check beco
 
 Phase 9 retains the two-provider pilot and does not approve a 3–5 provider beta. Before reconsidering expansion, decide Gary Studios’ post-trial plan and complete one real follow-up lifecycle plus one provider-reviewed draft lifecycle from Gary Studios’ existing relationship. Then require separate named owner approval for every candidate. Each candidate must be active, retain the required lifecycle entitlement, have at least one legitimate non-self relationship or establish one through a normal flow, identify a reachable customer-side tester, pass a non-writing projection assessment, and enter through the audited configuration and backfill path. Re-run cross-provider isolation, owner monitoring, and responsive checks after expansion.[1] [2] [4]
 
+Phase 10 completed the Gary Studios follow-up and private-draft lifecycle checks and added a super-admin **Controlled beta candidate review**. The review reports Ready, Pending, Blocked, or Already in pilot from current provider, entitlement, tester, capacity, and non-writing projection evidence. It cannot enroll a provider, change flags, write projection state, contact a tester, or expose customer identities or private content. The cohort still remains two providers until a third provider is separately named and approved.[4] [5]
+
 ## Privacy rule
 
 The monitoring workspace is not an admin surveillance tool. It must never expose private note bodies, task descriptions, draft or message bodies, customer names or emails, addresses, payment data, or unrestricted source snapshots. Diagnostics remain aggregate and provider-operational only.[1] [2]
@@ -31,3 +33,4 @@ The monitoring workspace is not an admin surveillance tool. It must never expose
 [2]: ./CUSTOMERS_SECOND_PILOT_ROLLOUT_REPORT.md "Gary Studios second-provider rollout report"
 [3]: ../../server/crm/operations.ts "Audited Customers private rollout configuration"
 [4]: ./CRM_PHASE_9_STABILIZATION_REPORT.md "Customers Phase 9 stabilization and rollout decision"
+[5]: ./CRM_PHASE_10_IMPLEMENTATION_REPORT.md "Customers Phase 10 controlled beta readiness report"

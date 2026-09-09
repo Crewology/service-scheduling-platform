@@ -2883,3 +2883,16 @@
 - [x] Keep the allowlist exactly `[1, 1350001]` and keep AI, recommendations, automation, schedules, segments, exports, bulk messaging, repair jobs, and all other providers disabled
 - [x] Pass 22 adjacent test files and 205 tests, zero-error TypeScript, diff validation, production build, desktop/mobile and Help Center review, fresh runtime-log review, and final database-state verification
 - [x] Produce the Phase 9 stabilization report and retain the two-provider pilot pending Gary Studios’ post-trial plan and one real follow-up plus draft lifecycle on its existing relationship
+
+## Customers Phase 10 — Controlled Beta Readiness
+- [x] Confirm Phase 10 against the approved Customers PRD and prior rollout decisions; implement controlled beta readiness without automatic provider expansion or separately gated saved segments and automation
+- [x] Keep the remaining real Gary Studios follow-up lifecycle and provider-reviewed draft lifecycle deferred until—and complete them at—the final Phase 10 validation gate
+- [x] Define a privacy-safe candidate readiness model covering active status, lifecycle entitlement, legitimate non-self relationship evidence, reachable tester, projection dry-run health, cohort capacity, and separate named owner approval
+- [x] Add an owner-only cohort readiness review without exposing customer identities, private notes, task descriptions, draft or message bodies, addresses, payment data, or unrestricted source snapshots
+- [x] Keep every cohort change on the existing audited owner-only configuration and provider-bounded backfill path; candidate assessment cannot auto-enroll or derive provider access from client input
+- [x] Preserve Chisolm Audio and Gary Studios as the only enabled providers unless the owner separately names and approves each additional candidate after reviewing readiness
+- [x] Keep AI, recommendations, automation, schedules, saved segments, exports, bulk messaging, repair jobs, public rollout, and all background send behavior disabled
+- [x] Add focused candidate eligibility, privacy, authorization, entitlement, tenant-isolation, no-auto-enrollment, current-state, and owner-approval regressions
+- [x] Build and review a concise desktop/mobile owner beta-readiness experience with Ready, Blocked, Pending, and Already in pilot evidence states
+- [x] Complete the Gary Studios follow-up create/edit/complete/reopen/cancel lifecycle and private draft create/edit/discard lifecycle without sending a message, then retain the two-provider cohort
+- [x] Pass 23 adjacent test files and 210 tests, zero-error TypeScript, diff validation, production build, fresh runtime-log review, final database-state verification, documentation, and checkpoint readiness
