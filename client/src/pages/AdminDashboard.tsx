@@ -76,6 +76,7 @@ import { formatTimeForDisplay } from "@shared/timeSlots";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { TeamManagementPanel } from "./admin/TeamManagementPanel";
 import { AuditLogPanel } from "./admin/AuditLogPanel";
+import { CustomersPilotHealthPanel } from "./admin/CustomersPilotHealthPanel";
 
 function SystemHealthOverview() {
   const { data, isLoading, refetch, isFetching } = trpc.admin.getSystemHealth.useQuery(undefined, {
@@ -478,6 +479,10 @@ export default function AdminDashboard() {
                 <FileText className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
                 Legal Terms
               </TabsTrigger> : null}
+              {user?.adminRole === "super_admin" ? <TabsTrigger value="customers-pilot" className="whitespace-nowrap text-xs md:text-sm">
+                <ShieldCheck className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
+                Customers Pilot
+              </TabsTrigger> : null}
               <TabsTrigger value="support" className="whitespace-nowrap text-xs md:text-sm">
                 <MessageSquare className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
                 Support
@@ -776,6 +781,10 @@ export default function AdminDashboard() {
           <TabsContent value="legal">
             <AdminTermsManagement />
           </TabsContent>
+
+          {user?.adminRole === "super_admin" ? <TabsContent value="customers-pilot">
+            <CustomersPilotHealthPanel />
+          </TabsContent> : null}
 
           {/* Platform Settings Tab */}
           <TabsContent value="settings">

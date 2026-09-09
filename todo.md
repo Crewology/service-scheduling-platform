@@ -2829,3 +2829,17 @@
 - [x] Enable `customersDraftSending` only through the audited owner-only path after authorization, consent, and idempotency tests pass, with provider 1 remaining the sole pilot
 - [x] Add focused preference, router, repository, atomicity, privacy, tenant-isolation, lifecycle, idempotency, no-external-delivery, UI-contract, and responsive regressions
 - [x] Run adjacent tests, zero-error TypeScript, diff validation, production build, desktop/mobile review, final private-state verification, implementation report, and checkpoint
+
+## Customers Private Pilot — Consent and One-Message Validation
+- [ ] Deferred pending customer availability: confirm which qualified Chisolm Audio customer account can legitimately exercise its own opt-in
+- [ ] Deferred pending customer availability: validate opt-in persistence, provider availability refresh, reversible opt-out, one deliberately confirmed message, conversation/timeline linkage, and zero external side effects
+
+## Customers Release 1 Implementation — Phase 8 Pilot Monitoring and Rollout Readiness
+- [x] Define privacy-safe pilot health metrics using aggregate counts and status only, with no message body, note body, task description, address, payment secret, or unrestricted customer snapshot
+- [x] Add an owner-only pilot health procedure that verifies pilot allowlist, active providers, rollout flags, lifecycle entitlement, relationship and self-contact counts, draft states, sent-message linkage, consent coverage, projection freshness, reconciliation, and scoped-child conditions
+- [x] Add owner-only readiness checks that clearly distinguish ready, blocked, deferred live-validation, and disabled states without claiming unperformed customer testing passed
+- [x] Add an owner-only monitoring workspace using concise cards and tables, with safe disable guidance and no private note surveillance or customer message content
+- [x] Verify existing provider-visible draft delivery status and conversation linkage are sufficient without adding admin send controls, bulk actions, AI, recommendations, automation, schedules, segments, exports, or broader provider access
+- [x] Keep provider 1 as the sole pilot and preserve projection writes, read UI, provider writes, and draft sending while repair jobs and recommendations remain disabled
+- [x] Add focused aggregate-privacy, owner authorization, tenant isolation, scoped-child detection, rollout disable, provider lifecycle status, UI-contract, and responsive regressions
+- [x] Run adjacent tests, zero-error TypeScript, diff validation, production build, desktop/mobile review, final private-state verification, implementation report, and checkpoint

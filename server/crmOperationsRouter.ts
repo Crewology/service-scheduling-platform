@@ -12,6 +12,7 @@ import {
   runCrmProjectionBatch,
   setCrmPhase2PrivateConfig,
 } from "./crm/operations";
+import { getCrmPilotHealth } from "./crm/health";
 
 const ownerProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   if (ctx.user.role !== "admin" || ctx.user.adminRole !== "super_admin") {
@@ -40,6 +41,7 @@ async function requirePilotProviders(providerIds: number[]) {
 
 export const crmOperationsRouter = router({
   getStatus: ownerProcedure.query(() => getCrmPhase2PrivateStatus()),
+  getPilotHealth: ownerProcedure.query(() => getCrmPilotHealth()),
 
   configure: ownerProcedure.input(z.object({
     pilotProviderIds: providerIdsSchema.optional(),

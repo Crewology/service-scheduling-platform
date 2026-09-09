@@ -79,9 +79,9 @@ describe("Customers Phase 1 repository isolation and erasure", () => {
     expect(flags).toMatchObject({
       customersRepairJobs: false,
       customersRecommendations: false,
-      customersDraftSending: false,
     });
     expect(typeof flags.customersProviderWrites).toBe("boolean");
+    expect(typeof flags.customersDraftSending).toBe("boolean");
 
     const interactionAt = new Date("2026-09-06T14:00:00.000Z");
     const contactA = await upsertCrmContact({
