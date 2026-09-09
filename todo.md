@@ -2871,3 +2871,15 @@
 - [x] Verify both provider access paths, strict constructed-ID cross-provider denial, self-contact exclusion, lifecycle gates, aggregate monitoring, and safe disable behavior
 - [x] Keep repair jobs, recommendations, automation rules, runs, schedules, saved segments, exports, bulk messaging, AI, and every other provider disabled
 - [x] Run 199 adjacent regressions, zero-error TypeScript, diff validation, production build, desktop/mobile review, final database-state verification, documentation, and checkpoint
+
+## Customers Phase 9 — Two-Provider Pilot Stabilization and Rollout Decision
+- [x] Audit every approved Customers workflow for Chisolm Audio and Gary Studios: relationship discovery, stage changes, private notes, follow-ups, drafts, consent-aware sending, conversations, and owner monitoring
+- [x] Verify both providers remain strictly tenant isolated and all customer, note, task, draft, message, and activity data stays provider scoped and privacy safe
+- [x] Validate lifecycle behavior for Gary Studios through deterministic Pro-to-Starter downgrade and restoration scenarios without changing the real subscription or bypassing entitlements
+- [x] Confirm Starter preserves read-only customer history while denying notes, follow-ups, drafts, sending, and manual stages; confirm qualifying access restores tools without losing retained private records
+- [x] Review desktop and mobile usability, correct stale workspace sending copy, and add explicit retained-data lifecycle guidance without changing approved Customers workflows
+- [x] Verify Admin → Customers Pilot reports provider access loss, recovery, integrity, projection health, consent coverage, delivery linkage, and safe-disable guidance
+- [x] Add Help Center guidance and a support playbook for Customers private tools, customer consent, lifecycle access, safe disable order, and paid-plan expiration behavior
+- [x] Keep the allowlist exactly `[1, 1350001]` and keep AI, recommendations, automation, schedules, segments, exports, bulk messaging, repair jobs, and all other providers disabled
+- [x] Pass 22 adjacent test files and 205 tests, zero-error TypeScript, diff validation, production build, desktop/mobile and Help Center review, fresh runtime-log review, and final database-state verification
+- [x] Produce the Phase 9 stabilization report and retain the two-provider pilot pending Gary Studios’ post-trial plan and one real follow-up plus draft lifecycle on its existing relationship

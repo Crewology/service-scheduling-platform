@@ -209,6 +209,13 @@ const guideSections: GuideSection[] = [
         linkText: "View Analytics",
       },
       {
+        title: "Provider Relationship Messages",
+        content:
+          "You control whether providers with a qualified OlogyCrew relationship may send you an occasional in-app follow-up from Customers. Permission is off by default. Turn it on or off from Notification Settings at any time. A provider must review the exact draft and confirm each message; this permission does not enable marketing email, SMS, push notifications, bulk messages, or automatic follow-ups. Turning permission off blocks future Customers relationship messages but does not remove messages already in your OlogyCrew conversation history.",
+        link: "/notification-settings",
+        linkText: "Manage Relationship Message Permission",
+      },
+      {
         title: "Becoming a Provider",
         content:
           "Want to offer your own services? You don't need a separate account. Visit your Profile page and you'll see a \"Become a Provider\" card that walks you through the process. Click \"Get Started\" to begin the provider onboarding wizard. Once complete, you'll have access to both customer and provider features — book services and offer your own, all from one account.",
@@ -275,6 +282,13 @@ const guideSections: GuideSection[] = [
         title: "Responding to Quote Requests",
         content:
           "Customers may send you quote requests for custom work. You'll see these on your dashboard under the Quotes tab. Review the request details and respond with your pricing, estimated timeline, and any notes. Quick responses improve your chances of winning the job.",
+      },
+      {
+        title: "Using Customers During the Private Pilot",
+        content:
+          "If Customers appears in your provider workspace, it organizes qualified OlogyCrew relationships from bookings, quotes, payments, invoices, eligible messages, and booking-linked reviews. Existing source records remain authoritative. Leads, Customers, Follow-ups, and Activity help you review history without creating external contacts.\n\nPrivate notes are visible only to your provider account. Follow-ups are manual reminders and never contact the customer. Manual stages change only how a relationship is organized. Message drafts remain private until you deliberately review and confirm an eligible in-app message; the customer's current permission is checked again at send time. Nothing runs automatically.\n\nCustomer history remains available on Starter, but Pro or Business is required for private notes, follow-ups, manual stages, and message drafts. If paid access ends, existing private records are retained but hidden until qualifying access returns. Contact Support if Customers shows the wrong provider, an unknown relationship, or a message you did not deliberately confirm.",
+        link: "/provider/customers",
+        linkText: "Open Customers",
       },
       {
         title: "Building Your Portfolio",

@@ -256,6 +256,49 @@ describe("Customers Phase 4 private notes and manual follow-ups", () => {
     expect(mocks.getCrmMessageDraftSendReadiness).not.toHaveBeenCalled();
   });
 
+  it("restores retained private tools after a deterministic Pro-to-Starter-to-Pro lifecycle transition", async () => {
+    const paidAccess = {
+      entitlement: { effectiveTier: "basic", state: "trialing", hasPaidAccess: true },
+      isPilotProvider: true,
+      can: (feature: string) => ["customerHistory", "crmNotes", "crmFollowUps", "crmStageOverrides", "crmDrafts"].includes(feature),
+    };
+    const starterAccess = {
+      entitlement: { effectiveTier: "free", state: "active", hasPaidAccess: false },
+      isPilotProvider: true,
+      can: (feature: string) => feature === "customerHistory",
+    };
+    mocks.listCrmContactNotes.mockResolvedValue([{ id: 55, body: "Retained private context" }]);
+    mocks.listCrmTaskReadModels.mockResolvedValue([task]);
+    mocks.listCrmMessageDrafts.mockResolvedValue([draft]);
+
+    mocks.getCrmProviderAccess.mockResolvedValueOnce(paidAccess);
+    await expect(customersRouter.createCaller(context()).getContact({ contactId: 9, eventLimit: 30 })).resolves.toMatchObject({
+      notes: [{ id: 55 }],
+      tasks: [{ id: 31 }],
+      drafts: [{ id: 61 }],
+      readOnly: false,
+    });
+
+    mocks.getCrmProviderAccess.mockResolvedValue(starterAccess);
+    await expect(customersRouter.createCaller(context()).getAccess()).resolves.toMatchObject({ visible: true, effectiveTier: "free", readOnly: true, notesEnabled: false, followUpsEnabled: false, stageOverridesEnabled: false, draftsEnabled: false, draftSendingEnabled: false });
+    await expect(customersRouter.createCaller(context()).getContact({ contactId: 9, eventLimit: 30 })).resolves.toMatchObject({ notes: [], tasks: [], drafts: [], readOnly: true });
+    await expect(customersRouter.createCaller(context()).createNote({ contactId: 9, body: "Blocked" })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(customersRouter.createCaller(context()).createFollowUp({ contactId: 9, title: "Blocked", requestId: crypto.randomUUID() })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(customersRouter.createCaller(context()).setRelationshipStage({ contactId: 9, stage: "customer" })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(customersRouter.createCaller(context()).createDraft({ contactId: 9, body: "Blocked", requestId: crypto.randomUUID() })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(customersRouter.createCaller(context()).sendDraft({ contactId: 9, draftId: 61, confirmedBody: draft.body, confirmSend: true })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    expect(mocks.createCrmContactNote).not.toHaveBeenCalledWith(expect.objectContaining({ body: "Blocked" }));
+
+    mocks.getCrmProviderAccess.mockResolvedValue(paidAccess);
+    await expect(customersRouter.createCaller(context()).getAccess()).resolves.toMatchObject({ visible: true, effectiveTier: "basic", readOnly: false, notesEnabled: true, followUpsEnabled: true, stageOverridesEnabled: true, draftsEnabled: true });
+    await expect(customersRouter.createCaller(context()).getContact({ contactId: 9, eventLimit: 30 })).resolves.toMatchObject({
+      notes: [{ id: 55 }],
+      tasks: [{ id: 31 }],
+      drafts: [{ id: 61 }],
+      readOnly: false,
+    });
+  });
+
   it("returns provider-scoped task rows for the Follow-ups tab", async () => {
     mocks.listCrmTaskReadModels.mockResolvedValueOnce([{ ...task, customerName: "Ada", customerEmail: "ada@example.invalid" }]);
     const result = await customersRouter.createCaller(context()).getWorkspace({ tab: "follow-ups", sort: "attention", limit: 25, offset: 0 });
@@ -473,6 +516,10 @@ describe("Customers Phase 4 fixed product boundary", () => {
     for (const label of ["Leads", "Customers", "Follow-ups", "Activity"]) expect(workspaceSource).toContain(`label: "${label}"`);
     for (const group of ["Overdue", "Due today", "Upcoming & open", "Completed", "Cancelled"]) expect(workspaceSource).toContain(`title: "${group}"`);
     expect(workspaceSource).toContain("They do not send a message, change a booking, or run automatically.");
+    expect(workspaceSource).toContain("In-app messages send only from a reviewed draft after confirmation and current customer permission.");
+    expect(workspaceSource).not.toContain("Nothing here sends a message");
+    for (const text of ["Customer history is available, but private tools are paused", "Existing private records are retained.", 'href="/provider/subscription"']) expect(workspaceSource).toContain(text);
+    for (const text of ["Private tools are paused on your current plan", "Existing private records are retained and return when qualifying access is restored.", 'href="/provider/subscription"']) expect(detailSource).toContain(text);
     expect(workspaceSource).toContain("useSearch");
     expect(workspaceSource).toContain("grid grid-cols-4");
     expect(detailSource).toContain("Only your provider account can see these notes.");

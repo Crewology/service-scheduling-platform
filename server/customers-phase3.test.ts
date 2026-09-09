@@ -153,7 +153,8 @@ describe("Customers Phase 3 source contracts", () => {
   it("renders the four approved tabs and private-tools pilot guidance", () => {
     for (const label of ["Leads", "Customers", "Follow-ups", "Activity"]) expect(workspace).toContain(`label: "${label}"`);
     expect(workspace).toContain("Private tools pilot");
-    expect(workspace).toContain("Nothing here sends a message, runs automatically, or changes a booking.");
+    expect(workspace).toContain("In-app messages send only from a reviewed draft after confirmation and current customer permission.");
+    expect(workspace).toContain("Nothing runs automatically or changes a booking.");
     expect(workspace).not.toMatch(/Send message|Save segment/);
     expect(detail).not.toMatch(/Send message|Save segment/);
   });

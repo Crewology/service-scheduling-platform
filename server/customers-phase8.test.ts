@@ -131,6 +131,31 @@ describe("Customers Phase 8 pilot readiness", () => {
     ]));
   });
 
+  it("blocks owner readiness when an allowlisted provider loses required lifecycle access and returns ready after restoration", () => {
+    const downgraded = assessCrmPilotReadiness({
+      ...readyInput,
+      pilotProviderCount: 2,
+      ineligiblePilotProviderCount: 1,
+      optedInContactCount: 1,
+      liveValidatedContactCount: 1,
+    });
+    expect(downgraded.status).toBe("blocked");
+    expect(downgraded.checks.find(check => check.id === "provider_availability")).toMatchObject({
+      status: "blocked",
+      detail: "0 missing · 0 inactive · 1 without required Customers entitlement",
+    });
+
+    const restored = assessCrmPilotReadiness({
+      ...readyInput,
+      pilotProviderCount: 2,
+      ineligiblePilotProviderCount: 0,
+      optedInContactCount: 1,
+      liveValidatedContactCount: 1,
+    });
+    expect(restored.status).toBe("ready");
+    expect(restored.checks.find(check => check.id === "provider_availability")).toMatchObject({ status: "ready" });
+  });
+
   it("requires a super-admin session for pilot health", async () => {
     await expect(crmOperationsRouter.createCaller(context("user", null)).getPilotHealth()).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(crmOperationsRouter.createCaller(context("admin", null)).getPilotHealth()).rejects.toMatchObject({ code: "FORBIDDEN" });

@@ -19,7 +19,7 @@ If a privacy, consent, entitlement, message-link, or tenant-integrity check beco
 
 ## Third-provider gate
 
-Do not add a third provider without a separate named owner approval. The candidate must be active, retain the required lifecycle entitlement, have at least one legitimate non-self relationship or establish one through a normal flow, identify a reachable customer-side tester, pass a non-writing projection assessment, and enter through the audited configuration and backfill path. Re-run cross-provider isolation, owner monitoring, and responsive checks after expansion.[1] [2]
+Phase 9 retains the two-provider pilot and does not approve a 3–5 provider beta. Before reconsidering expansion, decide Gary Studios’ post-trial plan and complete one real follow-up lifecycle plus one provider-reviewed draft lifecycle from Gary Studios’ existing relationship. Then require separate named owner approval for every candidate. Each candidate must be active, retain the required lifecycle entitlement, have at least one legitimate non-self relationship or establish one through a normal flow, identify a reachable customer-side tester, pass a non-writing projection assessment, and enter through the audited configuration and backfill path. Re-run cross-provider isolation, owner monitoring, and responsive checks after expansion.[1] [2] [4]
 
 ## Privacy rule
 
@@ -30,4 +30,4 @@ The monitoring workspace is not an admin surveillance tool. It must never expose
 [1]: ../../server/crm/health.ts "Privacy-safe multi-provider pilot monitoring"
 [2]: ./CUSTOMERS_SECOND_PILOT_ROLLOUT_REPORT.md "Gary Studios second-provider rollout report"
 [3]: ../../server/crm/operations.ts "Audited Customers private rollout configuration"
-
+[4]: ./CRM_PHASE_9_STABILIZATION_REPORT.md "Customers Phase 9 stabilization and rollout decision"
