@@ -23,8 +23,11 @@ describe("Security: Provider getById strips sensitive fields", () => {
     const providerRouterCode = await import("fs").then(fs => 
       fs.readFileSync("./server/routers/providerRouter.ts", "utf-8")
     );
-    // Verify the getById endpoint strips stripeAccountId
-    expect(providerRouterCode).toContain("stripeAccountId, ...safeProvider");
+    const getByIdSection = providerRouterCode.split("getById:")[1]?.split("getMine:")[0] || "";
+    expect(getByIdSection).toContain("stripeAccountId,");
+    expect(getByIdSection).toContain("...safeProviderRaw");
+    expect(getByIdSection).toContain("...safeProvider");
+    expect(getByIdSection).not.toMatch(/return\s*\{\s*\.\.\.provider[},]/);
   });
 });
 

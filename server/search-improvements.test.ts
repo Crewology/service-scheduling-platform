@@ -150,7 +150,7 @@ describe("search improvements", () => {
       }
     });
 
-    it("limits results to 10", async () => {
+    it("respects the 50 result limit", async () => {
       const ctx = createPublicContext();
       const caller = appRouter.createCaller(ctx);
 
@@ -158,7 +158,7 @@ describe("search improvements", () => {
       const results = await caller.provider.search({ query: "a" });
 
       expect(Array.isArray(results)).toBe(true);
-      expect(results.length).toBeLessThanOrEqual(10);
+      expect(results.length).toBeLessThanOrEqual(50);
     });
   });
 });

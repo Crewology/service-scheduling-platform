@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { formatTimeForDisplay } from "../shared/timeSlots";
+import { CUSTOMER_PLANS } from "../shared/entitlements";
 
 describe("Group 7: UI/Display Fixes", () => {
   describe("12-hour time format", () => {
@@ -24,15 +25,13 @@ describe("Group 7: UI/Display Fixes", () => {
     });
   });
 
-  describe("Email support removed from help page", () => {
-    it("should not reference email support in help center", async () => {
+  describe("Personal email support address removed from help page", () => {
+    it("should not expose the owner personal email address in help center", async () => {
       const fs = await import("fs");
       const helpContent = fs.readFileSync(
         "/home/ubuntu/service-scheduling-platform/client/src/pages/HelpCenter.tsx",
         "utf-8"
       );
-      // Should not have the email support card
-      expect(helpContent).not.toContain("Email Support");
       expect(helpContent).not.toContain("mailto:garychisolm30@gmail.com");
       // Should still have phone support
       expect(helpContent).toContain("Phone Support");
@@ -47,9 +46,9 @@ describe("Group 7: UI/Display Fixes", () => {
         "/home/ubuntu/service-scheduling-platform/client/src/pages/AccountSubscription.tsx",
         "utf-8"
       );
-      expect(pageContent).toContain("My Subscription");
-      expect(pageContent).toContain("Manage your plan and billing");
-      expect(pageContent).toContain("Upgrade Your Plan");
+      expect(pageContent).toContain('from "@shared/entitlements"');
+      expect(pageContent).toContain("customerSubscription.getSubscription.useQuery");
+      expect(pageContent).toContain("customerSubscription.createCheckout.useMutation");
       expect(pageContent).toContain("Manage Billing");
       expect(pageContent).toContain("createPortalSession");
     });
@@ -60,7 +59,7 @@ describe("Group 7: UI/Display Fixes", () => {
         "/home/ubuntu/service-scheduling-platform/client/src/App.tsx",
         "utf-8"
       );
-      expect(appContent).toContain('path="/account/subscription"');
+      expect(appContent).toContain('path="/customer/subscription"');
       expect(appContent).toContain("AccountSubscription");
     });
 
@@ -70,7 +69,7 @@ describe("Group 7: UI/Display Fixes", () => {
         "/home/ubuntu/service-scheduling-platform/client/src/components/shared/NavHeader.tsx",
         "utf-8"
       );
-      expect(navContent).toContain("/account/subscription");
+      expect(navContent).toContain("/customer/subscription");
       expect(navContent).toContain("My Subscription");
     });
 
@@ -80,11 +79,12 @@ describe("Group 7: UI/Display Fixes", () => {
         "/home/ubuntu/service-scheduling-platform/client/src/pages/AccountSubscription.tsx",
         "utf-8"
       );
-      expect(pageContent).toContain('"$0"');
-      expect(pageContent).toContain('"$12/mo"');
-      expect(pageContent).toContain('"$20/mo"');
-      expect(pageContent).toContain('"$10.08/mo"');
-      expect(pageContent).toContain('"$16.00/mo"');
+      expect(pageContent).toContain("CUSTOMER_PLANS.free.monthlyPrice");
+      expect(pageContent).toContain("CUSTOMER_PLANS.pro.monthlyPrice");
+      expect(pageContent).toContain("CUSTOMER_PLANS.business.monthlyPrice");
+      expect(CUSTOMER_PLANS.free).toMatchObject({ monthlyPrice: 0, yearlyPrice: 0 });
+      expect(CUSTOMER_PLANS.pro).toMatchObject({ monthlyPrice: 12, yearlyPrice: 120.96 });
+      expect(CUSTOMER_PLANS.business).toMatchObject({ monthlyPrice: 20, yearlyPrice: 192 });
     });
   });
 });

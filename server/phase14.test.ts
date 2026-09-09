@@ -8,7 +8,7 @@ import * as db from "./db";
 
 function createAuthContext(role: "customer" | "provider" | "admin", userId: number, name: string, email?: string) {
   return {
-    user: { id: userId, openId: `test-p14-${userId}`, name, role, email },
+    user: { id: userId, openId: `test-p14-${userId}`, name, role, email, emailVerified: true },
     req: { headers: { origin: "http://localhost:3000" } } as any,
   };
 }
@@ -26,8 +26,9 @@ describe("Phase 14: Analytics, Provider Dashboard, Refunds", () => {
     await db.upsertUser({
       openId: `test-p14-customer-${suffix}`,
       name: "P14 Customer",
-      email: `p14customer${suffix}@test.com`,
+      email: `test-p14-customer-${suffix}@example.invalid`,
       role: "customer",
+      emailVerified: true,
     });
     const cUser = await db.getUserByOpenId(`test-p14-customer-${suffix}`);
     customerUserId = cUser!.id;
@@ -36,8 +37,9 @@ describe("Phase 14: Analytics, Provider Dashboard, Refunds", () => {
     await db.upsertUser({
       openId: `test-p14-provider-${suffix}`,
       name: "P14 Provider",
-      email: `p14provider${suffix}@test.com`,
+      email: `test-p14-provider-${suffix}@example.invalid`,
       role: "provider",
+      emailVerified: true,
     });
     const pUser = await db.getUserByOpenId(`test-p14-provider-${suffix}`);
     providerUserId = pUser!.id;
@@ -51,6 +53,7 @@ describe("Phase 14: Analytics, Provider Dashboard, Refunds", () => {
     });
     const providerRecord = await db.getProviderByUserId(providerUserId);
     providerId = providerRecord!.id;
+    await db.upsertProviderSubscription({ providerId, tier: "basic", status: "active" });
 
     // Create a service
     await db.createService({

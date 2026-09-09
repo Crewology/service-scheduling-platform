@@ -8,7 +8,7 @@ import * as db from "./db";
 
 function createAuthContext(role: "customer" | "provider" | "admin", userId: number, name: string) {
   return {
-    user: { id: userId, openId: `test-p10-${userId}`, name, role },
+    user: { id: userId, openId: `test-p10-${userId}`, name, role, emailVerified: true },
     req: { headers: { origin: "http://localhost:3000" } } as any,
   };
 }
@@ -24,8 +24,10 @@ describe("Phase 10: Photos, Cancellations, Subscriptions", () => {
     const pSuffix = Math.floor(Math.random() * 100000) + 50000;
     await db.upsertUser({
       openId: `test-p10-provider-${pSuffix}`,
+      email: `test-p10-provider-${pSuffix}@example.invalid`,
       name: "Phase10 Provider",
       role: "provider",
+      emailVerified: true,
     });
     const pUser = await db.getUserByOpenId(`test-p10-provider-${pSuffix}`);
     providerUserId = pUser!.id;
@@ -55,8 +57,10 @@ describe("Phase 10: Photos, Cancellations, Subscriptions", () => {
     const cSuffix = Math.floor(Math.random() * 100000) + 60000;
     await db.upsertUser({
       openId: `test-p10-customer-${cSuffix}`,
+      email: `test-p10-customer-${cSuffix}@example.invalid`,
       name: "Phase10 Customer",
       role: "customer",
+      emailVerified: true,
     });
     const cUser = await db.getUserByOpenId(`test-p10-customer-${cSuffix}`);
     customerUserId = cUser!.id;
@@ -87,8 +91,10 @@ describe("Phase 10: Photos, Cancellations, Subscriptions", () => {
       const suffix2 = Math.floor(Math.random() * 100000) + 70000;
       await db.upsertUser({
         openId: `test-p10-other-${suffix2}`,
+        email: `test-p10-other-${suffix2}@example.invalid`,
         name: "Other Provider",
         role: "provider",
+        emailVerified: true,
       });
       const otherUser = await db.getUserByOpenId(`test-p10-other-${suffix2}`);
       const otherCaller = appRouter.createCaller(createAuthContext("provider", otherUser!.id, "Other Provider"));

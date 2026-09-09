@@ -8,7 +8,7 @@ import * as db from "./db";
 
 function createAuthContext(role: "customer" | "provider" | "admin", userId: number, name: string, email?: string) {
   return {
-    user: { id: userId, openId: `test-p15-${userId}`, name, role, email },
+    user: { id: userId, openId: `test-p15-${userId}`, name, role, email, emailVerified: true },
     req: { headers: { origin: "http://localhost:3000" } } as any,
   };
 }
@@ -26,8 +26,9 @@ describe("Phase 15: Promo Code System", () => {
     await db.upsertUser({
       openId: `test-p15-customer-${suffix}`,
       name: "P15 Customer",
-      email: `p15customer${suffix}@test.com`,
+      email: `test-p15-customer-${suffix}@example.invalid`,
       role: "customer",
+      emailVerified: true,
     });
     const cUser = await db.getUserByOpenId(`test-p15-customer-${suffix}`);
     customerUserId = cUser!.id;
@@ -36,8 +37,9 @@ describe("Phase 15: Promo Code System", () => {
     await db.upsertUser({
       openId: `test-p15-provider-${suffix}`,
       name: "P15 Provider",
-      email: `p15provider${suffix}@test.com`,
+      email: `test-p15-provider-${suffix}@example.invalid`,
       role: "provider",
+      emailVerified: true,
     });
     const pUser = await db.getUserByOpenId(`test-p15-provider-${suffix}`);
     providerUserId = pUser!.id;

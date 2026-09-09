@@ -165,6 +165,9 @@ describe("Customers Phase 1 repository isolation and erasure", () => {
     await expect(recordCrmAutomationRun({ providerId: providerA.id, customerId: customer.id, contactId: contactA.id, ruleId: ruleBId, status: "succeeded", dedupeKey: `run:${runId}:wrong`, startedAt: interactionAt })).rejects.toThrow("rule not found");
     const runA = await recordCrmAutomationRun({ providerId: providerA.id, customerId: customer.id, contactId: contactA.id, ruleId: ruleAId, status: "succeeded", dedupeKey: `run:${runId}:a`, outputTaskId: taskA.id, outputDraftId: draftA.id, startedAt: interactionAt, finishedAt: interactionAt });
     expect(runA).toMatchObject({ providerId: providerA.id, customerId: customer.id });
+    const duplicateRunA = await recordCrmAutomationRun({ providerId: providerA.id, customerId: customer.id, contactId: contactA.id, ruleId: ruleAId, status: "failed", dedupeKey: `run:${runId}:a`, errorCode: "retry_must_not_overwrite", startedAt: new Date(interactionAt.getTime() + 1_000), finishedAt: new Date(interactionAt.getTime() + 2_000) });
+    expect(duplicateRunA).toMatchObject({ id: runA?.id, status: "succeeded", outputTaskId: taskA.id, outputDraftId: draftA.id, errorCode: null });
+    expect(await db.select().from(crmAutomationRuns).where(and(eq(crmAutomationRuns.providerId, providerA.id), eq(crmAutomationRuns.dedupeKey, runA!.dedupeKey)))).toHaveLength(1);
 
     const segmentAId = await createCrmSavedSegment({ providerId: providerA.id, name: "Repeat customers", filters: { stages: ["repeat_customer"] }, createdByUserId: ownerA.id });
     expect(segmentAId).toBeGreaterThan(0);

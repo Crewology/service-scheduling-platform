@@ -43,15 +43,17 @@ describe("Holistic Wellness Center Category", () => {
   });
 
   it("should be included in the seed-categories.mjs file", async () => {
-    const fs = await import("fs");
-    const path = await import("path");
-    const seedFile = fs.readFileSync(
-      path.resolve(__dirname, "../scripts/seed-categories.mjs"),
-      "utf-8"
-    );
-    expect(seedFile).toContain("HOLISTIC WELLNESS CENTER");
-    expect(seedFile).toContain("holistic-wellness-center");
-    expect(seedFile).toContain("id: 210");
+    const { getCategoryBySlug } = await import("./db/services");
+    const category = await getCategoryBySlug("holistic-wellness-center");
+    expect(category).toMatchObject({
+      id: 210,
+      name: "HOLISTIC WELLNESS CENTER",
+      slug: "holistic-wellness-center",
+      isMobileEnabled: true,
+      isFixedLocationEnabled: true,
+      isVirtualEnabled: true,
+      isActive: true,
+    });
   });
 });
 

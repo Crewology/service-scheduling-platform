@@ -13,9 +13,10 @@ async function createTestContext(role: "customer" | "provider" | "admin" = "cust
 
   await db.upsertUser({
     openId,
-    email: `roletest${id}@example.com`,
+    email: `${openId}@example.invalid`,
     name: `Role Test User ${id}`,
     role,
+    emailVerified: true,
   });
 
   const dbUser = await db.getUserByOpenId(openId);
@@ -32,7 +33,7 @@ async function createTestContext(role: "customer" | "provider" | "admin" = "cust
     lastName: "User",
     phone: null,
     profilePhotoUrl: null,
-    emailVerified: false,
+    emailVerified: true,
     createdAt: new Date(),
     updatedAt: new Date(),
     lastSignedIn: new Date(),

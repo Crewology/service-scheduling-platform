@@ -89,9 +89,9 @@ describe("OG Page Route", () => {
     expect(body).toContain("<!DOCTYPE html>");
     expect(body).toContain('og:title" content="Test Provider on OlogyCrew"');
     expect(body).toContain('twitter:card" content="summary_large_image"');
-    expect(body).toContain('rel="canonical" href="https://example.com/p/test-provider"');
+    expect(body).toContain('rel="canonical" href="https://example.com/test-provider"');
     expect(body).toContain("window.location.replace");
-    expect(body).toContain("https://example.com/p/test-provider");
+    expect(body).toContain("https://example.com/test-provider");
   });
 
   it("should return HTML with service OG tags for /api/og/service/:id", async () => {
@@ -147,8 +147,8 @@ describe("OG Page Route", () => {
     await handleOgPage(req, res);
     const body = getBody();
 
-    // The og:url should point to /p/test-provider, not /api/og/provider/test-provider
-    expect(body).toContain('og:url" content="https://example.com/p/test-provider"');
+    // The og:url should point to the canonical root-level provider page, not /api/og/provider/test-provider.
+    expect(body).toContain('og:url" content="https://example.com/test-provider"');
     expect(body).not.toContain('og:url" content="https://example.com/api/og/');
   });
 
@@ -157,8 +157,8 @@ describe("OG Page Route", () => {
     await handleOgPage(req, res);
     const body = getBody();
 
-    expect(body).toContain('http-equiv="refresh" content="0;url=https://example.com/p/test-provider"');
-    expect(body).toContain('window.location.replace("https://example.com/p/test-provider")');
+    expect(body).toContain('http-equiv="refresh" content="0;url=https://example.com/test-provider"');
+    expect(body).toContain('window.location.replace("https://example.com/test-provider")');
   });
 
   it("should handle /api/og/p/:slug as alias for provider", async () => {
@@ -167,6 +167,6 @@ describe("OG Page Route", () => {
     const body = getBody();
 
     expect(body).toContain('og:title" content="Test Provider on OlogyCrew"');
-    expect(body).toContain('rel="canonical" href="https://example.com/p/test-provider"');
+    expect(body).toContain('rel="canonical" href="https://example.com/test-provider"');
   });
 });

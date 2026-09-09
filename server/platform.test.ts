@@ -14,9 +14,10 @@ async function createAuthContext(role: "customer" | "provider" | "admin" = "cust
   // Create user in database for foreign key constraints
   await db.upsertUser({
     openId,
-    email: `test${testId}@example.com`,
+    email: `${openId}@example.invalid`,
     name: "Test User",
     role, // valid: "customer" | "provider" | "admin"
+    emailVerified: true,
   });
   
   // Get the actual user ID from database
@@ -36,7 +37,7 @@ async function createAuthContext(role: "customer" | "provider" | "admin" = "cust
     lastName: "User",
     phone: null,
     profilePhotoUrl: null,
-    emailVerified: false,
+    emailVerified: true,
     createdAt: new Date(),
     updatedAt: new Date(),
     lastSignedIn: new Date(),

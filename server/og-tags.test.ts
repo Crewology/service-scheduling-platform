@@ -48,7 +48,7 @@ describe("OG Tags for Provider Profiles", () => {
     expect(result).toContain('A great test business for OG tags');
     expect(result).toContain('Atlanta');
     expect(result).toContain('og:url');
-    expect(result).toContain(`https://example.com/p/${slug}`);
+    expect(result).toContain(`https://example.com/${slug}`);
     expect(result).toContain('og:type');
     expect(result).toContain('profile');
     expect(result).toContain('twitter:card');
@@ -351,7 +351,7 @@ describe("OG Tags for Homepage", () => {
 
     expect(result).toContain('og:title');
     expect(result).toContain('OlogyCrew');
-    expect(result).toContain('Book Trusted Service Professionals');
+    expect(result).toContain('The Digital Home for Your Business');
     expect(result).toContain('og:description');
     expect(result).toContain('og:url');
     expect(result).toContain('https://example.com');

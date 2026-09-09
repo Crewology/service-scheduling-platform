@@ -2908,13 +2908,13 @@
 - [x] Pass 22 adjacent files and 239 tests, zero-error TypeScript, diff validation, production build, desktop/mobile oversight review, final state verification, and the Phase 11 report; no database migration was required
 
 ## Customers Phase 12 — Release 1 Completion Testing
-- [ ] Map every required Phase 12 item to named deterministic tests before running the final matrix
-- [ ] Validate tenant isolation, provider ownership, relationship eligibility, backfill idempotency, event idempotency, stage resolution, and manual overrides
-- [ ] Validate captured lifetime value, refund handling, private notes, task lifecycle, recommendation deduplication policy, and provider-reviewed draft approval
-- [ ] Validate customer communication preference enforcement, existing message authorization, lifecycle entitlements, account deletion and cleanup, demo/test exclusion, and cursor pagination
-- [ ] Validate desktop and mobile Customers UI, owner aggregate oversight, private-note exclusion, responsive behavior, and error/empty/loading states
-- [ ] Run the existing OlogyCrew regression suite covering booking, quote, payment, invoice, messaging, notification, review, subscription, provider workspace, and inactive-provider behavior
-- [ ] Confirm no pricing or public plan copy changed and no Release 1 non-goal was enabled: AI, recommendations, automated rules/jobs, saved segments, exports, bulk messaging, external CRM, manual contacts, or broad rollout
-- [ ] Run zero-error TypeScript, diff validation, production build, fresh runtime/network/server log review, and final two-provider production-state verification
-- [ ] Produce a Phase 12 completion matrix and final report containing implementation, files, database changes, tests, results, warnings, unchanged behavior, and any deviations
-- [ ] Save the final Release 1 checkpoint only after every required data, authorization, entitlement, error-handling, responsive UI, and regression gate passes
+- [x] Map every required Phase 12 item to named deterministic tests before running the final matrix
+- [x] Validate tenant isolation, provider ownership, relationship eligibility, backfill idempotency, event idempotency, stage resolution, and manual overrides
+- [x] Validate captured lifetime value, refund handling, private notes, task lifecycle, recommendation deduplication policy, and provider-reviewed draft approval
+- [x] Validate customer communication preference enforcement, existing message authorization, lifecycle entitlements, account deletion and cleanup, demo/test exclusion, and cursor pagination
+- [x] Validate desktop and mobile Customers UI, owner aggregate oversight, private-note exclusion, responsive behavior, and loading, error, empty, retry, and not-found states
+- [x] Pass the complete existing OlogyCrew regression suite across booking, quote, payment, invoice, messaging, notification, review, subscription, provider workspace, and inactive-provider behavior
+- [x] Confirm no pricing or public plan copy changed and no Release 1 non-goal was enabled: AI, recommendations, automated rules/jobs, saved segments, exports, bulk messaging, external CRM, manual contacts, or broad rollout
+- [x] Pass zero-error TypeScript, diff validation, production build, fresh runtime/network/server log review, and final two-provider aggregate production-state verification
+- [x] Produce the Phase 12 completion matrix and final report containing implementation, files, database changes, tests, results, warnings, unchanged behavior, and deviations
+- [x] Prepare the final Release 1 checkpoint after every required data, authorization, entitlement, error-handling, responsive UI, and regression gate passed

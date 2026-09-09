@@ -154,9 +154,10 @@ describe("OG and Twitter Card Meta Tags", () => {
     it("should handle both dev and production modes", () => {
       // Dev mode uses vite.transformIndexHtml
       expect(content).toContain("vite.transformIndexHtml");
-      // Production mode uses fs.readFileSync
+      // Production mode reads the built shell and uses the same shared injector.
       const prodSection = content.split("serveStatic")[1];
-      expect(prodSection).toContain('url.startsWith("/referral-program")');
+      expect(prodSection).toContain("fs.readFileSync");
+      expect(prodSection).toContain("injectOgTags(url, html, origin)");
     });
 
     it("should inject og:image with CDN URL in server-side HTML", () => {
@@ -215,14 +216,14 @@ describe("OG and Twitter Card Meta Tags", () => {
 describe("Referral Program Link in Footer", () => {
   const filePath = path.resolve(
     __dirname,
-    "../client/src/pages/Home.tsx"
+    "../client/src/components/shared/Footer.tsx"
   );
   const content = fs.readFileSync(filePath, "utf-8");
 
   it("should have a Referral Program link in the Company footer column", () => {
     expect(content).toContain('href="/referral-program"');
     // Check it's in the Company section (near Help Center, Terms, Privacy)
-    const companySection = content.split("Company")[1]?.split("</div>")[0];
+    const companySection = content.split("Company")[1]?.split("</ul>")[0];
     expect(companySection).toBeTruthy();
     expect(companySection).toContain("/referral-program");
     expect(companySection).toContain("Referral Program");
@@ -237,8 +238,7 @@ describe("Referral Program Link in Footer", () => {
 
   it("should have consistent hover styling with other footer links", () => {
     // All footer links use hover:opacity-100
-    const footerSection = content.split("footer")[1];
-    expect(footerSection).toContain('href="/referral-program" className="hover:opacity-100"');
+    expect(content).toContain('href="/referral-program" className="hover:opacity-100"');
   });
 
   it("should be in the footer element", () => {
