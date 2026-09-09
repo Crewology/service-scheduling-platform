@@ -40,26 +40,48 @@ import {
 import { getCrmProviderAccess } from "./crm/access";
 import { queueCrmMessageProjection } from "./crm/sourceHooks";
 
+const CRM_READ_ONLY_REASON = "Private Customers tools are not available with the provider's current lifecycle access. Existing private records are retained and return when qualifying access is restored.";
+
+const EMPTY_CRM_ENTITLEMENTS = {
+  customerHistory: false,
+  crmNotes: false,
+  crmFollowUps: false,
+  crmDrafts: false,
+  crmSegments: false,
+  crmRetentionAnalytics: false,
+  crmCustomAutomations: false,
+} as const;
+
 async function resolveProviderAccess(userId: number) {
   const provider = await db.getProviderByUserId(userId);
-  if (!provider) return { provider: null, access: null, visible: false, notesEnabled: false, followUpsEnabled: false, stageOverridesEnabled: false, draftsEnabled: false, draftSendingEnabled: false, entitlement: null };
+  if (!provider) return { provider: null, access: null, visible: false, notesEnabled: false, followUpsEnabled: false, stageOverridesEnabled: false, draftsEnabled: false, draftSendingEnabled: false, entitlement: null, entitlements: EMPTY_CRM_ENTITLEMENTS };
   const [access, readUiEnabled, providerWritesEnabled, draftSendingFlagEnabled] = await Promise.all([
     getCrmProviderAccess(provider.id),
     isCrmRolloutEnabled(CRM_ROLLOUT_FLAGS.readUi),
     isCrmRolloutEnabled(CRM_ROLLOUT_FLAGS.providerWrites),
     isCrmRolloutEnabled(CRM_ROLLOUT_FLAGS.draftSending),
   ]);
-  const visible = Boolean(provider.isActive && access.isPilotProvider && readUiEnabled && access.can("customerHistory"));
+  const entitlements = {
+    customerHistory: access.can("customerHistory"),
+    crmNotes: access.can("crmNotes"),
+    crmFollowUps: access.can("crmFollowUps"),
+    crmDrafts: access.can("crmDrafts"),
+    crmSegments: access.can("crmSegments"),
+    crmRetentionAnalytics: access.can("crmRetentionAnalytics"),
+    crmCustomAutomations: access.can("crmCustomAutomations"),
+  } as const;
+  const visible = Boolean(provider.isActive && access.isPilotProvider && readUiEnabled && entitlements.customerHistory);
   return {
     provider,
     access,
     visible,
-    notesEnabled: Boolean(visible && providerWritesEnabled && access.can("crmNotes")),
-    followUpsEnabled: Boolean(visible && providerWritesEnabled && access.can("crmFollowUps")),
+    notesEnabled: Boolean(visible && providerWritesEnabled && entitlements.crmNotes),
+    followUpsEnabled: Boolean(visible && providerWritesEnabled && entitlements.crmFollowUps),
     stageOverridesEnabled: Boolean(visible && providerWritesEnabled && access.can("crmStageOverrides")),
-    draftsEnabled: Boolean(visible && providerWritesEnabled && access.can("crmDrafts")),
-    draftSendingEnabled: Boolean(visible && providerWritesEnabled && draftSendingFlagEnabled && access.can("crmDrafts")),
+    draftsEnabled: Boolean(visible && providerWritesEnabled && entitlements.crmDrafts),
+    draftSendingEnabled: Boolean(visible && providerWritesEnabled && draftSendingFlagEnabled && entitlements.crmDrafts),
     entitlement: access.entitlement,
+    entitlements,
   };
 }
 
@@ -213,6 +235,8 @@ export const customersRouter = router({
       draftsEnabled: access.draftsEnabled,
       recommendationsEnabled: false,
       draftSendingEnabled: access.draftSendingEnabled,
+      entitlements: access.entitlements,
+      readOnlyReason: !(access.notesEnabled || access.followUpsEnabled || access.stageOverridesEnabled || access.draftsEnabled) ? CRM_READ_ONLY_REASON : null,
     };
   }),
 
@@ -243,7 +267,7 @@ export const customersRouter = router({
         contacts: null,
         activity: null,
         tasks,
-        readOnlyReason: ctx.crmAccess.followUpsEnabled ? null : "Follow-up tools are not available with the provider's current access.",
+        readOnlyReason: ctx.crmAccess.followUpsEnabled ? null : CRM_READ_ONLY_REASON,
       };
     }
     const defaultStages = input.tab === "leads"
@@ -296,7 +320,8 @@ export const customersRouter = router({
         : { enabled: true as const, allowed: false as const, reason: sendReadiness?.reason === "relationship_archived" ? "relationship_unavailable" as const : "permission_required" as const };
     const conversationId = `conv-${[ctx.user.id, result.contact.customerId].sort((a, b) => a - b).join("-")}`;
     const draftRows = drafts.map(draft => ({ ...draft, conversationHref: draft.state === "sent" ? `/dm/${conversationId}` : null }));
-    return { ...result, notes, tasks, drafts: draftRows, draftSendReadiness, readOnly: !(ctx.crmAccess.notesEnabled || ctx.crmAccess.followUpsEnabled || ctx.crmAccess.stageOverridesEnabled || ctx.crmAccess.draftsEnabled), eventTypes: CRM_EVENT_TYPES };
+    const readOnly = !(ctx.crmAccess.notesEnabled || ctx.crmAccess.followUpsEnabled || ctx.crmAccess.stageOverridesEnabled || ctx.crmAccess.draftsEnabled);
+    return { ...result, notes, tasks, drafts: draftRows, draftSendReadiness, readOnly, readOnlyReason: readOnly ? CRM_READ_ONLY_REASON : null, eventTypes: CRM_EVENT_TYPES };
   }),
 
   createDraft: customerDraftWriteProcedure.input(z.object({

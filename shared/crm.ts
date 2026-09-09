@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { ProviderFeature } from "./entitlements";
 
 export const CRM_CONTACT_STAGES = [
   "lead",
@@ -134,8 +135,8 @@ export const CRM_PROVIDER_FEATURES = [
   "crmSegments",
   "crmRetentionAnalytics",
   "crmAdvancedAnalytics",
-  "crmAutomationControls",
-] as const;
+  "crmCustomAutomations",
+] as const satisfies readonly ProviderFeature[];
 export type CrmProviderFeature = (typeof CRM_PROVIDER_FEATURES)[number];
 
 export const CRM_ROLLOUT_FLAGS = {

@@ -187,9 +187,9 @@ Add server-enforced provider feature keys before any plan copy changes. The appr
 | `crmStageOverrides` | No | Yes | Yes |
 | `crmSegments` | No | No | Yes |
 | `crmRetentionAnalytics` | No | Basic | Full |
-| `crmAutomationControls` | No | No | Yes |
+| `crmCustomAutomations` | No | No | Yes |
 
-The architecture’s proposed `crmCustomAutomations` key conflicts with the PRD exclusion of a custom automation builder. The safe Release 1 key is `crmAutomationControls`, meaning enable/disable platform rules and configure the approved inactivity window—not create arbitrary rules.
+The owner’s Phase 11 clarification requires the architecture’s exact `crmCustomAutomations` capability key. The key is entitlement vocabulary only: it does not approve a custom automation builder, automatic sends, scheduled work, or any Release 1 behavior beyond separately approved and rollout-gated controls.
 
 ### 5.2 Source mutation hooks
 
@@ -284,7 +284,7 @@ No production implementation should begin until these decisions are approved.
 | P0-02 | The wireframe’s **Book** action requires an existing provider-assisted booking path, but no such provider flow exists | Building it now would expand Release 1 and duplicate booking logic | For Release 1, show **View booking** when a source booking exists and preserve customer-facing booking deep links. Defer provider-created bookings to a separately approved project. |
 | P0-03 | Business saved segments are in the PRD, but no `crm_saved_segments` schema or API is defined | Implementations will diverge or silently omit an approved Business feature | Approve an additive saved-segment table containing provider scope, name, validated filter JSON, and timestamps. No contact membership copies; segments are saved queries. |
 | P0-04 | Relationship export appears in the wireframe and authorization test language, but has no PRD capability row, entitlement key, schema, or API | Accidental data overexposure and packaging drift | Defer CRM export from Release 1 unless the owner explicitly approves a Business-only `crmExports` entitlement and scoped export endpoint. |
-| P0-05 | `crmCustomAutomations` is proposed, while custom automation builders are explicitly out of scope | A feature key could promise functionality Release 1 must not provide | Use `crmAutomationControls` for Business enable/disable controls and approved inactivity settings only. |
+| P0-05 | `crmCustomAutomations` is proposed, while custom automation builders are explicitly out of scope | A feature key could promise functionality Release 1 must not provide | Use the exact `crmCustomAutomations` entitlement key, but keep every automation UI, rule execution, schedule, and send path disabled until separately approved. |
 | P0-06 | Global preferences include `marketingEmail`, but there is no global customer preference for provider-initiated in-app relationship messages | The promised global opt-out precedence cannot be enforced for the Release 1 send channel | Add a customer-facing relationship-messaging preference before enabling drafts. History, notes, tasks, and recommendations may pilot earlier; message sending remains off until consent behavior is approved and tested. |
 | P0-07 | New inbound activity should restore an archived relationship and prompt review, but archive-state clearing is not fully defined | Contacts could remain hidden or lose provider intent silently | Clear the archive override on qualifying inbound activity, record immutable system stage history, restore list visibility, and create one deduplicated low-priority review task. |
 | P0-08 | Managed task UIDs and pilot allowlists need durable private storage, but `platformSettings.getAll` currently exposes all keys publicly | Operational identifiers or provider IDs could leak | Add private CRM operational state or first add public/private classification to platform settings. Do not place job UIDs or pilot IDs in the current public key-value surface. |
@@ -410,7 +410,7 @@ No production behavior or database schema has been changed in Phase 0. Implement
 2. Deferral of provider-assisted booking in P0-02.
 3. Addition or deferral of Business saved segments in P0-03.
 4. Deferral or explicit Business scope for CRM export in P0-04.
-5. `crmAutomationControls` instead of custom automation construction in P0-05.
+5. `crmCustomAutomations` as entitlement vocabulary only, without custom automation construction, in P0-05.
 6. The customer-facing in-app relationship messaging preference in P0-06.
 7. Automatic archive restoration behavior in P0-07.
 8. Private managed-job and pilot state storage in P0-08.

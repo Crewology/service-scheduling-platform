@@ -172,10 +172,10 @@ export async function getCrmPilotHealth() {
       checkedAt,
       ...readiness,
       flags: privateStatus.flags,
-      totals: { providers: 0, activeProviders: 0, contacts: 0, optedInContacts: 0, activeNotes: 0, openTasks: 0, activeDrafts: 0, sentDrafts: 0, discardedDrafts: 0, activityEvents: 0, liveValidatedContacts: 0 },
+      totals: { providers: 0, activeProviders: 0, contacts: 0, optedInContacts: 0, activeNotes: 0, openTasks: 0, completedTasks: 0, dismissedTasks: 0, activeDrafts: 0, sentDrafts: 0, discardedDrafts: 0, activityEvents: 0, liveValidatedContacts: 0 },
       integrity: { selfContacts: 0, nonPilotContacts: 0, scopeMismatches: 0, contactsMissingProjection: 0, projectionLaggingContacts: 0, sentDraftIssues: 0 },
       reconciliation: { providerCount: 0, expectedEligible: 0, actualContacts: 0, missingContacts: 0, extraContacts: 0, staleContacts: 0, storedEvents: 0, exclusions: {}, checkedAt },
-      future: { enabledAutomationRules: 0, automationRuns: 0, savedSegments: 0 },
+      future: { enabledAutomationRules: 0, automationRuns: 0, failedAutomationRuns: 0, savedSegments: 0 },
       providers: [],
       latestRolloutAuditAt: null,
       privacyNotice: "Aggregate operational metadata only. Message bodies, note bodies, task descriptions, addresses, payment data, and unrestricted customer records are excluded.",
@@ -239,7 +239,7 @@ export async function getCrmPilotHealth() {
       .groupBy(crmMessageDrafts.providerId),
     database.select({ providerId: crmActivityEvents.providerId, activityEvents: sql<number>`count(*)`, latestActivityAt: sql<Date | null>`max(${crmActivityEvents.occurredAt})` }).from(crmActivityEvents).where(inArray(crmActivityEvents.providerId, pilotProviderIds)).groupBy(crmActivityEvents.providerId),
     database.select({ count: sql<number>`count(*)` }).from(crmAutomationRules).where(and(inArray(crmAutomationRules.providerId, pilotProviderIds), eq(crmAutomationRules.enabled, true))),
-    database.select({ count: sql<number>`count(*)` }).from(crmAutomationRuns).where(inArray(crmAutomationRuns.providerId, pilotProviderIds)),
+    database.select({ count: sql<number>`count(*)`, failures: sql<number>`sum(case when ${crmAutomationRuns.status} = 'failed' then 1 else 0 end)` }).from(crmAutomationRuns).where(inArray(crmAutomationRuns.providerId, pilotProviderIds)),
     database.select({ count: sql<number>`count(*)` }).from(crmSavedSegments).where(inArray(crmSavedSegments.providerId, pilotProviderIds)),
     database.select({ count: sql<number>`count(*)` }).from(crmContacts).where(notInArray(crmContacts.providerId, pilotProviderIds)),
     database.select({ count: sql<number>`count(*)` }).from(crmTasks).innerJoin(crmContacts, eq(crmContacts.id, crmTasks.contactId)).where(and(inArray(crmTasks.providerId, pilotProviderIds), sql`(${crmTasks.providerId} <> ${crmContacts.providerId} or ${crmTasks.customerId} <> ${crmContacts.customerId})`)),
@@ -300,12 +300,14 @@ export async function getCrmPilotHealth() {
     optedInContacts: result.optedInContacts + provider.optedInContacts,
     activeNotes: result.activeNotes + provider.activeNotes,
     openTasks: result.openTasks + provider.openTasks,
+    completedTasks: result.completedTasks + provider.completedTasks,
+    dismissedTasks: result.dismissedTasks + provider.dismissedTasks,
     activeDrafts: result.activeDrafts + provider.activeDrafts,
     sentDrafts: result.sentDrafts + provider.sentDrafts,
     discardedDrafts: result.discardedDrafts + provider.discardedDrafts,
     liveValidatedContacts: result.liveValidatedContacts + provider.liveValidatedContacts,
     activityEvents: result.activityEvents + provider.activityEvents,
-  }), { providers: 0, activeProviders: 0, contacts: 0, optedInContacts: 0, activeNotes: 0, openTasks: 0, activeDrafts: 0, sentDrafts: 0, discardedDrafts: 0, liveValidatedContacts: 0, activityEvents: 0 });
+  }), { providers: 0, activeProviders: 0, contacts: 0, optedInContacts: 0, activeNotes: 0, openTasks: 0, completedTasks: 0, dismissedTasks: 0, activeDrafts: 0, sentDrafts: 0, discardedDrafts: 0, liveValidatedContacts: 0, activityEvents: 0 });
 
   const scopeMismatches = numberValue(taskMismatchRows[0]?.count) + numberValue(noteMismatchRows[0]?.count) + numberValue(draftMismatchRows[0]?.count) + numberValue(eventMismatchRows[0]?.count);
   const integrity = {
@@ -319,6 +321,7 @@ export async function getCrmPilotHealth() {
   const future = {
     enabledAutomationRules: numberValue(automationRuleRows[0]?.count),
     automationRuns: numberValue(automationRunRows[0]?.count),
+    failedAutomationRuns: numberValue(automationRunRows[0]?.failures),
     savedSegments: numberValue(savedSegmentRows[0]?.count),
   };
   const readiness = assessCrmPilotReadiness({

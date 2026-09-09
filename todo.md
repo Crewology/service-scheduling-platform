@@ -2896,3 +2896,25 @@
 - [x] Build and review a concise desktop/mobile owner beta-readiness experience with Ready, Blocked, Pending, and Already in pilot evidence states
 - [x] Complete the Gary Studios follow-up create/edit/complete/reopen/cancel lifecycle and private draft create/edit/discard lifecycle without sending a message, then retain the two-provider cohort
 - [x] Pass 23 adjacent test files and 210 tests, zero-error TypeScript, diff validation, production build, fresh runtime-log review, final database-state verification, documentation, and checkpoint readiness
+
+## Customers Phase 11 — Authoritative Entitlements
+- [x] Audit the shared entitlement catalog and every Customers server/UI gate for `customerHistory`, `crmNotes`, `crmFollowUps`, `crmDrafts`, `crmSegments`, `crmRetentionAnalytics`, and `crmCustomAutomations`
+- [x] Resolve all Customers access through the existing lifecycle-aware provider entitlement resolver; never trust a frontend tier or hard-code plan access in Customers UI
+- [x] Keep capability declaration separate from product rollout: entitlement keys for segments, retention analytics, and custom automations do not enable their deferred data, UI, jobs, or messaging behavior
+- [x] Confirm Starter, Pro, and Business capability assignments match the approved authoritative model without changing prices, billing behavior, or public plan copy
+- [x] Enforce provider-active, pilot-allowlist, rollout-flag, lifecycle-entitlement, and tenant-scope checks on every existing Customers read and mutation procedure
+- [x] Add pure and router regressions for active, trialing, scheduled cancellation, legacy scheduled cancellation, past-due grace, suspended past due, expired trial, paused, incomplete, cancelled, Starter downgrade, and paid-plan restoration behavior
+- [x] Add UI source-contract regressions proving capability booleans and read-only reasons are server-derived and no Customers component infers access from plan names or client provider IDs
+- [x] Pass 22 adjacent files and 239 tests, zero-error TypeScript, diff validation, production build, desktop/mobile oversight review, final state verification, and the Phase 11 report; no database migration was required
+
+## Customers Phase 12 — Release 1 Completion Testing
+- [ ] Map every required Phase 12 item to named deterministic tests before running the final matrix
+- [ ] Validate tenant isolation, provider ownership, relationship eligibility, backfill idempotency, event idempotency, stage resolution, and manual overrides
+- [ ] Validate captured lifetime value, refund handling, private notes, task lifecycle, recommendation deduplication policy, and provider-reviewed draft approval
+- [ ] Validate customer communication preference enforcement, existing message authorization, lifecycle entitlements, account deletion and cleanup, demo/test exclusion, and cursor pagination
+- [ ] Validate desktop and mobile Customers UI, owner aggregate oversight, private-note exclusion, responsive behavior, and error/empty/loading states
+- [ ] Run the existing OlogyCrew regression suite covering booking, quote, payment, invoice, messaging, notification, review, subscription, provider workspace, and inactive-provider behavior
+- [ ] Confirm no pricing or public plan copy changed and no Release 1 non-goal was enabled: AI, recommendations, automated rules/jobs, saved segments, exports, bulk messaging, external CRM, manual contacts, or broad rollout
+- [ ] Run zero-error TypeScript, diff validation, production build, fresh runtime/network/server log review, and final two-provider production-state verification
+- [ ] Produce a Phase 12 completion matrix and final report containing implementation, files, database changes, tests, results, warnings, unchanged behavior, and any deviations
+- [ ] Save the final Release 1 checkpoint only after every required data, authorization, entitlement, error-handling, responsive UI, and regression gate passes

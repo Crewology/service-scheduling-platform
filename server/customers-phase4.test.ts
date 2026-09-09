@@ -249,7 +249,7 @@ describe("Customers Phase 4 private notes and manual follow-ups", () => {
     await expect(caller.getContact({ contactId: 9, eventLimit: 30 })).resolves.toMatchObject({ notes: [], tasks: [], drafts: [], draftSendReadiness: { enabled: false }, readOnly: true });
     const followUps = await caller.getWorkspace({ tab: "follow-ups", sort: "attention", limit: 25, offset: 0 });
     expect(followUps.tasks).toEqual([]);
-    expect(followUps.readOnlyReason).toContain("current access");
+    expect(followUps.readOnlyReason).toContain("current lifecycle access");
     expect(mocks.listCrmContactNotes).not.toHaveBeenCalled();
     expect(mocks.listCrmTaskReadModels).not.toHaveBeenCalled();
     expect(mocks.listCrmMessageDrafts).not.toHaveBeenCalled();
@@ -518,8 +518,9 @@ describe("Customers Phase 4 fixed product boundary", () => {
     expect(workspaceSource).toContain("They do not send a message, change a booking, or run automatically.");
     expect(workspaceSource).toContain("In-app messages send only from a reviewed draft after confirmation and current customer permission.");
     expect(workspaceSource).not.toContain("Nothing here sends a message");
-    for (const text of ["Customer history is available, but private tools are paused", "Existing private records are retained.", 'href="/provider/subscription"']) expect(workspaceSource).toContain(text);
-    for (const text of ["Private tools are paused on your current plan", "Existing private records are retained and return when qualifying access is restored.", 'href="/provider/subscription"']) expect(detailSource).toContain(text);
+    for (const text of ["Customer history is available, but private tools are paused", "access.data.readOnlyReason", 'href="/provider/subscription"']) expect(workspaceSource).toContain(text);
+    for (const text of ["Private tools are paused on your current plan", "access.data.readOnlyReason", 'href="/provider/subscription"']) expect(detailSource).toContain(text);
+    expect(routerSource).toContain("Existing private records are retained and return when qualifying access is restored.");
     expect(workspaceSource).toContain("useSearch");
     expect(workspaceSource).toContain("grid grid-cols-4");
     expect(detailSource).toContain("Only your provider account can see these notes.");

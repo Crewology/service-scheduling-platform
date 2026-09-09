@@ -86,7 +86,7 @@ describe("Customers Phase 1 approved release boundary", () => {
     expect(providerHasFeature("basic", "crmSegments")).toBe(false);
     expect(providerHasFeature("premium", "crmSegments")).toBe(true);
     expect(providerHasFeature("premium", "crmAdvancedAnalytics")).toBe(true);
-    expect(providerHasFeature("premium", "crmAutomationControls")).toBe(true);
+    expect(providerHasFeature("premium", "crmCustomAutomations")).toBe(true);
   });
 
   it("uses effective lifecycle access for Customers capabilities", () => {

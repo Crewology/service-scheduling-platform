@@ -17,17 +17,18 @@ describe("Customers Phase 9 stabilization contracts", () => {
   it("explains lifecycle read-only behavior and retained private data on both Customers screens", () => {
     for (const text of [
       "Customer history is available, but private tools are paused",
-      "Starter keeps relationship history visible.",
-      "Existing private records are retained.",
+      "access.data.readOnlyReason",
       'href="/provider/subscription"',
     ]) expect(workspaceSource).toContain(text);
 
     for (const text of [
       "Private tools are paused on your current plan",
-      "Pro or Business is required to view or add private notes",
-      "Existing private records are retained and return when qualifying access is restored.",
+      "access.data.readOnlyReason",
       'href="/provider/subscription"',
     ]) expect(detailSource).toContain(text);
+
+    const routerSource = fs.readFileSync(path.join(root, "server/customersRouter.ts"), "utf8");
+    expect(routerSource).toContain("Existing private records are retained and return when qualifying access is restored.");
   });
 
   it("publishes customer-controlled consent and provider private-tool support guidance", () => {

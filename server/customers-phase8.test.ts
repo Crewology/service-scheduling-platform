@@ -176,7 +176,7 @@ describe("Customers Phase 8 pilot readiness", () => {
     expect(result.totals.liveValidatedContacts).toBe(result.providers.reduce((sum, provider) => sum + provider.liveValidatedContacts, 0));
     expect(result.totals).toMatchObject({ providers: 2, activeProviders: 2, contacts: 4, optedInContacts: 1, sentDrafts: 1, liveValidatedContacts: 1 });
     expect(result.integrity).toMatchObject({ selfContacts: 0, nonPilotContacts: 0, scopeMismatches: 0, sentDraftIssues: 0 });
-    expect(result.future).toMatchObject({ enabledAutomationRules: 0, automationRuns: 0, savedSegments: 0 });
+    expect(result.future).toMatchObject({ enabledAutomationRules: 0, automationRuns: 0, failedAutomationRuns: 0, savedSegments: 0 });
     expect(result.flags).toMatchObject({ projectionWrites: true, readUi: true, providerWrites: true, draftSending: true, repairJobs: false, recommendations: false });
     const { privacyNotice: _privacyNotice, ...dataOnly } = result;
     expect(JSON.stringify(dataOnly)).not.toMatch(/legacy\.vk|freshradioshow|@gmail|messageText|customerEmail|customerName|noteBody|taskDescription/i);

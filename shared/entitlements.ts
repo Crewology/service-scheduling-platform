@@ -24,7 +24,7 @@ export type ProviderFeature =
   | "crmSegments"
   | "crmRetentionAnalytics"
   | "crmAdvancedAnalytics"
-  | "crmAutomationControls";
+  | "crmCustomAutomations";
 
 export type CustomerFeature =
   | "directBooking"
@@ -127,7 +127,7 @@ export const PROVIDER_PLANS: Record<ProviderTier, ProviderPlanConfig> = {
       crmSegments: false,
       crmRetentionAnalytics: false,
       crmAdvancedAnalytics: false,
-      crmAutomationControls: false,
+      crmCustomAutomations: false,
     },
   },
   basic: {
@@ -178,7 +178,7 @@ export const PROVIDER_PLANS: Record<ProviderTier, ProviderPlanConfig> = {
       crmSegments: false,
       crmRetentionAnalytics: true,
       crmAdvancedAnalytics: false,
-      crmAutomationControls: false,
+      crmCustomAutomations: false,
     },
   },
   premium: {
@@ -232,7 +232,7 @@ export const PROVIDER_PLANS: Record<ProviderTier, ProviderPlanConfig> = {
       crmSegments: true,
       crmRetentionAnalytics: true,
       crmAdvancedAnalytics: true,
-      crmAutomationControls: true,
+      crmCustomAutomations: true,
     },
   },
 };
