@@ -22,24 +22,26 @@ import {
   appendCrmStageHistory,
   buildCrmEventKey,
   getCrmContactByCustomer,
-  getCrmPilotProviderIds,
   isCrmRolloutEnabled,
   setCrmManualStage,
   upsertCrmContact,
   upsertCrmOperationalSetting,
 } from "../db/crm";
+import { getCrmProviderAccess } from "./access";
 import {
   calculateCapturedRelationshipValue,
   deriveRelationshipStage,
   evaluateRelationshipEligibility,
   shouldRestoreArchivedRelationship,
 } from "./policies";
+import { isReservedCrmIdentity } from "./identity";
 
 type ProjectionMode = "live" | "backfill" | "repair";
 
 export type CrmProjectionSkipReason =
   | "projection_disabled"
   | "provider_not_in_pilot"
+  | "provider_not_in_audience"
   | "provider_unavailable"
   | "customer_unavailable"
   | "provider_self"
@@ -102,17 +104,6 @@ function bookingStartAt(bookingDate: string, startTime: string): Date | null {
   const normalizedTime = /^\d{2}:\d{2}$/.test(startTime) ? `${startTime}:00` : startTime;
   const value = new Date(`${bookingDate}T${normalizedTime}`);
   return Number.isFinite(value.getTime()) ? value : null;
-}
-
-function isReservedProjectionIdentity(user: {
-  openId: string;
-  email: string | null;
-  loginMethod: string | null;
-}): boolean {
-  return user.loginMethod === "test"
-    || user.email?.toLowerCase().endsWith("@example.invalid") === true
-    || user.openId.startsWith("test-")
-    || user.openId.startsWith("test_");
 }
 
 function canProjectReservedIdentityForTest(requested: boolean | undefined): boolean {
@@ -223,7 +214,7 @@ export async function inspectCrmProjectionCandidate(
     customerDeleted: !!customer?.deletedAt,
     isProviderSelf: provider?.userId === customerId,
     isReservedTestIdentity: customer
-      ? isReservedProjectionIdentity(customer) && !canProjectReservedIdentityForTest(allowReservedTestIdentity)
+      ? isReservedCrmIdentity(customer) && !canProjectReservedIdentityForTest(allowReservedTestIdentity)
       : false,
     isOfficialDemoProvider: !!provider?.isOfficial,
     includePrivateDemoPilot: includePrivatePilot,
@@ -261,9 +252,9 @@ export async function projectCrmRelationship(
   if (options.requireLiveRollout) {
     const enabled = await isCrmRolloutEnabled(CRM_ROLLOUT_FLAGS.projectionWrites);
     if (!enabled) return { status: "skipped", providerId, customerId, reason: "projection_disabled" };
-    const pilotProviderIds = await getCrmPilotProviderIds();
-    if (!pilotProviderIds.includes(providerId)) {
-      return { status: "skipped", providerId, customerId, reason: "provider_not_in_pilot" };
+    const access = await getCrmProviderAccess(providerId);
+    if (!access.isAudienceProvider || !access.can("customerHistory")) {
+      return { status: "skipped", providerId, customerId, reason: "provider_not_in_audience" };
     }
   }
 
@@ -302,7 +293,7 @@ export async function projectCrmRelationship(
     customerDeleted: !!customer?.deletedAt,
     isProviderSelf: provider?.userId === customerId,
     isReservedTestIdentity: customer
-      ? isReservedProjectionIdentity(customer) && !canProjectReservedIdentityForTest(options.allowReservedTestIdentity)
+      ? isReservedCrmIdentity(customer) && !canProjectReservedIdentityForTest(options.allowReservedTestIdentity)
       : false,
     isOfficialDemoProvider: !!provider?.isOfficial,
     includePrivateDemoPilot: includePrivatePilot,

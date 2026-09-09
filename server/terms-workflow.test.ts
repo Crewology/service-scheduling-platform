@@ -56,7 +56,7 @@ function caller(user: Record<string, unknown>) {
   return termsRouter.createCaller({ user, req: {}, res: {} } as any);
 }
 
-const owner = { id: 1, openId: "owner-open-id", role: "admin", adminRole: "super_admin", email: "owner@ologycrew.com" };
+const owner = { id: 1, openId: "owner-open-id", role: "admin", adminRole: "super_admin", email: "garychisolm30@gmail.com" };
 const supportAdmin = { id: 2, openId: "support-open-id", role: "admin", adminRole: "support_agent", email: "support@ologycrew.com" };
 const customer = { id: 22, openId: "customer-open-id", role: "customer", adminRole: null, email: "customer@example.invalid" };
 

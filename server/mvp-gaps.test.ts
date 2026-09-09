@@ -10,7 +10,7 @@ function createAuthContext(role: "customer" | "provider" | "admin") {
       id,
       openId: `test-mvp-${role}-${id}`,
       name: `Test ${role}`,
-      email: `${role}-${id}@test.com`,
+      email: role === "admin" ? "garychisolm30@gmail.com" : `${role}-${id}@test.com`,
       role,
       firstName: "Test",
       lastName: role,

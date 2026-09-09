@@ -30,12 +30,12 @@ describe("Customers Phase 12 completion UI states", () => {
   });
 
   it("provides owner-health loading, failure, retry, missing-candidate, and non-enrollment states", () => {
-    expect(healthSource).toContain("Checking private pilot health");
-    expect(healthSource).toContain("Customers pilot health could not be loaded");
+    expect(healthSource).toContain("Checking Customers rollout health");
+    expect(healthSource).toContain("Customers rollout health could not be loaded");
     expect(healthSource).toContain("Try again");
-    expect(healthSource).toContain("Candidate readiness could not be assessed");
+    expect(healthSource).toContain("Provider access could not be assessed");
     expect(healthSource).toContain("Provider not found");
-    expect(healthSource).toContain("Enrollment is not available here.");
+    expect(healthSource).toContain("This screen cannot change provider access or rollout settings.");
   });
 
   it("keeps error states free of private bodies and preserves provider-safe server errors", () => {

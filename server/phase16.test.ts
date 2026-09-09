@@ -10,7 +10,7 @@ import * as db from "./db";
 
 function createAuthContext(role: "customer" | "provider" | "admin", userId: number, name: string, email?: string) {
   return {
-    user: { id: userId, openId: `test-p16-${userId}`, name, role, email, emailVerified: true },
+    user: { id: userId, openId: `test-p16-${userId}`, name, role, email: role === "admin" ? (email ?? "garychisolm30@gmail.com") : email, emailVerified: true },
     req: { headers: { origin: "http://localhost:3000" } } as any,
   };
 }

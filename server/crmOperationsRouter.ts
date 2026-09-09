@@ -1,10 +1,10 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { CRM_ROLLOUT_FLAGS } from "../shared/crm";
+import { CRM_AUDIENCE_MODES, CRM_ROLLOUT_FLAGS } from "../shared/crm";
 import { router, protectedProcedure } from "./_core/trpc";
 import { createAuditEntry } from "./db/auditLog";
 import { getProviderById } from "./db/providers";
-import { getCrmPilotProviderIds, isCrmRolloutEnabled } from "./db/crm";
+import { getCrmAudienceMode, getCrmPilotProviderIds, isCrmRolloutEnabled } from "./db/crm";
 import {
   getCrmPhase2PrivateStatus,
   rebuildCrmProviderProjection,
@@ -14,9 +14,11 @@ import {
 } from "./crm/operations";
 import { getCrmPilotHealth } from "./crm/health";
 import { getCrmBetaCandidateReadiness } from "./crm/betaReadiness";
+import { getCrmProviderAccess, listCrmAudienceProviderIds } from "./crm/access";
+import { hasAdminClearance } from "./adminPolicy";
 
 const ownerProcedure = protectedProcedure.use(async ({ ctx, next }) => {
-  if (ctx.user.role !== "admin" || ctx.user.adminRole !== "super_admin") {
+  if (!hasAdminClearance(ctx.user) || ctx.user.adminRole !== "super_admin") {
     throw new TRPCError({ code: "FORBIDDEN", message: "Owner access required" });
   }
   return next({ ctx });
@@ -35,9 +37,28 @@ async function requireExistingProviders(providerIds: number[]) {
 async function requirePilotProviders(providerIds: number[]) {
   const pilotIds = await getCrmPilotProviderIds();
   if (providerIds.some((providerId) => !pilotIds.includes(providerId))) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "Every provider must be in the private Customers pilot" });
+    throw new TRPCError({ code: "FORBIDDEN", message: "Every provider must be in the active Customers audience" });
   }
   await requireExistingProviders(providerIds);
+}
+
+async function requireLifecycleEntitledProviders(providerIds: number[]) {
+  await requireExistingProviders(providerIds);
+  for (const providerId of providerIds) {
+    const [provider, access] = await Promise.all([
+      getProviderById(providerId),
+      getCrmProviderAccess(providerId),
+    ]);
+    if (!provider?.isActive || !access.can("customerHistory")) {
+      throw new TRPCError({ code: "FORBIDDEN", message: `Provider ${providerId} is not active and lifecycle-entitled for Customers` });
+    }
+  }
+}
+
+async function requireAudienceProviders(providerIds: number[]) {
+  const audienceMode = await getCrmAudienceMode();
+  if (audienceMode === "pilot") return requirePilotProviders(providerIds);
+  await requireLifecycleEntitledProviders(providerIds);
 }
 
 export const crmOperationsRouter = router({
@@ -49,6 +70,7 @@ export const crmOperationsRouter = router({
   })).query(({ ctx, input }) => getCrmBetaCandidateReadiness({ ...input, actorUserId: ctx.user.id })),
 
   configure: ownerProcedure.input(z.object({
+    audienceMode: z.enum(CRM_AUDIENCE_MODES).optional(),
     pilotProviderIds: providerIdsSchema.optional(),
     projectionWrites: z.boolean().optional(),
     repairJobs: z.boolean().optional(),
@@ -64,6 +86,7 @@ export const crmOperationsRouter = router({
       targetType: "system",
       targetId: 0,
       details: {
+        audienceMode: status.audienceMode,
         pilotProviderIds: status.pilotProviderIds,
         projectionWrites: status.flags.projectionWrites,
         repairJobs: status.flags.repairJobs,
@@ -99,16 +122,16 @@ export const crmOperationsRouter = router({
     if (!await isCrmRolloutEnabled(CRM_ROLLOUT_FLAGS.projectionWrites)) {
       throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Customers projection writes are disabled" });
     }
-    await requirePilotProviders(input.providerIds);
-    const result = await runCrmProjectionBatch("backfill", { ...input, includePrivatePilot: true }, ctx.user.id);
+    await requireLifecycleEntitledProviders(input.providerIds);
+    const result = await runCrmProjectionBatch("backfill", { ...input, includePrivatePilot: false }, ctx.user.id);
     await createAuditEntry({ actorId: ctx.user.id, action: "run_customers_backfill", targetType: "system", targetId: 0, details: result });
     return result;
   }),
 
   reconcile: ownerProcedure.input(z.object({ providerIds: providerIdsSchema.optional() })).query(async ({ input }) => {
-    const providerIds = input.providerIds ?? await getCrmPilotProviderIds();
+    const providerIds = input.providerIds ?? await listCrmAudienceProviderIds();
     if (providerIds.length === 0) return reconcileCrmProjection([]);
-    await requirePilotProviders(providerIds);
+    await requireAudienceProviders(providerIds);
     return reconcileCrmProjection(providerIds);
   }),
 
@@ -120,8 +143,8 @@ export const crmOperationsRouter = router({
     if (!await isCrmRolloutEnabled(CRM_ROLLOUT_FLAGS.repairJobs)) {
       throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Customers projection repair is disabled" });
     }
-    await requirePilotProviders(input.providerIds);
-    const result = await runCrmProjectionBatch("repair", { providerIds: input.providerIds, relationshipLimit: input.relationshipLimit, includePrivatePilot: true }, ctx.user.id);
+    await requireAudienceProviders(input.providerIds);
+    const result = await runCrmProjectionBatch("repair", { providerIds: input.providerIds, relationshipLimit: input.relationshipLimit, includePrivatePilot: (await getCrmAudienceMode()) === "pilot" }, ctx.user.id);
     await createAuditEntry({ actorId: ctx.user.id, action: "run_customers_repair", targetType: "system", targetId: 0, details: result });
     return result;
   }),
@@ -133,7 +156,7 @@ export const crmOperationsRouter = router({
     if (!await isCrmRolloutEnabled(CRM_ROLLOUT_FLAGS.repairJobs)) {
       throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Customers projection repair is disabled" });
     }
-    await requirePilotProviders([input.providerId]);
+    await requireAudienceProviders([input.providerId]);
     const result = await rebuildCrmProviderProjection(input.providerId, ctx.user.id);
     await createAuditEntry({ actorId: ctx.user.id, action: "rebuild_customers_projection", targetType: "provider", targetId: input.providerId, details: result });
     return result;

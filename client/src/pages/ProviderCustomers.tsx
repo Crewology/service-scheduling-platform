@@ -90,7 +90,7 @@ function ProviderCustomersNav({ active, businessName }: { active: "customers" | 
           <div className="border-b border-slate-100 p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">Provider workspace</p>
             <p className="mt-1 font-semibold text-slate-950">{businessName || "Your business"}</p>
-            <p className="text-xs text-slate-500">Private Customers pilot</p>
+            <p className="text-xs text-slate-500">Your customer relationships</p>
           </div>
           <nav className="p-2" aria-label="Provider workspace navigation">
             {[items[0], items[1], items[2]].map((item) => {
@@ -138,7 +138,7 @@ export default function ProviderCustomers() {
 
   if (access.isLoading) return <CustomersSkeleton />;
   if (!access.data?.visible) {
-    return <div className="container max-w-2xl py-12"><Card><CardContent className="p-8 text-center"><LockKeyhole className="mx-auto h-9 w-9 text-slate-400" /><h1 className="mt-4 text-2xl font-bold">Customers is not available for this account</h1><p className="mt-2 text-sm text-slate-600">This workspace is currently limited to an approved private provider pilot.</p><Button asChild className="mt-5"><Link href="/">Return home</Link></Button></CardContent></Card></div>;
+    return <div className="container max-w-2xl py-12"><Card><CardContent className="p-8 text-center"><LockKeyhole className="mx-auto h-9 w-9 text-slate-400" /><h1 className="mt-4 text-2xl font-bold">Customers is not available for this account</h1><p className="mt-2 text-sm text-slate-600">Customers requires an active provider account with current lifecycle access.</p><Button asChild className="mt-5"><Link href="/">Return home</Link></Button></CardContent></Card></div>;
   }
   if (workspace.isLoading) return <CustomersSkeleton />;
   if (workspace.error || !workspace.data) {
@@ -155,7 +155,7 @@ export default function ProviderCustomers() {
         <main className="min-w-0">
           <section className="rounded-[28px] bg-[#123f63] px-5 py-6 text-white shadow-[0_24px_70px_-38px_rgba(18,63,99,0.8)] sm:px-8 sm:py-8">
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-              <div><Badge className="border-white/20 bg-white/10 text-blue-50 hover:bg-white/10">Private tools pilot</Badge><h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Customers</h1><p className="mt-2 max-w-2xl text-sm text-blue-100 sm:text-base">Your relationships are organized automatically from your OlogyCrew activity, with provider-private notes and manual follow-ups.</p></div>
+              <div><Badge className="border-white/20 bg-white/10 text-blue-50 hover:bg-white/10">Provider-owned relationships</Badge><h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Customers</h1><p className="mt-2 max-w-2xl text-sm text-blue-100 sm:text-base">Your relationships are organized automatically from your OlogyCrew activity, with plan-based private notes and manual follow-ups.</p></div>
               <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm leading-6 text-blue-50"><LockKeyhole className="mr-2 inline h-4 w-4" />{access.data.draftSendingEnabled ? "Notes and follow-ups stay private. In-app messages send only from a reviewed draft after confirmation and current customer permission. Nothing runs automatically or changes a booking." : "Notes, follow-ups, and drafts stay private. Nothing sends automatically or changes a booking."}</div>
             </div>
           </section>

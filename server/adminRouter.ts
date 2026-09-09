@@ -6,10 +6,11 @@ import { ENV } from "./_core/env";
 import { createAuditEntry, getAuditLog, getAuditLogForTarget } from "./db/auditLog";
 import { getAdminTeamMembers, promoteToAdmin, demoteFromAdmin, updateAdminRole, searchUsersForAdmin } from "./db/adminTeam";
 import { getSubscriptionAnalytics as getEffectiveSubscriptionAnalytics } from "./db/payments";
+import { hasAdminClearance, isApprovedAdminEmail } from "./adminPolicy";
 
 // Admin-only procedure that checks if user has admin role
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (ctx.user.role !== "admin") {
+  if (!hasAdminClearance(ctx.user)) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "Admin access required",
@@ -20,9 +21,8 @@ const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
 
 // Super admin procedure — only the platform owner or super_admins can manage team
 const superAdminProcedure = adminProcedure.use(({ ctx, next }) => {
-  const isOwner = ctx.user.openId === ENV.ownerOpenId;
-  const isSuperAdmin = (ctx.user as any).adminRole === "super_admin";
-  if (!isOwner && !isSuperAdmin) {
+  const isSuperAdmin = ctx.user.adminRole === "super_admin";
+  if (!isSuperAdmin) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "Only the platform owner or super admins can perform this action",
@@ -231,14 +231,16 @@ export const adminRouter = router({
 
   // Get all admin team members
   getTeamMembers: adminProcedure.query(async () => {
-    return await getAdminTeamMembers();
+    const members = await getAdminTeamMembers();
+    return members.filter(member => isApprovedAdminEmail(member.email));
   }),
 
   // Search users for promote dialog
   searchUsers: adminProcedure
     .input(z.object({ query: z.string().min(1) }))
     .query(async ({ input }) => {
-      return await searchUsersForAdmin(input.query);
+      const matches = await searchUsersForAdmin(input.query);
+      return matches.filter(user => isApprovedAdminEmail(user.email));
     }),
 
   // Promote a user to admin
@@ -250,6 +252,7 @@ export const adminRouter = router({
     .mutation(async ({ ctx, input }) => {
       const user = await db.getUserById(input.userId);
       if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      if (!isApprovedAdminEmail(user.email)) throw new TRPCError({ code: "FORBIDDEN", message: "Administrative clearance is restricted to the approved administrator identities" });
       if (user.role === "admin") throw new TRPCError({ code: "BAD_REQUEST", message: "User is already an admin" });
       await promoteToAdmin(input.userId, input.adminRole);
       await createAuditEntry({
@@ -293,6 +296,7 @@ export const adminRouter = router({
     .mutation(async ({ ctx, input }) => {
       const user = await db.getUserById(input.userId);
       if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      if (!isApprovedAdminEmail(user.email)) throw new TRPCError({ code: "FORBIDDEN", message: "Administrative clearance is restricted to the approved administrator identities" });
       if (user.role !== "admin") throw new TRPCError({ code: "BAD_REQUEST", message: "User is not an admin" });
       await updateAdminRole(input.userId, input.adminRole);
       await createAuditEntry({

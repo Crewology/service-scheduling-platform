@@ -2,13 +2,16 @@ import { describe, it, expect, beforeAll, vi } from "vitest";
 import { appRouter } from "./routers";
 import * as db from "./db";
 
+vi.mock("./notifications", async importOriginal => ({ ...(await importOriginal<typeof import("./notifications")>()), sendNotification: vi.fn().mockResolvedValue(true) }));
+vi.mock("./notifications/pushHelper", async importOriginal => ({ ...(await importOriginal<typeof import("./notifications/pushHelper")>()), sendPushNotification: vi.fn().mockResolvedValue(true) }));
+
 // ============================================================================
 // Phase 14 Tests: Embedded Analytics, Provider Analytics, Automated Refunds
 // ============================================================================
 
 function createAuthContext(role: "customer" | "provider" | "admin", userId: number, name: string, email?: string) {
   return {
-    user: { id: userId, openId: `test-p14-${userId}`, name, role, email, emailVerified: true },
+    user: { id: userId, openId: `test-p14-${userId}`, name, role, email: role === "admin" ? (email ?? "garychisolm30@gmail.com") : email, emailVerified: true },
     req: { headers: { origin: "http://localhost:3000" } } as any,
   };
 }

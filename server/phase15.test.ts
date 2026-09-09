@@ -1,6 +1,9 @@
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll, vi } from "vitest";
 import { appRouter } from "./routers";
 import * as db from "./db";
+
+vi.mock("./notifications", async importOriginal => ({ ...(await importOriginal<typeof import("./notifications")>()), sendNotification: vi.fn().mockResolvedValue(true) }));
+vi.mock("./notifications/pushHelper", async importOriginal => ({ ...(await importOriginal<typeof import("./notifications/pushHelper")>()), sendPushNotification: vi.fn().mockResolvedValue(true) }));
 
 // ============================================================================
 // Phase 15 Tests: Promo Code System (CRUD, Validation, Discount, Booking Integration)

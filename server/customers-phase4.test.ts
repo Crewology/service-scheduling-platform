@@ -153,6 +153,8 @@ describe("Customers Phase 4 private notes and manual follow-ups", () => {
     mocks.getProviderByUserId.mockResolvedValue(provider);
     mocks.getCrmProviderAccess.mockResolvedValue({
       entitlement,
+      audienceMode: "pilot",
+      isAudienceProvider: true,
       isPilotProvider: true,
       can: (feature: string) => ["customerHistory", "crmNotes", "crmFollowUps", "crmStageOverrides", "crmDrafts"].includes(feature),
     });
@@ -205,11 +207,11 @@ describe("Customers Phase 4 private notes and manual follow-ups", () => {
     await expect(flagOffCaller.createDraft({ contactId: 9, body: "Private draft", requestId: crypto.randomUUID() })).rejects.toMatchObject({ code: "FORBIDDEN" });
 
     enablePrivateWrites();
-    mocks.getCrmProviderAccess.mockResolvedValue({ entitlement, isPilotProvider: false, can: () => true });
+    mocks.getCrmProviderAccess.mockResolvedValue({ entitlement, audienceMode: "pilot", isAudienceProvider: false, isPilotProvider: false, can: () => true });
     await expect(customersRouter.createCaller(context()).createFollowUp({ contactId: 9, title: "No access", requestId: crypto.randomUUID() })).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(customersRouter.createCaller(context()).sendDraft({ contactId: 9, draftId: 61, confirmedBody: draft.body, confirmSend: true })).rejects.toMatchObject({ code: "FORBIDDEN" });
 
-    mocks.getCrmProviderAccess.mockResolvedValue({ entitlement: { effectiveTier: "free", state: "active" }, isPilotProvider: true, can: (feature: string) => feature === "customerHistory" });
+    mocks.getCrmProviderAccess.mockResolvedValue({ entitlement: { effectiveTier: "free", state: "active" }, audienceMode: "lifecycle_entitled", isAudienceProvider: true, isPilotProvider: false, can: (feature: string) => feature === "customerHistory" });
     await expect(customersRouter.createCaller(context()).createNote({ contactId: 9, body: "No entitlement" })).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(customersRouter.createCaller(context()).sendDraft({ contactId: 9, draftId: 61, confirmedBody: draft.body, confirmSend: true })).rejects.toMatchObject({ code: "FORBIDDEN" });
 
@@ -242,6 +244,8 @@ describe("Customers Phase 4 private notes and manual follow-ups", () => {
   it("does not expose retained private notes or tasks when lifecycle entitlements are unavailable", async () => {
     mocks.getCrmProviderAccess.mockResolvedValue({
       entitlement: { effectiveTier: "free", state: "active" },
+      audienceMode: "lifecycle_entitled",
+      isAudienceProvider: true,
       isPilotProvider: true,
       can: (feature: string) => feature === "customerHistory",
     });
@@ -259,11 +263,15 @@ describe("Customers Phase 4 private notes and manual follow-ups", () => {
   it("restores retained private tools after a deterministic Pro-to-Starter-to-Pro lifecycle transition", async () => {
     const paidAccess = {
       entitlement: { effectiveTier: "basic", state: "trialing", hasPaidAccess: true },
+      audienceMode: "lifecycle_entitled",
+      isAudienceProvider: true,
       isPilotProvider: true,
       can: (feature: string) => ["customerHistory", "crmNotes", "crmFollowUps", "crmStageOverrides", "crmDrafts"].includes(feature),
     };
     const starterAccess = {
       entitlement: { effectiveTier: "free", state: "active", hasPaidAccess: false },
+      audienceMode: "lifecycle_entitled",
+      isAudienceProvider: true,
       isPilotProvider: true,
       can: (feature: string) => feature === "customerHistory",
     };

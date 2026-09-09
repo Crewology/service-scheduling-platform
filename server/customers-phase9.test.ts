@@ -37,7 +37,7 @@ describe("Customers Phase 9 stabilization contracts", () => {
       "Permission is off by default.",
       "does not enable marketing email, SMS, push notifications, bulk messages, or automatic follow-ups",
       'link: "/notification-settings"',
-      "Using Customers During the Private Pilot",
+      "Using Customers for Your Provider Business",
       "Existing source records remain authoritative.",
       "Nothing runs automatically.",
       "existing private records are retained but hidden until qualifying access returns",

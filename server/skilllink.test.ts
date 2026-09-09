@@ -12,18 +12,21 @@
  *  - Admin procedures
  */
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 import { getDb } from "./db";
 import { users, serviceProviders, services, bookings, reviews, messages } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 
+vi.mock("./notifications", async importOriginal => ({ ...(await importOriginal<typeof import("./notifications")>()), sendNotification: vi.fn().mockResolvedValue(true) }));
+vi.mock("./notifications/pushHelper", async importOriginal => ({ ...(await importOriginal<typeof import("./notifications/pushHelper")>()), sendPushNotification: vi.fn().mockResolvedValue(true) }));
+
 // ─── Context Helpers ──────────────────────────────────────────────────────────
 
 function makeCtx(user: TrpcContext["user"]): TrpcContext {
   return {
-    user,
+    user: user?.role === "admin" ? { ...user, email: "garychisolm30@gmail.com" } : user,
     req: { protocol: "https", headers: {} } as TrpcContext["req"],
     res: {
       clearCookie: () => {},

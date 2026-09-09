@@ -70,7 +70,7 @@ async function resolveProviderAccess(userId: number) {
     crmRetentionAnalytics: access.can("crmRetentionAnalytics"),
     crmCustomAutomations: access.can("crmCustomAutomations"),
   } as const;
-  const visible = Boolean(provider.isActive && access.isPilotProvider && readUiEnabled && entitlements.customerHistory);
+  const visible = Boolean(provider.isActive && access.isAudienceProvider && readUiEnabled && entitlements.customerHistory);
   return {
     provider,
     access,

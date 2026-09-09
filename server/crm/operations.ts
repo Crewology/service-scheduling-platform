@@ -4,14 +4,16 @@ import {
   crmContactStageHistory,
   crmContacts,
 } from "../../drizzle/schema";
-import { CRM_ROLLOUT_FLAGS } from "../../shared/crm";
+import { CRM_ROLLOUT_FLAGS, type CrmAudienceMode } from "../../shared/crm";
 import { requireDb } from "../db/connection";
 import {
   getCrmContactByCustomer,
+  getCrmAudienceMode,
   getCrmOperationalSetting,
   getCrmPilotProviderIds,
   isCrmRolloutEnabled,
   setCrmPilotProviderIds,
+  setCrmAudienceMode,
   setCrmRolloutFlag,
   upsertCrmOperationalSetting,
 } from "../db/crm";
@@ -46,6 +48,7 @@ function parsePrivateJson<T>(raw: string | null, fallback: T): T {
 
 export async function setCrmPhase2PrivateConfig(input: {
   pilotProviderIds?: number[];
+  audienceMode?: CrmAudienceMode;
   projectionWrites?: boolean;
   repairJobs?: boolean;
   readUi?: boolean;
@@ -53,11 +56,17 @@ export async function setCrmPhase2PrivateConfig(input: {
   draftSending?: boolean;
   actorUserId: number;
 }) {
-  const effectivePilotProviderIds = input.pilotProviderIds ?? await getCrmPilotProviderIds();
-  if ((input.projectionWrites === true || input.repairJobs === true || input.readUi === true || input.providerWrites === true || input.draftSending === true) && effectivePilotProviderIds.length === 0) {
+  const [storedAudienceMode, storedPilotProviderIds] = await Promise.all([
+    getCrmAudienceMode(),
+    getCrmPilotProviderIds(),
+  ]);
+  const effectiveAudienceMode = input.audienceMode ?? storedAudienceMode;
+  const effectivePilotProviderIds = input.pilotProviderIds ?? storedPilotProviderIds;
+  if (effectiveAudienceMode === "pilot" && (input.projectionWrites === true || input.repairJobs === true || input.readUi === true || input.providerWrites === true || input.draftSending === true) && effectivePilotProviderIds.length === 0) {
     throw new Error("At least one private pilot provider is required before Customers projection, repair, read UI, provider writes, or draft sending can be enabled");
   }
   if (input.pilotProviderIds) await setCrmPilotProviderIds(input.pilotProviderIds, input.actorUserId);
+  if (input.audienceMode) await setCrmAudienceMode(input.audienceMode, input.actorUserId);
   if (typeof input.projectionWrites === "boolean") {
     await setCrmRolloutFlag(CRM_ROLLOUT_FLAGS.projectionWrites, input.projectionWrites, input.actorUserId);
   }
@@ -80,7 +89,8 @@ export async function setCrmPhase2PrivateConfig(input: {
 }
 
 export async function getCrmPhase2PrivateStatus() {
-  const [pilotProviderIds, metrics, lastSuccessAt, lastError, backfillCursor, lastRunId] = await Promise.all([
+  const [audienceMode, pilotProviderIds, metrics, lastSuccessAt, lastError, backfillCursor, lastRunId] = await Promise.all([
+    getCrmAudienceMode(),
     getCrmPilotProviderIds(),
     getCrmOperationalSetting("customersProjectionMetrics"),
     getCrmOperationalSetting("customersProjectionLastSuccessAt"),
@@ -93,6 +103,7 @@ export async function getCrmPhase2PrivateStatus() {
     await isCrmRolloutEnabled(key),
   ])));
   return {
+    audienceMode,
     flags,
     pilotProviderIds,
     metrics: parsePrivateJson<Record<string, unknown> | null>(metrics, null),

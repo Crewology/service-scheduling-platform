@@ -149,8 +149,12 @@ export const CRM_ROLLOUT_FLAGS = {
 } as const;
 export type CrmRolloutFlag = (typeof CRM_ROLLOUT_FLAGS)[keyof typeof CRM_ROLLOUT_FLAGS];
 
+export const CRM_AUDIENCE_MODES = ["pilot", "lifecycle_entitled"] as const;
+export type CrmAudienceMode = (typeof CRM_AUDIENCE_MODES)[number];
+
 export const CRM_PRIVATE_SETTING_KEYS = [
   ...Object.values(CRM_ROLLOUT_FLAGS),
+  "customersAudienceMode",
   "customersPilotProviderIds",
   "customersProjectionRepairTaskUid",
   "customersTimeRulesTaskUid",

@@ -4,6 +4,7 @@ import {
   reviews,
   bookings,
   services,
+  users,
   type ServiceProvider,
 } from "../../drizzle/schema";
 import { getDb } from "./connection";
@@ -31,6 +32,26 @@ export async function getProviderById(id: number): Promise<ServiceProvider | und
   if (!db) return undefined;
   const result = await db.select().from(serviceProviders).where(eq(serviceProviders.id, id)).limit(1);
   return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getProviderAudienceIdentity(providerId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db.select({
+    providerId: serviceProviders.id,
+    businessName: serviceProviders.businessName,
+    isOfficial: serviceProviders.isOfficial,
+    isActive: serviceProviders.isActive,
+    providerDeletedAt: serviceProviders.deletedAt,
+    openId: users.openId,
+    email: users.email,
+    loginMethod: users.loginMethod,
+    userDeletedAt: users.deletedAt,
+  }).from(serviceProviders)
+    .innerJoin(users, eq(users.id, serviceProviders.userId))
+    .where(eq(serviceProviders.id, providerId))
+    .limit(1);
+  return rows[0];
 }
 
 export async function getAllProviders(filters?: { city?: string; state?: string; isActive?: boolean }) {

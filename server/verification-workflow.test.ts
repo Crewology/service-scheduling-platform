@@ -41,7 +41,7 @@ vi.mock("./db/notifications", () => ({ createNotification: mocks.createNotificat
 import { verificationRouter } from "./verificationRouter";
 
 const providerUser = { id: 10, role: "provider", emailVerified: true };
-const adminUser = { id: 1, role: "admin", emailVerified: true };
+const adminUser = { id: 1, role: "admin", emailVerified: true, email: "garychisolm30@gmail.com" };
 const otherUser = { id: 99, role: "customer", emailVerified: true };
 
 function caller(user: any) {

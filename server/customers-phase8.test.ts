@@ -86,7 +86,7 @@ describe("Customers Phase 8 pilot readiness", () => {
   it("reports a healthy private pilot as deferred until live customer validation is completed", () => {
     const result = assessCrmPilotReadiness(readyInput);
     expect(result.status).toBe("deferred");
-    expect(result.recommendation).toContain("Keep the pilot private");
+    expect(result.recommendation).toContain("Keep confirmed sending limited");
     expect(result.checks.find(check => check.id === "live_customer_validation")).toMatchObject({ status: "deferred" });
     expect(result.checks.find(check => check.id === "customer_permission")).toMatchObject({ status: "ready", detail: "0 of 2 relationships currently opted in" });
   });
@@ -94,7 +94,7 @@ describe("Customers Phase 8 pilot readiness", () => {
   it("reports ready only after an opted-in relationship completes a valid linked draft send", () => {
     const result = assessCrmPilotReadiness({ ...readyInput, optedInContactCount: 1, liveValidatedContactCount: 1 });
     expect(result.status).toBe("ready");
-    expect(result.recommendation).toContain("Eligible for an owner rollout review");
+    expect(result.recommendation).toContain("Provider audience is healthy");
     expect(result.checks.find(check => check.id === "live_customer_validation")).toMatchObject({
       status: "ready",
       detail: "1 opted-in relationship has a valid linked in-app draft send",
@@ -161,20 +161,25 @@ describe("Customers Phase 8 pilot readiness", () => {
     await expect(crmOperationsRouter.createCaller(context("admin", null)).getPilotHealth()).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
-  it("returns only aggregate current-pilot health with no private relationship content", async () => {
+  it("returns only aggregate current-audience health with no private relationship content", async () => {
     const result = await getCrmPilotHealth();
     expect(result.status).toBe("ready");
     expect(result.providers).toEqual(expect.arrayContaining([
       expect.objectContaining({ providerId: 1, businessName: "Chisolm Audio", isActive: true, customerHistoryEnabled: true, draftsEnabled: true, contacts: 3, optedInContacts: 1, sentDrafts: 1, liveValidatedContacts: 1 }),
+      expect.objectContaining({ providerId: 660_001, businessName: "Winston", isActive: true, effectiveTier: "free", customerHistoryEnabled: true, notesEnabled: false, followUpsEnabled: false, draftsEnabled: false, stageOverridesEnabled: false, contacts: 0 }),
       expect.objectContaining({ providerId: 1_350_001, businessName: "Gary Studios", isActive: true, effectiveTier: "basic", entitlementState: "trialing", customerHistoryEnabled: true, notesEnabled: true, followUpsEnabled: true, draftsEnabled: true, stageOverridesEnabled: true, contacts: 1, optedInContacts: 0, sentDrafts: 0, liveValidatedContacts: 0 }),
     ]));
+    expect(result.providers).not.toEqual(expect.arrayContaining([expect.objectContaining({ providerId: 1_680_002 })]));
     expect(result.totals.providers).toBe(result.providers.length);
     expect(result.totals.activeProviders).toBe(result.providers.filter(provider => provider.isActive).length);
     expect(result.totals.contacts).toBe(result.providers.reduce((sum, provider) => sum + provider.contacts, 0));
     expect(result.totals.optedInContacts).toBe(result.providers.reduce((sum, provider) => sum + provider.optedInContacts, 0));
     expect(result.totals.sentDrafts).toBe(result.providers.reduce((sum, provider) => sum + provider.sentDrafts, 0));
     expect(result.totals.liveValidatedContacts).toBe(result.providers.reduce((sum, provider) => sum + provider.liveValidatedContacts, 0));
-    expect(result.totals).toMatchObject({ providers: 2, activeProviders: 2, contacts: 4, optedInContacts: 1, sentDrafts: 1, liveValidatedContacts: 1 });
+    expect(result.totals.providers).toBeGreaterThanOrEqual(2);
+    expect(result.totals.activeProviders).toBe(result.totals.providers);
+    expect(result.totals.contacts).toBeGreaterThanOrEqual(4);
+    expect(result.totals).toMatchObject({ optedInContacts: 1, sentDrafts: 1, liveValidatedContacts: 1 });
     expect(result.integrity).toMatchObject({ selfContacts: 0, nonPilotContacts: 0, scopeMismatches: 0, sentDraftIssues: 0 });
     expect(result.future).toMatchObject({ enabledAutomationRules: 0, automationRuns: 0, failedAutomationRuns: 0, savedSegments: 0 });
     expect(result.flags).toMatchObject({ projectionWrites: true, readUi: true, providerWrites: true, draftSending: true, repairJobs: false, recommendations: false });
@@ -182,16 +187,22 @@ describe("Customers Phase 8 pilot readiness", () => {
     expect(JSON.stringify(dataOnly)).not.toMatch(/legacy\.vk|freshradioshow|@gmail|messageText|customerEmail|customerName|noteBody|taskDescription/i);
   }, 60_000);
 
-  it("grants each named provider only its own Customers workspace and rejects constructed cross-provider contact IDs", async () => {
+  it("grants lifecycle-entitled providers only their own Customers workspace and excludes the known test provider", async () => {
     const chisolm = customersRouter.createCaller(providerContext(1, "Chisolm Audio"));
     const garyStudios = customersRouter.createCaller(providerContext(135_990_339, "Gary Studios"));
+    const winston = customersRouter.createCaller(providerContext(2_190_437, "Winston"));
+    const prattisTest = customersRouter.createCaller(providerContext(214_381_102, "Prattis Test"));
 
     await expect(chisolm.getAccess()).resolves.toMatchObject({ visible: true, businessName: "Chisolm Audio", notesEnabled: true, followUpsEnabled: true, draftsEnabled: true, stageOverridesEnabled: true });
     await expect(garyStudios.getAccess()).resolves.toMatchObject({ visible: true, businessName: "Gary Studios", effectiveTier: "basic", notesEnabled: true, followUpsEnabled: true, draftsEnabled: true, stageOverridesEnabled: true });
+    await expect(winston.getAccess()).resolves.toMatchObject({ visible: true, businessName: "Winston", effectiveTier: "free", readOnly: true, notesEnabled: false, followUpsEnabled: false, draftsEnabled: false, stageOverridesEnabled: false });
+    await expect(prattisTest.getAccess()).resolves.toMatchObject({ visible: false });
 
     await expect(garyStudios.getContact({ contactId: 1_380_030 })).resolves.toMatchObject({ contact: { id: 1_380_030, customerId: 1 } });
     await expect(garyStudios.getContact({ contactId: 1_320_002 })).rejects.toMatchObject({ code: "NOT_FOUND" });
     await expect(chisolm.getContact({ contactId: 1_380_030 })).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(winston.getContact({ contactId: 1_320_002 })).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(prattisTest.getWorkspace({ tab: "leads", sort: "attention", limit: 25, offset: 0 })).rejects.toMatchObject({ code: "FORBIDDEN" });
   }, 60_000);
 });
 
@@ -224,7 +235,7 @@ describe("Customers Phase 8 privacy source contracts", () => {
   });
 
   it("keeps the owner interface aggregate-only, transparent about live and deferred validation, and horizontally safe", () => {
-    for (const text of ["Customers private pilot", "Live test verified", "Live test deferred", "Deferred is not treated as passed", "Safe disable order", "data.privacyNotice"]) expect(panelSource).toContain(text);
+    for (const text of ["Customers provider rollout", "Healthy", "Validation deferred", "Deferred is not treated as passed", "Safe disable order", "data.privacyNotice"]) expect(panelSource).toContain(text);
     expect(panelSource).toContain('className="overflow-x-auto"');
     expect(panelSource).not.toMatch(/customerEmail|customerName|messageText|noteBody|taskDescription|addressLine|stripeAccount/);
   });

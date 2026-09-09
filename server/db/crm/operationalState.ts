@@ -2,9 +2,11 @@ import { eq } from "drizzle-orm";
 import { crmOperationalState } from "../../../drizzle/schema";
 import {
   CRM_DEFAULT_ROLLOUT_FLAGS,
+  CRM_AUDIENCE_MODES,
   CRM_PRIVATE_SETTING_KEYS,
   CRM_ROLLOUT_FLAGS,
   type CrmPrivateSettingKey,
+  type CrmAudienceMode,
   type CrmRolloutFlag,
 } from "../../../shared/crm";
 import { requireDb } from "../connection";
@@ -78,6 +80,23 @@ export async function setCrmRolloutFlag(
   updatedByUserId?: number | null,
 ): Promise<void> {
   await upsertCrmOperationalSetting(flag, enabled ? "true" : "false", updatedByUserId);
+}
+
+export async function getCrmAudienceMode(): Promise<CrmAudienceMode> {
+  const raw = await getCrmOperationalSetting("customersAudienceMode");
+  return (CRM_AUDIENCE_MODES as readonly string[]).includes(raw ?? "")
+    ? raw as CrmAudienceMode
+    : "pilot";
+}
+
+export async function setCrmAudienceMode(
+  mode: CrmAudienceMode,
+  updatedByUserId?: number | null,
+): Promise<void> {
+  if (!(CRM_AUDIENCE_MODES as readonly string[]).includes(mode)) {
+    throw new Error(`Unsupported Customers audience mode: ${mode}`);
+  }
+  await upsertCrmOperationalSetting("customersAudienceMode", mode, updatedByUserId);
 }
 
 export async function getCrmPilotProviderIds(): Promise<number[]> {

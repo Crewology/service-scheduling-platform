@@ -5,13 +5,14 @@ import { TRPCError } from "@trpc/server";
 import { createAuditEntry } from "./db/auditLog";
 import { PROVIDER_EVIDENCE_TYPES, resolveEvidenceSignal } from "../shared/providerTrust";
 import { createNotification } from "./db/notifications";
+import { hasAdminClearance } from "./adminPolicy";
 
 const evidenceType = z.enum(PROVIDER_EVIDENCE_TYPES);
 const dateOnly = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD");
 const allowedContentTypes = new Set(["application/pdf", "image/jpeg", "image/png"]);
 
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (ctx.user.role !== "admin") {
+  if (!hasAdminClearance(ctx.user)) {
     throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
   }
   return next({ ctx });
@@ -127,7 +128,7 @@ export const verificationRouter = router({
       const document = await db.getDocumentById(input.documentId);
       if (!document) throw new TRPCError({ code: "NOT_FOUND", message: "Document not found" });
       const provider = await db.getProviderByUserId(ctx.user.id);
-      if (ctx.user.role !== "admin" && provider?.id !== document.providerId) {
+      if (!hasAdminClearance(ctx.user) && provider?.id !== document.providerId) {
         throw new TRPCError({ code: "FORBIDDEN", message: "You cannot view this document" });
       }
       if (document.documentKey) {

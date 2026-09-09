@@ -111,7 +111,7 @@ describe("Customers Phase 11 server-derived access contracts", () => {
     expect(accessSource).toContain("resolveProviderEntitlement(subscription)");
     expect(accessSource).toContain("providerHasFeature(entitlement.effectiveTier, feature)");
     for (const feature of PHASE_11_FEATURES) expect(routerSource).toContain(`access.can("${feature}")`);
-    expect(routerSource).toContain("provider.isActive && access.isPilotProvider && readUiEnabled");
+    expect(routerSource).toContain("provider.isActive && access.isAudienceProvider && readUiEnabled");
     expect(routerSource).toContain("providerWritesEnabled");
     expect(routerSource).toContain("ctx.provider.id");
     expect(routerSource).not.toMatch(/\.input\(z\.object\(\{[^}]*providerId/s);

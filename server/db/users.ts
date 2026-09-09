@@ -49,6 +49,7 @@ import {
 import { ENV } from "../_core/env";
 import { getDb } from "./connection";
 import { resolveCustomerEntitlement, resolveProviderEntitlement } from "../../shared/entitlements";
+import { isApprovedAdminEmail } from "../adminPolicy";
 
 // ============================================================================
 // USER MANAGEMENT
@@ -88,23 +89,16 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       values.lastSignedIn = user.lastSignedIn;
       updateSet.lastSignedIn = user.lastSignedIn;
     }
-    // List of emails that should be auto-promoted to admin on signup
-    const ADMIN_EMAILS = [
-      'rlstephens42@comcast.net',
-    ];
-
-    if (user.role !== undefined) {
+    if (isApprovedAdminEmail(user.email)) {
+      values.role = "admin";
+      values.adminRole = "super_admin";
+      updateSet.role = "admin";
+      updateSet.adminRole = "super_admin";
+    } else if (user.role !== undefined && user.role !== "admin") {
       values.role = user.role;
       updateSet.role = user.role;
     } else if (user.openId === ENV.ownerOpenId) {
-      // Only set admin on initial insert, don't override on subsequent logins
-      values.role = 'admin';
-      // Don't add to updateSet — preserves whatever role was manually set in DB
-    } else if (user.email && ADMIN_EMAILS.includes(user.email.toLowerCase())) {
-      // Auto-promote pre-approved admin emails
-      values.role = 'admin';
-      updateSet.role = 'admin';
-      console.log(`[Database] Auto-promoting ${user.email} to admin role`);
+      console.warn("[Database] Owner identity did not match the approved administrator emails");
     }
 
     if (!values.lastSignedIn) {

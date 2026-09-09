@@ -1,6 +1,5 @@
 import { getProviderById } from "../db/providers";
-import { getCrmPilotProviderIds } from "../db/crm";
-import { getCrmProviderAccess } from "./access";
+import { getCrmProviderAccess, listCrmAudienceProviderIds } from "./access";
 import { runCrmProjectionBatch } from "./operations";
 
 export type CrmBetaCandidateStatus = "ready" | "blocked" | "pending" | "already_in_pilot";
@@ -43,17 +42,21 @@ export function assessCrmBetaCandidateReadiness(input: CrmBetaCandidateReadiness
     {
       id: "lifecycle_entitlements",
       label: "Lifecycle-aware Customers access",
-      status: input.customerHistoryEnabled && input.privateToolsEnabled ? "ready" : "blocked",
-      detail: input.customerHistoryEnabled && input.privateToolsEnabled
-        ? "Customer history and every approved private tool are available"
-        : "A current Pro or Business entitlement is required for the complete pilot",
+      status: input.customerHistoryEnabled ? "ready" : "blocked",
+      detail: input.customerHistoryEnabled
+        ? input.privateToolsEnabled
+          ? "Customer history and every approved private tool are available"
+          : "Customer history is available; private tools require current Pro or Business access"
+        : "Customer history is not available for the current lifecycle state",
     },
     {
       id: "relationship_evidence",
       label: "Legitimate relationship evidence",
-      status: input.dryRunEligibleCount > 0 && input.dryRunFailedCount === 0 && !input.dryRunHasMore ? "ready" : "blocked",
+      status: input.dryRunFailedCount > 0 || input.dryRunHasMore ? "blocked" : input.dryRunEligibleCount > 0 ? "ready" : "pending",
       detail: input.dryRunHasMore
         ? "The bounded dry-run was incomplete"
+        : input.dryRunEligibleCount === 0 && input.dryRunFailedCount === 0
+          ? "No qualified relationship is currently ready to project"
         : `${input.dryRunEligibleCount} eligible of ${input.dryRunCandidateCount} candidate relationships · ${input.dryRunFailedCount} failures`,
     },
     {
@@ -67,7 +70,7 @@ export function assessCrmBetaCandidateReadiness(input: CrmBetaCandidateReadiness
       label: "Controlled cohort capacity",
       status: input.alreadyInPilot || input.currentPilotCount < input.maxPilotProviders ? "ready" : "blocked",
       detail: input.alreadyInPilot
-        ? "Provider is already in the current private pilot"
+        ? "Provider already has Customers access in the current audience"
         : `${input.currentPilotCount} of ${input.maxPilotProviders} controlled beta places are currently occupied`,
     },
   ] as const;
@@ -89,7 +92,7 @@ export function assessCrmBetaCandidateReadiness(input: CrmBetaCandidateReadiness
       : status === "pending"
         ? "Confirm the remaining human evidence before requesting owner approval"
         : status === "already_in_pilot"
-          ? "This provider is already enrolled; use Pilot providers and health checks for monitoring"
+          ? "This provider already has access; use Customers rollout health for monitoring"
           : "Ready for a separate named owner approval; this assessment does not enroll the provider",
     checks,
   };
@@ -100,9 +103,9 @@ export async function getCrmBetaCandidateReadiness(input: {
   hasReachableTester: boolean;
   actorUserId: number;
 }) {
-  const [provider, pilotProviderIds] = await Promise.all([
+  const [provider, audienceProviderIds] = await Promise.all([
     getProviderById(input.providerId),
-    getCrmPilotProviderIds(),
+    listCrmAudienceProviderIds(),
   ]);
   const maxPilotProviders = 5;
 
@@ -112,7 +115,7 @@ export async function getCrmBetaCandidateReadiness(input: {
       providerActive: false,
       officialDemoProvider: false,
       alreadyInPilot: false,
-      currentPilotCount: pilotProviderIds.length,
+      currentPilotCount: audienceProviderIds.length,
       maxPilotProviders,
       customerHistoryEnabled: false,
       privateToolsEnabled: false,
@@ -144,13 +147,13 @@ export async function getCrmBetaCandidateReadiness(input: {
     }, input.actorUserId),
   ]);
   const privateToolsEnabled = ["crmNotes", "crmFollowUps", "crmStageOverrides", "crmDrafts"].every(feature => access.can(feature as "crmNotes" | "crmFollowUps" | "crmStageOverrides" | "crmDrafts"));
-  const alreadyInPilot = pilotProviderIds.includes(provider.id);
+  const alreadyInPilot = access.isAudienceProvider && audienceProviderIds.includes(provider.id);
   const readiness = assessCrmBetaCandidateReadiness({
     providerExists: true,
     providerActive: Boolean(provider.isActive && !provider.deletedAt),
     officialDemoProvider: Boolean(provider.isOfficial),
     alreadyInPilot,
-    currentPilotCount: pilotProviderIds.length,
+    currentPilotCount: audienceProviderIds.length,
     maxPilotProviders,
     customerHistoryEnabled: access.can("customerHistory"),
     privateToolsEnabled,

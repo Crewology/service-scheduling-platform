@@ -15,7 +15,7 @@ import {
   serviceProviders,
 } from "../../drizzle/schema";
 import { requireDb } from "../db/connection";
-import { getCrmProviderAccess } from "./access";
+import { getCrmProviderAccess, listCrmAudienceProviderIds } from "./access";
 import { getCrmPhase2PrivateStatus, reconcileCrmProjection } from "./operations";
 
 export type CrmPilotHealthCheckStatus = "ready" | "blocked" | "deferred" | "disabled";
@@ -28,6 +28,7 @@ export type CrmPilotHealthCheck = {
 };
 
 type ReadinessInput = {
+  audienceMode?: "pilot" | "lifecycle_entitled";
   pilotProviderCount: number;
   missingPilotProviderCount: number;
   inactivePilotProviderCount: number;
@@ -55,24 +56,26 @@ type ReadinessInput = {
 };
 
 export function assessCrmPilotReadiness(input: ReadinessInput) {
+  const providerAudienceLabel = input.audienceMode === "lifecycle_entitled" ? "Lifecycle-entitled provider audience" : "Private pilot allowlist";
+  const providerScopeLabel = input.audienceMode === "lifecycle_entitled" ? "out-of-audience contacts" : "non-pilot contacts";
   const checks: CrmPilotHealthCheck[] = [
     {
       id: "pilot_allowlist",
-      label: "Private pilot allowlist",
+      label: providerAudienceLabel,
       status: input.pilotProviderCount > 0 ? "ready" : "disabled",
       detail: input.pilotProviderCount > 0 ? `${input.pilotProviderCount} provider${input.pilotProviderCount === 1 ? "" : "s"} allowlisted` : "No providers are allowlisted",
     },
     {
       id: "provider_availability",
-      label: "Pilot provider availability and access",
+      label: "Provider availability and Customers access",
       status: input.missingPilotProviderCount > 0 || input.inactivePilotProviderCount > 0 || input.ineligiblePilotProviderCount > 0 ? "blocked" : "ready",
       detail: input.missingPilotProviderCount > 0 || input.inactivePilotProviderCount > 0 || input.ineligiblePilotProviderCount > 0
         ? `${input.missingPilotProviderCount} missing · ${input.inactivePilotProviderCount} inactive · ${input.ineligiblePilotProviderCount} without required Customers entitlement`
-        : "Every allowlisted provider exists, is active, and retains required Customers access",
+        : "Every provider in the active audience exists, is active, and retains customer-history access",
     },
     {
       id: "private_capabilities",
-      label: "Private pilot capabilities",
+      label: "Customers rollout capabilities",
       status: input.projectionWrites && input.readUi && input.providerWrites && input.draftSending ? "ready" : "disabled",
       detail: `Projection ${input.projectionWrites ? "on" : "off"} · Read UI ${input.readUi ? "on" : "off"} · Provider writes ${input.providerWrites ? "on" : "off"} · Confirmed sending ${input.draftSending ? "on" : "off"}`,
     },
@@ -86,7 +89,7 @@ export function assessCrmPilotReadiness(input: ReadinessInput) {
       id: "tenant_integrity",
       label: "Tenant and relationship integrity",
       status: input.selfContactCount === 0 && input.nonPilotContactCount === 0 && input.scopeMismatchCount === 0 ? "ready" : "blocked",
-      detail: `${input.selfContactCount} self-contacts · ${input.nonPilotContactCount} non-pilot contacts · ${input.scopeMismatchCount} scoped-child mismatches`,
+      detail: `${input.selfContactCount} self-contacts · ${input.nonPilotContactCount} ${providerScopeLabel} · ${input.scopeMismatchCount} scoped-child mismatches`,
     },
     {
       id: "projection_health",
@@ -126,7 +129,7 @@ export function assessCrmPilotReadiness(input: ReadinessInput) {
 
   return {
     status,
-    recommendation: status === "blocked" ? "Resolve blocked checks before further pilot use" : status === "disabled" ? "Keep the affected capability disabled until intentionally re-enabled" : status === "deferred" ? "Keep the pilot private until the live customer validation is completed" : "Eligible for an owner rollout review; no rollout occurs automatically",
+    recommendation: status === "blocked" ? "Resolve blocked checks before further Customers use" : status === "disabled" ? "Keep the affected capability disabled until intentionally re-enabled" : status === "deferred" ? "Keep confirmed sending limited until live customer validation is completed" : "Provider audience is healthy; no access change occurs automatically",
     checks,
   };
 }
@@ -138,11 +141,13 @@ function numberValue(value: unknown) {
 export async function getCrmPilotHealth() {
   const database = await requireDb();
   const privateStatus = await getCrmPhase2PrivateStatus();
-  const pilotProviderIds = privateStatus.pilotProviderIds;
+  const pilotProviderIds = await listCrmAudienceProviderIds();
+  const rollbackPilotProviderIds = privateStatus.pilotProviderIds;
   const checkedAt = new Date();
 
   if (pilotProviderIds.length === 0) {
     const readiness = assessCrmPilotReadiness({
+      audienceMode: privateStatus.audienceMode,
       pilotProviderCount: 0,
       missingPilotProviderCount: 0,
       inactivePilotProviderCount: 0,
@@ -171,6 +176,8 @@ export async function getCrmPilotHealth() {
     return {
       checkedAt,
       ...readiness,
+      audienceMode: privateStatus.audienceMode,
+      rollbackPilotProviderCount: rollbackPilotProviderIds.length,
       flags: privateStatus.flags,
       totals: { providers: 0, activeProviders: 0, contacts: 0, optedInContacts: 0, activeNotes: 0, openTasks: 0, completedTasks: 0, dismissedTasks: 0, activeDrafts: 0, sentDrafts: 0, discardedDrafts: 0, activityEvents: 0, liveValidatedContacts: 0 },
       integrity: { selfContacts: 0, nonPilotContacts: 0, scopeMismatches: 0, contactsMissingProjection: 0, projectionLaggingContacts: 0, sentDraftIssues: 0 },
@@ -325,10 +332,11 @@ export async function getCrmPilotHealth() {
     savedSegments: numberValue(savedSegmentRows[0]?.count),
   };
   const readiness = assessCrmPilotReadiness({
+    audienceMode: privateStatus.audienceMode,
     pilotProviderCount: pilotProviderIds.length,
     missingPilotProviderCount: Math.max(0, pilotProviderIds.length - providerRows.length),
     inactivePilotProviderCount: providerRows.filter(provider => !provider.isActive).length,
-    ineligiblePilotProviderCount: providers.filter(provider => !provider.customerHistoryEnabled || !provider.draftsEnabled).length,
+    ineligiblePilotProviderCount: providers.filter(provider => !provider.customerHistoryEnabled).length,
     projectionWrites: Boolean(privateStatus.flags.projectionWrites),
     readUi: Boolean(privateStatus.flags.readUi),
     providerWrites: Boolean(privateStatus.flags.providerWrites),
@@ -354,6 +362,8 @@ export async function getCrmPilotHealth() {
   return {
     checkedAt,
     ...readiness,
+    audienceMode: privateStatus.audienceMode,
+    rollbackPilotProviderCount: rollbackPilotProviderIds.length,
     flags: privateStatus.flags,
     totals,
     integrity,

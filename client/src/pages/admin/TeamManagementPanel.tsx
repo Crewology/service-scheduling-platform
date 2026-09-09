@@ -75,6 +75,14 @@ export function TeamManagementPanel() {
 
   if (isLoading) return <LoadingSpinner message="Loading team..." />;
 
+  const filteredTeamMembers = teamMembers?.filter((member: any) => {
+    if (!teamFilter.trim()) return true;
+    const query = teamFilter.toLowerCase();
+    return (member.name || "").toLowerCase().includes(query)
+      || (member.email || "").toLowerCase().includes(query)
+      || (ADMIN_ROLE_LABELS[member.adminRole] || "").toLowerCase().includes(query);
+  });
+
   return (
     <div className="space-y-6">
       {/* Header with Add button */}
@@ -86,13 +94,13 @@ export function TeamManagementPanel() {
               Team Management
             </CardTitle>
             <CardDescription className="mt-1">
-              Manage admin access. Only owner and super admins can modify team.
+              Administrative clearance is restricted to Gary Chisolm and Winston Williams. Only a super admin can change their assigned admin role.
             </CardDescription>
           </div>
-          <Button className="w-full sm:w-auto" onClick={() => setPromoteDialogOpen(true)}>
+          {(!teamMembers || teamMembers.length < 2) ? <Button className="w-full sm:w-auto" onClick={() => setPromoteDialogOpen(true)}>
             <UserPlus className="h-4 w-4 mr-2" />
-            Add Team Member
-          </Button>
+            Restore Approved Administrator
+          </Button> : null}
         </CardHeader>
         <CardContent>
           {/* Team Search Bar */}
@@ -113,8 +121,25 @@ export function TeamManagementPanel() {
               </button>
             )}
           </div>
+          <div className="space-y-3 sm:hidden">
+            {filteredTeamMembers?.map((member: any) => {
+              const isOwner = member.isOwner;
+              const isSelf = member.id === currentUser?.id;
+              return <div key={member.id} className="rounded-xl border border-border bg-background p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0"><p className="font-semibold">{member.name || "N/A"}</p><p className="mt-1 break-all text-xs text-muted-foreground">{member.email}</p></div>
+                  {isOwner ? <Badge variant="default" className="shrink-0"><Crown className="mr-1 h-3 w-3" />Owner</Badge> : null}
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-muted-foreground"><div><p className="font-medium text-foreground">Added</p><p className="mt-1">{formatDate(member.createdAt)}</p></div><div><p className="font-medium text-foreground">Last active</p><p className="mt-1">{member.lastSignedIn ? formatDate(member.lastSignedIn) : "Never"}</p></div></div>
+                <div className="mt-4 flex flex-col gap-2">
+                  {isOwner ? <Badge variant="outline" className="w-fit"><ShieldCheck className="mr-1 h-3 w-3" />Platform Owner</Badge> : <Select value={member.adminRole || "support_agent"} onValueChange={(value) => { if (!isSelf) updateRole.mutate({ userId: member.id, adminRole: value as any }); }} disabled={isSelf}><SelectTrigger className="w-full"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="super_admin">Super Admin</SelectItem><SelectItem value="support_agent">Support Agent</SelectItem><SelectItem value="moderator">Moderator</SelectItem></SelectContent></Select>}
+                  {!isOwner && !isSelf ? <Button size="sm" variant="outline" className="w-full text-destructive" onClick={() => setConfirmDemoteId(member.id)} disabled={demoteUser.isPending}><UserMinus className="mr-1 h-3.5 w-3.5" />Remove</Button> : null}
+                </div>
+              </div>;
+            })}
+          </div>
           {/* Team Members Table */}
-          <div className="overflow-x-auto">
+          <div className="hidden overflow-x-auto sm:block">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -127,13 +152,7 @@ export function TeamManagementPanel() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {teamMembers?.filter((member: any) => {
-                  if (!teamFilter.trim()) return true;
-                  const q = teamFilter.toLowerCase();
-                  return (member.name || "").toLowerCase().includes(q) ||
-                    (member.email || "").toLowerCase().includes(q) ||
-                    (ADMIN_ROLE_LABELS[member.adminRole] || "").toLowerCase().includes(q);
-                }).map((member: any) => {
+                {filteredTeamMembers?.map((member: any) => {
                   const isOwner = member.isOwner;
                   const isSelf = member.id === currentUser?.id;
                   return (
@@ -227,7 +246,7 @@ export function TeamManagementPanel() {
           <DialogHeader>
             <DialogTitle>Add Team Member</DialogTitle>
             <DialogDescription>
-              Search for an existing user to give them admin access. They must have an account on the platform first.
+              Only the approved Gary Chisolm and Winston Williams accounts can receive administrative clearance.
             </DialogDescription>
           </DialogHeader>
 

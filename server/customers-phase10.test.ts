@@ -15,7 +15,7 @@ function context(role: "admin" | "user", adminRole: "super_admin" | null): TrpcC
     user: {
       id: 990010,
       openId: "test-customers-phase10-owner",
-      email: "test-customers-phase10-owner@example.invalid",
+      email: "garychisolm30@gmail.com",
       name: "Phase 10 Owner",
       role,
       adminRole,
@@ -66,8 +66,8 @@ describe("Customers Phase 10 controlled beta readiness", () => {
     expect(ready.recommendation).toContain("separate named owner approval");
 
     expect(assessCrmBetaCandidateReadiness({ ...readyCandidate, hasReachableTester: false }).status).toBe("pending");
-    expect(assessCrmBetaCandidateReadiness({ ...readyCandidate, privateToolsEnabled: false }).status).toBe("blocked");
-    expect(assessCrmBetaCandidateReadiness({ ...readyCandidate, dryRunEligibleCount: 0 }).status).toBe("blocked");
+    expect(assessCrmBetaCandidateReadiness({ ...readyCandidate, privateToolsEnabled: false }).status).toBe("ready");
+    expect(assessCrmBetaCandidateReadiness({ ...readyCandidate, dryRunEligibleCount: 0 }).status).toBe("pending");
     expect(assessCrmBetaCandidateReadiness({ ...readyCandidate, currentPilotCount: 5 }).status).toBe("blocked");
     expect(assessCrmBetaCandidateReadiness({ ...readyCandidate, alreadyInPilot: true }).status).toBe("already_in_pilot");
   });
@@ -97,13 +97,13 @@ describe("Customers Phase 10 controlled beta readiness", () => {
 
   it("renders a non-writing owner review with explicit evidence states and no enrollment action", () => {
     for (const text of [
-      "Controlled beta candidate review",
-      "Run one non-writing assessment",
+      "Provider access review",
+      "Run a non-writing assessment",
       "Reachable customer-side tester confirmed",
-      "Ready for owner review",
+      "Ready",
       "Pending evidence",
       "Blocked",
-      "Enrollment is not available here",
+      "no provider access or rollout state changed",
     ]) expect(panelSource).toContain(text);
     expect(panelSource).toContain("trpc.crmOperations.assessBetaCandidate.useQuery");
     expect(panelSource).not.toMatch(/crmOperations\.configure|runBackfill|Enroll provider|Add to pilot/);

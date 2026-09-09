@@ -481,7 +481,7 @@ export default function AdminDashboard() {
               </TabsTrigger> : null}
               {user?.adminRole === "super_admin" ? <TabsTrigger value="customers-pilot" className="whitespace-nowrap text-xs md:text-sm">
                 <ShieldCheck className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
-                Customers Pilot
+                Customers Rollout
               </TabsTrigger> : null}
               <TabsTrigger value="support" className="whitespace-nowrap text-xs md:text-sm">
                 <MessageSquare className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />

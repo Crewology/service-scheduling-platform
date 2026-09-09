@@ -5,9 +5,10 @@ import { requireDb } from "../db/connection";
 import { socialPosts } from "../../drizzle/schema";
 import { eq, desc } from "drizzle-orm";
 import { publishSocialPost, previewSocialPost } from "../socialMedia";
+import { hasAdminClearance } from "../adminPolicy";
 
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (ctx.user.role !== "admin") {
+  if (!hasAdminClearance(ctx.user)) {
     throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
   }
   return next({ ctx });

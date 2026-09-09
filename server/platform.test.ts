@@ -1,7 +1,10 @@
-import { describe, expect, it, beforeAll } from "vitest";
+import { describe, expect, it, beforeAll, vi } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 import * as db from "./db";
+
+vi.mock("./notifications", async importOriginal => ({ ...(await importOriginal<typeof import("./notifications")>()), sendNotification: vi.fn().mockResolvedValue(true) }));
+vi.mock("./notifications/pushHelper", async importOriginal => ({ ...(await importOriginal<typeof import("./notifications/pushHelper")>()), sendPushNotification: vi.fn().mockResolvedValue(true) }));
 
 type AuthenticatedUser = NonNullable<TrpcContext["user"]>;
 

@@ -76,6 +76,8 @@ describe("Customers Phase 3 private read pilot", () => {
     mocks.getProviderByUserId.mockResolvedValue(provider);
     mocks.getCrmProviderAccess.mockResolvedValue({
       entitlement,
+      audienceMode: "pilot",
+      isAudienceProvider: true,
       isPilotProvider: true,
       can: (feature: string) => feature === "customerHistory",
     });
@@ -90,8 +92,8 @@ describe("Customers Phase 3 private read pilot", () => {
     expect(Object.keys(customersRouter._def.procedures).sort()).toEqual(["createDraft", "createFollowUp", "createNote", "discardDraft", "getAccess", "getContact", "getWorkspace", "sendDraft", "setFollowUpState", "setRelationshipStage", "updateDraft", "updateFollowUp"]);
   });
 
-  it("keeps non-pilot providers out even when the read flag is enabled", async () => {
-    mocks.getCrmProviderAccess.mockResolvedValue({ entitlement, isPilotProvider: false, can: () => true });
+  it("keeps providers outside the configured audience out even when the read flag is enabled", async () => {
+    mocks.getCrmProviderAccess.mockResolvedValue({ entitlement, audienceMode: "pilot", isAudienceProvider: false, isPilotProvider: false, can: () => true });
     const caller = customersRouter.createCaller(context());
     await expect(caller.getAccess()).resolves.toMatchObject({ visible: false, readOnly: true });
     await expect(caller.getWorkspace({ tab: "leads", sort: "attention", limit: 25, offset: 0 })).rejects.toMatchObject({ code: "FORBIDDEN" });
@@ -150,9 +152,9 @@ describe("Customers Phase 3 source contracts", () => {
     expect(app.match(/ProviderOnlyGuard featureName="Customers"/g)?.length).toBe(2);
   });
 
-  it("renders the four approved tabs and private-tools pilot guidance", () => {
+  it("renders the four approved tabs and provider-owned relationship guidance", () => {
     for (const label of ["Leads", "Customers", "Follow-ups", "Activity"]) expect(workspace).toContain(`label: "${label}"`);
-    expect(workspace).toContain("Private tools pilot");
+    expect(workspace).toContain("Provider-owned relationships");
     expect(workspace).toContain("In-app messages send only from a reviewed draft after confirmation and current customer permission.");
     expect(workspace).toContain("Nothing runs automatically or changes a booking.");
     expect(workspace).not.toMatch(/Send message|Save segment/);

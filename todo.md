@@ -2918,3 +2918,16 @@
 - [x] Pass zero-error TypeScript, diff validation, production build, fresh runtime/network/server log review, and final two-provider aggregate production-state verification
 - [x] Produce the Phase 12 completion matrix and final report containing implementation, files, database changes, tests, results, warnings, unchanged behavior, and deviations
 - [x] Prepare the final Release 1 checkpoint after every required data, authorization, entitlement, error-handling, responsive UI, and regression gate passed
+
+## Customers Release 1 — Provider-Wide Entitlement Rollout and Named Admin Restriction
+- [x] Audit all current admin-role users and super-admin authorization paths, then identify the exact user and provider records for `garychisolm30@gmail.com`, `wwilliams@visionkwest.com`, and the Gary Studios test account
+- [x] Define the rollout boundary so active Starter providers receive only lifecycle-entitled customer history while active Pro and Business providers receive their lifecycle-entitled private Customers tools; never infer access from frontend plan names
+- [x] Remove private pilot membership as the active provider access boundary without weakening authenticated provider ownership, lifecycle entitlements, provider-active checks, reserved-identity exclusions, or server-derived tenant scope; retain pilot mode for rollback
+- [x] Expand projection eligibility only to active providers with authoritative qualified interactions, preserving self-contact, demo, test, inactive, deleted, and unqualified-source exclusions
+- [x] Restrict administrative clearance to `garychisolm30@gmail.com` and `wwilliams@visionkwest.com` across every admin and super-admin route; keep Gary Studios as an ordinary plan-based provider with no admin clearance
+- [x] Restore Winston Williams’ approved provider profile and grant only the Customers access permitted by its authoritative Starter lifecycle plan, without bypassing entitlements or fabricating customer relationships
+- [x] Backfill the exact 12-provider eligible audience through audited operations with non-writing assessment, idempotency, reconciliation, failure isolation, and rollback evidence; six qualified relationships projected with zero failures
+- [x] Update owner aggregate oversight for provider-wide adoption, relationships, task outcomes, projection lag, automation failures, provider lifecycle health, and operational health without exposing private notes or customer content
+- [x] Verify every provider can access only its own qualified Customers relationships and cannot enumerate, read, mutate, draft, or message another provider’s customers through constructed IDs
+- [x] Preserve current prices, public plan copy, booking/quote/payment/invoice/message/review authority, and disabled AI, recommendations, automation execution, schedules, saved segments, exports, bulk messaging, external CRM, manual contacts, and repair jobs
+- [x] Run focused and full OlogyCrew regressions, zero-error TypeScript, diff validation, production build, desktop/mobile review, production-state verification, successful rollback drill, implementation report, and checkpoint

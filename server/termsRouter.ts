@@ -17,11 +17,12 @@ import {
   updateTermsDraft,
 } from "./db/terms";
 import { deliverTermsUpdate } from "./termsNotifications";
+import { hasAdminClearance } from "./adminPolicy";
 
 const ownerProcedure = protectedProcedure.use(({ ctx, next }) => {
   const isOwner = ctx.user.openId === ENV.ownerOpenId;
-  const isSuperAdmin = ctx.user.role === "admin" && ctx.user.adminRole === "super_admin";
-  if (!isOwner && !isSuperAdmin) {
+  const isSuperAdmin = hasAdminClearance(ctx.user) && ctx.user.adminRole === "super_admin";
+  if (!(isOwner && hasAdminClearance(ctx.user)) && !isSuperAdmin) {
     throw new TRPCError({ code: "FORBIDDEN", message: "Only the platform owner or a super admin can manage Terms updates" });
   }
   return next({ ctx });
