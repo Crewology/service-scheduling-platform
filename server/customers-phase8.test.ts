@@ -62,6 +62,7 @@ const readyInput = {
   sentDraftIntegrityIssueCount: 0,
   optedInContactCount: 0,
   contactCount: 2,
+  liveValidatedContactCount: 0,
 };
 
 describe("Customers Phase 8 pilot readiness", () => {
@@ -71,6 +72,16 @@ describe("Customers Phase 8 pilot readiness", () => {
     expect(result.recommendation).toContain("Keep the pilot private");
     expect(result.checks.find(check => check.id === "live_customer_validation")).toMatchObject({ status: "deferred" });
     expect(result.checks.find(check => check.id === "customer_permission")).toMatchObject({ status: "ready", detail: "0 of 2 relationships currently opted in" });
+  });
+
+  it("reports ready only after an opted-in relationship completes a valid linked draft send", () => {
+    const result = assessCrmPilotReadiness({ ...readyInput, optedInContactCount: 1, liveValidatedContactCount: 1 });
+    expect(result.status).toBe("ready");
+    expect(result.recommendation).toContain("Eligible for an owner rollout review");
+    expect(result.checks.find(check => check.id === "live_customer_validation")).toMatchObject({
+      status: "ready",
+      detail: "1 opted-in relationship has a valid linked in-app draft send",
+    });
   });
 
   it("blocks rollout readiness for tenant, projection, sent-link, or future-capability violations", () => {
@@ -97,9 +108,9 @@ describe("Customers Phase 8 pilot readiness", () => {
 
   it("returns only aggregate current-pilot health with no private relationship content", async () => {
     const result = await getCrmPilotHealth();
-    expect(result.status).toBe("deferred");
-    expect(result.providers).toEqual([expect.objectContaining({ providerId: 1, businessName: "Chisolm Audio", isActive: true, customerHistoryEnabled: true, draftsEnabled: true, contacts: 2 })]);
-    expect(result.totals).toMatchObject({ providers: 1, activeProviders: 1, contacts: 2 });
+    expect(result.status).toBe("ready");
+    expect(result.providers).toEqual([expect.objectContaining({ providerId: 1, businessName: "Chisolm Audio", isActive: true, customerHistoryEnabled: true, draftsEnabled: true, contacts: 3, optedInContacts: 1, sentDrafts: 1, liveValidatedContacts: 1 })]);
+    expect(result.totals).toMatchObject({ providers: 1, activeProviders: 1, contacts: 3, optedInContacts: 1, sentDrafts: 1, liveValidatedContacts: 1 });
     expect(result.integrity).toMatchObject({ selfContacts: 0, nonPilotContacts: 0, scopeMismatches: 0, sentDraftIssues: 0 });
     expect(result.future).toMatchObject({ enabledAutomationRules: 0, automationRuns: 0, savedSegments: 0 });
     expect(result.flags).toMatchObject({ projectionWrites: true, readUi: true, providerWrites: true, draftSending: true, repairJobs: false, recommendations: false });
@@ -136,8 +147,8 @@ describe("Customers Phase 8 privacy source contracts", () => {
     expect(panelSource).not.toMatch(/crmOperations\.configure|\.useMutation\(|setCrmRolloutFlag/);
   });
 
-  it("keeps the owner interface aggregate-only, transparent about deferred validation, and horizontally safe", () => {
-    for (const text of ["Customers private pilot", "Live test deferred", "Deferred is not treated as passed", "Safe disable order", "data.privacyNotice"]) expect(panelSource).toContain(text);
+  it("keeps the owner interface aggregate-only, transparent about live and deferred validation, and horizontally safe", () => {
+    for (const text of ["Customers private pilot", "Live test verified", "Live test deferred", "Deferred is not treated as passed", "Safe disable order", "data.privacyNotice"]) expect(panelSource).toContain(text);
     expect(panelSource).toContain('className="overflow-x-auto"');
     expect(panelSource).not.toMatch(/customerEmail|customerName|messageText|noteBody|taskDescription|addressLine|stripeAccount/);
   });

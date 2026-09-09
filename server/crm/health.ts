@@ -51,6 +51,7 @@ type ReadinessInput = {
   sentDraftIntegrityIssueCount: number;
   optedInContactCount: number;
   contactCount: number;
+  liveValidatedContactCount: number;
 };
 
 export function assessCrmPilotReadiness(input: ReadinessInput) {
@@ -108,8 +109,10 @@ export function assessCrmPilotReadiness(input: ReadinessInput) {
     {
       id: "live_customer_validation",
       label: "Live customer opt-in and send validation",
-      status: "deferred",
-      detail: "Deferred until a qualified customer is available; automated consent and exactly-once tests passed",
+      status: input.liveValidatedContactCount > 0 ? "ready" : "deferred",
+      detail: input.liveValidatedContactCount > 0
+        ? `${input.liveValidatedContactCount} opted-in relationship${input.liveValidatedContactCount === 1 ? " has" : "s have"} a valid linked in-app draft send`
+        : "Deferred until a qualified customer completes the opt-in and one-message exercise; automated consent and exactly-once tests passed",
     },
   ];
 
@@ -163,12 +166,13 @@ export async function getCrmPilotHealth() {
       sentDraftIntegrityIssueCount: 0,
       optedInContactCount: 0,
       contactCount: 0,
+      liveValidatedContactCount: 0,
     });
     return {
       checkedAt,
       ...readiness,
       flags: privateStatus.flags,
-      totals: { providers: 0, activeProviders: 0, contacts: 0, optedInContacts: 0, activeNotes: 0, openTasks: 0, activeDrafts: 0, sentDrafts: 0, discardedDrafts: 0, activityEvents: 0 },
+      totals: { providers: 0, activeProviders: 0, contacts: 0, optedInContacts: 0, activeNotes: 0, openTasks: 0, activeDrafts: 0, sentDrafts: 0, discardedDrafts: 0, activityEvents: 0, liveValidatedContacts: 0 },
       integrity: { selfContacts: 0, nonPilotContacts: 0, scopeMismatches: 0, contactsMissingProjection: 0, projectionLaggingContacts: 0, sentDraftIssues: 0 },
       reconciliation: { providerCount: 0, expectedEligible: 0, actualContacts: 0, missingContacts: 0, extraContacts: 0, staleContacts: 0, storedEvents: 0, exclusions: {}, checkedAt },
       future: { enabledAutomationRules: 0, automationRuns: 0, savedSegments: 0 },
@@ -227,8 +231,10 @@ export async function getCrmPilotHealth() {
       sentDrafts: sql<number>`sum(case when ${crmMessageDrafts.state} = 'sent' then 1 else 0 end)`,
       discardedDrafts: sql<number>`sum(case when ${crmMessageDrafts.state} = 'discarded' then 1 else 0 end)`,
       sentDraftIssues: sql<number>`sum(case when ${crmMessageDrafts.state} = 'sent' and (${crmMessageDrafts.sentMessageId} is null or ${messages.id} is null or ${crmMessageDrafts.approvedByUserId} is null or ${crmMessageDrafts.approvedAt} is null or ${crmMessageDrafts.sentAt} is null) then 1 when ${crmMessageDrafts.state} <> 'sent' and ${crmMessageDrafts.sentMessageId} is not null then 1 else 0 end)`,
+      liveValidatedContacts: sql<number>`count(distinct case when ${crmMessageDrafts.state} = 'sent' and ${crmMessageDrafts.sentMessageId} is not null and ${messages.id} is not null and ${notificationPreferences.relationshipMessageEnabled} = true then ${crmMessageDrafts.contactId} end)`,
     }).from(crmMessageDrafts)
       .leftJoin(messages, eq(messages.id, crmMessageDrafts.sentMessageId))
+      .leftJoin(notificationPreferences, eq(notificationPreferences.userId, crmMessageDrafts.customerId))
       .where(inArray(crmMessageDrafts.providerId, pilotProviderIds))
       .groupBy(crmMessageDrafts.providerId),
     database.select({ providerId: crmActivityEvents.providerId, activityEvents: sql<number>`count(*)`, latestActivityAt: sql<Date | null>`max(${crmActivityEvents.occurredAt})` }).from(crmActivityEvents).where(inArray(crmActivityEvents.providerId, pilotProviderIds)).groupBy(crmActivityEvents.providerId),
@@ -280,6 +286,7 @@ export async function getCrmPilotHealth() {
       activeDrafts: numberValue(drafts?.activeDrafts),
       sentDrafts: numberValue(drafts?.sentDrafts),
       discardedDrafts: numberValue(drafts?.discardedDrafts),
+      liveValidatedContacts: numberValue(drafts?.liveValidatedContacts),
       activityEvents: numberValue(events?.activityEvents),
       latestProjectedAt: contacts?.latestProjectedAt ?? null,
       latestActivityAt: events?.latestActivityAt ?? null,
@@ -296,8 +303,9 @@ export async function getCrmPilotHealth() {
     activeDrafts: result.activeDrafts + provider.activeDrafts,
     sentDrafts: result.sentDrafts + provider.sentDrafts,
     discardedDrafts: result.discardedDrafts + provider.discardedDrafts,
+    liveValidatedContacts: result.liveValidatedContacts + provider.liveValidatedContacts,
     activityEvents: result.activityEvents + provider.activityEvents,
-  }), { providers: 0, activeProviders: 0, contacts: 0, optedInContacts: 0, activeNotes: 0, openTasks: 0, activeDrafts: 0, sentDrafts: 0, discardedDrafts: 0, activityEvents: 0 });
+  }), { providers: 0, activeProviders: 0, contacts: 0, optedInContacts: 0, activeNotes: 0, openTasks: 0, activeDrafts: 0, sentDrafts: 0, discardedDrafts: 0, liveValidatedContacts: 0, activityEvents: 0 });
 
   const scopeMismatches = numberValue(taskMismatchRows[0]?.count) + numberValue(noteMismatchRows[0]?.count) + numberValue(draftMismatchRows[0]?.count) + numberValue(eventMismatchRows[0]?.count);
   const integrity = {
@@ -337,6 +345,7 @@ export async function getCrmPilotHealth() {
     sentDraftIntegrityIssueCount: integrity.sentDraftIssues,
     optedInContactCount: totals.optedInContacts,
     contactCount: totals.contacts,
+    liveValidatedContactCount: totals.liveValidatedContacts,
   });
 
   return {

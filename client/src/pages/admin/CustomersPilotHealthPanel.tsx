@@ -19,6 +19,13 @@ const statusIcons = {
   disabled: LockKeyhole,
 } as const;
 
+const overallStatusLabels = {
+  ready: "Live test verified",
+  blocked: "Blocked",
+  deferred: "Live test deferred",
+  disabled: "Pilot disabled",
+} as const;
+
 function formatTimestamp(value: Date | string | null) {
   if (!value) return "Not recorded";
   return new Date(value).toLocaleString();
@@ -54,7 +61,7 @@ export function CustomersPilotHealthPanel() {
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <CardTitle className="flex items-center gap-2"><ShieldCheck className="h-5 w-5" />Customers private pilot</CardTitle>
-                <Badge variant="outline" className={statusStyles[data.status]}><OverallIcon className="mr-1.5 h-3.5 w-3.5" />{data.status === "deferred" ? "Live test deferred" : data.status}</Badge>
+                <Badge variant="outline" className={statusStyles[data.status]}><OverallIcon className="mr-1.5 h-3.5 w-3.5" />{overallStatusLabels[data.status]}</Badge>
               </div>
               <CardDescription className="mt-2 max-w-3xl">{data.recommendation}. This workspace reports aggregate operational status only and cannot read private note, task, or message content.</CardDescription>
             </div>
@@ -68,7 +75,7 @@ export function CustomersPilotHealthPanel() {
         <MetricCard icon={UsersRound} label="Pilot providers" value={`${data.totals.activeProviders}/${data.totals.providers}`} detail="active / allowlisted" />
         <MetricCard icon={UsersRound} label="Relationships" value={String(data.totals.contacts)} detail={`${data.integrity.selfContacts} provider self-contacts`} />
         <MetricCard icon={ShieldCheck} label="Customer permission" value={`${data.totals.optedInContacts}/${data.totals.contacts}`} detail="currently opted in" />
-        <MetricCard icon={MessageSquareText} label="Draft delivery" value={String(data.totals.sentDrafts)} detail={`${data.totals.activeDrafts} active · ${data.integrity.sentDraftIssues} linkage issues`} />
+        <MetricCard icon={MessageSquareText} label="Draft delivery" value={String(data.totals.sentDrafts)} detail={`${data.totals.liveValidatedContacts} live validated · ${data.totals.activeDrafts} active · ${data.integrity.sentDraftIssues} linkage issues`} />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">

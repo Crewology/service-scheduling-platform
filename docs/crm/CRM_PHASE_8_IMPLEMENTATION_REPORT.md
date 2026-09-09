@@ -4,6 +4,8 @@
 
 Customers Phase 8 adds **private-pilot monitoring and rollout readiness** without adding any customer-facing automation or broader provider access. A new super-admin-only Customers Pilot workspace computes current operational health from aggregate metadata and clearly distinguishes **ready**, **blocked**, **disabled**, and **deferred** checks. The previously proposed real customer opt-in and one-message exercise remains deferred and is not presented as passed.[1] [2]
 
+> **Post-implementation update — September 9, 2026:** The owner-controlled Gary Studios exercise has now completed successfully. Admin → Customers Pilot reports **Live test verified** and **Ready** from one currently opted-in relationship with one valid linked in-app draft send. The complete evidence and current state are recorded separately.[6]
+
 | Capability | Phase 8 result |
 |---|---|
 | Pilot health | Current allowlist, active-provider, lifecycle entitlement, flag, relationship, projection, and sent-link checks |
@@ -28,7 +30,7 @@ The query does **not** select customer names, customer emails, message bodies, d
 | Disabled | One or more intentionally gated private capabilities are off |
 | Deferred | The check was not performed and is not counted as passed |
 
-Overall status follows the safest precedence: blocked, disabled, deferred, then ready. The present pilot is **deferred**, because all automated and state checks pass but the live customer opt-in and one-message exercise has not been performed.[1]
+Overall status follows the safest precedence: blocked, disabled, deferred, then ready. At the Phase 8 implementation checkpoint the pilot was **deferred**, because the live customer exercise had not yet been performed. The same evidence-based check now returns **ready** after the verified Gary Studios opt-in and linked draft send.[1] [6]
 
 ## Owner monitoring workspace
 
@@ -57,7 +59,7 @@ The existing relationship Drafts area already includes the necessary delivery st
 
 Vitest continues to print the known process-close timeout after successful suites because an existing open handle prevents immediate exit. All assertions passed. One adjacent foundation test still assumed the private send flag was disabled; it was updated to assert a boolean operational value while continuing to require repair jobs and recommendations to remain off.[3]
 
-## Final private state
+## Phase 8 implementation baseline
 
 | Private state | Verified value |
 |---|---|
@@ -78,7 +80,7 @@ Vitest continues to print the known process-close timeout after successful suite
 | `customersRepairJobs` | `false` |
 | `customersRecommendations` | `false` |
 
-No customer preference was changed and no real draft or message was created. The pilot remains private until the deferred live customer exercise is completed.
+No customer preference was changed and no real draft or message was created during the original Phase 8 implementation review. The later owner-authorized live validation changed only the Gary Studios permission, its legitimate projected relationship, and one deliberately confirmed in-app message; provider 1 remains the sole pilot.[6]
 
 ## References
 
@@ -87,4 +89,4 @@ No customer preference was changed and no real draft or message was created. The
 [3]: ../../server/customers-phase8.test.ts "Phase 8 health, privacy, and UI contracts"
 [4]: ../../server/customersRouter.ts "Provider-scoped relationship and sent-draft read contract"
 [5]: ../../client/src/pages/ProviderCustomerDetail.tsx "Provider-visible draft and conversation status"
-
+[6]: ./CUSTOMERS_PILOT_LIVE_VALIDATION_REPORT.md "Completed Gary Studios consent and one-message validation"

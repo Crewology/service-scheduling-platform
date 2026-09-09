@@ -2843,3 +2843,20 @@
 - [x] Keep provider 1 as the sole pilot and preserve projection writes, read UI, provider writes, and draft sending while repair jobs and recommendations remain disabled
 - [x] Add focused aggregate-privacy, owner authorization, tenant isolation, scoped-child detection, rollout disable, provider lifecycle status, UI-contract, and responsive regressions
 - [x] Run adjacent tests, zero-error TypeScript, diff validation, production build, desktop/mobile review, final private-state verification, implementation report, and checkpoint
+
+## Customers Private Pilot — Owner Monitoring Review and Expansion Decision
+- [x] Review Admin → Customers Pilot at desktop and mobile, including refresh behavior, deferred and verified readiness statuses, aggregate privacy, lifecycle entitlement, and safe disable guidance
+- [x] Cross-check every displayed pilot metric against current database state without exposing customer identity or private message, draft, note, or task content in monitoring
+- [x] Keep the exercise deferred until an owner-controlled customer became available, then record it as verified only after customer opt-in, exactly one confirmed message, customer receipt, and zero external side effects
+- [x] Assess a second provider using explicit integrity, entitlement, live-validation, support, and rollback prerequisites; recommend preparing one controlled candidate without changing access
+- [x] Record the expansion recommendation, update the rollout checklist, run focused and adjacent checks, and preserve provider 1 as the sole allowlisted provider
+
+## Customers Private Pilot — Gary Studios Live Consent and One-Message Test
+- [x] Identify the owner-controlled Gary Studios / Studio Space Rentals account and verify whether it already has a qualified non-self relationship with Chisolm Audio
+- [x] Establish a legitimate relationship through Gary Studios' owner-authorized, no-payment Audio Enhancement quote request and the audited owner backfill after the live non-blocking source hook did not project it; no Customers contact was inserted or fabricated directly
+- [x] Exercise the Gary Studios account’s own default-off relationship-message permission in dev, verify database persistence, and confirm Chisolm Audio immediately shows current relationship-message availability
+- [x] Create one low-risk private draft for Gary Studios and obtain the owner’s final confirmation of the exact recipient and text before sending
+- [x] Send the confirmed in-app message exactly once and verify immutable draft linkage, existing conversation visibility, customer receipt, and safe body-free Customers activity metadata
+- [x] Verify zero notification rows, email, SMS, push, automated reply, recommendation, schedule, export, campaign, automation, or other external delivery side effect
+- [x] Leave Gary Studios relationship-message permission on at the owner’s request, record Live test verified in owner monitoring, and keep provider 1 as the sole pilot pending separate candidate approval
+- [x] Run 197 adjacent regressions, zero-error TypeScript, diff validation, production build, final database-state verification, documentation updates, and save a rollback-safe checkpoint
