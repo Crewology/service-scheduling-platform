@@ -2931,3 +2931,12 @@
 - [x] Verify every provider can access only its own qualified Customers relationships and cannot enumerate, read, mutate, draft, or message another provider’s customers through constructed IDs
 - [x] Preserve current prices, public plan copy, booking/quote/payment/invoice/message/review authority, and disabled AI, recommendations, automation execution, schedules, saved segments, exports, bulk messaging, external CRM, manual contacts, and repair jobs
 - [x] Run focused and full OlogyCrew regressions, zero-error TypeScript, diff validation, production build, desktop/mobile review, production-state verification, successful rollback drill, implementation report, and checkpoint
+
+## Customers Provider Welcome Tooltip
+- [x] Show a concise Welcome to Customers introduction only to eligible providers when they first open the Customers workspace
+- [x] Explain provider-owned relationship history, lifecycle-entitled private tools, and consent-aware in-app messaging without using CRM as the product name
+- [x] Keep the welcome non-blocking, keyboard accessible, dismissible, responsive, and free of customer identity or private content
+- [x] Persist dismissal per authenticated provider and tooltip version so it does not repeat unnecessarily while allowing future release guidance
+- [x] Keep all provider access, entitlements, tenant isolation, rollout flags, pricing, and Customers functionality unchanged
+- [x] Add focused rendering, eligibility, dismissal, persistence-key, accessibility, and responsive regressions
+- [x] Run adjacent tests, zero-error TypeScript, diff validation, production build, desktop/mobile review, documentation, and checkpoint

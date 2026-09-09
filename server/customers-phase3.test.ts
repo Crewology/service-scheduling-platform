@@ -139,6 +139,7 @@ describe("Customers Phase 3 source contracts", () => {
   const root = path.resolve(process.cwd());
   const app = fs.readFileSync(path.join(root, "client/src/App.tsx"), "utf8");
   const workspace = fs.readFileSync(path.join(root, "client/src/pages/ProviderCustomers.tsx"), "utf8");
+  const welcome = fs.readFileSync(path.join(root, "client/src/components/customers/CustomersWelcomePopover.tsx"), "utf8");
   const detail = fs.readFileSync(path.join(root, "client/src/pages/ProviderCustomerDetail.tsx"), "utf8");
   const overview = fs.readFileSync(path.join(root, "client/src/pages/ProviderWorkspaceOverview.tsx"), "utf8");
   const projectionSource = fs.readFileSync(path.join(root, "server/crm/projection.ts"), "utf8");
@@ -154,7 +155,9 @@ describe("Customers Phase 3 source contracts", () => {
 
   it("renders the four approved tabs and provider-owned relationship guidance", () => {
     for (const label of ["Leads", "Customers", "Follow-ups", "Activity"]) expect(workspace).toContain(`label: "${label}"`);
-    expect(workspace).toContain("Provider-owned relationships");
+    expect(workspace).toContain("<CustomersWelcomePopover");
+    expect(welcome).toContain("Provider-owned relationships");
+    expect(welcome).toContain("Welcome to Customers");
     expect(workspace).toContain("In-app messages send only from a reviewed draft after confirmation and current customer permission.");
     expect(workspace).toContain("Nothing runs automatically or changes a booking.");
     expect(workspace).not.toMatch(/Send message|Save segment/);

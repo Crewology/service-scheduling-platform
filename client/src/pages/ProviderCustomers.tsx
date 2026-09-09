@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { MobileRoleViewToggle } from "@/components/shared/MobileRoleViewToggle";
 import { FollowUpTaskCard, type CustomerFollowUpTask } from "@/components/customers/FollowUpTaskCard";
+import { CustomersWelcomePopover } from "@/components/customers/CustomersWelcomePopover";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -155,7 +156,7 @@ export default function ProviderCustomers() {
         <main className="min-w-0">
           <section className="rounded-[28px] bg-[#123f63] px-5 py-6 text-white shadow-[0_24px_70px_-38px_rgba(18,63,99,0.8)] sm:px-8 sm:py-8">
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-              <div><Badge className="border-white/20 bg-white/10 text-blue-50 hover:bg-white/10">Provider-owned relationships</Badge><h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Customers</h1><p className="mt-2 max-w-2xl text-sm text-blue-100 sm:text-base">Your relationships are organized automatically from your OlogyCrew activity, with plan-based private notes and manual follow-ups.</p></div>
+              <div><CustomersWelcomePopover providerId={access.data.providerId} hasPrivateTools={access.data.providerWritesEnabled} draftSendingEnabled={access.data.draftSendingEnabled} /><h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Customers</h1><p className="mt-2 max-w-2xl text-sm text-blue-100 sm:text-base">Your relationships are organized automatically from your OlogyCrew activity, with plan-based private notes and manual follow-ups.</p></div>
               <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm leading-6 text-blue-50"><LockKeyhole className="mr-2 inline h-4 w-4" />{access.data.draftSendingEnabled ? "Notes and follow-ups stay private. In-app messages send only from a reviewed draft after confirmation and current customer permission. Nothing runs automatically or changes a booking." : "Notes, follow-ups, and drafts stay private. Nothing sends automatically or changes a booking."}</div>
             </div>
           </section>

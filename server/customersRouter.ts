@@ -225,6 +225,7 @@ export const customersRouter = router({
     const access = await resolveProviderAccess(ctx.user.id);
     return {
       visible: access.visible,
+      providerId: access.provider?.id ?? 0,
       readOnly: !(access.notesEnabled || access.followUpsEnabled || access.stageOverridesEnabled || access.draftsEnabled),
       businessName: access.provider?.businessName ?? null,
       effectiveTier: access.entitlement?.effectiveTier ?? "free",
