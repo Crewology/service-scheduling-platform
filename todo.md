@@ -2942,17 +2942,17 @@
 - [x] Run adjacent tests, zero-error TypeScript, diff validation, production build, desktop/mobile review, documentation, and checkpoint
 
 ## Production Test-Data Cleanup and KPI Reconciliation
-- [ ] Define narrow test-account criteria using explicit reserved domains, known test prefixes, or individually reviewed identities; never use broad name or email substring deletion
-- [ ] Preserve the official OlogyCrew demo provider and its intentional demonstration content, plus Gary Chisolm, Winston Williams, and every confirmed real customer or provider
-- [ ] Build a read-only manifest of proposed test customers, providers, bookings, quotes, messages, notifications, reviews, subscriptions, financial references, and Customers projection records
-- [ ] Capture baseline admin KPI counts and identify which proposed test records currently affect user, provider, booking, subscription, revenue, partner-split, and Customers metrics
-- [ ] Obtain explicit owner approval for the exact identity and record-count manifest before any irreversible deletion
-- [ ] Execute the approved cleanup in dependency order and within transactions where supported, without calling Stripe, sending notifications, issuing refunds, or changing external accounts
-- [ ] Preserve authoritative financial and audit evidence when deletion would misstate captured funds, refunds, invoices, subscriptions, transfers, or legal records; exclude confirmed test rows from KPIs instead when preservation is required
-- [ ] Reconcile Customers projections and aggregate administration after cleanup without fabricating contacts, events, or backfill sources
-- [ ] Verify the demo provider, named administrators, real provider/customer accounts, tenant isolation, Customers access, booking/quote/payment integrity, and fixed 60/40 partner logic remain unchanged
-- [ ] Review corrected Admin Dashboard KPIs on desktop and mobile and compare them with direct aggregate queries
-- [ ] Run focused cleanup, deletion, Customers, admin analytics, subscription, payment, booking, and full regression validation before documenting the final cleanup
+- [x] Owner deferred the production cleanup before inventory or deletion; future classification must use exact reserved domains such as `@test.com` or individually reviewed identities, never broad substring matching
+- [x] Owner-deferred preservation rule recorded: keep the official OlogyCrew demo provider and intentional demonstration content, Gary Chisolm, Winston Williams, and every confirmed real customer or provider
+- [x] Owner deferred the read-only deletion manifest; no customer, provider, booking, quote, message, notification, review, subscription, financial, or Customers record was inventoried for deletion
+- [x] Owner deferred the baseline KPI snapshot and test-record impact analysis
+- [x] Owner deferred destructive approval because no deletion manifest was produced
+- [x] Owner stopped cleanup before execution; no database row, Stripe object, notification, refund, or external account was changed
+- [x] Owner deferred financial-record classification; authoritative payment, refund, invoice, subscription, transfer, legal, and audit evidence remains unchanged
+- [x] Owner deferred Customers reconciliation because no cleanup occurred
+- [x] No cleanup action was taken, so the demo provider, administrators, real accounts, tenant isolation, Customers access, booking/quote/payment integrity, and 60/40 partner logic remain unchanged
+- [x] Owner deferred the corrected Admin Dashboard KPI review
+- [x] Owner deferred cleanup validation; this section may be reopened later with a new explicit request and deletion manifest approval
 
 ## Bug Fix — Mobile Toast Text Contrast
 - [x] Identify the shared Sonner wrapper and inherited description color causing text to render too light against white toast backgrounds
@@ -2960,3 +2960,10 @@
 - [x] Add focused regressions for readable toast foreground styling and WCAG contrast in light and dark themes
 - [x] Verify the reported Tell us what you need toast at a 390-pixel viewport with readable, unclipped title and description text
 - [x] Pass 6 adjacent files and 40 tests, zero-error TypeScript, diff validation, production build, fresh log review, documentation, and checkpoint readiness
+
+## Bug Fix — Studio Space Rentals Icon Consistency
+- [x] Identify every Studio Space Rentals category definition, selector card, category-route mapping, detail-page icon, and fallback that can render its icon
+- [x] Choose the existing approved Studio Space Rentals icon as the single authoritative mapping without redesigning unrelated categories
+- [x] Make the selector and destination page render the same icon on desktop and mobile
+- [x] Add focused source or rendered regressions that prevent the Studio Space Rentals icon mapping from drifting between views
+- [x] Run adjacent category/navigation tests, zero-error TypeScript, diff validation, production build, desktop/mobile review, fresh log review, documentation, and checkpoint

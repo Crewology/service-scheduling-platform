@@ -44,26 +44,11 @@ import { NavHeader } from "@/components/shared/NavHeader";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { MessageSquareQuote, HelpCircle, ChevronDown, Pencil, Trash2 } from "lucide-react";
 import { formatPrice } from "@shared/formatPrice";
+import { CATEGORY_ICONS } from "@/lib/categoryIcons";
 
 // ============================================================================
 // CATEGORY ICON MAP — visual icons for each category
 // ============================================================================
-const CATEGORY_ICONS: Record<number, string> = {
-  15: "🎬", 170: "💈", 7: "✂️", 126: "🔒", 195: "💃", 202: "🔨",
-  23: "🦷", 20: "🎵", 22: "🚛", 177: "🎉", 196: "👁️", 178: "💰",
-  109: "🏋️", 9: "🔧", 193: "🧘", 188: "🧹", 200: "⚡",
-  179: "🏠", 171: "💇", 174: "🚗", 176: "🔩", 111: "🔗", 10: "💆",
-  168: "🚙", 169: "🛠️", 199: "🎪", 158: "🎯", 73: "🍽️", 12: "💪",
-  11: "🐾", 17: "📸", 148: "💦", 26: "📅", 8: "💅", 194: "☀️",
-  198: "💻", 19: "🎥", 155: "📱", 201: "🖥️", 205: "🌐", 211: "🔧",
-  212: "⚡",
-  213: "❄️",
-  214: "🪚",
-  215: "🏠",
-  216: "📣",
-  210: "🕉️",
-  218: "🌱",
-};
 
 const ALL_STEPS = [
   { id: 1, title: "Your Plan", icon: Zap, description: "Choose a subscription" },

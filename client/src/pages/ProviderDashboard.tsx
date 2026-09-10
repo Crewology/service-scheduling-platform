@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
+import { CATEGORY_ICONS } from "@/lib/categoryIcons";
 import { toast } from "sonner";
 import { 
   Calendar, 
@@ -2473,22 +2474,6 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
                 if (!cat) return null;
                 const catServices = services?.filter((s: any) => s.categoryId === cat.id) || [];
                 const displayName = cat.name.split(" ").map((w: string) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
-                const CATEGORY_ICONS: Record<number, string> = {
-                  15: "🎬", 170: "💈", 7: "✂️", 126: "🔒", 195: "💃", 202: "🔨",
-                  23: "🦷", 20: "🎵", 22: "🚛", 177: "🎉", 196: "👁️", 178: "💰",
-                  109: "🏋️", 9: "🔧", 193: "🧘", 188: "🧹", 200: "⚡",
-                  179: "🏠", 171: "💇", 174: "🚗", 176: "🔩", 111: "🔗", 10: "💆",
-                  168: "🚙", 169: "🛠️", 199: "🎪", 158: "🎯", 73: "🍽️", 12: "💪",
-                  11: "🐾", 17: "📸", 148: "💦", 26: "📅", 8: "💅", 194: "☀️",
-                  198: "💻", 19: "🎥", 155: "📱", 201: "🖥️", 205: "🌐", 211: "🔧",
-  212: "⚡",
-  213: "❄️",
-  214: "🪚",
-  215: "🏠",
-  216: "📣",
-  210: "🕉️",
-  218: "🌱",
-                };
                 return (
                   <Card key={cat.id}>
                     <CardHeader className="pb-3">
@@ -4298,18 +4283,6 @@ function PortfolioGallery({ categories }: { categories: any[] | undefined }) {
     if (!grouped.has(key)) grouped.set(key, []);
     grouped.get(key)!.push(item);
   }
-
-  const CATEGORY_ICONS: Record<number, string> = {
-    15: "\uD83C\uDFAC", 170: "\uD83D\uDC88", 7: "\u2702\uFE0F", 126: "\uD83D\uDD12", 195: "\uD83D\uDC83", 202: "\uD83D\uDD28",
-    23: "\uD83E\uDDB7", 20: "\uD83C\uDFB5", 22: "\uD83D\uDE9B", 177: "\uD83C\uDF89", 196: "\uD83D\uDC41\uFE0F", 178: "\uD83D\uDCB0",
-    109: "\uD83C\uDFCB\uFE0F", 9: "\uD83D\uDD27", 193: "\uD83E\uDDD8", 188: "\uD83E\uDDF9", 200: "\u26A1",
-    179: "\uD83C\uDFE0", 171: "\uD83D\uDC87", 174: "\uD83D\uDE97", 176: "\uD83D\uDD29", 111: "\uD83D\uDD17", 10: "\uD83D\uDC86",
-    168: "\uD83D\uDE99", 169: "\uD83D\uDEE0\uFE0F", 199: "\uD83C\uDFAA", 158: "\uD83C\uDFAF", 73: "\uD83C\uDF7D\uFE0F", 12: "\uD83D\uDCAA",
-    11: "\uD83D\uDC3E", 17: "\uD83D\uDCF8", 148: "\uD83D\uDCA6", 26: "\uD83D\uDCC5", 8: "\uD83D\uDC85", 194: "\u2600\uFE0F",
-    198: "\uD83D\uDCBB", 19: "\uD83C\uDFA5", 155: "\uD83D\uDCF1", 201: "\uD83D\uDDA5\uFE0F", 205: "\uD83C\uDF10", 211: "\uD83D\uDD27",
-    212: "\u26A1", 213: "\u2744\uFE0F", 214: "\uD83E\uDE9A", 215: "\uD83C\uDFE0", 216: "\uD83D\uDCE3",
-    210: "\uD83D\uDD49\uFE0F", 218: "\uD83C\uDF31",
-  };
 
   return (
     <div className="space-y-4">

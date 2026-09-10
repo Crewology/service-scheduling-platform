@@ -19,6 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { OfficialBadge } from "@/components/OfficialBadge";
 import { ShareProfile } from "@/components/ShareProfile";
+import { CATEGORY_ICONS } from "@/lib/categoryIcons";
 import {
   Star,
   MapPin,
@@ -96,18 +97,6 @@ function BeforeAfterCard({ beforeUrl, afterUrl }: { beforeUrl: string; afterUrl:
     </div>
   );
 }
-
-const CATEGORY_ICONS: Record<number, string> = {
-  15: "\ud83c\udfac", 170: "\ud83d\udc88", 7: "\u2702\ufe0f", 126: "\ud83d\udd12", 195: "\ud83d\udc83", 202: "\ud83d\udd28",
-  23: "\ud83e\uddb7", 20: "\ud83c\udfb5", 22: "\ud83d\ude9b", 177: "\ud83c\udf89", 196: "\ud83d\udc41\ufe0f", 178: "\ud83d\udcb0",
-  109: "\ud83c\udfcb\ufe0f", 9: "\ud83d\udd27", 193: "\ud83e\uddd8", 188: "\ud83e\uddf9", 200: "\u26a1",
-  179: "\ud83c\udfe0", 171: "\ud83d\udc87", 174: "\ud83d\ude97", 176: "\ud83d\udd29", 111: "\ud83d\udd17", 10: "\ud83d\udc86",
-  168: "\ud83d\ude99", 169: "\ud83d\udee0\ufe0f", 199: "\ud83c\udfaa", 158: "\ud83c\udfaf", 73: "\ud83c\udf7d\ufe0f", 12: "\ud83d\udcaa",
-  11: "\ud83d\udc3e", 17: "\ud83d\udcf8", 148: "\ud83d\udca6", 26: "\ud83d\udcc5", 8: "\ud83d\udc85", 194: "\u2600\ufe0f",
-  198: "\ud83d\udcbb", 19: "\ud83c\udfa5", 155: "\ud83d\udcf1", 201: "\ud83d\udda5\ufe0f", 205: "\ud83c\udf10", 211: "\ud83d\udd27",
-  212: "\u26a1", 213: "\u2744\ufe0f", 214: "\ud83e\ude9a", 215: "\ud83c\udfe0", 216: "\ud83d\udce3",
-  210: "\ud83d\udd49\ufe0f", 218: "\ud83c\udf31",
-};
 
 function ServiceCardPhoto({ serviceId }: { serviceId: number }) {
   const { data: photos } = trpc.service.getPhotos.useQuery({ serviceId });
