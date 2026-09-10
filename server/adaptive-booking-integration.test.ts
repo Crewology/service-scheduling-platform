@@ -254,6 +254,14 @@ describe("adaptive booking integration", () => {
     expect(search).toContain("whitespace-normal text-center");
   });
 
+  it("keeps the public provider Book a Service card in normal document flow", () => {
+    const quickBookTag = providerProfile.match(/<Card data-testid="provider-quick-book-card"[^>]*>/)?.[0];
+
+    expect(quickBookTag).toBeDefined();
+    expect(quickBookTag).not.toContain("sticky");
+    expect(quickBookTag).not.toMatch(/top-\d+/);
+  });
+
   it("preserves adaptive mode, provider context, and prior service intent when rebooking", () => {
     const href = customerRebookHref(930001, "chisolm-audio", "Audio Enhancement");
     expect(href).toBe("/service/930001?entry=adaptive&rebook=1&from_provider=chisolm-audio&intent=Rebook+Audio+Enhancement");

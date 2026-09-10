@@ -2981,3 +2981,10 @@
 - [x] Keep direct-booking CTAs concise and unchanged, and prevent the longer quote label from clipping on mobile
 - [x] Add focused regression coverage for quote-only versus direct-booking provider-profile labels and links
 - [x] Run adjacent adaptive-booking tests, zero-error TypeScript, diff validation, production build, desktop/mobile review, documentation, and checkpoint
+
+## UX Update — Non-Sticky Book a Service Card
+- [x] Confirm the public provider profile Book a Service card is the only in-scope sticky element
+- [x] Remove sticky positioning on mobile and desktop without changing card content, order, actions, or spacing
+- [x] Add a focused regression preventing sticky positioning from returning to the Book a Service card
+- [x] Verify normal document scrolling and responsive layout on mobile and desktop
+- [x] Run adjacent provider-profile tests, zero-error TypeScript, diff validation, production build, documentation, and checkpoint

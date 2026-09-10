@@ -912,7 +912,7 @@ export default function PublicProviderProfile() {
             )}
 
             {/* Quick Book Card */}
-            <Card className="sticky top-4">
+            <Card data-testid="provider-quick-book-card">
               <CardContent className="p-5 space-y-4">
                 <h3 className="font-semibold text-lg">Book a Service</h3>
                 {services.length > 0 ? (
