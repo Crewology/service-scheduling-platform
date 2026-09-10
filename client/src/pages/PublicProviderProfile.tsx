@@ -4,7 +4,7 @@ import { useParams, Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { formatDuration } from "../../../shared/duration";
 import { getServiceTypeLabel } from "../../../shared/serviceTypeLabels";
-import { adaptiveServiceHref, getAdaptiveBookingDecision } from "../../../shared/adaptiveBooking";
+import { adaptiveServiceHref, getAdaptiveBookingDecision, getProviderBrowseAndBookAction } from "../../../shared/adaptiveBooking";
 import { AdaptiveModeBadge } from "@/components/booking/AdaptiveModeBadge";
 import { SaveProviderButton } from "@/components/SaveProviderButton";
 import { Card, CardContent } from "@/components/ui/card";
@@ -954,8 +954,25 @@ export default function PublicProviderProfile() {
                     <Button 
                       className="w-full"
                       onClick={() => {
-                        const el = document.getElementById('services-section');
-                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        const action = getProviderBrowseAndBookAction(
+                          services,
+                          provider.profileSlug || provider.id,
+                        );
+
+                        if (action.type === "navigate") {
+                          setLocation(action.href);
+                          return;
+                        }
+
+                        if (action.type === "scroll") {
+                          const el = document.getElementById(action.targetId);
+                          if (el) {
+                            el.scrollIntoView({ behavior: "smooth", block: "start" });
+                            return;
+                          }
+                        }
+
+                        toast.error("No services are available to browse right now.");
                       }}
                     >
                       <Calendar className="w-4 h-4 mr-2" /> Browse & Book

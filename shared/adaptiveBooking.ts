@@ -18,6 +18,11 @@ export type AdaptiveBookingDecision = {
   bookingTypes: AdaptiveBookingType[];
 };
 
+export type ProviderBrowseAndBookAction =
+  | { type: "navigate"; href: string }
+  | { type: "scroll"; targetId: "services-section" }
+  | { type: "unavailable" };
+
 export const MULTI_DAY_BOOKING_CATEGORIES = new Set([
   15, // Audio Visual Crew
   19, // TV / Film Crew
@@ -113,4 +118,20 @@ export function adaptiveServiceHref(
   if (options?.location?.trim()) params.set("location", options.location.trim());
   if (options?.timing?.trim()) params.set("timing", options.timing.trim());
   return `/service/${serviceId}?${params.toString()}`;
+}
+
+export function getProviderBrowseAndBookAction(
+  services: ReadonlyArray<AdaptiveServiceInput>,
+  providerSlug?: string | number | null,
+): ProviderBrowseAndBookAction {
+  if (services.length === 0) return { type: "unavailable" };
+
+  if (services.length === 1) {
+    return {
+      type: "navigate",
+      href: adaptiveServiceHref(services[0].id, { providerSlug }),
+    };
+  }
+
+  return { type: "scroll", targetId: "services-section" };
 }

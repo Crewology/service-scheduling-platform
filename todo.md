@@ -2967,3 +2967,10 @@
 - [x] Make the selector and destination page render the same icon on desktop and mobile
 - [x] Add focused source or rendered regressions that prevent the Studio Space Rentals icon mapping from drifting between views
 - [x] Run adjacent category/navigation tests, zero-error TypeScript, diff validation, production build, desktop/mobile review, fresh log review, documentation, and checkpoint
+
+## Bug Fix — Provider Profile Browse & Book Button
+- [x] Reproduce the non-responsive Browse & Book button on the affected provider profile and trace its service-selection and navigation logic
+- [x] Fix Browse & Book so an eligible service opens the correct booking flow without changing Request a Quote behavior
+- [x] Add focused regression coverage for one-service, multi-service, direct-booking, and quote-request provider profiles as applicable
+- [x] Verify Browse & Book and Request a Quote on mobile and desktop, including navigation, back behavior, and visible loading or error feedback
+- [x] Run adjacent booking/profile tests, zero-error TypeScript, diff validation, production build, fresh log review, documentation, and checkpoint

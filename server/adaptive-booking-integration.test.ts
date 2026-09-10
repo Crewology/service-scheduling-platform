@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { adaptiveServiceHref, getAdaptiveBookingDecision } from "../shared/adaptiveBooking";
+import { adaptiveServiceHref, getAdaptiveBookingDecision, getProviderBrowseAndBookAction } from "../shared/adaptiveBooking";
 import { customerRebookHref } from "../shared/customerHomeLogic";
 import { formatProviderDate, formatProviderTime } from "./providerOverviewLogic";
 
@@ -140,6 +140,46 @@ describe("adaptive booking decisions", () => {
     expect(href).toContain("location=Atlanta%2C+GA");
     expect(href).toContain("timing=This+weekend");
   });
+
+  it("opens the adaptive flow immediately for one-service provider profiles", () => {
+    const direct = getProviderBrowseAndBookAction([
+      {
+        id: 1710001,
+        categoryId: 217,
+        pricingModel: "fixed",
+        basePrice: "125.00",
+        durationMinutes: 120,
+      },
+    ], "gary-studios-1350001");
+    const quote = getProviderBrowseAndBookAction([
+      {
+        id: 1710001,
+        categoryId: 217,
+        pricingModel: "fixed",
+        basePrice: null,
+        durationMinutes: 120,
+      },
+    ], "gary-studios-1350001");
+
+    expect(direct).toEqual({
+      type: "navigate",
+      href: "/service/1710001?entry=adaptive&from_provider=gary-studios-1350001",
+    });
+    expect(quote).toEqual(direct);
+  });
+
+  it("keeps multi-service provider profiles in browse mode and handles empty profiles safely", () => {
+    const services = [
+      { id: 1, categoryId: 7, pricingModel: "fixed" as const, basePrice: "40.00", durationMinutes: 30 },
+      { id: 2, categoryId: 15, pricingModel: "custom_quote" as const, durationMinutes: 120 },
+    ];
+
+    expect(getProviderBrowseAndBookAction(services, "provider-slug")).toEqual({
+      type: "scroll",
+      targetId: "services-section",
+    });
+    expect(getProviderBrowseAndBookAction([], "provider-slug")).toEqual({ type: "unavailable" });
+  });
 });
 
 describe("adaptive booking integration", () => {
@@ -175,6 +215,14 @@ describe("adaptive booking integration", () => {
     expect(providerProfile).toContain('<AdaptiveModeBadge decision={decision} copy="action"');
     expect(adaptiveBadge).toContain('decision.mode === "direct" ? "Check availability" : "Request quote"');
     expect(serviceDetail).toContain('useParams<{ id: string }>()');
+  });
+
+  it("makes the provider Browse & Book CTA navigate for one service and scroll for multiple services", () => {
+    expect(providerProfile).toContain("getProviderBrowseAndBookAction(");
+    expect(providerProfile).toContain('if (action.type === "navigate")');
+    expect(providerProfile).toContain("setLocation(action.href)");
+    expect(providerProfile).toContain('if (action.type === "scroll")');
+    expect(providerProfile).toContain("document.getElementById(action.targetId)");
   });
 
   it("preserves adaptive mode, provider context, and prior service intent when rebooking", () => {
