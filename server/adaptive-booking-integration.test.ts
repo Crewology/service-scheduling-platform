@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { adaptiveServiceHref, getAdaptiveBookingDecision, getProviderBrowseAndBookAction } from "../shared/adaptiveBooking";
+import { adaptiveServiceHref, getAdaptiveBookingDecision, getAdaptiveServiceCtaLabel, getProviderBrowseAndBookAction } from "../shared/adaptiveBooking";
 import { customerRebookHref } from "../shared/customerHomeLogic";
 import { formatProviderDate, formatProviderTime } from "./providerOverviewLogic";
 
@@ -141,6 +141,27 @@ describe("adaptive booking decisions", () => {
     expect(href).toContain("timing=This+weekend");
   });
 
+  it("uses explicit quote-only CTA copy while preserving direct-booking labels", () => {
+    const directDecision = getAdaptiveBookingDecision({
+      id: 1,
+      categoryId: 7,
+      pricingModel: "fixed",
+      basePrice: "40.00",
+      durationMinutes: 30,
+    });
+    const quoteDecision = getAdaptiveBookingDecision({
+      id: 2,
+      categoryId: 217,
+      pricingModel: "fixed",
+      basePrice: null,
+      durationMinutes: 120,
+    });
+
+    expect(getAdaptiveServiceCtaLabel(directDecision, "Browse & Book")).toBe("Browse & Book");
+    expect(getAdaptiveServiceCtaLabel(directDecision, "Check availability")).toBe("Check availability");
+    expect(getAdaptiveServiceCtaLabel(quoteDecision, "Browse & Book")).toBe("View Service & Request Quote");
+  });
+
   it("opens the adaptive flow immediately for one-service provider profiles", () => {
     const direct = getProviderBrowseAndBookAction([
       {
@@ -210,7 +231,7 @@ describe("adaptive booking integration", () => {
 
   it("connects both search results and provider service cards without replacing /service deep links", () => {
     expect(search).toContain("adaptiveServiceHref(service.id");
-    expect(search).toContain('decision.mode === "direct" ? "Check availability" : "Request quote"');
+    expect(search).toContain('getAdaptiveServiceCtaLabel(decision, "Check availability")');
     expect(providerProfile).toContain("adaptiveServiceHref(service.id");
     expect(providerProfile).toContain('<AdaptiveModeBadge decision={decision} copy="action"');
     expect(adaptiveBadge).toContain('decision.mode === "direct" ? "Check availability" : "Request quote"');
@@ -223,6 +244,14 @@ describe("adaptive booking integration", () => {
     expect(providerProfile).toContain("setLocation(action.href)");
     expect(providerProfile).toContain('if (action.type === "scroll")');
     expect(providerProfile).toContain("document.getElementById(action.targetId)");
+  });
+
+  it("uses the explicit quote-only CTA label on provider profiles and search without changing direct labels", () => {
+    expect(providerProfile).toContain('getAdaptiveServiceCtaLabel(getAdaptiveBookingDecision(services[0]), "Browse & Book")');
+    expect(providerProfile).toContain('getAdaptiveServiceCtaLabel');
+    expect(search).toContain('getAdaptiveServiceCtaLabel(decision, "Check availability")');
+    expect(providerProfile).toContain("whitespace-normal text-center");
+    expect(search).toContain("whitespace-normal text-center");
   });
 
   it("preserves adaptive mode, provider context, and prior service intent when rebooking", () => {

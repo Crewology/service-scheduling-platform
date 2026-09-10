@@ -23,6 +23,13 @@ export type ProviderBrowseAndBookAction =
   | { type: "scroll"; targetId: "services-section" }
   | { type: "unavailable" };
 
+export function getAdaptiveServiceCtaLabel(
+  decision: AdaptiveBookingDecision,
+  directLabel: string,
+): string {
+  return decision.mode === "quote" ? "View Service & Request Quote" : directLabel;
+}
+
 export const MULTI_DAY_BOOKING_CATEGORIES = new Set([
   15, // Audio Visual Crew
   19, // TV / Film Crew

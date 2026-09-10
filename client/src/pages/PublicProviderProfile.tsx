@@ -4,7 +4,7 @@ import { useParams, Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { formatDuration } from "../../../shared/duration";
 import { getServiceTypeLabel } from "../../../shared/serviceTypeLabels";
-import { adaptiveServiceHref, getAdaptiveBookingDecision, getProviderBrowseAndBookAction } from "../../../shared/adaptiveBooking";
+import { adaptiveServiceHref, getAdaptiveBookingDecision, getAdaptiveServiceCtaLabel, getProviderBrowseAndBookAction } from "../../../shared/adaptiveBooking";
 import { AdaptiveModeBadge } from "@/components/booking/AdaptiveModeBadge";
 import { SaveProviderButton } from "@/components/SaveProviderButton";
 import { Card, CardContent } from "@/components/ui/card";
@@ -952,7 +952,7 @@ export default function PublicProviderProfile() {
                     )}
                     <Separator />
                     <Button 
-                      className="w-full"
+                      className="w-full min-h-10 h-auto py-2 whitespace-normal text-center"
                       onClick={() => {
                         const action = getProviderBrowseAndBookAction(
                           services,
@@ -975,7 +975,10 @@ export default function PublicProviderProfile() {
                         toast.error("No services are available to browse right now.");
                       }}
                     >
-                      <Calendar className="w-4 h-4 mr-2" /> Browse & Book
+                      <Calendar className="w-4 h-4 mr-2 shrink-0" />
+                      {services.length === 1
+                        ? getAdaptiveServiceCtaLabel(getAdaptiveBookingDecision(services[0]), "Browse & Book")
+                        : "Browse & Book"}
                     </Button>
                     <Button 
                       variant="outline" 

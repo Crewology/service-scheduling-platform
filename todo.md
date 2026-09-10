@@ -2974,3 +2974,10 @@
 - [x] Add focused regression coverage for one-service, multi-service, direct-booking, and quote-request provider profiles as applicable
 - [x] Verify Browse & Book and Request a Quote on mobile and desktop, including navigation, back behavior, and visible loading or error feedback
 - [x] Run adjacent booking/profile tests, zero-error TypeScript, diff validation, production build, fresh log review, documentation, and checkpoint
+
+## UX Update — Quote-Only Provider Profile CTA Clarity
+- [x] Audit provider-profile CTA labels that represent quote-only services without changing direct-booking or generic provider quote actions
+- [x] Rename quote-only service entry CTAs to “View Service & Request Quote” while preserving their adaptive service destinations
+- [x] Keep direct-booking CTAs concise and unchanged, and prevent the longer quote label from clipping on mobile
+- [x] Add focused regression coverage for quote-only versus direct-booking provider-profile labels and links
+- [x] Run adjacent adaptive-booking tests, zero-error TypeScript, diff validation, production build, desktop/mobile review, documentation, and checkpoint

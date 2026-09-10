@@ -4,7 +4,7 @@ import { Link, useSearch } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { formatDuration } from "../../../shared/duration";
 import { getServiceTypeLabel } from "../../../shared/serviceTypeLabels";
-import { adaptiveServiceHref, getAdaptiveBookingDecision } from "../../../shared/adaptiveBooking";
+import { adaptiveServiceHref, getAdaptiveBookingDecision, getAdaptiveServiceCtaLabel } from "../../../shared/adaptiveBooking";
 import { AdaptiveModeBadge } from "@/components/booking/AdaptiveModeBadge";
 import { SaveProviderButton } from "@/components/SaveProviderButton";
 import { Button } from "@/components/ui/button";
@@ -608,8 +608,8 @@ export default function Search() {
                               <div className="sm:shrink-0 flex items-center gap-2">
                                 <FavoriteButtonSearch providerId={service.providerId} />
                                 <Link href={serviceHref}>
-                                  <Button className="w-full sm:w-auto">
-                                    {decision.mode === "direct" ? "Check availability" : "Request quote"}
+                                  <Button className="w-full sm:w-auto min-h-10 h-auto py-2 whitespace-normal text-center">
+                                    {getAdaptiveServiceCtaLabel(decision, "Check availability")}
                                   </Button>
                                 </Link>
                               </div>
