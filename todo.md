@@ -2940,3 +2940,23 @@
 - [x] Keep all provider access, entitlements, tenant isolation, rollout flags, pricing, and Customers functionality unchanged
 - [x] Add focused rendering, eligibility, dismissal, persistence-key, accessibility, and responsive regressions
 - [x] Run adjacent tests, zero-error TypeScript, diff validation, production build, desktop/mobile review, documentation, and checkpoint
+
+## Production Test-Data Cleanup and KPI Reconciliation
+- [ ] Define narrow test-account criteria using explicit reserved domains, known test prefixes, or individually reviewed identities; never use broad name or email substring deletion
+- [ ] Preserve the official OlogyCrew demo provider and its intentional demonstration content, plus Gary Chisolm, Winston Williams, and every confirmed real customer or provider
+- [ ] Build a read-only manifest of proposed test customers, providers, bookings, quotes, messages, notifications, reviews, subscriptions, financial references, and Customers projection records
+- [ ] Capture baseline admin KPI counts and identify which proposed test records currently affect user, provider, booking, subscription, revenue, partner-split, and Customers metrics
+- [ ] Obtain explicit owner approval for the exact identity and record-count manifest before any irreversible deletion
+- [ ] Execute the approved cleanup in dependency order and within transactions where supported, without calling Stripe, sending notifications, issuing refunds, or changing external accounts
+- [ ] Preserve authoritative financial and audit evidence when deletion would misstate captured funds, refunds, invoices, subscriptions, transfers, or legal records; exclude confirmed test rows from KPIs instead when preservation is required
+- [ ] Reconcile Customers projections and aggregate administration after cleanup without fabricating contacts, events, or backfill sources
+- [ ] Verify the demo provider, named administrators, real provider/customer accounts, tenant isolation, Customers access, booking/quote/payment integrity, and fixed 60/40 partner logic remain unchanged
+- [ ] Review corrected Admin Dashboard KPIs on desktop and mobile and compare them with direct aggregate queries
+- [ ] Run focused cleanup, deletion, Customers, admin analytics, subscription, payment, booking, and full regression validation before documenting the final cleanup
+
+## Bug Fix — Mobile Toast Text Contrast
+- [x] Identify the shared Sonner wrapper and inherited description color causing text to render too light against white toast backgrounds
+- [x] Apply accessible foreground colors to toast titles, descriptions, close controls, actions, and cancel controls across toast variants without changing placement or behavior
+- [x] Add focused regressions for readable toast foreground styling and WCAG contrast in light and dark themes
+- [x] Verify the reported Tell us what you need toast at a 390-pixel viewport with readable, unclipped title and description text
+- [x] Pass 6 adjacent files and 40 tests, zero-error TypeScript, diff validation, production build, fresh log review, documentation, and checkpoint readiness
