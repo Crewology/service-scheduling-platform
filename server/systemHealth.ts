@@ -29,7 +29,6 @@ export async function getSystemHealthSnapshot() {
   const smsReady = Boolean(ENV.twilioAccountSid && ENV.twilioAuthToken && (ENV.twilioPhoneNumber || ENV.twilioMessagingServiceSid));
   const googleReady = Boolean(ENV.googleClientId && ENV.googleClientSecret);
   const facebookReady = Boolean(ENV.facebookPageAccessToken && ENV.facebookPageId);
-  const instagramReady = Boolean(ENV.instagramBusinessAccountId && ENV.facebookPageAccessToken);
   const linkedinReady = Boolean(ENV.linkedinAccessToken && ENV.linkedinOrganizationId);
   const memory = process.memoryUsage();
 
@@ -65,7 +64,6 @@ export async function getSystemHealthSnapshot() {
       sms: smsReady,
       googleAuth: googleReady,
       facebook: facebookReady,
-      instagram: instagramReady,
       linkedin: linkedinReady,
     },
   };

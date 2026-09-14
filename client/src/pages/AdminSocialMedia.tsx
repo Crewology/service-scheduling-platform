@@ -9,13 +9,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Share2, Eye, Send, Trash2, RefreshCw, AlertCircle, CheckCircle2, Clock, XCircle, Plus, Calendar } from "lucide-react";
+import {
+  ADMIN_SOCIAL_PLATFORMS,
+  ADMIN_SOCIAL_PLATFORM_OPTIONS,
+  isAdminSocialPlatform,
+  type AdminSocialPlatform,
+} from "../../../shared/adminSocialPlatforms";
 
 export default function AdminSocialMedia() {
   const [previewContent, setPreviewContent] = useState<{ content: string; postType: string; categoryName?: string } | null>(null);
   const [isPublishing, setIsPublishing] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [newContent, setNewContent] = useState("");
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(["facebook", "instagram", "linkedin"]);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<AdminSocialPlatform[]>([...ADMIN_SOCIAL_PLATFORMS]);
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduleTime, setScheduleTime] = useState("");
 
@@ -48,7 +54,7 @@ export default function AdminSocialMedia() {
       toast.success("Post created successfully!");
       setCreateOpen(false);
       setNewContent("");
-      setSelectedPlatforms(["facebook", "instagram", "linkedin"]);
+      setSelectedPlatforms([...ADMIN_SOCIAL_PLATFORMS]);
       setScheduleDate("");
       setScheduleTime("");
       refetch();
@@ -98,12 +104,12 @@ export default function AdminSocialMedia() {
     }
     createMutation.mutate({
       content: newContent.trim(),
-      platforms: selectedPlatforms as ("facebook" | "instagram" | "linkedin")[],
+      platforms: selectedPlatforms,
       scheduledAt,
     });
   };
 
-  const togglePlatform = (platform: string) => {
+  const togglePlatform = (platform: AdminSocialPlatform) => {
     setSelectedPlatforms((prev) =>
       prev.includes(platform) ? prev.filter((p) => p !== platform) : [...prev, platform]
     );
@@ -121,9 +127,11 @@ export default function AdminSocialMedia() {
 
   const getPlatformResults = (results: any[] | null) => {
     if (!results) return null;
+    const activeResults = results.filter((result: any) => isAdminSocialPlatform(result.platform));
+    if (activeResults.length === 0) return null;
     return (
       <div className="flex flex-wrap gap-1 mt-1">
-        {results.map((r: any, i: number) => (
+        {activeResults.map((r: any, i: number) => (
           <Badge key={i} variant={r.success ? "outline" : "destructive"} className="text-xs">
             {r.platform}: {r.success ? "✓" : r.error?.substring(0, 30) || "failed"}
           </Badge>
@@ -141,7 +149,7 @@ export default function AdminSocialMedia() {
             <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
             <div className="text-sm text-blue-800">
               <p className="font-medium mb-1">Social Media Auto-Posting</p>
-              <p>Posts are automatically generated and published every Monday at 10am UTC to Facebook, Instagram, and LinkedIn. You can also create custom posts manually using the "Create Post" button.</p>
+              <p>Posts are automatically generated and published every Monday at 10am UTC to Facebook and LinkedIn. You can also create custom posts manually using the "Create Post" button.</p>
               <p className="mt-1 text-blue-600">API credentials must be configured in Settings → Secrets for live posting.</p>
             </div>
           </div>
@@ -181,11 +189,7 @@ export default function AdminSocialMedia() {
               <div className="space-y-2">
                 <Label>Platforms</Label>
                 <div className="flex flex-wrap gap-4">
-                  {[
-                    { id: "facebook", label: "Facebook" },
-                    { id: "instagram", label: "Instagram" },
-                    { id: "linkedin", label: "LinkedIn" },
-                  ].map((platform) => (
+                  {ADMIN_SOCIAL_PLATFORM_OPTIONS.map((platform) => (
                     <div key={platform.id} className="flex items-center space-x-2">
                       <Checkbox
                         id={`platform-${platform.id}`}
@@ -316,7 +320,7 @@ export default function AdminSocialMedia() {
                       {/* Platform badges for draft/scheduled posts */}
                       {!post.results && post.platforms && (
                         <div className="flex flex-wrap gap-1 mt-1">
-                          {(post.platforms as string[]).map((p: string) => (
+                          {(post.platforms as string[]).filter(isAdminSocialPlatform).map((p: string) => (
                             <Badge key={p} variant="outline" className="text-xs capitalize">{p}</Badge>
                           ))}
                         </div>

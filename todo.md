@@ -2988,3 +2988,10 @@
 - [x] Add a focused regression preventing sticky positioning from returning to the Book a Service card
 - [x] Verify normal document scrolling and responsive layout on mobile and desktop
 - [x] Run adjacent provider-profile tests, zero-error TypeScript, diff validation, production build, documentation, and checkpoint
+
+## Admin Update — Remove Instagram Auto-Posting
+- [x] Audit the Admin social posting UI, server procedures, scheduling logic, status messages, and tests for Instagram-specific behavior
+- [x] Remove Instagram from selectable and automatic Admin posting channels while preserving Facebook and LinkedIn behavior
+- [x] Remove Instagram credential warnings and channel-specific Admin copy without deleting unrelated environment configuration or historical records
+- [x] Add focused regressions proving Instagram is unavailable and Facebook/LinkedIn posting contracts remain intact
+- [x] Verify the Admin social posting experience on desktop and mobile, then run adjacent tests, TypeScript, diff validation, production build, documentation, and checkpoint

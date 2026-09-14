@@ -3,6 +3,11 @@ import { invokeLLM } from "./_core/llm";
 import { requireDb } from "./db/connection";
 import { socialPosts, serviceCategories } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
+import {
+  ADMIN_SOCIAL_PLATFORMS,
+  normalizeAdminSocialPlatforms,
+  type AdminSocialPlatform,
+} from "../shared/adminSocialPlatforms";
 
 const POST_TYPES = ["provider_recruitment", "customer_attraction", "category_spotlight"] as const;
 
@@ -49,33 +54,6 @@ async function postToFacebook(content: string): Promise<{ success: boolean; post
     const data = await response.json() as any;
     if (data.id) return { success: true, postId: data.id };
     return { success: false, error: data.error?.message || "Unknown Facebook error" };
-  } catch (err: any) {
-    return { success: false, error: err.message };
-  }
-}
-
-async function postToInstagram(content: string): Promise<{ success: boolean; postId?: string; error?: string }> {
-  if (!ENV.facebookPageAccessToken || !ENV.instagramBusinessAccountId) {
-    return { success: false, error: "Instagram credentials not configured" };
-  }
-  try {
-    const brandImageUrl = "https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/social-media/ologycrew-logo.png";
-    const containerResponse = await fetch(`https://graph.facebook.com/v19.0/${ENV.instagramBusinessAccountId}/media`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ image_url: brandImageUrl, caption: content, access_token: ENV.facebookPageAccessToken }),
-    });
-    const containerData = await containerResponse.json() as any;
-    if (!containerData.id) return { success: false, error: containerData.error?.message || "Failed to create media container" };
-
-    const publishResponse = await fetch(`https://graph.facebook.com/v19.0/${ENV.instagramBusinessAccountId}/media_publish`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ creation_id: containerData.id, access_token: ENV.facebookPageAccessToken }),
-    });
-    const publishData = await publishResponse.json() as any;
-    if (publishData.id) return { success: true, postId: publishData.id };
-    return { success: false, error: publishData.error?.message || "Failed to publish" };
   } catch (err: any) {
     return { success: false, error: err.message };
   }
@@ -131,12 +109,14 @@ export async function publishSocialPost(postId?: number): Promise<{ success: boo
   const db = await requireDb();
   let content: string;
   let socialPostId: number;
+  let platforms: AdminSocialPlatform[];
 
   if (postId) {
     const [post] = await db.select().from(socialPosts).where(eq(socialPosts.id, postId));
     if (!post) throw new Error("Post not found");
     content = post.content;
     socialPostId = post.id;
+    platforms = normalizeAdminSocialPlatforms(post.platforms as string[] | null);
   } else {
     const generated = await generateSocialPost();
     const [inserted] = await db.insert(socialPosts).values({
@@ -144,18 +124,21 @@ export async function publishSocialPost(postId?: number): Promise<{ success: boo
       postType: generated.postType,
       categoryId: generated.categoryId,
       categoryName: generated.categoryName,
-      platforms: ["facebook", "instagram", "linkedin"],
+      platforms: [...ADMIN_SOCIAL_PLATFORMS],
       status: "pending",
     }).$returningId();
     content = generated.content;
     socialPostId = inserted.id;
+    platforms = [...ADMIN_SOCIAL_PLATFORMS];
   }
 
-  const results = await Promise.all([
-    postToFacebook(content).then(r => ({ platform: "facebook", ...r })),
-    postToInstagram(content).then(r => ({ platform: "instagram", ...r })),
-    postToLinkedIn(content).then(r => ({ platform: "linkedin", ...r })),
-  ]);
+  const publishers: Record<AdminSocialPlatform, (content: string) => Promise<{ success: boolean; postId?: string; error?: string }>> = {
+    facebook: postToFacebook,
+    linkedin: postToLinkedIn,
+  };
+  const results = await Promise.all(
+    platforms.map((platform) => publishers[platform](content).then((result) => ({ platform, ...result }))),
+  );
 
   const anySuccess = results.some(r => r.success);
   await db.update(socialPosts)
@@ -174,7 +157,7 @@ export async function previewSocialPost(): Promise<{ content: string; postType: 
     postType: generated.postType,
     categoryId: generated.categoryId || null,
     categoryName: generated.categoryName || null,
-    platforms: ["facebook", "instagram", "linkedin"],
+    platforms: [...ADMIN_SOCIAL_PLATFORMS],
     status: "draft",
     createdAt: Date.now(),
   }).$returningId();

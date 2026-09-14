@@ -33,7 +33,6 @@ vi.mock("./_core/env", () => ({
   ENV: {
     facebookPageAccessToken: "",
     facebookPageId: "",
-    instagramBusinessAccountId: "",
     linkedinAccessToken: "",
     linkedinOrganizationId: "",
   },
@@ -66,7 +65,7 @@ describe("Social Media Module", () => {
     const result = await publishSocialPost();
     expect(result).toHaveProperty("success");
     expect(result).toHaveProperty("results");
-    expect(result.results).toHaveLength(3);
+    expect(result.results).toHaveLength(2);
     // All should fail gracefully since no credentials are set
     result.results.forEach((r) => {
       expect(r.success).toBe(false);
@@ -78,8 +77,13 @@ describe("Social Media Module", () => {
     const { publishSocialPost } = await import("./socialMedia");
     const result = await publishSocialPost();
     const platforms = result.results.map((r) => r.platform);
-    expect(platforms).toContain("facebook");
-    expect(platforms).toContain("instagram");
-    expect(platforms).toContain("linkedin");
+    expect(platforms).toEqual(["facebook", "linkedin"]);
+  });
+
+  it("filters Instagram out of historical post platform selections", async () => {
+    const { normalizeAdminSocialPlatforms } = await import("../shared/adminSocialPlatforms");
+
+    expect(normalizeAdminSocialPlatforms(["facebook", "instagram", "linkedin"])).toEqual(["facebook", "linkedin"]);
+    expect(normalizeAdminSocialPlatforms(["instagram"])).toEqual([]);
   });
 });

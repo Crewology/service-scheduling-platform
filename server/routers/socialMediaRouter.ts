@@ -6,6 +6,7 @@ import { socialPosts } from "../../drizzle/schema";
 import { eq, desc } from "drizzle-orm";
 import { publishSocialPost, previewSocialPost } from "../socialMedia";
 import { hasAdminClearance } from "../adminPolicy";
+import { ADMIN_SOCIAL_PLATFORMS } from "../../shared/adminSocialPlatforms";
 
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (!hasAdminClearance(ctx.user)) {
@@ -41,7 +42,7 @@ export const socialMediaRouter = router({
   createPost: adminProcedure
     .input(z.object({
       content: z.string().min(1).max(2000),
-      platforms: z.array(z.enum(["facebook", "instagram", "linkedin"])).min(1),
+      platforms: z.array(z.enum(ADMIN_SOCIAL_PLATFORMS)).min(1),
       scheduledAt: z.number().optional(),
     }))
     .mutation(async ({ input }) => {
