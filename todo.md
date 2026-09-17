@@ -2995,3 +2995,11 @@
 - [x] Remove Instagram credential warnings and channel-specific Admin copy without deleting unrelated environment configuration or historical records
 - [x] Add focused regressions proving Instagram is unavailable and Facebook/LinkedIn posting contracts remain intact
 - [x] Verify the Admin social posting experience on desktop and mobile, then run adjacent tests, TypeScript, diff validation, production build, documentation, and checkpoint
+
+## SEO: Dynamic Public Sitemap Restoration
+- [x] Restore database-backed sitemap entries for active categories, providers, services, and current promotions
+- [x] Add public Experiences and Featured Professionals landing pages
+- [x] Use canonical `https://ologycrew.com` URLs and clean root-level provider profile paths
+- [x] Exclude inactive, deleted, private, account, admin, preview, and transactional routes
+- [x] Use real record modification dates and add regression coverage
+- [x] Validate XML, robots.txt, TypeScript, focused tests, production build, and development endpoint output
