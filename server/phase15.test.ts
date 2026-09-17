@@ -56,6 +56,12 @@ describe("Phase 15: Promo Code System", () => {
     });
     const providerRecord = await db.getProviderByUserId(providerUserId);
     providerId = providerRecord!.id;
+    await db.replaceWeeklySchedule(providerId, Array.from({ length: 7 }, (_, dayOfWeek) => ({
+      dayOfWeek,
+      startTime: "08:00",
+      endTime: "18:00",
+      isAvailable: true,
+    })));
 
     // Create services
     await db.createService({
@@ -302,7 +308,7 @@ describe("Phase 15: Promo Code System", () => {
       const caller = appRouter.createCaller(createAuthContext("customer", customerUserId, "P15 Customer", `p15customer${suffix}@test.com`));
       
       const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setDate(tomorrow.getDate() + 3);
       const dateStr = tomorrow.toISOString().split("T")[0];
 
       const booking = await caller.booking.create({

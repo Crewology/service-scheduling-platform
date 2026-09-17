@@ -34,6 +34,7 @@ export async function getSessionsByDateRange(
   return await db.select({
     session: bookingSessions,
     bookingId: bookings.id,
+    serviceId: bookings.serviceId,
     bookingStatus: bookings.status,
     bookingType: bookings.bookingType,
   })

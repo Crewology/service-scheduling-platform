@@ -2,6 +2,7 @@ import { publicProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
 import { TRPCError } from "@trpc/server";
+import { addCalendarDays } from "@shared/bookingPolicy";
 
 /**
  * Widget Router — public endpoints for embeddable booking widgets.
@@ -56,6 +57,8 @@ export const widgetRouter = router({
           basePrice: service.basePrice,
           hourlyRate: service.hourlyRate,
           durationMinutes: service.durationMinutes,
+          minAdvanceBookingHours: service.minAdvanceBookingHours,
+          maxAdvanceBookingDays: service.maxAdvanceBookingDays,
           pricingModel: service.pricingModel,
           isGroupClass: service.isGroupClass,
           maxCapacity: service.maxCapacity,
@@ -91,16 +94,31 @@ export const widgetRouter = router({
       date: z.string(),
     }))
     .query(async ({ input }) => {
-      const bookings = await db.getBookingsByDateRange(input.providerId, input.date, input.date);
-      return bookings
-        .filter((b: any) => ["pending", "confirmed", "in_progress"].includes(b.status))
-        .map((b: any) => ({
-          bookingDate: b.bookingDate,
-          bookingTime: b.startTime,
-          endTime: b.endTime,
-          durationMinutes: b.durationMinutes,
-          status: b.status,
-        }));
+      const startDate = addCalendarDays(input.date, -1);
+      const endDate = addCalendarDays(input.date, 1);
+      const [bookings, sessions] = await Promise.all([
+        db.getBookingsByDateRange(input.providerId, startDate, endDate),
+        db.getSessionsByDateRange(input.providerId, startDate, endDate),
+      ]);
+      return [
+        ...bookings
+          .filter((b: any) => (!b.bookingType || b.bookingType === "single") && ["pending", "confirmed", "in_progress"].includes(b.status))
+          .map((b: any) => ({
+            serviceId: b.serviceId,
+            bookingDate: b.bookingDate,
+            bookingTime: b.startTime,
+            endTime: b.endTime,
+            durationMinutes: b.durationMinutes,
+            status: b.status,
+          })),
+        ...sessions.map((row: any) => ({
+          serviceId: row.serviceId,
+          bookingDate: row.session.sessionDate,
+          bookingTime: row.session.startTime,
+          endTime: row.session.endTime,
+          status: row.bookingStatus,
+        })),
+      ];
     }),
 
   // Get widget configuration for a provider

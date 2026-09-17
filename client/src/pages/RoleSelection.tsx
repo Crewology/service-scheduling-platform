@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Search, Briefcase, ArrowRight, Home, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useRef } from "react";
+import { appendAuthReturnPath, normalizeAuthReturnPath } from "@shared/authReturnPath";
 
 /**
  * RoleSelection page — shown after first login when hasSelectedRole is false.
@@ -26,6 +27,7 @@ export default function RoleSelection() {
   const [, setLocation] = useLocation();
   const [selectedRole, setSelectedRole] = useState<"customer" | "provider" | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const returnTo = normalizeAuthReturnPath(new URLSearchParams(window.location.search).get("returnTo"));
   // Initialize autoSubmitting immediately if plan is stored — prevents any flash of role cards
   const [autoSubmitting, setAutoSubmitting] = useState(() => {
     try {
@@ -40,8 +42,7 @@ export default function RoleSelection() {
       if (data.role === "provider") {
         setLocation("/provider/onboarding");
       } else {
-        // Customer goes to OlogyCrew landing page
-        setLocation("/");
+        setLocation(returnTo || "/");
       }
       toast.success(
         data.role === "provider"
@@ -102,7 +103,7 @@ export default function RoleSelection() {
 
   // Redirect unverified users to verify-email page
   if (!user.emailVerified) {
-    setLocation("/verify-email");
+    setLocation(appendAuthReturnPath("/verify-email", returnTo));
     return null;
   }
 

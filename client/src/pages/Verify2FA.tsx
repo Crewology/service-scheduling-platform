@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { NavHeader } from "../components/shared/NavHeader";
+import { normalizeAuthReturnPath } from "@shared/authReturnPath";
 
 export default function Verify2FA() {
   const [, navigate] = useLocation();
@@ -16,7 +17,7 @@ export default function Verify2FA() {
   const params = new URLSearchParams(window.location.search);
   const userId = params.get("userId") || sessionStorage.getItem("2fa_userId");
   const email = params.get("email") || sessionStorage.getItem("2fa_email") || "";
-  const redirectPath = params.get("redirect") || "/";
+  const redirectPath = normalizeAuthReturnPath(params.get("redirect")) || "/";
 
   useEffect(() => {
     if (!userId) {

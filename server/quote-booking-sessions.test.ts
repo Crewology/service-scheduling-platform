@@ -70,18 +70,24 @@ vi.mock("./db", async (importOriginal) => {
       return null;
     }),
     getProviderById: vi.fn(async (id: number) => {
-      if (id === 10) return { id: 10, userId: 2, businessName: "Test Provider", slug: "test-provider-10" };
+      if (id === 10) return { id: 10, userId: 2, businessName: "Test Provider", slug: "test-provider-10", isActive: true, deletedAt: null };
       return null;
     }),
     getUserById: vi.fn(async (id: number) => {
-      if (id === 1) return { id: 1, name: "Test Customer", email: "customer@example.com", phone: "+15551234567" };
-      if (id === 2) return { id: 2, name: "Test Provider User", email: "provider@example.com", phone: "+15559876543" };
+      if (id === 1) return { id: 1, name: "Test Customer", email: "customer@example.com", phone: "+15551234567", deletedAt: null };
+      if (id === 2) return { id: 2, name: "Test Provider User", email: "provider@example.com", phone: "+15559876543", deletedAt: null };
       return null;
     }),
     getServiceById: vi.fn(async (id: number) => {
-      if (id === 5) return { id: 5, name: "Deep Cleaning", basePrice: "150.00", durationMinutes: 120 };
+      if (id === 5) return { id: 5, providerId: 10, categoryId: 188, name: "Deep Cleaning", basePrice: "150.00", durationMinutes: 120, isActive: true, deletedAt: null, minAdvanceBookingHours: 0, maxAdvanceBookingDays: 36500, isGroupClass: false, maxCapacity: 1 };
       return null;
     }),
+    getCategoryById: vi.fn(async (id: number) => id === 188 ? { id, isActive: true } : null),
+    getAvailabilityByProvider: vi.fn(async () => Array.from(
+      { length: 7 },
+      (_, dayOfWeek) => ({ dayOfWeek, startTime: "00:00", endTime: "23:59", isAvailable: true }),
+    )),
+    getAvailabilityOverrides: vi.fn(async () => []),
 
     // Quote mocks
     createQuoteRequest: vi.fn(async (data: any) => {
@@ -154,6 +160,23 @@ vi.mock("./db", async (importOriginal) => {
       mockBookings.push(booking);
       return booking.id;
     }),
+    createBookingWithCalendarGuard: vi.fn(async ({ booking, quoteId }: any) => {
+      const created = {
+        id: nextBookingId++,
+        ...booking,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      mockBookings.push(created);
+      if (quoteId) {
+        const quote = mockQuotes.find((entry) => entry.id === quoteId);
+        if (quote) {
+          quote.status = "booked";
+          quote.bookingId = created.id;
+        }
+      }
+      return created.id;
+    }),
     getBookingById: vi.fn(async (id: number) => {
       return mockBookings.find((b) => b.id === id) || null;
     }),
@@ -197,6 +220,24 @@ vi.mock("./db", async (importOriginal) => {
         session.rescheduledAt = new Date();
       }
     }),
+    rescheduleSessionWithCalendarGuard: vi.fn(async (data: any) => {
+      const created = {
+        id: nextSessionId++,
+        bookingId: data.bookingId,
+        sessionDate: data.newDate,
+        startTime: data.newStartTime,
+        endTime: data.newEndTime,
+        sessionNumber: data.sessionNumber,
+        status: "scheduled",
+      };
+      mockSessions.push(created);
+      const oldSession = mockSessions.find((session) => session.id === data.sessionId);
+      if (oldSession) {
+        oldSession.status = "rescheduled";
+        oldSession.rescheduledToSessionId = created.id;
+      }
+      return created.id;
+    }),
     checkSessionConflicts: vi.fn(async () => {
       return []; // No conflicts by default
     }),
@@ -239,7 +280,7 @@ describe("Feature: Quote-to-Booking Conversion", () => {
       status: "quoted",
       quotedAmount: "200.00",
       quotedDurationMinutes: 120,
-      preferredDate: "2026-06-15",
+      preferredDate: "2027-06-15",
       preferredTime: "10:00",
       locationType: "mobile",
       location: "123 Main St",
@@ -262,7 +303,6 @@ describe("Feature: Quote-to-Booking Conversion", () => {
   it("links the quote to the created booking", async () => {
     const customer = makeUser({ id: 1 });
     const caller = appRouter.createCaller(makeCtx(customer));
-    const { linkQuoteToBooking } = await import("./db");
 
     mockQuotes.push({
       id: 2,
@@ -274,7 +314,7 @@ describe("Feature: Quote-to-Booking Conversion", () => {
       status: "quoted",
       quotedAmount: "350.00",
       quotedDurationMinutes: 90,
-      preferredDate: "2026-07-01",
+      preferredDate: "2027-07-01",
       preferredTime: "14:00",
       locationType: "mobile",
       location: "456 Oak Ave",
@@ -282,18 +322,21 @@ describe("Feature: Quote-to-Booking Conversion", () => {
       createdAt: new Date(),
     });
 
-    await caller.provider.updateQuoteStatus({
+    const result = await caller.provider.updateQuoteStatus({
       quoteId: 2,
       status: "accepted",
     });
 
-    expect(linkQuoteToBooking).toHaveBeenCalledWith(2, expect.any(Number));
+    expect(mockQuotes.find((quote) => quote.id === 2)).toMatchObject({
+      status: "booked",
+      bookingId: result.bookingId,
+    });
   });
 
   it("creates booking with correct source and quoteRequestId", async () => {
     const customer = makeUser({ id: 1 });
     const caller = appRouter.createCaller(makeCtx(customer));
-    const { createBooking } = await import("./db");
+    const { createBookingWithCalendarGuard } = await import("./db");
 
     mockQuotes.push({
       id: 3,
@@ -305,7 +348,7 @@ describe("Feature: Quote-to-Booking Conversion", () => {
       status: "quoted",
       quotedAmount: "500.00",
       quotedDurationMinutes: 180,
-      preferredDate: "2026-08-01",
+      preferredDate: "2027-08-01",
       preferredTime: "09:00",
       locationType: "mobile",
       location: "789 Elm St",
@@ -318,20 +361,20 @@ describe("Feature: Quote-to-Booking Conversion", () => {
       status: "accepted",
     });
 
-    expect(createBooking).toHaveBeenCalledWith(
-      expect.objectContaining({
+    expect(createBookingWithCalendarGuard).toHaveBeenCalledWith(
+      expect.objectContaining({ booking: expect.objectContaining({
         bookingSource: "quote",
         quoteRequestId: 3,
         customerId: 1,
         providerId: 10,
-      })
+      }), quoteId: 3 })
     );
   });
 
   it("does not create a booking when declining a quote", async () => {
     const customer = makeUser({ id: 1 });
     const caller = appRouter.createCaller(makeCtx(customer));
-    const { createBooking } = await import("./db");
+    const { createBookingWithCalendarGuard } = await import("./db");
 
     mockQuotes.push({
       id: 4,
@@ -354,13 +397,13 @@ describe("Feature: Quote-to-Booking Conversion", () => {
 
     expect(result.success).toBe(true);
     expect(result.bookingId).toBeNull();
-    expect(createBooking).not.toHaveBeenCalled();
+    expect(createBookingWithCalendarGuard).not.toHaveBeenCalled();
   });
 
   it("calculates platform fee correctly (1%)", async () => {
     const customer = makeUser({ id: 1 });
     const caller = appRouter.createCaller(makeCtx(customer));
-    const { createBooking } = await import("./db");
+    const { createBookingWithCalendarGuard } = await import("./db");
 
     mockQuotes.push({
       id: 5,
@@ -372,7 +415,7 @@ describe("Feature: Quote-to-Booking Conversion", () => {
       status: "quoted",
       quotedAmount: "1000.00",
       quotedDurationMinutes: 240,
-      preferredDate: "2026-09-01",
+      preferredDate: "2027-09-01",
       preferredTime: "08:00",
       bookingId: null,
       createdAt: new Date(),
@@ -383,12 +426,12 @@ describe("Feature: Quote-to-Booking Conversion", () => {
       status: "accepted",
     });
 
-    expect(createBooking).toHaveBeenCalledWith(
-      expect.objectContaining({
+    expect(createBookingWithCalendarGuard).toHaveBeenCalledWith(
+      expect.objectContaining({ booking: expect.objectContaining({
         subtotal: "1000.00",
         platformFee: "10.00",
         totalAmount: "1010.00",
-      })
+      }) })
     );
   });
 });
@@ -549,7 +592,7 @@ describe("Feature: Session Management for Recurring Bookings", () => {
       const result = await caller.booking.rescheduleSession({
         sessionId: 5,
         bookingId: 5,
-        newDate: "2026-06-03",
+        newDate: "2027-06-03",
         newStartTime: "14:00",
         newEndTime: "15:00",
       });
@@ -584,7 +627,7 @@ describe("Feature: Session Management for Recurring Bookings", () => {
       const result = await caller.booking.rescheduleSession({
         sessionId: 6,
         bookingId: 6,
-        newDate: "2026-06-10",
+        newDate: "2027-06-10",
         newStartTime: "09:00",
         newEndTime: "10:00",
       });
@@ -692,13 +735,14 @@ describe("Feature: Session Management for Recurring Bookings", () => {
     it("rejects rescheduling when time conflicts exist", async () => {
       const customer = makeUser({ id: 1 });
       const caller = appRouter.createCaller(makeCtx(customer));
-      const { checkSessionConflicts } = await import("./db");
-      (checkSessionConflicts as any).mockResolvedValueOnce([{ id: 100 }]); // Simulate conflict
+      const { rescheduleSessionWithCalendarGuard } = await import("./db");
+      (rescheduleSessionWithCalendarGuard as any).mockRejectedValueOnce(new Error("conflicts"));
 
       mockBookings.push({
         id: 10,
         customerId: 1,
         providerId: 10,
+        serviceId: 5,
         bookingNumber: "BK-TEST-010",
         status: "confirmed",
       });
@@ -716,7 +760,7 @@ describe("Feature: Session Management for Recurring Bookings", () => {
         caller.booking.rescheduleSession({
           sessionId: 10,
           bookingId: 10,
-          newDate: "2026-07-05",
+          newDate: "2027-07-05",
           newStartTime: "10:00",
           newEndTime: "11:00",
         })
@@ -726,7 +770,7 @@ describe("Feature: Session Management for Recurring Bookings", () => {
     it("marks old session as rescheduled and creates new one", async () => {
       const customer = makeUser({ id: 1 });
       const caller = appRouter.createCaller(makeCtx(customer));
-      const { rescheduleSession, createSingleSession } = await import("./db");
+      const { rescheduleSessionWithCalendarGuard } = await import("./db");
 
       mockBookings.push({
         id: 11,
@@ -749,21 +793,22 @@ describe("Feature: Session Management for Recurring Bookings", () => {
       const result = await caller.booking.rescheduleSession({
         sessionId: 11,
         bookingId: 11,
-        newDate: "2026-07-10",
+        newDate: "2027-07-10",
         newStartTime: "14:00",
         newEndTime: "15:00",
       });
 
-      expect(createSingleSession).toHaveBeenCalledWith(
+      expect(rescheduleSessionWithCalendarGuard).toHaveBeenCalledWith(
         expect.objectContaining({
           bookingId: 11,
-          sessionDate: "2026-07-10",
-          startTime: "14:00",
-          endTime: "15:00",
+          sessionId: 11,
+          newDate: "2027-07-10",
+          newStartTime: "14:00",
+          newEndTime: "16:00",
           sessionNumber: 4,
         })
       );
-      expect(rescheduleSession).toHaveBeenCalledWith(11, result.newSessionId, "2026-07-08");
+      expect(result.newSessionId).toBeTruthy();
     });
   });
 
@@ -810,7 +855,7 @@ describe("Feature: Quote Notifications", () => {
       providerId: 10,
       title: "Need a full home cleaning",
       description: "I need a thorough deep cleaning of my 3-bedroom house including kitchen and bathrooms.",
-      preferredDate: "2026-06-01",
+      preferredDate: "2027-06-01",
       preferredTime: "10:00",
       locationType: "mobile",
       location: "123 Main St",
@@ -864,7 +909,7 @@ describe("Feature: Quote Notifications", () => {
       status: "quoted",
       quotedAmount: "200.00",
       quotedDurationMinutes: 120,
-      preferredDate: "2026-06-15",
+      preferredDate: "2027-06-15",
       preferredTime: "10:00",
       bookingId: null,
       createdAt: new Date(),

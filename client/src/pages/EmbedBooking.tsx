@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
 import { Clock, DollarSign, MapPin, CheckCircle2, ArrowLeft, ArrowRight, ExternalLink, Sunrise, Sun, Sunset, Moon } from "lucide-react";
 import { generateTimeSlots, formatTimeForDisplay, type TimeSlot } from "@shared/timeSlots";
+import { evaluateBookingWindow, getBookingDateViolation, OLOGYCREW_BOOKING_TIME_ZONE } from "@shared/bookingPolicy";
 
 type WidgetStep = "service" | "date" | "time" | "details" | "confirm" | "success";
 
@@ -113,6 +114,11 @@ export default function EmbedBooking() {
     if (date < today) return true;
     const dayOfWeek = date.getDay();
     const dateStr = date.toISOString().split("T")[0];
+    if (service && getBookingDateViolation({
+      bookingDate: dateStr,
+      maxAdvanceBookingDays: service.maxAdvanceBookingDays,
+      timeZone: OLOGYCREW_BOOKING_TIME_ZONE,
+    })) return true;
     if (blockedOverrideDates.has(dateStr)) return true;
     if (weeklySchedule && (weeklySchedule as any[]).length > 0 && !availableDays.has(dayOfWeek)) return true;
     return false;
@@ -144,6 +150,7 @@ export default function EmbedBooking() {
         isAvailable: o.isAvailable,
       })),
       ((bookedSlots || []) as any[]).map((b: any) => ({
+        serviceId: b.serviceId,
         bookingDate: b.bookingDate,
         bookingTime: b.bookingTime,
         endTime: b.endTime,
@@ -151,9 +158,23 @@ export default function EmbedBooking() {
         status: b.status,
       })),
       30,
-      service.maxCapacity || 1
+      service.isGroupClass ? service.maxCapacity || 1 : 1,
+      service.isGroupClass ? service.id : undefined,
     );
-    setAvailableSlots(slots);
+    setAvailableSlots(slots.map((slot) => {
+      const allowed = evaluateBookingWindow({
+        bookingDate: dateStr,
+        startTime: slot.time,
+        minAdvanceBookingHours: service.minAdvanceBookingHours,
+        maxAdvanceBookingDays: service.maxAdvanceBookingDays,
+        timeZone: OLOGYCREW_BOOKING_TIME_ZONE,
+      }).allowed;
+      return {
+        ...slot,
+        available: slot.available && allowed,
+        spotsRemaining: slot.available && allowed ? slot.spotsRemaining : 0,
+      };
+    }));
   }, [selectedDate, service, weeklySchedule, allOverrides, bookedSlots]);
 
   const formatPrice = (price: string | number | null) => {

@@ -11,13 +11,14 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { trpc } from "@/lib/trpc";
 import { formatDuration, getDurationPricingLabel } from "../../../shared/duration";
 import { getServiceTypeLabel } from "../../../shared/serviceTypeLabels";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useLocation, useParams, useSearch, Link } from "wouter";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
 import { Calendar } from "@/components/ui/calendar";
 import { MapPin, Clock, DollarSign, Star, ChevronRight, CheckCircle, CheckCircle2, ArrowLeft, Info, Image as ImageIcon, Tag, X, Loader2, Gift, CalendarRange, Repeat, CalendarDays, Share2, Bell, BellOff, CreditCard, ShieldCheck, AlertTriangle, Sunrise, Sun, Sunset, Moon } from "lucide-react";
-import { generateTimeSlots, formatTimeForDisplay, type TimeSlot } from "@shared/timeSlots";
+import { formatTimeForDisplay, type TimeSlot } from "@shared/timeSlots";
+import { getBookingDateViolation, OLOGYCREW_BOOKING_TIME_ZONE } from "@shared/bookingPolicy";
 import { ReviewList } from "@/components/shared/ReviewList";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { ShareProfile } from "@/components/ShareProfile";
@@ -123,13 +124,28 @@ export default function ServiceDetail() {
   const searchString = useSearch();
   const entryContext = useMemo(() => new URLSearchParams(searchString), [searchString]);
   const fromProvider = entryContext.get("from_provider");
-  const initialIntent = entryContext.get("intent") || "";
-  const initialLocation = entryContext.get("location") || "";
-  const timingHint = entryContext.get("timing") || "";
+  const handoffToken = entryContext.get("handoff") || "";
+  const serviceId = Number.parseInt(id || "", 10);
+  const {
+    data: agentHandoff,
+    error: agentHandoffError,
+    mutate: resolveAgentHandoff,
+  } = trpc.agentHandoff.resolve.useMutation();
+  const resolvedHandoffToken = useRef("");
+  useEffect(() => {
+    if (!handoffToken || !Number.isInteger(serviceId) || serviceId <= 0) return;
+    if (resolvedHandoffToken.current === handoffToken) return;
+    resolvedHandoffToken.current = handoffToken;
+    resolveAgentHandoff({ token: handoffToken, expectedServiceId: serviceId });
+  }, [handoffToken, serviceId, resolveAgentHandoff]);
+  const initialIntent = agentHandoff?.intent || entryContext.get("intent") || "";
+  const initialLocation = agentHandoff?.location || entryContext.get("location") || "";
+  const timingHint = agentHandoff?.timing || entryContext.get("timing") || "";
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState("");
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [bookingStep, setBookingStep] = useState<BookingStep>("date");
+  const agentPreferredTimeApplied = useRef("");
   
   // Multi-day & recurring booking state
   const [bookingType, setBookingType] = useState<BookingType>("single");
@@ -174,16 +190,15 @@ export default function ServiceDetail() {
     { enabled: !!service }
   );
   
-  // Fetch existing bookings for the selected date
+  // Fetch privacy-safe, server-computed availability for the selected date.
   const selectedDateStr = selectedDate
     ? selectedDate.toISOString().split("T")[0]
     : undefined;
 
-  const { data: existingBookings } = trpc.booking.listByDateRange.useQuery(
+  const { data: publicTimeSlots } = trpc.availability.getPublicTimeSlots.useQuery(
     {
-      providerId: service?.providerId || 0,
-      startDate: selectedDateStr,
-      endDate: selectedDateStr,
+      serviceId: service?.id || 0,
+      date: selectedDateStr || "",
     },
     { enabled: !!service && !!selectedDateStr }
   );
@@ -242,6 +257,11 @@ export default function ServiceDetail() {
 
     const dayOfWeek = date.getDay();
     const dateStr = date.toISOString().split("T")[0];
+    if (service && getBookingDateViolation({
+      bookingDate: dateStr,
+      maxAdvanceBookingDays: service.maxAdvanceBookingDays,
+      timeZone: OLOGYCREW_BOOKING_TIME_ZONE,
+    })) return true;
 
     // If there's a blocked override for this date, disable it
     if (blockedOverrideDates.has(dateStr)) return true;
@@ -261,39 +281,8 @@ export default function ServiceDetail() {
       return;
     }
     
-    const dateStr = selectedDate.toISOString().split("T")[0];
-    const overridesForDate = (allOverrides || []).filter(
-      (o: any) => o.overrideDate === dateStr
-    );
-
-    const slots = generateTimeSlots(
-      dateStr,
-      service.durationMinutes || 60,
-      weeklySchedule.map((s: any) => ({
-        dayOfWeek: s.dayOfWeek,
-        startTime: s.startTime,
-        endTime: s.endTime,
-        isAvailable: s.isAvailable,
-      })),
-      overridesForDate.map((o: any) => ({
-        overrideDate: o.overrideDate,
-        startTime: o.startTime,
-        endTime: o.endTime,
-        isAvailable: o.isAvailable,
-      })),
-      (existingBookings || []).map((b: any) => ({
-        bookingDate: b.bookingDate,
-        bookingTime: b.startTime,
-        endTime: b.endTime,
-        durationMinutes: b.durationMinutes,
-        status: b.status,
-      })),
-      30,
-      service.maxCapacity || 1
-    );
-    
-    setAvailableSlots(slots);
-  }, [selectedDate, service, weeklySchedule, allOverrides, existingBookings]);
+    setAvailableSlots((publicTimeSlots || []) as TimeSlot[]);
+  }, [selectedDate, service, weeklySchedule, publicTimeSlots]);
 
   // Auto-advance to time step when date is selected (single-day only)
   useEffect(() => {
@@ -463,6 +452,46 @@ export default function ServiceDetail() {
     notes: "",
   });
 
+  useEffect(() => {
+    if (!agentHandoff || agentHandoff.mode !== "direct") return;
+
+    if (agentHandoff.preferredDate) {
+      setSelectedDate(new Date(`${agentHandoff.preferredDate}T12:00:00`));
+    }
+
+    const handoffNotes = [
+      agentHandoff.intent,
+      agentHandoff.location ? `Requested location: ${agentHandoff.location}` : null,
+      agentHandoff.timing ? `Requested timing: ${agentHandoff.timing}` : null,
+    ].filter(Boolean).join("\n\n");
+    if (handoffNotes) {
+      setBookingForm((current) => current.notes ? current : { ...current, notes: handoffNotes });
+    }
+  }, [agentHandoff]);
+
+  useEffect(() => {
+    if (
+      !agentHandoff?.preferredDate ||
+      !agentHandoff.preferredTime ||
+      agentHandoff.mode !== "direct" ||
+      !selectedDate ||
+      weeklySchedule === undefined ||
+      allOverrides === undefined ||
+      publicTimeSlots === undefined
+    ) return;
+
+    const selectedDateValue = selectedDate.toISOString().split("T")[0];
+    if (selectedDateValue !== agentHandoff.preferredDate) return;
+
+    const prefillKey = `${agentHandoff.issuedAt}:${agentHandoff.preferredDate}:${agentHandoff.preferredTime}`;
+    if (agentPreferredTimeApplied.current === prefillKey) return;
+
+    if (availableSlots.some((slot) => slot.available && slot.time === agentHandoff.preferredTime)) {
+      agentPreferredTimeApplied.current = prefillKey;
+      setSelectedTime(agentHandoff.preferredTime);
+    }
+  }, [agentHandoff, selectedDate, weeklySchedule, allOverrides, publicTimeSlots, availableSlots]);
+
   // Custom duration state (for DJ & Music services category 20)
   const [useCustomDuration, setUseCustomDuration] = useState(false);
   const [customStartTime, setCustomStartTime] = useState("");
@@ -622,7 +651,9 @@ export default function ServiceDetail() {
 
   const handleBooking = () => {
     if (!isAuthenticated) {
-      window.location.href = getLoginUrl();
+      window.location.href = getLoginUrl(
+        handoffToken ? `${window.location.pathname}${window.location.search}` : undefined,
+      );
       return;
     }
     if (!service) return;
@@ -885,6 +916,29 @@ export default function ServiceDetail() {
       </div>
 
       <div className="container py-8 max-w-6xl">
+        {agentHandoff ? (
+          <div className="mb-6 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-950" data-testid="agent-handoff-review-notice">
+            <div className="flex items-start gap-3">
+              <ShieldCheck className="mt-0.5 h-5 w-5 flex-none text-sky-700" />
+              <div>
+                <p className="font-semibold">Review the details prepared by your AI assistant</p>
+                <p className="mt-1 leading-5 text-sky-900">
+                  Nothing has been booked, quoted, held, or charged. Confirm the provider, service, availability, location, price or quote path, and terms before you submit.
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : agentHandoffError ? (
+          <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950" data-testid="agent-handoff-error-notice">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="mt-0.5 h-5 w-5 flex-none text-amber-700" />
+              <div>
+                <p className="font-semibold">This AI handoff cannot be used</p>
+                <p className="mt-1 leading-5">{agentHandoffError.message} You can still review and start this service manually.</p>
+              </div>
+            </div>
+          </div>
+        ) : null}
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Service Details - Left Column */}
           <div className="lg:col-span-2 space-y-6">
@@ -1059,6 +1113,7 @@ export default function ServiceDetail() {
           <div className="lg:col-span-1">
             {adaptiveDecision?.mode === "quote" ? (
               <AdaptiveQuoteRequestCard
+                key={agentHandoff ? `agent-${agentHandoff.issuedAt}` : "adaptive-quote"}
                 decision={adaptiveDecision}
                 service={{
                   id: service.id,
@@ -1070,6 +1125,9 @@ export default function ServiceDetail() {
                 initialIntent={initialIntent}
                 initialLocation={initialLocation}
                 timingHint={timingHint}
+                initialPreferredDate={agentHandoff?.preferredDate}
+                initialPreferredTime={agentHandoff?.preferredTime}
+                loginReturnPath={handoffToken ? `${window.location.pathname}${window.location.search}` : undefined}
               />
             ) : (
             <Card className="sticky top-20 shadow-medium">
@@ -1498,6 +1556,11 @@ export default function ServiceDetail() {
 
                     {/* Standard time slot selection (hidden when custom duration is active) */}
                     {(!useCustomDuration || ![20, 17, 177, 15, 19, 195, 109, 12, 202, 9, 148, 188, 201, 199].includes(service?.categoryId)) && (<>
+                    {agentHandoff?.preferredTime && selectedTime === agentHandoff.preferredTime && (
+                      <div className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs leading-5 text-sky-950">
+                        Your AI assistant suggested <strong>{formatTimeForDisplay(agentHandoff.preferredTime)}</strong>. Select the highlighted time to confirm and continue.
+                      </div>
+                    )}
                     {!weeklySchedule ? (
                       /* Skeleton while schedule is loading */
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">

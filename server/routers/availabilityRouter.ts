@@ -2,6 +2,8 @@ import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { z } from "zod";
 import * as db from "../db";
 import { TRPCError } from "@trpc/server";
+import { addCalendarDays, evaluateBookingWindow, OLOGYCREW_BOOKING_TIME_ZONE } from "@shared/bookingPolicy";
+import { generateTimeSlots } from "@shared/timeSlots";
 
 export const availabilityRouter = router({
   getSchedule: publicProcedure
@@ -51,6 +53,78 @@ export const availabilityRouter = router({
     }))
     .query(async ({ input }) => {
       return await db.getProviderOverrides(input.providerId, input.startDate, input.endDate);
+    }),
+
+  getPublicTimeSlots: publicProcedure
+    .input(z.object({
+      serviceId: z.number(),
+      date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    }))
+    .query(async ({ input }) => {
+      const service = await db.getServiceById(input.serviceId);
+      if (!service?.isActive || service.deletedAt) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Service not found" });
+      }
+      const provider = await db.getProviderById(service.providerId);
+      const [user, category] = provider
+        ? await Promise.all([db.getUserById(provider.userId), db.getCategoryById(service.categoryId)])
+        : [null, null];
+      if (!provider?.isActive || provider.deletedAt || !user || user.deletedAt || !category?.isActive) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Service not found" });
+      }
+
+      const startDate = addCalendarDays(input.date, -1);
+      const endDate = addCalendarDays(input.date, 1);
+      const [bookingRows, sessionRows] = await Promise.all([
+        db.getBookingsByDateRange(provider.id, startDate, endDate),
+        db.getSessionsByDateRange(provider.id, startDate, endDate),
+      ]);
+      const occupiedIntervals = [
+        ...bookingRows
+          .filter((booking: any) => !booking.bookingType || booking.bookingType === "single")
+          .map((booking: any) => ({
+            serviceId: booking.serviceId,
+            bookingDate: booking.bookingDate,
+            bookingTime: booking.startTime,
+            endTime: booking.endTime,
+            durationMinutes: booking.durationMinutes,
+            status: booking.status,
+          })),
+        ...sessionRows.map((row: any) => ({
+          serviceId: row.serviceId,
+          bookingDate: row.session.sessionDate,
+          bookingTime: row.session.startTime,
+          endTime: row.session.endTime,
+          status: row.bookingStatus,
+        })),
+      ];
+      const [weeklySchedule, overrides] = await Promise.all([
+        db.getProviderAvailability(provider.id),
+        db.getAvailabilityOverrides(provider.id, input.date, input.date),
+      ]);
+      return generateTimeSlots(
+        input.date,
+        service.durationMinutes || 60,
+        weeklySchedule,
+        overrides,
+        occupiedIntervals,
+        30,
+        service.isGroupClass ? service.maxCapacity || 1 : 1,
+        service.isGroupClass ? service.id : undefined,
+      ).map((slot) => {
+        const allowed = evaluateBookingWindow({
+          bookingDate: input.date,
+          startTime: slot.time,
+          minAdvanceBookingHours: service.minAdvanceBookingHours,
+          maxAdvanceBookingDays: service.maxAdvanceBookingDays,
+          timeZone: OLOGYCREW_BOOKING_TIME_ZONE,
+        }).allowed;
+        return {
+          ...slot,
+          available: slot.available && allowed,
+          spotsRemaining: slot.available && allowed ? slot.spotsRemaining : 0,
+        };
+      });
     }),
     
   createOverride: protectedProcedure

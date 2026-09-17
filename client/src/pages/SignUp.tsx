@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { appendAuthReturnPath, normalizeAuthReturnPath } from "@shared/authReturnPath";
 
 function PasswordStrength({ password }: { password: string }) {
   const strength = useMemo(() => {
@@ -53,6 +54,8 @@ function PasswordStrength({ password }: { password: string }) {
 export default function SignUp() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
+  const urlParams = useMemo(() => new URLSearchParams(window.location.search), []);
+  const returnTo = normalizeAuthReturnPath(urlParams.get("returnTo"));
 
   // Read selected plan from URL params + localStorage
   const [selectedPlan, setSelectedPlan] = useState<{tier: string; name: string; price: string; interval: string; audience: string} | null>(null);
@@ -81,9 +84,11 @@ export default function SignUp() {
   useEffect(() => {
     if (user) {
       if (!user.emailVerified) {
-        setLocation("/verify-email");
+        setLocation(appendAuthReturnPath("/verify-email", returnTo));
       } else if (!user.hasSelectedRole) {
-        setLocation("/select-role");
+        setLocation(appendAuthReturnPath("/select-role", returnTo));
+      } else if (returnTo) {
+        setLocation(returnTo);
       } else if (user.role === "admin") {
         setLocation("/admin");
       } else {
@@ -91,7 +96,7 @@ export default function SignUp() {
         setLocation("/");
       }
     }
-  }, [user, setLocation]);
+  }, [user, setLocation, returnTo]);
 
   if (user) return null;
 
@@ -116,7 +121,14 @@ export default function SignUp() {
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, firstName, lastName, website: (document.getElementById("website") as HTMLInputElement)?.value || "" }),
+        body: JSON.stringify({
+          email,
+          password,
+          firstName,
+          lastName,
+          website: (document.getElementById("website") as HTMLInputElement)?.value || "",
+          returnTo,
+        }),
       });
 
       const data = await response.json();
@@ -128,7 +140,7 @@ export default function SignUp() {
       }
 
       // Redirect to verify email page (new users must verify before selecting role)
-      window.location.href = "/verify-email";
+      window.location.href = appendAuthReturnPath("/verify-email", returnTo);
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);
@@ -151,6 +163,7 @@ export default function SignUp() {
     const params = new URLSearchParams({ origin });
     if (audience) params.set("audience", audience);
     if (planTier) params.set("planTier", planTier);
+    if (returnTo) params.set("returnTo", returnTo);
     window.location.href = `/api/auth/google?${params.toString()}`;
   };
 
@@ -371,7 +384,7 @@ export default function SignUp() {
         {/* Sign in link */}
         <p className="text-center mt-6 text-slate-600">
           Already have an account?{" "}
-          <Link href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+          <Link href={appendAuthReturnPath("/login", returnTo)} className="text-blue-600 hover:text-blue-700 font-medium">
             Sign in
           </Link>
         </p>

@@ -77,9 +77,34 @@ vi.mock("./db", async (importOriginal) => {
       if (userId === 2) return { id: 10, userId: 2, businessName: "Test Provider", slug: "test-provider-10" };
       return null;
     }),
+    getProviderById: vi.fn(async (id: number) => id === 10
+      ? { id: 10, userId: 2, businessName: "Test Provider", isActive: true, deletedAt: null }
+      : null),
     getUserById: vi.fn(async (id: number) => {
-      if (id === 1) return { id: 1, name: "Test Customer", email: "customer@example.com" };
+      if (id === 1) return { id: 1, name: "Test Customer", email: "customer@example.com", deletedAt: null };
+      if (id === 2) return { id: 2, name: "Test Provider", email: "provider@example.com", deletedAt: null };
       return null;
+    }),
+    getServiceById: vi.fn(async (id: number) => id === 5 ? {
+      id: 5,
+      providerId: 10,
+      categoryId: 7,
+      name: "Test Service",
+      isActive: true,
+      deletedAt: null,
+      minAdvanceBookingHours: 0,
+      maxAdvanceBookingDays: 36500,
+      isGroupClass: false,
+      maxCapacity: 1,
+    } : null),
+    getCategoryById: vi.fn(async (id: number) => id === 7 ? { id, isActive: true } : null),
+    createBookingWithCalendarGuard: vi.fn(async ({ quoteId }: any) => {
+      const quote = mockQuotes.find((entry) => entry.id === quoteId);
+      if (quote) {
+        quote.status = "booked";
+        quote.bookingId = 9001;
+      }
+      return 9001;
     }),
     createQuoteRequest: vi.fn(async (data: any) => {
       const quote = {
@@ -331,10 +356,14 @@ describe("Quote Request Flow", () => {
         id: 500,
         customerId: 1,
         providerId: 10,
+        serviceId: 5,
         title: "Need plumbing work",
         description: "Fix a leaky faucet in the kitchen and bathroom",
         status: "quoted",
         quotedAmount: "150.00",
+        quotedDurationMinutes: 60,
+        preferredDate: "2027-06-15",
+        preferredTime: "10:00",
         createdAt: new Date(),
       });
 
@@ -344,6 +373,29 @@ describe("Quote Request Flow", () => {
       });
 
       expect(result.success).toBe(true);
+    });
+
+    it("rejects an expired quote before atomic booking conversion", async () => {
+      const customer = makeUser({ id: 1 });
+      const caller = appRouter.createCaller(makeCtx(customer));
+      const { createBookingWithCalendarGuard } = await import("./db");
+      mockQuotes.push({
+        id: 501,
+        customerId: 1,
+        providerId: 10,
+        serviceId: 5,
+        title: "Expired plumbing quote",
+        description: "A complete quote that has passed its provider-set deadline.",
+        status: "quoted",
+        quotedAmount: "150.00",
+        quotedDurationMinutes: 60,
+        validUntil: new Date(Date.now() - 60_000),
+        createdAt: new Date(),
+      });
+
+      await expect(caller.provider.updateQuoteStatus({ quoteId: 501, status: "accepted" }))
+        .rejects.toThrow("This quote has expired");
+      expect(createBookingWithCalendarGuard).not.toHaveBeenCalled();
     });
 
     it("rejects customer accepting a non-quoted request", async () => {

@@ -1,4 +1,4 @@
-import { eq, and, desc, asc, sql, or, like, inArray } from "drizzle-orm";
+import { eq, and, desc, asc, sql, or, like, inArray, isNull } from "drizzle-orm";
 import {
   serviceCategories,
   services,
@@ -22,6 +22,166 @@ export async function getAllCategories() {
   return await db.select().from(serviceCategories)
     .where(eq(serviceCategories.isActive, true))
     .orderBy(asc(serviceCategories.sortOrder), asc(serviceCategories.name));
+}
+
+export async function getPublicCategoriesWithServiceCounts() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select({
+    id: serviceCategories.id,
+    name: serviceCategories.name,
+    slug: serviceCategories.slug,
+    description: serviceCategories.description,
+    serviceCount: sql<number>`COUNT(DISTINCT CASE
+      WHEN ${serviceProviders.id} IS NOT NULL AND ${users.id} IS NOT NULL
+      THEN ${services.id}
+      ELSE NULL
+    END)`,
+  })
+    .from(serviceCategories)
+    .leftJoin(services, and(
+      eq(services.categoryId, serviceCategories.id),
+      eq(services.isActive, true),
+      isNull(services.deletedAt),
+    ))
+    .leftJoin(serviceProviders, and(
+      eq(services.providerId, serviceProviders.id),
+      eq(serviceProviders.isActive, true),
+      isNull(serviceProviders.deletedAt),
+    ))
+    .leftJoin(users, and(
+      eq(serviceProviders.userId, users.id),
+      isNull(users.deletedAt),
+    ))
+    .where(eq(serviceCategories.isActive, true))
+    .groupBy(
+      serviceCategories.id,
+      serviceCategories.name,
+      serviceCategories.slug,
+      serviceCategories.description,
+      serviceCategories.sortOrder,
+    )
+    .orderBy(asc(serviceCategories.sortOrder), asc(serviceCategories.name));
+}
+
+export type PublicAgentServiceSearchInput = {
+  query?: string;
+  category?: string;
+  city?: string;
+  state?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  limit: number;
+  offset: number;
+};
+
+export async function searchPublicServicesForAgents(input: PublicAgentServiceSearchInput) {
+  const db = await getDb();
+  if (!db) return { rows: [], total: 0 };
+
+  const conditions = [
+    eq(services.isActive, true),
+    isNull(services.deletedAt),
+    eq(serviceProviders.isActive, true),
+    isNull(serviceProviders.deletedAt),
+    isNull(users.deletedAt),
+    eq(serviceCategories.isActive, true),
+  ];
+
+  const query = input.query?.trim();
+  if (query) {
+    const term = `%${query}%`;
+    conditions.push(or(
+      like(services.name, term),
+      like(services.description, term),
+      like(serviceProviders.businessName, term),
+      like(serviceCategories.name, term),
+    )!);
+  }
+
+  const category = input.category?.trim();
+  if (category) {
+    const categoryTerm = `%${category}%`;
+    conditions.push(or(
+      eq(serviceCategories.slug, category.toLowerCase()),
+      like(serviceCategories.name, categoryTerm),
+    )!);
+  }
+  if (input.city?.trim()) {
+    conditions.push(sql`LOWER(${serviceProviders.city}) LIKE ${`%${input.city.trim().toLowerCase()}%`}`);
+  }
+  if (input.state?.trim()) {
+    conditions.push(sql`LOWER(${serviceProviders.state}) = ${input.state.trim().toLowerCase()}`);
+  }
+
+  const publicPrice = sql<number>`CASE
+    WHEN ${services.pricingModel} = 'hourly' THEN COALESCE(
+      CAST(${services.hourlyRate} AS DECIMAL(10, 2)),
+      CAST(${services.basePrice} AS DECIMAL(10, 2))
+    )
+    WHEN ${services.pricingModel} = 'consultation' THEN 0
+    WHEN ${services.pricingModel} = 'custom_quote' THEN NULL
+    ELSE CAST(${services.basePrice} AS DECIMAL(10, 2))
+  END`;
+  if (input.minPrice !== undefined) conditions.push(sql`${publicPrice} >= ${input.minPrice}`);
+  if (input.maxPrice !== undefined) conditions.push(sql`${publicPrice} <= ${input.maxPrice}`);
+
+  const whereClause = and(...conditions);
+  const [rows, totalRows] = await Promise.all([
+    db.select({
+      id: services.id,
+      providerId: services.providerId,
+      categoryId: services.categoryId,
+      categoryName: serviceCategories.name,
+      categorySlug: serviceCategories.slug,
+      name: services.name,
+      description: services.description,
+      serviceType: services.serviceType,
+      pricingModel: services.pricingModel,
+      basePrice: services.basePrice,
+      hourlyRate: services.hourlyRate,
+      durationMinutes: services.durationMinutes,
+      depositRequired: services.depositRequired,
+      depositType: services.depositType,
+      depositAmount: services.depositAmount,
+      depositPercentage: services.depositPercentage,
+      cancellationPolicy: services.cancellationPolicy,
+      isExperience: services.isExperience,
+      minGuests: services.minGuests,
+      maxCapacity: services.maxCapacity,
+      pricePerPerson: services.pricePerPerson,
+      businessName: serviceProviders.businessName,
+      providerSlug: serviceProviders.profileSlug,
+      providerCity: serviceProviders.city,
+      providerState: serviceProviders.state,
+      providerRating: serviceProviders.averageRating,
+      providerReviewCount: serviceProviders.totalReviews,
+      providerOfficial: serviceProviders.isOfficial,
+      providerTrustLevel: serviceProviders.trustLevel,
+    })
+      .from(services)
+      .innerJoin(serviceProviders, eq(services.providerId, serviceProviders.id))
+      .innerJoin(users, eq(serviceProviders.userId, users.id))
+      .innerJoin(serviceCategories, eq(services.categoryId, serviceCategories.id))
+      .where(whereClause)
+      .orderBy(
+        desc(serviceProviders.isOfficial),
+        desc(serviceProviders.trustScore),
+        desc(serviceProviders.averageRating),
+        asc(services.name),
+      )
+      .limit(input.limit)
+      .offset(input.offset),
+    db.select({ total: sql<number>`COUNT(DISTINCT ${services.id})` })
+      .from(services)
+      .innerJoin(serviceProviders, eq(services.providerId, serviceProviders.id))
+      .innerJoin(users, eq(serviceProviders.userId, users.id))
+      .innerJoin(serviceCategories, eq(services.categoryId, serviceCategories.id))
+      .where(whereClause),
+  ]);
+
+  return { rows, total: Number(totalRows[0]?.total ?? 0) };
 }
 
 export async function getCategoryById(id: number) {
@@ -52,9 +212,14 @@ export async function getProviderCategories(providerId: number) {
     isActive: providerCategories.isActive,
     createdAt: providerCategories.createdAt,
     categoryName: serviceCategories.name,
+    categorySlug: serviceCategories.slug,
   }).from(providerCategories)
     .innerJoin(serviceCategories, eq(providerCategories.categoryId, serviceCategories.id))
-    .where(and(eq(providerCategories.providerId, providerId), eq(providerCategories.isActive, true)))
+    .where(and(
+      eq(providerCategories.providerId, providerId),
+      eq(providerCategories.isActive, true),
+      eq(serviceCategories.isActive, true),
+    ))
     .orderBy(providerCategories.createdAt);
   return rows;
 }

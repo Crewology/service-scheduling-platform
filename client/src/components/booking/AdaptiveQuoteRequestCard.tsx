@@ -33,6 +33,9 @@ type AdaptiveQuoteRequestCardProps = {
   initialIntent?: string;
   initialLocation?: string;
   timingHint?: string;
+  initialPreferredDate?: string;
+  initialPreferredTime?: string;
+  loginReturnPath?: string;
 };
 
 function defaultLocationType(serviceType: LocationType): LocationType {
@@ -57,13 +60,16 @@ export function AdaptiveQuoteRequestCard({
   initialIntent = "",
   initialLocation = "",
   timingHint = "",
+  initialPreferredDate = "",
+  initialPreferredTime = "",
+  loginReturnPath,
 }: AdaptiveQuoteRequestCardProps) {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
-  const [title, setTitle] = useState(initialIntent.trim() || `${service.name} request`);
-  const [description, setDescription] = useState("");
-  const [preferredDate, setPreferredDate] = useState("");
-  const [preferredTime, setPreferredTime] = useState("");
+  const [title, setTitle] = useState(initialIntent.trim().slice(0, 200) || `${service.name} request`);
+  const [description, setDescription] = useState(initialIntent.trim());
+  const [preferredDate, setPreferredDate] = useState(initialPreferredDate);
+  const [preferredTime, setPreferredTime] = useState(initialPreferredTime);
   const [location, setServiceLocation] = useState(initialLocation);
   const [locationType, setLocationType] = useState<LocationType>(() => defaultLocationType(service.serviceType));
   const [projectFormat, setProjectFormat] = useState<ProjectFormat>("single");
@@ -83,7 +89,8 @@ export function AdaptiveQuoteRequestCard({
       return;
     }
     if (!user) {
-      window.location.href = getLoginUrl();
+      if (loginReturnPath) window.location.href = getLoginUrl(loginReturnPath);
+      else window.location.href = getLoginUrl();
       return;
     }
     if (provider.userId === user.id) {

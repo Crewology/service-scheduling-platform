@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { AlertCircle, CheckCircle, Loader2, Mail, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
+import { appendAuthReturnPath, normalizeAuthReturnPath } from "@shared/authReturnPath";
 
 export default function VerifyEmail() {
   const [status, setStatus] = useState<"loading" | "success" | "error" | "gate">("loading");
@@ -15,8 +16,9 @@ export default function VerifyEmail() {
   const { user, loading, refresh } = useAuth();
   const [, setLocation] = useLocation();
 
-  const urlParams = new URLSearchParams(window.location.search);
+  const urlParams = useMemo(() => new URLSearchParams(window.location.search), []);
   const token = urlParams.get("token");
+  const returnTo = normalizeAuthReturnPath(urlParams.get("returnTo"));
 
   useEffect(() => {
     // If there's a token in the URL, verify it
@@ -65,12 +67,12 @@ export default function VerifyEmail() {
   useEffect(() => {
     if (user?.emailVerified && status === "gate") {
       if (user.hasSelectedRole) {
-        setLocation("/");
+        setLocation(returnTo || "/");
       } else {
-        setLocation("/select-role");
+        setLocation(appendAuthReturnPath("/select-role", returnTo));
       }
     }
-  }, [user?.emailVerified, status, user?.hasSelectedRole, setLocation]);
+  }, [user?.emailVerified, status, user?.hasSelectedRole, setLocation, returnTo]);
 
   const handleResendVerification = async () => {
     if (resending || resendCooldown > 0) return;
@@ -79,7 +81,7 @@ export default function VerifyEmail() {
       const response = await fetch("/api/auth/resend-verification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: user?.email, origin: window.location.origin }),
+        body: JSON.stringify({ email: user?.email, origin: window.location.origin, returnTo }),
       });
 
       const data = await response.json();
@@ -132,10 +134,12 @@ export default function VerifyEmail() {
   };
 
   const handleContinueAfterVerification = () => {
-    if (user?.hasSelectedRole) {
-      setLocation("/");
+    if (!user) {
+      setLocation(appendAuthReturnPath("/login", returnTo));
+    } else if (user.hasSelectedRole) {
+      setLocation(returnTo || "/");
     } else {
-      setLocation("/select-role");
+      setLocation(appendAuthReturnPath("/select-role", returnTo));
     }
   };
 
@@ -216,7 +220,7 @@ export default function VerifyEmail() {
                       )}
                     </Button>
                   )}
-                  <Link href="/login">
+                  <Link href={appendAuthReturnPath("/login", returnTo)}>
                     <Button className="bg-blue-600 hover:bg-blue-700 w-full">Go to Sign In</Button>
                   </Link>
                 </div>

@@ -2,6 +2,7 @@
  * Time slot generation and availability checking utilities
  * Supports overlap detection and group class capacity
  */
+import { addCalendarDays, OLOGYCREW_BOOKING_TIME_ZONE, zonedDateTimeToUtc } from "./bookingPolicy";
 
 export interface TimeSlot {
   time: string; // HH:MM format (e.g., "09:00")
@@ -28,6 +29,7 @@ export interface ScheduleOverride {
 }
 
 export interface ExistingBooking {
+  serviceId?: number;
   bookingDate: string; // YYYY-MM-DD format
   bookingTime: string; // HH:MM format (start time)
   endTime?: string; // HH:MM format (end time for overlap detection)
@@ -45,6 +47,63 @@ export interface GenerateTimeSlotsOptions {
   maxCapacity?: number; // 1 = individual (default), >1 = group class
 }
 
+export type BookingConflictInput = {
+  bookingDate?: string;
+  startTime: string;
+  endTime?: string;
+  durationMinutes: number;
+  existingBookings: ExistingBooking[];
+  isGroupClass: boolean;
+  maxCapacity: number;
+  serviceId?: number;
+};
+
+export function evaluateBookingConflict(input: BookingConflictInput) {
+  const activeBookings = input.existingBookings.filter(
+    (booking) => !["cancelled", "refunded", "no_show"].includes(booking.status),
+  );
+  const capacity = input.isGroupClass ? Math.max(1, input.maxCapacity) : 1;
+
+  if (input.isGroupClass) {
+    const overlapping = input.bookingDate
+      ? getDateAwareOverlaps(activeBookings, input.bookingDate, input.startTime, input.endTime, input.durationMinutes)
+      : activeBookings.filter((booking) => booking.bookingTime === input.startTime);
+    const compatible = overlapping.filter((booking) =>
+      (!input.bookingDate || booking.bookingDate === input.bookingDate) &&
+      booking.bookingTime === input.startTime &&
+      (input.serviceId === undefined || booking.serviceId === input.serviceId)
+    );
+    if (compatible.length !== overlapping.length) {
+      return { available: false, bookingCount: overlapping.length, maxCapacity: capacity, spotsRemaining: 0 };
+    }
+    const bookingCount = compatible.length;
+    return {
+      available: bookingCount < capacity,
+      bookingCount,
+      maxCapacity: capacity,
+      spotsRemaining: Math.max(0, capacity - bookingCount),
+    };
+  }
+
+  const startMinutes = timeToMinutes(input.startTime);
+  const bookingCount = input.bookingDate
+    ? countDateAwareOverlaps(activeBookings, input.bookingDate, input.startTime, input.endTime, input.durationMinutes)
+    : countOverlappingBookings(
+        activeBookings,
+        startMinutes,
+        input.endTime && timeToMinutes(input.endTime) > startMinutes
+          ? timeToMinutes(input.endTime)
+          : startMinutes + input.durationMinutes,
+        input.durationMinutes,
+      );
+  return {
+    available: bookingCount === 0,
+    bookingCount,
+    maxCapacity: 1,
+    spotsRemaining: bookingCount === 0 ? 1 : 0,
+  };
+}
+
 /**
  * Generate time slots for a given date based on provider's schedule
  * Properly detects overlapping bookings and supports group class capacity
@@ -56,7 +115,8 @@ export function generateTimeSlots(
   overrides: ScheduleOverride[],
   existingBookings: ExistingBooking[],
   slotIntervalMinutes: number = 30,
-  maxCapacity: number = 1
+  maxCapacity: number = 1,
+  groupServiceId?: number,
 ): TimeSlot[] {
   // Get day of week for the date (0 = Sunday, 6 = Saturday)
   const dateObj = new Date(date + 'T00:00:00');
@@ -89,12 +149,6 @@ export function generateTimeSlots(
     return [];
   }
 
-  // Filter active bookings for this date
-  const activeBookings = existingBookings.filter(
-    b => b.bookingDate === date && 
-         ['pending', 'confirmed', 'in_progress'].includes(b.status)
-  );
-
   // Generate time slots
   const slots: TimeSlot[] = [];
   const startMinutes = timeToMinutes(startTime);
@@ -106,6 +160,9 @@ export function generateTimeSlots(
   }
 
   for (let minutes = startMinutes; minutes < endMinutes; minutes += slotIntervalMinutes) {
+    // A post-midnight start belongs to the next calendar date. Do not expose it
+    // under the prior selected date; the customer can choose that next date directly.
+    if (minutes >= 24 * 60) break;
     // Normalize the slot time to 24-hour format for display
     const normalizedMinutes = minutes % (24 * 60);
     const slotTime = minutesToTime(normalizedMinutes);
@@ -123,39 +180,70 @@ export function generateTimeSlots(
       break; // Don't go past schedule end time for slot start
     }
 
-    // Count overlapping bookings for this time slot
-    const slotStartMinutes = minutes;
-    // For long-duration services, only check if this specific start time conflicts
-    // with an existing booking (i.e., does any booking occupy this exact time?).
-    // We use a 30-min window so the slot is blocked only if a booking is actively
-    // happening at that time, not hours away.
-    const overlapWindow = isLongService ? 30 : serviceDurationMinutes;
-    const slotEndMinutes = minutes + overlapWindow;
-    
-    const bookingCount = countOverlappingBookings(
-      activeBookings,
-      slotStartMinutes,
-      slotEndMinutes,
-      overlapWindow
-    );
-
-    const spotsRemaining = Math.max(0, maxCapacity - bookingCount);
-    const available = spotsRemaining > 0;
+    // Count conflicting bookings for the full requested service duration.
+    // A group service shares only the exact same start with the same service;
+    // an individual service conflicts with any provider booking that overlaps.
+    const conflict = evaluateBookingConflict({
+      bookingDate: minutes >= 24 * 60 ? addCalendarDays(date, 1) : date,
+      startTime: slotTime,
+      durationMinutes: serviceDurationMinutes,
+      existingBookings,
+      isGroupClass: maxCapacity > 1 || groupServiceId !== undefined,
+      maxCapacity,
+      serviceId: groupServiceId,
+    });
 
     // Mark slots past midnight as next day
     const isNextDay = minutes >= 24 * 60;
 
     slots.push({
       time: slotTime,
-      available,
-      bookingCount,
-      maxCapacity,
-      spotsRemaining,
+      available: conflict.available,
+      bookingCount: conflict.bookingCount,
+      maxCapacity: conflict.maxCapacity,
+      spotsRemaining: conflict.spotsRemaining,
       isNextDay,
     });
   }
 
   return slots;
+}
+
+function countDateAwareOverlaps(
+  bookings: ExistingBooking[],
+  bookingDate: string,
+  startTime: string,
+  endTime: string | undefined,
+  durationMinutes: number,
+): number {
+  return getDateAwareOverlaps(bookings, bookingDate, startTime, endTime, durationMinutes).length;
+}
+
+function getDateAwareOverlaps(
+  bookings: ExistingBooking[],
+  bookingDate: string,
+  startTime: string,
+  endTime: string | undefined,
+  durationMinutes: number,
+): ExistingBooking[] {
+  const proposedStart = zonedDateTimeToUtc(bookingDate, startTime, OLOGYCREW_BOOKING_TIME_ZONE);
+  if (!proposedStart) return bookings;
+  const calculatedEndTime = endTime || minutesToTime((timeToMinutes(startTime) + durationMinutes) % (24 * 60));
+  const proposedEndDate = calculatedEndTime <= startTime ? addCalendarDays(bookingDate, 1) : bookingDate;
+  const proposedEnd = zonedDateTimeToUtc(proposedEndDate, calculatedEndTime, OLOGYCREW_BOOKING_TIME_ZONE);
+  if (!proposedEnd) return bookings;
+
+  return bookings.filter((booking) => {
+    const currentStart = zonedDateTimeToUtc(booking.bookingDate, booking.bookingTime, OLOGYCREW_BOOKING_TIME_ZONE);
+    const currentEndTime = booking.endTime || minutesToTime(
+      (timeToMinutes(booking.bookingTime) + (booking.durationMinutes || durationMinutes)) % (24 * 60),
+    );
+    const currentEndDate = currentEndTime <= booking.bookingTime
+      ? addCalendarDays(booking.bookingDate, 1)
+      : booking.bookingDate;
+    const currentEnd = zonedDateTimeToUtc(currentEndDate, currentEndTime, OLOGYCREW_BOOKING_TIME_ZONE);
+    return Boolean(currentStart && currentEnd && proposedStart < currentEnd && currentStart < proposedEnd);
+  });
 }
 
 /**

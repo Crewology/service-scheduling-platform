@@ -44,6 +44,14 @@ describe("Phase 10: Photos, Cancellations, Subscriptions", () => {
       address: "123 Test St",
     });
     providerId = provider.id;
+    await caller.availability.setWeeklySchedule({
+      entries: Array.from({ length: 7 }, (_, dayOfWeek) => ({
+        dayOfWeek,
+        startTime: "08:00",
+        endTime: "18:00",
+        isAvailable: true,
+      })),
+    });
 
     // Create a service
     const service = await caller.service.create({

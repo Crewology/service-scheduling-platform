@@ -259,10 +259,13 @@ describe("booking", () => {
     const customerUser = { id: customerUserId, openId: `${TEST_PREFIX}-customer`, name: "Test Customer", email: `customer-${TEST_PREFIX}@test.com`, role: "customer" as const, loginMethod: "test", emailVerified: true, createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date(), firstName: null, lastName: null, phone: null, profilePhotoUrl: null, deletedAt: null };
     const caller = appRouter.createCaller(makeCtx(customerUser));
 
-    // Use a past date so booking can be marked completed
-    const pastDate = new Date();
-    pastDate.setDate(pastDate.getDate() - 7); // 7 days ago
-    const bookingDate = pastDate.toISOString().slice(0, 10);
+    const providerUser = { id: providerUserId, openId: `${TEST_PREFIX}-provider`, name: "Test Provider", email: `provider-${TEST_PREFIX}@test.com`, role: "provider" as const, loginMethod: "test", emailVerified: true, createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date(), firstName: null, lastName: null, phone: null, profilePhotoUrl: null, deletedAt: null };
+    await appRouter.createCaller(makeCtx(providerUser)).availability.setWeeklySchedule({
+      entries: Array.from({ length: 7 }, (_, dayOfWeek) => ({ dayOfWeek, startTime: "08:00", endTime: "18:00", isAvailable: true })),
+    });
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 30);
+    const bookingDate = futureDate.toISOString().slice(0, 10);
 
     const result = await caller.booking.create({
       serviceId,
@@ -311,11 +314,16 @@ describe("booking", () => {
     expect(result.status).toBe("confirmed");
   });
 
-  it("provider can mark booking as completed", async () => {
+  it("prevents premature completion and seeds a completed fixture for review tests", async () => {
     const providerUser = { id: providerUserId, openId: `${TEST_PREFIX}-provider`, name: "Test Provider", email: `provider-${TEST_PREFIX}@test.com`, role: "provider" as const, loginMethod: "test", emailVerified: true, createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date(), firstName: null, lastName: null, phone: null, profilePhotoUrl: null, deletedAt: null };
     const caller = appRouter.createCaller(makeCtx(providerUser));
-    const result = await caller.booking.updateStatus({ id: bookingId, status: "completed" });
-    expect(result.status).toBe("completed");
+    await expect(caller.booking.updateStatus({ id: bookingId, status: "completed" }))
+      .rejects.toThrow("Cannot mark booking as completed before the scheduled end time");
+    const db = await getDb();
+    if (!db) throw new Error("Database not available");
+    await db.update(bookings).set({ status: "completed" }).where(eq(bookings.id, bookingId));
+    const [completed] = await db.select().from(bookings).where(eq(bookings.id, bookingId)).limit(1);
+    expect(completed?.status).toBe("completed");
   });
 });
 

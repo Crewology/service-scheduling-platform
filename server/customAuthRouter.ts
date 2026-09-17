@@ -9,9 +9,55 @@ import * as db from "./db";
 import { EmailProvider } from "./notifications/providers/email";
 import { checkRateLimit, getClientIp, RATE_LIMITS } from "./rateLimiter";
 import { isDisposableEmail, getDisposableEmailError } from "./disposableEmails";
-import { generateTwoFactorCode, sendTwoFactorEmail, verifyTwoFactorCode, hasTwoFactorEnabled, createTrustedDevice, isDeviceTrusted } from "./twoFactor";
+import { generateTwoFactorCode, sendTwoFactorEmail, verifyTwoFactorCode, createTrustedDevice, isDeviceTrusted } from "./twoFactor";
+import { appendAuthReturnPath, normalizeAuthReturnPath } from "../shared/authReturnPath";
 
 const router = Router();
+
+type GoogleOAuthState = {
+  origin: string;
+  audience: string;
+  planTier: string;
+  returnTo: string | null;
+};
+
+function requestOrigin(req: Request): string {
+  return `${req.protocol}://${req.get("host")}`;
+}
+
+export function normalizeAuthOrigin(value: unknown, fallbackOrigin: string): string {
+  try {
+    const fallback = new URL(fallbackOrigin).origin;
+    if (typeof value !== "string" || !value) return fallback;
+    const candidate = new URL(value).origin;
+    return candidate === fallback ? candidate : fallback;
+  } catch {
+    return fallbackOrigin;
+  }
+}
+
+export function encodeGoogleOAuthState(state: GoogleOAuthState, secret = ENV.cookieSecret): string {
+  const payload = Buffer.from(JSON.stringify(state), "utf8").toString("base64url");
+  const signature = crypto.createHmac("sha256", secret).update(payload).digest("base64url");
+  return `${payload}.${signature}`;
+}
+
+export function decodeGoogleOAuthState(value: string, secret = ENV.cookieSecret): GoogleOAuthState {
+  const [payload, signature, extra] = value.split(".");
+  if (!payload || !signature || extra) throw new Error("Invalid OAuth state");
+  const expected = crypto.createHmac("sha256", secret).update(payload).digest();
+  const received = Buffer.from(signature, "base64url");
+  if (received.length !== expected.length || !crypto.timingSafeEqual(received, expected)) {
+    throw new Error("Invalid OAuth state");
+  }
+  const parsed = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+  return {
+    origin: String(parsed.origin || ""),
+    audience: String(parsed.audience || ""),
+    planTier: String(parsed.planTier || ""),
+    returnTo: normalizeAuthReturnPath(parsed.returnTo),
+  };
+}
 
 // ============================================================================
 // EMAIL/PASSWORD REGISTRATION
@@ -20,6 +66,7 @@ const router = Router();
 router.post("/api/auth/register", async (req: Request, res: Response) => {
   try {
     const { email, password, firstName, lastName, website } = req.body;
+    const returnTo = normalizeAuthReturnPath(req.body.returnTo);
 
     // Honeypot check: if the hidden "website" field is filled, it's a bot
     if (website) {
@@ -89,8 +136,8 @@ router.post("/api/auth/register", async (req: Request, res: Response) => {
           emailVerificationExpires: reactivationExpires,
         }).where(eq(users.id, user.id));
         // Send verification email
-        const origin = req.headers.origin || req.headers.referer?.replace(/\/$/, "") || "";
-        const verifyUrl = `${origin}/verify-email?token=${reactivationToken}`;
+        const origin = normalizeAuthOrigin(req.headers.origin, requestOrigin(req));
+        const verifyUrl = `${origin}${appendAuthReturnPath(`/verify-email?token=${reactivationToken}`, returnTo)}`;
         await EmailProvider.sendRaw(email.toLowerCase(), "Verify your OlogyCrew account",
           `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;"><h2>Welcome back to OlogyCrew!</h2><p>Hi ${firstName},</p><p>Your account has been reactivated. Please verify your email.</p><a href="${verifyUrl}" style="display:inline-block;background:#2563eb;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;margin:16px 0;">Verify Email</a><p style="color:#666;font-size:14px;">Link expires in 24 hours.</p></div>`,
           `Welcome back! Verify: ${verifyUrl}`, 'info');
@@ -123,8 +170,8 @@ router.post("/api/auth/register", async (req: Request, res: Response) => {
     }
 
     // Send verification email
-    const origin = req.headers.origin || req.headers.referer?.replace(/\/$/, "") || "";
-    const verifyUrl = `${origin}/verify-email?token=${verificationToken}`;
+    const origin = normalizeAuthOrigin(req.headers.origin, requestOrigin(req));
+    const verifyUrl = `${origin}${appendAuthReturnPath(`/verify-email?token=${verificationToken}`, returnTo)}`;
     
     await EmailProvider.sendRaw(
       email.toLowerCase(),
@@ -218,6 +265,21 @@ router.post("/api/auth/login", async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
+    if (user.twoFactorEnabled) {
+      const trustedToken = req.cookies?.ologycrew_trusted_device;
+      if (!trustedToken || !(await isDeviceTrusted(user.id, trustedToken))) {
+        const code = await generateTwoFactorCode(user.id);
+        await sendTwoFactorEmail(user.email!, code, user.firstName || user.name || undefined);
+        return res.json({
+          success: true,
+          requires2FA: true,
+          userId: user.id,
+          email: user.email,
+          user: { role: user.role },
+        });
+      }
+    }
+
     // Update last sign in
     await db.upsertUser({ openId: user.openId, lastSignedIn: new Date() });
 
@@ -254,9 +316,10 @@ router.post("/api/auth/login", async (req: Request, res: Response) => {
 // ============================================================================
 
 router.get("/api/auth/google", (req: Request, res: Response) => {
-  const origin = req.query.origin as string || req.headers.origin || "";
+  const origin = normalizeAuthOrigin(req.query.origin, requestOrigin(req));
   const audience = req.query.audience as string || "";
   const planTier = req.query.planTier as string || "";
+  const returnTo = normalizeAuthReturnPath(req.query.returnTo);
   const redirectUri = `${origin}/api/auth/google/callback`;
   
   const params = new URLSearchParams({
@@ -266,7 +329,7 @@ router.get("/api/auth/google", (req: Request, res: Response) => {
     scope: "openid email profile",
     access_type: "offline",
     prompt: "select_account",
-    state: Buffer.from(JSON.stringify({ origin, audience, planTier })).toString("base64"),
+    state: encodeGoogleOAuthState({ origin, audience, planTier, returnTo }),
   });
 
   res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`);
@@ -285,14 +348,15 @@ router.get("/api/auth/google/callback", async (req: Request, res: Response) => {
     let origin = "";
     let audience = "";
     let planTier = "";
+    let returnTo: string | null = null;
     try {
-      const stateData = JSON.parse(Buffer.from(stateParam || "", "base64").toString());
-      origin = stateData.origin || "";
-      audience = stateData.audience || "";
-      planTier = stateData.planTier || "";
+      const stateData = decodeGoogleOAuthState(stateParam || "");
+      origin = normalizeAuthOrigin(stateData.origin, requestOrigin(req));
+      audience = stateData.audience;
+      planTier = stateData.planTier;
+      returnTo = stateData.returnTo;
     } catch {
-      console.log("[Google Auth] State data - audience:", audience, "planTier:", planTier);
-      origin = `${req.protocol}://${req.get("host")}`;
+      return res.redirect("/login?error=invalid_state");
     }
 
     const redirectUri = `${origin}/api/auth/google/callback`;
@@ -405,7 +469,7 @@ router.get("/api/auth/google/callback", async (req: Request, res: Response) => {
     const finalUser = updatedUser || user;
     let redirectPath = "/";
     if (!finalUser.emailVerified) {
-      redirectPath = "/verify-email";
+      redirectPath = appendAuthReturnPath("/verify-email", returnTo);
     } else if (!finalUser.hasSelectedRole) {
       // If audience was passed from pricing page, auto-assign role and skip role selection
       if (audience === "provider" || audience === "customer") {
@@ -414,7 +478,7 @@ router.get("/api/auth/google/callback", async (req: Request, res: Response) => {
         if (role === "provider") {
           redirectPath = "/provider/onboarding";
         } else {
-          redirectPath = "/";
+          redirectPath = returnTo || "/";
         }
         // Persist the selected plan tier in the user record
         if (planTier) {
@@ -424,8 +488,10 @@ router.get("/api/auth/google/callback", async (req: Request, res: Response) => {
           } as any);
         }
       } else {
-        redirectPath = "/select-role";
+        redirectPath = appendAuthReturnPath("/select-role", returnTo);
       }
+    } else if (returnTo) {
+      redirectPath = returnTo;
     } else if (finalUser.role === "admin") {
       redirectPath = "/admin";
     } else {
@@ -565,6 +631,7 @@ router.post("/api/auth/verify-email", async (req: Request, res: Response) => {
 router.post("/api/auth/resend-verification", async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
+    const returnTo = normalizeAuthReturnPath(req.body.returnTo);
 
     if (!email) {
       return res.status(400).json({ error: "Email is required" });
@@ -593,8 +660,8 @@ router.post("/api/auth/resend-verification", async (req: Request, res: Response)
 
     await db.setEmailVerificationToken(user.id, verificationToken, verificationExpires);
 
-    const origin = req.headers.origin || req.headers.referer?.replace(/\/$/, "") || "";
-    const verifyUrl = `${origin}/verify-email?token=${verificationToken}`;
+    const origin = normalizeAuthOrigin(req.headers.origin, requestOrigin(req));
+    const verifyUrl = `${origin}${appendAuthReturnPath(`/verify-email?token=${verificationToken}`, returnTo)}`;
 
     await EmailProvider.sendRaw(
       email.toLowerCase(),
@@ -781,9 +848,9 @@ router.get("/api/auth/logout", (req: Request, res: Response) => {
   // Also set Cache-Control to prevent any intermediate caching
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
   res.set('Pragma', 'no-cache');
-  const returnTo = (req.query.returnTo as string) || "/";
-  // Only allow relative paths to prevent open redirect
-  const safePath = returnTo.startsWith("/") ? returnTo : "/";
+  const safePath = normalizeAuthReturnPath(
+    typeof req.query.returnTo === "string" ? req.query.returnTo : null,
+  ) || "/";
   res.redirect(302, `${safePath}?logged_out=1`);
 });
 

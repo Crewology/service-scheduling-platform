@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { Eye, EyeOff, Mail, Lock, AlertCircle, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { appendAuthReturnPath, normalizeAuthReturnPath } from "@shared/authReturnPath";
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -15,14 +16,18 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const urlParams = useMemo(() => new URLSearchParams(window.location.search), []);
+  const returnTo = normalizeAuthReturnPath(urlParams.get("returnTo"));
 
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
       if (!user.emailVerified) {
-        setLocation("/verify-email");
+        setLocation(appendAuthReturnPath("/verify-email", returnTo));
       } else if (!user.hasSelectedRole) {
-        setLocation("/select-role");
+        setLocation(appendAuthReturnPath("/select-role", returnTo));
+      } else if (returnTo) {
+        setLocation(returnTo);
       } else if (user.role === "admin") {
         setLocation("/admin");
       } else {
@@ -30,7 +35,7 @@ export default function Login() {
         setLocation("/");
       }
     }
-  }, [user, setLocation]);
+  }, [user, setLocation, returnTo]);
 
   if (user) return null;
 
@@ -58,21 +63,30 @@ export default function Login() {
       if (data.requires2FA) {
         sessionStorage.setItem("2fa_userId", String(data.userId));
         sessionStorage.setItem("2fa_email", data.email || "");
-        window.location.href = `/verify-2fa?userId=${data.userId}&email=${encodeURIComponent(data.email || "")}`;
+        const twoFactorParams = new URLSearchParams({
+          userId: String(data.userId),
+          email: data.email || "",
+          redirect: returnTo || (data.user?.role === "admin" ? "/admin" : "/"),
+        });
+        window.location.href = `/verify-2fa?${twoFactorParams.toString()}`;
         return;
       }
       // If account uses Google sign-in, auto-redirect to Google OAuth
       if (data.redirectToGoogle) {
         const origin = window.location.origin;
-        window.location.href = `/api/auth/google?origin=${encodeURIComponent(origin)}`;
+        const googleParams = new URLSearchParams({ origin });
+        if (returnTo) googleParams.set("returnTo", returnTo);
+        window.location.href = `/api/auth/google?${googleParams.toString()}`;
         return;
       }
 
       // Redirect based on user state
       if (!data.user.emailVerified) {
-        window.location.href = "/verify-email";
+        window.location.href = appendAuthReturnPath("/verify-email", returnTo);
       } else if (!data.user.hasSelectedRole) {
-        window.location.href = "/select-role";
+        window.location.href = appendAuthReturnPath("/select-role", returnTo);
+      } else if (returnTo) {
+        window.location.href = returnTo;
       } else if (data.user.role === "admin") {
         window.location.href = "/admin";
       } else {
@@ -101,11 +115,11 @@ export default function Login() {
     const params = new URLSearchParams({ origin });
     if (audience) params.set("audience", audience);
     if (planTier) params.set("planTier", planTier);
+    if (returnTo) params.set("returnTo", returnTo);
     window.location.href = `/api/auth/google?${params.toString()}`;
   };
 
   // Check for error params from Google OAuth callback
-  const urlParams = new URLSearchParams(window.location.search);
   const callbackError = urlParams.get("error");
   const callbackMessage = urlParams.get("message");
 
@@ -243,7 +257,7 @@ export default function Login() {
         {/* Sign up link */}
         <p className="text-center mt-6 text-slate-600">
           Don't have an account?{" "}
-          <Link href="/signup" className="text-blue-600 hover:text-blue-700 font-medium">
+          <Link href={appendAuthReturnPath("/signup", returnTo)} className="text-blue-600 hover:text-blue-700 font-medium">
             Sign up
           </Link>
         </p>

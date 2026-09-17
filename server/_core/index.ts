@@ -13,6 +13,7 @@ import { sdk } from "./sdk";
 import { API_RATE_LIMITS, getApiRateLimitKey, sendRateLimitResponse } from "../apiRateLimit";
 import { normalizePrototypeReviewUrl } from "../previewRouteNormalization";
 import { handleRobotsTxt, handleSitemap } from "../sitemap";
+import { handleAgentManifest, handleLlmsTxt, handleOpenApi } from "../agentDiscovery";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -195,6 +196,9 @@ async function startServer() {
   // same active/non-deleted boundaries used by the marketplace.
   app.get("/sitemap.xml", handleSitemap);
   app.get("/robots.txt", handleRobotsTxt);
+  app.get("/llms.txt", handleLlmsTxt);
+  app.get("/openapi.json", handleOpenApi);
+  app.get("/.well-known/agents.json", handleAgentManifest);
 
   // Scheduled task: trial expiry check (Heartbeat cron)
   const { handleScheduledTrialExpiry } = await import("../scheduledTrialExpiry");
@@ -207,12 +211,26 @@ async function startServer() {
   // Custom auth routes (email/password + Google OAuth)
   const customAuthRouter = (await import("../customAuthRouter")).default;
   const publicApiRouter = (await import("../publicApiRouter")).default;
+  app.use("/api/public", (req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    if (req.method === "OPTIONS") return res.sendStatus(204);
+    next();
+  });
   app.use("/api/public", publicApiRouter);
   app.use(customAuthRouter);
 
   // Legacy OAuth callback under /api/oauth/callback (kept for existing sessions)
   registerOAuthRoutes(app);
   // tRPC API
+  app.use("/api/trpc", (req, res, next) => {
+    if (req.path.includes("agentHandoff.resolve")) {
+      res.setHeader("Cache-Control", "private, no-store");
+      res.setHeader("Referrer-Policy", "no-referrer");
+    }
+    next();
+  });
   app.use(
     "/api/trpc",
     createExpressMiddleware({

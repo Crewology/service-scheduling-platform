@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
-import { upsertUser, getDb } from "./db";
+import { upsertUser, getDb, updateBookingStatus } from "./db";
 import { users } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 
@@ -79,6 +79,17 @@ function futureDate(daysAhead: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+async function configureAvailability(providerCaller: any) {
+  await providerCaller.availability.setWeeklySchedule({
+    entries: Array.from({ length: 7 }, (_, dayOfWeek) => ({
+      dayOfWeek,
+      startTime: "08:00",
+      endTime: "18:00",
+      isAvailable: true,
+    })),
+  });
+}
+
 describe("Review System", () => {
   it("should create a review for a completed booking", async () => {
     const suffix = `rv1-${Date.now()}`;
@@ -97,6 +108,7 @@ describe("Review System", () => {
 
     const providerProfile = await providerCaller.provider.getMine();
     if (!providerProfile) throw new Error("Provider profile not created");
+    await configureAvailability(providerCaller);
 
     // Create service
     const service = await providerCaller.service.create({
@@ -112,15 +124,15 @@ describe("Review System", () => {
     // Create booking
     const booking = await customerCaller.booking.create({
       serviceId: service.id,
-      bookingDate: pastDate(1),
+      bookingDate: futureDate(1),
       startTime: "10:00",
       endTime: "11:00",
       locationType: "fixed_location",
     });
 
-    // Mark as completed via provider
+    // Confirm through the router, then seed a completed fixture for review testing.
     await providerCaller.booking.updateStatus({ id: booking.id, status: "confirmed" });
-    await providerCaller.booking.updateStatus({ id: booking.id, status: "completed" });
+    await updateBookingStatus(booking.id, "completed");
 
     // Submit review
     const review = await customerCaller.review.create({
@@ -151,6 +163,7 @@ describe("Review System", () => {
 
     const providerProfile = await providerCaller.provider.getMine();
     if (!providerProfile) throw new Error("Provider profile not created");
+    await configureAvailability(providerCaller);
 
     // Create service
     const service = await providerCaller.service.create({
@@ -166,13 +179,13 @@ describe("Review System", () => {
     // Create and complete booking
     const booking = await customerCaller.booking.create({
       serviceId: service.id,
-      bookingDate: pastDate(2),
+      bookingDate: futureDate(2),
       startTime: "11:00",
       endTime: "12:00",
       locationType: "fixed_location",
     });
     await providerCaller.booking.updateStatus({ id: booking.id, status: "confirmed" });
-    await providerCaller.booking.updateStatus({ id: booking.id, status: "completed" });
+    await updateBookingStatus(booking.id, "completed");
 
     // Submit review
     const review = await customerCaller.review.create({
@@ -208,6 +221,7 @@ describe("Review System", () => {
 
     const providerProfile = await providerCaller.provider.getMine();
     if (!providerProfile) throw new Error("Provider profile not created");
+    await configureAvailability(providerCaller);
 
     // Create service
     const service = await providerCaller.service.create({
@@ -224,13 +238,13 @@ describe("Review System", () => {
     for (let i = 0; i < 2; i++) {
       const booking = await customerCaller.booking.create({
         serviceId: service.id,
-        bookingDate: pastDate(10 + i),
+        bookingDate: futureDate(10 + i),
         startTime: "12:00",
         endTime: "13:00",
         locationType: "fixed_location",
       });
       await providerCaller.booking.updateStatus({ id: booking.id, status: "confirmed" });
-      await providerCaller.booking.updateStatus({ id: booking.id, status: "completed" });
+      await updateBookingStatus(booking.id, "completed");
 
       await customerCaller.review.create({
         bookingId: booking.id,

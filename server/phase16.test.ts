@@ -16,6 +16,13 @@ function createAuthContext(role: "customer" | "provider" | "admin", userId: numb
 }
 
 const caller = (ctx: any) => appRouter.createCaller(ctx);
+const futureDate = (days: number) => {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return date.toISOString().split("T")[0];
+};
+const doubleBookingDate = futureDate(30);
+const reviewBookingDate = futureDate(45);
 
 describe("Phase 16: Gap Analysis Fixes", () => {
   let customerUserId: number;
@@ -69,6 +76,12 @@ describe("Phase 16: Gap Analysis Fixes", () => {
     });
     const provider = await db.getProviderByUserId(providerUserId);
     providerId = provider!.id;
+    await db.replaceWeeklySchedule(providerId, Array.from({ length: 7 }, (_, dayOfWeek) => ({
+      dayOfWeek,
+      startTime: "08:00",
+      endTime: "18:00",
+      isAvailable: true,
+    })));
 
     // Use existing category
     categoryId = 7;
@@ -98,7 +111,7 @@ describe("Phase 16: Gap Analysis Fixes", () => {
       const booking = await caller(ctx).booking.create({
         serviceId,
         providerId,
-        bookingDate: "2026-06-15",
+        bookingDate: doubleBookingDate,
         startTime: "10:00",
         endTime: "11:00",
         durationMinutes: 60,
@@ -116,7 +129,7 @@ describe("Phase 16: Gap Analysis Fixes", () => {
         caller(ctx).booking.create({
           serviceId,
           providerId,
-          bookingDate: "2026-06-15",
+          bookingDate: doubleBookingDate,
           startTime: "10:00",
           endTime: "11:00",
           durationMinutes: 60,
@@ -132,7 +145,7 @@ describe("Phase 16: Gap Analysis Fixes", () => {
       const booking = await caller(ctx).booking.create({
         serviceId,
         providerId,
-        bookingDate: "2026-06-15",
+        bookingDate: doubleBookingDate,
         startTime: "14:00",
         endTime: "15:00",
         durationMinutes: 60,
@@ -218,7 +231,7 @@ describe("Phase 16: Gap Analysis Fixes", () => {
       const booking = await caller(ctx).booking.create({
         serviceId,
         providerId,
-        bookingDate: "2026-07-01",
+        bookingDate: reviewBookingDate,
         startTime: "09:00",
         endTime: "10:00",
         durationMinutes: 60,
@@ -229,7 +242,7 @@ describe("Phase 16: Gap Analysis Fixes", () => {
       // Complete the booking so we can review it
       const provCtx = createAuthContext("provider", providerUserId, "P16 Provider");
       await caller(provCtx).booking.updateStatus({ id: booking.id, status: "confirmed" });
-      await caller(provCtx).booking.updateStatus({ id: booking.id, status: "completed" });
+      await db.updateBookingStatus(booking.id, "completed");
 
       // Create a review
       await db.createReview({

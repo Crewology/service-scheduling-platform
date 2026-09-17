@@ -61,6 +61,8 @@ export {
   getProvidersByCategory,
   searchProviders,
   getExperiences,
+  getPublicCategoriesWithServiceCounts,
+  searchPublicServicesForAgents,
 } from "./db/services";
 
 // Availability management
@@ -96,6 +98,11 @@ export {
   getProviderCalendarBookings,
   deleteBooking,
   updateBookingTiming,
+  updateBookingTimingWithCalendarGuard,
+  createBookingWithCalendarGuard,
+  rescheduleSessionWithCalendarGuard,
+  BookingReservationConflictError,
+  QuoteConversionConflictError,
 } from "./db/bookings";
 
 // Quote requests

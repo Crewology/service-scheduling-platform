@@ -82,7 +82,7 @@ describe("Group 2: Login & Onboarding Flow", () => {
         path.resolve(__dirname, "../client/src/pages/RoleSelection.tsx"),
         "utf-8"
       );
-      expect(roleSelectionContent).toContain('setLocation("/")');
+      expect(roleSelectionContent).toContain('setLocation(returnTo || "/")');
     });
 
     it("should redirect provider to /provider/onboarding after selection", () => {

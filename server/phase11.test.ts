@@ -86,9 +86,9 @@ describe("Phase 11: Notifications, Reminders, Admin Trigger", () => {
     const aUser = await db.getUserByOpenId(`test-p11-admin-${suffix}`);
     adminUserId = aUser!.id;
 
-    // Create a booking for tomorrow
+    // Create a booking beyond the service's 24-hour lead time.
     const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setDate(tomorrow.getDate() + 2);
     const bookingDate = tomorrow.toISOString().split("T")[0];
 
     const customerCaller = appRouter.createCaller(createAuthContext("customer", customerUserId, "P11 Customer", `p11customer${suffix}@test.com`));

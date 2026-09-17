@@ -84,6 +84,13 @@ export const ROBOTS_DISALLOWED_PATHS = [
   "/api/",
 ] as const;
 
+export const ROBOTS_ALLOWED_PATHS = [
+  "/api/public/",
+  "/.well-known/agents.json",
+  "/llms.txt",
+  "/openapi.json",
+] as const;
+
 const RESERVED_PROVIDER_SLUGS = new Set([
   "404",
   "account",
@@ -102,6 +109,7 @@ const RESERVED_PROVIDER_SLUGS = new Set([
   "forgot-password",
   "help",
   "login",
+  "llms.txt",
   "messages",
   "monthly-planner",
   "my-bookings",
@@ -110,6 +118,7 @@ const RESERVED_PROVIDER_SLUGS = new Set([
   "my-waitlist",
   "notification-settings",
   "notifications",
+  "openapi.json",
   "pricing",
   "profile",
   "provider",
@@ -229,8 +238,9 @@ export function buildSitemapXml(
 
 export function buildRobotsTxt(origin = SITEMAP_CANONICAL_ORIGIN): string {
   const canonicalOrigin = origin.replace(/\/+$/, "");
+  const allowRules = ROBOTS_ALLOWED_PATHS.map((path) => `Allow: ${path}`).join("\n");
   const disallowRules = ROBOTS_DISALLOWED_PATHS.map((path) => `Disallow: ${path}`).join("\n");
-  return `User-agent: *\nAllow: /\n${disallowRules}\n\nSitemap: ${canonicalOrigin}/sitemap.xml`;
+  return `User-agent: *\nAllow: /\n${allowRules}\n${disallowRules}\n\nSitemap: ${canonicalOrigin}/sitemap.xml`;
 }
 
 export async function loadPublicSitemapData(now = new Date()): Promise<PublicSitemapData> {

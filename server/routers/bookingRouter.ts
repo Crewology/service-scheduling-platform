@@ -2,7 +2,10 @@ import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { z } from "zod";
 import * as db from "../db";
 import { TRPCError } from "@trpc/server";
-import { formatTimeForDisplay } from "@shared/timeSlots";
+import { formatTimeForDisplay, generateTimeSlots } from "@shared/timeSlots";
+import { evaluateBookingWindow, OLOGYCREW_BOOKING_TIME_ZONE } from "@shared/bookingPolicy";
+import { calculateBookingEndTime, CUSTOM_DURATION_CATEGORY_IDS, resolveAuthoritativeBookingInterval } from "@shared/bookingIntervals";
+import { BookingReservationConflictError } from "../db/bookings";
 import { queueCrmBookingProjection } from "../crm/sourceHooks";
 
 export const bookingRouter = router({
@@ -39,6 +42,43 @@ export const bookingRouter = router({
       if (!service.isActive || !publicProvider?.isActive) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Service is not currently available" });
       }
+      const [providerUser, category] = await Promise.all([
+        db.getUserById(publicProvider.userId),
+        db.getCategoryById(service.categoryId),
+      ]);
+      if (service.deletedAt || publicProvider.deletedAt || !providerUser || providerUser.deletedAt || !category?.isActive) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Service is not currently available" });
+      }
+      if (input.providerId !== undefined && input.providerId !== service.providerId) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "The provider does not match this service." });
+      }
+      const providerId = service.providerId;
+      let interval;
+      try {
+        interval = resolveAuthoritativeBookingInterval({
+          categoryId: service.categoryId,
+          pricingModel: service.pricingModel,
+          serviceDurationMinutes: service.durationMinutes,
+          startTime: input.startTime,
+          requestedEndTime: input.endTime,
+        });
+      } catch (error) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: error instanceof Error ? error.message : "Invalid booking interval.",
+        });
+      }
+
+      const bookingWindow = evaluateBookingWindow({
+        bookingDate: input.bookingDate,
+        startTime: interval.startTime,
+        minAdvanceBookingHours: service.minAdvanceBookingHours,
+        maxAdvanceBookingDays: service.maxAdvanceBookingDays,
+        timeZone: OLOGYCREW_BOOKING_TIME_ZONE,
+      });
+      if (!bookingWindow.allowed) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: bookingWindow.message });
+      }
 
       // Require email verification before allowing bookings
       if (!ctx.user.emailVerified) {
@@ -49,7 +89,6 @@ export const bookingRouter = router({
       }
 
       // PRIORITY 0: Check availability overrides (blocked dates)
-      const providerId = input.providerId || service.providerId;
       const overrides = await db.getAvailabilityOverrides(providerId, input.bookingDate, input.bookingDate);
       const dateOverride = overrides.find((o: any) => o.overrideDate === input.bookingDate);
       if (dateOverride && !dateOverride.isAvailable) {
@@ -60,7 +99,7 @@ export const bookingRouter = router({
       }
       // If override has custom hours, check if booking falls within those hours
       if (dateOverride && dateOverride.isAvailable && dateOverride.startTime && dateOverride.endTime) {
-        if (input.startTime < dateOverride.startTime || input.endTime > dateOverride.endTime) {
+        if (interval.startTime < dateOverride.startTime || interval.endTime > dateOverride.endTime) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: `This provider has modified hours on ${input.bookingDate} (${dateOverride.startTime} - ${dateOverride.endTime}). Please adjust your booking time.`,
@@ -68,54 +107,34 @@ export const bookingRouter = router({
         }
       }
 
-      // PRIORITY 1: Double-booking prevention with group class capacity support
-      const existingBookings = await db.getBookingsByDateRange(
-        providerId,
-        input.bookingDate,
-        input.bookingDate
-      );
-      const overlappingBookings = existingBookings.filter((b: any) => {
-        if (["cancelled", "refunded", "no_show"].includes(b.status)) return false;
-        return input.startTime < b.endTime && input.endTime > b.startTime;
-      });
-
-      // For group classes, check capacity; for individual services, any overlap = conflict
       const maxCapacity = service.maxCapacity || 1;
       const isGroupClass = service.isGroupClass || false;
-
-      if (isGroupClass) {
-        // Count bookings for this exact time slot (same service)
-        const sameSlotBookings = overlappingBookings.filter(
-          (b: any) => b.serviceId === input.serviceId && b.startTime === input.startTime
-        );
-        if (sameSlotBookings.length >= maxCapacity) {
-          throw new TRPCError({
-            code: "CONFLICT",
-            message: `This class is full (${maxCapacity} spots). Please choose a different time or join the waitlist.`,
-          });
-        }
-      } else {
-        // Individual service: any overlap is a conflict
-        if (overlappingBookings.length > 0) {
-          throw new TRPCError({
-            code: "CONFLICT",
-            message: "This time slot is no longer available. Another booking already exists for this time. Please choose a different time.",
-          });
-        }
+      const weeklySchedule = await db.getAvailabilityByProvider(providerId);
+      const scheduleSlots = generateTimeSlots(
+        input.bookingDate,
+        interval.durationMinutes,
+        weeklySchedule,
+        overrides,
+        [],
+        30,
+        isGroupClass ? maxCapacity : 1,
+        isGroupClass ? service.id : undefined,
+      );
+      if (!scheduleSlots.some((slot) => slot.time === interval.startTime)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "The selected start time is outside the provider's availability.",
+        });
       }
 
       const bookingNumber = `OC-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
       
-      // Calculate subtotal: prefer input.subtotal, then basePrice, then hourly rate × duration
+      // Calculate all monetary values from authoritative service configuration.
       let subtotal: string;
-      if (input.subtotal) {
-        subtotal = input.subtotal;
-      } else if (service.basePrice && parseFloat(service.basePrice) > 0) {
+      if (service.basePrice && parseFloat(service.basePrice) > 0 && !interval.isCustomDuration) {
         subtotal = service.basePrice;
       } else if (service.hourlyRate && parseFloat(service.hourlyRate) > 0) {
-        // For hourly-rate services without a fixed basePrice, calculate from duration
-        const durationMins = input.durationMinutes || service.durationMinutes || 60;
-        subtotal = ((parseFloat(service.hourlyRate) * durationMins) / 60).toFixed(2);
+        subtotal = ((parseFloat(service.hourlyRate) * interval.durationMinutes) / 60).toFixed(2);
       } else {
         subtotal = "0.00";
       }
@@ -132,24 +151,26 @@ export const bookingRouter = router({
         }
       }
 
-      const platformFee = input.platformFee || (subtotalNum * 0.01).toFixed(2);
-      const totalAmount = input.totalAmount || (subtotalNum + parseFloat(platformFee)).toFixed(2);
-      const depositAmount = input.depositAmount || (service.depositRequired 
+      const platformFee = (subtotalNum * 0.01).toFixed(2);
+      const totalAmount = (subtotalNum + parseFloat(platformFee)).toFixed(2);
+      const depositAmount = service.depositRequired
         ? (service.depositType === "fixed" 
             ? (service.depositAmount || "0.00")
             : (parseFloat(totalAmount) * (parseFloat(service.depositPercentage || "0") / 100)).toFixed(2))
-        : "0.00");
-      const remainingAmount = input.remainingAmount || (parseFloat(totalAmount) - parseFloat(depositAmount)).toFixed(2);
+        : "0.00";
+      const remainingAmount = (parseFloat(totalAmount) - parseFloat(depositAmount)).toFixed(2);
       
-      const bookingId = await db.createBooking({
+      let bookingId: number;
+      try {
+        bookingId = await db.createBookingWithCalendarGuard({ booking: {
         bookingNumber,
         customerId: ctx.user.id,
         providerId,
         serviceId: input.serviceId,
         bookingDate: new Date(input.bookingDate).toISOString().split('T')[0],
-        startTime: input.startTime,
-        endTime: input.endTime,
-        durationMinutes: input.durationMinutes || service.durationMinutes || 60,
+        startTime: interval.startTime,
+        endTime: interval.endTime,
+        durationMinutes: interval.durationMinutes,
         status: "pending",
         locationType: input.locationType,
         serviceAddressLine1: input.serviceAddressLine1,
@@ -165,7 +186,13 @@ export const bookingRouter = router({
         totalAmount,
         depositAmount,
         remainingAmount,
-      });
+        }, isGroupClass, maxCapacity });
+      } catch (error) {
+        if (error instanceof BookingReservationConflictError) {
+          throw new TRPCError({ code: "CONFLICT", message: error.message });
+        }
+        throw error;
+      }
       
       const booking = await db.getBookingById(bookingId);
       if (!booking) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to retrieve created booking" });
@@ -785,6 +812,19 @@ export const bookingRouter = router({
     .mutation(async ({ ctx, input }) => {
       const service = await db.getServiceById(input.serviceId);
       if (!service) throw new TRPCError({ code: "NOT_FOUND", message: "Service not found" });
+      const provider = await db.getProviderById(service.providerId);
+      const [providerUser, category] = provider
+        ? await Promise.all([db.getUserById(provider.userId), db.getCategoryById(service.categoryId)])
+        : [null, null];
+      if (!service.isActive || service.deletedAt || !provider?.isActive || provider.deletedAt || !providerUser || providerUser.deletedAt || !category?.isActive) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Service is not currently available" });
+      }
+      if (input.providerId !== undefined && input.providerId !== service.providerId) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "The provider does not match this service." });
+      }
+      const providerId = service.providerId;
+      const durationMinutes = service.durationMinutes || 60;
+      const endTime = calculateBookingEndTime(input.startTime, durationMinutes);
 
       // Require email verification before allowing bookings
       if (!ctx.user.emailVerified) {
@@ -793,8 +833,6 @@ export const bookingRouter = router({
           message: "Please verify your email address before making a booking. Check your inbox for the verification link.",
         });
       }
-
-      const providerId = input.providerId || service.providerId;
 
       // Calculate all dates in the range
       const dates: string[] = [];
@@ -809,6 +847,16 @@ export const bookingRouter = router({
       }
       const totalDays = dates.length;
       if (totalDays > 30) throw new TRPCError({ code: "BAD_REQUEST", message: "Multi-day bookings cannot exceed 30 days" });
+      for (const date of dates) {
+        const policy = evaluateBookingWindow({
+          bookingDate: date,
+          startTime: input.startTime,
+          minAdvanceBookingHours: service.minAdvanceBookingHours,
+          maxAdvanceBookingDays: service.maxAdvanceBookingDays,
+          timeZone: OLOGYCREW_BOOKING_TIME_ZONE,
+        });
+        if (!policy.allowed) throw new TRPCError({ code: "BAD_REQUEST", message: policy.message });
+      }
 
       // Check availability overrides (blocked dates)
       const overrides = await db.getAvailabilityOverrides(providerId, dates[0], dates[dates.length - 1]);
@@ -823,13 +871,24 @@ export const bookingRouter = router({
         }
       }
 
-      // Check conflicts for all dates
-      const conflicts = await db.checkSessionConflicts(providerId, dates, input.startTime, input.endTime);
-      if (conflicts.length > 0) {
-        throw new TRPCError({
-          code: "CONFLICT",
-          message: `Scheduling conflicts found on ${conflicts.length} date(s): ${conflicts.map(c => c.date).join(", ")}. Please choose different dates or times.`,
-        });
+      const weeklySchedule = await db.getAvailabilityByProvider(providerId);
+      for (const date of dates) {
+        const slots = generateTimeSlots(
+          date,
+          durationMinutes,
+          weeklySchedule,
+          overrides.filter((override: any) => override.overrideDate === date),
+          [],
+          30,
+          service.isGroupClass ? service.maxCapacity || 1 : 1,
+          service.isGroupClass ? service.id : undefined,
+        );
+        if (!slots.some((slot) => slot.time === input.startTime)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `The selected start time is outside the provider's availability on ${date}.`,
+          });
+        }
       }
 
       // Calculate pricing: for hourly services, multiply rate by duration per session
@@ -837,8 +896,7 @@ export const bookingRouter = router({
       if (service.basePrice && parseFloat(service.basePrice) > 0) {
         perDayPrice = parseFloat(service.basePrice);
       } else if (service.hourlyRate && parseFloat(service.hourlyRate) > 0) {
-        const durationMins = input.durationMinutes || service.durationMinutes || 60;
-        perDayPrice = (parseFloat(service.hourlyRate) * durationMins) / 60;
+        perDayPrice = (parseFloat(service.hourlyRate) * durationMinutes) / 60;
       } else {
         perDayPrice = 0;
       }
@@ -853,16 +911,24 @@ export const bookingRouter = router({
       const remainingAmount = (parseFloat(totalAmount) - parseFloat(depositAmount)).toFixed(2);
 
       const bookingNumber = `OC-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-
-      const bookingId = await db.createBooking({
+      const sessions = dates.map((date, idx) => ({
+        sessionDate: date,
+        startTime: input.startTime,
+        endTime,
+        sessionNumber: idx + 1,
+        status: "scheduled" as const,
+      }));
+      let bookingId: number;
+      try {
+        bookingId = await db.createBookingWithCalendarGuard({ booking: {
         bookingNumber,
         customerId: ctx.user.id,
         providerId,
         serviceId: input.serviceId,
         bookingDate: input.startDate,
         startTime: input.startTime,
-        endTime: input.endTime,
-        durationMinutes: input.durationMinutes || service.durationMinutes || 60,
+        endTime,
+        durationMinutes,
         status: "pending",
         bookingType: "multi_day",
         endDate: input.endDate,
@@ -881,18 +947,13 @@ export const bookingRouter = router({
         totalAmount,
         depositAmount,
         remainingAmount,
-      });
-
-      // Create individual sessions for each day
-      const sessions = dates.map((date, idx) => ({
-        bookingId,
-        sessionDate: date,
-        startTime: input.startTime,
-        endTime: input.endTime,
-        sessionNumber: idx + 1,
-        status: "scheduled" as const,
-      }));
-      await db.createBookingSessions(sessions);
+        }, sessions, isGroupClass: Boolean(service.isGroupClass), maxCapacity: service.maxCapacity || 1 });
+      } catch (error) {
+        if (error instanceof BookingReservationConflictError) {
+          throw new TRPCError({ code: "CONFLICT", message: error.message });
+        }
+        throw error;
+      }
 
       const booking = await db.getBookingById(bookingId);
       queueCrmBookingProjection(bookingId);
@@ -952,6 +1013,19 @@ export const bookingRouter = router({
     .mutation(async ({ ctx, input }) => {
       const service = await db.getServiceById(input.serviceId);
       if (!service) throw new TRPCError({ code: "NOT_FOUND", message: "Service not found" });
+      const provider = await db.getProviderById(service.providerId);
+      const [providerUser, category] = provider
+        ? await Promise.all([db.getUserById(provider.userId), db.getCategoryById(service.categoryId)])
+        : [null, null];
+      if (!service.isActive || service.deletedAt || !provider?.isActive || provider.deletedAt || !providerUser || providerUser.deletedAt || !category?.isActive) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Service is not currently available" });
+      }
+      if (input.providerId !== undefined && input.providerId !== service.providerId) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "The provider does not match this service." });
+      }
+      const providerId = service.providerId;
+      const durationMinutes = service.durationMinutes || 60;
+      const endTime = calculateBookingEndTime(input.startTime, durationMinutes);
 
       // Require email verification before allowing bookings
       if (!ctx.user.emailVerified) {
@@ -964,8 +1038,6 @@ export const bookingRouter = router({
       if (input.daysOfWeek.length === 0) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Please select at least one day of the week" });
       }
-
-      const providerId = input.providerId || service.providerId;
 
       // Generate all session dates
       const sessionDates: string[] = [];
@@ -996,6 +1068,16 @@ export const bookingRouter = router({
       if (uniqueDates.length > 200) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Too many sessions. Please reduce the number of weeks or days per week." });
       }
+      for (const date of uniqueDates) {
+        const policy = evaluateBookingWindow({
+          bookingDate: date,
+          startTime: input.startTime,
+          minAdvanceBookingHours: service.minAdvanceBookingHours,
+          maxAdvanceBookingDays: service.maxAdvanceBookingDays,
+          timeZone: OLOGYCREW_BOOKING_TIME_ZONE,
+        });
+        if (!policy.allowed) throw new TRPCError({ code: "BAD_REQUEST", message: policy.message });
+      }
 
       // Check availability overrides (blocked dates)
       const overrides = await db.getAvailabilityOverrides(providerId, uniqueDates[0], uniqueDates[uniqueDates.length - 1]);
@@ -1008,13 +1090,24 @@ export const bookingRouter = router({
         });
       }
 
-      // Check conflicts for all session dates
-      const conflicts = await db.checkSessionConflicts(providerId, uniqueDates, input.startTime, input.endTime);
-      if (conflicts.length > 0) {
-        throw new TRPCError({
-          code: "CONFLICT",
-          message: `Scheduling conflicts found on ${conflicts.length} date(s): ${conflicts.slice(0, 5).map(c => c.date).join(", ")}${conflicts.length > 5 ? " and more" : ""}. Please adjust your schedule.`,
-        });
+      const weeklySchedule = await db.getAvailabilityByProvider(providerId);
+      for (const date of uniqueDates) {
+        const slots = generateTimeSlots(
+          date,
+          durationMinutes,
+          weeklySchedule,
+          overrides.filter((override: any) => override.overrideDate === date),
+          [],
+          30,
+          service.isGroupClass ? service.maxCapacity || 1 : 1,
+          service.isGroupClass ? service.id : undefined,
+        );
+        if (!slots.some((slot) => slot.time === input.startTime)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `The selected start time is outside the provider's availability on ${date}.`,
+          });
+        }
       }
 
       // Calculate pricing: for hourly services, multiply rate by duration per session
@@ -1022,8 +1115,7 @@ export const bookingRouter = router({
       if (service.basePrice && parseFloat(service.basePrice) > 0) {
         perSessionPrice = parseFloat(service.basePrice);
       } else if (service.hourlyRate && parseFloat(service.hourlyRate) > 0) {
-        const durationMins = input.durationMinutes || service.durationMinutes || 60;
-        perSessionPrice = (parseFloat(service.hourlyRate) * durationMins) / 60;
+        perSessionPrice = (parseFloat(service.hourlyRate) * durationMinutes) / 60;
       } else {
         perSessionPrice = 0;
       }
@@ -1040,16 +1132,24 @@ export const bookingRouter = router({
 
       const bookingNumber = `OC-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
       const lastDate = uniqueDates[uniqueDates.length - 1];
-
-      const bookingId = await db.createBooking({
+      const sessions = uniqueDates.map((date, idx) => ({
+        sessionDate: date,
+        startTime: input.startTime,
+        endTime,
+        sessionNumber: idx + 1,
+        status: "scheduled" as const,
+      }));
+      let bookingId: number;
+      try {
+        bookingId = await db.createBookingWithCalendarGuard({ booking: {
         bookingNumber,
         customerId: ctx.user.id,
         providerId,
         serviceId: input.serviceId,
         bookingDate: uniqueDates[0],
         startTime: input.startTime,
-        endTime: input.endTime,
-        durationMinutes: input.durationMinutes || service.durationMinutes || 60,
+        endTime,
+        durationMinutes,
         status: "pending",
         bookingType: "recurring",
         endDate: lastDate,
@@ -1072,18 +1172,13 @@ export const bookingRouter = router({
         totalAmount,
         depositAmount,
         remainingAmount,
-      });
-
-      // Create individual sessions
-      const sessions = uniqueDates.map((date, idx) => ({
-        bookingId,
-        sessionDate: date,
-        startTime: input.startTime,
-        endTime: input.endTime,
-        sessionNumber: idx + 1,
-        status: "scheduled" as const,
-      }));
-      await db.createBookingSessions(sessions);
+        }, sessions, isGroupClass: Boolean(service.isGroupClass), maxCapacity: service.maxCapacity || 1 });
+      } catch (error) {
+        if (error instanceof BookingReservationConflictError) {
+          throw new TRPCError({ code: "CONFLICT", message: error.message });
+        }
+        throw error;
+      }
 
       const booking = await db.getBookingById(bookingId);
       queueCrmBookingProjection(bookingId);
@@ -1233,41 +1328,73 @@ export const bookingRouter = router({
       if (session.status !== "scheduled") {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Only scheduled sessions can be rescheduled" });
       }
-
-      // Check for conflicts on the new date/time
-      const conflicts = await db.checkSessionConflicts(
-        booking.providerId,
-        [input.newDate],
-        input.newStartTime,
-        input.newEndTime,
-        booking.id
+      const service = await db.getServiceById(booking.serviceId);
+      if (!service?.isActive || service.deletedAt || service.providerId !== booking.providerId) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Service is not currently available" });
+      }
+      const [providerRecord, category] = await Promise.all([
+        db.getProviderById(booking.providerId),
+        db.getCategoryById(service.categoryId),
+      ]);
+      const providerUser = providerRecord ? await db.getUserById(providerRecord.userId) : null;
+      if (!providerRecord?.isActive || providerRecord.deletedAt || !providerUser || providerUser.deletedAt || !category?.isActive) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Service is not currently available" });
+      }
+      const durationMinutes = booking.durationMinutes || service.durationMinutes || 60;
+      const newEndTime = calculateBookingEndTime(input.newStartTime, durationMinutes);
+      const policy = evaluateBookingWindow({
+        bookingDate: input.newDate,
+        startTime: input.newStartTime,
+        minAdvanceBookingHours: service.minAdvanceBookingHours,
+        maxAdvanceBookingDays: service.maxAdvanceBookingDays,
+        timeZone: OLOGYCREW_BOOKING_TIME_ZONE,
+      });
+      if (!policy.allowed) throw new TRPCError({ code: "BAD_REQUEST", message: policy.message });
+      const [weeklySchedule, overrides] = await Promise.all([
+        db.getAvailabilityByProvider(booking.providerId),
+        db.getAvailabilityOverrides(booking.providerId, input.newDate, input.newDate),
+      ]);
+      const scheduleSlots = generateTimeSlots(
+        input.newDate,
+        durationMinutes,
+        weeklySchedule,
+        overrides,
+        [],
+        30,
+        service.isGroupClass ? service.maxCapacity || 1 : 1,
+        service.isGroupClass ? service.id : undefined,
       );
-      if (conflicts.length > 0) {
-        throw new TRPCError({
-          code: "CONFLICT",
-          message: "The new time slot conflicts with an existing booking or session.",
-        });
+      if (!scheduleSlots.some((slot) => slot.time === input.newStartTime)) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "The new start time is outside the provider's availability." });
       }
 
-      // Create a new session with the rescheduled date/time
-      const newSessionId = await db.createSingleSession({
-        bookingId: input.bookingId,
-        sessionDate: input.newDate,
-        startTime: input.newStartTime,
-        endTime: input.newEndTime,
-        sessionNumber: session.sessionNumber,
-        status: "scheduled",
-      });
-
-      // Mark the old session as rescheduled
-      await db.rescheduleSession(input.sessionId, newSessionId, session.sessionDate);
+      let newSessionId: number;
+      try {
+        newSessionId = await db.rescheduleSessionWithCalendarGuard({
+          bookingId: input.bookingId,
+          sessionId: input.sessionId,
+          providerId: booking.providerId,
+          serviceId: booking.serviceId,
+          originalDate: session.sessionDate,
+          newDate: input.newDate,
+          newStartTime: input.newStartTime,
+          newEndTime,
+          sessionNumber: session.sessionNumber,
+          isGroupClass: Boolean(service.isGroupClass),
+          maxCapacity: service.maxCapacity || 1,
+        });
+      } catch (error) {
+        if (error instanceof BookingReservationConflictError) {
+          throw new TRPCError({ code: "CONFLICT", message: error.message });
+        }
+        throw error;
+      }
 
       // Send notification
       try {
         const { sendNotification } = await import("../notifications");
         const { sendPushNotification } = await import("../notifications/pushHelper");
         const customer = await db.getUserById(booking.customerId);
-        const service = booking.serviceId ? await db.getServiceById(booking.serviceId) : null;
         const providerData = await db.getProviderById(booking.providerId);
         const providerUser = providerData ? await db.getUserById(providerData.userId) : null;
         const notifyTarget = isCustomer ? providerUser : customer;
@@ -1278,7 +1405,7 @@ export const bookingRouter = router({
           originalDate: session.sessionDate,
           newDate: input.newDate,
           newStartTime: input.newStartTime,
-          newEndTime: input.newEndTime,
+          newEndTime,
           serviceName: service?.name || "Service",
           providerName: providerData?.businessName || "Provider",
           customerName: customer?.name || "Customer",
@@ -1329,15 +1456,60 @@ export const bookingRouter = router({
         throw new TRPCError({ code: "BAD_REQUEST", message: "Duration editing is only available for single bookings. Use reschedule for multi-session bookings." });
       }
 
-      // Calculate new duration
-      const [startH, startM] = input.newStartTime.split(":").map(Number);
-      const [endH, endM] = input.newEndTime.split(":").map(Number);
-      let durationMinutes = (endH * 60 + endM) - (startH * 60 + startM);
-      if (durationMinutes <= 0) durationMinutes += 24 * 60; // overnight
-
       // Get the service to recalculate pricing
       const service = await db.getServiceById(booking.serviceId);
-      if (!service) throw new TRPCError({ code: "NOT_FOUND", message: "Service not found" });
+      if (!service?.isActive || service.deletedAt || service.providerId !== booking.providerId) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Service not found" });
+      }
+      const [providerRecord, category] = await Promise.all([
+        db.getProviderById(booking.providerId),
+        db.getCategoryById(service.categoryId),
+      ]);
+      const providerUser = providerRecord ? await db.getUserById(providerRecord.userId) : null;
+      if (!providerRecord?.isActive || providerRecord.deletedAt || !providerUser || providerUser.deletedAt || !category?.isActive) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Service not found" });
+      }
+      if (service.pricingModel !== "hourly" || !service.hourlyRate || !CUSTOM_DURATION_CATEGORY_IDS.has(service.categoryId)) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Duration editing is not available for this service." });
+      }
+      let interval;
+      try {
+        interval = resolveAuthoritativeBookingInterval({
+          categoryId: service.categoryId,
+          pricingModel: service.pricingModel,
+          serviceDurationMinutes: service.durationMinutes,
+          startTime: input.newStartTime,
+          requestedEndTime: input.newEndTime,
+        });
+      } catch (error) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Invalid booking interval." });
+      }
+      const durationMinutes = interval.durationMinutes;
+      const policy = evaluateBookingWindow({
+        bookingDate: booking.bookingDate,
+        startTime: interval.startTime,
+        minAdvanceBookingHours: service.minAdvanceBookingHours,
+        maxAdvanceBookingDays: service.maxAdvanceBookingDays,
+        timeZone: OLOGYCREW_BOOKING_TIME_ZONE,
+      });
+      if (!policy.allowed) throw new TRPCError({ code: "BAD_REQUEST", message: policy.message });
+      const [weeklySchedule, overrides] = await Promise.all([
+        db.getAvailabilityByProvider(booking.providerId),
+        db.getAvailabilityOverrides(booking.providerId, booking.bookingDate, booking.bookingDate),
+      ]);
+      const scheduleSlots = generateTimeSlots(
+        booking.bookingDate,
+        durationMinutes,
+        weeklySchedule,
+        overrides,
+        [],
+        30,
+        service.isGroupClass ? service.maxCapacity || 1 : 1,
+        service.isGroupClass ? service.id : undefined,
+      );
+      if (!scheduleSlots.some((slot) => slot.time === interval.startTime)) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "The new start time is outside the provider's availability." });
+      }
 
       // Recalculate pricing based on hourly rate
       let subtotalNum: number;
@@ -1356,20 +1528,33 @@ export const bookingRouter = router({
         : '0.00';
       const remainingAmount = (parseFloat(totalAmount) - parseFloat(depositAmount)).toFixed(2);
 
-      // Calculate end time string
-      const endTimeStr = `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}:00`;
-      const startTimeStr = `${String(startH).padStart(2, '0')}:${String(startM).padStart(2, '0')}:00`;
-
-      await db.updateBookingTiming(input.bookingId, {
-        startTime: startTimeStr,
-        endTime: endTimeStr,
+      try {
+        await db.updateBookingTimingWithCalendarGuard({
+          bookingId: input.bookingId,
+          providerId: booking.providerId,
+          serviceId: booking.serviceId,
+          bookingDate: booking.bookingDate,
+          startTime: interval.startTime,
+          endTime: interval.endTime,
+          isGroupClass: Boolean(service.isGroupClass),
+          maxCapacity: service.maxCapacity || 1,
+          values: {
+        startTime: interval.startTime,
+        endTime: interval.endTime,
         durationMinutes,
         subtotal: subtotalNum.toFixed(2),
         platformFee,
         totalAmount,
         depositAmount,
         remainingAmount,
-      });
+          },
+        });
+      } catch (error) {
+        if (error instanceof BookingReservationConflictError) {
+          throw new TRPCError({ code: "CONFLICT", message: error.message });
+        }
+        throw error;
+      }
 
       return {
         success: true,

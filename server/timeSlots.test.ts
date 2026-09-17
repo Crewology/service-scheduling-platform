@@ -124,8 +124,8 @@ describe("Overnight Schedule (endTime < startTime)", () => {
     
     expect(slots.length).toBeGreaterThan(0);
     expect(slots[0]?.time).toBe("04:00");
-    // Last slot should be 00:00 (midnight, allows 1 hour until 01:00)
-    expect(slots[slots.length - 1]?.time).toBe("00:00");
+    // Starts after midnight belong to the next date and are not returned here.
+    expect(slots[slots.length - 1]?.time).toBe("23:30");
     expect(slots.every(s => s.available)).toBe(true);
   });
 
@@ -133,10 +133,8 @@ describe("Overnight Schedule (endTime < startTime)", () => {
     const date = "2026-02-23"; // Monday
     const slots = generateTimeSlots(date, 60, overnightSchedule, [], [], 30);
     
-    // From 04:00 to 01:00 next day = 21 hours
-    // With 30-min intervals and 60-min service, last slot is 00:00
-    // Slots: 04:00, 04:30, 05:00, ..., 00:00 = 41 slots
-    expect(slots.length).toBe(41);
+    // This date owns starts from 04:00 through 23:30; later starts belong to tomorrow.
+    expect(slots.length).toBe(40);
   });
 
   it("handles overnight schedule with HH:MM:SS format from DB", () => {
@@ -146,9 +144,9 @@ describe("Overnight Schedule (endTime < startTime)", () => {
     const date = "2026-02-23"; // Monday
     const slots = generateTimeSlots(date, 60, dbSchedule, [], [], 30);
     
-    expect(slots.length).toBe(41);
+    expect(slots.length).toBe(40);
     expect(slots[0]?.time).toBe("04:00");
-    expect(slots[slots.length - 1]?.time).toBe("00:00");
+    expect(slots[slots.length - 1]?.time).toBe("23:30");
   });
 
   it("correctly blocks booked slots in overnight schedule", () => {
@@ -171,9 +169,9 @@ describe("Overnight Schedule (endTime < startTime)", () => {
     ];
     const slots = generateTimeSlots(date, 60, overnightSchedule, overrides, [], 30);
     
-    // Override: 18:00 to 02:00 (8 hours)
+    // Starts after midnight are selected from the next calendar date.
     expect(slots[0]?.time).toBe("18:00");
-    expect(slots[slots.length - 1]?.time).toBe("01:00");
+    expect(slots[slots.length - 1]?.time).toBe("23:30");
   });
 
   it("normal schedule still works correctly", () => {

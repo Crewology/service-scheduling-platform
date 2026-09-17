@@ -57,6 +57,12 @@ describe("Phase 14: Analytics, Provider Dashboard, Refunds", () => {
     const providerRecord = await db.getProviderByUserId(providerUserId);
     providerId = providerRecord!.id;
     await db.upsertProviderSubscription({ providerId, tier: "basic", status: "active" });
+    await db.replaceWeeklySchedule(providerId, Array.from({ length: 7 }, (_, dayOfWeek) => ({
+      dayOfWeek,
+      startTime: "08:00",
+      endTime: "18:00",
+      isAvailable: true,
+    })));
 
     // Create a service
     await db.createService({

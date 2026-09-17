@@ -3003,3 +3003,17 @@
 - [x] Exclude inactive, deleted, private, account, admin, preview, and transactional routes
 - [x] Use real record modification dates and add regression coverage
 - [x] Validate XML, robots.txt, TypeScript, focused tests, production build, and development endpoint output
+
+## Agentic Discovery Stage 1 Completion & Safe Handoff
+- [x] Align the public agent API with authoritative active-provider, active-service, category, location, price, and pagination rules
+- [x] Return accurate category metadata, provider categories, and service-duration-specific availability without exposing booking details
+- [x] Publish working `llms.txt`, `openapi.json`, API-root metadata, and a synchronized agent manifest
+- [x] Repair canonical Schema.org data for homepage, provider, service, and category pages without exposing private contact data
+- [x] Add a short-lived encrypted booking-or-quote handoff that creates no booking, quote, payment, hold, or database record
+- [x] Prefill the existing adaptive flow, preserve the handoff through login, and require explicit customer review and submission
+- [x] Add contract, security, privacy, expiration, filter, structured-data, and responsive UI regression coverage
+- [x] Validate live development endpoints, TypeScript, adjacent regression tests, production build, and checkpoint
+- [x] Keep public availability responses free of booking, customer, cross-service, and lifecycle metadata
+- [x] Enforce active provider, account, category, and service eligibility for direct, multi-day, recurring, quote, reschedule, and timing-edit paths
+- [x] Serialize direct, multi-day, recurring, quote conversion, rescheduling, and timing edits under provider-level calendar locks
+- [x] Reject expired quotes before and during atomic quote-to-booking conversion

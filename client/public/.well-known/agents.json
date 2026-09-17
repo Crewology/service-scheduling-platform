@@ -1,47 +1,48 @@
 {
   "name": "OlogyCrew",
-  "description": "Service scheduling and booking platform. 48+ categories of service providers including audio visual crew, barbers, DJs, fitness trainers, photographers, handymen, and more. Providers list services with pricing and availability. Customers browse, book, and pay.",
+  "version": "1.1.0",
+  "description": "Marketplace for discovering service providers and preparing customer-reviewed booking or quote handoffs.",
   "url": "https://ologycrew.com",
   "logo": "https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png",
   "api": {
     "type": "rest",
     "url": "https://ologycrew.com/api/public",
-    "documentation": "https://ologycrew.com/api/public/docs"
+    "documentation": "https://ologycrew.com/api/public/docs",
+    "openapi": "https://ologycrew.com/openapi.json"
   },
   "capabilities": {
     "search_services": {
-      "description": "Search for services by keyword, category, location, or price range",
+      "description": "Search active services by keyword, category, provider location, or public price.",
       "endpoint": "GET /api/public/services",
-      "parameters": {
-        "q": "Search query (keyword)",
-        "category": "Category slug or name",
-        "city": "City name",
-        "state": "State abbreviation",
-        "minPrice": "Minimum price",
-        "maxPrice": "Maximum price",
-        "limit": "Results per page (default 20, max 50)",
-        "offset": "Pagination offset"
-      }
+      "parameters": ["q", "category", "city", "state", "minPrice", "maxPrice", "limit", "offset"]
     },
     "get_provider": {
-      "description": "Get a provider's full profile including services, categories, and availability",
+      "description": "Read an active provider's public profile, trust context, categories, and services.",
       "endpoint": "GET /api/public/providers/:slug"
     },
     "check_availability": {
-      "description": "Check a provider's available time slots for a specific date",
+      "description": "Get service-duration-specific available starts without exposing booking details or creating a hold.",
       "endpoint": "GET /api/public/availability/:providerId",
-      "parameters": {
-        "date": "Date in YYYY-MM-DD format",
-        "serviceId": "Optional service ID to check duration-specific slots"
-      }
+      "requiredParameters": ["serviceId", "date"]
+    },
+    "prepare_review_handoff": {
+      "description": "Prepare a 30-minute encrypted URL that preloads OlogyCrew's existing booking-or-quote review flow.",
+      "endpoint": "POST /api/public/handoffs"
     },
     "list_categories": {
-      "description": "List all service categories with service counts",
+      "description": "List active service categories with active-service counts.",
       "endpoint": "GET /api/public/categories"
     }
   },
-  "supported_actions": ["search", "browse", "check_availability"],
-  "authentication": "none_required_for_read",
-  "rate_limit": "60 requests per minute",
+  "supportedActions": ["search", "browse", "check_availability", "prepare_review_handoff"],
+  "schedulingTimezone": "America/New_York",
+  "transactionPolicy": {
+    "agentCanCreateBooking": false,
+    "agentCanCreateQuote": false,
+    "agentCanPlaceHold": false,
+    "agentCanCollectPayment": false,
+    "customerMustReviewAndSubmit": true
+  },
+  "authentication": "none_required_for_current_endpoints",
   "contact": "support@ologycrew.com"
 }

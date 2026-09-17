@@ -11,9 +11,11 @@ import {
   notifications,
   promoRedemptions,
   referralCredits,
+  quoteRequests,
   type Booking,
 } from "../../drizzle/schema";
 import { getDb } from "./connection";
+import { addCalendarDays, OLOGYCREW_BOOKING_TIME_ZONE, zonedDateTimeToUtc } from "../../shared/bookingPolicy";
 
 // ============================================================================
 // BOOKING MANAGEMENT
@@ -24,6 +26,316 @@ export async function createBooking(data: typeof bookings.$inferInsert): Promise
   if (!db) throw new Error("Database not available");
   const result = await db.insert(bookings).values(data);
   return result[0].insertId;
+}
+
+export class BookingReservationConflictError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "BookingReservationConflictError";
+  }
+}
+
+export class QuoteConversionConflictError extends Error {
+  constructor(message = "This quote has already changed or was converted.") {
+    super(message);
+    this.name = "QuoteConversionConflictError";
+  }
+}
+
+type AtomicBookingSession = Omit<typeof bookingSessions.$inferInsert, "bookingId">;
+
+function intervalFor(date: string, startTime: string, endTime?: string | null, durationMinutes = 60) {
+  const normalizedStart = startTime.slice(0, 5);
+  const normalizedEnd = endTime?.slice(0, 5) || calculateCalendarEndTime(normalizedStart, durationMinutes);
+  const endDate = normalizedEnd <= normalizedStart ? addCalendarDays(date, 1) : date;
+  const start = zonedDateTimeToUtc(date, normalizedStart, OLOGYCREW_BOOKING_TIME_ZONE);
+  const end = zonedDateTimeToUtc(endDate, normalizedEnd, OLOGYCREW_BOOKING_TIME_ZONE);
+  if (!start || !end || end <= start) throw new Error("Invalid booking interval");
+  return { start, end };
+}
+
+function calculateCalendarEndTime(startTime: string, durationMinutes: number) {
+  const [hours, minutes] = startTime.split(":").map(Number);
+  const total = (hours * 60 + minutes + durationMinutes) % (24 * 60);
+  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+}
+
+type CalendarInterval = { serviceId: number; date: string; startTime: string; endTime?: string | null; durationMinutes?: number };
+
+function assertCalendarIntervalAvailable(input: {
+  requested: CalendarInterval;
+  existing: CalendarInterval[];
+  isGroupClass: boolean;
+  maxCapacity: number;
+}) {
+  const proposed = intervalFor(input.requested.date, input.requested.startTime, input.requested.endTime);
+  const overlapping = input.existing.filter((currentInterval) => {
+    const current = intervalFor(currentInterval.date, currentInterval.startTime, currentInterval.endTime, currentInterval.durationMinutes);
+    return proposed.start < current.end && current.start < proposed.end;
+  });
+  if (!input.isGroupClass) {
+    if (overlapping.length > 0) throw new BookingReservationConflictError("This time slot is no longer available.");
+    return;
+  }
+
+  const compatible = overlapping.filter((current) =>
+    current.serviceId === input.requested.serviceId &&
+    current.date === input.requested.date &&
+    current.startTime === input.requested.startTime
+  );
+  if (compatible.length !== overlapping.length) {
+    throw new BookingReservationConflictError("This time slot is no longer available.");
+  }
+  if (compatible.length >= Math.max(1, input.maxCapacity)) {
+    throw new BookingReservationConflictError(`This class is full (${Math.max(1, input.maxCapacity)} spots).`);
+  }
+}
+
+/**
+ * Serializes calendar checks per provider and inserts the booking plus optional
+ * sessions in the same transaction. Every booking writer that reserves time
+ * must use this helper to prevent concurrent overbooking.
+ */
+export async function createBookingWithCalendarGuard(input: {
+  booking: typeof bookings.$inferInsert;
+  sessions?: AtomicBookingSession[];
+  isGroupClass: boolean;
+  maxCapacity: number;
+  quoteId?: number;
+}): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const requestedSessions = input.sessions?.length
+    ? input.sessions.map((session) => ({ date: session.sessionDate, startTime: session.startTime, endTime: session.endTime }))
+    : [{ date: input.booking.bookingDate, startTime: input.booking.startTime, endTime: input.booking.endTime }];
+  const dates = requestedSessions.map((session) => session.date).sort();
+  const queryStart = addCalendarDays(dates[0], -1);
+  const queryEnd = addCalendarDays(dates[dates.length - 1], 1);
+
+  return await db.transaction(async (tx: any) => {
+    if (input.quoteId !== undefined) {
+      const quoteRows = await tx.execute(
+        sql`SELECT id, quoteStatus AS status, bookingId, validUntil FROM quote_requests WHERE id = ${input.quoteId} FOR UPDATE`,
+      );
+      const lockedQuote = quoteRows[0]?.[0];
+      if (!lockedQuote || lockedQuote.status !== "quoted" || lockedQuote.bookingId) {
+        throw new QuoteConversionConflictError();
+      }
+      if (lockedQuote.validUntil && new Date(lockedQuote.validUntil).getTime() <= Date.now()) {
+        throw new QuoteConversionConflictError("This quote has expired. Please request a new quote.");
+      }
+    }
+    await tx.execute(sql`SELECT id FROM service_providers WHERE id = ${input.booking.providerId} FOR UPDATE`);
+
+    const existingSingleBookings = await tx.select().from(bookings).where(and(
+      eq(bookings.providerId, input.booking.providerId),
+      gte(bookings.bookingDate, queryStart),
+      lte(bookings.bookingDate, queryEnd),
+      eq(bookings.bookingType, "single"),
+      inArray(bookings.status, ["pending", "confirmed", "in_progress"] as any),
+    ));
+    const existingSessionRows = await tx.select({
+      session: bookingSessions,
+      serviceId: bookings.serviceId,
+    })
+      .from(bookingSessions)
+      .innerJoin(bookings, eq(bookingSessions.bookingId, bookings.id))
+      .where(and(
+        eq(bookings.providerId, input.booking.providerId),
+        gte(bookingSessions.sessionDate, queryStart),
+        lte(bookingSessions.sessionDate, queryEnd),
+        eq(bookingSessions.status, "scheduled"),
+        inArray(bookings.status, ["pending", "confirmed", "in_progress"] as any),
+      ));
+
+    const existingIntervals = [
+      ...existingSingleBookings.map((booking: any) => ({
+        serviceId: booking.serviceId,
+        date: booking.bookingDate,
+        startTime: booking.startTime,
+        endTime: booking.endTime,
+      })),
+      ...existingSessionRows.map((row: any) => ({
+        serviceId: row.serviceId,
+        date: row.session.sessionDate,
+        startTime: row.session.startTime,
+        endTime: row.session.endTime,
+      })),
+    ];
+
+    for (const requested of requestedSessions) {
+      assertCalendarIntervalAvailable({
+        requested: { serviceId: input.booking.serviceId, ...requested },
+        existing: existingIntervals,
+        isGroupClass: input.isGroupClass,
+        maxCapacity: input.maxCapacity,
+      });
+    }
+
+    const result = await tx.insert(bookings).values(input.booking);
+    const bookingId = result[0].insertId;
+    if (input.sessions?.length) {
+      await tx.insert(bookingSessions).values(input.sessions.map((session) => ({ ...session, bookingId })));
+    }
+    if (input.quoteId !== undefined) {
+      await tx.update(quoteRequests)
+        .set({ status: "booked", bookingId })
+        .where(and(eq(quoteRequests.id, input.quoteId), eq(quoteRequests.status, "quoted")));
+    }
+    return bookingId;
+  });
+}
+
+export async function rescheduleSessionWithCalendarGuard(input: {
+  bookingId: number;
+  sessionId: number;
+  providerId: number;
+  serviceId: number;
+  originalDate: string;
+  newDate: string;
+  newStartTime: string;
+  newEndTime: string;
+  sessionNumber: number;
+  isGroupClass: boolean;
+  maxCapacity: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.transaction(async (tx: any) => {
+    await tx.execute(sql`SELECT id FROM service_providers WHERE id = ${input.providerId} FOR UPDATE`);
+    const sessionRows = await tx.execute(
+      sql`SELECT id, status, bookingId FROM booking_sessions WHERE id = ${input.sessionId} FOR UPDATE`,
+    );
+    const lockedSession = sessionRows[0]?.[0];
+    if (!lockedSession || lockedSession.status !== "scheduled" || lockedSession.bookingId !== input.bookingId) {
+      throw new BookingReservationConflictError("This session has already changed.");
+    }
+
+    const queryStart = addCalendarDays(input.newDate, -1);
+    const queryEnd = addCalendarDays(input.newDate, 1);
+    const singleRows = await tx.select().from(bookings).where(and(
+      eq(bookings.providerId, input.providerId),
+      gte(bookings.bookingDate, queryStart),
+      lte(bookings.bookingDate, queryEnd),
+      eq(bookings.bookingType, "single"),
+      inArray(bookings.status, ["pending", "confirmed", "in_progress"] as any),
+    ));
+    const scheduledRows = await tx.select({ session: bookingSessions, serviceId: bookings.serviceId })
+      .from(bookingSessions)
+      .innerJoin(bookings, eq(bookingSessions.bookingId, bookings.id))
+      .where(and(
+        eq(bookings.providerId, input.providerId),
+        gte(bookingSessions.sessionDate, queryStart),
+        lte(bookingSessions.sessionDate, queryEnd),
+        eq(bookingSessions.status, "scheduled"),
+        inArray(bookings.status, ["pending", "confirmed", "in_progress"] as any),
+      ));
+    const existing: CalendarInterval[] = [
+      ...singleRows.map((row: any) => ({ serviceId: row.serviceId, date: row.bookingDate, startTime: row.startTime, endTime: row.endTime })),
+      ...scheduledRows
+        .filter((row: any) => row.session.id !== input.sessionId)
+        .map((row: any) => ({ serviceId: row.serviceId, date: row.session.sessionDate, startTime: row.session.startTime, endTime: row.session.endTime })),
+    ];
+    assertCalendarIntervalAvailable({
+      requested: { serviceId: input.serviceId, date: input.newDate, startTime: input.newStartTime, endTime: input.newEndTime },
+      existing,
+      isGroupClass: input.isGroupClass,
+      maxCapacity: input.maxCapacity,
+    });
+
+    const result = await tx.insert(bookingSessions).values({
+      bookingId: input.bookingId,
+      sessionDate: input.newDate,
+      startTime: input.newStartTime,
+      endTime: input.newEndTime,
+      sessionNumber: input.sessionNumber,
+      status: "scheduled",
+    });
+    const newSessionId = result[0].insertId;
+    await tx.update(bookingSessions).set({
+      status: "rescheduled" as any,
+      rescheduledToSessionId: newSessionId,
+      rescheduledFromDate: input.originalDate,
+      rescheduledAt: new Date(),
+    }).where(and(eq(bookingSessions.id, input.sessionId), eq(bookingSessions.status, "scheduled")));
+    return newSessionId;
+  });
+}
+
+export async function updateBookingTimingWithCalendarGuard(input: {
+  bookingId: number;
+  providerId: number;
+  serviceId: number;
+  bookingDate: string;
+  startTime: string;
+  endTime: string;
+  isGroupClass: boolean;
+  maxCapacity: number;
+  values: {
+    startTime: string;
+    endTime: string;
+    durationMinutes: number;
+    subtotal: string;
+    platformFee: string;
+    totalAmount: string;
+    depositAmount: string;
+    remainingAmount: string;
+  };
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.transaction(async (tx: any) => {
+    await tx.execute(sql`SELECT id FROM service_providers WHERE id = ${input.providerId} FOR UPDATE`);
+    const bookingRows = await tx.execute(
+      sql`SELECT id, status, bookingType FROM bookings WHERE id = ${input.bookingId} FOR UPDATE`,
+    );
+    const lockedBooking = bookingRows[0]?.[0];
+    if (!lockedBooking || lockedBooking.bookingType !== "single" || !["pending", "confirmed"].includes(lockedBooking.status)) {
+      throw new BookingReservationConflictError("This booking can no longer be edited.");
+    }
+
+    const queryStart = addCalendarDays(input.bookingDate, -1);
+    const queryEnd = addCalendarDays(input.bookingDate, 1);
+    const singleRows = await tx.select().from(bookings).where(and(
+      eq(bookings.providerId, input.providerId),
+      gte(bookings.bookingDate, queryStart),
+      lte(bookings.bookingDate, queryEnd),
+      eq(bookings.bookingType, "single"),
+      inArray(bookings.status, ["pending", "confirmed", "in_progress"] as any),
+    ));
+    const scheduledRows = await tx.select({ session: bookingSessions, serviceId: bookings.serviceId })
+      .from(bookingSessions)
+      .innerJoin(bookings, eq(bookingSessions.bookingId, bookings.id))
+      .where(and(
+        eq(bookings.providerId, input.providerId),
+        gte(bookingSessions.sessionDate, queryStart),
+        lte(bookingSessions.sessionDate, queryEnd),
+        eq(bookingSessions.status, "scheduled"),
+        inArray(bookings.status, ["pending", "confirmed", "in_progress"] as any),
+      ));
+    const existing: CalendarInterval[] = [
+      ...singleRows
+        .filter((row: any) => row.id !== input.bookingId)
+        .map((row: any) => ({ serviceId: row.serviceId, date: row.bookingDate, startTime: row.startTime, endTime: row.endTime })),
+      ...scheduledRows.map((row: any) => ({
+        serviceId: row.serviceId,
+        date: row.session.sessionDate,
+        startTime: row.session.startTime,
+        endTime: row.session.endTime,
+      })),
+    ];
+    assertCalendarIntervalAvailable({
+      requested: { serviceId: input.serviceId, date: input.bookingDate, startTime: input.startTime, endTime: input.endTime },
+      existing,
+      isGroupClass: input.isGroupClass,
+      maxCapacity: input.maxCapacity,
+    });
+    await tx.update(bookings).set(input.values).where(and(
+      eq(bookings.id, input.bookingId),
+      inArray(bookings.status, ["pending", "confirmed"] as any),
+    ));
+  });
 }
 
 export async function getBookingById(id: number): Promise<Booking | undefined> {

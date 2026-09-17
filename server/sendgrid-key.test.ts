@@ -29,5 +29,5 @@ describe("SendGrid API Key Validation", () => {
     expect(Array.isArray(data.scopes)).toBe(true);
     // Ensure mail.send permission exists
     expect(data.scopes).toContain("mail.send");
-  });
+  }, 15_000);
 });

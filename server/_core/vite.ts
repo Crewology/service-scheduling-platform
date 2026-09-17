@@ -6,7 +6,7 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import viteConfig from "../../vite.config";
 import { getProviderOgTags, getServiceOgTags, getCategoryOgTags, getHomepageOgTags } from "../ogTags";
-import { getProviderJsonLd, getHomepageJsonLd } from "../structuredData";
+import { getCategoryJsonLd, getHomepageJsonLd, getProviderJsonLd, getServiceJsonLd } from "../structuredData";
 
 async function injectOgTags(url: string, template: string, origin: string): Promise<string> {
   let ogTags = "";
@@ -38,6 +38,7 @@ async function injectOgTags(url: string, template: string, origin: string): Prom
     const serviceMatch = url.match(/^\/service\/(\d+)/);
     if (serviceMatch) {
       ogTags = await getServiceOgTags(parseInt(serviceMatch[1], 10), origin);
+      jsonLd = await getServiceJsonLd(parseInt(serviceMatch[1], 10), origin);
     }
   }
 
@@ -46,6 +47,7 @@ async function injectOgTags(url: string, template: string, origin: string): Prom
     const categoryMatch = url.match(/^\/category\/([^/?#]+)/);
     if (categoryMatch) {
       ogTags = await getCategoryOgTags(categoryMatch[1], origin);
+      jsonLd = await getCategoryJsonLd(categoryMatch[1], origin);
     }
   }
 
@@ -222,6 +224,10 @@ export async function setupVite(app: Express, server: Server) {
       template = await injectOgTags(url, template, origin);
 
       const page = await vite.transformIndexHtml(url, template);
+      if (url.includes("handoff=")) {
+        res.set("Cache-Control", "private, no-store");
+        res.set("Referrer-Policy", "no-referrer");
+      }
       res.status(200).set({ "Content-Type": "text/html" }).end(page);
     } catch (e) {
       vite.ssrFixStacktrace(e as Error);
@@ -251,6 +257,10 @@ export function serveStatic(app: Express) {
 
     let html = fs.readFileSync(indexPath, "utf-8");
     html = await injectOgTags(url, html, origin);
+    if (url.includes("handoff=")) {
+      res.set("Cache-Control", "private, no-store");
+      res.set("Referrer-Policy", "no-referrer");
+    }
     res.status(200).set({ "Content-Type": "text/html" }).end(html);
   });
 }

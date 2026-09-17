@@ -6,6 +6,9 @@ import { canCustomerSaveMore, CUSTOMER_TIERS } from "../customerSubscription";
 import { invalidateOgImageCache } from "../ogTags";
 import { customerHasFeature, providerHasFeature } from "@shared/entitlements";
 import { queueCrmBookingProjection, queueCrmQuoteProjection } from "../crm/sourceHooks";
+import { evaluateBookingWindow, OLOGYCREW_BOOKING_TIME_ZONE } from "@shared/bookingPolicy";
+import { calculateBookingEndTime } from "@shared/bookingIntervals";
+import { BookingReservationConflictError, QuoteConversionConflictError } from "../db/bookings";
 
 export const providerRouter = router({
   create: protectedProcedure
@@ -1008,9 +1011,16 @@ export const providerRouter = router({
       if (isCustomer && input.status === "accepted" && quote.status !== "quoted") {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Can only accept a quoted price" });
       }
-
-      await db.updateQuoteStatus(input.quoteId, input.status, input.reason);
-      queueCrmQuoteProjection(input.quoteId);
+      if (isCustomer && input.status === "accepted" && quote.validUntil && new Date(quote.validUntil).getTime() <= Date.now()) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "This quote has expired. Please request a new quote." });
+      }
+      if (isCustomer && input.status === "accepted" && (!quote.quotedAmount || !quote.quotedDurationMinutes)) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "This quote is incomplete and cannot be accepted." });
+      }
+      if (input.status === "declined") {
+        await db.updateQuoteStatus(input.quoteId, input.status, input.reason);
+        queueCrmQuoteProjection(input.quoteId);
+      }
 
       // If accepted, auto-create a booking from the quote
       let bookingId: number | null = null;
@@ -1018,6 +1028,16 @@ export const providerRouter = router({
         try {
           const service = quote.serviceId ? await db.getServiceById(quote.serviceId) : null;
           const providerData = await db.getProviderById(quote.providerId);
+          if (!service?.isActive || service.deletedAt || service.providerId !== quote.providerId || !providerData?.isActive || providerData.deletedAt) {
+            throw new TRPCError({ code: "NOT_FOUND", message: "This quoted service is no longer available." });
+          }
+          const [providerUser, category] = await Promise.all([
+            db.getUserById(providerData.userId),
+            db.getCategoryById(service.categoryId),
+          ]);
+          if (!providerUser || providerUser.deletedAt || !category?.isActive) {
+            throw new TRPCError({ code: "NOT_FOUND", message: "This quoted service is no longer available." });
+          }
 
           const bookingNumber = `OC-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
           const subtotal = parseFloat(quote.quotedAmount).toFixed(2);
@@ -1028,15 +1048,23 @@ export const providerRouter = router({
             : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
           const startTime = quote.preferredTime || "09:00";
           const durationMinutes = quote.quotedDurationMinutes;
-          const [hours, minutes] = startTime.split(":").map(Number);
-          const endDate = new Date(2000, 0, 1, hours, minutes + durationMinutes);
-          const endTime = `${String(endDate.getHours()).padStart(2, "0")}:${String(endDate.getMinutes()).padStart(2, "0")}`;
-
-          bookingId = await db.createBooking({
+          if (durationMinutes < 1 || durationMinutes > 24 * 60) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "The quoted duration is invalid." });
+          }
+          const endTime = calculateBookingEndTime(startTime, durationMinutes);
+          const policy = evaluateBookingWindow({
+            bookingDate,
+            startTime,
+            minAdvanceBookingHours: service.minAdvanceBookingHours,
+            maxAdvanceBookingDays: service.maxAdvanceBookingDays,
+            timeZone: OLOGYCREW_BOOKING_TIME_ZONE,
+          });
+          if (!policy.allowed) throw new TRPCError({ code: "BAD_REQUEST", message: policy.message });
+          bookingId = await db.createBookingWithCalendarGuard({ booking: {
             bookingNumber,
             customerId: ctx.user.id,
             providerId: quote.providerId,
-            serviceId: quote.serviceId || (service?.id ?? 0),
+            serviceId: service.id,
             bookingDate,
             startTime,
             endTime,
@@ -1052,15 +1080,21 @@ export const providerRouter = router({
             totalAmount,
             depositAmount: "0.00",
             remainingAmount: totalAmount,
-          });
+          }, isGroupClass: Boolean(service.isGroupClass), maxCapacity: service.maxCapacity || 1, quoteId: quote.id });
 
-          // Link quote to booking
-          await db.linkQuoteToBooking(quote.id, bookingId);
           queueCrmQuoteProjection(quote.id);
           queueCrmBookingProjection(bookingId);
           console.log(`[Quote] Auto-created booking #${bookingNumber} from quote #${quote.id}`);
         } catch (err) {
           console.error("[Quote] Failed to auto-create booking from accepted quote:", err);
+          if (err instanceof BookingReservationConflictError) {
+            throw new TRPCError({ code: "CONFLICT", message: err.message });
+          }
+          if (err instanceof QuoteConversionConflictError) {
+            throw new TRPCError({ code: "CONFLICT", message: err.message });
+          }
+          if (err instanceof TRPCError) throw err;
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "The quote could not be converted into a booking." });
         }
       }
 
