@@ -1,0 +1,103 @@
+{
+  "generatedAt": "2026-09-21T05:50:36.258Z",
+  "mode": "read_only",
+  "classification": {
+    "approvedAutomaticCandidate": "Exact email-domain match @test.com only",
+    "separatelyReviewedCandidates": "Existing reserved test rules: @example.invalid, loginMethod=test, test-/test_ openId, or Prattis Test provider",
+    "protected": [
+      "Official OlogyCrew demo provider",
+      "garychisolm30@gmail.com",
+      "wwilliams@visionkwest.com",
+      "all unclassified accounts",
+      "all finance, Stripe, partner transfer, and audit evidence"
+    ]
+  },
+  "summary": {
+    "exactTestUsers": 0,
+    "exactTestProviders": 0,
+    "exactTestServices": 0,
+    "exactTestBookings": 0,
+    "exactTestQuotes": 0,
+    "separatelyReviewedReservedCandidates": 0
+  },
+  "currentCounts": {
+    "usersAll": 23,
+    "usersActive": 23,
+    "providersAll": 15,
+    "providersActive": 14,
+    "servicesActive": 84,
+    "bookingsAll": 9,
+    "quotesAll": 3
+  },
+  "proposedRealCounts": {
+    "usersActiveExcludingExactTestAndDemo": 22,
+    "providersActiveExcludingExactTestAndDemo": 13,
+    "servicesActiveExcludingExactTestAndDemo": 30,
+    "bookingsExcludingExactTestAndDemo": 7,
+    "quotesExcludingExactTestAndDemo": 3
+  },
+  "financialRisk": {
+    "payments": 0,
+    "paymentStatuses": [],
+    "stripePaymentReferences": 0,
+    "invoices": 0,
+    "invoiceStatuses": [],
+    "stripeInvoiceReferences": 0,
+    "providerSubscriptions": 0,
+    "customerSubscriptions": 0,
+    "partnerTransfersTotalPreserved": 11,
+    "auditRowsToPreserve": 0
+  },
+  "officialDemoActivity": {
+    "providerCount": 1,
+    "serviceCount": 54,
+    "categoryCount": 52,
+    "bookingCount": 2,
+    "quoteCount": 0,
+    "paymentCount": 0
+  },
+  "exactTestUsers": [],
+  "separatelyReviewedReservedCandidates": [],
+  "officialDemo": [
+    {
+      "providerId": 360001,
+      "userId": 1140154,
+      "businessName": "Demo - OlogyCrew",
+      "profileSlug": "demo-ologycrew",
+      "isOfficial": 1,
+      "isActive": 1,
+      "providerDeletedAt": null,
+      "name": "Demo - OlogyCrew",
+      "email": "hello@ologycrew.com",
+      "role": "provider",
+      "userDeletedAt": null
+    }
+  ],
+  "protectedAdmins": [
+    {
+      "id": 1,
+      "name": "Gary Chisolm",
+      "email": "garychisolm30@gmail.com",
+      "role": "admin",
+      "adminRole": "super_admin",
+      "deletedAt": null,
+      "providerId": 1,
+      "businessName": "Chisolm Audio",
+      "isOfficial": 0,
+      "providerIsActive": 1
+    },
+    {
+      "id": 2190437,
+      "name": "Winston Williams",
+      "email": "wwilliams@visionkwest.com",
+      "role": "admin",
+      "adminRole": "super_admin",
+      "deletedAt": null,
+      "providerId": 660001,
+      "businessName": "Winston",
+      "isOfficial": 0,
+      "providerIsActive": 1
+    }
+  ],
+  "dependencyCounts": []
+}

@@ -1,0 +1,63 @@
+{
+  "generatedAt": "2026-09-21T05:50:36.842Z",
+  "mode": "read_only",
+  "orphanCounts": {
+    "bookings": 0,
+    "quotes": 0,
+    "reviews": 0,
+    "notifications": 0,
+    "providers": 0,
+    "services": 0
+  },
+  "orphanBookings": [],
+  "orphanQuotes": [],
+  "orphanReviews": [],
+  "orphanNotifications": [],
+  "orphanProviders": [],
+  "orphanServices": [],
+  "auditBreakdown": {
+    "testActorRows": "0",
+    "testUserTargetRows": "0",
+    "testProviderTargetRows": "0",
+    "totalAuditRows": 259
+  },
+  "emailDomains": [
+    {
+      "domain": "gmail.com",
+      "count": 13
+    },
+    {
+      "domain": "zohomail.com",
+      "count": 3
+    },
+    {
+      "domain": "visionkwest.com",
+      "count": 2
+    },
+    {
+      "domain": "aol.com",
+      "count": 1
+    },
+    {
+      "domain": "deahud.com",
+      "count": 1
+    },
+    {
+      "domain": "mediaholy.com",
+      "count": 1
+    },
+    {
+      "domain": "ologycrew.com",
+      "count": 1
+    },
+    {
+      "domain": "shootindicestudios.com",
+      "count": 1
+    }
+  ],
+  "crossChecks": {
+    "demoBookings": 2,
+    "exactTestDomainBookings": 0,
+    "exactTestDomainReviews": 0
+  }
+}

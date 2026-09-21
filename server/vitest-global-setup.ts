@@ -87,7 +87,7 @@ export async function setup() {
   const rows = await db.select({ id: users.id }).from(users).where(exactTestDomainPredicate);
   baselineExactTestUserIds = rows.map(row => row.id);
   exactTestBaselineCaptured = true;
-  console.log(`[vitest-global-setup] Preserving ${baselineExactTestUserIds.length} pre-existing exact @test.com manifest accounts until owner-approved cleanup`);
+  console.log(`[vitest-global-setup] Captured ${baselineExactTestUserIds.length} pre-existing exact @test.com baseline accounts; this run will clean only newly created test identities`);
 }
 
 function getRunScopedTestIdentityPredicate() {

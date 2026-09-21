@@ -3026,6 +3026,6 @@
 - [x] Exclude official demo activity, exact test identities, reserved internal fixtures, deleted identities, and orphan fixtures from real Admin users/providers/KPIs while keeping demo discovery and testing behavior available
 - [x] Prevent future automated test runs from leaving exact-domain test records after the approved cleanup
 - [x] Present the exact destructive scope and separately reviewed Prattis Test decision for owner approval
-- [ ] Delete only the approved test records in one verified transaction; do not delete finance, Stripe, partner-transfer, or audit evidence
-- [ ] Reconcile Customers projections and derived provider metrics after approved cleanup
+- [x] Delete only the approved test records in one verified transaction; delete the approved synthetic local payment and cancelled local Prattis subscription row while preserving external Stripe objects, partner transfers, and audit evidence
+- [x] Reconcile Customers projections and derived provider metrics after approved cleanup; no target Customers/CRM contacts or real-provider review aggregates existed, so no derived repair was required
 - [ ] Re-run the read-only manifest, Admin KPI checks, focused/full regressions, TypeScript, build, responsive review, and save a rollback checkpoint

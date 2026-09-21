@@ -1,0 +1,49 @@
+{
+  "verifiedAt": "2026-09-21T05:50:35.595Z",
+  "deletedScopeRemaining": {
+    "exactTestUsers": 0,
+    "exactTestProviders": 0,
+    "prattisRows": 0,
+    "prattisSubscriptions": 0,
+    "orphanRows": {
+      "providers": 0,
+      "services": 0,
+      "bookings": 0,
+      "quotes": 0,
+      "payments": 0
+    }
+  },
+  "protected": {
+    "officialDemo": [
+      {
+        "userId": 1140154,
+        "email": "hello@ologycrew.com",
+        "providerId": 360001,
+        "businessName": "Demo - OlogyCrew",
+        "isActive": 1,
+        "services": 54,
+        "bookings": 2
+      }
+    ],
+    "protectedAdmins": [
+      {
+        "email": "garychisolm30@gmail.com",
+        "role": "admin",
+        "deletedAt": null
+      },
+      {
+        "email": "wwilliams@visionkwest.com",
+        "role": "admin",
+        "deletedAt": null
+      }
+    ],
+    "partnerTransfers": 11,
+    "totalAuditRows": 259,
+    "preservedAuditTargets": 167
+  },
+  "adminRealCounts": {
+    "users": 22,
+    "providers": 13,
+    "bookings": 7
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "generatedAt": "2026-09-21T05:50:37.427Z",
+  "mode": "read_only",
+  "prattis": null,
+  "orphanFixture": {
+    "providerId": 2310003,
+    "userId": 320880004,
+    "serviceId": 2850001,
+    "bookingId": 2430001,
+    "quoteIds": [
+      90001,
+      90002
+    ],
+    "providerExists": 0,
+    "userExists": 0,
+    "serviceExists": 0,
+    "bookingExists": 0,
+    "quoteCount": 0,
+    "paymentRows": [],
+    "invoiceRows": [],
+    "reviewCount": 0,
+    "notificationCount": 0,
+    "crmContactCount": 0,
+    "auditCount": 0
+  }
+}
