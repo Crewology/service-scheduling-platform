@@ -259,32 +259,27 @@ describe("Phase 16: Gap Analysis Fixes", () => {
 
     it("should flag a review", async () => {
       await db.flagReview(reviewId, "Suspicious content");
-      const reviews = await db.getAllReviewsForAdmin(true);
-      const flagged = reviews.find((r: any) => r.review.id === reviewId);
+      const flagged = await db.getReviewById(reviewId);
       expect(flagged).toBeDefined();
-      expect(flagged!.review.isFlagged).toBe(true);
-      expect(flagged!.review.flaggedReason).toBe("Suspicious content");
+      expect(flagged!.isFlagged).toBe(true);
+      expect(flagged!.flaggedReason).toBe("Suspicious content");
     });
 
     it("should unflag a review", async () => {
       await db.unflagReview(reviewId);
-      const reviews = await db.getAllReviewsForAdmin(false);
-      const review = reviews.find((r: any) => r.review.id === reviewId);
-      expect(review!.review.isFlagged).toBe(false);
+      const review = await db.getReviewById(reviewId);
+      expect(review!.isFlagged).toBe(false);
     });
 
     it("should hide a review", async () => {
       await db.hideReview(reviewId);
-      const reviews = await db.getAllReviewsForAdmin(true);
-      const hidden = reviews.find((r: any) => r.review.id === reviewId);
-      expect(hidden!.review.flaggedReason).toBe("HIDDEN_BY_ADMIN");
+      const hidden = await db.getReviewById(reviewId);
+      expect(hidden!.flaggedReason).toBe("HIDDEN_BY_ADMIN");
     });
 
-    it("should list all reviews for admin", async () => {
+    it("should exclude reserved test reviews from the real Admin list", async () => {
       const reviews = await db.getAllReviewsForAdmin(false);
-      expect(reviews.length).toBeGreaterThanOrEqual(1);
-      expect(reviews[0].customerName).toBeDefined();
-      expect(reviews[0].providerName).toBeDefined();
+      expect(reviews.some((row: any) => row.review.id === reviewId)).toBe(false);
     });
 
     it("admin should flag review via tRPC", async () => {

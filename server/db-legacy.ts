@@ -180,6 +180,11 @@ export async function getAllUsers() {
       adminRole: users.adminRole,
       authProvider: users.authProvider,
       hasProviderProfile: sql<boolean>`CASE WHEN ${serviceProviders.id} IS NOT NULL THEN true ELSE false END`.as('hasProviderProfile'),
+      providerId: serviceProviders.id,
+      providerBusinessName: serviceProviders.businessName,
+      providerIsOfficial: serviceProviders.isOfficial,
+      providerIsActive: serviceProviders.isActive,
+      providerDeletedAt: serviceProviders.deletedAt,
     })
     .from(users)
     .leftJoin(serviceProviders, eq(users.id, serviceProviders.userId))
@@ -457,13 +462,36 @@ export async function getAllBookings() {
   const db = await getDb();
   if (!db) return [];
 
-  // Exclude demo provider bookings from admin list
+  // Admin operational views show real platform activity only. Demo and reserved
+  // automated-test records remain available to their own workflows but are not
+  // presented as production bookings.
   const results = await db.select({
     booking: bookings,
     serviceName: services.name,
   }).from(bookings)
     .leftJoin(services, eq(bookings.serviceId, services.id))
-    .where(sql`${bookings.providerId} NOT IN (SELECT id FROM service_providers WHERE isOfficial = 1)`)
+    .where(sql`
+      EXISTS (
+        SELECT 1 FROM users customer
+        WHERE customer.id = ${bookings.customerId}
+          AND LOWER(TRIM(SUBSTRING_INDEX(COALESCE(customer.email, ''), '@', -1))) NOT IN ('test.com', 'example.invalid')
+          AND COALESCE(customer.loginMethod, '') <> 'test'
+          AND customer.openId NOT LIKE 'test-%'
+          AND customer.openId NOT LIKE 'test\\_%'
+      )
+      AND EXISTS (
+        SELECT 1 FROM service_providers provider
+        INNER JOIN users provider_user ON provider_user.id = provider.userId
+        WHERE provider.id = ${bookings.providerId}
+          AND provider.isOfficial = 0
+          AND provider.id <> 1680002
+          AND LOWER(TRIM(provider.businessName)) <> 'prattis test'
+          AND LOWER(TRIM(SUBSTRING_INDEX(COALESCE(provider_user.email, ''), '@', -1))) NOT IN ('test.com', 'example.invalid')
+          AND COALESCE(provider_user.loginMethod, '') <> 'test'
+          AND provider_user.openId NOT LIKE 'test-%'
+          AND provider_user.openId NOT LIKE 'test\\_%'
+      )
+    `)
     .orderBy(bookings.createdAt).limit(100);
   
   return results.map(r => ({
@@ -800,6 +828,56 @@ export async function getAdminStats() {
 
   const now = new Date();
   const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const reportableUser = sql`
+    ${users.deletedAt} IS NULL
+    AND LOWER(TRIM(SUBSTRING_INDEX(COALESCE(${users.email}, ''), '@', -1))) NOT IN ('test.com', 'example.invalid')
+    AND COALESCE(${users.loginMethod}, '') <> 'test'
+    AND ${users.openId} NOT LIKE 'test-%'
+    AND ${users.openId} NOT LIKE 'test\\_%'
+    AND NOT EXISTS (
+      SELECT 1 FROM service_providers user_provider
+      WHERE user_provider.userId = ${users.id}
+        AND (user_provider.isOfficial = 1 OR user_provider.id = 1680002 OR LOWER(TRIM(user_provider.businessName)) = 'prattis test')
+    )
+  `;
+  const reportableProvider = sql`
+    ${serviceProviders.isActive} = 1
+    AND ${serviceProviders.deletedAt} IS NULL
+    AND ${serviceProviders.isOfficial} = 0
+    AND ${serviceProviders.id} <> 1680002
+    AND LOWER(TRIM(${serviceProviders.businessName})) <> 'prattis test'
+    AND EXISTS (
+      SELECT 1 FROM users provider_user
+      WHERE provider_user.id = ${serviceProviders.userId}
+        AND provider_user.deletedAt IS NULL
+        AND LOWER(TRIM(SUBSTRING_INDEX(COALESCE(provider_user.email, ''), '@', -1))) NOT IN ('test.com', 'example.invalid')
+        AND COALESCE(provider_user.loginMethod, '') <> 'test'
+        AND provider_user.openId NOT LIKE 'test-%'
+        AND provider_user.openId NOT LIKE 'test\\_%'
+    )
+  `;
+  const reportableBooking = sql`
+    EXISTS (
+      SELECT 1 FROM users customer
+      WHERE customer.id = ${bookings.customerId}
+        AND LOWER(TRIM(SUBSTRING_INDEX(COALESCE(customer.email, ''), '@', -1))) NOT IN ('test.com', 'example.invalid')
+        AND COALESCE(customer.loginMethod, '') <> 'test'
+        AND customer.openId NOT LIKE 'test-%'
+        AND customer.openId NOT LIKE 'test\\_%'
+    )
+    AND EXISTS (
+      SELECT 1 FROM service_providers provider
+      INNER JOIN users provider_user ON provider_user.id = provider.userId
+      WHERE provider.id = ${bookings.providerId}
+        AND provider.isOfficial = 0
+        AND provider.id <> 1680002
+        AND LOWER(TRIM(provider.businessName)) <> 'prattis test'
+        AND LOWER(TRIM(SUBSTRING_INDEX(COALESCE(provider_user.email, ''), '@', -1))) NOT IN ('test.com', 'example.invalid')
+        AND COALESCE(provider_user.loginMethod, '') <> 'test'
+        AND provider_user.openId NOT LIKE 'test-%'
+        AND provider_user.openId NOT LIKE 'test\\_%'
+    )
+  `;
 
   const [
     totalUsersResult,
@@ -813,16 +891,16 @@ export async function getAdminStats() {
     totalBulkDraftsResult,
     bulkDraftsMonthResult,
   ] = await Promise.all([
-    db.select({ count: sql<number>`COUNT(*)` }).from(users),
-    db.select({ count: sql<number>`COUNT(*)` }).from(users).where(gte(users.createdAt, firstOfMonth)),
-    db.select({ count: sql<number>`COUNT(*)` }).from(serviceProviders),
-    db.select({ count: sql<number>`COUNT(*)` }).from(serviceProviders).where(eq(serviceProviders.verificationStatus, "pending")),
-    db.select({ count: sql<number>`COUNT(*)` }).from(bookings).where(sql`${bookings.providerId} NOT IN (SELECT id FROM service_providers WHERE isOfficial = 1)`),
-    db.select({ count: sql<number>`COUNT(*)` }).from(bookings).where(and(gte(bookings.createdAt, firstOfMonth), sql`${bookings.providerId} NOT IN (SELECT id FROM service_providers WHERE isOfficial = 1)`)),
-    db.select({ total: sql<number>`COALESCE(SUM(CAST(${bookings.totalAmount} AS DECIMAL(10,2))), 0)` }).from(bookings).where(and(eq(bookings.status, "completed" as any), sql`${bookings.providerId} NOT IN (SELECT id FROM service_providers WHERE isOfficial = 1)`)),
-    db.select({ total: sql<number>`COALESCE(SUM(CAST(${bookings.totalAmount} AS DECIMAL(10,2))), 0)` }).from(bookings).where(and(eq(bookings.status, "completed" as any), gte(bookings.createdAt, firstOfMonth), sql`${bookings.providerId} NOT IN (SELECT id FROM service_providers WHERE isOfficial = 1)`)),
-    db.select({ count: sql<number>`COUNT(*)` }).from(bulkBookingDrafts),
-    db.select({ count: sql<number>`COUNT(*)` }).from(bulkBookingDrafts).where(gte(bulkBookingDrafts.createdAt, firstOfMonth)),
+    db.select({ count: sql<number>`COUNT(*)` }).from(users).where(reportableUser),
+    db.select({ count: sql<number>`COUNT(*)` }).from(users).where(and(gte(users.createdAt, firstOfMonth), reportableUser)),
+    db.select({ count: sql<number>`COUNT(*)` }).from(serviceProviders).where(reportableProvider),
+    db.select({ count: sql<number>`COUNT(*)` }).from(serviceProviders).where(and(eq(serviceProviders.verificationStatus, "pending"), reportableProvider)),
+    db.select({ count: sql<number>`COUNT(*)` }).from(bookings).where(reportableBooking),
+    db.select({ count: sql<number>`COUNT(*)` }).from(bookings).where(and(gte(bookings.createdAt, firstOfMonth), reportableBooking)),
+    db.select({ total: sql<number>`COALESCE(SUM(CAST(${bookings.totalAmount} AS DECIMAL(10,2))), 0)` }).from(bookings).where(and(eq(bookings.status, "completed" as any), reportableBooking)),
+    db.select({ total: sql<number>`COALESCE(SUM(CAST(${bookings.totalAmount} AS DECIMAL(10,2))), 0)` }).from(bookings).where(and(eq(bookings.status, "completed" as any), gte(bookings.createdAt, firstOfMonth), reportableBooking)),
+    db.select({ count: sql<number>`COUNT(*)` }).from(bulkBookingDrafts).where(sql`EXISTS (SELECT 1 FROM users draft_user WHERE draft_user.id = ${bulkBookingDrafts.userId} AND draft_user.deletedAt IS NULL AND LOWER(TRIM(SUBSTRING_INDEX(COALESCE(draft_user.email, ''), '@', -1))) NOT IN ('test.com', 'example.invalid') AND COALESCE(draft_user.loginMethod, '') <> 'test' AND draft_user.openId NOT LIKE 'test-%' AND draft_user.openId NOT LIKE 'test\\_%')`),
+    db.select({ count: sql<number>`COUNT(*)` }).from(bulkBookingDrafts).where(and(gte(bulkBookingDrafts.createdAt, firstOfMonth), sql`EXISTS (SELECT 1 FROM users draft_user WHERE draft_user.id = ${bulkBookingDrafts.userId} AND draft_user.deletedAt IS NULL AND LOWER(TRIM(SUBSTRING_INDEX(COALESCE(draft_user.email, ''), '@', -1))) NOT IN ('test.com', 'example.invalid') AND COALESCE(draft_user.loginMethod, '') <> 'test' AND draft_user.openId NOT LIKE 'test-%' AND draft_user.openId NOT LIKE 'test\\_%')`)),
   ]);
 
   return {
@@ -1665,6 +1743,28 @@ export async function getAdminBookingSourceAnalytics() {
     revenue: sql<number>`COALESCE(SUM(CAST(${bookings.totalAmount} AS DECIMAL(10,2))), 0)`,
   })
     .from(bookings)
+    .where(sql`
+      EXISTS (
+        SELECT 1 FROM users customer
+        WHERE customer.id = ${bookings.customerId}
+          AND LOWER(TRIM(SUBSTRING_INDEX(COALESCE(customer.email, ''), '@', -1))) NOT IN ('test.com', 'example.invalid')
+          AND COALESCE(customer.loginMethod, '') <> 'test'
+          AND customer.openId NOT LIKE 'test-%'
+          AND customer.openId NOT LIKE 'test\\_%'
+      )
+      AND EXISTS (
+        SELECT 1 FROM service_providers provider
+        INNER JOIN users provider_user ON provider_user.id = provider.userId
+        WHERE provider.id = ${bookings.providerId}
+          AND provider.isOfficial = 0
+          AND provider.id <> 1680002
+          AND LOWER(TRIM(provider.businessName)) <> 'prattis test'
+          AND LOWER(TRIM(SUBSTRING_INDEX(COALESCE(provider_user.email, ''), '@', -1))) NOT IN ('test.com', 'example.invalid')
+          AND COALESCE(provider_user.loginMethod, '') <> 'test'
+          AND provider_user.openId NOT LIKE 'test-%'
+          AND provider_user.openId NOT LIKE 'test\\_%'
+      )
+    `)
     .groupBy(bookings.bookingSource);
 
   return results;
@@ -2114,7 +2214,24 @@ export async function deleteReview(reviewId: number) {
 export async function getAllReviewsForAdmin(flaggedOnly = false) {
   const db = await getDb();
   if (!db) return [];
-  const conditions = flaggedOnly ? eq(reviews.isFlagged, true) : undefined;
+  const reportableReview = sql`
+    LOWER(TRIM(SUBSTRING_INDEX(COALESCE(${users.email}, ''), '@', -1))) NOT IN ('test.com', 'example.invalid')
+    AND COALESCE(${users.loginMethod}, '') <> 'test'
+    AND ${users.openId} NOT LIKE 'test-%'
+    AND ${users.openId} NOT LIKE 'test\\_%'
+    AND ${serviceProviders.isOfficial} = 0
+    AND ${serviceProviders.id} <> 1680002
+    AND LOWER(TRIM(${serviceProviders.businessName})) <> 'prattis test'
+    AND EXISTS (
+      SELECT 1 FROM users provider_user
+      WHERE provider_user.id = ${serviceProviders.userId}
+        AND LOWER(TRIM(SUBSTRING_INDEX(COALESCE(provider_user.email, ''), '@', -1))) NOT IN ('test.com', 'example.invalid')
+        AND COALESCE(provider_user.loginMethod, '') <> 'test'
+        AND provider_user.openId NOT LIKE 'test-%'
+        AND provider_user.openId NOT LIKE 'test\\_%'
+    )
+  `;
+  const conditions = flaggedOnly ? and(eq(reviews.isFlagged, true), reportableReview) : reportableReview;
   return await db.select({
     review: reviews,
     customerName: users.name,

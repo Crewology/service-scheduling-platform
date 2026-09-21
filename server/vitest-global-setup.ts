@@ -59,11 +59,11 @@ import {
   crmSavedSegments,
   crmOperationalState,
 } from "../drizzle/schema";
-import { and, eq, inArray, or, sql } from "drizzle-orm";
+import { and, eq, inArray, notInArray, or, sql } from "drizzle-orm";
 
 // Cleanup is intentionally limited to namespaces reserved by automated tests.
 // Never match normal example.com addresses, deleted-user aliases, or display names.
-const testIdentityPredicate = sql`
+const reservedTestIdentityPredicate = sql`
   email LIKE '%@example.invalid'
   OR openId LIKE 'test-%'
   OR openId LIKE 'rolesel-%'
@@ -73,6 +73,30 @@ const testIdentityPredicate = sql`
   OR openId LIKE 'og-%'
   OR openId LIKE 'sc-%'
 `;
+
+const exactTestDomainPredicate = sql`
+  LOWER(TRIM(SUBSTRING_INDEX(COALESCE(email, ''), '@', -1))) = 'test.com'
+`;
+
+let baselineExactTestUserIds: number[] = [];
+let exactTestBaselineCaptured = false;
+
+export async function setup() {
+  const db = await getDb();
+  if (!db) return;
+  const rows = await db.select({ id: users.id }).from(users).where(exactTestDomainPredicate);
+  baselineExactTestUserIds = rows.map(row => row.id);
+  exactTestBaselineCaptured = true;
+  console.log(`[vitest-global-setup] Preserving ${baselineExactTestUserIds.length} pre-existing exact @test.com manifest accounts until owner-approved cleanup`);
+}
+
+function getRunScopedTestIdentityPredicate() {
+  if (!exactTestBaselineCaptured) return reservedTestIdentityPredicate;
+  const newExactTestIdentityPredicate = baselineExactTestUserIds.length
+    ? and(exactTestDomainPredicate, notInArray(users.id, baselineExactTestUserIds))
+    : exactTestDomainPredicate;
+  return or(reservedTestIdentityPredicate, newExactTestIdentityPredicate);
+}
 
 export async function teardown() {
   console.log("\n[vitest-global-setup] Cleaning up test data from database...");
@@ -90,6 +114,7 @@ export async function teardown() {
   }
 
   try {
+    const testIdentityPredicate = getRunScopedTestIdentityPredicate();
     const testUsers = await db.select({ id: users.id }).from(users).where(testIdentityPredicate);
     const testUserIds = testUsers.map(user => user.id);
     if (testUserIds.length === 0) {

@@ -1,0 +1,118 @@
+{
+  "generatedAt": "2026-09-21T04:58:16.882Z",
+  "mode": "read_only",
+  "orphanCounts": {
+    "bookings": 1,
+    "quotes": 2,
+    "reviews": 0,
+    "notifications": 0,
+    "providers": 1,
+    "services": 0
+  },
+  "orphanBookings": [
+    {
+      "id": 2430001,
+      "bookingNumber": "TEST-CRM-P2-1788735775339-lnsbcx",
+      "customerId": 320880005,
+      "providerId": 2310003,
+      "serviceId": 2850001,
+      "status": "completed",
+      "totalAmount": "30.30",
+      "createdAt": "2026-09-06T23:02:55.000Z",
+      "customerExists": null,
+      "providerExists": 2310003,
+      "serviceExists": 2850001,
+      "paymentId": 60001,
+      "paymentStatus": "captured",
+      "stripePaymentIntentId": "pi_test_crm_phase2_1788735775339-lnsbcx"
+    }
+  ],
+  "orphanQuotes": [
+    {
+      "id": 90001,
+      "customerId": 320880005,
+      "providerId": 2310003,
+      "serviceId": 2850001,
+      "bookingId": 2430001,
+      "status": "accepted",
+      "createdAt": "2026-09-06T23:02:55.000Z",
+      "customerExists": null,
+      "providerExists": 2310003,
+      "serviceExists": 2850001
+    },
+    {
+      "id": 90002,
+      "customerId": 320880006,
+      "providerId": 2310003,
+      "serviceId": 2850001,
+      "bookingId": null,
+      "status": "pending",
+      "createdAt": "2026-09-06T23:02:55.000Z",
+      "customerExists": null,
+      "providerExists": 2310003,
+      "serviceExists": 2850001
+    }
+  ],
+  "orphanReviews": [],
+  "orphanNotifications": [],
+  "orphanProviders": [
+    {
+      "id": 2310003,
+      "userId": 320880004,
+      "businessName": "Phase 2 Provider 1788735775339-lnsbcx",
+      "isOfficial": 0,
+      "isActive": 0,
+      "deletedAt": null
+    }
+  ],
+  "orphanServices": [],
+  "auditBreakdown": {
+    "testActorRows": "0",
+    "testUserTargetRows": "0",
+    "testProviderTargetRows": "83",
+    "totalAuditRows": 259
+  },
+  "emailDomains": [
+    {
+      "domain": "test.com",
+      "count": 168
+    },
+    {
+      "domain": "gmail.com",
+      "count": 13
+    },
+    {
+      "domain": "visionkwest.com",
+      "count": 3
+    },
+    {
+      "domain": "zohomail.com",
+      "count": 3
+    },
+    {
+      "domain": "aol.com",
+      "count": 1
+    },
+    {
+      "domain": "deahud.com",
+      "count": 1
+    },
+    {
+      "domain": "mediaholy.com",
+      "count": 1
+    },
+    {
+      "domain": "ologycrew.com",
+      "count": 1
+    },
+    {
+      "domain": "shootindicestudios.com",
+      "count": 1
+    }
+  ],
+  "crossChecks": {
+    "demoBookings": 2,
+    "exactTestDomainBookings": 94,
+    "exactTestDomainReviews": 90
+  }
+}

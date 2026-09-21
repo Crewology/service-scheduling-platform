@@ -3017,3 +3017,15 @@
 - [x] Enforce active provider, account, category, and service eligibility for direct, multi-day, recurring, quote, reschedule, and timing-edit paths
 - [x] Serialize direct, multi-day, recurring, quote conversion, rescheduling, and timing edits under provider-level calendar locks
 - [x] Reject expired quotes before and during atomic quote-to-booking conversion
+
+## Production Test-Data Cleanup and Real-Activity Admin Scope — Reopened 2026-09-21
+- [x] Reopen cleanup only after the owner’s fresh request; perform no deletion before a current read-only manifest and exact approval
+- [x] Classify automatic deletion candidates by exact `@test.com` domain only; never use broad substring matching
+- [x] Preserve Demo - OlogyCrew (`isOfficial = true`), Gary Chisolm, Winston Williams, all unclassified accounts, all partner transfers, and all audit evidence
+- [x] Generate a read-only dependency manifest, orphan audit, protected-identity list, financial-risk check, and baseline KPI impact
+- [x] Exclude official demo activity, exact test identities, reserved internal fixtures, deleted identities, and orphan fixtures from real Admin users/providers/KPIs while keeping demo discovery and testing behavior available
+- [x] Prevent future automated test runs from leaving exact-domain test records after the approved cleanup
+- [x] Present the exact destructive scope and separately reviewed Prattis Test decision for owner approval
+- [ ] Delete only the approved test records in one verified transaction; do not delete finance, Stripe, partner-transfer, or audit evidence
+- [ ] Reconcile Customers projections and derived provider metrics after approved cleanup
+- [ ] Re-run the read-only manifest, Admin KPI checks, focused/full regressions, TypeScript, build, responsive review, and save a rollback checkpoint

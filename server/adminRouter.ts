@@ -7,6 +7,34 @@ import { createAuditEntry, getAuditLog, getAuditLogForTarget } from "./db/auditL
 import { getAdminTeamMembers, promoteToAdmin, demoteFromAdmin, updateAdminRole, searchUsersForAdmin } from "./db/adminTeam";
 import { getSubscriptionAnalytics as getEffectiveSubscriptionAnalytics } from "./db/payments";
 import { hasAdminClearance, isApprovedAdminEmail } from "./adminPolicy";
+import {
+  isActiveReportableAdminProvider,
+  isActiveReportableAdminUser,
+  isReportableAdminIdentity,
+} from "../shared/adminDataScope";
+
+function reportableAdminUsers(allUsers: any[], activeOnly: boolean) {
+  return allUsers.filter((user) => activeOnly
+    ? isActiveReportableAdminUser(user)
+    : isReportableAdminIdentity(user));
+}
+
+function reportableAdminProviders(allProviders: any[], allUsers: any[]) {
+  const usersByProviderId = new Map(
+    allUsers.filter((user) => user.providerId != null).map((user) => [Number(user.providerId), user]),
+  );
+  return allProviders.filter((provider) => {
+    const user = usersByProviderId.get(Number(provider.id));
+    return !!user && isActiveReportableAdminProvider({
+      ...user,
+      providerId: provider.id,
+      providerBusinessName: provider.businessName,
+      providerIsOfficial: provider.isOfficial,
+      providerIsActive: provider.isActive,
+      providerDeletedAt: provider.deletedAt,
+    });
+  });
+}
 
 // Admin-only procedure that checks if user has admin role
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -50,7 +78,7 @@ export const adminRouter = router({
       limit: z.number().default(50),
     }).optional())
     .query(async ({ input }) => {
-      const allUsers = await db.getAllUsers();
+      const allUsers = reportableAdminUsers(await db.getAllUsers(), true);
       if (!input) return allUsers;
       const offset = (input.page - 1) * input.limit;
       return allUsers.slice(offset, offset + input.limit);
@@ -63,8 +91,9 @@ export const adminRouter = router({
       limit: z.number().default(50),
     }).optional())
     .query(async ({ input }) => {
-      const providers = await db.getAllProviders();
-      const allProviders = await Promise.all(providers.map(async (provider: any) => ({
+      const [providers, users] = await Promise.all([db.getAllProviders(), db.getAllUsers()]);
+      const reportableProviders = reportableAdminProviders(providers, users);
+      const allProviders = await Promise.all(reportableProviders.map(async (provider: any) => ({
         ...provider,
         trustProfile: await db.getProviderTrustProfile(provider.id),
       })));
@@ -380,7 +409,7 @@ export const adminRouter = router({
     }))
     .query(async ({ input }) => {
       const allUsers = await db.getAllUsers();
-      let filtered = allUsers;
+      let filtered = reportableAdminUsers(allUsers, false);
 
       // Text search
       if (input.query) {
@@ -428,8 +457,9 @@ export const adminRouter = router({
       limit: z.number().default(20),
     }))
     .query(async ({ input }) => {
-      const providers = await db.getAllProviders();
-      const allProviders = await Promise.all(providers.map(async (provider: any) => ({
+      const [providers, users] = await Promise.all([db.getAllProviders(), db.getAllUsers()]);
+      const reportableProviders = reportableAdminProviders(providers, users);
+      const allProviders = await Promise.all(reportableProviders.map(async (provider: any) => ({
         ...provider,
         trustProfile: await db.getProviderTrustProfile(provider.id),
       })));

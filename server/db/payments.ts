@@ -5,6 +5,7 @@ import {
   providerSubscriptions,
   customerSubscriptions,
   serviceProviders,
+  users,
   type ProviderSubscription,
   type CustomerSubscription,
 } from "../../drizzle/schema";
@@ -250,9 +251,54 @@ export async function getSubscriptionAnalytics() {
     conversionRates: { freeToBasic: 0, basicToPremium: 0 },
   };
 
-  const subs = await database.select().from(providerSubscriptions);
-  const customerSubs = await database.select().from(customerSubscriptions);
-  const allProviders = await database.select({ count: sql<number>`COUNT(*)` }).from(serviceProviders);
+  const providerRows = await database.select({ subscription: providerSubscriptions })
+    .from(providerSubscriptions)
+    .innerJoin(serviceProviders, eq(serviceProviders.id, providerSubscriptions.providerId))
+    .innerJoin(users, eq(users.id, serviceProviders.userId))
+    .where(sql`
+      ${serviceProviders.isActive} = 1
+      AND ${serviceProviders.deletedAt} IS NULL
+      AND ${users.deletedAt} IS NULL
+      AND ${serviceProviders.isOfficial} = 0
+      AND ${serviceProviders.id} <> 1680002
+      AND LOWER(TRIM(${serviceProviders.businessName})) <> 'prattis test'
+      AND LOWER(TRIM(SUBSTRING_INDEX(COALESCE(${users.email}, ''), '@', -1))) NOT IN ('test.com', 'example.invalid')
+      AND COALESCE(${users.loginMethod}, '') <> 'test'
+      AND ${users.openId} NOT LIKE 'test-%'
+      AND ${users.openId} NOT LIKE 'test\\_%'
+    `);
+  const customerRows = await database.select({ subscription: customerSubscriptions })
+    .from(customerSubscriptions)
+    .innerJoin(users, eq(users.id, customerSubscriptions.userId))
+    .where(sql`
+      ${users.deletedAt} IS NULL
+      AND LOWER(TRIM(SUBSTRING_INDEX(COALESCE(${users.email}, ''), '@', -1))) NOT IN ('test.com', 'example.invalid')
+      AND COALESCE(${users.loginMethod}, '') <> 'test'
+      AND ${users.openId} NOT LIKE 'test-%'
+      AND ${users.openId} NOT LIKE 'test\\_%'
+      AND NOT EXISTS (
+        SELECT 1 FROM service_providers customer_provider
+        WHERE customer_provider.userId = ${users.id}
+          AND (customer_provider.isOfficial = 1 OR customer_provider.id = 1680002 OR LOWER(TRIM(customer_provider.businessName)) = 'prattis test')
+      )
+    `);
+  const subs = providerRows.map(row => row.subscription);
+  const customerSubs = customerRows.map(row => row.subscription);
+  const allProviders = await database.select({ count: sql<number>`COUNT(*)` })
+    .from(serviceProviders)
+    .innerJoin(users, eq(users.id, serviceProviders.userId))
+    .where(sql`
+      ${serviceProviders.isActive} = 1
+      AND ${serviceProviders.deletedAt} IS NULL
+      AND ${users.deletedAt} IS NULL
+      AND ${serviceProviders.isOfficial} = 0
+      AND ${serviceProviders.id} <> 1680002
+      AND LOWER(TRIM(${serviceProviders.businessName})) <> 'prattis test'
+      AND LOWER(TRIM(SUBSTRING_INDEX(COALESCE(${users.email}, ''), '@', -1))) NOT IN ('test.com', 'example.invalid')
+      AND COALESCE(${users.loginMethod}, '') <> 'test'
+      AND ${users.openId} NOT LIKE 'test-%'
+      AND ${users.openId} NOT LIKE 'test\\_%'
+    `);
   const totalProviders = allProviders[0]?.count ?? 0;
   const providerSummary = summarizeProviderSubscriptionAnalytics(subs, totalProviders);
   const customerSummary = summarizeCustomerSubscriptionAnalytics(customerSubs);

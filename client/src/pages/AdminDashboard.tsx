@@ -398,6 +398,10 @@ export default function AdminDashboard() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
           <p className="text-muted-foreground mt-1">Platform management and oversight</p>
+          <div className="mt-3 inline-flex max-w-full items-start gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-950 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-100">
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
+            <p><strong>Real activity view:</strong> official demo and reserved test records are excluded from users, providers, bookings, reviews, subscriptions, and KPI totals.</p>
+          </div>
         </div>
 
         {/* Stats Overview */}

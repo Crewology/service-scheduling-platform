@@ -1,0 +1,59 @@
+{
+  "generatedAt": "2026-09-21T05:05:04.680Z",
+  "mode": "read_only",
+  "prattis": {
+    "identity": {
+      "providerId": 1680002,
+      "userId": 214381102,
+      "businessName": "Prattis Test",
+      "profileSlug": "prattis-test-1680002",
+      "isActive": 1,
+      "deletedAt": null,
+      "name": "Prattis Client Care",
+      "email": "client.care@visionkwest.com",
+      "role": "provider",
+      "userDeletedAt": null,
+      "stripeAccountId": null,
+      "stripeAccountStatus": "not_connected"
+    },
+    "services": 1,
+    "activeServices": 1,
+    "bookings": 0,
+    "quotes": 0,
+    "payments": 0,
+    "invoices": 0,
+    "providerSubscriptions": 1,
+    "crmContacts": 0
+  },
+  "orphanFixture": {
+    "providerId": 2310003,
+    "userId": 320880004,
+    "serviceId": 2850001,
+    "bookingId": 2430001,
+    "quoteIds": [
+      90001,
+      90002
+    ],
+    "providerExists": 1,
+    "userExists": 0,
+    "serviceExists": 1,
+    "bookingExists": 1,
+    "quoteCount": 2,
+    "paymentRows": [
+      {
+        "id": 60001,
+        "bookingId": 2430001,
+        "status": "captured",
+        "amount": "30.00",
+        "stripePaymentIntentId": "pi_test_crm_phase2_1788735775339-lnsbcx",
+        "stripeChargeId": null,
+        "stripeRefundId": null
+      }
+    ],
+    "invoiceRows": [],
+    "reviewCount": 0,
+    "notificationCount": 0,
+    "crmContactCount": 0,
+    "auditCount": 0
+  }
+}
