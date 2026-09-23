@@ -3028,4 +3028,4 @@
 - [x] Present the exact destructive scope and separately reviewed Prattis Test decision for owner approval
 - [x] Delete only the approved test records in one verified transaction; delete the approved synthetic local payment and cancelled local Prattis subscription row while preserving external Stripe objects, partner transfers, and audit evidence
 - [x] Reconcile Customers projections and derived provider metrics after approved cleanup; no target Customers/CRM contacts or real-provider review aggregates existed, so no derived repair was required
-- [ ] Re-run the read-only manifest, Admin KPI checks, focused/full regressions, TypeScript, build, responsive review, and save a rollback checkpoint
+- [x] Re-run the read-only manifest, Admin KPI checks, focused/full regressions, TypeScript, build, responsive review, and save a rollback checkpoint
