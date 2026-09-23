@@ -11,6 +11,7 @@ import { checkRateLimit, getClientIp, RATE_LIMITS } from "./rateLimiter";
 import { isDisposableEmail, getDisposableEmailError } from "./disposableEmails";
 import { generateTwoFactorCode, sendTwoFactorEmail, verifyTwoFactorCode, createTrustedDevice, isDeviceTrusted } from "./twoFactor";
 import { appendAuthReturnPath, normalizeAuthReturnPath } from "../shared/authReturnPath";
+import { OLOGYCREW_PUBLIC_ORIGIN } from "../shared/publicUrls";
 
 const router = Router();
 
@@ -26,14 +27,41 @@ function requestOrigin(req: Request): string {
 }
 
 export function normalizeAuthOrigin(value: unknown, fallbackOrigin: string): string {
-  try {
-    const fallback = new URL(fallbackOrigin).origin;
-    if (typeof value !== "string" || !value) return fallback;
-    const candidate = new URL(value).origin;
-    return candidate === fallback ? candidate : fallback;
-  } catch {
-    return fallbackOrigin;
+  const canonicalOrigin = new URL(OLOGYCREW_PUBLIC_ORIGIN).origin;
+  const canonicalWwwOrigin = "https://www.ologycrew.com";
+
+  const parseOrigin = (candidate: unknown): string | null => {
+    if (typeof candidate !== "string" || !candidate) return null;
+    try {
+      return new URL(candidate).origin;
+    } catch {
+      return null;
+    }
+  };
+
+  const isLoopbackOrigin = (origin: string | null): boolean => {
+    if (!origin) return false;
+    const hostname = new URL(origin).hostname;
+    return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+  };
+
+  const requestedOrigin = parseOrigin(value);
+  const fallback = parseOrigin(fallbackOrigin);
+
+  // Google has the non-www OlogyCrew callback registered. Normalize both
+  // public host variants to that exact URI rather than trusting the internal
+  // Cloud Run host exposed to Express by the deployment proxy.
+  if (requestedOrigin === canonicalOrigin || requestedOrigin === canonicalWwwOrigin) {
+    return canonicalOrigin;
   }
+
+  // Keep direct localhost development usable without allowing a production
+  // request to supply localhost or an arbitrary external callback origin.
+  if (isLoopbackOrigin(fallback)) {
+    return isLoopbackOrigin(requestedOrigin) ? requestedOrigin! : fallback!;
+  }
+
+  return canonicalOrigin;
 }
 
 export function encodeGoogleOAuthState(state: GoogleOAuthState, secret = ENV.cookieSecret): string {

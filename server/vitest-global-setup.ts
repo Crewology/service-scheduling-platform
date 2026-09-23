@@ -65,6 +65,7 @@ import { and, eq, inArray, notInArray, or, sql } from "drizzle-orm";
 // Never match normal example.com addresses, deleted-user aliases, or display names.
 const reservedTestIdentityPredicate = sql`
   email LIKE '%@example.invalid'
+  OR LOWER(TRIM(email)) IN ('info@prattis.com', 'client.care@visionkwest.com')
   OR openId LIKE 'test-%'
   OR openId LIKE 'rolesel-%'
   OR openId LIKE 'profile-test-%'

@@ -3029,3 +3029,10 @@
 - [x] Delete only the approved test records in one verified transaction; delete the approved synthetic local payment and cancelled local Prattis subscription row while preserving external Stripe objects, partner transfers, and audit evidence
 - [x] Reconcile Customers projections and derived provider metrics after approved cleanup; no target Customers/CRM contacts or real-provider review aggregates existed, so no derived repair was required
 - [x] Re-run the read-only manifest, Admin KPI checks, focused/full regressions, TypeScript, build, responsive review, and save a rollback checkpoint
+
+## Google OAuth Redirect URI Regression — 2026-09-23
+- [x] Reproduce production `redirect_uri_mismatch` and identify the exact redirect URI sent to Google
+- [x] Confirm the failure is unrelated to user cleanup or account deletion
+- [x] Restore a canonical, allowlisted Google callback origin while preserving signed OAuth state and safe return paths
+- [x] Add regression coverage for custom-domain, internal runtime, preview, local, and untrusted-origin behavior
+- [x] Validate production-shaped redirect output, Google authorization acceptance, callback token-exchange parity, TypeScript, full regressions, build, and checkpoint
