@@ -34,7 +34,7 @@ const baseProviderNav = [
   { label: "Overview", icon: LayoutDashboard, href: "/" },
   { label: "Bookings", icon: CalendarDays, href: "/my-bookings" },
   { label: "Services", icon: BriefcaseBusiness, href: "/provider/dashboard?tab=services" },
-  { label: "Calendar", icon: CalendarClock, href: "/provider/dashboard?tab=schedule" },
+  { label: "My Calendar", icon: CalendarClock, href: "/provider/calendar" },
   { label: "Money", icon: CircleDollarSign, href: "/provider/dashboard?tab=finances" },
   { label: "My Page", icon: Store, href: "/provider/dashboard?tab=my-page" },
 ];
@@ -244,7 +244,7 @@ export default function ProviderWorkspaceOverview() {
 
           <div className="mt-6 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
             <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_18px_50px_-38px_rgba(15,23,42,0.5)] sm:p-6" aria-labelledby="today-heading">
-              <div className="flex items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">{todayLabel}</p><h2 id="today-heading" className="mt-1 text-xl font-bold text-slate-950">Today</h2></div><Button asChild variant="ghost" size="sm"><Link href="/provider/dashboard?tab=schedule">Open calendar<ArrowRight className="ml-1.5 h-4 w-4" /></Link></Button></div>
+              <div className="flex items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">{todayLabel}</p><h2 id="today-heading" className="mt-1 text-xl font-bold text-slate-950">Today</h2></div><Button asChild variant="ghost" size="sm"><Link href="/provider/calendar">Open calendar<ArrowRight className="ml-1.5 h-4 w-4" /></Link></Button></div>
               {data.today.length > 0 ? <><div className="mt-5 space-y-1">{data.today.map((item, index) => <div key={item.id} className="relative grid grid-cols-[74px_14px_minmax(0,1fr)] gap-3 pb-5 last:pb-0"><p className="pt-0.5 text-sm font-semibold text-slate-700">{formatTime(item.time)}</p><div className="relative flex justify-center"><span className={`z-10 mt-1.5 h-3 w-3 rounded-full ring-4 ring-white ${item.status === "pending" ? "bg-amber-500" : "bg-emerald-500"}`} />{index < data.today.length - 1 ? <span className="absolute bottom-[-8px] top-3 w-px bg-slate-200" /> : null}</div><Link href={item.href} className="rounded-xl p-2 text-left hover:bg-slate-50"><p className="font-semibold text-slate-950">{item.title}</p><p className="mt-0.5 text-sm text-slate-500">{item.customerName}{item.venueName ? ` · ${item.venueName}` : item.city ? ` · ${item.city}${item.state ? `, ${item.state}` : ""}` : ""}</p></Link></div>)}</div><div className={`mt-5 flex items-center gap-2 rounded-xl px-3 py-2 text-sm ${data.todayHasConflict ? "bg-red-50 text-red-800" : "bg-emerald-50 text-emerald-800"}`}>{data.todayHasConflict ? <AlertCircle className="h-4 w-4" /> : <Check className="h-4 w-4" />}{data.todayHasConflict ? "Two bookings overlap. Review your calendar before confirming." : "No schedule conflicts detected today."}</div></> : <div className="mt-5 rounded-2xl border border-dashed border-slate-200 p-6 text-center"><CalendarDays className="mx-auto h-7 w-7 text-slate-400" /><p className="mt-2 font-semibold text-slate-800">No services scheduled today</p><p className="mt-1 text-sm text-slate-500">Your confirmed bookings will appear here automatically.</p></div>}
             </section>
 
@@ -272,7 +272,7 @@ export default function ProviderWorkspaceOverview() {
       </div>
 
       <nav className="fixed inset-x-3 bottom-3 z-30 grid grid-cols-5 rounded-2xl border border-slate-200 bg-white/95 p-1.5 shadow-2xl backdrop-blur lg:hidden" aria-label="Provider mobile navigation">
-        {([{ label: "Home", icon: LayoutDashboard, href: "/" }, { label: "Bookings", icon: CalendarDays, href: "/my-bookings" }, ...(customersAccess?.visible ? [{ label: "Customers", icon: Users, href: "/provider/customers" }] : [{ label: "Calendar", icon: CalendarClock, href: "/provider/dashboard?tab=schedule" }]), { label: "Money", icon: CircleDollarSign, href: "/provider/dashboard?tab=finances" }, { label: "More", icon: MoreHorizontal, href: "/provider/dashboard?tab=settings" }] as const).map((item) => { const Icon = item.icon; return <Link key={item.label} href={item.href} className={`flex flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-semibold ${item.label === "Home" ? "bg-blue-50 text-[#174a73]" : "text-slate-500"}`}><Icon className="h-4 w-4" />{item.label}</Link>; })}
+        {([{ label: "Home", icon: LayoutDashboard, href: "/" }, { label: "Bookings", icon: CalendarDays, href: "/my-bookings" }, ...(customersAccess?.visible ? [{ label: "Customers", icon: Users, href: "/provider/customers" }] : [{ label: "Calendar", icon: CalendarClock, href: "/provider/calendar" }]), { label: "Money", icon: CircleDollarSign, href: "/provider/dashboard?tab=finances" }, { label: "More", icon: MoreHorizontal, href: "/provider/dashboard?tab=settings" }] as const).map((item) => { const Icon = item.icon; return <Link key={item.label} href={item.href} className={`flex flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-semibold ${item.label === "Home" ? "bg-blue-50 text-[#174a73]" : "text-slate-500"}`}><Icon className="h-4 w-4" />{item.label}</Link>; })}
       </nav>
     </div>
   );

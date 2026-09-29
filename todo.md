@@ -3069,3 +3069,9 @@
 - [x] Remove My Page only from the desktop account dropdown shown in the screenshot
 - [x] Preserve My Page on the Provider Dashboard and leave the separate mobile hamburger tile unchanged
 - [x] Add a menu-scope regression, run TypeScript and build checks, review the desktop menu, and save a rollback checkpoint
+
+## Provider Workspace My Calendar Link — 2026-09-29
+- [x] Rename the existing workspace Calendar item to My Calendar and point it to `/provider/calendar`
+- [x] Align the Today card and conditional mobile Calendar shortcuts with the dedicated provider calendar page
+- [x] Preserve calendar data, availability settings, and the rest of the workspace navigation
+- [x] Add navigation regressions, run TypeScript and build checks, review desktop/mobile, and save a rollback checkpoint

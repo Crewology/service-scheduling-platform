@@ -62,10 +62,12 @@ describe("provider workspace Overview", () => {
     for (const section of ["Needs attention", "Today", "Quick actions", "Business pulse"]) {
       expect(overviewSource).toContain(section);
     }
-    for (const destination of ["Overview", "Bookings", "Services", "Calendar", "Money", "My Page"]) {
+    for (const destination of ["Overview", "Bookings", "Services", "My Calendar", "Money", "My Page"]) {
       expect(overviewSource).toContain(`label: "${destination}"`);
     }
     expect(overviewSource.match(/label: "Bookings", icon: CalendarDays, href: "\/my-bookings"/g)).toHaveLength(2);
+    expect(overviewSource.match(/href(?:: |\=)"\/provider\/calendar"/g)).toHaveLength(3);
+    expect(overviewSource).not.toContain("/provider/dashboard?tab=schedule");
   });
 
   it("builds attention and pulse data from existing database helpers", () => {
