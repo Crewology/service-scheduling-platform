@@ -402,16 +402,6 @@ function UserMenuDropdown({ user }: { user: any }) {
             <User className="h-4 w-4 text-muted-foreground" />
             My Account
           </Link>
-          {providerProfile?.profileSlug && (
-            <Link
-              href={`/${providerProfile.profileSlug}`}
-              className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              <ExternalLink className="h-4 w-4 text-muted-foreground" />
-              My Page
-            </Link>
-          )}
           {providerProfile && (
             <Link
               href="/provider/calendar"

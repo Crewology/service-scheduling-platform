@@ -3064,3 +3064,8 @@
 - [x] Route the legacy desktop and mobile Provider Dashboard My Page controls to the same public profile URL
 - [x] Preserve a safe My Page setup fallback when a provider has not created a public profile slug
 - [x] Add navigation regressions, run TypeScript and build checks, review desktop/mobile behavior, and save a rollback checkpoint
+
+## Desktop Account Dropdown My Page Cleanup — 2026-09-29
+- [x] Remove My Page only from the desktop account dropdown shown in the screenshot
+- [x] Preserve My Page on the Provider Dashboard and leave the separate mobile hamburger tile unchanged
+- [x] Add a menu-scope regression, run TypeScript and build checks, review the desktop menu, and save a rollback checkpoint
