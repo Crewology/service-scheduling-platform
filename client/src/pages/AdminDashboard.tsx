@@ -62,6 +62,7 @@ import {
   ArrowDown,
   Share2,
   Settings,
+  ChevronRight,
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -134,6 +135,11 @@ function SystemHealthOverview() {
 
 function SubscriptionAnalyticsPanel() {
   const { data: analytics, isLoading } = trpc.admin.getSubscriptionAnalytics.useQuery();
+  const [selectedTierGroup, setSelectedTierGroup] = useState<"free" | "basic" | "premium" | "trialing" | null>(null);
+  const tierMembers = trpc.admin.getSubscriptionTierMembers.useQuery(
+    { group: selectedTierGroup ?? "free" },
+    { enabled: selectedTierGroup !== null },
+  );
 
   if (isLoading) return <LoadingSpinner message="Loading analytics..." />;
   if (!analytics) return null;
@@ -142,6 +148,32 @@ function SubscriptionAnalyticsPanel() {
   const basicPct = totalTierCount > 0 ? (analytics.tiers.basic / totalTierCount) * 100 : 0;
   const premiumPct = totalTierCount > 0 ? (analytics.tiers.premium / totalTierCount) * 100 : 0;
   const freePct = totalTierCount > 0 ? (analytics.tiers.free / totalTierCount) * 100 : 0;
+  const tierDetails = {
+    free: { title: "Starter providers", description: "Providers whose current effective access is Starter.", count: analytics.tiers.free },
+    basic: { title: "Pro providers", description: "Providers whose current effective access is Pro.", count: analytics.tiers.basic },
+    premium: { title: "Business providers", description: "Providers whose current effective access is Business.", count: analytics.tiers.premium },
+    trialing: { title: "Currently trialing providers", description: "Providers in an active trial. They also appear in their effective Pro or Business tier.", count: analytics.tiers.trialing },
+  } as const;
+  const selectedTierDetails = selectedTierGroup ? tierDetails[selectedTierGroup] : null;
+  const tierName = (tier: "free" | "basic" | "premium") => ({ free: "Starter", basic: "Pro", premium: "Business" })[tier];
+  const lifecycleLabel = (state: string) => ({
+    free: "Starter access",
+    active: "Active",
+    trialing: "Trial active",
+    cancelling: "Cancels at period end",
+    past_due_grace: "Past due — grace period",
+    trial_expired: "Trial expired",
+    past_due_suspended: "Past due — access suspended",
+    paused: "Paused",
+    incomplete: "Setup incomplete",
+    cancelled: "Cancelled",
+  }[state] ?? state.replaceAll("_", " "));
+  const lifecycleClassName = (state: string) => {
+    if (state === "active") return "border-emerald-200 bg-emerald-50 text-emerald-800";
+    if (state === "trialing") return "border-amber-200 bg-amber-50 text-amber-800";
+    if (state === "free") return "border-slate-200 bg-slate-50 text-slate-700";
+    return "border-orange-200 bg-orange-50 text-orange-800";
+  };
 
   return (
     <div className="space-y-6">
@@ -220,41 +252,66 @@ function SubscriptionAnalyticsPanel() {
           <CardContent className="space-y-4">
             {/* Visual bar chart */}
             <div className="space-y-3">
-              <div>
+              <button
+                type="button"
+                onClick={() => setSelectedTierGroup("free")}
+                className="group block w-full rounded-lg p-2 text-left transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                aria-haspopup="dialog"
+                aria-label={`View ${analytics.tiers.free} Starter providers`}
+              >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium">Starter (Free)</span>
+                  <span className="flex items-center gap-1 text-sm font-medium group-hover:underline">Starter (Free)<ChevronRight className="h-3.5 w-3.5" /></span>
                   <span className="text-sm text-muted-foreground">{analytics.tiers.free} ({freePct.toFixed(0)}%)</span>
                 </div>
                 <div className="h-3 bg-muted rounded-full overflow-hidden">
                   <div className="h-full bg-gray-400 rounded-full transition-all" style={{ width: `${freePct}%` }} />
                 </div>
-              </div>
-              <div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedTierGroup("basic")}
+                className="group block w-full rounded-lg p-2 text-left transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                aria-haspopup="dialog"
+                aria-label={`View ${analytics.tiers.basic} Pro providers`}
+              >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium">Pro ($12/mo)</span>
+                  <span className="flex items-center gap-1 text-sm font-medium group-hover:underline">Pro ($12/mo)<ChevronRight className="h-3.5 w-3.5" /></span>
                   <span className="text-sm text-muted-foreground">{analytics.tiers.basic} ({basicPct.toFixed(0)}%)</span>
                 </div>
                 <div className="h-3 bg-muted rounded-full overflow-hidden">
                   <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${basicPct}%` }} />
                 </div>
-              </div>
-              <div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedTierGroup("premium")}
+                className="group block w-full rounded-lg p-2 text-left transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                aria-haspopup="dialog"
+                aria-label={`View ${analytics.tiers.premium} Business providers`}
+              >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium">Business ($20/mo)</span>
+                  <span className="flex items-center gap-1 text-sm font-medium group-hover:underline">Business ($20/mo)<ChevronRight className="h-3.5 w-3.5" /></span>
                   <span className="text-sm text-muted-foreground">{analytics.tiers.premium} ({premiumPct.toFixed(0)}%)</span>
                 </div>
                 <div className="h-3 bg-muted rounded-full overflow-hidden">
                   <div className="h-full bg-purple-500 rounded-full transition-all" style={{ width: `${premiumPct}%` }} />
                 </div>
-              </div>
+              </button>
               {analytics.tiers.trialing > 0 && (
                 <div className="pt-2 border-t">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-amber-700">Currently Trialing</span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTierGroup("trialing")}
+                    className="group flex w-full items-center justify-between rounded-lg p-2 text-left transition-colors hover:bg-amber-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+                    aria-haspopup="dialog"
+                    aria-label={`View ${analytics.tiers.trialing} trialing providers`}
+                  >
+                    <span className="flex items-center gap-1 text-sm font-medium text-amber-700 group-hover:underline">Currently Trialing<ChevronRight className="h-3.5 w-3.5" /></span>
                     <span className="text-sm text-amber-700">{analytics.tiers.trialing}</span>
-                  </div>
+                  </button>
                 </div>
               )}
+              <p className="px-2 text-xs text-muted-foreground">Select a tier to see its providers.</p>
             </div>
           </CardContent>
         </Card>
@@ -307,6 +364,78 @@ function SubscriptionAnalyticsPanel() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={selectedTierGroup !== null} onOpenChange={(open) => { if (!open) setSelectedTierGroup(null); }}>
+        <DialogContent className="flex max-h-[85vh] w-[calc(100%-2rem)] max-w-2xl flex-col overflow-hidden p-0 sm:w-full">
+          <DialogHeader className="px-5 pb-4 pt-5 sm:px-6 sm:pt-6">
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              {selectedTierDetails?.title ?? "Tier providers"}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedTierDetails?.description} {selectedTierDetails ? `${selectedTierDetails.count} provider${selectedTierDetails.count === 1 ? "" : "s"} in the dashboard total.` : ""}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="min-h-0 overflow-y-auto border-t px-4 py-4 sm:px-6">
+            {tierMembers.isLoading ? (
+              <div className="flex min-h-40 items-center justify-center"><LoadingSpinner message="Loading providers..." /></div>
+            ) : tierMembers.isError ? (
+              <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-center">
+                <p className="text-sm font-medium text-red-900">We couldn’t load this tier.</p>
+                <p className="mt-1 text-xs text-red-700">{tierMembers.error.message}</p>
+                <Button variant="outline" size="sm" className="mt-3 bg-white" onClick={() => tierMembers.refetch()}>
+                  <RefreshCw className="mr-2 h-4 w-4" />Retry
+                </Button>
+              </div>
+            ) : tierMembers.data?.members.length ? (
+              <div className="space-y-3">
+                {tierMembers.data.members.map((member) => {
+                  const accountName = [member.firstName, member.lastName].filter(Boolean).join(" ") || member.userName || "Unnamed account";
+                  const location = [member.city, member.state].filter(Boolean).join(", ");
+                  const initials = (member.businessName || accountName).split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+                  return (
+                    <div key={member.providerId} className="rounded-xl border bg-card p-4 text-card-foreground shadow-sm">
+                      <div className="flex items-start gap-3">
+                        <Avatar className="h-10 w-10 shrink-0">
+                          <AvatarImage src={member.profilePhotoUrl ?? undefined} alt="" />
+                          <AvatarFallback className="bg-muted text-xs font-semibold">{initials || "P"}</AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="min-w-0">
+                              <p className="truncate font-semibold">{member.businessName}</p>
+                              <p className="truncate text-sm text-muted-foreground">{accountName}{member.email ? ` · ${member.email}` : ""}</p>
+                              {location && <p className="mt-1 text-xs text-muted-foreground">{location}</p>}
+                            </div>
+                            <Badge variant="outline" className={`w-fit shrink-0 ${lifecycleClassName(member.lifecycleState)}`}>
+                              {lifecycleLabel(member.lifecycleState)}
+                            </Badge>
+                          </div>
+                          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                            <span>Effective: <strong className="font-medium text-foreground">{tierName(member.effectiveTier)}</strong></span>
+                            {member.configuredTier !== member.effectiveTier && (
+                              <span>Configured: <strong className="font-medium text-foreground">{tierName(member.configuredTier)}</strong></span>
+                            )}
+                            {member.accessEndsAt && <span>Access ends {new Date(member.accessEndsAt).toLocaleDateString()}</span>}
+                            {member.requiresBillingAction && <span className="font-medium text-orange-700">Billing action needed</span>}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="flex min-h-40 flex-col items-center justify-center rounded-xl border border-dashed bg-muted/20 p-6 text-center">
+                <Users className="h-8 w-8 text-muted-foreground" />
+                <p className="mt-3 text-sm font-medium">No providers in this group</p>
+                <p className="mt-1 text-xs text-muted-foreground">The list will update automatically when effective access changes.</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

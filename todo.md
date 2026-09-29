@@ -3036,3 +3036,11 @@
 - [x] Restore a canonical, allowlisted Google callback origin while preserving signed OAuth state and safe return paths
 - [x] Add regression coverage for custom-domain, internal runtime, preview, local, and untrusted-origin behavior
 - [x] Validate production-shaped redirect output, Google authorization acceptance, callback token-exchange parity, TypeScript, full regressions, build, and checkpoint
+
+## Admin Subscription Tier Member Modal — 2026-09-29
+- [x] Reuse the authoritative lifecycle-aware provider tier resolver and real-activity scope for Starter, Pro, Business, and Trialing membership
+- [x] Add an admin-only lazy tRPC query that returns only provider/account summaries needed by the modal
+- [x] Make each Tier Distribution row keyboard-accessible and open a responsive member modal with clear loading, empty, error, and count states
+- [x] Show business name, account identity, effective/configured plan context, lifecycle state, and access-end date without adding mutation controls
+- [x] Add contract, authorization, count-parity, privacy-scope, and responsive UI regressions
+- [x] Run focused/full tests, TypeScript, clean-diff, production build, desktop/mobile review, and save a rollback checkpoint

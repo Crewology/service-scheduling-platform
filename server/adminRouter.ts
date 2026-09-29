@@ -5,7 +5,10 @@ import { TRPCError } from "@trpc/server";
 import { ENV } from "./_core/env";
 import { createAuditEntry, getAuditLog, getAuditLogForTarget } from "./db/auditLog";
 import { getAdminTeamMembers, promoteToAdmin, demoteFromAdmin, updateAdminRole, searchUsersForAdmin } from "./db/adminTeam";
-import { getSubscriptionAnalytics as getEffectiveSubscriptionAnalytics } from "./db/payments";
+import {
+  getAdminProviderTierMembers,
+  getSubscriptionAnalytics as getEffectiveSubscriptionAnalytics,
+} from "./db/payments";
 import { hasAdminClearance, isApprovedAdminEmail } from "./adminPolicy";
 import {
   isActiveReportableAdminProvider,
@@ -169,6 +172,13 @@ export const adminRouter = router({
   getSubscriptionAnalytics: adminProcedure.query(async () => {
     return await getEffectiveSubscriptionAnalytics();
   }),
+
+  // Lazy provider drill-down for the lifecycle-aware tier distribution card.
+  getSubscriptionTierMembers: adminProcedure
+    .input(z.object({ group: z.enum(["free", "basic", "premium", "trialing"]) }))
+    .query(async ({ input }) => {
+      return await getAdminProviderTierMembers(input.group);
+    }),
 
   // Get booking source analytics (widget vs direct)
   getBookingSourceAnalytics: adminProcedure.query(async () => {

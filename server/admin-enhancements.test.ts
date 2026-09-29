@@ -131,6 +131,7 @@ describe("Admin Dashboard Enhancements", () => {
       
       // Analytics
       expect(procedures).toContain("getSubscriptionAnalytics");
+      expect(procedures).toContain("getSubscriptionTierMembers");
       expect(procedures).toContain("getBookingSourceAnalytics");
       expect(procedures).toContain("getPushAnalytics");
       

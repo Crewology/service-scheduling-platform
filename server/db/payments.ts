@@ -12,6 +12,72 @@ import {
 import { getDb } from "./connection";
 import { CUSTOMER_PLANS, PROVIDER_PLANS, resolveCustomerEntitlement, resolveProviderEntitlement } from "../../shared/entitlements";
 
+export type AdminProviderTierGroup = "free" | "basic" | "premium" | "trialing";
+
+type AdminProviderTierRow = {
+  providerId: number;
+  businessName: string;
+  city: string | null;
+  state: string | null;
+  userId: number;
+  userName: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  email: string | null;
+  profilePhotoUrl: string | null;
+  subscription: ProviderSubscription | null;
+};
+
+function reportableProviderSubscriptionScope() {
+  return sql`
+    ${serviceProviders.isActive} = 1
+    AND ${serviceProviders.deletedAt} IS NULL
+    AND ${users.deletedAt} IS NULL
+    AND ${serviceProviders.isOfficial} = 0
+    AND ${serviceProviders.id} <> 1680002
+    AND LOWER(TRIM(${serviceProviders.businessName})) <> 'prattis test'
+    AND LOWER(TRIM(SUBSTRING_INDEX(COALESCE(${users.email}, ''), '@', -1))) NOT IN ('test.com', 'example.invalid')
+    AND COALESCE(${users.loginMethod}, '') <> 'test'
+    AND ${users.openId} NOT LIKE 'test-%'
+    AND ${users.openId} NOT LIKE 'test\\_%'
+  `;
+}
+
+export function summarizeAdminProviderTierMembers(
+  rows: AdminProviderTierRow[],
+  group: AdminProviderTierGroup,
+  now = new Date(),
+) {
+  const members = rows.flatMap((row) => {
+    const entitlement = resolveProviderEntitlement(row.subscription, now);
+    const isMember = group === "trialing"
+      ? entitlement.state === "trialing"
+      : entitlement.effectiveTier === group;
+    if (!isMember) return [];
+
+    return [{
+      providerId: row.providerId,
+      businessName: row.businessName,
+      city: row.city,
+      state: row.state,
+      userId: row.userId,
+      userName: row.userName,
+      firstName: row.firstName,
+      lastName: row.lastName,
+      email: row.email,
+      profilePhotoUrl: row.profilePhotoUrl,
+      configuredTier: entitlement.configuredTier,
+      effectiveTier: entitlement.effectiveTier,
+      lifecycleState: entitlement.state,
+      requiresBillingAction: entitlement.requiresBillingAction,
+      isScheduledToCancel: entitlement.isScheduledToCancel,
+      accessEndsAt: entitlement.accessEndsAt,
+    }];
+  }).sort((left, right) => left.businessName.localeCompare(right.businessName));
+
+  return { group, total: members.length, members };
+}
+
 // ============================================================================
 // PAYMENT MANAGEMENT
 // ============================================================================
@@ -240,6 +306,31 @@ export function summarizeCustomerSubscriptionAnalytics(subs: CustomerSubscriptio
   };
 }
 
+export async function getAdminProviderTierMembers(group: AdminProviderTierGroup) {
+  const database = await getDb();
+  if (!database) return { group, total: 0, members: [] };
+
+  const rows = await database.select({
+    providerId: serviceProviders.id,
+    businessName: serviceProviders.businessName,
+    city: serviceProviders.city,
+    state: serviceProviders.state,
+    userId: users.id,
+    userName: users.name,
+    firstName: users.firstName,
+    lastName: users.lastName,
+    email: users.email,
+    profilePhotoUrl: users.profilePhotoUrl,
+    subscription: providerSubscriptions,
+  })
+    .from(serviceProviders)
+    .innerJoin(users, eq(users.id, serviceProviders.userId))
+    .leftJoin(providerSubscriptions, eq(providerSubscriptions.providerId, serviceProviders.id))
+    .where(reportableProviderSubscriptionScope());
+
+  return summarizeAdminProviderTierMembers(rows, group);
+}
+
 export async function getSubscriptionAnalytics() {
   const database = await getDb();
   if (!database) return {
@@ -255,18 +346,7 @@ export async function getSubscriptionAnalytics() {
     .from(providerSubscriptions)
     .innerJoin(serviceProviders, eq(serviceProviders.id, providerSubscriptions.providerId))
     .innerJoin(users, eq(users.id, serviceProviders.userId))
-    .where(sql`
-      ${serviceProviders.isActive} = 1
-      AND ${serviceProviders.deletedAt} IS NULL
-      AND ${users.deletedAt} IS NULL
-      AND ${serviceProviders.isOfficial} = 0
-      AND ${serviceProviders.id} <> 1680002
-      AND LOWER(TRIM(${serviceProviders.businessName})) <> 'prattis test'
-      AND LOWER(TRIM(SUBSTRING_INDEX(COALESCE(${users.email}, ''), '@', -1))) NOT IN ('test.com', 'example.invalid')
-      AND COALESCE(${users.loginMethod}, '') <> 'test'
-      AND ${users.openId} NOT LIKE 'test-%'
-      AND ${users.openId} NOT LIKE 'test\\_%'
-    `);
+    .where(reportableProviderSubscriptionScope());
   const customerRows = await database.select({ subscription: customerSubscriptions })
     .from(customerSubscriptions)
     .innerJoin(users, eq(users.id, customerSubscriptions.userId))
@@ -287,18 +367,7 @@ export async function getSubscriptionAnalytics() {
   const allProviders = await database.select({ count: sql<number>`COUNT(*)` })
     .from(serviceProviders)
     .innerJoin(users, eq(users.id, serviceProviders.userId))
-    .where(sql`
-      ${serviceProviders.isActive} = 1
-      AND ${serviceProviders.deletedAt} IS NULL
-      AND ${users.deletedAt} IS NULL
-      AND ${serviceProviders.isOfficial} = 0
-      AND ${serviceProviders.id} <> 1680002
-      AND LOWER(TRIM(${serviceProviders.businessName})) <> 'prattis test'
-      AND LOWER(TRIM(SUBSTRING_INDEX(COALESCE(${users.email}, ''), '@', -1))) NOT IN ('test.com', 'example.invalid')
-      AND COALESCE(${users.loginMethod}, '') <> 'test'
-      AND ${users.openId} NOT LIKE 'test-%'
-      AND ${users.openId} NOT LIKE 'test\\_%'
-    `);
+    .where(reportableProviderSubscriptionScope());
   const totalProviders = allProviders[0]?.count ?? 0;
   const providerSummary = summarizeProviderSubscriptionAnalytics(subs, totalProviders);
   const customerSummary = summarizeCustomerSubscriptionAnalytics(customerSubs);
