@@ -65,6 +65,7 @@ describe("provider workspace Overview", () => {
     for (const destination of ["Overview", "Bookings", "Services", "Calendar", "Money", "My Page"]) {
       expect(overviewSource).toContain(`label: "${destination}"`);
     }
+    expect(overviewSource.match(/label: "Bookings", icon: CalendarDays, href: "\/my-bookings"/g)).toHaveLength(2);
   });
 
   it("builds attention and pulse data from existing database helpers", () => {

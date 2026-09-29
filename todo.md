@@ -3044,3 +3044,9 @@
 - [x] Show business name, account identity, effective/configured plan context, lifecycle state, and access-end date without adding mutation controls
 - [x] Add contract, authorization, count-parity, privacy-scope, and responsive UI regressions
 - [x] Run focused/full tests, TypeScript, clean-diff, production build, desktop/mobile review, and save a rollback checkpoint
+
+## Provider Dashboard Bookings Link — 2026-09-29
+- [x] Point the desktop Provider Dashboard Bookings navigation item to `/my-bookings`
+- [x] Point the mobile floating Bookings navigation item to `/my-bookings`
+- [x] Preserve the existing dashboard sections, booking data, detail actions, and provider/customer view behavior
+- [x] Add a navigation regression, run TypeScript and build checks, review desktop/mobile, and save a rollback checkpoint

@@ -32,7 +32,7 @@ import { toast } from "sonner";
 
 const baseProviderNav = [
   { label: "Overview", icon: LayoutDashboard, href: "/" },
-  { label: "Bookings", icon: CalendarDays, href: "/provider/dashboard?tab=bookings" },
+  { label: "Bookings", icon: CalendarDays, href: "/my-bookings" },
   { label: "Services", icon: BriefcaseBusiness, href: "/provider/dashboard?tab=services" },
   { label: "Calendar", icon: CalendarClock, href: "/provider/dashboard?tab=schedule" },
   { label: "Money", icon: CircleDollarSign, href: "/provider/dashboard?tab=finances" },
@@ -267,7 +267,7 @@ export default function ProviderWorkspaceOverview() {
       </div>
 
       <nav className="fixed inset-x-3 bottom-3 z-30 grid grid-cols-5 rounded-2xl border border-slate-200 bg-white/95 p-1.5 shadow-2xl backdrop-blur lg:hidden" aria-label="Provider mobile navigation">
-        {([{ label: "Home", icon: LayoutDashboard, href: "/" }, { label: "Bookings", icon: CalendarDays, href: "/provider/dashboard?tab=bookings" }, ...(customersAccess?.visible ? [{ label: "Customers", icon: Users, href: "/provider/customers" }] : [{ label: "Calendar", icon: CalendarClock, href: "/provider/dashboard?tab=schedule" }]), { label: "Money", icon: CircleDollarSign, href: "/provider/dashboard?tab=finances" }, { label: "More", icon: MoreHorizontal, href: "/provider/dashboard?tab=settings" }] as const).map((item) => { const Icon = item.icon; return <Link key={item.label} href={item.href} className={`flex flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-semibold ${item.label === "Home" ? "bg-blue-50 text-[#174a73]" : "text-slate-500"}`}><Icon className="h-4 w-4" />{item.label}</Link>; })}
+        {([{ label: "Home", icon: LayoutDashboard, href: "/" }, { label: "Bookings", icon: CalendarDays, href: "/my-bookings" }, ...(customersAccess?.visible ? [{ label: "Customers", icon: Users, href: "/provider/customers" }] : [{ label: "Calendar", icon: CalendarClock, href: "/provider/dashboard?tab=schedule" }]), { label: "Money", icon: CircleDollarSign, href: "/provider/dashboard?tab=finances" }, { label: "More", icon: MoreHorizontal, href: "/provider/dashboard?tab=settings" }] as const).map((item) => { const Icon = item.icon; return <Link key={item.label} href={item.href} className={`flex flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-semibold ${item.label === "Home" ? "bg-blue-50 text-[#174a73]" : "text-slate-500"}`}><Icon className="h-4 w-4" />{item.label}</Link>; })}
       </nav>
     </div>
   );

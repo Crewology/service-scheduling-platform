@@ -1960,7 +1960,11 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
           {/* Desktop Tab Bar */}
           {!hideChrome && <div className="hidden md:block">
             <TabsList className="inline-flex h-auto gap-1 w-full p-1">
-              <TabsTrigger value="bookings" className="flex-1 text-sm px-3 py-2"><Calendar className="h-4 w-4 mr-1.5" />Bookings</TabsTrigger>
+              <Button asChild variant="ghost" size="sm" className="h-auto flex-1 px-3 py-2 text-sm">
+                <Link href="/my-bookings" aria-label="Open My Bookings">
+                  <Calendar className="h-4 w-4 mr-1.5" />Bookings
+                </Link>
+              </Button>
               <TabsTrigger value="services" className="flex-1 text-sm px-3 py-2"><Package className="h-4 w-4 mr-1.5" />Services</TabsTrigger>
               <TabsTrigger value="schedule" className="flex-1 text-sm px-3 py-2"><Clock className="h-4 w-4 mr-1.5" />Schedule</TabsTrigger>
               <TabsTrigger value="finances" className="flex-1 text-sm px-3 py-2"><DollarSign className="h-4 w-4 mr-1.5" />Finances</TabsTrigger>
@@ -1971,8 +1975,15 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
 
           {!hideChrome && <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border shadow-lg">
             <div className="grid grid-cols-6 h-16">
+              <Link
+                href="/my-bookings"
+                aria-label="Open My Bookings"
+                className="flex flex-col items-center justify-center gap-0.5 text-[10px] text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+              >
+                <Calendar className="h-5 w-5" />
+                Bookings
+              </Link>
               {[
-                { value: "bookings", icon: Calendar, label: "Bookings" },
                 { value: "services", icon: Package, label: "Services" },
                 { value: "schedule", icon: Clock, label: "Schedule" },
                 { value: "finances", icon: DollarSign, label: "Finances" },
