@@ -11,6 +11,7 @@ import {
 const projectRoot = resolve(import.meta.dirname, "..");
 const homeSource = readFileSync(resolve(projectRoot, "client/src/pages/LoggedInHome.tsx"), "utf8");
 const overviewSource = readFileSync(resolve(projectRoot, "client/src/pages/ProviderWorkspaceOverview.tsx"), "utf8");
+const shellSource = readFileSync(resolve(projectRoot, "client/src/components/provider/ProviderWorkspaceShell.tsx"), "utf8");
 const routerSource = readFileSync(resolve(projectRoot, "server/providerOverviewRouter.ts"), "utf8");
 
 describe("provider workspace Overview", () => {
@@ -63,13 +64,15 @@ describe("provider workspace Overview", () => {
       expect(overviewSource).toContain(section);
     }
     for (const destination of ["Overview", "Bookings", "Services", "My Calendar", "Money", "My Page"]) {
-      expect(overviewSource).toContain(`label: "${destination}"`);
+      expect(shellSource).toContain(`label: "${destination}"`);
     }
-    expect(overviewSource.match(/label: "Bookings", icon: CalendarDays, href: "\/my-bookings"/g)).toHaveLength(2);
-    expect(overviewSource.match(/href(?:: |\=)"\/provider\/calendar"/g)).toHaveLength(3);
-    expect(overviewSource.match(/label: "Money", icon: CircleDollarSign, href: "\/provider\/finances"/g)).toHaveLength(2);
-    expect(overviewSource).not.toContain("/provider/dashboard?tab=finances");
-    expect(overviewSource).not.toContain("/provider/dashboard?tab=schedule");
+    expect(shellSource).toContain('{ key: "bookings", label: "Bookings", icon: CalendarDays, href: "/my-bookings" }');
+    expect(shellSource).toContain('{ key: "services", label: "Services", icon: BriefcaseBusiness, href: "/provider/services" }');
+    expect(shellSource).toContain('{ key: "calendar", label: "My Calendar", icon: CalendarClock, href: "/provider/calendar" }');
+    expect(shellSource).toContain('{ key: "money", label: "Money", icon: CircleDollarSign, href: "/provider/finances" }');
+    expect(shellSource).not.toContain("/provider/dashboard?tab=finances");
+    expect(shellSource).not.toContain("/provider/dashboard?tab=schedule");
+    expect(overviewSource).toContain('active="overview"');
   });
 
   it("builds attention and pulse data from existing database helpers", () => {

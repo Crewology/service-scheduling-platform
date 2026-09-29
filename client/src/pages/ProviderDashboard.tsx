@@ -86,8 +86,55 @@ import { formatPrice } from "@shared/formatPrice";
 import { formatTimeForDisplay } from "@shared/timeSlots";
 import { ImageCropper } from "@/components/ImageCropper";
 import { ProviderBusinessProfileDialog } from "@/components/provider/ProviderBusinessProfileDialog";
+import {
+  ProviderWorkspacePageHeader,
+  ProviderWorkspaceShell,
+  type ProviderWorkspaceSection,
+} from "@/components/provider/ProviderWorkspaceShell";
 import { ProviderDashboardSkeleton } from "@/components/DashboardSkeleton";
 import SectionErrorBoundary from "@/components/SectionErrorBoundary";
+
+function ProviderDashboardFrame({
+  active,
+  provider,
+  customersVisible,
+  actions,
+  children,
+}: {
+  active?: ProviderWorkspaceSection;
+  provider: any;
+  customersVisible?: boolean;
+  actions?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  if (!active) return <div className="container py-8">{children}</div>;
+
+  const page = active === "services"
+    ? {
+        eyebrow: "Your offers",
+        title: "Services",
+        description: "Manage what customers can book, your categories, portfolio, and service packages.",
+      }
+    : {
+        eyebrow: "Business finances",
+        title: "Money",
+        description: "Track earnings, completed work, payment setup, payouts, and your provider plan.",
+      };
+
+  return (
+    <ProviderWorkspaceShell
+      active={active}
+      businessName={provider?.businessName}
+      profileSlug={provider?.profileSlug}
+      isPageLive={Boolean(provider?.profileSlug)}
+      customersVisible={customersVisible}
+      contentClassName="[&_[data-slot=card]]:rounded-2xl [&_[data-slot=card]]:border-slate-200 [&_[data-slot=card]]:shadow-[0_18px_50px_-42px_rgba(15,23,42,0.5)]"
+    >
+      <ProviderWorkspacePageHeader {...page} actions={actions} />
+      <div className="mt-6">{children}</div>
+    </ProviderWorkspaceShell>
+  );
+}
 
 // ============================================================================
 // SERVICE PHOTOS MANAGER
@@ -1332,6 +1379,7 @@ function VerificationDocumentsTab() {
 // ============================================================================
 export default function ProviderDashboard(props: { initialTab?: string; hideChrome?: boolean } & Record<string, any> = {}) {
   const { initialTab, hideChrome } = props;
+  const workspaceActive: ProviderWorkspaceSection | undefined = props.workspaceActive;
   const { user, isAuthenticated, loading } = useAuth();
   const [location, setLocation] = useLocation();
   const { isProviderView } = useViewMode();
@@ -1445,6 +1493,9 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
 
   const { data: provider } = trpc.provider.getMyProfile.useQuery(undefined, {
     enabled: isAuthenticated,
+  });
+  const { data: customersAccess } = trpc.customers.getAccess.useQuery(undefined, {
+    enabled: isAuthenticated && Boolean(workspaceActive),
   });
   const { data: trustProfile } = trpc.verification.myTrustProfile.useQuery(undefined, {
     enabled: isAuthenticated && !!provider,
@@ -1685,7 +1736,29 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
     <div className="min-h-screen bg-background">
       <NavHeader />
 
-      <div className="container py-8">
+      <ProviderDashboardFrame
+        active={workspaceActive}
+        provider={provider}
+        customersVisible={customersAccess?.visible}
+        actions={workspaceActive === "services" ? (
+          serviceCount >= serviceLimit && currentTier !== "premium" ? (
+            <Button className="bg-white text-[#174a73] hover:bg-blue-50" onClick={() => {
+              setUpgradeReason("service_limit");
+              setShowUpgradePrompt(true);
+            }}>
+              <Crown className="mr-2 h-4 w-4" />Upgrade to add more
+            </Button>
+          ) : (
+            <Button asChild className="bg-white text-[#174a73] hover:bg-blue-50">
+              <Link href="/provider/services/new"><Plus className="mr-2 h-4 w-4" />Add service</Link>
+            </Button>
+          )
+        ) : workspaceActive === "money" ? (
+          <Button asChild className="bg-white text-[#174a73] hover:bg-blue-50">
+            <Link href="/provider/subscription"><Crown className="mr-2 h-4 w-4" />Manage subscription</Link>
+          </Button>
+        ) : undefined}
+      >
         {!hideChrome && <>
         {/* Welcome Section */}
         <div className="mb-8 flex flex-col sm:flex-row items-start justify-between gap-4">
@@ -2397,6 +2470,17 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
           {/* Services Tab — grouped by category */}
           <TabsContent value="services" className="space-y-6 pb-20 md:pb-0">
           <SectionErrorBoundary fallbackTitle="Services couldn't load">
+            {workspaceActive === "services" ? (
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                <div className="flex items-center gap-2 text-sm text-slate-600">
+                  <HelpTip text="Add services you offer within your chosen categories. Each service needs a name, price, and duration. Customers will see these when browsing your profile." variant="info" />
+                  <span>{serviceCount} service{serviceCount === 1 ? "" : "s"} across {myCategories?.length || 0} categor{myCategories?.length === 1 ? "y" : "ies"}</span>
+                </div>
+                <Button asChild variant="outline" size="sm" className="bg-white">
+                  <Link href="/provider/onboarding"><Grid3X3 className="mr-1 h-4 w-4" />Categories</Link>
+                </Button>
+              </div>
+            ) : (
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2">
@@ -2427,6 +2511,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
                 )}
               </div>
             </div>
+            )}
 
             {/* Tier limit banner */}
             <UpgradeBanner
@@ -2620,7 +2705,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
           {/* === FINANCES TAB (Earnings + Payments) === */}
           <TabsContent value="finances" className="space-y-6 pb-20 md:pb-0">
           <SectionErrorBoundary fallbackTitle="Finances couldn't load">
-            <div className="flex items-start justify-between gap-3">
+            {workspaceActive !== "money" ? <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-2xl font-bold">Finances</h2>
@@ -2628,7 +2713,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">Review earnings, completed work, payment setup, and your subscription.</p>
               </div>
-            </div>
+            </div> : null}
 
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Card>
@@ -3070,7 +3155,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
           </SectionErrorBoundary>
           </TabsContent>
         </Tabs>
-      </div>
+      </ProviderDashboardFrame>
 
       <ProviderBusinessProfileDialog open={profileEditorOpen} onOpenChange={setProfileEditorOpen} />
 

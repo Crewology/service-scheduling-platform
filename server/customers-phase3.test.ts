@@ -142,6 +142,7 @@ describe("Customers Phase 3 source contracts", () => {
   const welcome = fs.readFileSync(path.join(root, "client/src/components/customers/CustomersWelcomePopover.tsx"), "utf8");
   const detail = fs.readFileSync(path.join(root, "client/src/pages/ProviderCustomerDetail.tsx"), "utf8");
   const overview = fs.readFileSync(path.join(root, "client/src/pages/ProviderWorkspaceOverview.tsx"), "utf8");
+  const providerShell = fs.readFileSync(path.join(root, "client/src/components/provider/ProviderWorkspaceShell.tsx"), "utf8");
   const projectionSource = fs.readFileSync(path.join(root, "server/crm/projection.ts"), "utf8");
   const readModel = fs.readFileSync(path.join(root, "server/db/crm/readModel.ts"), "utf8");
   const analyticsSource = fs.readFileSync(path.join(root, "server/db/analytics.ts"), "utf8");
@@ -166,7 +167,8 @@ describe("Customers Phase 3 source contracts", () => {
 
   it("adds Customers to provider navigation only when private access is visible", () => {
     expect(overview).toContain("customersAccess?.visible");
-    expect(overview).toContain('href: "/provider/customers"');
+    expect(providerShell).toContain("customersVisible");
+    expect(providerShell).toContain('href: "/provider/customers"');
     expect(overview).toContain("Open Customers");
   });
 

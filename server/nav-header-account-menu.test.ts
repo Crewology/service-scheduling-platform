@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const root = resolve(__dirname, "..");
 const navHeader = readFileSync(resolve(root, "client/src/components/shared/NavHeader.tsx"), "utf8");
-const providerWorkspace = readFileSync(resolve(root, "client/src/pages/ProviderWorkspaceOverview.tsx"), "utf8");
+const providerWorkspace = readFileSync(resolve(root, "client/src/components/provider/ProviderWorkspaceShell.tsx"), "utf8");
 
 const desktopMenuStart = navHeader.indexOf("function UserMenuDropdown");
 const desktopMenuEnd = navHeader.indexOf("// Mobile menu tile data");
@@ -29,8 +29,8 @@ describe("NavHeader account menu", () => {
   });
 
   it("preserves My Page and My Calendar outside the desktop account dropdown", () => {
-    expect(providerWorkspace).toContain('{ label: "My Page", icon: Store');
-    expect(providerWorkspace).toContain('{ label: "My Calendar", icon: CalendarClock, href: "/provider/calendar" }');
+    expect(providerWorkspace).toContain('label: "My Page", icon: Store');
+    expect(providerWorkspace).toContain('label: "My Calendar", icon: CalendarClock, href: "/provider/calendar"');
     expect(mobileMenus).toContain('{ label: "My Page", icon: UserCircle, href: "/provider/my-page"');
     expect(mobileMenus).toContain("My Calendar");
   });

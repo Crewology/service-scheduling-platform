@@ -17,6 +17,7 @@ vi.mock("@/contexts/ViewModeContext", () => ({
 
 const projectRoot = resolve(import.meta.dirname, "..");
 const providerHomeSource = readFileSync(resolve(projectRoot, "client/src/pages/ProviderWorkspaceOverview.tsx"), "utf8");
+const providerShellSource = readFileSync(resolve(projectRoot, "client/src/components/provider/ProviderWorkspaceShell.tsx"), "utf8");
 const customerHomeSource = readFileSync(resolve(projectRoot, "client/src/pages/CustomerWorkspaceHome.tsx"), "utf8");
 
 describe("mobile provider/customer role toggle", () => {
@@ -28,7 +29,8 @@ describe("mobile provider/customer role toggle", () => {
   });
 
   it("is mounted on both approved mobile home experiences with the correct active role", () => {
-    expect(providerHomeSource).toContain('<MobileRoleViewToggle active="provider" />');
+    expect(providerHomeSource).toContain("<ProviderWorkspaceShell");
+    expect(providerShellSource).toContain('<MobileRoleViewToggle active="provider" />');
     expect(customerHomeSource).toContain('<MobileRoleViewToggle active="customer" />');
   });
 

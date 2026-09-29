@@ -5,19 +5,20 @@ import { describe, expect, it } from "vitest";
 const root = resolve(__dirname, "..");
 const providerDashboard = readFileSync(resolve(root, "client/src/pages/ProviderDashboard.tsx"), "utf8");
 const providerWorkspace = readFileSync(resolve(root, "client/src/pages/ProviderWorkspaceOverview.tsx"), "utf8");
+const providerWorkspaceShell = readFileSync(resolve(root, "client/src/components/provider/ProviderWorkspaceShell.tsx"), "utf8");
 const appRoutes = readFileSync(resolve(root, "client/src/App.tsx"), "utf8");
 
 describe("Provider Dashboard Bookings navigation", () => {
   it("routes both desktop and mobile Bookings controls to My Bookings", () => {
     const legacyDashboardLinks = providerDashboard.match(/<Link\s+href="\/my-bookings"/g) ?? [];
-    const activeWorkspaceLinks = providerWorkspace.match(/label: "Bookings", icon: CalendarDays, href: "\/my-bookings"/g) ?? [];
+    const activeWorkspaceLinks = providerWorkspaceShell.match(/label: "Bookings", icon: CalendarDays, href: "\/my-bookings"/g) ?? [];
 
     expect(legacyDashboardLinks).toHaveLength(2);
     expect(activeWorkspaceLinks).toHaveLength(2);
     expect(providerDashboard.match(/aria-label="Open My Bookings"/g)).toHaveLength(2);
     expect(providerDashboard).not.toContain('<TabsTrigger value="bookings"');
     expect(providerDashboard).not.toContain('{ value: "bookings", icon: Calendar, label: "Bookings" }');
-    expect(providerWorkspace).not.toContain('label: "Bookings", icon: CalendarDays, href: "/provider/dashboard?tab=bookings"');
+    expect(providerWorkspaceShell).not.toContain('label: "Bookings", icon: CalendarDays, href: "/provider/dashboard?tab=bookings"');
   });
 
   it("keeps the real My Bookings route and existing dashboard booking workspace intact", () => {
@@ -30,9 +31,9 @@ describe("Provider Dashboard Bookings navigation", () => {
 
 describe("Provider Dashboard My Page navigation", () => {
   it("routes the active Provider Workspace My Page item to the signed-in provider's public slug", () => {
-    expect(providerWorkspace).toContain('item.label === "My Page"');
-    expect(providerWorkspace).toContain('data?.provider.profileSlug ? `/${data.provider.profileSlug}` : item.href');
-    expect(providerWorkspace).toContain('{ label: "My Page", icon: Store, href: "/provider/dashboard?tab=my-page" }');
+    expect(providerWorkspace).toContain('profileSlug={data.provider.profileSlug}');
+    expect(providerWorkspaceShell).toContain('item.key === "page" && profileSlug');
+    expect(providerWorkspaceShell).toContain('{ key: "page", label: "My Page", icon: Store, href: "/provider/dashboard?tab=my-page" }');
   });
 
   it("routes both legacy desktop and mobile My Page controls to the public slug", () => {

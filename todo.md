@@ -3097,3 +3097,14 @@
 - [x] Keep earnings, completed bookings, Stripe setup/status/balances, payout dashboard, plan gating, and subscription management unchanged
 - [x] Add route, navigation, content, guard, and backwards-compatibility regressions
 - [x] Run focused/full tests, TypeScript, clean-diff, build, desktop/mobile review, and save a rollback checkpoint
+
+## Provider Workspace visual alignment — Bookings, Services, and Money
+
+- [x] Audit Provider Overview, dual-mode My Bookings, standalone Services/Finances wrappers, routes, and regression contracts.
+- [x] Extract one reusable Provider Workspace shell with canonical desktop/mobile navigation and accessible active-page state.
+- [x] Refactor Provider Overview to consume the shared shell while retaining its larger command-center hero and all existing data/actions.
+- [x] Apply the compact workspace header and shell only to provider-mode `/my-bookings`; retain the customer Bookings layout and behavior.
+- [x] Apply the compact workspace header and shell to `/provider/services` and `/provider/finances` while reusing existing ProviderDashboard content and mutations.
+- [x] Canonicalize shared Services navigation to `/provider/services`; retain legacy dashboard-tab and payout compatibility routes.
+- [x] Add focused source-contract regressions for shell reuse, canonical navigation, active state, customer/provider separation, and preserved service/finance behavior.
+- [x] Complete focused tests, TypeScript, diff validation, full regression suite, production build, responsive review, and final checkpoint.

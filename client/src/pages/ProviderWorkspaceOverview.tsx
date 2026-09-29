@@ -1,7 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { MobileRoleViewToggle } from "@/components/shared/MobileRoleViewToggle";
+import { ProviderWorkspaceShell } from "@/components/provider/ProviderWorkspaceShell";
 import { ProviderBusinessProfileDialog } from "@/components/provider/ProviderBusinessProfileDialog";
 import { ProviderPulseStat } from "@/components/workspace/ProviderPulseStat";
 import { trpc } from "@/lib/trpc";
@@ -14,12 +14,9 @@ import {
   CalendarDays,
   Check,
   ChevronRight,
-  CircleDollarSign,
   Clock3,
   FileText,
-  LayoutDashboard,
   MessageSquare,
-  MoreHorizontal,
   Pencil,
   Plus,
   ReceiptText,
@@ -31,15 +28,6 @@ import {
 import { useMemo, useState } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
-
-const baseProviderNav = [
-  { label: "Overview", icon: LayoutDashboard, href: "/" },
-  { label: "Bookings", icon: CalendarDays, href: "/my-bookings" },
-  { label: "Services", icon: BriefcaseBusiness, href: "/provider/dashboard?tab=services" },
-  { label: "My Calendar", icon: CalendarClock, href: "/provider/calendar" },
-  { label: "Money", icon: CircleDollarSign, href: "/provider/finances" },
-  { label: "My Page", icon: Store, href: "/provider/dashboard?tab=my-page" },
-];
 
 const attentionIcons = {
   booking: CalendarClock,
@@ -97,15 +85,6 @@ export default function ProviderWorkspaceOverview() {
   const [date] = useState(() => localDateKey());
   const { data, isLoading, error } = trpc.providerOverview.get.useQuery({ localDate: date });
   const { data: customersAccess } = trpc.customers.getAccess.useQuery();
-  const scopedProviderNav = baseProviderNav.map((item) =>
-    item.label === "My Page"
-      ? { ...item, href: data?.provider.profileSlug ? `/${data.provider.profileSlug}` : item.href }
-      : item,
-  );
-  const providerNav = customersAccess?.visible
-    ? [...scopedProviderNav.slice(0, 2), { label: "Customers", icon: Users, href: "/provider/customers" }, ...scopedProviderNav.slice(2)]
-    : scopedProviderNav;
-
   const firstName = user?.firstName || user?.name?.split(" ")[0] || "there";
   const todayLabel = useMemo(
     () => new Intl.DateTimeFormat(undefined, { weekday: "long", month: "long", day: "numeric" }).format(new Date()),
@@ -167,37 +146,14 @@ export default function ProviderWorkspaceOverview() {
 
   return (
     <>
-    <div className="container max-w-7xl py-5 pb-28 sm:py-8 lg:pb-10">
-      <MobileRoleViewToggle active="provider" />
-      <div className="grid gap-6 lg:grid-cols-[232px_minmax(0,1fr)]">
-        <aside className="hidden lg:block">
-          <div className="sticky top-24 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_18px_50px_-34px_rgba(15,23,42,0.45)]">
-            <div className="border-b border-slate-100 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">Provider workspace</p>
-              <p className="mt-1 truncate font-semibold text-slate-950">{data.provider.businessName}</p>
-              <p className="text-xs text-slate-500">{data.provider.isPageLive ? "Profile is live" : "Profile needs attention"}</p>
-            </div>
-            <nav className="p-2" aria-label="Provider workspace navigation">
-              {providerNav.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link key={item.label} href={item.href} title={`Open provider ${item.label.toLowerCase()}`} className={`mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 active:scale-[0.98] ${item.label === "Overview" ? "bg-[#eaf2ff] text-[#174a73]" : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"}`}>
-                    <Icon className="h-4 w-4" />
-                    <span className="flex-1">{item.label}</span>
-                    {item.label === "Bookings" && requestCount > 0 ? <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800">{requestCount}</span> : null}
-                  </Link>
-                );
-              })}
-            </nav>
-            <div className="border-t border-slate-100 p-2">
-              <Link href="/provider/dashboard?tab=settings" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50">
-                <MoreHorizontal className="h-4 w-4" />More
-              </Link>
-            </div>
-          </div>
-        </aside>
-
-        <main className="min-w-0">
+    <ProviderWorkspaceShell
+      active="overview"
+      businessName={data.provider.businessName}
+      profileSlug={data.provider.profileSlug}
+      isPageLive={data.provider.isPageLive}
+      customersVisible={customersAccess?.visible}
+      bookingBadgeCount={requestCount}
+    >
           <section className="relative overflow-hidden rounded-[28px] bg-[#123f63] px-5 py-6 text-white shadow-[0_24px_70px_-38px_rgba(18,63,99,0.8)] sm:px-8 sm:py-8">
             <div className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-cyan-300/10 blur-2xl" />
             <div className="relative flex flex-col justify-between gap-6 md:flex-row md:items-end">
@@ -274,13 +230,7 @@ export default function ProviderWorkspaceOverview() {
               <ProviderPulseStat icon={Star} label="Average rating" value={data.pulse.totalReviews > 0 ? data.pulse.averageRating.toFixed(1) : "New"} detail={`${data.pulse.totalReviews} ${data.pulse.totalReviews === 1 ? "review" : "reviews"}`} />
             </div>
           </section>
-        </main>
-      </div>
-
-      <nav className="fixed inset-x-3 bottom-3 z-30 grid grid-cols-5 rounded-2xl border border-slate-200 bg-white/95 p-1.5 shadow-2xl backdrop-blur lg:hidden" aria-label="Provider mobile navigation">
-        {([{ label: "Home", icon: LayoutDashboard, href: "/" }, { label: "Bookings", icon: CalendarDays, href: "/my-bookings" }, ...(customersAccess?.visible ? [{ label: "Customers", icon: Users, href: "/provider/customers" }] : [{ label: "Calendar", icon: CalendarClock, href: "/provider/calendar" }]), { label: "Money", icon: CircleDollarSign, href: "/provider/finances" }, { label: "More", icon: MoreHorizontal, href: "/provider/dashboard?tab=settings" }] as const).map((item) => { const Icon = item.icon; return <Link key={item.label} href={item.href} className={`flex flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-semibold ${item.label === "Home" ? "bg-blue-50 text-[#174a73]" : "text-slate-500"}`}><Icon className="h-4 w-4" />{item.label}</Link>; })}
-      </nav>
-    </div>
+    </ProviderWorkspaceShell>
     <ProviderBusinessProfileDialog open={profileEditorOpen} onOpenChange={setProfileEditorOpen} />
     </>
   );

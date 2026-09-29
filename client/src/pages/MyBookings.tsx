@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { getLoginUrl } from "@/const";
 import { formatTimeForDisplay } from "@shared/timeSlots";
 import { NavHeader } from "@/components/shared/NavHeader";
+import { ProviderWorkspacePageHeader, ProviderWorkspaceShell } from "@/components/provider/ProviderWorkspaceShell";
 import { toast } from "sonner";
 import { useOfflineBookings } from "@/hooks/useOfflineBookings";
 import { useViewMode } from "@/contexts/ViewModeContext";
@@ -37,6 +38,45 @@ import { Textarea } from "@/components/ui/textarea";
 import { BookingsSkeleton } from "@/components/DashboardSkeleton";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext, PaginationEllipsis } from "@/components/ui/pagination";
 import SectionErrorBoundary from "@/components/SectionErrorBoundary";
+
+function BookingsPageFrame({
+  providerMode,
+  businessName,
+  profileSlug,
+  customersVisible,
+  children,
+}: {
+  providerMode: boolean;
+  businessName?: string | null;
+  profileSlug?: string | null;
+  customersVisible?: boolean;
+  children: ReactNode;
+}) {
+  if (!providerMode) return <div className="container py-8 max-w-5xl">{children}</div>;
+
+  return (
+    <ProviderWorkspaceShell
+      active="bookings"
+      businessName={businessName}
+      profileSlug={profileSlug}
+      isPageLive={Boolean(profileSlug)}
+      customersVisible={customersVisible}
+      contentClassName="[&_[data-slot=card]]:rounded-2xl [&_[data-slot=card]]:border-slate-200 [&_[data-slot=card]]:shadow-[0_18px_50px_-42px_rgba(15,23,42,0.5)]"
+    >
+      <ProviderWorkspacePageHeader
+        eyebrow="Customer requests"
+        title="Bookings"
+        description="Review new requests, manage confirmed work, respond to quotes, and keep customer appointments moving."
+        actions={(
+          <Button asChild className="bg-white text-[#174a73] hover:bg-blue-50">
+            <Link href="/provider/calendar"><Calendar className="mr-2 h-4 w-4" />Open calendar</Link>
+          </Button>
+        )}
+      />
+      <div className="mt-6">{children}</div>
+    </ProviderWorkspaceShell>
+  );
+}
 
 export default function MyBookings() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -143,6 +183,9 @@ export default function MyBookings() {
   // === Provider-specific state & mutations ===
   const { data: providerProfile } = trpc.provider.getMyProfile.useQuery(undefined, {
     enabled: isAuthenticated && canSwitch,
+  });
+  const { data: customersAccess } = trpc.customers.getAccess.useQuery(undefined, {
+    enabled: isAuthenticated && isProviderView,
   });
   const { data: providerQuotes } = trpc.provider.providerQuotes.useQuery(undefined, {
     enabled: isAuthenticated && !!providerProfile,
@@ -291,7 +334,12 @@ export default function MyBookings() {
     <div className="min-h-screen bg-background">
       <NavHeader />
 
-      <div className="container py-8 max-w-5xl">
+      <BookingsPageFrame
+        providerMode={bookingView === "provider" && canSwitch}
+        businessName={providerProfile?.businessName}
+        profileSlug={providerProfile?.profileSlug}
+        customersVisible={customersAccess?.visible}
+      >
         {/* Offline / Cached Data Banner */}
         {(isOffline || isUsingCache) && (
           <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800 p-4">
@@ -329,7 +377,7 @@ export default function MyBookings() {
 
 
 
-        <div className="mb-8 flex flex-col sm:flex-row items-start justify-between gap-4">
+        {bookingView !== "provider" || !canSwitch ? <div className="mb-8 flex flex-col sm:flex-row items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl sm:text-3xl font-bold">
@@ -405,7 +453,7 @@ export default function MyBookings() {
             </DropdownMenuContent>
           </DropdownMenu>}
           </div>
-        </div>
+        </div> : null}
 
         {/* Search Bar */}
         <div className="mb-6">
@@ -566,7 +614,7 @@ export default function MyBookings() {
           </TabsContent>
         </Tabs>
         </SectionErrorBoundary>
-      </div>
+      </BookingsPageFrame>
 
       {/* Delete (Hide) Booking Confirmation */}
       <AlertDialog open={!!deleteBookingId} onOpenChange={(open) => !open && setDeleteBookingId(null)}>

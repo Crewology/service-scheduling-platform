@@ -11,7 +11,7 @@ export function ProviderBookings() {
 }
 
 export function ProviderServices() {
-  return <ProviderDashboard initialTab="services" hideChrome={true} />;
+  return <ProviderDashboard initialTab="services" hideChrome={true} workspaceActive="services" />;
 }
 
 export function ProviderAnalytics() {
@@ -23,7 +23,7 @@ export function ProviderPayouts() {
 }
 
 export function ProviderFinances() {
-  return <ProviderDashboard initialTab="finances" hideChrome={true} />;
+  return <ProviderDashboard initialTab="finances" hideChrome={true} workspaceActive="money" />;
 }
 
 export function ProviderPortfolio() {

@@ -9,6 +9,7 @@ const appSource = readSource("client/src/App.tsx");
 const tabPageSource = readSource("client/src/pages/ProviderTabPage.tsx");
 const dashboardSource = readSource("client/src/pages/ProviderDashboard.tsx");
 const workspaceSource = readSource("client/src/pages/ProviderWorkspaceOverview.tsx");
+const workspaceShellSource = readSource("client/src/components/provider/ProviderWorkspaceShell.tsx");
 const customersSource = readSource("client/src/pages/ProviderCustomers.tsx");
 const crmReadModelSource = readSource("server/db/crm/readModel.ts");
 
@@ -21,7 +22,7 @@ describe("dedicated provider Finances page", () => {
 
   it("reuses the complete existing Finances tab instead of duplicating finance logic", () => {
     expect(tabPageSource).toContain("export function ProviderFinances()");
-    expect(tabPageSource).toContain('<ProviderDashboard initialTab="finances" hideChrome={true} />');
+    expect(tabPageSource).toContain('<ProviderDashboard initialTab="finances" hideChrome={true} workspaceActive="money" />');
     for (const content of [
       "Total Earnings",
       "This Month",
@@ -38,9 +39,10 @@ describe("dedicated provider Finances page", () => {
   });
 
   it("points provider workspace Money navigation to the canonical page", () => {
-    expect(workspaceSource.match(/label: "Money", icon: CircleDollarSign, href: "\/provider\/finances"/g)).toHaveLength(2);
+    expect(workspaceSource).toContain('active="overview"');
+    expect(workspaceShellSource).toContain('{ key: "money", label: "Money", icon: CircleDollarSign, href: "/provider/finances" }');
     expect(customersSource).toContain('{ label: "Money", icon: CircleDollarSign, href: "/provider/finances" }');
-    expect(workspaceSource).not.toContain("/provider/dashboard?tab=finances");
+    expect(workspaceShellSource).not.toContain("/provider/dashboard?tab=finances");
     expect(customersSource).not.toContain("/provider/dashboard?tab=finances");
   });
 
