@@ -358,16 +358,44 @@ export const customerSubscriptionRouter = router({
       targetTier: z.enum(["free", "pro"]),
     }))
     .mutation(async ({ ctx, input }) => {
-      const currentTier = await db.getCustomerTier(ctx.user.id);
       const targetTier = input.targetTier;
+      const sub = await db.getCustomerSubscription(ctx.user.id);
+      const entitlement = resolveCustomerEntitlement(sub);
+      const currentTier = entitlement.effectiveTier;
+
+      // Trial expiry already resolves access to Individual before this button is
+      // clicked. Treat confirming that effective free tier as an idempotent
+      // acknowledgement: no Stripe cancellation, checkout, or notification.
+      if (
+        targetTier === "free" &&
+        currentTier === "free" &&
+        (entitlement.state === "trial_expired" || sub?.tier === "free")
+      ) {
+        const alreadyNormalized = !!sub && sub.tier === "free" && sub.status === "active" && !sub.cancelAtPeriodEnd;
+        if (sub && !alreadyNormalized) {
+          await db.upsertCustomerSubscription({
+            userId: ctx.user.id,
+            tier: "free",
+            status: "active",
+            cancelAtPeriodEnd: false,
+            currentPeriodStart: undefined,
+            currentPeriodEnd: undefined,
+          });
+        }
+
+        return {
+          success: true,
+          newTier: "free" as const,
+          unchanged: alreadyNormalized,
+          message: "You're continuing with the Individual plan.",
+        };
+      }
 
       // Validate this is actually a downgrade
       const tierOrder: Record<string, number> = { free: 0, pro: 1, business: 2 };
       if (tierOrder[targetTier] >= tierOrder[currentTier]) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Target tier must be lower than current tier" });
       }
-
-      const sub = await db.getCustomerSubscription(ctx.user.id);
 
       // If downgrading to free, schedule cancellation at period end
       // This allows the user to re-upgrade without being charged again

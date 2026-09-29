@@ -3,6 +3,7 @@ import { Clock, Zap, ArrowRight, X, Sparkles, AlertTriangle } from "lucide-react
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
 
 /**
  * CustomerTrialCountdownBanner — Shows during active customer trial.
@@ -114,11 +115,15 @@ export function CustomerTrialExpiredGate({ onDowngrade }: { onDowngrade?: () => 
   const [, navigate] = useLocation();
   const utils = trpc.useUtils();
   const downgrade = trpc.customerSubscription.downgrade.useMutation({
-    onSuccess: () => {
-      utils.customerSubscription.getSubscription.invalidate();
-      utils.customerSubscription.checkTrialStatus.invalidate();
+    onSuccess: async (data) => {
+      toast.success(data.message || "You're continuing with the Individual plan.");
+      await Promise.all([
+        utils.customerSubscription.getSubscription.invalidate(),
+        utils.customerSubscription.checkTrialStatus.invalidate(),
+      ]);
       onDowngrade?.();
     },
+    onError: (error) => toast.error(error.message || "We couldn't continue with Individual. Please try again."),
   });
 
   return (
@@ -140,6 +145,7 @@ export function CustomerTrialExpiredGate({ onDowngrade }: { onDowngrade?: () => 
             size="lg"
             className="w-full"
             onClick={() => navigate("/customer/subscription")}
+            aria-label="View customer subscription plans"
           >
             <Zap className="h-4 w-4 mr-2" />
             Subscribe to Continue — Starting at $12/mo
@@ -151,6 +157,7 @@ export function CustomerTrialExpiredGate({ onDowngrade }: { onDowngrade?: () => 
             className="w-full"
             onClick={() => downgrade.mutate({ targetTier: "free" })}
             disabled={downgrade.isPending}
+            aria-label="Continue with Individual plan"
           >
             {downgrade.isPending ? "Downgrading..." : "Continue with Individual Plan (Limited Features)"}
           </Button>

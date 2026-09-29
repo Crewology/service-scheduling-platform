@@ -505,6 +505,35 @@ export const subscriptionRouter = router({
 
       const currentTier = sub.tier;
       const targetTier = input.targetTier;
+      const entitlement = resolveProviderEntitlement(sub);
+
+      // Trial expiry already resolves access to Starter before this button is
+      // clicked. Treat confirming that effective free tier as an idempotent
+      // acknowledgement: no Stripe cancellation, checkout, or notification.
+      if (
+        targetTier === "free" &&
+        entitlement.effectiveTier === "free" &&
+        (entitlement.state === "trial_expired" || sub.tier === "free")
+      ) {
+        const alreadyNormalized = sub.tier === "free" && sub.status === "active" && !sub.cancelAtPeriodEnd;
+        if (!alreadyNormalized) {
+          await db.upsertProviderSubscription({
+            providerId: provider.id,
+            tier: "free",
+            status: "active",
+            cancelAtPeriodEnd: false,
+            currentPeriodStart: undefined,
+            currentPeriodEnd: undefined,
+          });
+        }
+
+        return {
+          success: true,
+          newTier: "free" as const,
+          unchanged: alreadyNormalized,
+          message: "You're continuing with Starter (Free).",
+        };
+      }
 
       // Validate this is actually a downgrade
       const tierOrder: Record<string, number> = { free: 0, basic: 1, premium: 2 };

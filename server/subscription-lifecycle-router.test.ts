@@ -111,6 +111,48 @@ describe("provider subscription lifecycle mutations", () => {
     stripeMocks.prices.list.mockResolvedValue({ data: [{ id: "price_provider", unit_amount: 2_000, recurring: { interval: "month" } }] });
   });
 
+  it("continues an already-expired provider trial on Starter without touching Stripe", async () => {
+    dbMocks.getProviderSubscription.mockResolvedValue({
+      providerId: 501,
+      tier: "free",
+      status: "active",
+      trialEndsAt: new Date(Date.now() - 86_400_000),
+      stripeSubscriptionId: null,
+      cancelAtPeriodEnd: false,
+    });
+
+    const result = await subscriptionRouter.createCaller(ctx()).downgrade({ targetTier: "free" });
+
+    expect(result).toMatchObject({ success: true, newTier: "free", unchanged: true });
+    expect(stripeMocks.subscriptions.retrieve).not.toHaveBeenCalled();
+    expect(stripeMocks.subscriptions.update).not.toHaveBeenCalled();
+    expect(stripeMocks.checkout.sessions.create).not.toHaveBeenCalled();
+    expect(dbMocks.upsertProviderSubscription).not.toHaveBeenCalled();
+  });
+
+  it("normalizes a stale expired provider trial to Starter without touching Stripe", async () => {
+    dbMocks.getProviderSubscription.mockResolvedValue({
+      providerId: 501,
+      tier: "basic",
+      status: "trialing",
+      trialEndsAt: new Date(Date.now() - 86_400_000),
+      stripeSubscriptionId: null,
+      cancelAtPeriodEnd: false,
+    });
+
+    const result = await subscriptionRouter.createCaller(ctx()).downgrade({ targetTier: "free" });
+
+    expect(result).toMatchObject({ success: true, newTier: "free", unchanged: false });
+    expect(dbMocks.upsertProviderSubscription).toHaveBeenCalledWith(expect.objectContaining({
+      providerId: 501,
+      tier: "free",
+      status: "active",
+      cancelAtPeriodEnd: false,
+    }));
+    expect(stripeMocks.subscriptions.update).not.toHaveBeenCalled();
+    expect(stripeMocks.checkout.sessions.create).not.toHaveBeenCalled();
+  });
+
   it("keeps paid access through the current period when scheduling Starter", async () => {
     dbMocks.getProviderSubscription.mockResolvedValue({
       providerId: 501,
@@ -202,8 +244,64 @@ describe("customer subscription lifecycle mutations", () => {
     stripeMocks.prices.list.mockResolvedValue({ data: [{ id: "price_customer", unit_amount: 2_000, recurring: { interval: "month" } }] });
   });
 
+  it("continues an already-expired customer trial on Individual without touching Stripe", async () => {
+    dbMocks.getCustomerSubscription.mockResolvedValue({
+      userId: 101,
+      tier: "free",
+      status: "active",
+      trialEndsAt: new Date(Date.now() - 86_400_000),
+      stripeSubscriptionId: null,
+      cancelAtPeriodEnd: false,
+    });
+
+    const result = await customerSubscriptionRouter.createCaller(ctx("customer")).downgrade({ targetTier: "free" });
+
+    expect(result).toMatchObject({ success: true, newTier: "free", unchanged: true });
+    expect(stripeMocks.subscriptions.retrieve).not.toHaveBeenCalled();
+    expect(stripeMocks.subscriptions.update).not.toHaveBeenCalled();
+    expect(stripeMocks.checkout.sessions.create).not.toHaveBeenCalled();
+    expect(dbMocks.upsertCustomerSubscription).not.toHaveBeenCalled();
+  });
+
+  it("normalizes a stale expired customer trial to Individual without touching Stripe", async () => {
+    dbMocks.getCustomerSubscription.mockResolvedValue({
+      userId: 101,
+      tier: "pro",
+      status: "trialing",
+      trialEndsAt: new Date(Date.now() - 86_400_000),
+      stripeSubscriptionId: null,
+      cancelAtPeriodEnd: false,
+    });
+
+    const result = await customerSubscriptionRouter.createCaller(ctx("customer")).downgrade({ targetTier: "free" });
+
+    expect(result).toMatchObject({ success: true, newTier: "free", unchanged: false });
+    expect(dbMocks.upsertCustomerSubscription).toHaveBeenCalledWith(expect.objectContaining({
+      userId: 101,
+      tier: "free",
+      status: "active",
+      cancelAtPeriodEnd: false,
+    }));
+    expect(stripeMocks.subscriptions.update).not.toHaveBeenCalled();
+    expect(stripeMocks.checkout.sessions.create).not.toHaveBeenCalled();
+  });
+
+  it("does not treat a suspended paid customer subscription as an expired-trial continuation", async () => {
+    dbMocks.getCustomerSubscription.mockResolvedValue({
+      userId: 101,
+      tier: "pro",
+      status: "past_due",
+      stripeSubscriptionId: "sub_customer",
+      cancelAtPeriodEnd: false,
+    });
+
+    await expect(customerSubscriptionRouter.createCaller(ctx("customer")).downgrade({ targetTier: "free" }))
+      .rejects.toMatchObject({ code: "BAD_REQUEST" });
+    expect(dbMocks.upsertCustomerSubscription).not.toHaveBeenCalled();
+    expect(stripeMocks.subscriptions.update).not.toHaveBeenCalled();
+  });
+
   it("keeps Coordinator access through the current period when scheduling Individual", async () => {
-    dbMocks.getCustomerTier.mockResolvedValue("pro");
     dbMocks.getCustomerSubscription.mockResolvedValue({
       userId: 101,
       tier: "pro",

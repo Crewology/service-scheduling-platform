@@ -3050,3 +3050,11 @@
 - [x] Point the mobile floating Bookings navigation item to `/my-bookings`
 - [x] Preserve the existing dashboard sections, booking data, detail actions, and provider/customer view behavior
 - [x] Add a navigation regression, run TypeScript and build checks, review desktop/mobile, and save a rollback checkpoint
+
+## Trial-Ended Action Buttons — 2026-09-29
+- [x] Trace customer and provider Subscribe and Continue actions through UI, tRPC, lifecycle resolution, and Stripe boundaries
+- [x] Identify the expired-trial defect: the status query first activates the free tier, then the Continue button submits a second downgrade that is rejected as not lower
+- [x] Make expired-trial continuation idempotent for both Individual and Starter without cancelling, charging, or creating Stripe records
+- [x] Add clear pending, success, and failure feedback and ensure Subscribe routes to the correct plan-management page
+- [x] Add customer/provider backend behavior and rendered UI interaction regressions
+- [x] Run focused/full tests, TypeScript, clean-diff, build, responsive contract review, zero-external-write verification, and save a rollback checkpoint
