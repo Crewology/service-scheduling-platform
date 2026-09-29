@@ -22,6 +22,10 @@ export function ProviderPayouts() {
   return <ProviderDashboard initialTab="finances" hideChrome={true} />;
 }
 
+export function ProviderFinances() {
+  return <ProviderDashboard initialTab="finances" hideChrome={true} />;
+}
+
 export function ProviderPortfolio() {
   return <ProviderDashboard initialTab="services" hideChrome={true} />;
 }

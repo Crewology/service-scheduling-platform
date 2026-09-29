@@ -2620,10 +2620,13 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
           {/* === FINANCES TAB (Earnings + Payments) === */}
           <TabsContent value="finances" className="space-y-6 pb-20 md:pb-0">
           <SectionErrorBoundary fallbackTitle="Finances couldn't load">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <h2 className="text-2xl font-bold">Earnings</h2>
-                <HelpTip text="Track your income from completed bookings. Earnings are deposited to your connected Stripe account. Pending payouts reflect confirmed bookings not yet completed." variant="info" />
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl font-bold">Finances</h2>
+                  <HelpTip text="Track your income from completed bookings. Earnings are deposited to your connected Stripe account. Pending payouts reflect confirmed bookings not yet completed." variant="info" />
+                </div>
+                <p className="mt-1 text-sm text-muted-foreground">Review earnings, completed work, payment setup, and your subscription.</p>
               </div>
             </div>
 

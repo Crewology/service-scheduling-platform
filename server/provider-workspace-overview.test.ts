@@ -67,6 +67,8 @@ describe("provider workspace Overview", () => {
     }
     expect(overviewSource.match(/label: "Bookings", icon: CalendarDays, href: "\/my-bookings"/g)).toHaveLength(2);
     expect(overviewSource.match(/href(?:: |\=)"\/provider\/calendar"/g)).toHaveLength(3);
+    expect(overviewSource.match(/label: "Money", icon: CircleDollarSign, href: "\/provider\/finances"/g)).toHaveLength(2);
+    expect(overviewSource).not.toContain("/provider/dashboard?tab=finances");
     expect(overviewSource).not.toContain("/provider/dashboard?tab=schedule");
   });
 

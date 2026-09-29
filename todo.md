@@ -3089,3 +3089,11 @@
 - [x] Preserve profile-photo cropping, logo upload/removal, provider-owned tRPC updates, OG/trust invalidation, and existing public-page access through My Page
 - [x] Add rendered open/prefill/save/error/loading regressions plus source contracts preventing the old public-page action from returning
 - [x] Run focused/full tests, TypeScript, clean-diff, build, desktop/mobile responsive review, and save a rollback checkpoint
+
+## Dedicated Provider Finances Page — 2026-09-29
+- [x] Add a protected `/provider/finances` page that reuses the complete existing Finances tab content and Stripe/subscription behavior
+- [x] Point the Provider Workspace desktop and mobile Money links to the new page
+- [x] Align provider Customers and payment-activity links with the new canonical Finances route while preserving old tab and `/provider/payouts` compatibility
+- [x] Keep earnings, completed bookings, Stripe setup/status/balances, payout dashboard, plan gating, and subscription management unchanged
+- [x] Add route, navigation, content, guard, and backwards-compatibility regressions
+- [x] Run focused/full tests, TypeScript, clean-diff, build, desktop/mobile review, and save a rollback checkpoint

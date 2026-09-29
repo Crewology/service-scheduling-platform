@@ -81,7 +81,7 @@ function ProviderCustomersNav({ active, businessName }: { active: "customers" | 
     { label: "Overview", icon: LayoutDashboard, href: "/" },
     { label: "Bookings", icon: CalendarDays, href: "/provider/dashboard?tab=bookings" },
     { label: "Customers", icon: Users, href: "/provider/customers" },
-    { label: "Money", icon: CircleDollarSign, href: "/provider/dashboard?tab=finances" },
+    { label: "Money", icon: CircleDollarSign, href: "/provider/finances" },
     { label: "More", icon: MoreHorizontal, href: "/provider/dashboard?tab=settings" },
   ];
   return (

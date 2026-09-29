@@ -13,7 +13,7 @@ function eventSourceHref(event: { entityType: string; entityId: number; metadata
   if (event.entityType === "booking") return `/booking/${event.entityId}/detail`;
   if (event.entityType === "quote") return "/provider/quotes";
   if (event.entityType === "invoice") return "/provider/invoices";
-  if (event.entityType === "payment") return "/provider/dashboard?tab=finances";
+  if (event.entityType === "payment") return "/provider/finances";
   if (event.entityType === "review") return "/provider/reviews";
   if (event.entityType === "message") {
     const bookingId = typeof metadata.bookingId === "number" ? metadata.bookingId : null;
