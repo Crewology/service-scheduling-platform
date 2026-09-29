@@ -3075,3 +3075,9 @@
 - [x] Align the Today card and conditional mobile Calendar shortcuts with the dedicated provider calendar page
 - [x] Preserve calendar data, availability settings, and the rest of the workspace navigation
 - [x] Add navigation regressions, run TypeScript and build checks, review desktop/mobile, and save a rollback checkpoint
+
+## Desktop Account Dropdown My Calendar Cleanup — 2026-09-29
+- [x] Remove My Calendar only from the desktop account dropdown shown in the screenshot
+- [x] Remove the dropdown’s now-unneeded provider-profile query
+- [x] Preserve My Calendar in the Provider Workspace and the separate mobile menu
+- [x] Update the menu-scope regression, run TypeScript and build checks, and save a rollback checkpoint

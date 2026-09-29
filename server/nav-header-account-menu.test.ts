@@ -14,21 +14,24 @@ const mobileMenuStart = navHeader.indexOf("const MOBILE_PROVIDER_TILES");
 const mobileMenus = navHeader.slice(mobileMenuStart);
 
 describe("NavHeader account menu", () => {
-  it("removes My Page from the desktop account dropdown only", () => {
+  it("removes My Page and My Calendar from the desktop account dropdown only", () => {
     expect(desktopMenuStart).toBeGreaterThanOrEqual(0);
     expect(desktopMenuEnd).toBeGreaterThan(desktopMenuStart);
     expect(desktopAccountMenu).not.toContain("My Page");
-    expect(desktopAccountMenu).not.toContain("providerProfile.profileSlug");
+    expect(desktopAccountMenu).not.toContain("My Calendar");
+    expect(desktopAccountMenu).not.toContain("provider.getMyProfile.useQuery");
   });
 
   it("preserves the remaining account dropdown destinations", () => {
-    for (const label of ["My Account", "My Calendar", "My Subscription", "Billing History", "Settings", "Help", "Log Out"]) {
+    for (const label of ["My Account", "My Subscription", "Billing History", "Settings", "Help", "Log Out"]) {
       expect(desktopAccountMenu).toContain(label);
     }
   });
 
-  it("preserves My Page in the provider dashboard and separate mobile menu", () => {
+  it("preserves My Page and My Calendar outside the desktop account dropdown", () => {
     expect(providerWorkspace).toContain('{ label: "My Page", icon: Store');
+    expect(providerWorkspace).toContain('{ label: "My Calendar", icon: CalendarClock, href: "/provider/calendar" }');
     expect(mobileMenus).toContain('{ label: "My Page", icon: UserCircle, href: "/provider/my-page"');
+    expect(mobileMenus).toContain("My Calendar");
   });
 });
