@@ -1698,6 +1698,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
   const pendingBookings = bookings?.filter(b => b.status === "pending").length || 0;
   const confirmedBookings = bookings?.filter(b => b.status === "confirmed").length || 0;
   const totalServices = services?.length || 0;
+  const providerPublicPageHref = provider.profileSlug ? `/${provider.profileSlug}` : null;
 
   const openEditProfile = () => {
     setProfileForm({
@@ -1968,7 +1969,15 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
               <TabsTrigger value="services" className="flex-1 text-sm px-3 py-2"><Package className="h-4 w-4 mr-1.5" />Services</TabsTrigger>
               <TabsTrigger value="schedule" className="flex-1 text-sm px-3 py-2"><Clock className="h-4 w-4 mr-1.5" />Schedule</TabsTrigger>
               <TabsTrigger value="finances" className="flex-1 text-sm px-3 py-2"><DollarSign className="h-4 w-4 mr-1.5" />Finances</TabsTrigger>
-              <TabsTrigger value="my-page" className="flex-1 text-sm px-3 py-2"><Globe className="h-4 w-4 mr-1.5" />My Page</TabsTrigger>
+              {providerPublicPageHref ? (
+                <Button asChild variant="ghost" size="sm" className="h-auto flex-1 px-3 py-2 text-sm">
+                  <Link href={providerPublicPageHref} aria-label="Open my public provider page">
+                    <Globe className="h-4 w-4 mr-1.5" />My Page
+                  </Link>
+                </Button>
+              ) : (
+                <TabsTrigger value="my-page" className="flex-1 text-sm px-3 py-2"><Globe className="h-4 w-4 mr-1.5" />My Page</TabsTrigger>
+              )}
               <TabsTrigger value="settings" className="flex-1 text-sm px-3 py-2"><Settings className="h-4 w-4 mr-1.5" />More</TabsTrigger>
             </TabsList>
           </div>}
@@ -1987,8 +1996,6 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
                 { value: "services", icon: Package, label: "Services" },
                 { value: "schedule", icon: Clock, label: "Schedule" },
                 { value: "finances", icon: DollarSign, label: "Finances" },
-                { value: "my-page", icon: Globe, label: "My Page" },
-                { value: "settings", icon: Settings, label: "More" },
               ].map(({ value, icon: Icon, label }) => (
                 <button
                   key={value}
@@ -2003,6 +2010,33 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
                   {label}
                 </button>
               ))}
+              {providerPublicPageHref ? (
+                <Link
+                  href={providerPublicPageHref}
+                  aria-label="Open my public provider page"
+                  className="flex flex-col items-center justify-center gap-0.5 text-[10px] text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                >
+                  <Globe className="h-5 w-5" />
+                  My Page
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => { setActiveTab("my-page"); document.getElementById("dashboard-tabs")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
+                  className={`flex flex-col items-center justify-center gap-0.5 text-[10px] transition-colors ${activeTab === "my-page" ? "text-primary font-semibold" : "text-muted-foreground hover:text-foreground"}`}
+                >
+                  <Globe className={`h-5 w-5 ${activeTab === "my-page" ? "text-primary" : ""}`} />
+                  My Page
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => { setActiveTab("settings"); document.getElementById("dashboard-tabs")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
+                className={`flex flex-col items-center justify-center gap-0.5 text-[10px] transition-colors ${activeTab === "settings" ? "text-primary font-semibold" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                <Settings className={`h-5 w-5 ${activeTab === "settings" ? "text-primary" : ""}`} />
+                More
+              </button>
             </div>
           </div>}
 

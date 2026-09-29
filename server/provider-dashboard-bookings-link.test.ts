@@ -27,3 +27,23 @@ describe("Provider Dashboard Bookings navigation", () => {
     expect(providerDashboard).toContain('href={`/booking/${booking.id}/detail`}');
   });
 });
+
+describe("Provider Dashboard My Page navigation", () => {
+  it("routes the active Provider Workspace My Page item to the signed-in provider's public slug", () => {
+    expect(providerWorkspace).toContain('item.label === "My Page"');
+    expect(providerWorkspace).toContain('data?.provider.profileSlug ? `/${data.provider.profileSlug}` : item.href');
+    expect(providerWorkspace).toContain('{ label: "My Page", icon: Store, href: "/provider/dashboard?tab=my-page" }');
+  });
+
+  it("routes both legacy desktop and mobile My Page controls to the public slug", () => {
+    expect(providerDashboard).toContain('const providerPublicPageHref = provider.profileSlug ? `/${provider.profileSlug}` : null;');
+    expect(providerDashboard.match(/aria-label="Open my public provider page"/g)).toHaveLength(2);
+    expect(providerDashboard.match(/href=\{providerPublicPageHref\}/g)).toHaveLength(2);
+  });
+
+  it("retains setup access when a provider has not created a public slug", () => {
+    expect(providerDashboard).toContain('<TabsTrigger value="my-page"');
+    expect(providerDashboard).toContain('setActiveTab("my-page")');
+    expect(appRoutes).toContain('<Route path="/:slug" component={PublicProviderProfile} />');
+  });
+});

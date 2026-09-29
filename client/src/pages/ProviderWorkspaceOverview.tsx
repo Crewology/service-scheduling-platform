@@ -94,9 +94,14 @@ export default function ProviderWorkspaceOverview() {
   const [date] = useState(() => localDateKey());
   const { data, isLoading, error } = trpc.providerOverview.get.useQuery({ localDate: date });
   const { data: customersAccess } = trpc.customers.getAccess.useQuery();
+  const scopedProviderNav = baseProviderNav.map((item) =>
+    item.label === "My Page"
+      ? { ...item, href: data?.provider.profileSlug ? `/${data.provider.profileSlug}` : item.href }
+      : item,
+  );
   const providerNav = customersAccess?.visible
-    ? [...baseProviderNav.slice(0, 2), { label: "Customers", icon: Users, href: "/provider/customers" }, ...baseProviderNav.slice(2)]
-    : baseProviderNav;
+    ? [...scopedProviderNav.slice(0, 2), { label: "Customers", icon: Users, href: "/provider/customers" }, ...scopedProviderNav.slice(2)]
+    : scopedProviderNav;
 
   const firstName = user?.firstName || user?.name?.split(" ")[0] || "there";
   const todayLabel = useMemo(

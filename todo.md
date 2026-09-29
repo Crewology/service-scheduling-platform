@@ -3058,3 +3058,9 @@
 - [x] Add clear pending, success, and failure feedback and ensure Subscribe routes to the correct plan-management page
 - [x] Add customer/provider backend behavior and rendered UI interaction regressions
 - [x] Run focused/full tests, TypeScript, clean-diff, build, responsive contract review, zero-external-write verification, and save a rollback checkpoint
+
+## Provider Dashboard My Page Link — 2026-09-29
+- [x] Route the active desktop Provider Workspace My Page link to the authenticated provider’s canonical public profile URL
+- [x] Route the legacy desktop and mobile Provider Dashboard My Page controls to the same public profile URL
+- [x] Preserve a safe My Page setup fallback when a provider has not created a public profile slug
+- [x] Add navigation regressions, run TypeScript and build checks, review desktop/mobile behavior, and save a rollback checkpoint
