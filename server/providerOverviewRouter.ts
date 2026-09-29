@@ -4,12 +4,15 @@ import { getCustomerRetention } from "./db/analytics";
 import { getProviderBookings } from "./db/bookings";
 import { getInvoicesByProvider } from "./db/invoices";
 import { getProviderSubscription } from "./db/payments";
+import { getPortfolioByProvider } from "./db/portfolio";
 import { getProviderByUserId, getProviderEarnings } from "./db/providers";
 import { getQuotesByProvider } from "./db/quotes";
-import { getServicesByProviderId } from "./db/services";
+import { getProviderCategories, getServicesByProviderId } from "./db/services";
+import { getAvailabilityByProvider } from "./db/availability";
 import { getUserById } from "./db/users";
 import {
   ACTIVE_PROVIDER_BOOKING_STATUSES,
+  buildProviderSetupProgress,
   formatProviderDate,
   formatProviderTime,
   hasProviderScheduleConflict,
@@ -31,19 +34,32 @@ export const providerOverviewRouter = router({
       const provider = await getProviderByUserId(ctx.user.id);
       if (!provider) return null;
 
-      const [bookings, services, quotes, subscription, earnings, retention] = await Promise.all([
+      const [bookings, services, quotes, subscription, earnings, retention, categories, portfolio, availability, providerUser] = await Promise.all([
         getProviderBookings(provider.id),
         getServicesByProviderId(provider.id),
         getQuotesByProvider(provider.id),
         getProviderSubscription(provider.id),
         getProviderEarnings(provider.id),
         getCustomerRetention(provider.id),
+        getProviderCategories(provider.id),
+        getPortfolioByProvider(provider.id),
+        getAvailabilityByProvider(provider.id),
+        getUserById(provider.userId),
       ]);
 
       const entitlement = resolveProviderEntitlement(subscription);
       const tier = entitlement.effectiveTier;
       const canUseInvoices = providerHasFeature(tier, "invoicing");
       const canCollectPayments = providerHasFeature(tier, "paymentCollection");
+      const setup = buildProviderSetupProgress({
+        hasPhoto: Boolean(providerUser?.profilePhotoUrl),
+        hasBio: Boolean(provider.description && provider.description.length > 10),
+        hasCategories: categories.length > 0,
+        hasServices: services.length > 0,
+        hasAvailability: availability.length > 0,
+        hasPortfolio: portfolio.length > 0,
+        hasStripe: canCollectPayments && provider.payoutEnabled === true && Boolean(provider.stripeAccountId),
+      });
       const invoices = canUseInvoices ? await getInvoicesByProvider(provider.id) : [];
       const serviceNames = new Map(services.map((service) => [service.id, service.name]));
       const activeStatuses = ACTIVE_PROVIDER_BOOKING_STATUSES;
@@ -171,6 +187,7 @@ export const providerOverviewRouter = router({
         },
         tier,
         canUseInvoices,
+        setup,
         attention,
         today,
         todayHasConflict,

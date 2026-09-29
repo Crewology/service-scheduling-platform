@@ -3131,3 +3131,14 @@
 - [x] Add provider-guard, route, content-reuse, canonical-navigation, and compatibility regressions.
 - [x] Verify desktop and 390px mobile layouts.
 - [x] Complete the full regression suite, production build, cleanup verification, and rollback checkpoint.
+
+
+## Provider Overview — compact setup checklist
+
+- [x] Keep the checklist on Provider Overview, directly below the welcome header and above Needs Attention.
+- [x] Reuse the established seven completion criteria: photo, bio, categories, services, availability, portfolio, and Stripe readiness.
+- [x] Show progress and only the next action by default, with an accessible View all steps expansion.
+- [x] Preserve Edit Profile, onboarding, new-service, availability, portfolio-upload, and Stripe setup destinations.
+- [x] Keep dismissal local and automatically hide the card whenever all seven steps are complete.
+- [x] Verify the incomplete 5-of-7 state at desktop and 390px mobile sizes, then restore live account data.
+- [x] Complete the full regression suite, production build, cleanup verification, and rollback checkpoint.

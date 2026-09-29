@@ -1,5 +1,101 @@
 export const ACTIVE_PROVIDER_BOOKING_STATUSES = new Set(["pending", "confirmed", "in_progress"]);
 
+export type ProviderSetupStepId =
+  | "photo"
+  | "bio"
+  | "categories"
+  | "services"
+  | "availability"
+  | "portfolio"
+  | "stripe";
+
+export type ProviderSetupStep = {
+  id: ProviderSetupStepId;
+  label: string;
+  description: string;
+  done: boolean;
+  actionLabel: string;
+  href: string;
+};
+
+export function buildProviderSetupProgress(status: {
+  hasPhoto: boolean;
+  hasBio: boolean;
+  hasCategories: boolean;
+  hasServices: boolean;
+  hasAvailability: boolean;
+  hasPortfolio: boolean;
+  hasStripe: boolean;
+}) {
+  const steps: ProviderSetupStep[] = [
+    {
+      id: "photo",
+      label: "Add a profile photo",
+      description: "Help customers recognize you",
+      done: status.hasPhoto,
+      actionLabel: "Add photo",
+      href: "profile",
+    },
+    {
+      id: "bio",
+      label: "Write your bio / description",
+      description: "Tell customers about your experience",
+      done: status.hasBio,
+      actionLabel: "Write bio",
+      href: "profile",
+    },
+    {
+      id: "categories",
+      label: "Select service categories",
+      description: "Choose the types of services you offer",
+      done: status.hasCategories,
+      actionLabel: "Select categories",
+      href: "/provider/onboarding",
+    },
+    {
+      id: "services",
+      label: "Add at least one service",
+      description: "Create a service with pricing so customers can book",
+      done: status.hasServices,
+      actionLabel: "Add service",
+      href: "/provider/services/new",
+    },
+    {
+      id: "availability",
+      label: "Set your availability",
+      description: "Let customers know when you're available",
+      done: status.hasAvailability,
+      actionLabel: "Set schedule",
+      href: "/provider/availability",
+    },
+    {
+      id: "portfolio",
+      label: "Upload work samples",
+      description: "Showcase your best work to attract customers",
+      done: status.hasPortfolio,
+      actionLabel: "Upload",
+      href: "/provider/services?portfolio=upload#portfolio-work-samples",
+    },
+    {
+      id: "stripe",
+      label: "Connect payment account",
+      description: "Set up Stripe to receive payments",
+      done: status.hasStripe,
+      actionLabel: "Connect Stripe",
+      href: "/provider/onboarding?step=4",
+    },
+  ];
+  const completedCount = steps.filter((step) => step.done).length;
+
+  return {
+    steps,
+    completedCount,
+    totalSteps: steps.length,
+    progress: Math.round((completedCount / steps.length) * 100),
+    nextStep: steps.find((step) => !step.done) ?? null,
+  };
+}
+
 export function providerDateKey(value: string | Date | null | undefined): string {
   if (!value) return "";
   if (value instanceof Date) return value.toISOString().slice(0, 10);

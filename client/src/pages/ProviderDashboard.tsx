@@ -1509,6 +1509,21 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
   const { data: services } = trpc.service.listMine.useQuery(undefined, {
     enabled: !!provider,
   });
+  useEffect(() => {
+    if (!services) return;
+    if (window.location.hash === "#portfolio-work-samples") {
+      window.requestAnimationFrame(() => {
+        document.getElementById("portfolio-work-samples")?.scrollIntoView({ block: "start" });
+      });
+    }
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("portfolio") === "upload") {
+      setShowPortfolioUpload(true);
+      params.delete("portfolio");
+      const query = params.toString();
+      window.history.replaceState({}, "", `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`);
+    }
+  }, [services]);
   // Auto-open edit modal from URL param (e.g., from onboarding page)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -2622,7 +2637,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
             )}
 
             {/* ── PORTFOLIO / WORK SAMPLES ── */}
-            <div className="border-t pt-6">
+            <div id="portfolio-work-samples" className="scroll-mt-24 border-t pt-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-xl font-bold flex items-center gap-2"><ImageIcon className="h-5 w-5" /> Portfolio & Work Samples</h3>

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ProviderWorkspaceShell } from "@/components/provider/ProviderWorkspaceShell";
 import { ProviderBusinessProfileDialog } from "@/components/provider/ProviderBusinessProfileDialog";
+import { ProviderSetupChecklist } from "@/components/provider/ProviderSetupChecklist";
 import { ProviderPulseStat } from "@/components/workspace/ProviderPulseStat";
 import { trpc } from "@/lib/trpc";
 import {
@@ -178,6 +179,8 @@ export default function ProviderWorkspaceOverview() {
               </div>
             </div>
           </section>
+
+          <ProviderSetupChecklist setup={data.setup} onEditProfile={() => setProfileEditorOpen(true)} />
 
           <section className="mt-6" aria-labelledby="attention-heading">
             <div className="mb-3 flex items-end justify-between gap-4">

@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   ACTIVE_PROVIDER_BOOKING_STATUSES,
+  buildProviderSetupProgress,
   hasProviderScheduleConflict,
   providerDateKey,
   providerTimeMinutes,
@@ -11,6 +12,8 @@ import {
 const projectRoot = resolve(import.meta.dirname, "..");
 const homeSource = readFileSync(resolve(projectRoot, "client/src/pages/LoggedInHome.tsx"), "utf8");
 const overviewSource = readFileSync(resolve(projectRoot, "client/src/pages/ProviderWorkspaceOverview.tsx"), "utf8");
+const setupSource = readFileSync(resolve(projectRoot, "client/src/components/provider/ProviderSetupChecklist.tsx"), "utf8");
+const dashboardSource = readFileSync(resolve(projectRoot, "client/src/pages/ProviderDashboard.tsx"), "utf8");
 const shellSource = readFileSync(resolve(projectRoot, "client/src/components/provider/ProviderWorkspaceShell.tsx"), "utf8");
 const routerSource = readFileSync(resolve(projectRoot, "server/providerOverviewRouter.ts"), "utf8");
 
@@ -40,6 +43,51 @@ describe("provider workspace Overview", () => {
     expect([...ACTIVE_PROVIDER_BOOKING_STATUSES]).toEqual(["pending", "confirmed", "in_progress"]);
   });
 
+  it("builds the approved seven-step setup progress and chooses the next unfinished action", () => {
+    const setup = buildProviderSetupProgress({
+      hasPhoto: true,
+      hasBio: true,
+      hasCategories: true,
+      hasServices: true,
+      hasAvailability: true,
+      hasPortfolio: false,
+      hasStripe: false,
+    });
+
+    expect(setup.steps.map((step) => step.id)).toEqual([
+      "photo",
+      "bio",
+      "categories",
+      "services",
+      "availability",
+      "portfolio",
+      "stripe",
+    ]);
+    expect(setup.completedCount).toBe(5);
+    expect(setup.totalSteps).toBe(7);
+    expect(setup.progress).toBe(71);
+    expect(setup.nextStep).toMatchObject({
+      id: "portfolio",
+      actionLabel: "Upload",
+      href: "/provider/services?portfolio=upload#portfolio-work-samples",
+    });
+  });
+
+  it("marks setup complete when every authoritative criterion is satisfied", () => {
+    const setup = buildProviderSetupProgress({
+      hasPhoto: true,
+      hasBio: true,
+      hasCategories: true,
+      hasServices: true,
+      hasAvailability: true,
+      hasPortfolio: true,
+      hasStripe: true,
+    });
+
+    expect(setup.progress).toBe(100);
+    expect(setup.nextStep).toBeNull();
+  });
+
   it("replaces only the provider branch and preserves the focused customer workspace", () => {
     expect(homeSource).toContain("<ProviderWorkspaceOverview />");
     expect(homeSource).toContain("<CustomerWorkspaceHome />");
@@ -55,8 +103,23 @@ describe("provider workspace Overview", () => {
 
   it("uses one real-data Overview query without restoring duplicate launchpad badge queries", () => {
     expect(overviewSource).toContain("trpc.providerOverview.get.useQuery");
+    expect(setupSource).not.toContain("trpc.");
     expect(homeSource).not.toContain("getUnreadCount.useQuery");
     expect(homeSource).not.toContain("countUnread.useQuery");
+  });
+
+  it("places a compact expandable setup card between the welcome header and Needs Attention", () => {
+    const setupIndex = overviewSource.indexOf("<ProviderSetupChecklist");
+    expect(setupIndex).toBeGreaterThan(overviewSource.indexOf("Your page is live and bookable"));
+    expect(setupIndex).toBeLessThan(overviewSource.indexOf('aria-labelledby="attention-heading"'));
+    expect(setupSource).toContain("Complete your setup");
+    expect(setupSource).toContain("View all steps");
+    expect(setupSource).toContain('aria-expanded={expanded}');
+    expect(setupSource).toContain("Dismiss setup checklist");
+    expect(setupSource).toContain("setup.completedCount === setup.totalSteps");
+    expect(dashboardSource).toContain('id="portfolio-work-samples"');
+    expect(dashboardSource).toContain('params.get("portfolio") === "upload"');
+    expect(dashboardSource).toContain("setShowPortfolioUpload(true)");
   });
 
   it("maps the four approved information groups and six provider destinations", () => {
@@ -80,6 +143,9 @@ describe("provider workspace Overview", () => {
       expect(routerSource).toContain(`${helper}(`);
     }
     expect(routerSource).toContain("getInvoicesByProvider(provider.id)");
+    for (const helper of ["getProviderCategories", "getPortfolioByProvider", "getAvailabilityByProvider", "buildProviderSetupProgress"]) {
+      expect(routerSource).toContain(`${helper}(`);
+    }
   });
 
   it("contains real empty, setup, and conflict states rather than demo business metrics", () => {
