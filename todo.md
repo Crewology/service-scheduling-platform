@@ -3108,3 +3108,14 @@
 - [x] Canonicalize shared Services navigation to `/provider/services`; retain legacy dashboard-tab and payout compatibility routes.
 - [x] Add focused source-contract regressions for shell reuse, canonical navigation, active state, customer/provider separation, and preserved service/finance behavior.
 - [x] Complete focused tests, TypeScript, diff validation, full regression suite, production build, responsive review, and final checkpoint.
+
+
+## Provider Workspace visual alignment — Calendar and Customers
+
+- [x] Centralize the full-page light blue Provider Workspace background treatment in the shared shell.
+- [x] Move `/provider/calendar` into the shared shell with a compact header, active navigation, and preserved month/week, sync, block-time, booking, and availability behavior.
+- [x] Replace duplicated Customers navigation with the shared shell on `/provider/customers` and `/provider/customers/:contactId`.
+- [x] Add the standard global header to Customers list, detail, loading, unavailable, and error states.
+- [x] Preserve Customers lifecycle access, tenant isolation, notes, stages, follow-ups, draft approval, communication permission, and pagination behavior.
+- [x] Verify Calendar, Customers list, and Customers detail at desktop and 390px mobile sizes.
+- [x] Complete production build, post-suite cleanup verification, and rollback checkpoint.

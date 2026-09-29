@@ -9,6 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { NavHeader } from "@/components/shared/NavHeader";
+import {
+  ProviderWorkspaceBackground,
+  ProviderWorkspacePageHeader,
+  ProviderWorkspaceShell,
+} from "@/components/provider/ProviderWorkspaceShell";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
@@ -20,7 +25,6 @@ import {
   Clock,
   MapPin,
   User,
-  ArrowLeft,
   Ban,
   Trash2,
   Plus,
@@ -134,6 +138,14 @@ export default function ProviderCalendar() {
   const utils = trpc.useUtils();
 
   const { data: calendarData, isLoading } = trpc.booking.calendarEvents.useQuery(undefined, {
+    enabled: !!user,
+  });
+
+  const { data: providerProfile } = trpc.provider.getMyProfile.useQuery(undefined, {
+    enabled: !!user,
+  });
+
+  const { data: customersAccess } = trpc.customers.getAccess.useQuery(undefined, {
     enabled: !!user,
   });
 
@@ -259,12 +271,14 @@ export default function ProviderCalendar() {
     return (
       <div className="min-h-screen bg-background">
         <NavHeader />
-        <div className="container py-8">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-muted rounded w-48" />
-            <div className="h-96 bg-muted rounded" />
+        <ProviderWorkspaceBackground>
+          <div className="container max-w-7xl py-8">
+            <div className="grid animate-pulse gap-6 lg:grid-cols-[232px_minmax(0,1fr)]">
+              <div className="hidden h-96 rounded-2xl bg-slate-100 lg:block" />
+              <div className="space-y-5"><div className="h-36 rounded-[26px] bg-slate-200" /><div className="h-96 rounded-2xl bg-slate-100" /></div>
+            </div>
           </div>
-        </div>
+        </ProviderWorkspaceBackground>
       </div>
     );
   }
@@ -575,29 +589,34 @@ export default function ProviderCalendar() {
   return (
     <div className="min-h-screen bg-background">
       <NavHeader />
-      <div className="container py-6 max-w-7xl">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-          <button onClick={() => window.history.back()} className="hover:text-foreground flex items-center gap-1">
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </button>
-          <span>/</span>
-          <span className="text-foreground">Calendar</span>
-        </div>
+      <ProviderWorkspaceShell
+        active="calendar"
+        businessName={providerProfile?.businessName}
+        profileSlug={providerProfile?.profileSlug}
+        isPageLive={Boolean(providerProfile?.profileSlug)}
+        customersVisible={customersAccess?.visible}
+        contentClassName="[&_[data-slot=card]]:rounded-2xl [&_[data-slot=card]]:border-slate-200 [&_[data-slot=card]]:shadow-[0_18px_50px_-42px_rgba(15,23,42,0.5)]"
+      >
+        <ProviderWorkspacePageHeader
+          eyebrow="Schedule and availability"
+          title="My Calendar"
+          description="View bookings and sessions, protect unavailable time, and keep your external calendar in sync."
+          actions={(
+            <Button className="bg-white text-[#174a73] hover:bg-blue-50" onClick={() => openBlockDialog()}>
+              <Ban className="mr-2 h-4 w-4" />Block time
+            </Button>
+          )}
+        />
 
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl font-bold">Calendar</h1>
-            <p className="text-muted-foreground text-sm mt-1">View all your bookings and sessions at a glance</p>
+        <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2">
+            <CalendarIcon className="h-4 w-4 text-[#174a73]" />
+            <span className="text-sm font-semibold text-slate-800">Calendar controls</span>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <Button variant="outline" size="sm" onClick={() => setShowSyncPanel(!showSyncPanel)}>
               <RefreshCw className="h-4 w-4 mr-1" />
               Sync
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => openBlockDialog()}>
-              <Ban className="h-4 w-4 mr-1" />
-              Block Time
             </Button>
             <Button variant="outline" size="sm" onClick={goToToday}>Today</Button>
             <div className="flex items-center border rounded-md">
@@ -609,7 +628,7 @@ export default function ProviderCalendar() {
 
         {/* Calendar Sync Panel */}
         {showSyncPanel && feedData && (
-          <Card className="mb-6 border-primary/20 bg-primary/5">
+          <Card className="mt-5 mb-6 border-primary/20 bg-primary/5">
             <CardContent className="py-4 px-5">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold flex items-center gap-2">
@@ -671,7 +690,7 @@ export default function ProviderCalendar() {
           </Card>
         )}
 
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+        <div className="mt-5 grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
           <Card><CardContent className="py-3 px-4"><div className="text-2xl font-bold">{stats.total}</div><div className="text-xs text-muted-foreground">Total Bookings</div></CardContent></Card>
           <Card><CardContent className="py-3 px-4"><div className="text-2xl font-bold text-amber-600">{stats.pending}</div><div className="text-xs text-muted-foreground">Pending</div></CardContent></Card>
           <Card><CardContent className="py-3 px-4"><div className="text-2xl font-bold text-blue-600">{stats.confirmed}</div><div className="text-xs text-muted-foreground">Confirmed</div></CardContent></Card>
@@ -827,7 +846,7 @@ export default function ProviderCalendar() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
+      </ProviderWorkspaceShell>
     </div>
   );
 }

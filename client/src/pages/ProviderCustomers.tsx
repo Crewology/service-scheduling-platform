@@ -5,20 +5,15 @@ import {
   ArrowLeft,
   ArrowRight,
   CalendarClock,
-  CalendarDays,
   CheckCircle2,
-  CircleDollarSign,
   Clock3,
-  Filter,
-  LayoutDashboard,
   LockKeyhole,
-  MoreHorizontal,
   Search,
   UserRoundSearch,
-  Users,
   XCircle,
 } from "lucide-react";
-import { MobileRoleViewToggle } from "@/components/shared/MobileRoleViewToggle";
+import { ProviderWorkspaceBackground, ProviderWorkspacePageHeader, ProviderWorkspaceShell } from "@/components/provider/ProviderWorkspaceShell";
+import { NavHeader } from "@/components/shared/NavHeader";
 import { FollowUpTaskCard, type CustomerFollowUpTask } from "@/components/customers/FollowUpTaskCard";
 import { CustomersWelcomePopover } from "@/components/customers/CustomersWelcomePopover";
 import { Badge } from "@/components/ui/badge";
@@ -76,48 +71,15 @@ function readQuery(location: string) {
   };
 }
 
-function ProviderCustomersNav({ active, businessName }: { active: "customers" | "detail"; businessName?: string | null }) {
-  const items = [
-    { label: "Overview", icon: LayoutDashboard, href: "/" },
-    { label: "Bookings", icon: CalendarDays, href: "/provider/dashboard?tab=bookings" },
-    { label: "Customers", icon: Users, href: "/provider/customers" },
-    { label: "Money", icon: CircleDollarSign, href: "/provider/finances" },
-    { label: "More", icon: MoreHorizontal, href: "/provider/dashboard?tab=settings" },
-  ];
-  return (
-    <>
-      <aside className="hidden lg:block">
-        <div className="sticky top-24 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_18px_50px_-34px_rgba(15,23,42,0.45)]">
-          <div className="border-b border-slate-100 p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">Provider workspace</p>
-            <p className="mt-1 font-semibold text-slate-950">{businessName || "Your business"}</p>
-            <p className="text-xs text-slate-500">Your customer relationships</p>
-          </div>
-          <nav className="p-2" aria-label="Provider workspace navigation">
-            {[items[0], items[1], items[2]].map((item) => {
-              const Icon = item.icon;
-              const selected = item.label === "Customers" && (active === "customers" || active === "detail");
-              return <Link key={item.label} href={item.href} className={`mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${selected ? "bg-[#eaf2ff] text-[#174a73]" : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"}`}><Icon className="h-4 w-4" /><span>{item.label}</span></Link>;
-            })}
-            <Link href="/provider/dashboard?tab=services" className="mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-950"><Filter className="h-4 w-4" />Services</Link>
-            <Link href="/provider/dashboard?tab=schedule" className="mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-950"><Clock3 className="h-4 w-4" />Calendar</Link>
-            {[items[3], items[4]].map((item) => { const Icon = item.icon; return <Link key={item.label} href={item.href} className="mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-950"><Icon className="h-4 w-4" />{item.label}</Link>; })}
-          </nav>
-        </div>
-      </aside>
-      <nav className="fixed inset-x-3 bottom-3 z-30 grid grid-cols-5 rounded-2xl border border-slate-200 bg-white/95 p-1.5 shadow-2xl backdrop-blur lg:hidden" aria-label="Provider mobile navigation">
-        {items.map((item) => { const Icon = item.icon; const selected = item.label === "Customers"; return <Link key={item.label} href={item.href} className={`flex flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-semibold ${selected ? "bg-blue-50 text-[#174a73]" : "text-slate-500"}`}><Icon className="h-4 w-4" />{item.label}</Link>; })}
-      </nav>
-    </>
-  );
-}
-
 export default function ProviderCustomers() {
   const [location, setLocation] = useLocation();
   const locationSearch = useSearch();
   const query = useMemo(() => readQuery(`${location}${locationSearch ? locationSearch.startsWith("?") ? locationSearch : `?${locationSearch}` : ""}`), [location, locationSearch]);
   const [search, setSearch] = useState(query.search);
   const access = trpc.customers.getAccess.useQuery();
+  const providerProfile = trpc.provider.getMyProfile.useQuery(undefined, {
+    enabled: access.data?.visible === true,
+  });
   const workspace = trpc.customers.getWorkspace.useQuery({
     tab: query.tab,
     search: query.search || undefined,
@@ -139,26 +101,36 @@ export default function ProviderCustomers() {
 
   if (access.isLoading) return <CustomersSkeleton />;
   if (!access.data?.visible) {
-    return <div className="container max-w-2xl py-12"><Card><CardContent className="p-8 text-center"><LockKeyhole className="mx-auto h-9 w-9 text-slate-400" /><h1 className="mt-4 text-2xl font-bold">Customers is not available for this account</h1><p className="mt-2 text-sm text-slate-600">Customers requires an active provider account with current lifecycle access.</p><Button asChild className="mt-5"><Link href="/">Return home</Link></Button></CardContent></Card></div>;
+    return <div className="min-h-screen bg-background"><NavHeader /><ProviderWorkspaceBackground><div className="container max-w-2xl py-12"><Card><CardContent className="p-8 text-center"><LockKeyhole className="mx-auto h-9 w-9 text-slate-400" /><h1 className="mt-4 text-2xl font-bold">Customers is not available for this account</h1><p className="mt-2 text-sm text-slate-600">Customers requires an active provider account with current lifecycle access.</p><Button asChild className="mt-5"><Link href="/">Return home</Link></Button></CardContent></Card></div></ProviderWorkspaceBackground></div>;
   }
   if (workspace.isLoading) return <CustomersSkeleton />;
   if (workspace.error || !workspace.data) {
-    return <div className="container max-w-2xl py-12"><Card className="border-red-200"><CardContent className="p-8 text-center"><h1 className="text-2xl font-bold">We couldn’t load Customers</h1><p className="mt-2 text-sm text-slate-600">Your booking and customer data were not changed. Refresh this page or return to Overview.</p><Button asChild className="mt-5"><Link href="/">Return to Overview</Link></Button></CardContent></Card></div>;
+    return <div className="min-h-screen bg-background"><NavHeader /><ProviderWorkspaceBackground><div className="container max-w-2xl py-12"><Card className="border-red-200"><CardContent className="p-8 text-center"><h1 className="text-2xl font-bold">We couldn’t load Customers</h1><p className="mt-2 text-sm text-slate-600">Your booking and customer data were not changed. Refresh this page or return to Overview.</p><Button asChild className="mt-5"><Link href="/">Return to Overview</Link></Button></CardContent></Card></div></ProviderWorkspaceBackground></div>;
   }
 
   const { summary, contacts, activity, tasks, readOnlyReason } = workspace.data;
   const attention = contacts?.items.filter((item) => item.needsResponse).slice(0, 5) ?? [];
   return (
-    <div className="container max-w-7xl py-5 pb-28 sm:py-8 lg:pb-10">
-      <MobileRoleViewToggle active="provider" />
-      <div className="grid gap-6 lg:grid-cols-[232px_minmax(0,1fr)]">
-        <ProviderCustomersNav active="customers" businessName={access.data.businessName} />
-        <main className="min-w-0">
-          <section className="rounded-[28px] bg-[#123f63] px-5 py-6 text-white shadow-[0_24px_70px_-38px_rgba(18,63,99,0.8)] sm:px-8 sm:py-8">
-            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-              <div><CustomersWelcomePopover providerId={access.data.providerId} hasPrivateTools={access.data.providerWritesEnabled} draftSendingEnabled={access.data.draftSendingEnabled} /><h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Customers</h1><p className="mt-2 max-w-2xl text-sm text-blue-100 sm:text-base">Your relationships are organized automatically from your OlogyCrew activity, with plan-based private notes and manual follow-ups.</p></div>
-              <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm leading-6 text-blue-50"><LockKeyhole className="mr-2 inline h-4 w-4" />{access.data.draftSendingEnabled ? "Notes and follow-ups stay private. In-app messages send only from a reviewed draft after confirmation and current customer permission. Nothing runs automatically or changes a booking." : "Notes, follow-ups, and drafts stay private. Nothing sends automatically or changes a booking."}</div>
-            </div>
+    <div className="min-h-screen bg-background">
+      <NavHeader />
+      <ProviderWorkspaceShell
+      active="customers"
+      businessName={access.data.businessName}
+      profileSlug={providerProfile.data?.profileSlug}
+      isPageLive={Boolean(providerProfile.data?.profileSlug)}
+      customersVisible
+      contentClassName="[&_[data-slot=card]]:rounded-2xl [&_[data-slot=card]]:border-slate-200 [&_[data-slot=card]]:shadow-[0_18px_50px_-42px_rgba(15,23,42,0.5)]"
+    >
+      <ProviderWorkspacePageHeader
+        eyebrow="Customer relationships"
+        title="Customers"
+        description="See who needs a response, understand relationship history, and manage private follow-ups from one place."
+        actions={<CustomersWelcomePopover providerId={access.data.providerId} hasPrivateTools={access.data.providerWritesEnabled} draftSendingEnabled={access.data.draftSendingEnabled} />}
+      />
+
+          <section className="mt-5 rounded-2xl border border-blue-100 bg-white/90 px-4 py-3 text-sm leading-6 text-slate-700 shadow-sm">
+            <LockKeyhole className="mr-2 inline h-4 w-4 text-[#174a73]" />
+            {access.data.draftSendingEnabled ? "Notes and follow-ups stay private. In-app messages send only from a reviewed draft after confirmation and current customer permission. Nothing runs automatically or changes a booking." : "Notes, follow-ups, and drafts stay private. Nothing sends automatically or changes a booking."}
           </section>
 
           {access.data.readOnly ? <section className="mt-5 flex flex-col gap-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-amber-950 sm:flex-row sm:items-center sm:justify-between"><div className="flex min-w-0 items-start gap-3"><LockKeyhole className="mt-0.5 h-5 w-5 shrink-0" /><div><h2 className="font-semibold">Customer history is available, but private tools are paused</h2><p className="mt-1 text-sm leading-6 text-amber-900">{access.data.readOnlyReason}</p></div></div><Button asChild variant="outline" className="shrink-0 border-amber-300 bg-white text-amber-950 hover:bg-amber-100"><Link href="/provider/subscription">Review plans</Link></Button></section> : null}
@@ -187,8 +159,7 @@ export default function ProviderCustomers() {
           {activity ? <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 sm:p-6"><h2 className="text-xl font-bold">Relationship activity</h2><p className="mt-1 text-sm text-slate-500">A factual timeline from OlogyCrew source records. Message content is not copied here.</p>{activity.items.length ? <div className="mt-5 space-y-1">{activity.items.map((event) => <ActivityRow key={event.id} event={event} />)}</div> : <EmptyState />}</section> : null}
 
           {contacts && !readOnlyReason ? <section className="mt-6"><div className="flex items-end justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">{query.tab === "leads" ? "All leads" : "Your relationships"}</p><h2 className="mt-1 text-xl font-bold">{contacts.total} {contacts.total === 1 ? "person" : "people"}</h2></div></div>{contacts.items.length ? <div className="mt-3 overflow-hidden rounded-3xl border border-slate-200 bg-white">{contacts.items.map((item) => <ContactRow key={item.id} item={item} />)}</div> : <EmptyState />}<div className="mt-4 flex justify-end gap-2"><Button variant="outline" disabled={query.offset === 0} onClick={() => updateQuery({ offset: Math.max(0, query.offset - 25) })}><ArrowLeft className="mr-2 h-4 w-4" />Previous</Button><Button variant="outline" disabled={!contacts.hasMore} onClick={() => updateQuery({ offset: query.offset + 25 })}>Next<ArrowRight className="ml-2 h-4 w-4" /></Button></div></section> : null}
-        </main>
-      </div>
+      </ProviderWorkspaceShell>
     </div>
   );
 }
@@ -233,7 +204,7 @@ function TaskGroup({ title, description, icon: Icon, accent, tasks }: ReturnType
 }
 
 function CustomersSkeleton() {
-  return <div className="container max-w-7xl animate-pulse py-8"><div className="h-40 rounded-[28px] bg-slate-200" /><div className="mt-5 h-14 rounded-2xl bg-slate-100" /><div className="mt-5 grid gap-3 sm:grid-cols-3"><div className="h-28 rounded-2xl bg-slate-100" /><div className="h-28 rounded-2xl bg-slate-100" /><div className="h-28 rounded-2xl bg-slate-100" /></div><div className="mt-5 h-80 rounded-3xl bg-slate-100" /></div>;
+  return <div className="min-h-screen bg-background"><NavHeader /><ProviderWorkspaceBackground><div className="container max-w-7xl animate-pulse py-8"><div className="h-40 rounded-[28px] bg-slate-200" /><div className="mt-5 h-14 rounded-2xl bg-slate-100" /><div className="mt-5 grid gap-3 sm:grid-cols-3"><div className="h-28 rounded-2xl bg-slate-100" /><div className="h-28 rounded-2xl bg-slate-100" /><div className="h-28 rounded-2xl bg-slate-100" /></div><div className="mt-5 h-80 rounded-3xl bg-slate-100" /></div></ProviderWorkspaceBackground></div>;
 }
 
-export { ProviderCustomersNav, stageLabels, formatMoney, formatDate, relativeAge };
+export { stageLabels, formatMoney, formatDate, relativeAge };

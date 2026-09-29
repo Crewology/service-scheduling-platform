@@ -23,6 +23,13 @@ export type ProviderWorkspaceSection =
   | "page"
   | "more";
 
+const providerWorkspaceBackground =
+  "min-h-[calc(100vh-4rem)] bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,0.08),transparent_34%),linear-gradient(to_bottom,#f5f9fd,#ffffff_42%,#f8fafc)]";
+
+export function ProviderWorkspaceBackground({ children, className }: { children: ReactNode; className?: string }) {
+  return <div className={cn(providerWorkspaceBackground, className)}>{children}</div>;
+}
+
 interface ProviderWorkspaceShellProps {
   active: ProviderWorkspaceSection;
   businessName?: string | null;
@@ -75,9 +82,10 @@ export function ProviderWorkspaceShell({
   ];
 
   return (
-    <div className="container max-w-7xl py-5 pb-28 sm:py-8 lg:pb-10" data-provider-workspace={active}>
-      <MobileRoleViewToggle active="provider" />
-      <div className="grid gap-6 lg:grid-cols-[232px_minmax(0,1fr)]">
+    <ProviderWorkspaceBackground>
+      <div className="container max-w-7xl py-5 pb-28 sm:py-8 lg:pb-10" data-provider-workspace={active}>
+        <MobileRoleViewToggle active="provider" />
+        <div className="grid gap-6 lg:grid-cols-[232px_minmax(0,1fr)]">
         <aside className="hidden lg:block">
           <div className="sticky top-24 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_18px_50px_-34px_rgba(15,23,42,0.45)]">
             <div className="border-b border-slate-100 p-4">
@@ -126,33 +134,34 @@ export function ProviderWorkspaceShell({
           </div>
         </aside>
 
-        <main className={cn("min-w-0", contentClassName)}>{children}</main>
-      </div>
+          <main className={cn("min-w-0", contentClassName)}>{children}</main>
+        </div>
 
-      <nav
-        className="fixed inset-x-3 bottom-3 z-30 grid grid-cols-6 rounded-2xl border border-slate-200 bg-white/95 p-1.5 shadow-2xl backdrop-blur lg:hidden"
-        aria-label="Provider mobile navigation"
-      >
-        {compactMobileNav.map((item) => {
-          const Icon = item.icon;
-          const selected = item.key === active;
-          return (
-            <Link
-              key={item.key}
-              href={item.href}
-              aria-current={selected ? "page" : undefined}
-              className={cn(
-                "flex min-w-0 flex-col items-center gap-1 rounded-xl px-0.5 py-2 text-[9px] font-semibold sm:text-[10px]",
-                selected ? "bg-blue-50 text-[#174a73]" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800",
-              )}
-            >
-              <Icon className="h-4 w-4" />
-              <span className="truncate">{item.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
-    </div>
+        <nav
+          className="fixed inset-x-3 bottom-3 z-30 grid grid-cols-6 rounded-2xl border border-slate-200 bg-white/95 p-1.5 shadow-2xl backdrop-blur lg:hidden"
+          aria-label="Provider mobile navigation"
+        >
+          {compactMobileNav.map((item) => {
+            const Icon = item.icon;
+            const selected = item.key === active;
+            return (
+              <Link
+                key={item.key}
+                href={item.href}
+                aria-current={selected ? "page" : undefined}
+                className={cn(
+                  "flex min-w-0 flex-col items-center gap-1 rounded-xl px-0.5 py-2 text-[9px] font-semibold sm:text-[10px]",
+                  selected ? "bg-blue-50 text-[#174a73]" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800",
+                )}
+              >
+                <Icon className="h-4 w-4" />
+                <span className="truncate">{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
+    </ProviderWorkspaceBackground>
   );
 }
 

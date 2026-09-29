@@ -41,7 +41,7 @@ describe("dedicated provider Finances page", () => {
   it("points provider workspace Money navigation to the canonical page", () => {
     expect(workspaceSource).toContain('active="overview"');
     expect(workspaceShellSource).toContain('{ key: "money", label: "Money", icon: CircleDollarSign, href: "/provider/finances" }');
-    expect(customersSource).toContain('{ label: "Money", icon: CircleDollarSign, href: "/provider/finances" }');
+    expect(customersSource).toContain('<ProviderWorkspaceShell\n      active="customers"');
     expect(workspaceShellSource).not.toContain("/provider/dashboard?tab=finances");
     expect(customersSource).not.toContain("/provider/dashboard?tab=finances");
   });

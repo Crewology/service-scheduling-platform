@@ -10,6 +10,9 @@ const overviewSource = readSource("client/src/pages/ProviderWorkspaceOverview.ts
 const bookingsSource = readSource("client/src/pages/MyBookings.tsx");
 const dashboardSource = readSource("client/src/pages/ProviderDashboard.tsx");
 const tabPageSource = readSource("client/src/pages/ProviderTabPage.tsx");
+const calendarSource = readSource("client/src/pages/ProviderCalendar.tsx");
+const customersSource = readSource("client/src/pages/ProviderCustomers.tsx");
+const customerDetailSource = readSource("client/src/pages/ProviderCustomerDetail.tsx");
 
 describe("shared Provider Workspace visual system", () => {
   it("centralizes desktop and mobile navigation with canonical provider destinations", () => {
@@ -30,13 +33,32 @@ describe("shared Provider Workspace visual system", () => {
     expect(shellSource).not.toContain('/provider/dashboard?tab=finances');
   });
 
-  it("uses one shell across Overview, provider Bookings, Services, and Money", () => {
+  it("uses one shell across every active provider workspace page", () => {
     expect(overviewSource).toContain('<ProviderWorkspaceShell\n      active="overview"');
     expect(bookingsSource).toContain('active="bookings"');
     expect(tabPageSource).toContain('workspaceActive="services"');
     expect(tabPageSource).toContain('workspaceActive="money"');
+    expect(calendarSource).toContain('active="calendar"');
+    expect(customersSource).toContain('active="customers"');
+    expect(customerDetailSource).toContain('active="customers"');
     expect(dashboardSource).toContain("<ProviderDashboardFrame");
     expect(dashboardSource).toContain("<ProviderWorkspacePageHeader");
+  });
+
+  it("owns the full-page background once so all workspace pages share the same treatment", () => {
+    expect(shellSource).toContain("const providerWorkspaceBackground");
+    expect(shellSource).toContain("radial-gradient");
+    expect(shellSource).toContain("linear-gradient(to_bottom,#f5f9fd,#ffffff_42%,#f8fafc)");
+    expect(shellSource).toContain("<ProviderWorkspaceBackground>");
+    expect(calendarSource).toContain("<ProviderWorkspaceBackground>");
+    expect(customersSource).toContain("<ProviderWorkspaceBackground>");
+    expect(customerDetailSource).toContain("<ProviderWorkspaceBackground>");
+  });
+
+  it("keeps Calendar and both Customers views under the standard global header", () => {
+    expect(calendarSource).toContain("<NavHeader />");
+    expect(customersSource).toContain("<NavHeader />");
+    expect(customerDetailSource).toContain("<NavHeader />");
   });
 
   it("keeps the large greeting unique to Overview and gives subpages compact headers", () => {
@@ -46,6 +68,17 @@ describe("shared Provider Workspace visual system", () => {
     expect(bookingsSource).toContain('title="Bookings"');
     expect(dashboardSource).toContain('title: "Services"');
     expect(dashboardSource).toContain('title: "Money"');
+    expect(calendarSource).toContain('title="My Calendar"');
+    expect(customersSource).toContain('title="Customers"');
+    expect(customerDetailSource).toContain("title={contact.customerName");
+  });
+
+  it("removes the duplicate Customers navigation and retains canonical shared destinations", () => {
+    expect(customersSource).not.toContain("ProviderCustomersNav");
+    expect(customerDetailSource).not.toContain("ProviderCustomersNav");
+    expect(customersSource).not.toContain("/provider/dashboard?tab=bookings");
+    expect(customersSource).not.toContain("/provider/dashboard?tab=services");
+    expect(customersSource).not.toContain("/provider/dashboard?tab=schedule");
   });
 
   it("applies the Bookings shell only in provider view and retains the customer container", () => {
