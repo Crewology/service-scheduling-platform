@@ -5,9 +5,9 @@ import {
   CalendarDays,
   CircleDollarSign,
   LayoutDashboard,
-  MoreHorizontal,
   Store,
   Users,
+  Wrench,
 } from "lucide-react";
 import { Link } from "wouter";
 import { MobileRoleViewToggle } from "@/components/shared/MobileRoleViewToggle";
@@ -78,7 +78,7 @@ export function ProviderWorkspaceShell({
       : { key: "calendar" as const, label: "Calendar", icon: CalendarClock, href: "/provider/calendar" },
     { key: "services" as const, label: "Services", icon: BriefcaseBusiness, href: "/provider/services" },
     { key: "money" as const, label: "Money", icon: CircleDollarSign, href: "/provider/finances" },
-    { key: "more" as const, label: "More", icon: MoreHorizontal, href: "/provider/dashboard?tab=settings" },
+    { key: "more" as const, label: "Tools", icon: Wrench, href: "/provider/tools" },
   ];
 
   return (
@@ -121,14 +121,15 @@ export function ProviderWorkspaceShell({
             </nav>
             <div className="border-t border-slate-100 p-2">
               <Link
-                href="/provider/dashboard?tab=settings"
+                href="/provider/tools"
                 aria-current={active === "more" ? "page" : undefined}
+                title="Open provider business tools"
                 className={cn(
                   "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium",
                   active === "more" ? "bg-[#eaf2ff] text-[#174a73]" : "text-slate-600 hover:bg-slate-50",
                 )}
               >
-                <MoreHorizontal className="h-4 w-4" />More
+                <Wrench className="h-4 w-4" />Business Tools
               </Link>
             </div>
           </div>

@@ -62,7 +62,7 @@ import Promotions from "./pages/Promotions";
 import Invoices from "./pages/Invoices";
 import BillingHistory from "./pages/BillingHistory";
 import Receipts from "./pages/Receipts";
-import { ProviderBookings, ProviderServices, ProviderFinances, ProviderPayouts, ProviderPortfolio, ProviderQuotes } from "./pages/ProviderTabPage";
+import { ProviderBookings, ProviderServices, ProviderFinances, ProviderTools, ProviderPayouts, ProviderPortfolio, ProviderQuotes } from "./pages/ProviderTabPage";
 import ProviderAnalyticsPage from "./pages/ProviderAnalyticsPage";
 import ProviderMyPage from "./pages/ProviderMyPage";
 import ProviderCustomers from "./pages/ProviderCustomers";
@@ -136,6 +136,7 @@ function Router() {
       <Route path="/provider/services">{() => <ProviderOnlyGuard featureName="Services"><ProviderServices /></ProviderOnlyGuard>}</Route>
       <Route path="/provider/analytics">{() => <ProviderOnlyGuard featureName="Analytics"><ProviderAnalyticsPage /></ProviderOnlyGuard>}</Route>
       <Route path="/provider/finances">{() => <ProviderOnlyGuard featureName="Finances"><ProviderFinances /></ProviderOnlyGuard>}</Route>
+      <Route path="/provider/tools">{() => <ProviderOnlyGuard featureName="Business Tools"><ProviderTools /></ProviderOnlyGuard>}</Route>
       <Route path="/provider/payouts">{() => <ProviderOnlyGuard featureName="Payouts"><ProviderPayouts /></ProviderOnlyGuard>}</Route>
       <Route path="/provider/portfolio">{() => <ProviderOnlyGuard featureName="Portfolio"><ProviderPortfolio /></ProviderOnlyGuard>}</Route>
       <Route path="/provider/quotes">{() => <ProviderOnlyGuard featureName="Quotes"><ProviderQuotes /></ProviderOnlyGuard>}</Route>

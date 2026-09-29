@@ -26,11 +26,13 @@ describe("shared Provider Workspace visual system", () => {
       'href: "/provider/services"',
       'href: "/provider/calendar"',
       'href: "/provider/finances"',
+      'href: "/provider/tools"',
     ]) {
       expect(shellSource).toContain(href);
     }
     expect(shellSource).not.toContain('/provider/dashboard?tab=services" },');
     expect(shellSource).not.toContain('/provider/dashboard?tab=finances');
+    expect(shellSource).not.toContain('/provider/dashboard?tab=settings');
   });
 
   it("uses one shell across every active provider workspace page", () => {

@@ -26,6 +26,10 @@ export function ProviderFinances() {
   return <ProviderDashboard initialTab="finances" hideChrome={true} workspaceActive="money" />;
 }
 
+export function ProviderTools() {
+  return <ProviderDashboard initialTab="settings" hideChrome={true} workspaceActive="more" />;
+}
+
 export function ProviderPortfolio() {
   return <ProviderDashboard initialTab="services" hideChrome={true} />;
 }

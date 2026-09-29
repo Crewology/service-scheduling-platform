@@ -55,7 +55,6 @@ import {
   Grid3X3,
   Plus,
   Settings,
-  MoreHorizontal,
   ChevronDown,
   ChevronRight,
   X,
@@ -115,11 +114,17 @@ function ProviderDashboardFrame({
         title: "Services",
         description: "Manage what customers can book, your categories, portfolio, and service packages.",
       }
-    : {
-        eyebrow: "Business finances",
-        title: "Money",
-        description: "Track earnings, completed work, payment setup, payouts, and your provider plan.",
-      };
+    : active === "money"
+      ? {
+          eyebrow: "Business finances",
+          title: "Money",
+          description: "Track earnings, completed work, payment setup, payouts, and your provider plan.",
+        }
+      : {
+          eyebrow: "Grow and manage your business",
+          title: "Business Tools",
+          description: "Manage reviews, promotions, tipping, estimates, referrals, service options, and verification in one place.",
+        };
 
   return (
     <ProviderWorkspaceShell
@@ -1979,7 +1984,11 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
               ) : (
                 <TabsTrigger value="my-page" className="flex-1 text-sm px-3 py-2"><Globe className="h-4 w-4 mr-1.5" />My Page</TabsTrigger>
               )}
-              <TabsTrigger value="settings" className="flex-1 text-sm px-3 py-2"><Settings className="h-4 w-4 mr-1.5" />More</TabsTrigger>
+              <Button asChild variant="ghost" size="sm" className="h-auto flex-1 px-3 py-2 text-sm">
+                <Link href="/provider/tools" aria-label="Open Business Tools">
+                  <Settings className="h-4 w-4 mr-1.5" />More
+                </Link>
+              </Button>
             </TabsList>
           </div>}
 
@@ -2030,14 +2039,14 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
                   My Page
                 </button>
               )}
-              <button
-                type="button"
-                onClick={() => { setActiveTab("settings"); document.getElementById("dashboard-tabs")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
-                className={`flex flex-col items-center justify-center gap-0.5 text-[10px] transition-colors ${activeTab === "settings" ? "text-primary font-semibold" : "text-muted-foreground hover:text-foreground"}`}
+              <Link
+                href="/provider/tools"
+                aria-label="Open Business Tools"
+                className="flex flex-col items-center justify-center gap-0.5 text-[10px] text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
               >
-                <Settings className={`h-5 w-5 ${activeTab === "settings" ? "text-primary" : ""}`} />
+                <Settings className="h-5 w-5" />
                 More
-              </button>
+              </Link>
             </div>
           </div>}
 

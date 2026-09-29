@@ -3119,3 +3119,15 @@
 - [x] Preserve Customers lifecycle access, tenant isolation, notes, stages, follow-ups, draft approval, communication permission, and pagination behavior.
 - [x] Verify Calendar, Customers list, and Customers detail at desktop and 390px mobile sizes.
 - [x] Complete production build, post-suite cleanup verification, and rollback checkpoint.
+
+
+## Provider Workspace — standalone Business Tools page
+
+- [x] Name the provider More destination **Business Tools** with canonical route `/provider/tools`.
+- [x] Reuse the complete existing More/settings content without duplicating review, promotion, tipping, estimate, emergency-service, referral, or verification logic.
+- [x] Apply the shared Provider Workspace shell, compact header, background, desktop active state, and mobile Tools active state.
+- [x] Point shared workspace and legacy dashboard More controls to the canonical Business Tools page.
+- [x] Preserve `/provider/dashboard?tab=settings` for bookmarked and backwards-compatible access.
+- [x] Add provider-guard, route, content-reuse, canonical-navigation, and compatibility regressions.
+- [x] Verify desktop and 390px mobile layouts.
+- [x] Complete the full regression suite, production build, cleanup verification, and rollback checkpoint.

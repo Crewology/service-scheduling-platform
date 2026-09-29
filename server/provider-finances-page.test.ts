@@ -15,7 +15,7 @@ const crmReadModelSource = readSource("server/db/crm/readModel.ts");
 
 describe("dedicated provider Finances page", () => {
   it("registers a provider-only canonical Finances route", () => {
-    expect(appSource).toContain('import { ProviderBookings, ProviderServices, ProviderFinances, ProviderPayouts');
+    expect(appSource).toContain('import { ProviderBookings, ProviderServices, ProviderFinances, ProviderTools, ProviderPayouts');
     expect(appSource).toContain('<Route path="/provider/finances">{() => <ProviderOnlyGuard featureName="Finances"><ProviderFinances /></ProviderOnlyGuard>}</Route>');
     expect(appSource.indexOf('path="/provider/finances"')).toBeLessThan(appSource.indexOf('path="/:slug"'));
   });
