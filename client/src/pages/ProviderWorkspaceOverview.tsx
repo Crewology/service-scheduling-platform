@@ -2,6 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MobileRoleViewToggle } from "@/components/shared/MobileRoleViewToggle";
+import { ProviderBusinessProfileDialog } from "@/components/provider/ProviderBusinessProfileDialog";
 import { ProviderPulseStat } from "@/components/workspace/ProviderPulseStat";
 import { trpc } from "@/lib/trpc";
 import {
@@ -19,6 +20,7 @@ import {
   LayoutDashboard,
   MessageSquare,
   MoreHorizontal,
+  Pencil,
   Plus,
   ReceiptText,
   Share2,
@@ -91,6 +93,7 @@ function formatMoney(value: number) {
 export default function ProviderWorkspaceOverview() {
   const { user } = useAuth();
   const [shared, setShared] = useState(false);
+  const [profileEditorOpen, setProfileEditorOpen] = useState(false);
   const [date] = useState(() => localDateKey());
   const { data, isLoading, error } = trpc.providerOverview.get.useQuery({ localDate: date });
   const { data: customersAccess } = trpc.customers.getAccess.useQuery();
@@ -163,6 +166,7 @@ export default function ProviderWorkspaceOverview() {
   const requestCount = data.attention.filter((item) => item.kind === "booking" || item.kind === "quote").length;
 
   return (
+    <>
     <div className="container max-w-7xl py-5 pb-28 sm:py-8 lg:pb-10">
       <MobileRoleViewToggle active="provider" />
       <div className="grid gap-6 lg:grid-cols-[232px_minmax(0,1fr)]">
@@ -209,7 +213,9 @@ export default function ProviderWorkspaceOverview() {
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                {data.provider.profileSlug ? <Button asChild variant="outline" className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white"><a href={`/${data.provider.profileSlug}`} target="_blank" rel="noreferrer"><Store className="mr-2 h-4 w-4" />View public page</a></Button> : null}
+                <Button type="button" variant="outline" className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white" onClick={() => setProfileEditorOpen(true)}>
+                  <Pencil className="mr-2 h-4 w-4" />Edit Profile
+                </Button>
                 <Button className="bg-white text-[#174a73] hover:bg-blue-50" onClick={sharePage}>
                   {shared ? <Check className="mr-2 h-4 w-4" /> : <Share2 className="mr-2 h-4 w-4" />}{shared ? "Link copied" : "Share page"}
                 </Button>
@@ -275,6 +281,8 @@ export default function ProviderWorkspaceOverview() {
         {([{ label: "Home", icon: LayoutDashboard, href: "/" }, { label: "Bookings", icon: CalendarDays, href: "/my-bookings" }, ...(customersAccess?.visible ? [{ label: "Customers", icon: Users, href: "/provider/customers" }] : [{ label: "Calendar", icon: CalendarClock, href: "/provider/calendar" }]), { label: "Money", icon: CircleDollarSign, href: "/provider/dashboard?tab=finances" }, { label: "More", icon: MoreHorizontal, href: "/provider/dashboard?tab=settings" }] as const).map((item) => { const Icon = item.icon; return <Link key={item.label} href={item.href} className={`flex flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-semibold ${item.label === "Home" ? "bg-blue-50 text-[#174a73]" : "text-slate-500"}`}><Icon className="h-4 w-4" />{item.label}</Link>; })}
       </nav>
     </div>
+    <ProviderBusinessProfileDialog open={profileEditorOpen} onOpenChange={setProfileEditorOpen} />
+    </>
   );
 }
 

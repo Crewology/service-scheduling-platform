@@ -3081,3 +3081,11 @@
 - [x] Remove the dropdown’s now-unneeded provider-profile query
 - [x] Preserve My Calendar in the Provider Workspace and the separate mobile menu
 - [x] Update the menu-scope regression, run TypeScript and build checks, and save a rollback checkpoint
+
+## Provider Workspace Edit Profile Modal — 2026-09-29
+- [x] Replace the header’s View public page action with an Edit Profile button
+- [x] Extract the existing Edit Business Profile dialog into one reusable component rather than duplicating profile logic
+- [x] Open the shared dialog from the active Provider Workspace and preserve the legacy dashboard editor/checklist behavior
+- [x] Preserve profile-photo cropping, logo upload/removal, provider-owned tRPC updates, OG/trust invalidation, and existing public-page access through My Page
+- [x] Add rendered open/prefill/save/error/loading regressions plus source contracts preventing the old public-page action from returning
+- [x] Run focused/full tests, TypeScript, clean-diff, build, desktop/mobile responsive review, and save a rollback checkpoint

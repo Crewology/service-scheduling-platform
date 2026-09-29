@@ -85,6 +85,7 @@ import { HelpTip, HelpBanner } from "@/components/shared/HelpTip";
 import { formatPrice } from "@shared/formatPrice";
 import { formatTimeForDisplay } from "@shared/timeSlots";
 import { ImageCropper } from "@/components/ImageCropper";
+import { ProviderBusinessProfileDialog } from "@/components/provider/ProviderBusinessProfileDialog";
 import { ProviderDashboardSkeleton } from "@/components/DashboardSkeleton";
 import SectionErrorBoundary from "@/components/SectionErrorBoundary";
 
@@ -1369,10 +1370,9 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
   }, []);
 
   const [editingService, setEditingService] = useState<any>(null);
-  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileEditorOpen, setProfileEditorOpen] = useState(false);
   const [editingBio, setEditingBio] = useState(false);
   const [bioText, setBioText] = useState("");
-  const [profileForm, setProfileForm] = useState<any>({});
   const [serviceForm, setServiceForm] = useState<any>({});
   const [deletingServiceId, setDeletingServiceId] = useState<number | null>(null);
   const [managingPhotosServiceId, setManagingPhotosServiceId] = useState<number | null>(null);
@@ -1442,51 +1442,6 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
   const handleProviderCropComplete = (croppedBase64: string, contentType: string) => {
     uploadProfilePhoto.mutate({ photoData: croppedBase64, contentType: contentType as "image/jpeg" | "image/png" | "image/webp" | "image/gif" });
   };
-
-  // Business logo upload
-  const logoInputRef = useRef<HTMLInputElement>(null);
-  const uploadBusinessLogo = trpc.provider.uploadBusinessLogo.useMutation({
-    onSuccess: () => {
-      utils.provider.getMyProfile.invalidate();
-      toast.success("Business logo updated!");
-    },
-    onError: (err: any) => toast.error(err.message || "Failed to upload logo"),
-  });
-  const removeBusinessLogo = trpc.provider.removeBusinessLogo.useMutation({
-    onSuccess: () => {
-      utils.provider.getMyProfile.invalidate();
-      toast.success("Business logo removed");
-    },
-    onError: (err: any) => toast.error(err.message || "Failed to remove logo"),
-  });
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("Logo must be under 2MB");
-      return;
-    }
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please select an image file");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = (reader.result as string).split(",")[1];
-      uploadBusinessLogo.mutate({ photoData: base64, contentType: file.type });
-    };
-    reader.readAsDataURL(file);
-    e.target.value = "";
-  };
-
-  const removeProviderPhoto = trpc.provider.removeProfilePhoto.useMutation({
-    onSuccess: () => {
-      utils.provider.getMyProfile.invalidate();
-      utils.auth.me.invalidate();
-      toast.success("Profile photo removed");
-    },
-    onError: (err) => toast.error(err.message || "Failed to remove photo"),
-  });
 
   const { data: provider } = trpc.provider.getMyProfile.useQuery(undefined, {
     enabled: isAuthenticated,
@@ -1675,7 +1630,6 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
   const updateProvider = trpc.provider.update.useMutation({
     onSuccess: () => {
       utils.provider.getMyProfile.invalidate();
-      setEditingProfile(false);
       toast.success("Profile updated");
     },
     onError: (err) => toast.error(err.message),
@@ -1701,19 +1655,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
   const providerPublicPageHref = provider.profileSlug ? `/${provider.profileSlug}` : null;
 
   const openEditProfile = () => {
-    setProfileForm({
-      businessName: provider.businessName || "",
-      description: provider.description || "",
-      addressLine1: provider.addressLine1 || "",
-      city: provider.city || "",
-      state: provider.state || "",
-      postalCode: provider.postalCode || "",
-      serviceRadiusMiles: provider.serviceRadiusMiles || 0,
-      acceptsMobile: provider.acceptsMobile,
-      acceptsFixedLocation: provider.acceptsFixedLocation,
-      acceptsVirtual: provider.acceptsVirtual,
-    });
-    setEditingProfile(true);
+    setProfileEditorOpen(true);
   };
 
   const openEditService = (service: any) => {
@@ -1916,21 +1858,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
           myCategories={myCategories}
           portfolio={portfolio}
           connectStatus={undefined}
-          onEditProfile={() => {
-            setProfileForm({
-              businessName: provider.businessName || "",
-              description: provider.description || "",
-              city: provider.city || "",
-              state: provider.state || "",
-              addressLine1: provider.addressLine1 || "",
-              postalCode: provider.postalCode || "",
-              serviceRadiusMiles: provider.serviceRadiusMiles || 0,
-              acceptsMobile: provider.acceptsMobile || false,
-              acceptsFixedLocation: provider.acceptsFixedLocation || false,
-              acceptsVirtual: provider.acceptsVirtual || false,
-            });
-            setEditingProfile(true);
-          }}
+          onEditProfile={() => setProfileEditorOpen(true)}
           onUploadPhoto={() => profilePhotoInputRef.current?.click()}
           onUploadPortfolio={() => {
             setActiveTab("portfolio");
@@ -3141,134 +3069,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
         </Tabs>
       </div>
 
-      {/* Edit Profile Dialog */}
-      <Dialog open={editingProfile} onOpenChange={setEditingProfile}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Edit Business Profile</DialogTitle>
-            <DialogDescription>Update your business information</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            {/* Profile Photo */}
-            <div className="flex items-center gap-4">
-              <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden shrink-0">
-                {provider?.profilePhotoUrl ? (
-                  <img src={provider.profilePhotoUrl} alt="Profile" className="h-full w-full object-cover" />
-                ) : (
-                  <User className="h-7 w-7 text-primary" />
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => profilePhotoInputRef.current?.click()}>
-                  Change Photo
-                </Button>
-                {provider?.profilePhotoUrl && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                    onClick={() => removeProviderPhoto.mutate()}
-                    disabled={removeProviderPhoto.isPending}
-                  >
-                    {removeProviderPhoto.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Remove"}
-                  </Button>
-                )}
-              </div>
-            </div>
-            {/* Business Logo Upload */}
-            <div>
-              <Label>Business Logo</Label>
-              <p className="text-xs text-muted-foreground mb-2">Displayed on your invoices for a branded, professional look. Recommended: square image, under 2MB.</p>
-              <div className="flex items-center gap-4">
-                <div className="h-16 w-16 rounded-lg border border-border bg-muted flex items-center justify-center overflow-hidden shrink-0">
-                  {(provider as any)?.businessLogoUrl ? (
-                    <img src={(provider as any).businessLogoUrl} alt="Business Logo" className="h-full w-full object-contain" />
-                  ) : (
-                    <span className="text-xs text-muted-foreground">No logo</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button type="button" variant="outline" size="sm" onClick={() => logoInputRef.current?.click()} disabled={uploadBusinessLogo.isPending}>
-                    {uploadBusinessLogo.isPending ? <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> Uploading...</> : "Upload Logo"}
-                  </Button>
-                  {(provider as any)?.businessLogoUrl && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                      onClick={() => removeBusinessLogo.mutate()}
-                      disabled={removeBusinessLogo.isPending}
-                    >
-                      {removeBusinessLogo.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Remove"}
-                    </Button>
-                  )}
-                </div>
-                <input
-                  type="file"
-                  ref={logoInputRef}
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleLogoUpload}
-                />
-              </div>
-            </div>
-            <div>
-              <Label>Business Name</Label>
-              <Input value={profileForm.businessName || ""} onChange={e => setProfileForm({ ...profileForm, businessName: e.target.value })} />
-            </div>
-            <div>
-              <Label>Bio / Description</Label>
-              <Textarea value={profileForm.description || ""} onChange={e => setProfileForm({ ...profileForm, description: e.target.value })} rows={4} placeholder="Tell customers about your experience, skills, and what makes your services unique..." />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Label>City</Label>
-                <Input value={profileForm.city || ""} onChange={e => setProfileForm({ ...profileForm, city: e.target.value })} />
-              </div>
-              <div>
-                <Label>State</Label>
-                <Input value={profileForm.state || ""} onChange={e => setProfileForm({ ...profileForm, state: e.target.value })} />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Label>Address</Label>
-                <Input value={profileForm.addressLine1 || ""} onChange={e => setProfileForm({ ...profileForm, addressLine1: e.target.value })} />
-              </div>
-              <div>
-                <Label>Postal Code</Label>
-                <Input value={profileForm.postalCode || ""} onChange={e => setProfileForm({ ...profileForm, postalCode: e.target.value })} />
-              </div>
-            </div>
-            <div>
-              <Label>Service Radius (miles)</Label>
-              <Input type="number" value={profileForm.serviceRadiusMiles || 0} onChange={e => setProfileForm({ ...profileForm, serviceRadiusMiles: parseInt(e.target.value) || 0 })} />
-            </div>
-            <div className="flex gap-4">
-              <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={profileForm.acceptsMobile || false} onChange={e => setProfileForm({ ...profileForm, acceptsMobile: e.target.checked })} />
-                Mobile
-              </label>
-              <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={profileForm.acceptsFixedLocation || false} onChange={e => setProfileForm({ ...profileForm, acceptsFixedLocation: e.target.checked })} />
-                Fixed Location
-              </label>
-              <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={profileForm.acceptsVirtual || false} onChange={e => setProfileForm({ ...profileForm, acceptsVirtual: e.target.checked })} />
-                Virtual
-              </label>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingProfile(false)}>Cancel</Button>
-            <Button onClick={() => updateProvider.mutate(profileForm)} disabled={updateProvider.isPending}>
-              {updateProvider.isPending ? "Saving..." : "Save Changes"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ProviderBusinessProfileDialog open={profileEditorOpen} onOpenChange={setProfileEditorOpen} />
 
       {/* Edit Service Dialog */}
       <Dialog open={!!editingService} onOpenChange={() => setEditingService(null)}>
