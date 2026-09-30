@@ -154,7 +154,6 @@ export default function SavedProviders() {
       <NavHeader />
       <CustomerWorkspaceShell
         active="saved"
-        maxWidth="max-w-6xl"
         contentClassName="[&_[data-slot=card]]:rounded-2xl [&_[data-slot=card]]:border-slate-200 [&_[data-slot=card]]:shadow-[0_18px_50px_-42px_rgba(15,23,42,0.5)]"
       >
         <CustomerWorkspacePageHeader

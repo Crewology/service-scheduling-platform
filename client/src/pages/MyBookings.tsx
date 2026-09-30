@@ -57,7 +57,6 @@ function BookingsPageFrame({
     return (
       <CustomerWorkspaceShell
         active="bookings"
-        maxWidth="max-w-6xl"
         contentClassName="[&_[data-slot=card]]:rounded-2xl [&_[data-slot=card]]:border-slate-200 [&_[data-slot=card]]:shadow-[0_18px_50px_-42px_rgba(15,23,42,0.5)]"
       >
         {children}
@@ -306,7 +305,7 @@ export default function MyBookings() {
     return (
       <div className="min-h-screen bg-[#f7faff]">
         <NavHeader />
-        <div className="container py-8 max-w-5xl">
+        <div className="container max-w-7xl py-8">
           <BookingsSkeleton />
         </div>
       </div>

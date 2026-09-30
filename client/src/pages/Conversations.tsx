@@ -142,7 +142,7 @@ export default function Conversations() {
     return (
       <div className="min-h-screen bg-[#f7faff]">
         <NavHeader />
-        <div className="container py-8 max-w-3xl">
+        <div className="container max-w-7xl py-8">
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-20 bg-muted animate-pulse rounded-lg" />
@@ -163,7 +163,6 @@ export default function Conversations() {
       <NavHeader />
       <CustomerWorkspaceShell
         active="messages"
-        maxWidth="max-w-5xl"
         contentClassName="[&_[data-slot=card]]:rounded-2xl [&_[data-slot=card]]:border-slate-200 [&_[data-slot=card]]:shadow-[0_18px_50px_-42px_rgba(15,23,42,0.5)]"
       >
         <CustomerWorkspacePageHeader

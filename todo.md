@@ -3239,3 +3239,14 @@
 - [x] Preserve category-card selection, category URL compatibility, the selected-category chip, and one-tap removal.
 - [x] Verify the simplified advanced-filter layout at desktop and 390px mobile sizes.
 - [x] Complete full regression, production build, cleanup verification, and rollback checkpoint.
+
+
+## Customer Workspace — align primary page widths
+
+- [x] Make customer-mode My Bookings inherit Customer Home’s `max-w-7xl` workspace width.
+- [x] Make Saved Providers inherit Customer Home’s `max-w-7xl` workspace width.
+- [x] Make Messages inherit Customer Home’s `max-w-7xl` workspace width.
+- [x] Align My Bookings and Messages loading states to the same width.
+- [x] Preserve provider-mode My Bookings, data behavior, actions, and mobile layouts.
+- [x] Verify Customer Home and all three pages side by side at desktop and 390px mobile sizes.
+- [x] Complete full regression, production build, cleanup verification, and rollback checkpoint.

@@ -45,6 +45,16 @@ describe("shared Customer Workspace visual system", () => {
     expect(messagesSource).toContain('active="messages"');
   });
 
+  it("keeps the primary customer management pages as wide as Customer Home", () => {
+    expect(shellSource).toContain('maxWidth = "max-w-7xl"');
+    expect(homeSource).not.toContain("maxWidth=");
+    for (const page of [bookingsSource, savedSource, messagesSource]) {
+      expect(page).not.toMatch(/maxWidth="max-w-(?:3xl|4xl|5xl|6xl)"/);
+    }
+    expect(bookingsSource).toContain('className="container max-w-7xl py-8"');
+    expect(messagesSource).toContain('className="container max-w-7xl py-8"');
+  });
+
   it("keeps discovery visually distinct from customer management pages", () => {
     expect(searchSource).toContain('variant="discovery"');
     for (const page of [bookingsSource, bulkSource, plannerSource, savedSource, messagesSource]) {
