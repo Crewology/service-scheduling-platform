@@ -3368,3 +3368,14 @@
 - [x] Add a regression preventing the duplicate CTA from returning.
 - [x] Verify the final referral-to-footer transition visually.
 - [x] Complete full regression, production build, cleanup verification, and rollback checkpoint.
+
+## Context-aware signed-in footer
+
+- [x] Keep the acquisition CTA, Pricing, provider-start, and Sign In content for logged-out visitors only.
+- [x] Replace promotional content after sign-in with compact workspace and account utilities.
+- [x] Show Provider Overview, Bookings, Customers, Services, Calendar, Money, and Business Tools in provider view.
+- [x] Show Customer Home, Explore, My Bookings, Saved Providers, Messages, Monthly Planner, and Bulk Booking in customer view.
+- [x] Route Manage Plan to the correct provider or customer subscription page.
+- [x] Retain account, referral, support, legal, app-install, and secure-payment information.
+- [x] Verify public, provider, and customer footer variants at desktop and mobile sizes.
+- [x] Complete full regression, production build, cleanup verification, and rollback checkpoint.

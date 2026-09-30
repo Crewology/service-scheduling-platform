@@ -10,6 +10,8 @@ const footerSource = readFileSync(
 
 describe("public footer", () => {
   it("opens with clear customer and provider acquisition paths", () => {
+    expect(footerSource).toContain("const { isAuthenticated } = useAuth();");
+    expect(footerSource).toContain("{!isAuthenticated ? (");
     expect(footerSource).toContain("One platform, two clear paths");
     expect(footerSource).toContain("Looking for a service?");
     expect(footerSource).toContain("Explore trusted providers.");
@@ -38,19 +40,42 @@ describe("public footer", () => {
     expect(footerSource).toContain('aria-label="Company and support footer navigation"');
   });
 
-  it("removes signed-in workspace destinations from public footer navigation", () => {
-    for (const destination of [
-      'href="/my-bookings"',
-      'href="/provider/dashboard"',
-      'href="/provider/services/new"',
-      'href="/provider/availability"',
+  it("replaces acquisition content with role-aware workspace utilities after sign-in", () => {
+    expect(footerSource).toContain("const { isProviderView } = useViewMode();");
+    expect(footerSource).toContain("{isAuthenticated ? (");
+    expect(footerSource).toContain('aria-label="Signed-in workspace footer navigation"');
+    expect(footerSource).toContain('aria-label="Signed-in account and support footer navigation"');
+
+    for (const label of [
+      "Provider Overview",
+      "Bookings",
+      "Customers",
+      "Services",
+      "My Calendar",
+      "Money",
+      "Business Tools",
+      "Customer Home",
+      "Explore Services",
+      "My Bookings",
+      "Saved Providers",
+      "Messages",
+      "Monthly Planner",
+      "Bulk Booking",
+      "My Account",
+      "Manage Plan",
     ]) {
-      expect(footerSource).not.toContain(destination);
+      expect(footerSource).toContain(label);
     }
 
-    for (const label of ["My Bookings", "My Dashboard", "Add Service", "Manage Availability"]) {
-      expect(footerSource).not.toContain(label);
-    }
+    expect(footerSource).toContain(
+      'const subscriptionHref = isProviderView ? "/provider/subscription" : "/customer/subscription";',
+    );
+    expect(footerSource).toContain(
+      "Your workspace for managing services, bookings, payments, and customer relationships.",
+    );
+    expect(footerSource).toContain(
+      "Your workspace for finding services, managing bookings, and returning to providers you trust.",
+    );
   });
 
   it("keeps legal, install, and secure-payment information in the lower strip", () => {
