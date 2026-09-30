@@ -3210,3 +3210,12 @@
 - [x] Preserve Share page in Quick Actions.
 - [x] Verify desktop, tablet, and mobile layouts.
 - [x] Complete full regression, production build, cleanup verification, and rollback checkpoint.
+
+
+## Global header — desktop Search shortcut
+
+- [x] Remove the desktop Home, Explore, My Bookings, Saved, and Messages shortcut icons.
+- [x] Add one desktop Search icon linked to canonical Explore at `/browse`.
+- [x] Preserve notifications, role switching, Admin, account menu, and all mobile header shortcuts.
+- [x] Verify authenticated desktop and mobile layouts.
+- [x] Complete full regression, production build, cleanup verification, and rollback checkpoint.

@@ -45,6 +45,7 @@ import {
   BookOpen,
   Users,
   UserCog,
+  Search,
 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -620,46 +621,10 @@ export function NavHeader() {
           <div className="hidden lg:flex items-center gap-1">
             {isAuthenticated ? (
               <>
-                {/* Home / Dashboard Grid */}
-                <Link href="/">
-                  <Button variant="ghost" size="icon" className="relative h-9 w-9" title="Home">
-                    <LayoutGrid className="h-4 w-4" />
-                  </Button>
-                </Link>
-                {/* Browse Services */}
-                <Link href="/browse">
-                  <Button variant="ghost" size="icon" className="relative h-9 w-9" title="Browse Services">
-                    <Compass className="h-4 w-4" />
-                  </Button>
-                </Link>
-
-                {/* My Bookings */}
-                <Link href="/my-bookings">
-                  <Button variant="ghost" size="icon" className="relative h-9 w-9" title="My Bookings">
-                    <Calendar className="h-4 w-4" />
-                  </Button>
-                </Link>
-
-                {/* Saved Providers */}
-                <Link href="/saved-providers">
-                  <Button variant="ghost" size="icon" className="relative h-9 w-9" title="Saved">
-                    <Heart className="h-4 w-4" />
-                  </Button>
-                </Link>
-
-
-                {/* Messages with unread badge */}
-                <Link href="/messages">
-                  <Button variant="ghost" size="icon" className="relative h-9 w-9" title="Messages">
-                    <MessageSquare className="h-4 w-4" />
-                    {unreadMessages > 0 && (
-                      <Badge
-                        variant="destructive"
-                        className="absolute -top-1 -right-1 h-4 min-w-[16px] flex items-center justify-center p-0 text-[9px]"
-                      >
-                        {unreadMessages > 99 ? "99+" : unreadMessages}
-                      </Badge>
-                    )}
+                {/* Search / Explore */}
+                <Link href="/browse" aria-label="Search services and providers">
+                  <Button variant="ghost" size="icon" className="relative h-9 w-9" title="Search">
+                    <Search className="h-4 w-4" />
                   </Button>
                 </Link>
 
