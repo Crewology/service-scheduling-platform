@@ -3314,3 +3314,15 @@
 - [x] Add accessible navigation labels, focus states, and mobile-friendly stacking.
 - [x] Verify full-page desktop and 390px mobile layouts.
 - [x] Complete full regression, production build, cleanup verification, and rollback checkpoint.
+
+
+## Public homepage — application design alignment
+
+- [x] Align the logged-out homepage with the shared light blue canvas, rounded dark-blue hero, white card system, typography, and spacing.
+- [x] Place a clear service/provider search composer inside the hero with direct Explore routing and popular searches.
+- [x] Convert the provider value proposition, comparison, no-gatekeeping, categories, featured providers, referral, and closing CTA into the current card hierarchy.
+- [x] Reuse the authoritative category icon map and preserve all category, promotion, referral, pricing, authentication, and search destinations.
+- [x] Preserve the redesigned public footer and visible global header.
+- [x] Add focused homepage design and behavior regressions.
+- [x] Verify the full logged-out homepage at desktop and 390px mobile sizes.
+- [x] Complete the full regression suite, production build, cleanup verification, and rollback checkpoint.
