@@ -3224,7 +3224,7 @@
 ## Explore — unified search composer and adaptive results
 
 - [x] Combine keyword/provider search, location, timing, and advanced filters into one compact composer inside the blue Explore header.
-- [x] Keep advanced filters collapsed by default with category, price, free-estimate, emergency-service, and sorting controls.
+- [x] Keep advanced filters collapsed by default with price, free-estimate, emergency-service, and sorting controls.
 - [x] Submit search explicitly instead of requesting results on every keystroke; persist applied criteria in the canonical `/browse` URL.
 - [x] Keep the full category directory when no search is active and reuse the same category-card design for relevant search matches.
 - [x] Put relevant categories and services first for service intent; put the provider card first for direct provider-name intent.
@@ -3232,3 +3232,10 @@
 - [x] Add applied filter chips, one-tap removal, reset, no-results recovery, and progressive advanced-filter disclosure.
 - [x] Verify default, service-intent, provider-intent, expanded-filter, desktop, mobile, keyboard-submit, and URL-persistence behavior.
 - [x] Complete the full regression suite, production build, cleanup verification, and rollback checkpoint.
+
+## Explore — remove redundant Category filter
+
+- [x] Remove the Category dropdown from advanced filters on desktop and mobile.
+- [x] Preserve category-card selection, category URL compatibility, the selected-category chip, and one-tap removal.
+- [x] Verify the simplified advanced-filter layout at desktop and 390px mobile sizes.
+- [x] Complete full regression, production build, cleanup verification, and rollback checkpoint.

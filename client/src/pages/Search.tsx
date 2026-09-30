@@ -32,13 +32,10 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 
 function renderAdvancedFilters(opts: {
-  categoryId: number | undefined;
-  setCategoryId: (v: number | undefined) => void;
   priceRange: number[];
   setPriceRange: (v: number[]) => void;
   sortBy: string;
   setSortBy: (v: "price" | "rating" | "distance") => void;
-  categories: { id: number; name: string }[] | undefined;
   hasActiveFilters: boolean;
   clearAllFilters: () => void;
   freeEstimatesOnly: boolean;
@@ -47,27 +44,7 @@ function renderAdvancedFilters(opts: {
   setEmergencyServiceOnly: (v: boolean) => void;
 }) {
   return (
-    <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-      <div>
-        <label className="text-sm font-medium mb-2 block">Category</label>
-        <Select
-          value={opts.categoryId?.toString() || "all"}
-          onValueChange={(value) => opts.setCategoryId(value === "all" ? undefined : parseInt(value))}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="All Categories" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            {opts.categories?.map((cat) => (
-              <SelectItem key={cat.id} value={cat.id.toString()}>
-                {cat.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
+    <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
       <div>
         <label className="text-sm font-medium mb-2 block">
           Price Range: ${opts.priceRange[0]} - ${opts.priceRange[1]}
@@ -123,7 +100,7 @@ function renderAdvancedFilters(opts: {
       </div>
 
       {opts.hasActiveFilters && (
-        <Button type="button" variant="outline" onClick={opts.clearAllFilters} className="w-full gap-2 self-end">
+        <Button type="button" variant="outline" onClick={opts.clearAllFilters} className="w-full gap-2 self-end md:w-auto xl:col-span-full xl:justify-self-end">
           <RotateCcw className="h-4 w-4" />
           Reset filters
         </Button>
@@ -224,8 +201,7 @@ export default function Explore() {
 
   const isLoading = (hasSearchIntent && servicesLoading) || (trimmedKeyword.length >= 2 && providersLoading);
   const hasAdvancedFilters = Boolean(
-    draftCriteria.categoryId
-      || draftCriteria.priceRange[0] > 0
+    draftCriteria.priceRange[0] > 0
       || draftCriteria.priceRange[1] < 1000
       || draftCriteria.sortBy !== "rating"
       || draftCriteria.freeEstimatesOnly
@@ -281,17 +257,13 @@ export default function Explore() {
   };
 
   const filterProps = {
-    categoryId: draftCriteria.categoryId,
-    setCategoryId: (value: number | undefined) => setDraftCriteria((current) => ({ ...current, categoryId: value })),
     priceRange: draftCriteria.priceRange,
     setPriceRange: (value: number[]) => setDraftCriteria((current) => ({ ...current, priceRange: [value[0] ?? 0, value[1] ?? 1000] })),
     sortBy: draftCriteria.sortBy,
     setSortBy: (value: "price" | "rating" | "distance") => setDraftCriteria((current) => ({ ...current, sortBy: value })),
-    categories: categories as { id: number; name: string }[] | undefined,
     hasActiveFilters: hasAdvancedFilters,
     clearAllFilters: () => setDraftCriteria((current) => ({
       ...current,
-      categoryId: undefined,
       priceRange: [0, 1000],
       sortBy: "rating",
       freeEstimatesOnly: false,
@@ -304,7 +276,6 @@ export default function Explore() {
   };
   const selectedCategory = categories?.find((category) => category.id === appliedCriteria.categoryId);
   const appliedFilterCount = [
-    draftCriteria.categoryId,
     draftCriteria.priceRange[0] > 0 || draftCriteria.priceRange[1] < 1000,
     draftCriteria.sortBy !== "rating",
     draftCriteria.freeEstimatesOnly,

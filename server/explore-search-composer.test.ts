@@ -73,6 +73,8 @@ describe("unified Explore search composer", () => {
     expect(exploreSource).toContain('aria-controls="explore-advanced-filters"');
     expect(exploreSource).toContain("renderAdvancedFilters(filterProps)");
     expect(exploreSource).toContain("Apply filters");
+    expect(exploreSource).not.toContain('>Category</label>');
+    expect(exploreSource).not.toContain('<SelectItem value="all">All Categories</SelectItem>');
     expect(exploreSource).not.toContain("Desktop Filters Sidebar");
     expect(exploreSource).not.toContain("useDebounce");
   });
@@ -82,6 +84,8 @@ describe("unified Explore search composer", () => {
     expect(exploreSource).toContain("relevantCategorySection");
     expect(exploreSource).toContain('aria-label={`${provider.businessName} categories`}');
     expect(exploreSource).toContain('href={`/browse?category=${category.id}`}');
+    expect(exploreSource).toContain("selectedCategory.name");
+    expect(exploreSource).toContain("categoryId: undefined");
     expect(exploreSource).toContain('searchIntent === "provider"');
     expect(exploreSource.indexOf("{providerResultSection}")).toBeLessThan(exploreSource.indexOf("{relevantCategorySection}"));
   });
