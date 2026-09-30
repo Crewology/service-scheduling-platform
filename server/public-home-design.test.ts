@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const root = resolve(import.meta.dirname, "..");
 const homeSource = readFileSync(resolve(root, "client/src/pages/Home.tsx"), "utf8");
+const footerSource = readFileSync(resolve(root, "client/src/components/shared/Footer.tsx"), "utf8");
 
 describe("public homepage design alignment", () => {
   it("uses the shared page canvas and a flush edge-to-edge dark-blue hero", () => {
@@ -46,14 +47,21 @@ describe("public homepage design alignment", () => {
       "Explore 48+ Service Categories",
       "Featured Professionals",
       "Refer & Earn Rewards",
-      "Ready to build your digital home?",
     ]) {
       expect(homeSource).toContain(content);
     }
 
     expect(homeSource).toContain('href="/browse"');
-    expect(homeSource).toContain('href="/pricing"');
     expect(homeSource).toContain('href="/referral-program"');
+  });
+
+  it("leaves the two-path conversion choice to the public footer", () => {
+    expect(homeSource).not.toContain("Ready to build your digital home?");
+    expect(homeSource).not.toContain("Get Started Free");
+    expect(homeSource).not.toContain("Start with the path that fits");
+    expect(footerSource).toContain("One platform, two clear paths");
+    expect(footerSource).toContain('href="/browse"');
+    expect(footerSource).toContain('href="/pricing"');
   });
 
   it("keeps mobile hierarchy compact and category cards consistent with Explore", () => {

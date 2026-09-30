@@ -3357,3 +3357,14 @@
 - [x] Add focused header and Customer Workspace regression coverage.
 - [x] Verify logged-out homepage and Explore at desktop and mobile sizes.
 - [x] Complete full regression, production build, cleanup verification, and rollback checkpoint.
+
+
+## Public homepage — CTA deduplication
+
+- [x] Confirm the two adjacent sections repeated the same customer and provider destinations.
+- [x] Remove the upper `Ready to build your digital home?` CTA block.
+- [x] Keep the clearer footer `One platform, two clear paths` CTA as the single closing conversion choice.
+- [x] Preserve Explore, Pricing, referral, and other public destinations through their canonical surfaces.
+- [x] Add a regression preventing the duplicate CTA from returning.
+- [x] Verify the final referral-to-footer transition visually.
+- [x] Complete full regression, production build, cleanup verification, and rollback checkpoint.

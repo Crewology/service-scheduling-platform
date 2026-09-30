@@ -385,23 +385,6 @@ export default function Home() {
             </div>
           </section>
 
-          <section className="relative overflow-hidden rounded-3xl bg-[#123f63] p-6 text-white shadow-[0_24px_70px_-42px_rgba(18,63,99,0.8)] sm:p-8 lg:p-10">
-            <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-              <div className="max-w-2xl">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-200">Start with the path that fits</p>
-                <h2 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">Ready to build your digital home?</h2>
-                <p className="mt-2 text-sm leading-6 text-sky-50/75 sm:text-base">Join service professionals who manage discovery, bookings, payments, and customer relationships on OlogyCrew.</p>
-              </div>
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <Button asChild size="lg" className="bg-white text-[#123f63] hover:bg-sky-50">
-                  <Link href="/pricing">Get Started Free<ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" /></Link>
-                </Button>
-                <Button asChild size="lg" variant="outline" className="border-white/30 bg-white/5 text-white hover:bg-white/10 hover:text-white">
-                  <Link href="/browse">Browse Services</Link>
-                </Button>
-              </div>
-            </div>
-          </section>
         </div>
       </main>
     </div>
