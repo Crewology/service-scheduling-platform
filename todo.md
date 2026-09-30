@@ -3261,3 +3261,12 @@
 - [x] Add an application-wide source contract that rejects legacy root backgrounds and protects the embed exception.
 - [x] Verify representative public, customer, provider, admin, account, support, and authentication surfaces at desktop and 390px mobile sizes.
 - [x] Complete the full regression suite, production build, cleanup verification, and rollback checkpoint.
+
+
+## Global header — mobile Search shortcut
+
+- [x] Remove the mobile Home grid and Explore compass shortcuts.
+- [x] Add one Search icon linked to canonical customer Explore at `/browse`.
+- [x] Preserve the logo Home link, AI assistant, notifications, hamburger menu, and mobile workspace navigation.
+- [x] Verify the authenticated mobile header on Provider Overview and Explore.
+- [x] Complete full regression, production build, cleanup verification, and rollback checkpoint.

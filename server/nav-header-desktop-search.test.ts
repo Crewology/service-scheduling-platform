@@ -10,11 +10,11 @@ const desktopActions = navHeader.slice(
   navHeader.indexOf("{/* Credit Balance */}"),
 );
 const mobileActions = navHeader.slice(
-  navHeader.indexOf("{/* Mobile actions: Explore + AI Assistant + Notifications + Hamburger */}"),
+  navHeader.indexOf("{/* Mobile actions: Search + AI Assistant + Notifications + Hamburger */}"),
   navHeader.indexOf("{/* Mobile Full-Screen App Menu */}"),
 );
 
-describe("desktop header discovery shortcut", () => {
+describe("header discovery shortcut", () => {
   it("shows one Search icon linked to canonical Explore", () => {
     expect(desktopActions).toContain('<Link href="/browse" aria-label="Search services and providers">');
     expect(desktopActions).toContain('title="Search"');
@@ -27,10 +27,14 @@ describe("desktop header discovery shortcut", () => {
     }
   });
 
-  it("leaves mobile Home and Explore shortcuts unchanged", () => {
-    expect(mobileActions).toContain('<Link href="/">');
-    expect(mobileActions).toContain('title="Home"');
-    expect(mobileActions).toContain('<Link href="/browse">');
-    expect(mobileActions).toContain('title="Browse Services"');
+  it("replaces the mobile Home and Explore icons with one Search shortcut", () => {
+    expect(mobileActions).toContain('<Link href="/browse" aria-label="Search services and providers">');
+    expect(mobileActions).toContain('title="Search"');
+    expect(mobileActions).toContain('<Search className="h-5 w-5" />');
+    expect(mobileActions).not.toContain('<Link href="/">');
+    expect(mobileActions).not.toContain('title="Home"');
+    expect(mobileActions).not.toContain('title="Browse Services"');
+    expect(mobileActions).not.toContain("<LayoutGrid");
+    expect(mobileActions).not.toContain("<Compass");
   });
 });

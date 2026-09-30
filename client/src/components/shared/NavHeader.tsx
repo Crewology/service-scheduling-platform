@@ -31,7 +31,6 @@ import {
   HelpCircle,
   Clock,
   LayoutDashboard,
-  LayoutGrid,
   Compass,
   Award,
   ShieldCheck,
@@ -664,18 +663,12 @@ export function NavHeader() {
             )}
           </div>
 
-          {/* Mobile actions: Explore + AI Assistant + Notifications + Hamburger */}
+          {/* Mobile actions: Search + AI Assistant + Notifications + Hamburger */}
           <div className="flex lg:hidden items-center gap-1">
-            {/* Home / Dashboard Grid (mobile) */}
-            <Link href="/">
-              <Button variant="ghost" size="icon" className="relative h-10 w-10" title="Home">
-                <LayoutGrid className="h-5 w-5" />
-              </Button>
-            </Link>
-            {/* Browse Services (mobile) */}
-            <Link href="/browse">
-              <Button variant="ghost" size="icon" className="relative h-10 w-10" title="Browse Services">
-                <Compass className="h-5 w-5" />
+            {/* Search customer Explore (mobile) */}
+            <Link href="/browse" aria-label="Search services and providers">
+              <Button variant="ghost" size="icon" className="relative h-10 w-10" title="Search">
+                <Search className="h-5 w-5" />
               </Button>
             </Link>
 
