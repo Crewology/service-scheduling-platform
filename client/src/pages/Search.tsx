@@ -17,6 +17,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { Search as SearchIcon, MapPin, DollarSign, Star, X, SlidersHorizontal, Clock, Building2, ArrowRight, BadgeCheck, RefreshCw, AlertCircle, Heart, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { NavHeader } from "@/components/shared/NavHeader";
+import { CustomerWorkspacePageHeader, CustomerWorkspaceShell } from "@/components/customer/CustomerWorkspaceShell";
 import { TrustBadge } from "@/components/TrustBadge";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
@@ -308,99 +309,73 @@ export default function Search() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#f7faff]">
       <NavHeader />
-      {/* Page Title + Mobile Search Bar */}
-      <div className="bg-white border-b">
-        <div className="container py-4 sm:py-6 md:py-8">
-          <div className="flex items-center justify-between mb-3 sm:mb-0">
-            <div>
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-0.5 sm:mb-2">Search Services</h1>
-              <p className="text-xs sm:text-sm md:text-base text-muted-foreground hidden sm:block">
-                {keyword
-                  ? `Results for "${keyword}"`
-                  : "Find the perfect service provider for your needs"}
-              </p>
-              {requestedTiming ? (
-                <p className="mt-1 text-xs font-medium text-[#174a73]">
-                  Requested timing: {requestedTiming}
-                </p>
-              ) : null}
-            </div>
-            {/* Mobile filter toggle */}
+      <CustomerWorkspaceShell active="explore">
+        <CustomerWorkspacePageHeader
+          variant="discovery"
+          eyebrow="Find the right fit"
+          title="Search services and providers"
+          description={keyword ? `Compare the best matches for “${keyword}” and choose a direct booking or quote path.` : "Search by need, then refine by category, location, price, and provider options."}
+          actions={(
+            <Button asChild className="bg-white text-[#174a73] hover:bg-blue-50">
+              <Link href="/browse">Browse categories</Link>
+            </Button>
+          )}
+        />
+
+        <div className="relative z-10 mx-auto -mt-5 max-w-4xl rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_22px_60px_-38px_rgba(15,23,42,0.65)] sm:p-3">
+          <div className="flex items-center gap-2">
+            <SearchIcon className="ml-2 h-5 w-5 shrink-0 text-slate-400" />
+            <Input
+              placeholder="Search services or providers..."
+              value={keyword}
+              onChange={(event) => setKeyword(event.target.value)}
+              className="h-11 flex-1 border-0 bg-transparent px-1 text-base shadow-none focus-visible:ring-0"
+              aria-label="Search services or providers"
+            />
+            {keyword ? (
+              <button onClick={() => setKeyword("")} className="rounded-full p-1.5 hover:bg-slate-100" aria-label="Clear search">
+                <X className="h-4 w-4 text-slate-500" />
+              </button>
+            ) : null}
             <Button
               variant="outline"
-              size="sm"
-              className="lg:hidden gap-1.5"
+              className="gap-1.5 bg-white lg:hidden"
               onClick={() => setShowMobileFilters(!showMobileFilters)}
             >
               <SlidersHorizontal className="h-4 w-4" />
               Filters
-              {hasActiveFilters && (
-                <span className="h-2 w-2 rounded-full bg-primary" />
-              )}
+              {hasActiveFilters ? <span className="h-2 w-2 rounded-full bg-[#156a9a]" /> : null}
             </Button>
           </div>
-
-          {/* Mobile Search Bar - always visible on mobile, outside the filter drawer */}
-          <div className="lg:hidden">
-            <div className="relative">
-              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search services or providers..."
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                className="pl-10 pr-8 h-11 text-base rounded-full border-gray-300 shadow-sm"
-              />
-              {keyword && (
-                <button
-                  onClick={() => setKeyword("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-muted transition-colors"
-                  aria-label="Clear search"
-                >
-                  <X className="h-4 w-4 text-muted-foreground" />
-                </button>
-              )}
-            </div>
-          </div>
+          {requestedTiming ? <p className="border-t border-slate-100 px-3 pt-2 text-xs font-medium text-[#174a73]">Requested timing: {requestedTiming}</p> : null}
         </div>
-      </div>
 
-      {/* Mobile Filters Drawer - search is excluded here since it's now above */}
-      {showMobileFilters && (
-        <div className="lg:hidden bg-white border-b shadow-sm">
-          <div className="container py-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-sm">Filters</h3>
-              <button
-                onClick={() => setShowMobileFilters(false)}
-                className="p-1 rounded-full hover:bg-muted"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            {renderFilters({ ...filterProps, hideSearch: true })}
-            <Button
-              className="w-full mt-4"
-              onClick={() => setShowMobileFilters(false)}
-            >
-              Apply Filters
-            </Button>
-          </div>
-        </div>
-      )}
+        {showMobileFilters ? (
+          <Card className="mt-4 rounded-2xl border-slate-200 shadow-sm lg:hidden">
+            <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
+              <div><CardTitle className="text-base">Filters</CardTitle><CardDescription>Refine your search</CardDescription></div>
+              <Button variant="ghost" size="icon" onClick={() => setShowMobileFilters(false)} aria-label="Close filters"><X className="h-4 w-4" /></Button>
+            </CardHeader>
+            <CardContent>
+              {renderFilters({ ...filterProps, hideSearch: true })}
+              <Button className="mt-4 w-full" onClick={() => setShowMobileFilters(false)}>Apply filters</Button>
+            </CardContent>
+          </Card>
+        ) : null}
 
-      <div className="container py-6 sm:py-8">
+      <div className="mt-7">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
           {/* Desktop Filters Sidebar */}
           <div className="hidden lg:block lg:col-span-1">
-            <Card>
+            <Card className="sticky top-24 rounded-2xl border-slate-200 shadow-[0_18px_50px_-42px_rgba(15,23,42,0.55)]">
               <CardHeader>
                 <CardTitle>Filters</CardTitle>
                 <CardDescription>Refine your search</CardDescription>
               </CardHeader>
               <CardContent>
-                {renderFilters(filterProps)}
+                {renderFilters({ ...filterProps, hideSearch: true })}
               </CardContent>
             </Card>
           </div>
@@ -626,6 +601,7 @@ export default function Search() {
           </div>
         </div>
       </div>
+      </CustomerWorkspaceShell>
     </div>
   );
 }

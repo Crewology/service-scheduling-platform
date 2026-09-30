@@ -79,6 +79,7 @@ describe("customer booking export entitlement", () => {
   it("shows the unified-page Export control only in Manager customer view", () => {
     const source = readFileSync(resolve(__dirname, "../client/src/pages/MyBookings.tsx"), "utf8");
     expect(source).toContain('bookingView === "customer" && customerSubscription?.currentTier === "business"');
-    expect(source).toContain("{canExportBookings && <DropdownMenu>");
+    expect(source).toContain("{canExportBookings ? (");
+    expect(source).toContain("<DropdownMenu>");
   });
 });

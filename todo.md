@@ -3176,3 +3176,17 @@
 - [x] Scan every text-capable database column for `/provider/dashboard`; no persisted notification, email, message, or template rows required migration.
 - [x] Keep the legacy dashboard redirect route so links in previously delivered emails continue to work.
 - [x] Complete full regression, build, cleanup, final database re-scan, and rollback checkpoint.
+
+
+## Customer Workspace visual alignment
+
+- [x] Add one shared Customer Workspace shell with canonical desktop navigation, mobile bottom navigation, active-page state, mobile role toggle, and light blue background.
+- [x] Move Customer Home into the shared shell without changing need-first search, actions, upcoming bookings, rebooking, or supporting tools.
+- [x] Redesign Browse and Search as discovery pages with connected blue headers, prominent search, preserved filters, provider results, adaptive booking, and save actions.
+- [x] Redesign customer-mode My Bookings with the shared shell and compact management header while keeping provider mode unchanged.
+- [x] Redesign Bulk Booking and Monthly Planner as guided planning workflows while preserving drafts, templates, provider selection, dates, pricing, and booking creation.
+- [x] Redesign Saved Providers with shared navigation and preserved folders, plan limits, bulk quotes, analytics, and upgrade gating.
+- [x] Redesign Messages with shared navigation and preserved search, SSE updates, attachments, routing, unread state, and deletion.
+- [x] Verify all eight customer surfaces at desktop and 390px mobile sizes; refine mobile workflow labels and remove redundant plan-header clutter.
+- [x] Add focused shared-shell, route, role-boundary, behavior-preservation, adaptive booking, export, entitlement, and category-icon regressions.
+- [x] Complete the full regression suite, production build, cleanup verification, and rollback checkpoint.

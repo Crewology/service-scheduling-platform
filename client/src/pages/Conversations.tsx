@@ -17,7 +17,7 @@ import {
 import { useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
 import { NavHeader } from "@/components/shared/NavHeader";
-import { PageHeader } from "@/components/shared/PageHeader";
+import { CustomerWorkspacePageHeader, CustomerWorkspaceShell } from "@/components/customer/CustomerWorkspaceShell";
 import { useSSE } from "@/hooks/useSSE";
 import { useCallback, useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
@@ -140,7 +140,7 @@ export default function Conversations() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-[#f7faff]">
         <NavHeader />
         <div className="container py-8 max-w-3xl">
           <div className="space-y-3">
@@ -159,24 +159,28 @@ export default function Conversations() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#f7faff]">
       <NavHeader />
-      <div className="container py-8 max-w-3xl">
-        <div className="flex items-center justify-between">
-          <PageHeader
-            title="Messages"
-            subtitle="Your conversations with providers and customers"
-          />
-          <div className="flex items-center gap-2">
+      <CustomerWorkspaceShell
+        active="messages"
+        maxWidth="max-w-5xl"
+        contentClassName="[&_[data-slot=card]]:rounded-2xl [&_[data-slot=card]]:border-slate-200 [&_[data-slot=card]]:shadow-[0_18px_50px_-42px_rgba(15,23,42,0.5)]"
+      >
+        <CustomerWorkspacePageHeader
+          eyebrow="Stay connected"
+          title="Messages"
+          description="Keep provider conversations, booking context, attachments, and next steps together."
+          actions={(
+            <div className="flex items-center gap-2">
             {sseConnected && (
-              <span className="flex items-center gap-1.5 text-xs text-green-600">
-                <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-2 text-xs text-emerald-200">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-300" />
                 Live
               </span>
             )}
             <Button
-              variant={searchOpen ? "secondary" : "ghost"}
-              size="icon"
+              size="sm"
+              className="gap-2 bg-white text-[#174a73] hover:bg-blue-50"
               onClick={() => {
                 setSearchOpen(!searchOpen);
                 if (searchOpen) clearSearch();
@@ -184,9 +188,11 @@ export default function Conversations() {
               title="Search messages"
             >
               <Search className="h-4 w-4" />
+              Search
             </Button>
-          </div>
-        </div>
+            </div>
+          )}
+        />
 
         {/* Search Panel */}
         {searchOpen && (
@@ -326,7 +332,7 @@ export default function Conversations() {
           /* Conversations List */
           <>
             {isLoading ? (
-              <div className="space-y-3 mt-6">
+              <div className="mt-6 space-y-3">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="h-20 bg-muted animate-pulse rounded-lg" />
                 ))}
@@ -346,7 +352,7 @@ export default function Conversations() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-2 mt-6">
+              <div className="mt-6 space-y-2">
                 {conversations.map((conv: any) => {
                   const isUnread = conv.unreadCount > 0;
                   const otherName = conv.otherUserName || "Unknown User";
@@ -463,7 +469,7 @@ export default function Conversations() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </div>
+      </CustomerWorkspaceShell>
     </div>
   );
 }

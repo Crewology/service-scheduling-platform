@@ -14,6 +14,7 @@ const customerSource = readFileSync(resolve(projectRoot, "client/src/pages/Custo
 const routerSource = readFileSync(resolve(projectRoot, "server/customerHomeRouter.ts"), "utf8");
 const searchSource = readFileSync(resolve(projectRoot, "client/src/pages/Search.tsx"), "utf8");
 const viewModeSource = readFileSync(resolve(projectRoot, "client/src/contexts/ViewModeContext.tsx"), "utf8");
+const workspaceShellSource = readFileSync(resolve(projectRoot, "client/src/components/customer/CustomerWorkspaceShell.tsx"), "utf8");
 
 describe("customer workspace home", () => {
   it("normalizes persisted booking dates", () => {
@@ -64,9 +65,10 @@ describe("customer workspace home", () => {
   });
 
   it("keeps secondary customer tools available without restoring the app grid", () => {
-    for (const route of ["/saved-providers", "/my-quotes", "/receipts", "/referral-program", "/customer/subscription", "/messages"]) {
+    for (const route of ["/my-quotes", "/receipts", "/referral-program", "/customer/subscription"]) {
       expect(customerSource).toContain(route);
     }
+    for (const route of ["/saved-providers", "/messages"]) expect(workspaceShellSource).toContain(route);
   });
 
   it("uses honest empty and recovery states without fabricated service history", () => {

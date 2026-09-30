@@ -2,7 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { MobileRoleViewToggle } from "@/components/shared/MobileRoleViewToggle";
+import { CustomerWorkspaceShell } from "@/components/customer/CustomerWorkspaceShell";
 import { CustomerEmptyState } from "@/components/workspace/CustomerEmptyState";
 import { trpc } from "@/lib/trpc";
 import { customerSearchHref } from "../../../shared/customerHomeLogic";
@@ -15,12 +15,10 @@ import {
   Check,
   ChevronRight,
   Clock3,
-  Compass,
   FileText,
   Gift,
   Heart,
   Home,
-  Inbox,
   MapPin,
   MessageSquare,
   Paintbrush,
@@ -30,7 +28,6 @@ import {
   ShieldCheck,
   Sparkles,
   Star,
-  UserCircle,
   Users,
 } from "lucide-react";
 import { FormEvent, useMemo, useState } from "react";
@@ -103,18 +100,17 @@ export default function CustomerWorkspaceHome() {
     setLocation(customerSearchHref({ query: request, location: searchLocation, timing }));
   }
 
-  if (isLoading) return <CustomerHomeSkeleton />;
+  if (isLoading) return <CustomerWorkspaceShell active="home"><CustomerHomeSkeleton /></CustomerWorkspaceShell>;
 
   if (error || !data) {
-    return <Card className="mx-auto mt-10 max-w-xl border-red-200 bg-red-50/60"><CardContent className="p-7 text-center"><h1 className="text-xl font-bold">We couldn’t load your customer home</h1><p className="mt-2 text-sm text-muted-foreground">Your account was not changed. You can still browse services or view your bookings.</p><div className="mt-5 flex justify-center gap-2"><Button asChild><Link href="/browse">Browse services</Link></Button><Button asChild variant="outline"><Link href="/my-bookings">My bookings</Link></Button></div></CardContent></Card>;
+    return <CustomerWorkspaceShell active="home"><Card className="mx-auto mt-10 max-w-xl border-red-200 bg-red-50/60"><CardContent className="p-7 text-center"><h1 className="text-xl font-bold">We couldn’t load your customer home</h1><p className="mt-2 text-sm text-muted-foreground">Your account was not changed. You can still browse services or view your bookings.</p><div className="mt-5 flex justify-center gap-2"><Button asChild><Link href="/browse">Browse services</Link></Button><Button asChild variant="outline"><Link href="/my-bookings">My bookings</Link></Button></div></CardContent></Card></CustomerWorkspaceShell>;
   }
 
   const primaryAction = data.actions[0];
   const nextBooking = data.upcoming[0];
 
   return (
-    <div className="container max-w-7xl py-5 pb-28 sm:py-8 md:pb-10">
-      <MobileRoleViewToggle active="customer" />
+    <CustomerWorkspaceShell active="home">
 
       <section className="relative overflow-hidden rounded-[30px] bg-[#0e3c5f] px-5 py-8 text-white shadow-[0_28px_80px_-44px_rgba(14,60,95,0.9)] sm:px-8 sm:py-10 lg:px-12 lg:py-12">
         <div className="absolute inset-0 opacity-60 [background-image:radial-gradient(circle_at_16%_20%,rgba(85,189,232,0.25),transparent_30%),radial-gradient(circle_at_84%_0%,rgba(74,222,128,0.12),transparent_26%)]" />
@@ -153,8 +149,7 @@ export default function CustomerWorkspaceHome() {
 
       <section className="mt-5 grid gap-4 rounded-3xl border border-slate-200 bg-white p-5 sm:grid-cols-3 sm:p-6"><TrustPoint icon={ShieldCheck} title="Know what is verified" detail="See identity, business, insurance, and completed-work signals separately." /><TrustPoint icon={Star} title="Reviews tied to real work" detail="Verified reviews are connected to completed OlogyCrew bookings." /><TrustPoint icon={Building2} title="Keep the relationship" detail="Return to the same provider, details, messages, and receipts in one place." /></section>
 
-      <nav className="fixed inset-x-3 bottom-3 z-30 grid grid-cols-5 rounded-2xl border border-slate-200 bg-white/95 p-1.5 shadow-2xl backdrop-blur md:hidden" aria-label="Customer mobile navigation">{[{ label: "Home", icon: Home, href: "/" }, { label: "Explore", icon: Compass, href: "/browse" }, { label: "Bookings", icon: CalendarDays, href: "/my-bookings" }, { label: "Inbox", icon: Inbox, href: "/messages" }, { label: "Account", icon: UserCircle, href: "/account" }].map((item) => { const Icon = item.icon; return <Link key={item.label} href={item.href} className={`flex flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-semibold ${item.label === "Home" ? "bg-blue-50 text-[#174a73]" : "text-slate-500"}`}><Icon className="h-4 w-4" />{item.label}</Link>; })}</nav>
-    </div>
+    </CustomerWorkspaceShell>
   );
 }
 
@@ -163,5 +158,5 @@ function TrustPoint({ icon: Icon, title, detail }: { icon: typeof ShieldCheck; t
 }
 
 function CustomerHomeSkeleton() {
-  return <div className="container max-w-7xl animate-pulse py-8"><div className="h-80 rounded-[30px] bg-slate-200" /><div className="mt-7 grid gap-7 xl:grid-cols-2"><div className="h-72 rounded-3xl bg-slate-100" /><div className="h-72 rounded-3xl bg-slate-100" /></div><div className="mt-7 h-64 rounded-3xl bg-slate-100" /></div>;
+  return <div className="animate-pulse"><div className="h-80 rounded-[30px] bg-slate-200" /><div className="mt-7 grid gap-7 xl:grid-cols-2"><div className="h-72 rounded-3xl bg-slate-100" /><div className="h-72 rounded-3xl bg-slate-100" /></div><div className="mt-7 h-64 rounded-3xl bg-slate-100" /></div>;
 }

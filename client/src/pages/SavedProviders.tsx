@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
-  Heart, Star, MapPin, ArrowLeft, Loader2, Crown, Zap, Sparkles, BarChart3,
+  Heart, Star, MapPin, Loader2, Crown, Sparkles, BarChart3,
   FolderPlus, Folder, FolderOpen, MoreVertical, Pencil, Trash2,
   MoveRight, X, Check, ChevronRight, Send,
 } from "lucide-react";
@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import UpgradeModal from "@/components/UpgradeModal";
 import BulkQuoteModal from "@/components/BulkQuoteModal";
 import { CustomerTrialStatusBanner } from "@/components/CustomerTrialBanner";
+import { CustomerWorkspacePageHeader, CustomerWorkspaceShell } from "@/components/customer/CustomerWorkspaceShell";
 
 export default function SavedProviders() {
   const { user, loading: authLoading } = useAuth();
@@ -123,16 +124,9 @@ export default function SavedProviders() {
     return favorites.filter((f: any) => f.folderId === activeFolder);
   }, [favorites, activeFolder]);
 
-  const tierConfig: Record<string, { label: string; icon: any; color: string; bgColor: string }> = {
-    free: { label: "Individual", icon: Heart, color: "text-muted-foreground", bgColor: "bg-muted" },
-    pro: { label: "Coordinator", icon: Zap, color: "text-blue-600 dark:text-blue-400", bgColor: "bg-blue-100 dark:bg-blue-900/40" },
-    business: { label: "Manager", icon: Crown, color: "text-amber-600 dark:text-amber-400", bgColor: "bg-amber-100 dark:bg-amber-900/40" },
-  };
-  const currentTierConfig = tierConfig[tier] || tierConfig.free;
-
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-[#f7faff]">
         <NavHeader />
         <div className="flex items-center justify-center py-20">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -143,7 +137,7 @@ export default function SavedProviders() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-[#f7faff]">
         <NavHeader />
         <div className="container py-16 text-center">
           <Heart className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4" />
@@ -156,46 +150,38 @@ export default function SavedProviders() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#f7faff]">
       <NavHeader />
-      <div className="container py-8 max-w-6xl mx-auto px-4">
-        <CustomerTrialStatusBanner />
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold">Saved Providers</h1>
-              <p className="text-muted-foreground text-sm">
-                {count} provider{count !== 1 ? "s" : ""} saved
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {(tier === "pro" || tier === "business") && filteredFavorites.length >= 2 && (
-              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setBulkQuoteOpen(true)}>
-                <Send className="h-3.5 w-3.5" />
-                Bulk Quote
-              </Button>
-            )}
-            {tier === "business" && (
-              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => navigate("/analytics")}>
-                <BarChart3 className="h-3.5 w-3.5" />
-                Analytics
-              </Button>
-            )}
-            <Badge variant="outline" className={`gap-1.5 px-3 py-1 ${currentTierConfig.color} ${currentTierConfig.bgColor} border-current/20`}>
-              <currentTierConfig.icon className="h-3.5 w-3.5" />
-              {currentTierConfig.label} Plan
-            </Badge>
-          </div>
-        </div>
+      <CustomerWorkspaceShell
+        active="saved"
+        maxWidth="max-w-6xl"
+        contentClassName="[&_[data-slot=card]]:rounded-2xl [&_[data-slot=card]]:border-slate-200 [&_[data-slot=card]]:shadow-[0_18px_50px_-42px_rgba(15,23,42,0.5)]"
+      >
+        <CustomerWorkspacePageHeader
+          eyebrow="Your trusted providers"
+          title="Saved Providers"
+          description={`${count} provider${count !== 1 ? "s" : ""} saved. Return to people you trust, organize them by project, or request quotes together.`}
+          actions={(
+            <>
+              {(tier === "pro" || tier === "business") && filteredFavorites.length >= 2 ? (
+                <Button size="sm" className="gap-1.5 bg-white text-[#174a73] hover:bg-blue-50" onClick={() => setBulkQuoteOpen(true)}>
+                  <Send className="h-3.5 w-3.5" />Bulk Quote
+                </Button>
+              ) : null}
+              {tier === "business" ? (
+                <Button size="sm" className="gap-1.5 bg-white text-[#174a73] hover:bg-blue-50" onClick={() => navigate("/analytics")}>
+                  <BarChart3 className="h-3.5 w-3.5" />Analytics
+                </Button>
+              ) : null}
+            </>
+          )}
+        />
+
+        <div className="mt-4"><CustomerTrialStatusBanner /></div>
 
         {/* Usage Bar */}
         {!isUnlimited && (
-          <Card className={`mb-6 ${isNearLimit ? "border-amber-500/50" : ""}`}>
+          <Card className={`mb-6 mt-4 ${isNearLimit ? "border-amber-500/50" : ""}`}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
@@ -681,7 +667,7 @@ export default function SavedProviders() {
             </CardContent>
           </Card>
         )}
-      </div>
+      </CustomerWorkspaceShell>
 
       <BulkQuoteModal
         open={bulkQuoteOpen}

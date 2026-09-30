@@ -83,10 +83,12 @@ describe("shared Provider Workspace visual system", () => {
     expect(customersSource).not.toContain("/provider/dashboard?tab=schedule");
   });
 
-  it("applies the Bookings shell only in provider view and retains the customer container", () => {
-    expect(bookingsSource).toContain('if (!providerMode) return <div className="container py-8 max-w-5xl">{children}</div>;');
+  it("applies the correct shared shell to each My Bookings view", () => {
+    expect(bookingsSource).toContain("if (!providerMode)");
+    expect(bookingsSource).toContain("<CustomerWorkspaceShell");
+    expect(bookingsSource).toContain("<ProviderWorkspaceShell");
     expect(bookingsSource).toContain('providerMode={bookingView === "provider" && canSwitch}');
-    expect(bookingsSource).toContain('{bookingView !== "provider" || !canSwitch ? <div');
+    expect(bookingsSource).toContain('{bookingView !== "provider" || !canSwitch ? (');
     expect(bookingsSource).toContain('bookingView === "customer" && customerSubscription?.currentTier === "business"');
     expect(bookingsSource).toContain("<CustomerQuotesSection />");
   });

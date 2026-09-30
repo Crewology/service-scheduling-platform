@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { trpc } from "@/lib/trpc";
 import { formatTimeForDisplay } from "@shared/timeSlots";
 import { NavHeader } from "@/components/shared/NavHeader";
-import { useLocation } from "wouter";
+import { CustomerWorkspacePageHeader, CustomerWorkspaceShell } from "@/components/customer/CustomerWorkspaceShell";
+import { Link, useLocation } from "wouter";
 import { useViewMode } from "@/contexts/ViewModeContext";
 import { getLoginUrl } from "@/const";
 import { toast } from "sonner";
@@ -21,7 +22,6 @@ import {
   Music,
   Clock,
   Loader2,
-  ArrowLeft,
   CheckCircle2,
   CalendarDays,
 } from "lucide-react";
@@ -257,7 +257,7 @@ export default function MonthlyPlanner() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-[#f7faff]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -265,7 +265,7 @@ export default function MonthlyPlanner() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-[#f7faff]">
         <NavHeader />
         <div className="container py-12 text-center">
           <h1 className="text-2xl font-bold mb-4">Monthly Planner</h1>
@@ -281,38 +281,30 @@ export default function MonthlyPlanner() {
   const plannedCount = events.filter((e) => e.status === "planned").length;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#f7faff]">
       <NavHeader />
-      <div className="container py-6 max-w-6xl">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <Button variant="ghost" size="sm" onClick={() => window.history.back()}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold">Monthly Planner</h1>
-            <p className="text-sm text-muted-foreground">
-              Click dates to plan your events, then book them all at once
-            </p>
-          </div>
-          {plannedCount > 0 && (
-            <Button onClick={handleBookAll} disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Booking...
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Book All ({plannedCount})
-                </>
-              )}
+      <CustomerWorkspaceShell
+        active="bookings"
+        maxWidth="max-w-6xl"
+        contentClassName="[&_[data-slot=card]]:rounded-2xl [&_[data-slot=card]]:border-slate-200 [&_[data-slot=card]]:shadow-[0_18px_50px_-42px_rgba(15,23,42,0.5)]"
+      >
+        <CustomerWorkspacePageHeader
+          eyebrow="Plan by date"
+          title="Monthly Planner"
+          description="Choose dates, add providers and services, then create the bookings together when your plan is ready."
+          actions={plannedCount > 0 ? (
+            <Button onClick={handleBookAll} disabled={isSubmitting} className="bg-white text-[#174a73] hover:bg-blue-50">
+              {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
+              {isSubmitting ? "Booking..." : `Book All (${plannedCount})`}
+            </Button>
+          ) : (
+            <Button asChild className="bg-white text-[#174a73] hover:bg-blue-50">
+              <Link href="/bulk-booking">Plan multiple services</Link>
             </Button>
           )}
-        </div>
+        />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Calendar */}
           <div className="lg:col-span-2">
             <Card>
@@ -634,7 +626,7 @@ export default function MonthlyPlanner() {
             )}
           </div>
         </div>
-      </div>
+      </CustomerWorkspaceShell>
     </div>
   );
 }

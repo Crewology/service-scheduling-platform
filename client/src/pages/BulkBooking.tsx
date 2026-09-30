@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { trpc } from "@/lib/trpc";
 import { NavHeader } from "@/components/shared/NavHeader";
-import { useLocation } from "wouter";
+import { CustomerWorkspacePageHeader, CustomerWorkspaceShell } from "@/components/customer/CustomerWorkspaceShell";
+import { Link, useLocation } from "wouter";
 import { useViewMode } from "@/contexts/ViewModeContext";
 import { getLoginUrl } from "@/const";
 import { toast } from "sonner";
@@ -1611,7 +1612,7 @@ export default function BulkBooking() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-[#f7faff]">
         <NavHeader />
         <div className="container py-12 text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
@@ -1623,7 +1624,7 @@ export default function BulkBooking() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-[#f7faff]">
         <NavHeader />
         <div className="container py-12 text-center">
           <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -1639,49 +1640,60 @@ export default function BulkBooking() {
 
   // ─── Main UI ─────────────────────────────────────────────────────────────
 
+  const configuredSlots = allProviderSlots.filter((slot) => slot.providerId && slot.serviceId).length;
+  const scheduledGroups = serviceGroups.filter((group) => group.eventDate).length;
+  const planningSteps = [
+    { label: "Services", complete: serviceGroups.length > 0 },
+    { label: "Providers", complete: allProviderSlots.length > 0 && configuredSlots === allProviderSlots.length },
+    { label: "Schedule", complete: serviceGroups.length > 0 && scheduledGroups === serviceGroups.length && allProviderSlots.every((slot) => slot.startTime && slot.endTime) },
+    { label: "Review", complete: canSubmit },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#f7faff]">
       <NavHeader />
-      <div className="container py-6 max-w-4xl overflow-hidden">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => window.history.back()}>
-              <ArrowLeft className="h-4 w-4" />
+      <CustomerWorkspaceShell
+        active="bookings"
+        maxWidth="max-w-5xl"
+        contentClassName="overflow-hidden [&_[data-slot=card]]:rounded-2xl [&_[data-slot=card]]:border-slate-200 [&_[data-slot=card]]:shadow-[0_18px_50px_-42px_rgba(15,23,42,0.5)]"
+      >
+        <CustomerWorkspacePageHeader
+          eyebrow="Plan several services"
+          title="Bulk Booking"
+          description="Build a coordinated service plan across categories, providers, dates, and time slots before booking everything together."
+          actions={(
+            <Button asChild className="bg-white text-[#174a73] hover:bg-blue-50">
+              <Link href="/my-bookings"><ArrowLeft className="mr-2 h-4 w-4" />My Bookings</Link>
             </Button>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold">Bulk Booking</h1>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                Book multiple providers across different service categories
-              </p>
-            </div>
-          </div>
-          {serviceGroups.length > 0 && (
-            <div className="flex items-center gap-2 ml-11 sm:ml-0">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowSaveTemplate(true)}
-                className="gap-1.5"
-              >
-                <BookmarkPlus className="h-4 w-4" />
-                <span className="hidden sm:inline">Save Bundle</span>
-                <span className="sm:hidden">Bundle</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSaveDraft}
-                disabled={isSavingDraft || isSubmitting}
-                className="gap-1.5"
-              >
-                {isSavingDraft ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                <span className="hidden sm:inline">{currentDraftId ? "Update Draft" : "Save Draft"}</span>
-                <span className="sm:hidden">{currentDraftId ? "Update" : "Draft"}</span>
-              </Button>
-            </div>
           )}
+        />
+
+        <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+          <ol className="grid grid-cols-4 gap-2" aria-label="Bulk booking progress">
+            {planningSteps.map((step, index) => (
+              <li key={step.label} className="flex min-w-0 flex-col items-center gap-1 text-center sm:flex-row sm:text-left">
+                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${step.complete ? "bg-emerald-100 text-emerald-700" : index === planningSteps.findIndex((item) => !item.complete) ? "bg-[#174a73] text-white" : "bg-slate-100 text-slate-400"}`}>
+                  {step.complete ? <CheckCircle2 className="h-4 w-4" /> : index + 1}
+                </span>
+                <span className={`text-[10px] font-semibold sm:text-xs ${step.complete ? "text-emerald-700" : "text-slate-500"}`}>{step.label}</span>
+              </li>
+            ))}
+          </ol>
         </div>
+
+        {serviceGroups.length > 0 ? (
+          <div className="mt-4 flex flex-wrap justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={() => setShowSaveTemplate(true)} className="gap-1.5 bg-white">
+              <BookmarkPlus className="h-4 w-4" />Save Bundle
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleSaveDraft} disabled={isSavingDraft || isSubmitting} className="gap-1.5 bg-white">
+              {isSavingDraft ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              {currentDraftId ? "Update Draft" : "Save Draft"}
+            </Button>
+          </div>
+        ) : null}
+
+        <div className="mt-6">
 
         {/* Templates & Drafts */}
         <TemplatesPanel onLoadTemplate={handleLoadTemplate} />
@@ -1876,7 +1888,8 @@ export default function BulkBooking() {
             onClose={() => setShowCategoryStacking(false)}
           />
         )}
-      </div>
+        </div>
+      </CustomerWorkspaceShell>
     </div>
   );
 }

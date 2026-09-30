@@ -26,6 +26,7 @@ import { getLoginUrl } from "@/const";
 import { formatTimeForDisplay } from "@shared/timeSlots";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { ProviderWorkspacePageHeader, ProviderWorkspaceShell } from "@/components/provider/ProviderWorkspaceShell";
+import { CustomerWorkspacePageHeader, CustomerWorkspaceShell } from "@/components/customer/CustomerWorkspaceShell";
 import { toast } from "sonner";
 import { useOfflineBookings } from "@/hooks/useOfflineBookings";
 import { useViewMode } from "@/contexts/ViewModeContext";
@@ -52,7 +53,17 @@ function BookingsPageFrame({
   customersVisible?: boolean;
   children: ReactNode;
 }) {
-  if (!providerMode) return <div className="container py-8 max-w-5xl">{children}</div>;
+  if (!providerMode) {
+    return (
+      <CustomerWorkspaceShell
+        active="bookings"
+        maxWidth="max-w-6xl"
+        contentClassName="[&_[data-slot=card]]:rounded-2xl [&_[data-slot=card]]:border-slate-200 [&_[data-slot=card]]:shadow-[0_18px_50px_-42px_rgba(15,23,42,0.5)]"
+      >
+        {children}
+      </CustomerWorkspaceShell>
+    );
+  }
 
   return (
     <ProviderWorkspaceShell
@@ -293,7 +304,7 @@ export default function MyBookings() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-[#f7faff]">
         <NavHeader />
         <div className="container py-8 max-w-5xl">
           <BookingsSkeleton />
@@ -381,83 +392,58 @@ export default function MyBookings() {
 
 
 
-        {bookingView !== "provider" || !canSwitch ? <div className="mb-8 flex flex-col sm:flex-row items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl sm:text-3xl font-bold">
-                {bookingView === "provider" && canSwitch ? "Bookings I Received" : "My Bookings"}
-              </h1>
-              <HelpTip text="Track all your bookings here. You can message providers, cancel bookings, or export your history. Click on any booking to see full details." variant="info" />
-            </div>
-            <p className="text-muted-foreground">
-              {bookingView === "provider" && canSwitch
-                ? "Manage bookings from your customers"
-                : "Manage and track all your service bookings"}
-            </p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            {bookingView === "provider" && canSwitch && (
-              <Link href="/provider/calendar">
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Calendar View
-                </Button>
-              </Link>
-            )}
-            {bookingView === "customer" && (
-              <>
-                <Button variant="outline" size="sm" className="gap-2" onClick={() => setLocation("/bulk-booking")}>
-                  <Layers className="h-4 w-4" />
-                  Bulk Book
-                </Button>
-                <Button variant="outline" size="sm" className="gap-2" onClick={() => setLocation("/monthly-planner")}>
-                  <CalendarDays className="h-4 w-4" />
-                  Planner
-                </Button>
-                {demoBookingCount > 0 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2 text-amber-700 border-amber-300 hover:bg-amber-50 hover:text-amber-800"
-                    onClick={() => cancelAllDemo.mutate()}
-                    disabled={cancelAllDemo.isPending}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    {cancelAllDemo.isPending ? "Clearing..." : `Clear All Demo Bookings (${demoBookingCount})`}
+        {bookingView !== "provider" || !canSwitch ? (
+          <div className="mb-7">
+            <CustomerWorkspacePageHeader
+              eyebrow="Your service activity"
+              title="My Bookings"
+              description="Track upcoming work, past services, saved drafts, and provider quotes in one place."
+              actions={(
+                <>
+                  <Button size="sm" className="gap-2 bg-white text-[#174a73] hover:bg-blue-50" onClick={() => setLocation("/bulk-booking")}>
+                    <Layers className="h-4 w-4" />Bulk Book
                   </Button>
-                )}
-              </>
-            )}
-          {canExportBookings && <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2" disabled={isOffline}>
-                <Download className="h-4 w-4" />
-                Export
+                  <Button size="sm" className="gap-2 bg-white text-[#174a73] hover:bg-blue-50" onClick={() => setLocation("/monthly-planner")}>
+                    <CalendarDays className="h-4 w-4" />Planner
+                  </Button>
+                  {canExportBookings ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button size="sm" className="gap-2 bg-white text-[#174a73] hover:bg-blue-50" disabled={isOffline}>
+                          <Download className="h-4 w-4" />Export
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => { window.open("/api/export/bookings/csv", "_blank"); toast.success("Downloading CSV..."); }}>
+                          <FileSpreadsheet className="mr-2 h-4 w-4" />Download CSV
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => { window.open("/api/export/bookings/pdf", "_blank"); toast.success("Generating PDF..."); }}>
+                          <FileText className="mr-2 h-4 w-4" />Download PDF
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : null}
+                </>
+              )}
+            />
+            <div className="mt-3 flex items-center gap-2 text-sm text-slate-500">
+              <HelpTip text="Track all your bookings here. You can message providers, cancel bookings, or export your history. Click on any booking to see full details." variant="info" />
+              <span>Use the tabs below to move between active work, history, drafts, and quotes.</span>
+            </div>
+            {demoBookingCount > 0 ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-3 gap-2 border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800"
+                onClick={() => cancelAllDemo.mutate()}
+                disabled={cancelAllDemo.isPending}
+              >
+                <Trash2 className="h-4 w-4" />
+                {cancelAllDemo.isPending ? "Clearing..." : `Clear All Demo Bookings (${demoBookingCount})`}
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => {
-                  window.open("/api/export/bookings/csv", "_blank");
-                  toast.success("Downloading CSV...");
-                }}
-              >
-                <FileSpreadsheet className="h-4 w-4 mr-2" />
-                Download CSV
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  window.open("/api/export/bookings/pdf", "_blank");
-                  toast.success("Generating PDF...");
-                }}
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                Download PDF
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>}
+            ) : null}
           </div>
-        </div> : null}
+        ) : null}
 
         {/* Search Bar */}
         <div className="mb-6">
