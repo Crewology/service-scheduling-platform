@@ -7,6 +7,7 @@ import {
   customerRebookHref,
   customerSearchHref,
 } from "../shared/customerHomeLogic";
+import { parseExploreCriteria } from "../client/src/lib/exploreSearch";
 
 const projectRoot = resolve(import.meta.dirname, "..");
 const homeSource = readFileSync(resolve(projectRoot, "client/src/pages/LoggedInHome.tsx"), "utf8");
@@ -80,9 +81,12 @@ describe("customer workspace home", () => {
   });
 
   it("preserves location and timing context on the live search screen", () => {
-    expect(searchSource).toContain('urlParams.get("location")');
-    expect(searchSource).toContain('urlParams.get("timing")');
-    expect(searchSource).toContain("Requested timing:");
+    expect(parseExploreCriteria("?q=barber&location=Atlanta%2C+GA&timing=Tomorrow")).toMatchObject({
+      keyword: "barber",
+      location: "Atlanta, GA",
+      timing: "Tomorrow",
+    });
+    expect(searchSource).toContain("requestedTiming");
   });
 
   it("does not reset an admin-provider customer view while the profile is loading", () => {

@@ -115,12 +115,14 @@ export function CustomerWorkspacePageHeader({
   title,
   description,
   actions,
+  children,
   variant = "workspace",
 }: {
   eyebrow: string;
   title: string;
   description: string;
   actions?: ReactNode;
+  children?: ReactNode;
   variant?: "workspace" | "discovery";
 }) {
   return (
@@ -149,6 +151,7 @@ export function CustomerWorkspacePageHeader({
         </div>
         {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
       </div>
+      {children ? <div className="relative mt-6">{children}</div> : null}
     </header>
   );
 }
