@@ -793,7 +793,10 @@ router.post("/api/auth/forgot-password", async (req: Request, res: Response) => 
 
     await db.setPasswordResetToken(user.id, resetToken, resetExpires);
 
-    const origin = req.headers.origin || req.headers.referer?.replace(/\/$/, "") || "";
+    const origin = normalizeAuthOrigin(
+      req.headers.origin || req.headers.referer,
+      requestOrigin(req),
+    );
     const resetUrl = `${origin}/reset-password?token=${resetToken}`;
 
     console.log(`[Auth] Sending password reset email to ${email.toLowerCase()}, resetUrl: ${resetUrl}`);

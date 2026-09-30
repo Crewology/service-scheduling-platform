@@ -3270,3 +3270,15 @@
 - [x] Preserve the logo Home link, AI assistant, notifications, hamburger menu, and mobile workspace navigation.
 - [x] Verify the authenticated mobile header on Provider Overview and Explore.
 - [x] Complete full regression, production build, cleanup verification, and rollback checkpoint.
+
+
+## Unpublished preview testing login
+
+- [x] Detect managed Manus preview and loopback hosts without affecting production.
+- [x] Add preview login guidance that instructs users to open the preview in a top-level tab for reliable cookies.
+- [x] Keep Google OAuth on the registered production domain and offer production password setup for Google-only accounts.
+- [x] Allow the same OlogyCrew account to sign into preview through the existing email/password and 2FA flow.
+- [x] Normalize password-reset email links requested from preview to the production domain.
+- [x] Add a preview-only banner identifying unpublished code and warning that account actions can use current OlogyCrew data.
+- [x] Exclude external embeds and isolated prototype routes from the preview banner.
+- [x] Complete focused regressions, responsive review, full suite, production build, cleanup verification, and rollback checkpoint.
