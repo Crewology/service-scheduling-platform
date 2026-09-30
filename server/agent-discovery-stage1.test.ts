@@ -101,6 +101,8 @@ describe("canonical structured data", () => {
     const html = getHomepageJsonLd("https://internal.example");
     expect(html).toContain('"url":"https://ologycrew.com"');
     expect(html).toContain('"@type":"SearchAction"');
+    expect(html).toContain("https://ologycrew.com/browse?q={search_term_string}");
+    expect(html).not.toContain("https://ologycrew.com/search?q=");
     expect(html).not.toContain("internal.example");
   });
 

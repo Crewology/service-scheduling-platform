@@ -42,9 +42,9 @@ export default function Home() {
 
   const handleSearch = () => {
     if (searchTerm.trim()) {
-      setLocation(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
+      setLocation(`/browse?q=${encodeURIComponent(searchTerm.trim())}`);
     } else {
-      setLocation("/search");
+      setLocation("/browse");
     }
   };
 
@@ -92,7 +92,7 @@ export default function Home() {
               <div className="mt-4 flex flex-wrap gap-2 justify-center">
                 <span className="text-sm text-white/60">Popular:</span>
                 {["Handyman", "Massage", "Barber", "Photography", "Cleaning"].map((service) => (
-                  <Link key={service} href={`/search?q=${encodeURIComponent(service)}`}>
+                  <Link key={service} href={`/browse?q=${encodeURIComponent(service)}`}>
                     <Button variant="outline" size="sm" className="rounded-full bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white">
                       {service}
                     </Button>

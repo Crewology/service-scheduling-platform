@@ -1,11 +1,18 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { getCanonicalExploreDestination } from "../client/src/lib/customerExplore";
 
 const root = resolve(import.meta.dirname, "..");
 const source = (path: string) => readFileSync(resolve(root, path), "utf8");
 
 const shellSource = source("client/src/components/customer/CustomerWorkspaceShell.tsx");
+const appSource = source("client/src/App.tsx");
+const publicHomeSource = source("client/src/pages/Home.tsx");
+const navHeaderSource = source("client/src/components/shared/NavHeader.tsx");
+const footerSource = source("client/src/components/shared/Footer.tsx");
+const customerHomeLogicSource = source("shared/customerHomeLogic.ts");
+const structuredDataSource = source("server/structuredData.ts");
 const homeSource = source("client/src/pages/CustomerWorkspaceHome.tsx");
 const browseSource = source("client/src/pages/Browse.tsx");
 const searchSource = source("client/src/pages/Search.tsx");
@@ -29,7 +36,7 @@ describe("shared Customer Workspace visual system", () => {
 
   it("uses the shared shell and correct active destination on every approved customer page", () => {
     expect(homeSource).toContain('<CustomerWorkspaceShell active="home"');
-    expect(browseSource).toContain('<CustomerWorkspaceShell active="explore"');
+    expect(browseSource).toContain('export { default } from "./Search";');
     expect(searchSource).toContain('<CustomerWorkspaceShell active="explore"');
     expect(bookingsSource).toContain('active="bookings"');
     expect(bulkSource).toContain('active="bookings"');
@@ -39,9 +46,7 @@ describe("shared Customer Workspace visual system", () => {
   });
 
   it("keeps discovery visually distinct from customer management pages", () => {
-    for (const page of [browseSource, searchSource]) {
-      expect(page).toContain('variant="discovery"');
-    }
+    expect(searchSource).toContain('variant="discovery"');
     for (const page of [bookingsSource, bulkSource, plannerSource, savedSource, messagesSource]) {
       expect(page).toContain("<CustomerWorkspacePageHeader");
     }
@@ -55,14 +60,31 @@ describe("shared Customer Workspace visual system", () => {
     expect(bookingsSource).toContain('bookingView === "provider" && canSwitch');
   });
 
-  it("keeps Browse and Search data, adaptive booking, and saved-provider behavior intact", () => {
-    expect(browseSource).toContain("trpc.category.list.useQuery");
-    expect(browseSource).toContain("CATEGORY_ICONS[category.id]");
+  it("combines categories and results in one adaptive Explore page", () => {
+    expect(searchSource).toContain("trpc.category.list.useQuery");
+    expect(searchSource).toContain("CATEGORY_ICONS[category.id]");
     expect(searchSource).toContain("trpc.service.search.useQuery");
     expect(searchSource).toContain("trpc.provider.search.useQuery");
     expect(searchSource).toContain("getAdaptiveBookingDecision(service)");
     expect(searchSource).toContain("getAdaptiveServiceCtaLabel");
     expect(searchSource).toContain("<SaveProviderButton");
+    expect(searchSource).toContain("!hasSearchIntent ? (");
+    expect(appSource).toContain('<Route path="/search" component={LegacySearchRoute} />');
+  });
+
+  it("redirects old Search URLs to Explore without losing query context", () => {
+    expect(getCanonicalExploreDestination("")).toBe("/browse");
+    expect(getCanonicalExploreDestination("?q=barber&location=Atlanta%2C+GA&timing=Tomorrow")).toBe(
+      "/browse?q=barber&location=Atlanta%2C+GA&timing=Tomorrow",
+    );
+  });
+
+  it("uses Explore as the only generated customer discovery destination", () => {
+    for (const navigationSource of [publicHomeSource, navHeaderSource, footerSource, customerHomeLogicSource]) {
+      expect(navigationSource).not.toMatch(/["'`]\/search(?:\?|["'`])/);
+    }
+    expect(structuredDataSource).toContain("/browse?q={search_term_string}");
+    expect(structuredDataSource).not.toContain("/search?q={search_term_string}");
   });
 
   it("keeps booking, planning, saved-provider, and messaging behavior intact", () => {

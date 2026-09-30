@@ -3190,3 +3190,15 @@
 - [x] Verify all eight customer surfaces at desktop and 390px mobile sizes; refine mobile workflow labels and remove redundant plan-header clutter.
 - [x] Add focused shared-shell, route, role-boundary, behavior-preservation, adaptive booking, export, entitlement, and category-icon regressions.
 - [x] Complete the full regression suite, production build, cleanup verification, and rollback checkpoint.
+
+
+## Customer discovery — unified Explore
+
+- [x] Make `/browse` the single canonical Explore experience.
+- [x] Show the complete alphabetical category directory when no search intent is present.
+- [x] Switch the same page to provider/service results, filters, adaptive booking actions, and save controls when a query or filter is active.
+- [x] Preserve query, location, timing, category, price, estimate, emergency, sorting, ranking, and plan-gating behavior.
+- [x] Redirect `/search` to `/browse` while preserving all query parameters.
+- [x] Replace duplicate Search links in customer navigation, homepage, footer, developer shortcuts, help content, sitemap, and SearchAction structured data.
+- [x] Verify category-first, result, and legacy redirect states at desktop and 390px mobile sizes.
+- [x] Complete the full regression suite, production build, cleanup verification, and rollback checkpoint.

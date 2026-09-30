@@ -202,7 +202,7 @@ export function getHomepageJsonLd(_origin?: string): string {
         "@type": "SearchAction",
         target: {
           "@type": "EntryPoint",
-          urlTemplate: `${OLOGYCREW_PUBLIC_ORIGIN}/search?q={search_term_string}`,
+          urlTemplate: `${OLOGYCREW_PUBLIC_ORIGIN}/browse?q={search_term_string}`,
         },
         "query-input": "required name=search_term_string",
       },

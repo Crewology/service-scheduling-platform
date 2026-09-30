@@ -83,9 +83,9 @@ const guideSections: GuideSection[] = [
       {
         title: "Browsing & Searching Services",
         content:
-          "Use the \"Browse Services\" link in the navigation to explore all 48+ service categories — from Barber Shops and Massage Therapists to DJ & Music Services and Cybersecurity. You can also use the search bar on the homepage or the dedicated Search page to find specific services by keyword and location. Use the X buttons on search fields to quickly clear your filters. Each category page shows all available providers and their services.",
+          "Use Explore in the navigation to browse every service category or find specific services and providers by keyword, location, price, and provider options. The page starts with categories, then changes to matching providers and services when you search or apply a filter. Use the X button or Clear All Filters to return to the category directory.",
         link: "/browse",
-        linkText: "Browse Services",
+        linkText: "Explore Services",
       },
       {
         title: "Making Your First Booking",

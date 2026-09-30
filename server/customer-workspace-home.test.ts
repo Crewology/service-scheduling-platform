@@ -38,7 +38,7 @@ describe("customer workspace home", () => {
       timing: "This weekend",
     });
     const params = new URLSearchParams(href.split("?")[1]);
-    expect(href.startsWith("/search?")).toBe(true);
+    expect(href.startsWith("/browse?")).toBe(true);
     expect(params.get("q")).toBe("audio engineer for an event");
     expect(params.get("location")).toBe("Atlanta, GA");
     expect(params.get("timing")).toBe("This weekend");

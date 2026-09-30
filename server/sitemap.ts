@@ -36,7 +36,6 @@ type SitemapEntry = {
 export const SITEMAP_STATIC_PAGES: readonly SitemapEntry[] = [
   { path: "/", priority: "1.0", changefreq: "daily" },
   { path: "/browse", priority: "0.9", changefreq: "daily" },
-  { path: "/search", priority: "0.8", changefreq: "daily" },
   { path: "/experiences", priority: "0.8", changefreq: "weekly" },
   { path: "/featured", priority: "0.8", changefreq: "daily" },
   { path: "/pricing", priority: "0.7", changefreq: "weekly" },

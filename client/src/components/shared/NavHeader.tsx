@@ -27,7 +27,6 @@ import {
   Download,
   Shield,
   Trash2,
-  Search,
   Grid3X3,
   HelpCircle,
   Clock,
@@ -497,8 +496,7 @@ const MOBILE_PROVIDER_TILES = [
 ];
 
 const MOBILE_CUSTOMER_TILES = [
-  { label: "Browse", icon: Compass, href: "/browse", color: "bg-blue-100", iconColor: "text-blue-600" },
-  { label: "Search", icon: Search, href: "/search", color: "bg-purple-100", iconColor: "text-purple-600" },
+  { label: "Explore", icon: Compass, href: "/browse", color: "bg-blue-100", iconColor: "text-blue-600" },
   { label: "Featured", icon: Award, href: "/featured", color: "bg-yellow-100", iconColor: "text-yellow-600" },
   { label: "My Bookings", icon: BookOpen, href: "/my-bookings", color: "bg-green-100", iconColor: "text-green-600" },
   { label: "Messages", icon: MessageSquare, href: "/messages", color: "bg-sky-100", iconColor: "text-sky-600" },
@@ -529,7 +527,7 @@ function MobileMenuTiles({ isAuthenticated, isProvider, isAdmin, isProviderView,
   // Determine which tiles to show based on view mode (same logic as landing page)
   const baseTiles = isAuthenticated
     ? (isProviderView ? MOBILE_PROVIDER_TILES : MOBILE_CUSTOMER_TILES)
-    : MOBILE_CUSTOMER_TILES.filter(t => ["/browse", "/search", "/featured", "/pricing", "/help"].includes(t.href));
+    : MOBILE_CUSTOMER_TILES.filter(t => ["/browse", "/featured", "/pricing", "/help"].includes(t.href));
 
   // Prepend admin tiles and deduplicate (same as landing page)
   const allTiles = isAdmin
@@ -671,13 +669,6 @@ export function NavHeader() {
                 {/* Notifications Dropdown */}
                 {isAuthenticated && <NotificationDropdown />}
 
-                {/* Search */}
-                <Link href="/search">
-                  <Button variant="ghost" size="icon" className="relative h-9 w-9" title="Search">
-                    <Search className="h-4 w-4" />
-                  </Button>
-                </Link>
-
                 {/* View Mode Switcher for providers */}
                 <ViewModeSwitcher />
 
@@ -708,7 +699,7 @@ export function NavHeader() {
             )}
           </div>
 
-          {/* Mobile actions: Browse + AI Assistant + Notifications + Search + Hamburger */}
+          {/* Mobile actions: Explore + AI Assistant + Notifications + Hamburger */}
           <div className="flex lg:hidden items-center gap-1">
             {/* Home / Dashboard Grid (mobile) */}
             <Link href="/">
@@ -736,13 +727,6 @@ export function NavHeader() {
 
             {/* Notification bell (mobile only) */}
             {isAuthenticated && <NotificationDropdown />}
-
-            {/* Search (mobile) */}
-            <Link href="/search">
-              <Button variant="ghost" size="icon" className="relative h-10 w-10" title="Search">
-                <Search className="h-5 w-5" />
-              </Button>
-            </Link>
 
             {/* Hamburger menu */}
             <Button

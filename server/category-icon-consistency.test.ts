@@ -7,7 +7,7 @@ const projectRoot = resolve(import.meta.dirname, "..");
 
 const categorySurfaces = [
   "client/src/pages/Home.tsx",
-  "client/src/pages/Browse.tsx",
+  "client/src/pages/Search.tsx",
   "client/src/pages/CategoryDetail.tsx",
   "client/src/pages/ProviderOnboarding.tsx",
   "client/src/pages/ProviderDashboard.tsx",

@@ -26,9 +26,8 @@ const TEST_ACCOUNTS = [
     description: "Browse services, make bookings, leave reviews",
     color: "bg-blue-500",
     quickLinks: [
-      { label: "Browse Services", path: "/browse" },
+      { label: "Explore Services", path: "/browse" },
       { label: "My Bookings", path: "/my-bookings" },
-      { label: "Search", path: "/search" },
     ],
   },
   {
@@ -281,8 +280,7 @@ export function DevToolsPanel() {
                 <div className="grid grid-cols-1 gap-1 pl-4">
                   {[
                     { label: "Home", path: "/" },
-                    { label: "Browse Categories", path: "/browse" },
-                    { label: "Search Services", path: "/search" },
+                    { label: "Explore Services", path: "/browse" },
                   ].map(link => (
                     <button
                       key={link.path}

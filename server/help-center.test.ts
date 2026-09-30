@@ -114,7 +114,7 @@ describe("Help Center Content", () => {
       { label: "Messages", href: "/my-bookings" },
       { label: "Saved Providers", href: "/saved-providers" },
       { label: "My Quotes", href: "/my-quotes" },
-      { label: "Browse Services", href: "/browse" },
+      { label: "Explore Services", href: "/browse" },
       { label: "Notifications", href: "/notification-settings" },
     ];
 

@@ -17,5 +17,5 @@ export function customerSearchHref(input: { query: string; location?: string; ti
   const params = new URLSearchParams({ q: input.query.trim() });
   if (input.location?.trim()) params.set("location", input.location.trim());
   if (input.timing && input.timing !== "Any time") params.set("timing", input.timing);
-  return `/search?${params.toString()}`;
+  return `/browse?${params.toString()}`;
 }

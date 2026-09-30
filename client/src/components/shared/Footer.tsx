@@ -19,8 +19,7 @@ export function Footer() {
           <div>
             <h4 className="font-semibold mb-4">For Customers</h4>
             <ul className="space-y-2 text-sm opacity-80">
-              <li><Link href="/browse" className="hover:opacity-100">Browse Services</Link></li>
-              <li><Link href="/search" className="hover:opacity-100">Search</Link></li>
+              <li><Link href="/browse" className="hover:opacity-100">Explore Services</Link></li>
               <li><Link href="/my-bookings" className="hover:opacity-100">My Bookings</Link></li>
               <li><Link href="/referrals" className="hover:opacity-100">Referral Program</Link></li>
             </ul>

@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
-import { Link, useSearch } from "wouter";
+import { Link, useLocation, useSearch } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { CATEGORY_ICONS } from "@/lib/categoryIcons";
 import { formatDuration } from "../../../shared/duration";
 import { getServiceTypeLabel } from "../../../shared/serviceTypeLabels";
 import { adaptiveServiceHref, getAdaptiveBookingDecision, getAdaptiveServiceCtaLabel } from "../../../shared/adaptiveBooking";
@@ -14,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { EmptyState } from "@/components/shared/EmptyState";
-import { Search as SearchIcon, MapPin, DollarSign, Star, X, SlidersHorizontal, Clock, Building2, ArrowRight, BadgeCheck, RefreshCw, AlertCircle, Heart, Sparkles } from "lucide-react";
+import { Search as SearchIcon, MapPin, DollarSign, Star, X, SlidersHorizontal, Clock, Building2, ArrowRight, BadgeCheck, RefreshCw, AlertCircle, Heart, Sparkles, Compass } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { CustomerWorkspacePageHeader, CustomerWorkspaceShell } from "@/components/customer/CustomerWorkspaceShell";
@@ -189,9 +190,10 @@ function FavoriteButtonSearch({ providerId }: { providerId: number }) {
   return <SaveProviderButton providerId={providerId} />;
 }
 
-export default function Search() {
+export default function Explore() {
   // Read ?q= from URL (sent by homepage search bar)
   const searchString = useSearch();
+  const [, setRoute] = useLocation();
   const urlParams = useMemo(() => new URLSearchParams(searchString), [searchString]);
   const initialQuery = urlParams.get("q") || "";
   const initialLocation = urlParams.get("location") || "";
@@ -209,17 +211,21 @@ export default function Search() {
   // Sync keyword when URL changes (e.g. navigating from homepage again)
   useEffect(() => {
     const params = new URLSearchParams(searchString);
-    const q = params.get("q");
-    const nextLocation = params.get("location");
-    if (q) setKeyword(q);
-    if (nextLocation !== null) setLocation(nextLocation);
+    setKeyword(params.get("q") ?? "");
+    setLocation(params.get("location") ?? "");
   }, [searchString]);
 
   // Debounce keyword and location so API calls only fire after 300ms of inactivity
   const debouncedKeyword = useDebounce(keyword, 300);
   const debouncedLocation = useDebounce(location, 300);
 
-  const { data: categories } = trpc.category.list.useQuery(undefined, {
+  const {
+    data: categories,
+    isLoading: categoriesLoading,
+    isError: categoriesError,
+    refetch: refetchCategories,
+    isRefetching: isRefetchingCategories,
+  } = trpc.category.list.useQuery(undefined, {
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
     staleTime: 60_000,
@@ -276,15 +282,20 @@ export default function Search() {
   const hasProviderResults = filteredProviders && filteredProviders.length > 0;
   const hasServiceResults = services && services.length > 0;
   const hasAnyResults = hasProviderResults || hasServiceResults;
+  const browseCategories = useMemo(
+    () => categories?.slice().sort((a, b) => a.name.localeCompare(b.name)),
+    [categories],
+  );
 
   const clearAllFilters = () => {
     setKeyword("");
     setCategoryId(undefined);
-    setPriceRange([0, 500]);
+    setPriceRange([0, 1000]);
     setLocation("");
     setSortBy("rating");
     setFreeEstimatesOnly(false);
     setEmergencyServiceOnly(false);
+    setRoute("/browse", { replace: true });
   };
 
   // Shared props for the filter block (rendered in both desktop sidebar and mobile drawer)
@@ -314,14 +325,9 @@ export default function Search() {
       <CustomerWorkspaceShell active="explore">
         <CustomerWorkspacePageHeader
           variant="discovery"
-          eyebrow="Find the right fit"
-          title="Search services and providers"
-          description={keyword ? `Compare the best matches for “${keyword}” and choose a direct booking or quote path.` : "Search by need, then refine by category, location, price, and provider options."}
-          actions={(
-            <Button asChild className="bg-white text-[#174a73] hover:bg-blue-50">
-              <Link href="/browse">Browse categories</Link>
-            </Button>
-          )}
+          eyebrow="Explore OlogyCrew"
+          title={hasSearchIntent ? "Find services and providers" : "Browse all services"}
+          description={keyword ? `Compare the best matches for “${keyword}” and choose a direct booking or quote path.` : "Browse by category or describe what you need, then refine the results by location, price, and provider options."}
         />
 
         <div className="relative z-10 mx-auto -mt-5 max-w-4xl rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_22px_60px_-38px_rgba(15,23,42,0.65)] sm:p-3">
@@ -366,6 +372,62 @@ export default function Search() {
         ) : null}
 
       <div className="mt-7">
+        {!hasSearchIntent ? (
+          <section aria-labelledby="browse-categories-heading">
+            <div className="mb-4 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">Explore by category</p>
+                <h2 id="browse-categories-heading" className="mt-1 text-2xl font-bold tracking-tight">Professional services for real needs</h2>
+                <p className="mt-1 text-sm text-slate-500">Choose a category to view services, providers, pricing, and availability.</p>
+              </div>
+              <p className="text-sm font-medium text-slate-500">Or use the search above for a specific need.</p>
+            </div>
+
+            {categoriesLoading ? (
+              <div className="rounded-3xl border border-slate-200 bg-white py-16 text-center">
+                <div className="inline-flex items-center gap-2">
+                  <RefreshCw className="h-5 w-5 animate-spin text-[#156a9a]" />
+                  <p className="text-slate-500">Loading categories...</p>
+                </div>
+              </div>
+            ) : categoriesError ? (
+              <div className="rounded-3xl border border-red-200 bg-red-50/60 py-14 text-center">
+                <AlertCircle className="mx-auto mb-4 h-10 w-10 text-red-500" />
+                <h3 className="text-lg font-semibold">Unable to load categories</h3>
+                <p className="mx-auto mt-2 max-w-md text-sm text-slate-600">Our service directory is temporarily unavailable. Please try again.</p>
+                <Button onClick={() => refetchCategories()} disabled={isRefetchingCategories} className="mt-5 gap-2">
+                  <RefreshCw className={`h-4 w-4 ${isRefetchingCategories ? "animate-spin" : ""}`} />
+                  {isRefetchingCategories ? "Retrying..." : "Try again"}
+                </Button>
+              </div>
+            ) : browseCategories && browseCategories.length > 0 ? (
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
+                {browseCategories.map((category) => (
+                  <Link key={category.id} href={`/category/${category.slug}`} className="group block h-full">
+                    <Card className="h-full rounded-2xl border-slate-200 bg-white shadow-[0_18px_50px_-42px_rgba(15,23,42,0.55)] transition-[transform,border-color,box-shadow] duration-200 group-hover:-translate-y-0.5 group-hover:border-blue-200 group-hover:shadow-md">
+                      <CardContent className="flex h-full flex-col p-4 sm:p-5">
+                        <div className="flex items-start justify-between gap-3">
+                          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-xl sm:text-2xl">
+                            {CATEGORY_ICONS[category.id] || "📋"}
+                          </span>
+                          <ArrowRight className="h-4 w-4 text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:text-blue-600" />
+                        </div>
+                        <h3 className="mt-4 text-sm font-bold leading-5 text-slate-950 transition-colors group-hover:text-[#174a73] sm:text-base">{category.name}</h3>
+                        <p className="mt-2 line-clamp-3 text-xs leading-5 text-slate-500 sm:text-sm">{category.description}</p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-3xl border border-dashed border-slate-200 bg-white py-14 text-center">
+                <Compass className="mx-auto mb-4 h-10 w-10 text-slate-300" />
+                <h3 className="font-semibold">Categories temporarily unavailable</h3>
+                <p className="mt-1 text-sm text-slate-500">Describe what you need above to search services directly.</p>
+              </div>
+            )}
+          </section>
+        ) : (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
           {/* Desktop Filters Sidebar */}
           <div className="hidden lg:block lg:col-span-1">
@@ -382,15 +444,7 @@ export default function Search() {
 
           {/* Results */}
           <div className="lg:col-span-3 space-y-6">
-            {!hasSearchIntent && !keyword ? (
-              <div className="text-center py-16">
-                <SearchIcon className="h-12 w-12 text-muted-foreground/40 mx-auto mb-4" />
-                <h2 className="text-lg font-semibold text-muted-foreground mb-2">Search for Services</h2>
-                <p className="text-sm text-muted-foreground/70 max-w-md mx-auto">
-                  Enter a service name, provider, or keyword in the search box, or use the filters to find what you need.
-                </p>
-              </div>
-            ) : isLoading ? (
+            {isLoading ? (
               <LoadingSpinner message="Searching..." />
             ) : (servicesError || providersError) ? (
               <div className="text-center py-12">
@@ -600,6 +654,7 @@ export default function Search() {
             )}
           </div>
         </div>
+        )}
       </div>
       </CustomerWorkspaceShell>
     </div>

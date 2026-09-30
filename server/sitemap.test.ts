@@ -49,6 +49,8 @@ describe("dynamic public sitemap", () => {
 
     expect(xml).toContain('<?xml version="1.0" encoding="UTF-8"?>');
     expect(xml).toContain('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
+    expect(xml).toContain(`<loc>${SITEMAP_CANONICAL_ORIGIN}/browse</loc>`);
+    expect(xml).not.toContain(`<loc>${SITEMAP_CANONICAL_ORIGIN}/search</loc>`);
     expect(xml).toContain(`<loc>${SITEMAP_CANONICAL_ORIGIN}/experiences</loc>`);
     expect(xml).toContain(`<loc>${SITEMAP_CANONICAL_ORIGIN}/featured</loc>`);
     expect(xml).toContain(`<loc>${SITEMAP_CANONICAL_ORIGIN}/category/audio-visual-crew</loc>`);

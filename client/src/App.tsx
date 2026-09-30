@@ -14,6 +14,7 @@ import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getCanonicalProviderDashboardDestination } from "@/lib/providerDashboardRedirect";
+import { getCanonicalExploreDestination } from "@/lib/customerExplore";
 
 // ─── Page Imports ───────────────────────────────────────────────────────────
 
@@ -21,7 +22,6 @@ import { getCanonicalProviderDashboardDestination } from "@/lib/providerDashboar
 import Home from "./pages/Home";
 import Browse from "./pages/Browse";
 import Experiences from "./pages/Experiences";
-import Search from "./pages/Search";
 import CategoryDetail from "./pages/CategoryDetail";
 import ServiceDetail from "./pages/ServiceDetail";
 import PublicProviderProfile from "./pages/PublicProviderProfile";
@@ -124,6 +124,17 @@ function ProviderDashboardRoute() {
   return <ProviderDashboard />;
 }
 
+function LegacySearchRoute() {
+  const [, setLocation] = useLocation();
+  const destination = getCanonicalExploreDestination(window.location.search);
+
+  useEffect(() => {
+    setLocation(destination, { replace: true });
+  }, [destination, setLocation]);
+
+  return null;
+}
+
 function Router() {
   return (
     <Switch>
@@ -142,7 +153,7 @@ function Router() {
       <Route path="/experiences" component={Experiences} />
       <Route path="/featured" component={FeaturedProfessionals} />
       <Route path="/featured/promo/:id" component={PromotionDetail} />
-      <Route path="/search" component={Search} />
+      <Route path="/search" component={LegacySearchRoute} />
       <Route path="/category/:slug" component={CategoryDetail} />
       <Route path="/provider/dashboard" component={ProviderDashboardRoute} />
       <Route path="/provider/customers/:contactId">{() => <ProviderOnlyGuard featureName="Customers"><ProviderCustomerDetail /></ProviderOnlyGuard>}</Route>
