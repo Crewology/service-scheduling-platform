@@ -145,7 +145,7 @@ export default function Home() {
       <NavHeader />
 
       <main className="pb-10 sm:pb-14">
-        <section className="container pt-5 sm:pt-8">
+        <section className="w-full px-3 pt-5 sm:px-5 sm:pt-8 lg:px-8 2xl:px-10">
           <div className="relative overflow-hidden rounded-[2rem] bg-[#123f63] px-5 py-8 text-white shadow-[0_28px_80px_-42px_rgba(18,63,99,0.8)] sm:px-8 sm:py-10 lg:px-12 lg:py-14">
             <div
               className="absolute inset-0 opacity-[0.08]"
@@ -153,7 +153,7 @@ export default function Home() {
               style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.4\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }}
             />
 
-            <div className="relative grid items-center gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12">
+            <div className="relative mx-auto grid max-w-[1500px] items-center gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12">
               <div>
                 <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold text-sky-100 sm:text-sm">
                   <Globe className="h-4 w-4" aria-hidden="true" />

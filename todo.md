@@ -3326,3 +3326,12 @@
 - [x] Add focused homepage design and behavior regressions.
 - [x] Verify the full logged-out homepage at desktop and 390px mobile sizes.
 - [x] Complete the full regression suite, production build, cleanup verification, and rollback checkpoint.
+
+
+## Public homepage — widescreen hero
+
+- [x] Expand the top dark-blue hero to the full available screen width with responsive edge gutters.
+- [x] Cap the hero’s internal content at 1500px for readable ultrawide layouts.
+- [x] Keep the remaining homepage sections at their existing readable `max-w-7xl` width.
+- [x] Verify the hero at 1920px desktop and 390px mobile sizes.
+- [x] Complete full regression, production build, cleanup verification, and rollback checkpoint.

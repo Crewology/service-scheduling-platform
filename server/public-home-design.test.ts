@@ -8,7 +8,9 @@ const homeSource = readFileSync(resolve(root, "client/src/pages/Home.tsx"), "utf
 describe("public homepage design alignment", () => {
   it("uses the shared page canvas and a rounded dark-blue hero", () => {
     expect(homeSource).toContain('className="min-h-screen bg-page"');
+    expect(homeSource).toContain('className="w-full px-3 pt-5 sm:px-5 sm:pt-8 lg:px-8 2xl:px-10"');
     expect(homeSource).toContain('rounded-[2rem] bg-[#123f63]');
+    expect(homeSource).toContain("mx-auto grid max-w-[1500px]");
     expect(homeSource).toContain('lg:grid-cols-[1.05fr_0.95fr]');
     expect(homeSource).not.toContain("py-14 sm:py-20 md:py-32 bg-gradient-to-br");
   });
