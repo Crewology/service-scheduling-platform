@@ -1,68 +1,123 @@
 import { Link } from "wouter";
-import { Download } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, Download, Search } from "lucide-react";
 import { usePWAInstallContext } from "@/contexts/PWAInstallContext";
 import { PaymentMethods } from "@/components/PaymentMethods";
+
+const footerLinkClass =
+  "inline-flex min-h-9 items-center text-sm text-slate-300 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d2438]";
 
 export function Footer() {
   const { isInstalled: pwaInstalled, triggerInstall: pwaInstall } = usePWAInstallContext();
 
   return (
-    <footer className="bg-foreground text-background py-12">
-      <div className="container">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-8">
-          <div>
-            <h3 className="font-bold text-xl mb-4">OlogyCrew</h3>
-            <p className="text-sm opacity-80">
-              Connecting customers with service professionals across everyday, business, and event needs.
+    <footer className="bg-[#0d2438] text-white">
+      <div className="container py-10 sm:py-12">
+        <section
+          aria-labelledby="footer-cta-title"
+          className="rounded-3xl border border-white/15 bg-gradient-to-br from-[#164f75] to-[#123f63] p-5 shadow-[0_22px_60px_-38px_rgba(56,189,248,0.75)] sm:p-7"
+        >
+          <div className="max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-200">One platform, two clear paths</p>
+            <h2 id="footer-cta-title" className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
+              Find help or build your digital home.
+            </h2>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-sky-50/80 sm:text-base">
+              Explore services when you need support, or give your business one place for discovery, bookings, payments, and customer relationships.
             </p>
           </div>
-          <div>
-            <h4 className="font-semibold mb-4">For Customers</h4>
-            <ul className="space-y-2 text-sm opacity-80">
-              <li><Link href="/browse" className="hover:opacity-100">Explore Services</Link></li>
-              <li><Link href="/my-bookings" className="hover:opacity-100">My Bookings</Link></li>
-              <li><Link href="/referrals" className="hover:opacity-100">Referral Program</Link></li>
-            </ul>
+
+          <div className="mt-6 grid gap-3 md:grid-cols-2">
+            <Link
+              href="/browse"
+              className="group flex items-center justify-between gap-4 rounded-2xl border border-white/15 bg-white/10 p-4 transition hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            >
+              <span className="flex items-center gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-[#123f63]">
+                  <Search className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <span>
+                  <span className="block font-semibold">Looking for a service?</span>
+                  <span className="mt-0.5 block text-sm text-sky-50/75">Explore trusted providers.</span>
+                </span>
+              </span>
+              <ArrowRight className="h-5 w-5 shrink-0 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+            </Link>
+
+            <Link
+              href="/pricing"
+              className="group flex items-center justify-between gap-4 rounded-2xl border border-white/15 bg-white p-4 text-[#123f63] transition hover:bg-sky-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            >
+              <span className="flex items-center gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sky-100">
+                  <BriefcaseBusiness className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <span>
+                  <span className="block font-semibold">Growing a service business?</span>
+                  <span className="mt-0.5 block text-sm text-slate-600">Get started as a provider.</span>
+                </span>
+              </span>
+              <ArrowRight className="h-5 w-5 shrink-0 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+            </Link>
           </div>
-          <div>
-            <h4 className="font-semibold mb-4">For Providers</h4>
-            <ul className="space-y-2 text-sm opacity-80">
-              <li><Link href="/provider/dashboard" className="hover:opacity-100">My Dashboard</Link></li>
-              <li><Link href="/provider/services/new" className="hover:opacity-100">Add Service</Link></li>
-              <li><Link href="/provider/availability" className="hover:opacity-100">Manage Availability</Link></li>
-            </ul>
+        </section>
+
+        <div className="grid grid-cols-2 gap-x-6 gap-y-9 py-10 md:grid-cols-4 md:gap-8">
+          <div className="col-span-2 md:col-span-1">
+            <h3 className="text-xl font-bold">OlogyCrew</h3>
+            <p className="mt-3 max-w-xs text-sm leading-6 text-slate-300">
+              The digital home where customers find service professionals and providers manage the relationship from discovery through payment.
+            </p>
           </div>
-          <div>
-            <h4 className="font-semibold mb-4">Company</h4>
-            <ul className="space-y-2 text-sm opacity-80">
-              <li><Link href="/pricing" className="hover:opacity-100">Plans & Pricing</Link></li>
-              <li><Link href="/referral-program" className="hover:opacity-100">Referral Program</Link></li>
-              <li><Link href="/help" className="hover:opacity-100">Help Center</Link></li>
-              <li><Link href="/help#contact" className="hover:opacity-100">Contact Support</Link></li>
-              <li><Link href="/terms" className="hover:opacity-100">Terms of Service</Link></li>
-              <li><Link href="/privacy" className="hover:opacity-100">Privacy Policy</Link></li>
+
+          <nav aria-label="Explore footer navigation">
+            <h4 className="font-semibold text-white">Explore</h4>
+            <ul className="mt-3 space-y-1">
+              <li><Link href="/browse" className={footerLinkClass}>Explore Services</Link></li>
+              <li><Link href="/pricing" className={footerLinkClass}>Pricing</Link></li>
+            </ul>
+          </nav>
+
+          <nav aria-label="Provider footer navigation">
+            <h4 className="font-semibold text-white">For Providers</h4>
+            <ul className="mt-3 space-y-1">
+              <li><Link href="/pricing" className={footerLinkClass}>Build Your Business Page</Link></li>
+              <li><Link href="/pricing" className={footerLinkClass}>Provider Plans</Link></li>
+              <li><Link href="/login" className={footerLinkClass}>Sign In</Link></li>
+            </ul>
+          </nav>
+
+          <nav aria-label="Company and support footer navigation">
+            <h4 className="font-semibold text-white">Company &amp; Support</h4>
+            <ul className="mt-3 space-y-1">
+              <li><Link href="/referral-program" className={footerLinkClass}>Referral Program</Link></li>
+              <li><Link href="/help" className={footerLinkClass}>Help Center</Link></li>
+              <li><Link href="/help#contact" className={footerLinkClass}>Contact Support</Link></li>
               {!pwaInstalled && (
                 <li>
-                  <button
-                    onClick={pwaInstall}
-                    className="hover:opacity-100 inline-flex items-center gap-1.5"
-                  >
-                    <Download className="h-3.5 w-3.5" />
+                  <button type="button" onClick={pwaInstall} className={footerLinkClass}>
+                    <Download className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
                     Install App
                   </button>
                 </li>
               )}
             </ul>
-          </div>
+          </nav>
         </div>
-        <div className="border-t border-background/20 pt-6 pb-4">
-          <div className="flex flex-col items-center gap-3">
-            <p className="text-xs opacity-70">We Accept</p>
-            <PaymentMethods size="sm" showLabel={false} showSecure={false} />
+
+        <div className="border-t border-white/15 py-6">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5">
+              <p className="text-sm text-slate-400">&copy; 2026 OlogyCrew. All rights reserved.</p>
+              <nav aria-label="Legal footer navigation" className="flex flex-wrap gap-x-5 gap-y-2">
+                <Link href="/terms" className={footerLinkClass}>Terms of Service</Link>
+                <Link href="/privacy" className={footerLinkClass}>Privacy Policy</Link>
+              </nav>
+            </div>
+            <div className="flex flex-col items-start gap-2 lg:items-end">
+              <p className="text-xs font-medium uppercase tracking-[0.12em] text-slate-400">Secure checkout</p>
+              <PaymentMethods size="sm" showLabel={false} showSecure={false} />
+            </div>
           </div>
-        </div>
-        <div className="border-t border-background/20 pt-4 text-center text-sm opacity-80">
-          <p>&copy; 2026 OlogyCrew. All rights reserved.</p>
         </div>
       </div>
     </footer>

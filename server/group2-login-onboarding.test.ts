@@ -158,12 +158,12 @@ describe("Group 2: Login & Onboarding Flow", () => {
   });
 
   describe("Plans link in footer", () => {
-    it("should have Plans & Pricing in the shared site footer", () => {
+    it("should have Provider Plans in the shared site footer", () => {
       const footerContent = fs.readFileSync(
         path.resolve(__dirname, "../client/src/components/shared/Footer.tsx"),
         "utf-8"
       );
-      expect(footerContent).toContain("Plans & Pricing");
+      expect(footerContent).toContain("Provider Plans");
       expect(footerContent).toContain('href="/pricing"');
     });
   });

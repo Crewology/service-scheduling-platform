@@ -220,10 +220,11 @@ describe("Referral Program Link in Footer", () => {
   );
   const content = fs.readFileSync(filePath, "utf-8");
 
-  it("should have a Referral Program link in the Company footer column", () => {
+  it("should have a Referral Program link in the Company & Support footer column", () => {
     expect(content).toContain('href="/referral-program"');
-    // Check it's in the Company section (near Help Center, Terms, Privacy)
-    const companySection = content.split("Company")[1]?.split("</ul>")[0];
+    const companySection = content
+      .split('aria-label="Company and support footer navigation"')[1]
+      ?.split("</nav>")[0];
     expect(companySection).toBeTruthy();
     expect(companySection).toContain("/referral-program");
     expect(companySection).toContain("Referral Program");
@@ -237,8 +238,8 @@ describe("Referral Program Link in Footer", () => {
   });
 
   it("should have consistent hover styling with other footer links", () => {
-    // All footer links use hover:opacity-100
-    expect(content).toContain('href="/referral-program" className="hover:opacity-100"');
+    expect(content).toContain('href="/referral-program" className={footerLinkClass}');
+    expect(content).toContain("hover:text-white");
   });
 
   it("should be in the footer element", () => {

@@ -3302,3 +3302,15 @@
 - [x] Preserve the mobile-menu Pricing destination and all authenticated navigation.
 - [x] Verify the restored public header at 390px.
 - [x] Complete full regression, production build, cleanup verification, and rollback checkpoint.
+
+
+## Public footer — acquisition-focused redesign
+
+- [x] Add a two-audience CTA for customers exploring services and providers building their digital home.
+- [x] Organize links into Explore, For Providers, and Company & Support groups.
+- [x] Move Terms of Service and Privacy Policy into the bottom legal strip.
+- [x] Remove My Bookings, My Dashboard, Add Service, and Manage Availability from the public footer.
+- [x] Preserve Referral Program, Help Center, Contact Support, Install App, and secure payment marks.
+- [x] Add accessible navigation labels, focus states, and mobile-friendly stacking.
+- [x] Verify full-page desktop and 390px mobile layouts.
+- [x] Complete full regression, production build, cleanup verification, and rollback checkpoint.
