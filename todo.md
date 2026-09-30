@@ -3388,6 +3388,7 @@
 - [x] Enforce owner-only partner transfer views, exports, webhook details, team management, legal publishing, customer rollout, and user deletion on the server.
 - [x] Hide restricted tabs and reject restricted direct-tab URLs in the admin UI; retain ordinary platform operations and platform revenue metrics.
 - [x] Prevent Tracey’s account from being auto-promoted to super admin on login and restrict role assignments to named identities.
-- [x] Generate, review, and apply the additive admin-role enum migration; do not alter the account yet.
+- [x] Generate, review, and apply the additive admin-role enum migration.
 - [x] Complete focused and full regression tests (173 files, 1,979 tests), production build, TypeScript, cleanup, and checkpoint.
-- [ ] Activate Tracey’s account only after the new authorization code is published; granting it beforehand would break provider access on the currently published version.
+- [x] Confirm production serves the checkpointed JavaScript asset, then promote verified user ID 49831691 to `admin` / `operations_admin` in a conditional audited transaction; preserve her provider profile.
+- [x] Verify the real account can access routine admin stats and health but receives FORBIDDEN for five partner and two team endpoints; do not publish or change any other account.
