@@ -46,7 +46,7 @@ async function notifyEvidenceDecision(document: any, state: "approved" | "reject
       notificationType: "verification",
       title,
       message,
-      actionUrl: "/provider/dashboard?tab=more",
+      actionUrl: "/provider/tools",
     });
   } catch (error) {
     console.error("[Verification] Unable to create evidence decision notification:", error);

@@ -42,8 +42,8 @@ export const stripeConnectRouter = router({
           try {
             const accountLink = await stripe.accountLinks.create({
               account: provider.stripeAccountId,
-              refresh_url: `${input.origin}/provider/dashboard?stripe=refresh`,
-              return_url: `${input.origin}/provider/dashboard?stripe=return`,
+              refresh_url: `${input.origin}/provider/finances?stripe=refresh`,
+              return_url: `${input.origin}/provider/finances?stripe=return`,
               type: "account_onboarding",
             });
             return { url: accountLink.url, accountId: provider.stripeAccountId };
@@ -90,8 +90,8 @@ export const stripeConnectRouter = router({
 
         const accountLink = await stripe.accountLinks.create({
           account: accountId,
-          refresh_url: `${input.origin}/provider/dashboard?stripe=refresh`,
-          return_url: `${input.origin}/provider/dashboard?stripe=return`,
+          refresh_url: `${input.origin}/provider/finances?stripe=refresh`,
+          return_url: `${input.origin}/provider/finances?stripe=return`,
           type: "account_onboarding",
         });
 
@@ -229,8 +229,8 @@ export const stripeConnectRouter = router({
       try {
         const accountLink = await stripe.accountLinks.create({
           account: provider.stripeAccountId,
-          refresh_url: `${input.origin}/provider/dashboard?stripe=refresh`,
-          return_url: `${input.origin}/provider/dashboard?stripe=return`,
+          refresh_url: `${input.origin}/provider/finances?stripe=refresh`,
+          return_url: `${input.origin}/provider/finances?stripe=return`,
           type: "account_onboarding",
         });
         return { url: accountLink.url };

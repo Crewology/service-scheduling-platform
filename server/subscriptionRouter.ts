@@ -409,10 +409,10 @@ export const subscriptionRouter = router({
         mode: "subscription",
         success_url: input.returnTo
           ? `${ctx.req.headers.origin}${input.returnTo}?status=upgraded`
-          : `${ctx.req.headers.origin}/provider/dashboard?tab=subscription&status=success`,
+          : `${ctx.req.headers.origin}/provider/subscription?status=success`,
         cancel_url: input.returnTo
           ? `${ctx.req.headers.origin}${input.returnTo}`
-          : `${ctx.req.headers.origin}/provider/dashboard?tab=subscription&status=cancelled`,
+          : `${ctx.req.headers.origin}/provider/subscription?status=cancelled`,
         metadata: {
           providerId: provider.id.toString(),
           userId: ctx.user.id.toString(),
@@ -457,7 +457,7 @@ export const subscriptionRouter = router({
 
     const session = await stripe.billingPortal.sessions.create({
       customer: sub.stripeCustomerId,
-      return_url: `${ctx.req.headers.origin}/provider/dashboard?tab=subscription`,
+      return_url: `${ctx.req.headers.origin}/provider/subscription`,
     });
 
     return { url: session.url };

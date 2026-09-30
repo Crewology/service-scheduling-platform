@@ -78,7 +78,7 @@ export const providerOverviewRouter = router({
           city: booking.serviceCity,
           state: booking.serviceState,
           status: booking.status,
-          href: "/provider/dashboard?tab=bookings",
+          href: "/my-bookings",
         }));
 
       const pendingBookings = bookings
@@ -93,7 +93,7 @@ export const providerOverviewRouter = router({
           detail: `${booking.customerName || "A customer"} requested ${formatProviderDate(booking.bookingDate)} at ${formatProviderTime(booking.startTime)}.`,
           timestamp: booking.createdAt,
           actionLabel: "Review request",
-          href: "/provider/dashboard?tab=bookings",
+          href: "/my-bookings",
         }));
 
       const pendingQuoteRows = quotes
@@ -111,7 +111,7 @@ export const providerOverviewRouter = router({
           detail: quote.title,
           timestamp: quote.createdAt,
           actionLabel: "Prepare quote",
-          href: "/provider/dashboard?tab=bookings",
+          href: "/my-bookings?tab=quotes",
         };
       }));
 

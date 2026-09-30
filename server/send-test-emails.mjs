@@ -521,7 +521,7 @@ Here's what you now have access to:
 
 Your trial ends on **May 16, 2026**. Make the most of it!
 
-[Go to Your Dashboard](${SITE_URL}/provider/dashboard)
+[Open Provider Overview](${SITE_URL}/)
 
 Best regards,
 OlogyCrew Team`

@@ -649,7 +649,7 @@ Here's what you now have access to:
 
 Your trial ends on **${data.trialEndDate}**. Make the most of it!
 
-[Go to Your Dashboard](/provider/dashboard)
+[Open Provider Overview](${data.dashboardUrl || '/'})
 
 Best regards,
 OlogyCrew Team
@@ -822,7 +822,7 @@ Congratulations and welcome to **OlogyCrew**! Your provider profile is now live 
 - **Set Your Availability** — Configure your weekly schedule so customers can book open time slots
 - **Connect Stripe** — Set up payments to receive secure payouts directly to your bank account
 
-[Go to Provider Dashboard](/provider/dashboard)
+[Open Provider Overview](/)
 
 **Build Your Provider Standing:**
 Complete your profile, finish OlogyCrew bookings, and earn booking-linked reviews to progress from **New** to **Building History**, **Established**, and **Top Activity**. Provider standing reflects profile and platform activity; it is separate from identity, business, license, insurance, or background-check evidence review.

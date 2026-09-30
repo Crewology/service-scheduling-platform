@@ -3164,3 +3164,15 @@
 - [x] Preserve non-tab callback query parameters and portfolio anchors during redirects.
 - [x] Verify desktop/mobile Business Tools layouts, focused Promo search, and representative legacy redirects.
 - [x] Complete the full regression suite, production build, cleanup verification, and rollback checkpoint.
+
+
+## Canonical links in provider emails and notifications
+
+- [x] Audit active email templates, test senders, in-app notifications, push payloads, Provider Overview actions, and Stripe callback URLs.
+- [x] Replace provider trial and welcome email links with Provider Overview or Subscription destinations.
+- [x] Replace provider review, quote, verification, and overview notification actions with their canonical workspace pages.
+- [x] Move Stripe subscription returns to `/provider/subscription` and Stripe Connect returns to `/provider/finances` while preserving status parameters.
+- [x] Use `https://ologycrew.com` as the primary domain for booking-detail and unsubscribe links rendered in notification emails.
+- [x] Scan every text-capable database column for `/provider/dashboard`; no persisted notification, email, message, or template rows required migration.
+- [x] Keep the legacy dashboard redirect route so links in previously delivered emails continue to work.
+- [x] Complete full regression, build, cleanup, final database re-scan, and rollback checkpoint.

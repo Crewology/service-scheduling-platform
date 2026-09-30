@@ -9,7 +9,7 @@ describe("Trial Milestone Notification Templates", () => {
   const mockData = {
     providerName: "Jane's Salon",
     trialEndDate: "Monday, May 6, 2026",
-    dashboardUrl: "/provider/dashboard",
+    dashboardUrl: "/",
     upgradeUrl: "/provider/subscription",
     unsubscribeUrl: "/unsubscribe/abc123",
     servicesCreated: 5,
@@ -28,7 +28,8 @@ describe("Trial Milestone Notification Templates", () => {
       expect(template.body).toContain("3 photos per service");
       expect(template.body).toContain("Priority search placement");
       expect(template.body).toContain("Custom profile slug");
-      expect(template.body).toContain("/provider/dashboard");
+      expect(template.body).toContain("[Open Provider Overview](/)");
+      expect(template.body).not.toContain("/provider/dashboard");
       expect(template.smsBody).toContain("14-day Pro trial");
     });
   });

@@ -3,16 +3,16 @@ import { getTemplate } from "../templates";
 import { ENV } from "../../_core/env";
 import * as db from "../../db";
 import crypto from "crypto";
+import { OLOGYCREW_PUBLIC_ORIGIN } from "../../../shared/publicUrls";
 
 // Site logo used in the navbar — same branding in emails
 const SITE_LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png";
 
 /**
- * Resolve the public site URL.
- * In production the custom domain is used; in dev we fall back to the dev-server origin.
+ * Keep links in all outbound email on the primary public OlogyCrew domain.
  */
 function getSiteUrl(): string {
-  return "https://www.ologycrew.com";
+  return OLOGYCREW_PUBLIC_ORIGIN;
 }
 
 // Email sender addresses by context

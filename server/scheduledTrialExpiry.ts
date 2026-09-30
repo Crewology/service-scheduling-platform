@@ -138,7 +138,7 @@ export async function handleScheduledTrialExpiry(req: Request, res: Response) {
                 },
                 data: {
                   providerName: provider.businessName || userInfo.name || "there",
-                  upgradeUrl: "/provider/dashboard?tab=subscription",
+                  upgradeUrl: "/provider/subscription",
                   message: "Your free trial has ended. Please add your credit card information to continue accessing your Pro plan benefits.",
                 },
               },
@@ -156,6 +156,7 @@ export async function handleScheduledTrialExpiry(req: Request, res: Response) {
               notificationType: "trial_expired",
               title: "Your Pro Trial Has Ended",
               message: "Your trial period has ended. Please add your credit card information to continue accessing your Pro plan benefits. Visit your Subscription settings to upgrade.",
+              actionUrl: "/provider/subscription",
               isRead: false,
               isSentEmail: true,
               isSentSms: false,

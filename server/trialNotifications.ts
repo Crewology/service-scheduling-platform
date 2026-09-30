@@ -62,6 +62,7 @@ async function recordMilestoneSent(
       notificationType,
       title,
       message,
+      actionUrl: notificationType === "trial_started" ? "/" : "/provider/subscription",
       isRead: false,
       isSentEmail: true,
       isSentSms: false,
@@ -101,7 +102,7 @@ export async function sendTrialStartedNotification(ctx: TrialNotificationContext
     data: {
       providerName: ctx.providerName,
       trialEndDate,
-      dashboardUrl: ctx.dashboardUrl || "/provider/dashboard",
+      dashboardUrl: ctx.dashboardUrl || "/",
     },
   });
 
