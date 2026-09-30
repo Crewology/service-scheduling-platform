@@ -58,7 +58,7 @@ export default function ProviderMyPage() {
 
   if (!isAuthenticated || providerLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="container max-w-4xl py-8">
           <div className="animate-pulse space-y-4">
@@ -73,7 +73,7 @@ export default function ProviderMyPage() {
 
   if (!provider) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="container max-w-4xl py-8 text-center">
           <Globe className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -99,7 +99,7 @@ export default function ProviderMyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <div className="container max-w-4xl py-8 space-y-6">
         {/* Page Header */}

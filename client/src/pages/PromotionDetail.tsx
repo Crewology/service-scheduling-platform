@@ -114,7 +114,7 @@ export default function PromotionDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-screen flex flex-col bg-page">
         <NavHeader />
         <div className="flex-1 flex items-center justify-center">
           <div className="animate-pulse space-y-4 max-w-lg w-full px-4">
@@ -129,7 +129,7 @@ export default function PromotionDetail() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-screen flex flex-col bg-page">
         <NavHeader />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center px-4">
@@ -196,7 +196,7 @@ export default function PromotionDetail() {
   }, [promotion, provider, pageUrl]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-page">
       <NavHeader />
 
       {/* Back navigation */}

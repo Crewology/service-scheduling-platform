@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/shared/PageHeader";
 
 export default function PrivacyPolicy() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <main className="container max-w-3xl py-12">
         <PageHeader

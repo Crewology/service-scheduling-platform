@@ -303,7 +303,7 @@ export default function MyBookings() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f7faff]">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="container max-w-7xl py-8">
           <BookingsSkeleton />
@@ -345,7 +345,7 @@ export default function MyBookings() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
 
       <BookingsPageFrame

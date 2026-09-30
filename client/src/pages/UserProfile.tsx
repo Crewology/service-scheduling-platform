@@ -575,7 +575,7 @@ export default function UserProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
 
       <div className="container max-w-2xl py-8 space-y-6">

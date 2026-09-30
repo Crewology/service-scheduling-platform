@@ -416,7 +416,7 @@ export default function Explore() {
   ) : null;
 
   return (
-    <div className="min-h-screen bg-[#f7faff]">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <CustomerWorkspaceShell active="explore">
         <CustomerWorkspacePageHeader

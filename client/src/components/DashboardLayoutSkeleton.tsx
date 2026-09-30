@@ -2,7 +2,7 @@ import { Skeleton } from './ui/skeleton';
 
 export function DashboardLayoutSkeleton() {
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen bg-page">
       {/* Sidebar skeleton */}
       <div className="hidden md:block w-[280px] shrink-0 border-r border-border bg-background p-4 space-y-6 relative">
         {/* Logo area */}

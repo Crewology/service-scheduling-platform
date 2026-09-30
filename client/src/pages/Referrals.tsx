@@ -92,7 +92,7 @@ export default function Referrals() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-orange-50">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="container max-w-2xl py-20 text-center">
           <Gift className="h-16 w-16 text-primary mx-auto mb-6" />
@@ -163,7 +163,7 @@ export default function Referrals() {
     : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-orange-50">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <PageHeader
         title="Referral Program"

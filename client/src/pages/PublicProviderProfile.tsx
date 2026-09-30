@@ -371,7 +371,7 @@ export default function PublicProviderProfile() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-page flex items-center justify-center">
         <div className="animate-pulse text-muted-foreground">Loading profile...</div>
       </div>
     );
@@ -379,7 +379,7 @@ export default function PublicProviderProfile() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+      <div className="min-h-screen bg-page flex flex-col items-center justify-center gap-4">
         <h1 className="text-2xl font-bold text-foreground">Provider Not Found</h1>
         <p className="text-muted-foreground">This profile doesn't exist or has been removed.</p>
         <Button variant="outline" onClick={() => window.history.length > 1 ? window.history.back() : setLocation('/')}><ArrowLeft className="w-4 h-4 mr-2" /> Back</Button>
@@ -393,7 +393,7 @@ export default function PublicProviderProfile() {
     name.split(" ").map((w: string) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
 
       {/* Demo Welcome Popup */}

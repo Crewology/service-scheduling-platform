@@ -91,7 +91,7 @@ export default function UserDetailPage() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="container py-8">
           <Card className="max-w-md mx-auto">
@@ -114,7 +114,7 @@ export default function UserDetailPage() {
   const { user, provider, customerBookings, providerBookings, reviewsGiven, reviewsReceived, services, auditHistory, isOwner } = data;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <div className="container py-8">
         {/* Back Button */}

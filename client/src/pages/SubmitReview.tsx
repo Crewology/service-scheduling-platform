@@ -84,7 +84,7 @@ export default function SubmitReview() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-page">
         <NavHeader />
         <main className="py-12">
             <div className="container max-w-2xl">

@@ -246,7 +246,7 @@ function AppContent() {
   // Show minimal loading screen while auth resolves
   if (!showContent) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-page">
         <div className="animate-pulse">
           <img
             src="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png"

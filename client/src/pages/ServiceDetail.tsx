@@ -829,7 +829,7 @@ export default function ServiceDetail() {
 
   if (!service) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="bg-muted/30 border-b">
           <div className="container py-3">
@@ -875,7 +875,7 @@ export default function ServiceDetail() {
   const totalSlots = availableSlots.length;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
 
       {/* Demo Mode Active Banner */}

@@ -140,7 +140,7 @@ export default function Verify2FA() {
     : "your email";
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <div className="flex items-center justify-center px-4 pt-20 pb-12">
         <div className="w-full max-w-md">

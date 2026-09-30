@@ -101,17 +101,17 @@ export default function ProviderCustomers() {
 
   if (access.isLoading) return <CustomersSkeleton />;
   if (!access.data?.visible) {
-    return <div className="min-h-screen bg-background"><NavHeader /><ProviderWorkspaceBackground><div className="container max-w-2xl py-12"><Card><CardContent className="p-8 text-center"><LockKeyhole className="mx-auto h-9 w-9 text-slate-400" /><h1 className="mt-4 text-2xl font-bold">Customers is not available for this account</h1><p className="mt-2 text-sm text-slate-600">Customers requires an active provider account with current lifecycle access.</p><Button asChild className="mt-5"><Link href="/">Return home</Link></Button></CardContent></Card></div></ProviderWorkspaceBackground></div>;
+    return <div className="min-h-screen bg-page"><NavHeader /><ProviderWorkspaceBackground><div className="container max-w-2xl py-12"><Card><CardContent className="p-8 text-center"><LockKeyhole className="mx-auto h-9 w-9 text-slate-400" /><h1 className="mt-4 text-2xl font-bold">Customers is not available for this account</h1><p className="mt-2 text-sm text-slate-600">Customers requires an active provider account with current lifecycle access.</p><Button asChild className="mt-5"><Link href="/">Return home</Link></Button></CardContent></Card></div></ProviderWorkspaceBackground></div>;
   }
   if (workspace.isLoading) return <CustomersSkeleton />;
   if (workspace.error || !workspace.data) {
-    return <div className="min-h-screen bg-background"><NavHeader /><ProviderWorkspaceBackground><div className="container max-w-2xl py-12"><Card className="border-red-200"><CardContent className="p-8 text-center"><h1 className="text-2xl font-bold">We couldn’t load Customers</h1><p className="mt-2 text-sm text-slate-600">Your booking and customer data were not changed. Refresh this page or return to Overview.</p><Button asChild className="mt-5"><Link href="/">Return to Overview</Link></Button></CardContent></Card></div></ProviderWorkspaceBackground></div>;
+    return <div className="min-h-screen bg-page"><NavHeader /><ProviderWorkspaceBackground><div className="container max-w-2xl py-12"><Card className="border-red-200"><CardContent className="p-8 text-center"><h1 className="text-2xl font-bold">We couldn’t load Customers</h1><p className="mt-2 text-sm text-slate-600">Your booking and customer data were not changed. Refresh this page or return to Overview.</p><Button asChild className="mt-5"><Link href="/">Return to Overview</Link></Button></CardContent></Card></div></ProviderWorkspaceBackground></div>;
   }
 
   const { summary, contacts, activity, tasks, readOnlyReason } = workspace.data;
   const attention = contacts?.items.filter((item) => item.needsResponse).slice(0, 5) ?? [];
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <ProviderWorkspaceShell
       active="customers"
@@ -204,7 +204,7 @@ function TaskGroup({ title, description, icon: Icon, accent, tasks }: ReturnType
 }
 
 function CustomersSkeleton() {
-  return <div className="min-h-screen bg-background"><NavHeader /><ProviderWorkspaceBackground><div className="container max-w-7xl animate-pulse py-8"><div className="h-40 rounded-[28px] bg-slate-200" /><div className="mt-5 h-14 rounded-2xl bg-slate-100" /><div className="mt-5 grid gap-3 sm:grid-cols-3"><div className="h-28 rounded-2xl bg-slate-100" /><div className="h-28 rounded-2xl bg-slate-100" /><div className="h-28 rounded-2xl bg-slate-100" /></div><div className="mt-5 h-80 rounded-3xl bg-slate-100" /></div></ProviderWorkspaceBackground></div>;
+  return <div className="min-h-screen bg-page"><NavHeader /><ProviderWorkspaceBackground><div className="container max-w-7xl animate-pulse py-8"><div className="h-40 rounded-[28px] bg-slate-200" /><div className="mt-5 h-14 rounded-2xl bg-slate-100" /><div className="mt-5 grid gap-3 sm:grid-cols-3"><div className="h-28 rounded-2xl bg-slate-100" /><div className="h-28 rounded-2xl bg-slate-100" /><div className="h-28 rounded-2xl bg-slate-100" /></div><div className="mt-5 h-80 rounded-3xl bg-slate-100" /></div></ProviderWorkspaceBackground></div>;
 }
 
 export { stageLabels, formatMoney, formatDate, relativeAge };

@@ -315,7 +315,7 @@ function WhyBecomeProvider({ onGetStarted }: { onGetStarted: () => void }) {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
 
       {/* Hero Section */}
@@ -1032,7 +1032,7 @@ export default function ProviderOnboarding() {
 
   if (providerLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="flex items-center justify-center py-20">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -1047,7 +1047,7 @@ export default function ProviderOnboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
 
       <div className="container max-w-4xl py-8 overflow-visible">

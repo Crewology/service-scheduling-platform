@@ -303,7 +303,7 @@ export default function CustomerPricing() {
   const isProvider = !!providerSubInfo || user?.role === "provider";
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <div className="container py-12 max-w-6xl mx-auto px-4">
         {/* Header */}

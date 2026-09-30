@@ -150,7 +150,7 @@ export default function Invoices() {
   // Show upgrade prompt for free tier
   if (canUseInvoices === false) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="container max-w-5xl py-8">
           <div className="flex items-center gap-3 mb-6">
@@ -359,7 +359,7 @@ export default function Invoices() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <div className="container max-w-5xl py-8">
       <div className="flex items-center justify-between mb-6">

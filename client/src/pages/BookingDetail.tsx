@@ -214,7 +214,7 @@ export default function BookingDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="container py-12">
           <LoadingSpinner message="Loading booking details..." />
@@ -225,7 +225,7 @@ export default function BookingDetail() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="container py-12 text-center">
           <p className="text-muted-foreground">Booking not found or access denied</p>
@@ -266,7 +266,7 @@ export default function BookingDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
 
       {/* Demo Mode Active Banner */}

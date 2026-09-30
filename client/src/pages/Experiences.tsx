@@ -7,7 +7,7 @@ export default function Experiences() {
   const { data: experiences, isLoading } = trpc.service.listExperiences.useQuery();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 text-white py-16 px-4">

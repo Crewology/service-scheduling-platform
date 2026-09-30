@@ -1612,7 +1612,7 @@ export default function BulkBooking() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f7faff]">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="container py-12 text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
@@ -1624,7 +1624,7 @@ export default function BulkBooking() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#f7faff]">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="container py-12 text-center">
           <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -1650,7 +1650,7 @@ export default function BulkBooking() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f7faff]">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <CustomerWorkspaceShell
         active="bookings"

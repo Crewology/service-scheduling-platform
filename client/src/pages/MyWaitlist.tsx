@@ -28,7 +28,7 @@ export default function MyWaitlist() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="flex items-center justify-center min-h-[60vh]">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -39,7 +39,7 @@ export default function MyWaitlist() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="container max-w-2xl py-12 text-center">
           <Bell className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -146,7 +146,7 @@ export default function MyWaitlist() {
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <div className="container max-w-2xl py-8">
       <div className="flex items-center gap-3 mb-6">

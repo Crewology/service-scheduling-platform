@@ -77,7 +77,7 @@ export default function Unsubscribe() {
 
   if (isLoading) {
     return (
-      <><NavHeader /><div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <><NavHeader /><div className="min-h-screen bg-page flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div></>
     );
@@ -86,7 +86,7 @@ export default function Unsubscribe() {
   if (!prefs && !unsubscribed) {
     return (
       <><NavHeader />
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-page flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardContent className="py-12 text-center">
             <AlertCircle className="h-12 w-12 mx-auto mb-4 text-destructive" />
@@ -108,7 +108,7 @@ export default function Unsubscribe() {
   if (unsubscribed) {
     return (
       <><NavHeader />
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-page flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardContent className="py-12 text-center">
             <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-600" />
@@ -136,7 +136,7 @@ export default function Unsubscribe() {
   if (showConfirm) {
     return (
       <><NavHeader />
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-page flex items-center justify-center p-4">
         <Card className="max-w-md w-full border-amber-200">
           <CardHeader className="text-center">
             <div className="mx-auto mb-2">
@@ -185,7 +185,7 @@ export default function Unsubscribe() {
 
   return (
     <><NavHeader />
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-page flex items-center justify-center p-4">
       <Card className="max-w-lg w-full">
         <CardHeader className="text-center">
           <div className="mx-auto mb-2">

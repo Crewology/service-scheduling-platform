@@ -1008,7 +1008,7 @@ export default function HelpCenter() {
   const faqCategories = ["all", "General", "Bookings", "Providers", "Payments"];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-muted/30 to-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       {/* Hero Section */}
       <div className="bg-primary/5 border-b">

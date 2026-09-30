@@ -32,7 +32,7 @@ export default function ProviderAnalyticsPage() {
 
   if (loading || providerLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <PageHeader
           title="Business Analytics"
@@ -50,7 +50,7 @@ export default function ProviderAnalyticsPage() {
 
   if (!isAuthenticated || !provider) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <PageHeader
           title="Business Analytics"
@@ -65,7 +65,7 @@ export default function ProviderAnalyticsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <div className="container px-4 pt-4"><TrialStatusBanner /></div>
       <PageHeader

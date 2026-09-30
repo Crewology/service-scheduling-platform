@@ -48,7 +48,7 @@ export function CustomerWorkspaceShell({
   showDesktopNavigation?: boolean;
 }) {
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-[#f7faff] pb-28 md:pb-12">
+    <div className="min-h-[calc(100vh-4rem)] bg-page pb-28 md:pb-12">
       <div className={cn("container py-5 sm:py-7", maxWidth, contentClassName)}>
         <MobileRoleViewToggle active="customer" />
 

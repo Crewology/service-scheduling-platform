@@ -89,7 +89,7 @@ export default function Promotions() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="container py-12 text-center">
           <h1 className="text-2xl font-bold mb-4">Boost Your Business</h1>
@@ -101,7 +101,7 @@ export default function Promotions() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <div className="container py-6 sm:py-10 max-w-5xl mx-auto">
       <div className="mb-8">

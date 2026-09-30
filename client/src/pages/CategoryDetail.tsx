@@ -161,7 +161,7 @@ export default function CategoryDetail() {
   const icon = CATEGORY_ICONS[category.id] || "\ud83d\udce6";
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
 
       {/* Page Header */}

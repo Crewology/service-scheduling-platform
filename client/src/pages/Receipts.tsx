@@ -90,7 +90,7 @@ export default function Receipts() {
   }, [receipts]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <div className="container max-w-4xl py-8">
       <div className="flex items-center gap-3 mb-6">

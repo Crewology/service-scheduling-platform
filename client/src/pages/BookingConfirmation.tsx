@@ -216,7 +216,7 @@ export default function BookingConfirmation() {
   const hasCredits = availableCredits > 0;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
 
       {/* Demo Mode Active Banner */}

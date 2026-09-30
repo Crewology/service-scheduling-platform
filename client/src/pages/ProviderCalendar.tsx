@@ -269,7 +269,7 @@ export default function ProviderCalendar() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <ProviderWorkspaceBackground>
           <div className="container max-w-7xl py-8">
@@ -587,7 +587,7 @@ export default function ProviderCalendar() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <ProviderWorkspaceShell
         active="calendar"

@@ -237,7 +237,7 @@ export default function SubscriptionManagement() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="container py-16 text-center">
           <h1 className="text-2xl sm:text-3xl font-bold mb-4">My Provider Plan Subscription</h1>
@@ -248,7 +248,7 @@ export default function SubscriptionManagement() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
 
       <div className="container py-8 max-w-6xl mx-auto">

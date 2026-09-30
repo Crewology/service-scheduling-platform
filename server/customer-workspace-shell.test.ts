@@ -30,7 +30,7 @@ describe("shared Customer Workspace visual system", () => {
     expect(shellSource).toContain('aria-label="Customer workspace navigation"');
     expect(shellSource).toContain('aria-label="Customer mobile navigation"');
     expect(shellSource).toContain('aria-current={isActive ? "page" : undefined}');
-    expect(shellSource).toContain('bg-[#f7faff]');
+    expect(shellSource).toContain('bg-page');
     expect(shellSource).toContain('<MobileRoleViewToggle active="customer"');
   });
 

@@ -126,7 +126,7 @@ export default function SavedProviders() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#f7faff]">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="flex items-center justify-center py-20">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -137,7 +137,7 @@ export default function SavedProviders() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#f7faff]">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="container py-16 text-center">
           <Heart className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4" />
@@ -150,7 +150,7 @@ export default function SavedProviders() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f7faff]">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <CustomerWorkspaceShell
         active="saved"

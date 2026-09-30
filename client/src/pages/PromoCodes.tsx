@@ -62,7 +62,7 @@ export default function PromoCodes() {
 
   if (loading || isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="container py-8">
           <div className="animate-pulse space-y-4">
@@ -80,7 +80,7 @@ export default function PromoCodes() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <div className="container py-8 max-w-4xl">
         {/* Header */}

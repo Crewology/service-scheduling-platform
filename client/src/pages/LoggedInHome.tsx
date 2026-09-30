@@ -60,7 +60,7 @@ export default function LoggedInHome() {
 
   if (isProviderView && user?.role === "provider" && !isAdmin && onboardingLoading) {
     return (
-      <div className="flex min-h-screen flex-col bg-background">
+      <div className="flex min-h-screen flex-col bg-page">
         <NavHeader />
         <div className="flex flex-1 items-center justify-center">
           <div className="animate-pulse text-muted-foreground">Loading...</div>
@@ -75,7 +75,7 @@ export default function LoggedInHome() {
 
   if (isProviderView) {
     return (
-      <div className="min-h-screen bg-[#f7faff]">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <ProviderWorkspaceOverview />
       </div>
@@ -83,7 +83,7 @@ export default function LoggedInHome() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f7faff]">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <CustomerWorkspaceHome />
     </div>

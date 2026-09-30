@@ -140,7 +140,7 @@ export default function Notifications() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="flex items-center justify-center py-20">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -151,7 +151,7 @@ export default function Notifications() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="container py-16 text-center">
           <Bell className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
@@ -170,7 +170,7 @@ export default function Notifications() {
   const unreadCount = notifications?.filter((n: any) => !n.isRead).length ?? 0;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
 
       <div className="container max-w-3xl py-8">

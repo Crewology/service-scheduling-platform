@@ -1780,7 +1780,7 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
 
       <ProviderDashboardFrame

@@ -66,7 +66,7 @@ export default function MyQuotes() {
 
   if (loading || isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="container max-w-4xl py-12">
           <div className="animate-pulse space-y-4">
@@ -81,7 +81,7 @@ export default function MyQuotes() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="container max-w-4xl py-12 text-center">
           <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -96,7 +96,7 @@ export default function MyQuotes() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <div className="container max-w-4xl py-8">
         <div className="flex items-center justify-between mb-8">

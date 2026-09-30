@@ -19,10 +19,10 @@ export default function TermsOfService() {
 
   if (managedVersion) return <ManagedTermsOfService version={managedVersion} />;
   if (isLoading && requestedVersion && requestedVersion !== "2026-06-24") {
-    return <div className="min-h-screen bg-background"><NavHeader /><main className="container flex max-w-3xl items-center justify-center py-24"><Loader2 className="h-6 w-6 animate-spin text-primary" /><span className="ml-3 text-muted-foreground">Loading Terms version…</span></main></div>;
+    return <div className="min-h-screen bg-page"><NavHeader /><main className="container flex max-w-3xl items-center justify-center py-24"><Loader2 className="h-6 w-6 animate-spin text-primary" /><span className="ml-3 text-muted-foreground">Loading Terms version…</span></main></div>;
   }
   if (requestedVersion && requestedVersion !== "2026-06-24") {
-    return <div className="min-h-screen bg-background"><NavHeader /><main className="container max-w-3xl py-12"><PageHeader title="Terms version not found" backHref="/terms" breadcrumbs={[{ label: "Terms of Use" }, { label: requestedVersion }]} /><p className="mt-4 text-muted-foreground">This Terms version is not published or does not exist.</p><Button asChild className="mt-6"><a href="/terms">View current Terms</a></Button></main></div>;
+    return <div className="min-h-screen bg-page"><NavHeader /><main className="container max-w-3xl py-12"><PageHeader title="Terms version not found" backHref="/terms" breadcrumbs={[{ label: "Terms of Use" }, { label: requestedVersion }]} /><p className="mt-4 text-muted-foreground">This Terms version is not published or does not exist.</p><Button asChild className="mt-6"><a href="/terms">View current Terms</a></Button></main></div>;
   }
 
   return <BaselineTermsOfService />;
@@ -30,7 +30,7 @@ export default function TermsOfService() {
 
 function BaselineTermsOfService() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
 
       <main className="container max-w-3xl py-12">
@@ -277,7 +277,7 @@ function ManagedTermsOfService({ version }: { version: ManagedTermsVersion }) {
   const matchingNoticeId = pendingNotice?.version.version === version.version ? pendingNotice.noticeId : null;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <main className="container max-w-3xl py-12">
         <PageHeader title={version.title} backHref="/" breadcrumbs={[{ label: "Terms of Use" }, { label: version.version }]} />

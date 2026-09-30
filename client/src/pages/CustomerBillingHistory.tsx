@@ -130,7 +130,7 @@ export default function CustomerBillingHistory() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="container py-12 text-center">
           <p className="text-muted-foreground">Please log in to view billing history.</p>
@@ -148,7 +148,7 @@ export default function CustomerBillingHistory() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <div className="container max-w-4xl py-6 px-4">
         {/* Header */}

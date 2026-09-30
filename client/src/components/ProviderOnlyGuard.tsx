@@ -20,7 +20,7 @@ export function ProviderOnlyGuard({ children, featureName = "This feature" }: Pr
 
   if (!isProviderView) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="container max-w-lg py-16 text-center">
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-muted">

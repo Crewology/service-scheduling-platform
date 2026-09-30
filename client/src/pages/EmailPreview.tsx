@@ -629,7 +629,7 @@ export default function EmailPreview() {
       : testEmails.filter((e) => e.category === selectedCategory);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-page">
       {/* Header */}
       <div className="bg-white border-b sticky top-0 z-10">
         <div className="container py-4">

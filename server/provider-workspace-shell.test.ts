@@ -49,8 +49,7 @@ describe("shared Provider Workspace visual system", () => {
 
   it("owns the full-page background once so all workspace pages share the same treatment", () => {
     expect(shellSource).toContain("const providerWorkspaceBackground");
-    expect(shellSource).toContain("radial-gradient");
-    expect(shellSource).toContain("linear-gradient(to_bottom,#f5f9fd,#ffffff_42%,#f8fafc)");
+    expect(shellSource).toContain('"min-h-[calc(100vh-4rem)] bg-page"');
     expect(shellSource).toContain("<ProviderWorkspaceBackground>");
     expect(calendarSource).toContain("<ProviderWorkspaceBackground>");
     expect(customersSource).toContain("<ProviderWorkspaceBackground>");

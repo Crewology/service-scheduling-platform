@@ -102,7 +102,7 @@ export default function WidgetGenerator() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="container py-8">
           <div className="animate-pulse space-y-4">
@@ -116,7 +116,7 @@ export default function WidgetGenerator() {
 
   if (!isAuthenticated || !provider) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="container py-16 text-center">
           <h2 className="text-2xl font-bold mb-2">Provider Access Required</h2>
@@ -129,7 +129,7 @@ export default function WidgetGenerator() {
   const activeServices = (services || []).filter((s: any) => s.isActive);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <div className="container py-8 max-w-6xl">
         {/* Header */}

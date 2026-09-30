@@ -3250,3 +3250,14 @@
 - [x] Preserve provider-mode My Bookings, data behavior, actions, and mobile layouts.
 - [x] Verify Customer Home and all three pages side by side at desktop and 390px mobile sizes.
 - [x] Complete full regression, production build, cleanup verification, and rollback checkpoint.
+
+
+## Application-wide light blue page canvas
+
+- [x] Add the semantic `bg-page` utility backed by the Provider Workspace light blue `#f7faff`.
+- [x] Apply the shared token to the document, app root, authentication loading state, workspace shells, guards, error states, and every explicit full-page canvas.
+- [x] Preserve white cards, forms, dialogs, navigation, branded heroes, and content sections for contrast and hierarchy.
+- [x] Keep external booking embeds white so they remain neutral inside third-party websites.
+- [x] Add an application-wide source contract that rejects legacy root backgrounds and protects the embed exception.
+- [x] Verify representative public, customer, provider, admin, account, support, and authentication surfaces at desktop and 390px mobile sizes.
+- [x] Complete the full regression suite, production build, cleanup verification, and rollback checkpoint.

@@ -326,7 +326,7 @@ export default function Messages() {
   };
 
   return (
-    <div className="h-[100dvh] flex flex-col bg-background overflow-hidden">
+    <div className="h-[100dvh] flex flex-col bg-page overflow-hidden">
       <NavHeader />
 
       <div className="container py-2 sm:py-8 max-w-4xl flex-1 flex flex-col min-h-0 overflow-hidden">

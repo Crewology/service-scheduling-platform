@@ -41,7 +41,7 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <div className="flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">

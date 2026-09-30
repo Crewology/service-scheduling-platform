@@ -24,7 +24,7 @@ export type ProviderWorkspaceSection =
   | "more";
 
 const providerWorkspaceBackground =
-  "min-h-[calc(100vh-4rem)] bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,0.08),transparent_34%),linear-gradient(to_bottom,#f5f9fd,#ffffff_42%,#f8fafc)]";
+  "min-h-[calc(100vh-4rem)] bg-page";
 
 export function ProviderWorkspaceBackground({ children, className }: { children: ReactNode; className?: string }) {
   return <div className={cn(providerWorkspaceBackground, className)}>{children}</div>;

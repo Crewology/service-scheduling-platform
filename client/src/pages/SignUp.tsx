@@ -170,7 +170,7 @@ export default function SignUp() {
   const passwordsMatch = password && confirmPassword && password === confirmPassword;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-page px-4 py-12">
       <div className="w-full max-w-md">
         {/* Logo/Brand */}
         <div className="text-center mb-8">

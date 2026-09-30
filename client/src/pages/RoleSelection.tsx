@@ -91,7 +91,7 @@ export default function RoleSelection() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-white to-orange-50">
+      <div className="min-h-screen flex items-center justify-center bg-page">
         <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
       </div>
     );
@@ -110,7 +110,7 @@ export default function RoleSelection() {
   // If auto-submitting from plan selection, show loading instead of role cards
   if (autoSubmitting) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-amber-50 via-white to-orange-50 px-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-page px-4">
         <img
           src="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png"
           alt="OlogyCrew"
@@ -123,7 +123,7 @@ export default function RoleSelection() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-amber-50 via-white to-orange-50 px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-page px-4">
       {/* Logo */}
       <div className="mb-8 text-center">
         <img

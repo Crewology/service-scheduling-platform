@@ -286,7 +286,7 @@ export default function ManageAvailability() {
 
   if (!provider) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-page">
         <Card className="max-w-md">
           <CardHeader>
             <CardTitle>Provider Profile Required</CardTitle>
@@ -322,7 +322,7 @@ export default function ManageAvailability() {
     : [];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <div className="container py-4">
         <PageHeader

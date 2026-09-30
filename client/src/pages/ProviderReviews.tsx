@@ -85,7 +85,7 @@ export default function ProviderReviews() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <PageHeader
         title="Reviews"

@@ -82,7 +82,7 @@ export default function FeaturedProfessionals() {
   const pageUrl = typeof window !== "undefined" ? `${window.location.origin}/featured` : "";
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-page">
       <NavHeader />
 
       {/* Hero Section */}

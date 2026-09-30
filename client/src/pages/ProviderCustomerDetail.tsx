@@ -208,9 +208,9 @@ export default function ProviderCustomerDetail() {
     createDraft.mutate({ contactId, body, requestId: crypto.randomUUID() });
   }
 
-  if (access.isLoading || detail.isLoading) return <div className="min-h-screen bg-background"><NavHeader /><ProviderWorkspaceBackground><div className="container max-w-7xl animate-pulse py-8"><div className="h-48 rounded-3xl bg-slate-200" /><div className="mt-5 h-96 rounded-3xl bg-slate-100" /></div></ProviderWorkspaceBackground></div>;
-  if (!access.data?.visible) return <div className="min-h-screen bg-background"><NavHeader /><ProviderWorkspaceBackground><div className="container max-w-2xl py-12"><Card><CardContent className="p-8 text-center"><LockKeyhole className="mx-auto h-9 w-9 text-slate-400" /><h1 className="mt-4 text-2xl font-bold">Customers is not available for this account</h1><Button asChild className="mt-5"><Link href="/">Return home</Link></Button></CardContent></Card></div></ProviderWorkspaceBackground></div>;
-  if (!detail.data || detail.error) return <div className="min-h-screen bg-background"><NavHeader /><ProviderWorkspaceBackground><div className="container max-w-2xl py-12"><Card><CardContent className="p-8 text-center"><UserRound className="mx-auto h-9 w-9 text-slate-400" /><h1 className="mt-4 text-2xl font-bold">Relationship not found</h1><p className="mt-2 text-sm text-slate-600">This relationship may not belong to your provider account.</p><Button asChild className="mt-5"><Link href="/provider/customers">Back to Customers</Link></Button></CardContent></Card></div></ProviderWorkspaceBackground></div>;
+  if (access.isLoading || detail.isLoading) return <div className="min-h-screen bg-page"><NavHeader /><ProviderWorkspaceBackground><div className="container max-w-7xl animate-pulse py-8"><div className="h-48 rounded-3xl bg-slate-200" /><div className="mt-5 h-96 rounded-3xl bg-slate-100" /></div></ProviderWorkspaceBackground></div>;
+  if (!access.data?.visible) return <div className="min-h-screen bg-page"><NavHeader /><ProviderWorkspaceBackground><div className="container max-w-2xl py-12"><Card><CardContent className="p-8 text-center"><LockKeyhole className="mx-auto h-9 w-9 text-slate-400" /><h1 className="mt-4 text-2xl font-bold">Customers is not available for this account</h1><Button asChild className="mt-5"><Link href="/">Return home</Link></Button></CardContent></Card></div></ProviderWorkspaceBackground></div>;
+  if (!detail.data || detail.error) return <div className="min-h-screen bg-page"><NavHeader /><ProviderWorkspaceBackground><div className="container max-w-2xl py-12"><Card><CardContent className="p-8 text-center"><UserRound className="mx-auto h-9 w-9 text-slate-400" /><h1 className="mt-4 text-2xl font-bold">Relationship not found</h1><p className="mt-2 text-sm text-slate-600">This relationship may not belong to your provider account.</p><Button asChild className="mt-5"><Link href="/provider/customers">Back to Customers</Link></Button></CardContent></Card></div></ProviderWorkspaceBackground></div>;
 
   const { contact, events, notes, tasks, drafts, draftSendReadiness } = detail.data;
   const taskPending = setFollowUpState.isPending;
@@ -222,7 +222,7 @@ export default function ProviderCustomerDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <ProviderWorkspaceShell
       active="customers"

@@ -140,7 +140,7 @@ export default function Conversations() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f7faff]">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="container max-w-7xl py-8">
           <div className="space-y-3">
@@ -159,7 +159,7 @@ export default function Conversations() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f7faff]">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <CustomerWorkspaceShell
         active="messages"

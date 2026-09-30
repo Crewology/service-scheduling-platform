@@ -21,7 +21,7 @@ export default function CustomerReviews() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="flex items-center justify-center py-20">
           <LoadingSpinner />
@@ -51,7 +51,7 @@ export default function CustomerReviews() {
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <div className="container py-6">
         <PageHeader

@@ -257,7 +257,7 @@ export default function MonthlyPlanner() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f7faff]">
+      <div className="flex min-h-screen items-center justify-center bg-page">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -265,7 +265,7 @@ export default function MonthlyPlanner() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#f7faff]">
+      <div className="min-h-screen bg-page">
         <NavHeader />
         <div className="container py-12 text-center">
           <h1 className="text-2xl font-bold mb-4">Monthly Planner</h1>
@@ -281,7 +281,7 @@ export default function MonthlyPlanner() {
   const plannedCount = events.filter((e) => e.status === "planned").length;
 
   return (
-    <div className="min-h-screen bg-[#f7faff]">
+    <div className="min-h-screen bg-page">
       <NavHeader />
       <CustomerWorkspaceShell
         active="bookings"

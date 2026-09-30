@@ -10,7 +10,7 @@ function SkeletonPulse({ className }: { className?: string }) {
  */
 export function ProviderDashboardSkeleton() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-page">
       {/* Header skeleton */}
       <div className="border-b bg-card">
         <div className="container py-6">
