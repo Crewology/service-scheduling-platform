@@ -7,6 +7,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -65,6 +66,7 @@ import {
   Heart,
   User,
   Loader2,
+  Search,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useViewMode } from "@/contexts/ViewModeContext";
@@ -1424,6 +1426,8 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
 
   const [editingService, setEditingService] = useState<any>(null);
   const [profileEditorOpen, setProfileEditorOpen] = useState(false);
+  const [businessToolsSearch, setBusinessToolsSearch] = useState("");
+  const [openBusinessToolGroups, setOpenBusinessToolGroups] = useState<string[]>([]);
   const [editingBio, setEditingBio] = useState(false);
   const [bioText, setBioText] = useState("");
   const [serviceForm, setServiceForm] = useState<any>({});
@@ -1724,6 +1728,29 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
   const confirmedBookings = bookings?.filter(b => b.status === "confirmed").length || 0;
   const totalServices = services?.length || 0;
   const providerPublicPageHref = provider.profileSlug ? `/${provider.profileSlug}` : null;
+  const normalizedBusinessToolsSearch = businessToolsSearch.trim().toLowerCase();
+  const matchesBusinessToolSearch = (...terms: string[]) => (
+    !normalizedBusinessToolsSearch || terms.some((term) => term.includes(normalizedBusinessToolsSearch))
+  );
+  const searchesReputationGroup = ["reputation", "reputation and trust"].includes(normalizedBusinessToolsSearch);
+  const searchesGrowthGroup = ["growth", "growth and promotion"].includes(normalizedBusinessToolsSearch);
+  const searchesPricingGroup = ["pricing", "pricing and payments"].includes(normalizedBusinessToolsSearch);
+  const showReviewsTool = searchesReputationGroup || matchesBusinessToolSearch("customer reviews", "reviews", "ratings", "feedback", "respond to reviews");
+  const showVerificationTool = searchesReputationGroup || matchesBusinessToolSearch("verification", "credentials", "documents", "trust", "insurance", "background check");
+  const showPromoTool = searchesGrowthGroup || matchesBusinessToolSearch("promo codes", "promotion", "discounts", "offers", "marketing");
+  const showReferralTool = searchesGrowthGroup || matchesBusinessToolSearch("refer a provider", "referrals", "invite providers", "rewards");
+  const showTipsTool = searchesPricingGroup || matchesBusinessToolSearch("tips", "tipping", "gratuity", "payments");
+  const showEstimatesTool = searchesPricingGroup || matchesBusinessToolSearch("free estimates", "estimates", "quotes");
+  const showEmergencyTool = matchesBusinessToolSearch("emergency service", "urgent service", "service options", "availability");
+  const visibleBusinessToolGroups = [
+    (showReviewsTool || showVerificationTool) && "reputation",
+    (showPromoTool || showReferralTool) && "growth",
+    (showTipsTool || showEstimatesTool) && "pricing",
+    showEmergencyTool && "service-options",
+  ].filter(Boolean) as string[];
+  const displayedBusinessToolGroups = normalizedBusinessToolsSearch
+    ? visibleBusinessToolGroups
+    : openBusinessToolGroups;
 
   const openEditProfile = () => {
     setProfileEditorOpen(true);
@@ -3110,72 +3137,146 @@ export default function ProviderDashboard(props: { initialTab?: string; hideChro
           {/* === SETTINGS/MORE TAB (Reviews + Promo Codes + Verification) === */}
           <TabsContent value="settings" className="space-y-6 pb-20 md:pb-0">
           <SectionErrorBoundary fallbackTitle="Settings couldn't load">
-            {/* Reviews sub-section */}
-            <div>
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold">Customer Reviews</h2>
-              </div>
-              <Card className="mt-4">
-                <CardContent className="py-12 text-center">
-                  <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground mb-4">Manage customer reviews</p>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    View and respond to customer feedback
-                  </p>
-                  <Button onClick={() => setLocation("/provider/reviews")}>
-                    View Reviews
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Promo Codes sub-section */}
-            <div className="border-t pt-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold">Promo & Referral Codes</h2>
-                  <p className="text-muted-foreground mt-1">Create discount codes to attract new customers and reward loyal clients</p>
+            <Card className="border-slate-200 bg-white/95 shadow-sm">
+              <CardContent className="p-4 sm:p-5">
+                <label htmlFor="business-tools-search" className="text-sm font-semibold text-slate-900">Find a business tool</label>
+                <div className="relative mt-2">
+                  <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <Input
+                    id="business-tools-search"
+                    value={businessToolsSearch}
+                    onChange={(event) => setBusinessToolsSearch(event.target.value)}
+                    className="h-10 bg-white pl-9 pr-10"
+                    placeholder="Search business tools..."
+                    aria-label="Search Business Tools"
+                  />
+                  {businessToolsSearch ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-1 top-1 h-8 w-8 text-slate-500"
+                      onClick={() => setBusinessToolsSearch("")}
+                      aria-label="Clear Business Tools search"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  ) : null}
                 </div>
-                <Link href="/provider/promo-codes">
-                  <Button>
-                    <Tag className="h-4 w-4 mr-2" />
-                    Manage Promo Codes
-                  </Button>
-                </Link>
-              </div>
-              <Card>
-                <CardContent className="py-6 text-center">
-                  <Tag className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-muted-foreground">Create and manage promo codes from the dedicated page</p>
+                <p className="mt-2 text-xs text-slate-500">Try reviews, promo codes, tips, estimates, or verification.</p>
+              </CardContent>
+            </Card>
+
+            {visibleBusinessToolGroups.length > 0 ? (
+              <Accordion
+                type="multiple"
+                value={displayedBusinessToolGroups}
+                onValueChange={setOpenBusinessToolGroups}
+                className="space-y-3"
+              >
+                {(showReviewsTool || showVerificationTool) ? (
+                  <AccordionItem value="reputation" className="rounded-2xl border border-slate-200 bg-white px-4 shadow-sm sm:px-5">
+                    <AccordionTrigger className="py-5 hover:no-underline">
+                      <span className="flex min-w-0 items-start gap-3">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#174a73]"><Shield className="h-5 w-5" /></span>
+                        <span className="min-w-0">
+                          <span className="block font-bold text-slate-950">Reputation & trust</span>
+                          <span className="mt-0.5 block text-xs font-normal text-slate-500">Reviews, credentials, and verification</span>
+                        </span>
+                      </span>
+                    </AccordionTrigger>
+                    <AccordionContent className="space-y-4 pb-5">
+                      {showReviewsTool ? (
+                        <Card className="border-slate-200 shadow-none">
+                          <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
+                            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-700"><Star className="h-5 w-5" /></span>
+                            <div className="min-w-0 flex-1">
+                              <h3 className="font-semibold text-slate-950">Customer Reviews</h3>
+                              <p className="mt-1 text-sm text-slate-500">View and respond to customer feedback.</p>
+                            </div>
+                            <Button size="sm" onClick={() => setLocation("/provider/reviews")}>View Reviews</Button>
+                          </CardContent>
+                        </Card>
+                      ) : null}
+                      {showVerificationTool ? <VerificationDocumentsTab /> : null}
+                    </AccordionContent>
+                  </AccordionItem>
+                ) : null}
+
+                {(showPromoTool || showReferralTool) ? (
+                  <AccordionItem value="growth" className="rounded-2xl border border-slate-200 bg-white px-4 shadow-sm sm:px-5">
+                    <AccordionTrigger className="py-5 hover:no-underline">
+                      <span className="flex min-w-0 items-start gap-3">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700"><TrendingUp className="h-5 w-5" /></span>
+                        <span className="min-w-0">
+                          <span className="block font-bold text-slate-950">Growth & promotion</span>
+                          <span className="mt-0.5 block text-xs font-normal text-slate-500">Discounts, referrals, and provider rewards</span>
+                        </span>
+                      </span>
+                    </AccordionTrigger>
+                    <AccordionContent className="space-y-4 pb-5">
+                      {showPromoTool ? (
+                        <Card className="border-slate-200 shadow-none">
+                          <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
+                            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700"><Tag className="h-5 w-5" /></span>
+                            <div className="min-w-0 flex-1">
+                              <h3 className="font-semibold text-slate-950">Promo Codes</h3>
+                              <p className="mt-1 text-sm text-slate-500">Create discounts to attract new customers and reward loyal clients.</p>
+                            </div>
+                            <Button asChild size="sm"><Link href="/provider/promo-codes">Manage Promo Codes</Link></Button>
+                          </CardContent>
+                        </Card>
+                      ) : null}
+                      {showReferralTool ? <ReferProviderCard /> : null}
+                    </AccordionContent>
+                  </AccordionItem>
+                ) : null}
+
+                {(showTipsTool || showEstimatesTool) ? (
+                  <AccordionItem value="pricing" className="rounded-2xl border border-slate-200 bg-white px-4 shadow-sm sm:px-5">
+                    <AccordionTrigger className="py-5 hover:no-underline">
+                      <span className="flex min-w-0 items-start gap-3">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-700"><DollarSign className="h-5 w-5" /></span>
+                        <span className="min-w-0">
+                          <span className="block font-bold text-slate-950">Pricing & payments</span>
+                          <span className="mt-0.5 block text-xs font-normal text-slate-500">Tips, estimates, and customer pricing options</span>
+                        </span>
+                      </span>
+                    </AccordionTrigger>
+                    <AccordionContent className="space-y-4 pb-5">
+                      {showTipsTool ? <TipSettingsSection /> : null}
+                      {showEstimatesTool ? <FreeEstimatesSection /> : null}
+                    </AccordionContent>
+                  </AccordionItem>
+                ) : null}
+
+                {showEmergencyTool ? (
+                  <AccordionItem value="service-options" className="rounded-2xl border border-slate-200 bg-white px-4 shadow-sm sm:px-5">
+                    <AccordionTrigger className="py-5 hover:no-underline">
+                      <span className="flex min-w-0 items-start gap-3">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-700"><BellRing className="h-5 w-5" /></span>
+                        <span className="min-w-0">
+                          <span className="block font-bold text-slate-950">Service options</span>
+                          <span className="mt-0.5 block text-xs font-normal text-slate-500">Urgent and emergency service preferences</span>
+                        </span>
+                      </span>
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-5">
+                      <EmergencyServiceSection />
+                    </AccordionContent>
+                  </AccordionItem>
+                ) : null}
+              </Accordion>
+            ) : (
+              <Card className="border-dashed border-slate-300 bg-white/80 shadow-none">
+                <CardContent className="p-10 text-center">
+                  <Search className="mx-auto h-8 w-8 text-slate-400" />
+                  <h3 className="mt-3 font-semibold text-slate-900">No business tools found</h3>
+                  <p className="mt-1 text-sm text-slate-500">Try a different term such as reviews, tips, promo codes, or verification.</p>
+                  <Button type="button" variant="outline" size="sm" className="mt-4" onClick={() => setBusinessToolsSearch("")}>Clear search</Button>
                 </CardContent>
               </Card>
-            </div>
-            </div>
-
-            {/* Tipping Settings sub-section */}
-            <div className="border-t pt-6">
-              <TipSettingsSection />
-            </div>
-
-            {/* Free Estimates sub-section */}
-            <div className="border-t pt-6">
-              <FreeEstimatesSection />
-            </div>
-
-            <div className="border-t pt-6">
-              <EmergencyServiceSection />
-            </div>
-
-            {/* Refer a Provider sub-section */}
-            <div className="border-t pt-6">
-              <ReferProviderCard />
-            </div>
-
-            {/* Verification evidence sub-section */}
-            <div className="border-t pt-6">
-              <VerificationDocumentsTab />
-            </div>
+            )}
           </SectionErrorBoundary>
           </TabsContent>
         </Tabs>

@@ -3152,3 +3152,15 @@
 - [x] Retain the existing settings-tab implementation as the internal content source for the canonical Business Tools page.
 - [x] Verify the legacy URL renders the shared Business Tools workspace with its active navigation state.
 - [x] Complete the full regression suite, production build, cleanup verification, and rollback checkpoint.
+
+
+## Business Tools navigation and legacy dashboard consolidation
+
+- [x] Group Business Tools into Reputation & trust, Growth & promotion, Pricing & payments, and Service options.
+- [x] Keep all four sections collapsed by default with accessible multi-section expansion.
+- [x] Add local quick search with common provider terms, automatic matching-group expansion, clear control, and no-results guidance.
+- [x] Preserve every existing review, promotion, referral, tipping, estimate, emergency-service, and verification component and mutation.
+- [x] Redirect legacy Bookings, Quotes, Services, Portfolio, Schedule, Finances, Payouts, Analytics, My Page, Subscription, Settings, and More tab URLs to canonical pages.
+- [x] Preserve non-tab callback query parameters and portfolio anchors during redirects.
+- [x] Verify desktop/mobile Business Tools layouts, focused Promo search, and representative legacy redirects.
+- [x] Complete the full regression suite, production build, cleanup verification, and rollback checkpoint.

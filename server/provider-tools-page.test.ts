@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { getCanonicalProviderDashboardDestination } from "../client/src/lib/providerDashboardRedirect";
 
 const root = resolve(process.cwd());
 const readSource = (path: string) => readFileSync(resolve(root, path), "utf8");
@@ -9,6 +10,8 @@ const appSource = readSource("client/src/App.tsx");
 const tabPageSource = readSource("client/src/pages/ProviderTabPage.tsx");
 const dashboardSource = readSource("client/src/pages/ProviderDashboard.tsx");
 const shellSource = readSource("client/src/components/provider/ProviderWorkspaceShell.tsx");
+const redirectSource = readSource("client/src/lib/providerDashboardRedirect.ts");
+const bookingsSource = readSource("client/src/pages/MyBookings.tsx");
 
 describe("standalone provider Business Tools page", () => {
   it("registers a provider-only canonical Business Tools route", () => {
@@ -25,7 +28,7 @@ describe("standalone provider Business Tools page", () => {
 
     for (const content of [
       "Customer Reviews",
-      "Promo & Referral Codes",
+      "Promo Codes",
       "TipSettingsSection",
       "FreeEstimatesSection",
       "EmergencyServiceSection",
@@ -34,6 +37,21 @@ describe("standalone provider Business Tools page", () => {
     ]) {
       expect(dashboardSource).toContain(content);
     }
+  });
+
+  it("groups Business Tools into four searchable, collapsible sections", () => {
+    expect(dashboardSource).toContain('from "@/components/ui/accordion"');
+    expect(dashboardSource).toContain('placeholder="Search business tools..."');
+    expect(dashboardSource).toContain('aria-label="Search Business Tools"');
+    expect(dashboardSource).toContain('type="multiple"');
+    expect(dashboardSource).toContain("value={displayedBusinessToolGroups}");
+    for (const group of ["Reputation & trust", "Growth & promotion", "Pricing & payments", "Service options"]) {
+      expect(dashboardSource).toContain(group);
+    }
+    for (const component of ["TipSettingsSection", "FreeEstimatesSection", "EmergencyServiceSection", "ReferProviderCard", "VerificationDocumentsTab"]) {
+      expect(dashboardSource).toContain(`<${component} />`);
+    }
+    expect(dashboardSource).toContain("No business tools found");
   });
 
   it("points shared and legacy dashboard More controls to the canonical page", () => {
@@ -45,12 +63,37 @@ describe("standalone provider Business Tools page", () => {
     expect(shellSource).not.toContain("/provider/dashboard?tab=settings");
   });
 
-  it("redirects the legacy dashboard settings URL to canonical Business Tools", () => {
+  it("redirects every supported legacy dashboard tab to its canonical page", () => {
     expect(appSource).toContain("function ProviderDashboardRoute()");
-    expect(appSource).toContain('new URLSearchParams(window.location.search).get("tab") === "settings"');
-    expect(appSource).toContain('setLocation("/provider/tools", { replace: true })');
+    expect(appSource).toContain("getCanonicalProviderDashboardDestination(window.location.search)");
+    for (const [tab, destination] of Object.entries({
+      bookings: "/my-bookings",
+      quotes: "/my-bookings?tab=quotes",
+      services: "/provider/services",
+      portfolio: "/provider/services#portfolio-work-samples",
+      schedule: "/provider/calendar",
+      finances: "/provider/finances",
+      payouts: "/provider/finances",
+      analytics: "/provider/analytics",
+      "my-page": "/provider/my-page",
+      subscription: "/provider/subscription",
+      settings: "/provider/tools",
+      more: "/provider/tools",
+    })) {
+      expect(getCanonicalProviderDashboardDestination(`?tab=${tab}`)).toBe(destination);
+    }
+    expect(getCanonicalProviderDashboardDestination("?tab=finances&stripe=return")).toBe("/provider/finances?stripe=return");
+    expect(getCanonicalProviderDashboardDestination("?tab=quotes&source=email")).toBe("/my-bookings?tab=quotes&source=email");
+    expect(getCanonicalProviderDashboardDestination("?tab=subscription&status=success")).toBe("/provider/subscription?status=success");
+    expect(getCanonicalProviderDashboardDestination("?tab=portfolio&upload=1")).toBe("/provider/services?upload=1#portfolio-work-samples");
+    expect(getCanonicalProviderDashboardDestination("?tab=unknown")).toBeUndefined();
+    expect(getCanonicalProviderDashboardDestination("")).toBeUndefined();
+    expect(redirectSource).toContain('legacyParams.delete("tab")');
+    expect(bookingsSource).toContain('const defaultBookingTab = ["upcoming", "past", "drafts", "quotes"].includes');
+    expect(bookingsSource).toContain("<Tabs defaultValue={defaultBookingTab}");
+    expect(appSource).toContain('setLocation(canonicalDestination, { replace: true })');
     expect(appSource).toContain('path="/provider/dashboard" component={ProviderDashboardRoute}');
-    expect(appSource).toContain("if (isLegacyBusinessToolsUrl) return null");
+    expect(appSource).toContain("if (canonicalDestination) return null");
   });
 
   it("retains the legacy settings implementation only as the canonical page content source", () => {

@@ -13,6 +13,7 @@ import { TermsUpdateBanner } from "./components/TermsUpdateBanner";
 import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { getCanonicalProviderDashboardDestination } from "@/lib/providerDashboardRedirect";
 
 // ─── Page Imports ───────────────────────────────────────────────────────────
 
@@ -111,15 +112,15 @@ import NotFound from "./pages/NotFound";
 // ─── Router ──────────────────────────────────────────────────────────────────
 function ProviderDashboardRoute() {
   const [, setLocation] = useLocation();
-  const isLegacyBusinessToolsUrl = new URLSearchParams(window.location.search).get("tab") === "settings";
+  const canonicalDestination = getCanonicalProviderDashboardDestination(window.location.search);
 
   useEffect(() => {
-    if (isLegacyBusinessToolsUrl) {
-      setLocation("/provider/tools", { replace: true });
+    if (canonicalDestination) {
+      setLocation(canonicalDestination, { replace: true });
     }
-  }, [isLegacyBusinessToolsUrl, setLocation]);
+  }, [canonicalDestination, setLocation]);
 
-  if (isLegacyBusinessToolsUrl) return null;
+  if (canonicalDestination) return null;
   return <ProviderDashboard />;
 }
 

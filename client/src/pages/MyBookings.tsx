@@ -83,6 +83,10 @@ export default function MyBookings() {
   const [, setLocation] = useLocation();
   const { canSwitch, isProviderView } = useViewMode();
   const bookingView = isProviderView ? "provider" : "customer";
+  const requestedBookingTab = new URLSearchParams(window.location.search).get("tab");
+  const defaultBookingTab = ["upcoming", "past", "drafts", "quotes"].includes(requestedBookingTab ?? "")
+    ? requestedBookingTab!
+    : "upcoming";
   const { data: customerSubscription } = trpc.customerSubscription.getSubscription.useQuery(undefined, {
     enabled: isAuthenticated,
   });
@@ -484,7 +488,7 @@ export default function MyBookings() {
         </div>
 
         <SectionErrorBoundary fallbackTitle="Bookings couldn't load">
-        <Tabs defaultValue="upcoming" className="space-y-6">
+        <Tabs defaultValue={defaultBookingTab} className="space-y-6">
           <div className="overflow-x-auto -mx-1 px-1 pb-1">
           <TabsList>
             <TabsTrigger value="upcoming">
