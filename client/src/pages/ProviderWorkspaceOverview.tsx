@@ -173,8 +173,10 @@ export default function ProviderWorkspaceOverview() {
                 <Button type="button" variant="outline" className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white" onClick={() => setProfileEditorOpen(true)}>
                   <Pencil className="mr-2 h-4 w-4" />Edit Profile
                 </Button>
-                <Button className="bg-white text-[#174a73] hover:bg-blue-50" onClick={sharePage}>
-                  {shared ? <Check className="mr-2 h-4 w-4" /> : <Share2 className="mr-2 h-4 w-4" />}{shared ? "Link copied" : "Share page"}
+                <Button asChild className="bg-white text-[#174a73] hover:bg-blue-50">
+                  <Link href="/my-bookings" aria-label="Open My Bookings">
+                    <CalendarDays className="mr-2 h-4 w-4" />Bookings
+                  </Link>
                 </Button>
               </div>
             </div>

@@ -3202,3 +3202,11 @@
 - [x] Replace duplicate Search links in customer navigation, homepage, footer, developer shortcuts, help content, sitemap, and SearchAction structured data.
 - [x] Verify category-first, result, and legacy redirect states at desktop and 390px mobile sizes.
 - [x] Complete the full regression suite, production build, cleanup verification, and rollback checkpoint.
+
+
+## Provider Overview — header Bookings action
+
+- [x] Replace the header Share page button with Bookings linking to `/my-bookings`.
+- [x] Preserve Share page in Quick Actions.
+- [x] Verify desktop, tablet, and mobile layouts.
+- [x] Complete full regression, production build, cleanup verification, and rollback checkpoint.

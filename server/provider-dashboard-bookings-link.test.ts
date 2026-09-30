@@ -21,6 +21,18 @@ describe("Provider Dashboard Bookings navigation", () => {
     expect(providerWorkspaceShell).not.toContain('label: "Bookings", icon: CalendarDays, href: "/provider/dashboard?tab=bookings"');
   });
 
+  it("uses Bookings instead of Share page in the Provider Overview header at every breakpoint", () => {
+    const overviewHeader = providerWorkspace.slice(
+      providerWorkspace.indexOf('<section className="relative overflow-hidden'),
+      providerWorkspace.indexOf("<ProviderSetupChecklist"),
+    );
+
+    expect(overviewHeader).toContain('<Link href="/my-bookings" aria-label="Open My Bookings">');
+    expect(overviewHeader).toContain('<CalendarDays className="mr-2 h-4 w-4" />Bookings');
+    expect(overviewHeader).not.toContain("Share page");
+    expect(providerWorkspace).toContain('title="Copy or share your public OlogyCrew business link"');
+  });
+
   it("keeps the real My Bookings route and existing dashboard booking workspace intact", () => {
     expect(appRoutes).toContain('<Route path="/my-bookings" component={MyBookings} />');
     expect(providerDashboard).toContain('<TabsContent value="bookings"');
