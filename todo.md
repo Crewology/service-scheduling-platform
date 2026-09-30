@@ -3335,3 +3335,14 @@
 - [x] Keep the remaining homepage sections at their existing readable `max-w-7xl` width.
 - [x] Verify the hero at 1920px desktop and 390px mobile sizes.
 - [x] Complete full regression, production build, cleanup verification, and rollback checkpoint.
+
+
+## Public homepage — flush edge-to-edge hero
+
+- [x] Remove the hero’s left, right, and top gutters.
+- [x] Remove all hero corner rounding on desktop, tablet, and mobile.
+- [x] Restore the original `py-14 sm:py-20 md:py-32` hero height.
+- [x] Restore the original dark slate-to-blue gradient background.
+- [x] Align the hero’s inner content edges with the shared `container` used below.
+- [x] Verify the restored hero at 1920px desktop and 390px mobile sizes.
+- [x] Complete full regression, production build, cleanup verification, and rollback checkpoint.

@@ -6,13 +6,16 @@ const root = resolve(import.meta.dirname, "..");
 const homeSource = readFileSync(resolve(root, "client/src/pages/Home.tsx"), "utf8");
 
 describe("public homepage design alignment", () => {
-  it("uses the shared page canvas and a rounded dark-blue hero", () => {
+  it("uses the shared page canvas and a flush edge-to-edge dark-blue hero", () => {
     expect(homeSource).toContain('className="min-h-screen bg-page"');
-    expect(homeSource).toContain('className="w-full px-3 pt-5 sm:px-5 sm:pt-8 lg:px-8 2xl:px-10"');
-    expect(homeSource).toContain('rounded-[2rem] bg-[#123f63]');
-    expect(homeSource).toContain("mx-auto grid max-w-[1500px]");
+    expect(homeSource).toContain('<section className="w-full">');
+    expect(homeSource).toContain('bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 py-14');
+    expect(homeSource).toContain('sm:py-20 md:py-32');
+    expect(homeSource).not.toContain('rounded-[2rem] bg-[#123f63]');
+    expect(homeSource).not.toContain('w-full px-3 pt-5 sm:px-5 sm:pt-8 lg:px-8 2xl:px-10');
+    expect(homeSource).toContain('className="container relative grid items-center');
+    expect(homeSource).not.toContain("max-w-[1500px]");
     expect(homeSource).toContain('lg:grid-cols-[1.05fr_0.95fr]');
-    expect(homeSource).not.toContain("py-14 sm:py-20 md:py-32 bg-gradient-to-br");
   });
 
   it("places a clear Explore search composer inside the hero", () => {
