@@ -91,7 +91,7 @@ function SystemHealthOverview() {
 
   const healthItems = [
     { label: "Database", ready: data.database.ready, detail: data.database.ready ? `${data.database.latencyMs} ms response` : data.database.error || "Unavailable", icon: Activity },
-    { label: "Payments", ready: data.integrations.payments, detail: data.integrations.payments ? "Stripe and partner split configured" : "Configuration required", icon: DollarSign },
+    { label: "Payments", ready: data.integrations.payments, detail: data.integrations.payments ? "Stripe configured" : "Configuration required", icon: DollarSign },
     { label: "Email", ready: data.integrations.email, detail: data.integrations.email ? "SendGrid configured" : "Configuration required", icon: Mail },
     { label: "Realtime", ready: data.realtime.ready, detail: `${data.realtime.connectedClients} connected · ${data.realtime.transport}`, icon: Wifi },
   ];
@@ -462,6 +462,8 @@ export default function AdminDashboard() {
   });
 
   const isAdmin = user?.role === "admin";
+  const isOwnerAdmin = isAdmin && user?.adminRole === "super_admin";
+  const visibleTab = !isOwnerAdmin && ["partner", "team", "legal", "customers-pilot"].includes(activeTab) ? "overview" : activeTab;
   const { data: stats, isLoading: statsLoading } = trpc.admin.getStats.useQuery(undefined, { enabled: isAdmin });
   const { data: users, isLoading: usersLoading } = trpc.admin.listUsers.useQuery(undefined, { enabled: isAdmin });
   const { data: providers, isLoading: providersLoading } = trpc.admin.listProviders.useQuery(undefined, { enabled: isAdmin });
@@ -589,7 +591,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs value={visibleTab} onValueChange={setActiveTab}>
           <div className="mb-6 overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
             <TabsList className="w-max flex-nowrap">
               <TabsTrigger value="overview" className="whitespace-nowrap text-xs md:text-sm">Overview</TabsTrigger>
@@ -628,18 +630,18 @@ export default function AdminDashboard() {
                 <Bell className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
                 Push
               </TabsTrigger>
-              <TabsTrigger value="team" className="whitespace-nowrap text-xs md:text-sm">
+              {isOwnerAdmin ? <TabsTrigger value="team" className="whitespace-nowrap text-xs md:text-sm">
                 <Shield className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
                 Team
-              </TabsTrigger>
+              </TabsTrigger> : null}
               <TabsTrigger value="audit" className="whitespace-nowrap text-xs md:text-sm">
                 <Activity className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
                 Audit Log
               </TabsTrigger>
-              <TabsTrigger value="partner" className="whitespace-nowrap text-xs md:text-sm">
+              {isOwnerAdmin ? <TabsTrigger value="partner" className="whitespace-nowrap text-xs md:text-sm">
                 <DollarSign className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
                 Partner Split
-              </TabsTrigger>
+              </TabsTrigger> : null}
               <TabsTrigger value="social-media" className="whitespace-nowrap text-xs md:text-sm">
                 <Share2 className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
                 Social Media
@@ -892,9 +894,9 @@ export default function AdminDashboard() {
           </TabsContent>
 
           {/* Team Management Tab */}
-          <TabsContent value="team">
+          {isOwnerAdmin ? <TabsContent value="team">
             <TeamManagementPanel />
-          </TabsContent>
+          </TabsContent> : null}
 
           {/* Audit Log Tab */}
           <TabsContent value="audit">
@@ -902,9 +904,9 @@ export default function AdminDashboard() {
           </TabsContent>
 
           {/* Partner Revenue Split Tab */}
-          <TabsContent value="partner">
+          {isOwnerAdmin ? <TabsContent value="partner">
             <PartnerSplitPanel />
-          </TabsContent>
+          </TabsContent> : null}
 
           {/* Social Media Tab */}
           <TabsContent value="social-media">

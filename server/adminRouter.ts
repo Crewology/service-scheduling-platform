@@ -9,7 +9,7 @@ import {
   getAdminProviderTierMembers,
   getSubscriptionAnalytics as getEffectiveSubscriptionAnalytics,
 } from "./db/payments";
-import { hasAdminClearance, isApprovedAdminEmail } from "./adminPolicy";
+import { hasAdminClearance, hasPartnerSplitAccess, isApprovedAdminEmail, isApprovedSuperAdminEmail, OPERATIONS_ADMIN_EMAIL } from "./adminPolicy";
 import {
   isActiveReportableAdminProvider,
   isActiveReportableAdminUser,
@@ -52,7 +52,7 @@ const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
 
 // Super admin procedure — only the platform owner or super_admins can manage team
 const superAdminProcedure = adminProcedure.use(({ ctx, next }) => {
-  const isSuperAdmin = ctx.user.adminRole === "super_admin";
+  const isSuperAdmin = hasPartnerSplitAccess(ctx.user);
   if (!isSuperAdmin) {
     throw new TRPCError({
       code: "FORBIDDEN",
@@ -62,6 +62,18 @@ const superAdminProcedure = adminProcedure.use(({ ctx, next }) => {
   return next({ ctx });
 });
 
+const partnerSplitProcedure = adminProcedure.use(({ ctx, next }) => {
+  if (!hasPartnerSplitAccess(ctx.user)) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Partner financial access required" });
+  }
+  return next({ ctx });
+});
+
+function isPermittedAdminRole(email: string | null, adminRole: string): boolean {
+  if (email?.trim().toLowerCase() === OPERATIONS_ADMIN_EMAIL) return adminRole === "operations_admin";
+  return isApprovedSuperAdminEmail(email) && adminRole !== "operations_admin";
+}
+
 export const adminRouter = router({
   // Get platform statistics (real data)
   getStats: adminProcedure.query(async () => {
@@ -69,9 +81,9 @@ export const adminRouter = router({
   }),
 
   // Compact operational health for the admin Overview. No secret values are returned.
-  getSystemHealth: adminProcedure.query(async () => {
+  getSystemHealth: adminProcedure.query(async ({ ctx }) => {
     const { getSystemHealthSnapshot } = await import("./systemHealth");
-    return await getSystemHealthSnapshot();
+    return await getSystemHealthSnapshot(hasPartnerSplitAccess(ctx.user));
   }),
 
   // List all users (with optional pagination)
@@ -269,13 +281,13 @@ export const adminRouter = router({
   // ============================================================================
 
   // Get all admin team members
-  getTeamMembers: adminProcedure.query(async () => {
+  getTeamMembers: superAdminProcedure.query(async () => {
     const members = await getAdminTeamMembers();
     return members.filter(member => isApprovedAdminEmail(member.email));
   }),
 
   // Search users for promote dialog
-  searchUsers: adminProcedure
+  searchUsers: superAdminProcedure
     .input(z.object({ query: z.string().min(1) }))
     .query(async ({ input }) => {
       const matches = await searchUsersForAdmin(input.query);
@@ -286,12 +298,13 @@ export const adminRouter = router({
   promoteUser: superAdminProcedure
     .input(z.object({
       userId: z.number(),
-      adminRole: z.enum(["super_admin", "support_agent", "moderator"]),
+      adminRole: z.enum(["super_admin", "support_agent", "moderator", "operations_admin"]),
     }))
     .mutation(async ({ ctx, input }) => {
       const user = await db.getUserById(input.userId);
       if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
       if (!isApprovedAdminEmail(user.email)) throw new TRPCError({ code: "FORBIDDEN", message: "Administrative clearance is restricted to the approved administrator identities" });
+      if (!isPermittedAdminRole(user.email, input.adminRole)) throw new TRPCError({ code: "FORBIDDEN", message: "That administrative role is not approved for this identity" });
       if (user.role === "admin") throw new TRPCError({ code: "BAD_REQUEST", message: "User is already an admin" });
       await promoteToAdmin(input.userId, input.adminRole);
       await createAuditEntry({
@@ -330,12 +343,13 @@ export const adminRouter = router({
   updateTeamRole: superAdminProcedure
     .input(z.object({
       userId: z.number(),
-      adminRole: z.enum(["super_admin", "support_agent", "moderator"]),
+      adminRole: z.enum(["super_admin", "support_agent", "moderator", "operations_admin"]),
     }))
     .mutation(async ({ ctx, input }) => {
       const user = await db.getUserById(input.userId);
       if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
       if (!isApprovedAdminEmail(user.email)) throw new TRPCError({ code: "FORBIDDEN", message: "Administrative clearance is restricted to the approved administrator identities" });
+      if (!isPermittedAdminRole(user.email, input.adminRole)) throw new TRPCError({ code: "FORBIDDEN", message: "That administrative role is not approved for this identity" });
       if (user.role !== "admin") throw new TRPCError({ code: "BAD_REQUEST", message: "User is not an admin" });
       await updateAdminRole(input.userId, input.adminRole);
       await createAuditEntry({
@@ -355,7 +369,7 @@ export const adminRouter = router({
   // Get full user detail for admin view
   getUserDetail: adminProcedure
     .input(z.object({ userId: z.number() }))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       const user = await db.getUserById(input.userId);
       if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
 
@@ -389,7 +403,7 @@ export const adminRouter = router({
       }
 
       // Get audit history for this user
-      const auditHistory = await getAuditLogForTarget("user", input.userId);
+      const auditHistory = await getAuditLogForTarget("user", input.userId, !hasPartnerSplitAccess(ctx.user));
 
       return {
         user,
@@ -576,7 +590,7 @@ export const adminRouter = router({
       page: z.number().default(1),
       limit: z.number().default(50),
     }).optional())
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       return await getAuditLog({
         action: input?.action,
         actorId: input?.actorId,
@@ -585,6 +599,7 @@ export const adminRouter = router({
         endDate: input?.endDate ? new Date(input.endDate) : undefined,
         page: input?.page,
         limit: input?.limit,
+        excludePartnerFinancials: !hasPartnerSplitAccess(ctx.user),
       });
     }),
 
@@ -594,15 +609,15 @@ export const adminRouter = router({
       targetType: z.string(),
       targetId: z.number(),
     }))
-    .query(async ({ input }) => {
-      return await getAuditLogForTarget(input.targetType, input.targetId);
+    .query(async ({ input, ctx }) => {
+      return await getAuditLogForTarget(input.targetType, input.targetId, !hasPartnerSplitAccess(ctx.user));
     }),
 
   // ============================================================================
   // PARTNER REVENUE SPLIT
   // ============================================================================
 
-  getPartnerTransferSummary: adminProcedure
+  getPartnerTransferSummary: partnerSplitProcedure
     .input(z.object({
       startDate: z.string().optional(),
       endDate: z.string().optional(),
@@ -615,7 +630,7 @@ export const adminRouter = router({
       });
     }),
 
-  getPartnerTransfers: adminProcedure
+  getPartnerTransfers: partnerSplitProcedure
     .input(z.object({
       sourceType: z.enum(["provider_subscription", "customer_subscription", "booking_platform_fee"]).optional(),
       status: z.enum(["pending", "completed", "failed"]).optional(),
@@ -636,7 +651,7 @@ export const adminRouter = router({
       });
     }),
 
-  getPartnerMonthlyBreakdown: adminProcedure
+  getPartnerMonthlyBreakdown: partnerSplitProcedure
     .input(z.object({
       months: z.number().min(1).max(24).default(12),
     }).optional())
@@ -645,7 +660,7 @@ export const adminRouter = router({
       return await getMonthlyRevenueBreakdown({ months: input?.months });
     }),
 
-  getPartnerTransfersExport: adminProcedure
+  getPartnerTransfersExport: partnerSplitProcedure
     .input(z.object({
       sourceType: z.enum(["provider_subscription", "customer_subscription", "booking_platform_fee"]).optional(),
       status: z.enum(["pending", "completed", "failed"]).optional(),
@@ -662,7 +677,7 @@ export const adminRouter = router({
       });
     }),
   // Webhook health check - verify Stripe webhook is configured correctly
-  getWebhookStatus: adminProcedure.query(async () => {
+  getWebhookStatus: partnerSplitProcedure.query(async () => {
     try {
       const Stripe = (await import("stripe")).default;
       const { ENV } = await import("./_core/env");
@@ -695,7 +710,7 @@ export const adminRouter = router({
     }
   }),
   // Send a test webhook event to verify the endpoint is working
-  testWebhook: adminProcedure.mutation(async () => {
+  testWebhook: partnerSplitProcedure.mutation(async () => {
     try {
       const Stripe = (await import("stripe")).default;
       const { ENV } = await import("./_core/env");

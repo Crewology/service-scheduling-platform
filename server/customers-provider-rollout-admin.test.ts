@@ -4,7 +4,9 @@ import { describe, expect, it } from "vitest";
 import {
   APPROVED_ADMIN_EMAILS,
   hasAdminClearance,
+  hasPartnerSplitAccess,
   isApprovedAdminEmail,
+  isApprovedSuperAdminEmail,
   normalizeNamedAdminClearance,
 } from "./adminPolicy";
 
@@ -13,13 +15,16 @@ function user(email: string, role: "admin" | "provider" | "customer" = "admin") 
 }
 
 describe("Named administrator clearance", () => {
-  it("contains exactly the two owner-approved production administrator identities", () => {
+  it("keeps two super-admin identities and one operations-only identity", () => {
     expect(APPROVED_ADMIN_EMAILS).toEqual([
       "garychisolm30@gmail.com",
       "wwilliams@visionkwest.com",
+      "trace@visionkwest.com",
     ]);
     expect(isApprovedAdminEmail("GARYCHISOLM30@GMAIL.COM")).toBe(true);
     expect(isApprovedAdminEmail("wwilliams@visionkwest.com")).toBe(true);
+    expect(isApprovedAdminEmail("TRACE@VISIONKWEST.COM")).toBe(true);
+    expect(isApprovedSuperAdminEmail("trace@visionkwest.com")).toBe(false);
     expect(isApprovedAdminEmail("ologycrew5@gmail.com")).toBe(false);
     expect(isApprovedAdminEmail("rlstephens42@comcast.net")).toBe(false);
   });
@@ -27,6 +32,10 @@ describe("Named administrator clearance", () => {
   it("requires both an admin role and an approved identity", () => {
     expect(hasAdminClearance(user("garychisolm30@gmail.com"))).toBe(true);
     expect(hasAdminClearance(user("wwilliams@visionkwest.com"))).toBe(true);
+    expect(hasAdminClearance({ role: "admin", email: "trace@visionkwest.com", adminRole: "operations_admin" } as never)).toBe(true);
+    expect(hasAdminClearance({ role: "admin", email: "trace@visionkwest.com", adminRole: "super_admin" } as never)).toBe(false);
+    expect(hasPartnerSplitAccess({ role: "admin", email: "trace@visionkwest.com", adminRole: "operations_admin" } as never)).toBe(false);
+    expect(hasPartnerSplitAccess({ role: "admin", email: "wwilliams@visionkwest.com", adminRole: "super_admin" } as never)).toBe(true);
     expect(hasAdminClearance(user("ologycrew5@gmail.com"))).toBe(false);
     expect(hasAdminClearance(user("garychisolm30@gmail.com", "provider"))).toBe(false);
   });
@@ -35,6 +44,7 @@ describe("Named administrator clearance", () => {
     const normalized = normalizeNamedAdminClearance({ role: "admin", email: "ologycrew5@gmail.com", adminRole: "super_admin" } as never);
     expect(normalized).toMatchObject({ role: "customer", adminRole: null });
     expect(normalizeNamedAdminClearance({ role: "admin", email: "wwilliams@visionkwest.com", adminRole: "super_admin" } as never)).toMatchObject({ role: "admin", adminRole: "super_admin" });
+    expect(normalizeNamedAdminClearance({ role: "admin", email: "trace@visionkwest.com", adminRole: "super_admin" } as never)).toMatchObject({ role: "customer", adminRole: null });
   });
 });
 
@@ -60,7 +70,7 @@ describe("Named administrator source contracts", () => {
   });
 
   it("removes the stale auto-promotion identity and restricts future promotions", () => {
-    expect(users).toContain("isApprovedAdminEmail(user.email)");
+    expect(users).toContain("isApprovedSuperAdminEmail(user.email)");
     expect(users).not.toContain("rlstephens42@comcast.net");
     expect(admin).toContain("Administrative clearance is restricted to the approved administrator identities");
     expect(admin.match(/isApprovedAdminEmail\(user\.email\)/g)?.length).toBeGreaterThanOrEqual(2);

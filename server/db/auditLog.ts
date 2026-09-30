@@ -71,6 +71,7 @@ export async function getAuditLog(filters?: {
   endDate?: Date;
   page?: number;
   limit?: number;
+  excludePartnerFinancials?: boolean;
 }) {
   const page = filters?.page || 1;
   const limit = filters?.limit || 50;
@@ -82,6 +83,10 @@ export async function getAuditLog(filters?: {
   if (filters?.targetType) conditions.push(eq(auditLog.targetType, filters.targetType));
   if (filters?.startDate) conditions.push(gte(auditLog.createdAt, filters.startDate));
   if (filters?.endDate) conditions.push(lte(auditLog.createdAt, filters.endDate));
+  if (filters?.excludePartnerFinancials) {
+    conditions.push(sql`LOWER(COALESCE(${auditLog.action}, '')) NOT REGEXP 'partner|transfer|split'`);
+    conditions.push(sql`LOWER(COALESCE(${auditLog.details}, '')) NOT REGEXP 'partner|transfer|split'`);
+  }
 
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -128,7 +133,7 @@ export async function getAuditLog(filters?: {
 /**
  * Get audit log entries for a specific target (e.g., all actions on a user).
  */
-export async function getAuditLogForTarget(targetType: string, targetId: number) {
+export async function getAuditLogForTarget(targetType: string, targetId: number, excludePartnerFinancials = false) {
   const db = await getDb();
   if (!db) return [];
   const entries = await db
@@ -144,7 +149,14 @@ export async function getAuditLogForTarget(targetType: string, targetId: number)
     })
     .from(auditLog)
     .leftJoin(users, eq(auditLog.actorId, users.id))
-    .where(and(eq(auditLog.targetType, targetType), eq(auditLog.targetId, targetId)))
+    .where(and(
+      eq(auditLog.targetType, targetType),
+      eq(auditLog.targetId, targetId),
+      ...(excludePartnerFinancials ? [
+        sql`LOWER(COALESCE(${auditLog.action}, '')) NOT REGEXP 'partner|transfer|split'`,
+        sql`LOWER(COALESCE(${auditLog.details}, '')) NOT REGEXP 'partner|transfer|split'`,
+      ] : []),
+    ))
     .orderBy(desc(auditLog.createdAt))
     .limit(100);
 

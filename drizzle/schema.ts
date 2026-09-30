@@ -41,7 +41,7 @@ export const users = mysqlTable("users", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
   deletedAt: timestamp("deletedAt"),
-  adminRole: mysqlEnum("adminRole", ["super_admin", "support_agent", "moderator"]),
+  adminRole: mysqlEnum("adminRole", ["super_admin", "support_agent", "moderator", "operations_admin"]),
   // Custom auth fields
   passwordHash: varchar("passwordHash", { length: 255 }),
   emailVerificationToken: varchar("emailVerificationToken", { length: 255 }),

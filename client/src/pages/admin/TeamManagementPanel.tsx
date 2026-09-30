@@ -17,12 +17,14 @@ const ADMIN_ROLE_LABELS: Record<string, string> = {
   super_admin: "Super Admin",
   support_agent: "Support Agent",
   moderator: "Moderator",
+  operations_admin: "Operations Admin",
 };
 
 const ADMIN_ROLE_DESCRIPTIONS: Record<string, string> = {
   super_admin: "Full access — can manage team, all settings, and all data",
   support_agent: "Can view users, bookings, and handle support — cannot modify team or settings",
   moderator: "Can moderate reviews and content — limited access to user data",
+  operations_admin: "Routine platform operations; no partner finances or owner-only controls",
 };
 
 export function TeamManagementPanel() {
@@ -94,12 +96,12 @@ export function TeamManagementPanel() {
               Team Management
             </CardTitle>
             <CardDescription className="mt-1">
-              Administrative clearance is restricted to Gary Chisolm and Winston Williams. Only a super admin can change their assigned admin role.
+              Administrative clearance is restricted to Gary Chisolm and Winston Williams (super admins), plus Tracey Patrick (operations admin). Only a super admin can manage the team.
             </CardDescription>
           </div>
-          {(!teamMembers || teamMembers.length < 2) ? <Button className="w-full sm:w-auto" onClick={() => setPromoteDialogOpen(true)}>
+          {(!teamMembers || teamMembers.length < 3) ? <Button className="w-full sm:w-auto" onClick={() => setPromoteDialogOpen(true)}>
             <UserPlus className="h-4 w-4 mr-2" />
-            Restore Approved Administrator
+            Add Approved Administrator
           </Button> : null}
         </CardHeader>
         <CardContent>
@@ -132,7 +134,7 @@ export function TeamManagementPanel() {
                 </div>
                 <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-muted-foreground"><div><p className="font-medium text-foreground">Added</p><p className="mt-1">{formatDate(member.createdAt)}</p></div><div><p className="font-medium text-foreground">Last active</p><p className="mt-1">{member.lastSignedIn ? formatDate(member.lastSignedIn) : "Never"}</p></div></div>
                 <div className="mt-4 flex flex-col gap-2">
-                  {isOwner ? <Badge variant="outline" className="w-fit"><ShieldCheck className="mr-1 h-3 w-3" />Platform Owner</Badge> : <Select value={member.adminRole || "support_agent"} onValueChange={(value) => { if (!isSelf) updateRole.mutate({ userId: member.id, adminRole: value as any }); }} disabled={isSelf}><SelectTrigger className="w-full"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="super_admin">Super Admin</SelectItem><SelectItem value="support_agent">Support Agent</SelectItem><SelectItem value="moderator">Moderator</SelectItem></SelectContent></Select>}
+                  {isOwner ? <Badge variant="outline" className="w-fit"><ShieldCheck className="mr-1 h-3 w-3" />Platform Owner</Badge> : <Select value={member.adminRole || "support_agent"} onValueChange={(value) => { if (!isSelf) updateRole.mutate({ userId: member.id, adminRole: value as any }); }} disabled={isSelf}><SelectTrigger className="w-full"><SelectValue /></SelectTrigger><SelectContent>{member.email?.toLowerCase() === "trace@visionkwest.com" ? <SelectItem value="operations_admin">Operations Admin</SelectItem> : <><SelectItem value="super_admin">Super Admin</SelectItem><SelectItem value="support_agent">Support Agent</SelectItem><SelectItem value="moderator">Moderator</SelectItem></>}</SelectContent></Select>}
                   {!isOwner && !isSelf ? <Button size="sm" variant="outline" className="w-full text-destructive" onClick={() => setConfirmDemoteId(member.id)} disabled={demoteUser.isPending}><UserMinus className="mr-1 h-3.5 w-3.5" />Remove</Button> : null}
                 </div>
               </div>;
@@ -189,9 +191,7 @@ export function TeamManagementPanel() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="super_admin">Super Admin</SelectItem>
-                              <SelectItem value="support_agent">Support Agent</SelectItem>
-                              <SelectItem value="moderator">Moderator</SelectItem>
+                              {member.email?.toLowerCase() === "trace@visionkwest.com" ? <SelectItem value="operations_admin">Operations Admin</SelectItem> : <><SelectItem value="super_admin">Super Admin</SelectItem><SelectItem value="support_agent">Support Agent</SelectItem><SelectItem value="moderator">Moderator</SelectItem></>}
                             </SelectContent>
                           </Select>
                         )}
@@ -246,7 +246,7 @@ export function TeamManagementPanel() {
           <DialogHeader>
             <DialogTitle>Add Team Member</DialogTitle>
             <DialogDescription>
-              Only the approved Gary Chisolm and Winston Williams accounts can receive administrative clearance.
+              Only the approved Gary Chisolm, Winston Williams, and Tracey Patrick accounts can receive administrative clearance. Tracey is limited to operations administration.
             </DialogDescription>
           </DialogHeader>
 
@@ -274,7 +274,10 @@ export function TeamManagementPanel() {
                       className={`w-full text-left p-3 hover:bg-muted/50 border-b last:border-b-0 transition-colors ${
                         selectedUserId === u.id ? "bg-primary/10 border-primary" : ""
                       }`}
-                      onClick={() => setSelectedUserId(u.id)}
+                      onClick={() => {
+                        setSelectedUserId(u.id);
+                        setSelectedRole(u.email?.toLowerCase() === "trace@visionkwest.com" ? "operations_admin" : "support_agent");
+                      }}
                     >
                       <p className="font-medium text-sm">{u.name || "No name"}</p>
                       <p className="text-xs text-muted-foreground">{u.email} · {u.role}</p>
@@ -293,9 +296,7 @@ export function TeamManagementPanel() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="super_admin">Super Admin — Full access</SelectItem>
-                    <SelectItem value="support_agent">Support Agent — Users & support</SelectItem>
-                    <SelectItem value="moderator">Moderator — Reviews & content</SelectItem>
+                    {searchResults?.find((u: any) => u.id === selectedUserId)?.email?.toLowerCase() === "trace@visionkwest.com" ? <SelectItem value="operations_admin">Operations Admin — No partner finances or owner controls</SelectItem> : <><SelectItem value="super_admin">Super Admin — Full access</SelectItem><SelectItem value="support_agent">Support Agent — Users & support</SelectItem><SelectItem value="moderator">Moderator — Reviews & content</SelectItem></>}
                   </SelectContent>
                 </Select>
               </div>

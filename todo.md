@@ -3379,3 +3379,15 @@
 - [x] Retain account, referral, support, legal, app-install, and secure-payment information.
 - [x] Verify public, provider, and customer footer variants at desktop and mobile sizes.
 - [x] Complete full regression, production build, cleanup verification, and rollback checkpoint.
+
+
+## Scoped operations administrator — Tracey Patrick
+
+- [x] Audit admin roles, named identity controls, partner-transfer APIs, team actions, audit history, and webhook configuration.
+- [x] Add an explicit operations-admin role for the verified existing Tracey Patrick account; preserve its provider profile.
+- [x] Enforce owner-only partner transfer views, exports, webhook details, team management, legal publishing, customer rollout, and user deletion on the server.
+- [x] Hide restricted tabs and reject restricted direct-tab URLs in the admin UI; retain ordinary platform operations and platform revenue metrics.
+- [x] Prevent Tracey’s account from being auto-promoted to super admin on login and restrict role assignments to named identities.
+- [x] Generate, review, and apply the additive admin-role enum migration; do not alter the account yet.
+- [x] Complete focused and full regression tests (173 files, 1,979 tests), production build, TypeScript, cleanup, and checkpoint.
+- [ ] Activate Tracey’s account only after the new authorization code is published; granting it beforehand would break provider access on the currently published version.

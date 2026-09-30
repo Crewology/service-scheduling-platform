@@ -2,7 +2,7 @@ import { getDb } from "./connection";
 import { users } from "../../drizzle/schema";
 import { eq, and, isNull, like, or } from "drizzle-orm";
 
-export type AdminRole = "super_admin" | "support_agent" | "moderator";
+export type AdminRole = "super_admin" | "support_agent" | "moderator" | "operations_admin";
 
 /**
  * Get all admin team members (users with role=admin).

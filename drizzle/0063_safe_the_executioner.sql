@@ -1,0 +1,1 @@
+ALTER TABLE `users` MODIFY COLUMN `adminRole` enum('super_admin','support_agent','moderator','operations_admin');

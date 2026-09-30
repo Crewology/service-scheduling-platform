@@ -442,6 +442,13 @@
       "when": 1788734679868,
       "tag": "0062_fine_pyro",
       "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "5",
+      "when": 1790803529330,
+      "tag": "0063_safe_the_executioner",
+      "breakpoints": true
     }
   ]
 }

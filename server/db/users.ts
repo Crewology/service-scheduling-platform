@@ -49,7 +49,7 @@ import {
 import { ENV } from "../_core/env";
 import { getDb } from "./connection";
 import { resolveCustomerEntitlement, resolveProviderEntitlement } from "../../shared/entitlements";
-import { isApprovedAdminEmail } from "../adminPolicy";
+import { isApprovedSuperAdminEmail } from "../adminPolicy";
 
 // ============================================================================
 // USER MANAGEMENT
@@ -89,7 +89,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       values.lastSignedIn = user.lastSignedIn;
       updateSet.lastSignedIn = user.lastSignedIn;
     }
-    if (isApprovedAdminEmail(user.email)) {
+    if (isApprovedSuperAdminEmail(user.email)) {
       values.role = "admin";
       values.adminRole = "super_admin";
       updateSet.role = "admin";

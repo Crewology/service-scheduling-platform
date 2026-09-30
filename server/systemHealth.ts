@@ -9,7 +9,7 @@ export function summarizeSystemHealth(checks: Array<{ critical: boolean; ready: 
   return checks.some((check) => check.critical && !check.ready) ? "degraded" : "healthy";
 }
 
-export async function getSystemHealthSnapshot() {
+export async function getSystemHealthSnapshot(includePartnerConfiguration = true) {
   const databaseStartedAt = performance.now();
   let databaseReady = false;
   let databaseError: string | null = null;
@@ -24,7 +24,7 @@ export async function getSystemHealthSnapshot() {
   }
 
   const databaseLatencyMs = Math.max(0, Math.round(performance.now() - databaseStartedAt));
-  const paymentsReady = Boolean(ENV.stripeSecretKey && ENV.stripeWebhookSecret && ENV.partnerStripeAccountId);
+  const paymentsReady = Boolean(ENV.stripeSecretKey && ENV.stripeWebhookSecret && (!includePartnerConfiguration || ENV.partnerStripeAccountId));
   const emailReady = Boolean(ENV.sendgridApiKey);
   const smsReady = Boolean(ENV.twilioAccountSid && ENV.twilioAuthToken && (ENV.twilioPhoneNumber || ENV.twilioMessagingServiceSid));
   const googleReady = Boolean(ENV.googleClientId && ENV.googleClientSecret);
