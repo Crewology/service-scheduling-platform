@@ -109,6 +109,20 @@ import AdaptiveBookingPrototype from "./pages/prototype/AdaptiveBookingPrototype
 import NotFound from "./pages/NotFound";
 
 // ─── Router ──────────────────────────────────────────────────────────────────
+function ProviderDashboardRoute() {
+  const [, setLocation] = useLocation();
+  const isLegacyBusinessToolsUrl = new URLSearchParams(window.location.search).get("tab") === "settings";
+
+  useEffect(() => {
+    if (isLegacyBusinessToolsUrl) {
+      setLocation("/provider/tools", { replace: true });
+    }
+  }, [isLegacyBusinessToolsUrl, setLocation]);
+
+  if (isLegacyBusinessToolsUrl) return null;
+  return <ProviderDashboard />;
+}
+
 function Router() {
   return (
     <Switch>
@@ -129,7 +143,7 @@ function Router() {
       <Route path="/featured/promo/:id" component={PromotionDetail} />
       <Route path="/search" component={Search} />
       <Route path="/category/:slug" component={CategoryDetail} />
-      <Route path="/provider/dashboard" component={ProviderDashboard} />
+      <Route path="/provider/dashboard" component={ProviderDashboardRoute} />
       <Route path="/provider/customers/:contactId">{() => <ProviderOnlyGuard featureName="Customers"><ProviderCustomerDetail /></ProviderOnlyGuard>}</Route>
       <Route path="/provider/customers">{() => <ProviderOnlyGuard featureName="Customers"><ProviderCustomers /></ProviderOnlyGuard>}</Route>
       <Route path="/provider/bookings">{() => { window.location.replace("/my-bookings"); return null; }}</Route>

@@ -45,9 +45,17 @@ describe("standalone provider Business Tools page", () => {
     expect(shellSource).not.toContain("/provider/dashboard?tab=settings");
   });
 
-  it("preserves the legacy dashboard settings tab for bookmarked URLs", () => {
-    expect(appSource).toContain('path="/provider/dashboard" component={ProviderDashboard}');
+  it("redirects the legacy dashboard settings URL to canonical Business Tools", () => {
+    expect(appSource).toContain("function ProviderDashboardRoute()");
+    expect(appSource).toContain('new URLSearchParams(window.location.search).get("tab") === "settings"');
+    expect(appSource).toContain('setLocation("/provider/tools", { replace: true })');
+    expect(appSource).toContain('path="/provider/dashboard" component={ProviderDashboardRoute}');
+    expect(appSource).toContain("if (isLegacyBusinessToolsUrl) return null");
+  });
+
+  it("retains the legacy settings implementation only as the canonical page content source", () => {
     expect(dashboardSource).toContain('params.get("tab") || "bookings"');
     expect(dashboardSource).toContain('<TabsContent value="settings"');
+    expect(tabPageSource).toContain('<ProviderDashboard initialTab="settings" hideChrome={true} workspaceActive="more" />');
   });
 });

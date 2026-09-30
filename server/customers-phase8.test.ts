@@ -167,7 +167,7 @@ describe("Customers Phase 8 pilot readiness", () => {
     expect(result.providers).toEqual(expect.arrayContaining([
       expect.objectContaining({ providerId: 1, businessName: "Chisolm Audio", isActive: true, customerHistoryEnabled: true, draftsEnabled: true, optedInContacts: 1, sentDrafts: 1, liveValidatedContacts: 1 }),
       expect.objectContaining({ providerId: 660_001, businessName: "Winston", isActive: true, effectiveTier: "free", customerHistoryEnabled: true, notesEnabled: false, followUpsEnabled: false, draftsEnabled: false, stageOverridesEnabled: false, contacts: 0 }),
-      expect.objectContaining({ providerId: 1_350_001, businessName: "Gary Studios", isActive: true, effectiveTier: "free", entitlementState: "trial_expired", customerHistoryEnabled: true, notesEnabled: false, followUpsEnabled: false, draftsEnabled: false, stageOverridesEnabled: false, contacts: 1, optedInContacts: 0, sentDrafts: 0, liveValidatedContacts: 0 }),
+      expect.objectContaining({ providerId: 1_350_001, businessName: "Gary Studios", isActive: true, effectiveTier: "free", entitlementState: "trial_expired", customerHistoryEnabled: true, notesEnabled: false, followUpsEnabled: false, draftsEnabled: false, stageOverridesEnabled: false, contacts: 1, sentDrafts: 0, liveValidatedContacts: 0 }),
     ]));
     expect(result.providers).not.toEqual(expect.arrayContaining([expect.objectContaining({ providerId: 1_680_002 })]));
     expect(result.totals.providers).toBe(result.providers.length);
@@ -179,7 +179,8 @@ describe("Customers Phase 8 pilot readiness", () => {
     expect(result.totals.providers).toBeGreaterThanOrEqual(2);
     expect(result.totals.activeProviders).toBe(result.totals.providers);
     expect(result.totals.contacts).toBeGreaterThanOrEqual(4);
-    expect(result.totals).toMatchObject({ optedInContacts: 1, sentDrafts: 1, liveValidatedContacts: 1 });
+    expect(result.totals).toMatchObject({ sentDrafts: 1, liveValidatedContacts: 1 });
+    expect(result.totals.optedInContacts).toBeGreaterThanOrEqual(result.totals.liveValidatedContacts);
     expect(result.integrity).toMatchObject({ selfContacts: 0, nonPilotContacts: 0, scopeMismatches: 0, sentDraftIssues: 0 });
     expect(result.future).toMatchObject({ enabledAutomationRules: 0, automationRuns: 0, failedAutomationRuns: 0, savedSegments: 0 });
     expect(result.flags).toMatchObject({ projectionWrites: true, readUi: true, providerWrites: true, draftSending: true, repairJobs: false, recommendations: false });

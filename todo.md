@@ -3142,3 +3142,13 @@
 - [x] Keep dismissal local and automatically hide the card whenever all seven steps are complete.
 - [x] Verify the incomplete 5-of-7 state at desktop and 390px mobile sizes, then restore live account data.
 - [x] Complete the full regression suite, production build, cleanup verification, and rollback checkpoint.
+
+
+## Provider Business Tools — legacy settings URL cleanup
+
+- [x] Keep `/provider/tools` as the single canonical Business Tools destination.
+- [x] Redirect `/provider/dashboard?tab=settings` with history replacement so bookmarks remain functional without exposing duplicate workspace pages.
+- [x] Leave all other `/provider/dashboard?tab=...` compatibility behavior unchanged.
+- [x] Retain the existing settings-tab implementation as the internal content source for the canonical Business Tools page.
+- [x] Verify the legacy URL renders the shared Business Tools workspace with its active navigation state.
+- [x] Complete the full regression suite, production build, cleanup verification, and rollback checkpoint.
