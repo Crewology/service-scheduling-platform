@@ -618,15 +618,15 @@ export function NavHeader() {
 
           {/* Right side actions */}
           <div className="hidden lg:flex items-center gap-1">
+            {/* Search / Explore */}
+            <Link href="/browse" aria-label="Search services and providers">
+              <Button variant="ghost" size="icon" className="relative h-9 w-9" title="Search">
+                <Search className="h-4 w-4" />
+              </Button>
+            </Link>
+
             {isAuthenticated ? (
               <>
-                {/* Search / Explore */}
-                <Link href="/browse" aria-label="Search services and providers">
-                  <Button variant="ghost" size="icon" className="relative h-9 w-9" title="Search">
-                    <Search className="h-4 w-4" />
-                  </Button>
-                </Link>
-
                 {/* Credit Balance */}
                 <CreditBadge />
 
@@ -653,6 +653,9 @@ export function NavHeader() {
               </>
             ) : (
               <>
+                <Link href="/pricing">
+                  <Button variant="ghost" size="sm">Pricing</Button>
+                </Link>
                 <Link href="/login">
                   <Button variant="ghost" size="sm">Sign In</Button>
                 </Link>
@@ -663,7 +666,7 @@ export function NavHeader() {
             )}
           </div>
 
-          {/* Mobile actions: Search + AI Assistant + Notifications + Hamburger */}
+          {/* Mobile actions: Search + public Pricing + AI Assistant + Notifications + Hamburger */}
           <div className="flex lg:hidden items-center gap-1">
             {/* Search customer Explore (mobile) */}
             <Link href="/browse" aria-label="Search services and providers">
@@ -671,6 +674,12 @@ export function NavHeader() {
                 <Search className="h-5 w-5" />
               </Button>
             </Link>
+
+            {!isAuthenticated && (
+              <Link href="/pricing">
+                <Button variant="ghost" size="sm" className="px-2.5">Pricing</Button>
+              </Link>
+            )}
 
             {/* AI Assistant button (mobile only) */}
             <Button

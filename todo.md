@@ -3282,3 +3282,13 @@
 - [x] Add a preview-only banner identifying unpublished code and warning that account actions can use current OlogyCrew data.
 - [x] Exclude external embeds and isolated prototype routes from the preview banner.
 - [x] Complete focused regressions, responsive review, full suite, production build, cleanup verification, and rollback checkpoint.
+
+
+## Public header — Search and Pricing
+
+- [x] Add the Search icon to the public desktop header linking to `/browse`.
+- [x] Add Pricing immediately after Search linking to `/pricing`.
+- [x] Apply the same Search-then-Pricing order on mobile.
+- [x] Preserve Sign In, Get Started, AI assistant, hamburger menu, and authenticated header behavior.
+- [x] Verify logged-out desktop and 390px mobile layouts.
+- [x] Complete full regression, production build, cleanup verification, and rollback checkpoint.

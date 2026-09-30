@@ -9,8 +9,12 @@ const desktopActions = navHeader.slice(
   navHeader.indexOf("{/* Right side actions */}"),
   navHeader.indexOf("{/* Credit Balance */}"),
 );
+const desktopRightSide = navHeader.slice(
+  navHeader.indexOf("{/* Right side actions */}"),
+  navHeader.indexOf("{/* Mobile actions: Search + public Pricing + AI Assistant + Notifications + Hamburger */}"),
+);
 const mobileActions = navHeader.slice(
-  navHeader.indexOf("{/* Mobile actions: Search + AI Assistant + Notifications + Hamburger */}"),
+  navHeader.indexOf("{/* Mobile actions: Search + public Pricing + AI Assistant + Notifications + Hamburger */}"),
   navHeader.indexOf("{/* Mobile Full-Screen App Menu */}"),
 );
 
@@ -36,5 +40,21 @@ describe("header discovery shortcut", () => {
     expect(mobileActions).not.toContain('title="Browse Services"');
     expect(mobileActions).not.toContain("<LayoutGrid");
     expect(mobileActions).not.toContain("<Compass");
+  });
+
+  it("shows public Search followed by Pricing on desktop and mobile", () => {
+    expect(desktopRightSide).toContain('<Link href="/browse" aria-label="Search services and providers">');
+    expect(desktopRightSide).toContain('<Link href="/pricing">');
+    expect(desktopRightSide).toContain('variant="ghost" size="sm">Pricing</Button>');
+    expect(desktopRightSide.indexOf('href="/browse"')).toBeLessThan(
+      desktopRightSide.indexOf('variant="ghost" size="sm">Pricing</Button>'),
+    );
+
+    expect(mobileActions).toContain('<Link href="/browse" aria-label="Search services and providers">');
+    expect(mobileActions).toContain("{!isAuthenticated && (");
+    expect(mobileActions).toContain('<Link href="/pricing">');
+    expect(mobileActions.indexOf('href="/browse"')).toBeLessThan(
+      mobileActions.indexOf('href="/pricing"'),
+    );
   });
 });
