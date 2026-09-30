@@ -666,7 +666,7 @@ export function NavHeader() {
             )}
           </div>
 
-          {/* Mobile actions: Search + public Pricing + AI Assistant + Notifications + Hamburger */}
+          {/* Mobile actions: Search + AI Assistant + Notifications + Hamburger */}
           <div className="flex lg:hidden items-center gap-1">
             {/* Search customer Explore (mobile) */}
             <Link href="/browse" aria-label="Search services and providers">
@@ -674,12 +674,6 @@ export function NavHeader() {
                 <Search className="h-5 w-5" />
               </Button>
             </Link>
-
-            {!isAuthenticated && (
-              <Link href="/pricing">
-                <Button variant="ghost" size="sm" className="px-2.5">Pricing</Button>
-              </Link>
-            )}
 
             {/* AI Assistant button (mobile only) */}
             <Button

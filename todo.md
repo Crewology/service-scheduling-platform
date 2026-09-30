@@ -3292,3 +3292,13 @@
 - [x] Preserve Sign In, Get Started, AI assistant, hamburger menu, and authenticated header behavior.
 - [x] Verify logged-out desktop and 390px mobile layouts.
 - [x] Complete full regression, production build, cleanup verification, and rollback checkpoint.
+
+
+## Public header — restore compact mobile navigation
+
+- [x] Remove Pricing from the logged-out mobile header.
+- [x] Restore the prior compact Search, AI assistant, and hamburger layout.
+- [x] Keep public desktop Search followed by Pricing unchanged.
+- [x] Preserve the mobile-menu Pricing destination and all authenticated navigation.
+- [x] Verify the restored public header at 390px.
+- [x] Complete full regression, production build, cleanup verification, and rollback checkpoint.
