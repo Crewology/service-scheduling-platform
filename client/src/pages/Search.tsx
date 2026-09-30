@@ -140,6 +140,7 @@ function ExploreCategoryCard({ category }: { category: { id: number; name: strin
 }
 
 export default function Explore() {
+  const { isAuthenticated } = useAuth();
   const searchString = useSearch();
   const [, setRoute] = useLocation();
   const criteriaFromUrl = useMemo(() => parseExploreCriteria(searchString), [searchString]);
@@ -418,7 +419,7 @@ export default function Explore() {
   return (
     <div className="min-h-screen bg-page">
       <NavHeader />
-      <CustomerWorkspaceShell active="explore">
+      <CustomerWorkspaceShell active="explore" showNavigation={isAuthenticated}>
         <CustomerWorkspacePageHeader
           variant="discovery"
           eyebrow="Find the right service without guessing the category"

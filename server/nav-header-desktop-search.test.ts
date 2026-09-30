@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const root = resolve(import.meta.dirname, "..");
 const navHeader = readFileSync(resolve(root, "client/src/components/shared/NavHeader.tsx"), "utf8");
+const homeSource = readFileSync(resolve(root, "client/src/pages/Home.tsx"), "utf8");
 
 const desktopActions = navHeader.slice(
   navHeader.indexOf("{/* Right side actions */}"),
@@ -49,6 +50,12 @@ describe("header discovery shortcut", () => {
     expect(desktopRightSide.indexOf('href="/browse"')).toBeLessThan(
       desktopRightSide.indexOf('variant="ghost" size="sm">Pricing</Button>'),
     );
+  });
+
+  it("matches the public Get Started button to the hero search CTA", () => {
+    const matchingCtaClasses = 'bg-[#156a9a] text-white hover:bg-[#10577e]';
+    expect(desktopRightSide).toContain(`${matchingCtaClasses}">Get Started</Button>`);
+    expect(homeSource).toContain('bg-[#156a9a] px-6 text-white hover:bg-[#10577e]');
   });
 
   it("keeps Pricing out of the compact mobile header", () => {

@@ -39,20 +39,20 @@ export function CustomerWorkspaceShell({
   children,
   maxWidth = "max-w-7xl",
   contentClassName,
-  showDesktopNavigation = true,
+  showNavigation = true,
 }: {
   active: CustomerWorkspaceSection;
   children: ReactNode;
   maxWidth?: string;
   contentClassName?: string;
-  showDesktopNavigation?: boolean;
+  showNavigation?: boolean;
 }) {
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-page pb-28 md:pb-12">
+    <div className={cn("min-h-[calc(100vh-4rem)] bg-page", showNavigation ? "pb-28 md:pb-12" : "pb-12")}>
       <div className={cn("container py-5 sm:py-7", maxWidth, contentClassName)}>
         <MobileRoleViewToggle active="customer" />
 
-        {showDesktopNavigation ? (
+        {showNavigation ? (
           <nav
             aria-label="Customer workspace navigation"
             className="mb-5 hidden items-center gap-1 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-[0_14px_42px_-34px_rgba(15,23,42,0.55)] md:flex"
@@ -83,29 +83,31 @@ export function CustomerWorkspaceShell({
         {children}
       </div>
 
-      <nav
-        className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-5 rounded-2xl border border-slate-200 bg-white/95 p-1.5 shadow-2xl backdrop-blur md:hidden"
-        aria-label="Customer mobile navigation"
-      >
-        {customerWorkspaceNav.map((item) => {
-          const Icon = item.icon;
-          const isActive = item.id === active;
-          return (
-            <Link
-              key={item.id}
-              href={item.href}
-              aria-current={isActive ? "page" : undefined}
-              className={cn(
-                "flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1.5 text-[10px] font-semibold transition-colors",
-                isActive ? "bg-blue-50 text-[#174a73]" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800",
-              )}
-            >
-              <Icon className="h-4 w-4" aria-hidden="true" />
-              {item.mobileLabel ?? item.label}
-            </Link>
-          );
-        })}
-      </nav>
+      {showNavigation ? (
+        <nav
+          className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-5 rounded-2xl border border-slate-200 bg-white/95 p-1.5 shadow-2xl backdrop-blur md:hidden"
+          aria-label="Customer mobile navigation"
+        >
+          {customerWorkspaceNav.map((item) => {
+            const Icon = item.icon;
+            const isActive = item.id === active;
+            return (
+              <Link
+                key={item.id}
+                href={item.href}
+                aria-current={isActive ? "page" : undefined}
+                className={cn(
+                  "flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1.5 text-[10px] font-semibold transition-colors",
+                  isActive ? "bg-blue-50 text-[#174a73]" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800",
+                )}
+              >
+                <Icon className="h-4 w-4" aria-hidden="true" />
+                {item.mobileLabel ?? item.label}
+              </Link>
+            );
+          })}
+        </nav>
+      ) : null}
     </div>
   );
 }

@@ -660,7 +660,7 @@ export function NavHeader() {
                   <Button variant="ghost" size="sm">Sign In</Button>
                 </Link>
                 <Link href="/pricing">
-                  <Button size="sm">Get Started</Button>
+                  <Button size="sm" className="bg-[#156a9a] text-white hover:bg-[#10577e]">Get Started</Button>
                 </Link>
               </>
             )}

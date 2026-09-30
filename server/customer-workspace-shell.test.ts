@@ -63,6 +63,16 @@ describe("shared Customer Workspace visual system", () => {
     expect(homeSource).not.toContain('aria-label="Customer mobile navigation"');
   });
 
+  it("hides Explore workspace navigation for public visitors and retains it after sign-in", () => {
+    expect(searchSource).toContain("const { isAuthenticated } = useAuth();");
+    expect(searchSource).toContain(
+      '<CustomerWorkspaceShell active="explore" showNavigation={isAuthenticated}>',
+    );
+    expect(shellSource).toContain("showNavigation = true");
+    expect(shellSource).toContain("{showNavigation ? (");
+    expect(shellSource.match(/\{showNavigation \? \(/g)).toHaveLength(2);
+  });
+
   it("applies the customer shell only to customer-mode My Bookings and preserves the provider shell", () => {
     expect(bookingsSource).toContain("if (!providerMode)");
     expect(bookingsSource).toContain("<CustomerWorkspaceShell");

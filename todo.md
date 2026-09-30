@@ -3346,3 +3346,14 @@
 - [x] Align the hero’s inner content edges with the shared `container` used below.
 - [x] Verify the restored hero at 1920px desktop and 390px mobile sizes.
 - [x] Complete full regression, production build, cleanup verification, and rollback checkpoint.
+
+## Public CTA and Explore navigation refinement
+
+- [x] Match the public desktop Get Started button to the hero Find services teal-blue CTA.
+- [x] Hide the Customer Workspace desktop strip on `/browse` for logged-out visitors.
+- [x] Hide the Customer Workspace mobile bottom navigation on `/browse` for logged-out visitors.
+- [x] Preserve desktop and mobile Customer Workspace navigation for signed-in customers.
+- [x] Remove unused bottom-navigation spacing when public Explore navigation is hidden.
+- [x] Add focused header and Customer Workspace regression coverage.
+- [x] Verify logged-out homepage and Explore at desktop and mobile sizes.
+- [x] Complete full regression, production build, cleanup verification, and rollback checkpoint.
