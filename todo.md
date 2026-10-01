@@ -3414,3 +3414,11 @@
 - [x] Load categories, public profiles, and promotions from existing tRPC sources; display only actual review counts and exclude the official demo from real-provider cards.
 - [x] Verify mobile/desktop layouts, search submission, and category-card navigation.
 - [x] Complete the full regression suite (175 files, 1,988 tests), production build, TypeScript, cleanup verification, and an unpublished checkpoint; do not publish.
+
+## Public homepage concept 3 — supplied demo-faithful comparison
+- [x] Keep live `/`, `/preview/public-home-refresh`, `/preview/public-home-original`, and the global NavHeader unchanged; add `/preview/public-home-demo` only.
+- [x] Reproduce the public `modern-booking-hub.replit.app` structure, exact page copy, visual style, and responsive imagery within a preview-scoped warm-paper wrapper; retain the current OlogyCrew header.
+- [x] Isolate the demo's illustrative metrics, local specialist counts, prices, ratings, verified badges, and sample providers from real data; make the preview-only disclaimer prominent.
+- [x] Route hero search, category cards, sample cards, and CTA to existing non-mutating OlogyCrew discovery paths; create no sample bookings/payments/accounts.
+- [x] Add focused route, content, CSS-scope, data-integrity, and navigation regressions; review desktop, tablet, and 390px mobile layout and click-through.
+- [x] Complete TypeScript, full tests (176 files/1,993 tests), production build, diff checks, cleanup verification, and an unpublished checkpoint. Do not publish or replace `/`.
