@@ -8,9 +8,10 @@ import { useViewMode } from "@/contexts/ViewModeContext";
 const footerLinkClass =
   "inline-flex min-h-9 items-center text-sm text-slate-300 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d2438]";
 
-export function Footer() {
+export function Footer({ forcePublic = false }: { forcePublic?: boolean } = {}) {
   const { isInstalled: pwaInstalled, triggerInstall: pwaInstall } = usePWAInstallContext();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated: accountAuthenticated } = useAuth();
+  const isAuthenticated = accountAuthenticated && !forcePublic;
   const { isProviderView } = useViewMode();
   const workspaceLinks = isProviderView
     ? [

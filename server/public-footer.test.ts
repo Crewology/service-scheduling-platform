@@ -10,7 +10,9 @@ const footerSource = readFileSync(
 
 describe("public footer", () => {
   it("opens with clear customer and provider acquisition paths", () => {
-    expect(footerSource).toContain("const { isAuthenticated } = useAuth();");
+    expect(footerSource).toContain("forcePublic = false");
+    expect(footerSource).toContain("const { isAuthenticated: accountAuthenticated } = useAuth();");
+    expect(footerSource).toContain("const isAuthenticated = accountAuthenticated && !forcePublic;");
     expect(footerSource).toContain("{!isAuthenticated ? (");
     expect(footerSource).toContain("One platform, two clear paths");
     expect(footerSource).toContain("Looking for a service?");

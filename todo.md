@@ -3392,3 +3392,15 @@
 - [x] Complete focused and full regression tests (173 files, 1,979 tests), production build, TypeScript, cleanup, and checkpoint.
 - [x] Confirm production serves the checkpointed JavaScript asset, then promote verified user ID 49831691 to `admin` / `operations_admin` in a conditional audited transaction; preserve her provider profile.
 - [x] Verify the real account can access routine admin stats and health but receives FORBIDDEN for five partner and two team endpoints; do not publish or change any other account.
+
+
+## Public homepage refresh — isolated blue-brand prototype
+
+- [x] Keep the current public homepage at `/` unchanged; register a review-only route at `/preview/public-home-refresh`.
+- [x] Use OlogyCrew’s blue, light-blue, and white system with editorial illustrative photography.
+- [x] Load categories and public provider profiles through existing tRPC procedures; omit the official demo from real-provider cards and never invent ratings.
+- [x] Connect search, category cards, profiles, pricing, and return to current homepage to existing routes; leave booking, quote, payment, and account behavior unchanged.
+- [x] Keep the existing public footer as the sole closing two-path CTA even when the reviewer is signed in.
+- [x] Verify search and category navigation interactively, and inspect desktop, tablet, and mobile layouts.
+- [x] Run the complete suite (174 files, 1,983 tests), production build, TypeScript, and post-suite cleanup check.
+- [x] Save an unpublished checkpoint for review; do not publish to the live homepage.

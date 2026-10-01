@@ -577,8 +577,9 @@ function MobileLogoutButton({ onClose }: { onClose: () => void }) {
   );
 }
 
-export function NavHeader() {
-  const { user, isAuthenticated } = useAuth();
+export function NavHeader({ forcePublic = false }: { forcePublic?: boolean } = {}) {
+  const { user, isAuthenticated: accountAuthenticated } = useAuth();
+  const isAuthenticated = accountAuthenticated && !forcePublic;
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
