@@ -3404,3 +3404,13 @@
 - [x] Verify search and category navigation interactively, and inspect desktop, tablet, and mobile layouts.
 - [x] Run the complete suite (174 files, 1,983 tests), production build, TypeScript, and post-suite cleanup check.
 - [x] Save an unpublished checkpoint for review; do not publish to the live homepage.
+
+
+## Public homepage concept 2 — original OlogyCrew message
+
+- [x] Keep the live `/` homepage and `/preview/public-home-refresh` unchanged; add `/preview/public-home-original` for comparison.
+- [x] Restore the original “Your Business. Your Customers. Your Money.” tagline and existing sections: business tools, URL, comparison, No Gatekeeping, categories, providers, and referrals.
+- [x] Use different people-centric editorial photography, OlogyCrew blues, and the public footer as the single two-path closing CTA.
+- [x] Load categories, public profiles, and promotions from existing tRPC sources; display only actual review counts and exclude the official demo from real-provider cards.
+- [x] Verify mobile/desktop layouts, search submission, and category-card navigation.
+- [x] Complete the full regression suite (175 files, 1,988 tests), production build, TypeScript, cleanup verification, and an unpublished checkpoint; do not publish.

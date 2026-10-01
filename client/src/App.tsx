@@ -107,6 +107,7 @@ import ProviderOverviewPrototype from "./pages/prototype/ProviderOverviewPrototy
 import CustomerHomePrototype from "./pages/prototype/CustomerHomePrototype";
 import AdaptiveBookingPrototype from "./pages/prototype/AdaptiveBookingPrototype";
 import PublicHomepageRefreshPrototype from "./pages/prototype/PublicHomepageRefreshPrototype";
+import PublicHomepageOriginalMessagePrototype from "./pages/prototype/PublicHomepageOriginalMessagePrototype";
 
 // Not Found
 import NotFound from "./pages/NotFound";
@@ -151,6 +152,7 @@ function Router() {
       <Route path="/preview/customer-home" component={CustomerHomePrototype} />
       <Route path="/preview/adaptive-booking" component={AdaptiveBookingPrototype} />
       <Route path="/preview/public-home-refresh" component={PublicHomepageRefreshPrototype} />
+      <Route path="/preview/public-home-original" component={PublicHomepageOriginalMessagePrototype} />
       <Route path="/" component={Home} />
       <Route path="/browse" component={Browse} />
       <Route path="/experiences" component={Experiences} />
