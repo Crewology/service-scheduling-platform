@@ -3483,4 +3483,4 @@
 - [x] Add Facebook/LinkedIn share links and a copy-link control to compact public and full public/signed-in footers; share only the canonical public OlogyCrew homepage, not private workspace URLs.
 - [x] Preserve footer acquisition/workspace/legal/payment content, create a concise Help Center article, and verify icon contrast, focus, mobile layout, link safety and copy feedback.
 - [x] Complete focused/full tests (180 files / 2,015 tests), TypeScript/build/cleanup/diff checks and checkpoint the combined staged changes for the approved publication.
-- [ ] Publish to the current domains and verify the exact bundle and live footer/demo interactions. This is an operational step after the source checkpoint.
+- [x] Publish to both current OlogyCrew domains; verify the exact `/assets/index-CUWQYD3t.js` bundle, live footer sharing/copying, Help Center guide and official demo profile with no promotional strip. Management UI confirms Published.
