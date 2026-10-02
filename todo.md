@@ -3436,3 +3436,8 @@
 - [x] Replace the single-sided provider closing CTA with a compact customer/provider choice using the existing warm-paper style.
 - [x] Route customer to canonical Explore and providers to existing provider plans, with the sample profile as a secondary link; retain genuine data and unchanged header.
 - [x] Cover both paths with focused tests, visually check desktop/tablet/mobile and keyboard focus, pass 177 test files / 1,996 tests, production build, cleanup, TypeScript and diff checks; save an unpublished checkpoint. Do not publish.
+
+## Concept 3 hero: quiet two-path cue (unpublished)
+- [x] Keep the people-first headline, photo, and service search dominant; add a subordinate customer/provider path cue within the hero image.
+- [x] Link the customer cue to Explore and provider cue to provider plans; preserve the full two-card choice near the page end, the unchanged header, and all real-data behavior.
+- [x] Check desktop/tablet/mobile geometry, keyboard focus, focused/full regressions (177 files / 1,997 tests), build/cleanup, and save an unpublished checkpoint. Do not publish.

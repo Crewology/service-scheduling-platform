@@ -59,7 +59,7 @@ export default function PublicHomepageConceptThree({ forcePublicHeader = false }
   return (
     <div className="min-h-screen bg-[#f5f2e9]">
       <NavHeader forcePublic={forcePublicHeader} />
-      <main className="ology-refined" id="public-homepage">
+      <main className="ology-refined or-live-home" id="public-homepage">
         <section className="or-hero or-wrap" aria-labelledby="public-hero-heading">
           <div className="or-hero-frame">
             <img className="or-hero-img" src={heroImage} alt="Illustrative photograph of a stylist working with a client" fetchPriority="high" />
@@ -73,6 +73,14 @@ export default function PublicHomepageConceptThree({ forcePublicHeader = false }
                 <input id="public-hero-search" type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="What do you need help with?" />
                 <button type="submit">Find your pro</button>
               </form>
+              <div className="or-hero-pathways" aria-label="One platform, two clear paths">
+                <span className="or-hero-path-title">One platform. Two clear paths.</span>
+                <div className="or-hero-path-links">
+                  <Link href="/browse">Find a pro</Link>
+                  <span aria-hidden="true">·</span>
+                  <Link href="/pricing">Offer your services <ArrowRight aria-hidden="true" /></Link>
+                </div>
+              </div>
             </div>
             <div className="or-hero-note"><i aria-hidden="true" /> PEOPLE-POWERED, NEIGHBORHOOD-ROOTED</div>
           </div>

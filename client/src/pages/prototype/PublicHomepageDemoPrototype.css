@@ -62,3 +62,16 @@
 .ology-refined .or-path-card small a{color:#fffdf7;font-weight:700;text-decoration:underline;text-underline-offset:3px}
 @media(max-width:900px){.ology-refined .or-path-card{padding:28px;min-height:350px}}
 @media(max-width:640px){.ology-refined .or-pathways{padding:56px 0 65px}.ology-refined .or-pathways-intro{display:block;margin-bottom:24px}.ology-refined .or-pathways-intro p{margin-top:12px}.ology-refined .or-pathways-grid{grid-template-columns:minmax(0,1fr);gap:11px}.ology-refined .or-path-card{min-height:0;padding:27px 25px}.ology-refined .or-path-card h3{font-size:30px;margin-top:18px}.ology-refined .or-path-card p{margin-bottom:24px}}
+
+/* Live Concept 3 only: a quiet secondary two-path cue over the hero photo. */
+.or-live-home .or-hero-content{padding-top:28px}
+.or-live-home .or-hero-pathways{width:min(540px,calc(100vw - 80px));margin-top:12px;padding-top:8px;border-top:1px solid #fffdf775;color:#fffdf7}
+.or-live-home .or-hero-path-title{display:block;color:#e5edb4;font-size:11px;font-weight:700;letter-spacing:.04em}
+.or-live-home .or-hero-path-links{display:flex;align-items:center;gap:11px;flex-wrap:wrap;font-size:12px;font-weight:600}
+.or-live-home .or-hero-path-links a{min-height:26px;display:inline-flex;align-items:center;gap:5px;color:#fffdf7;text-decoration:underline;text-underline-offset:3px}
+.or-live-home .or-hero-path-links a:hover{color:#e5edb4}
+.or-live-home .or-hero-path-links svg{width:13px;height:13px}
+@media(max-width:900px){.or-live-home .or-hero-content{padding-top:66px}}
+@media(max-width:640px){.or-live-home .or-hero-content{padding-top:53px}.or-live-home .or-hero-pathways{width:100%;margin-top:13px;padding-top:9px}.or-live-home .or-hero-path-links{gap:8px}.or-live-home .or-hero-path-links a{min-height:40px}}
+
+@media(min-width:901px){.or-live-home .or-hero h1{margin-top:17px;margin-bottom:11px}.or-live-home .or-search{margin-top:16px}}

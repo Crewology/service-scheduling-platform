@@ -94,6 +94,19 @@ describe("Concept 3 public homepage with actual OlogyCrew data", () => {
     expect(within(paths).getAllByRole("article")).toHaveLength(2);
   });
 
+  it("introduces the same two paths quietly on the hero without displacing its people-first search", () => {
+    render(createElement(PublicHomepageConceptThree));
+    const hero = screen.getByRole("region", { name: /good work starts with people/i });
+    expect(within(hero).getByRole("heading", { level: 1 })).toHaveTextContent("Good work starts with people.");
+    const search = within(hero).getByRole("search", { name: "Search local services and professionals" });
+    expect(within(search).getByRole("button", { name: "Find your pro" })).toBeVisible();
+    const cue = within(hero).getByLabelText("One platform, two clear paths");
+    expect(within(cue).getByText("One platform. Two clear paths.")).toBeVisible();
+    expect(within(cue).getByRole("link", { name: "Find a pro" })).toHaveAttribute("href", "/browse");
+    expect(within(cue).getByRole("link", { name: "Offer your services" })).toHaveAttribute("href", "/pricing");
+    expect(search.compareDocumentPosition(cue) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it("renders only real categories and non-demo public provider records, without made-up prices or badges", () => {
     render(createElement(PublicHomepageConceptThree));
     expect(screen.getByLabelText("OlogyCrew discovery paths")).toHaveTextContent("6featured categories");
