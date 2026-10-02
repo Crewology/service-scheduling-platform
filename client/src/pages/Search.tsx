@@ -64,26 +64,28 @@ function renderAdvancedFilters(opts: {
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
+            aria-describedby="explore-filter-free-estimates-help"
             checked={opts.freeEstimatesOnly}
             onChange={(e) => opts.setFreeEstimatesOnly(e.target.checked)}
             className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
           />
           <span className="text-sm font-medium">Offers Free Estimates</span>
         </label>
-        <p className="text-xs text-muted-foreground mt-1 ml-6">Only show providers who offer free estimates</p>
+        <p id="explore-filter-free-estimates-help" className="ology-filter-help mt-1 ml-6">Only show providers who offer free estimates</p>
       </div>
 
       <div className="rounded-xl border border-slate-200 p-3">
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
+            aria-describedby="explore-filter-emergency-help"
             checked={opts.emergencyServiceOnly}
             onChange={(e) => opts.setEmergencyServiceOnly(e.target.checked)}
             className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
           />
           <span className="text-sm font-medium">Emergency Service Available</span>
         </label>
-        <p className="text-xs text-muted-foreground mt-1 ml-6">Only show providers available for emergency calls</p>
+        <p id="explore-filter-emergency-help" className="ology-filter-help mt-1 ml-6">Only show providers available for emergency calls</p>
       </div>
 
       <div>

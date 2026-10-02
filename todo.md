@@ -3468,3 +3468,8 @@
 - [x] Recolor the full public footer shown in the screenshot from navy/sky to warm sage, deep green, ivory, coral, and leaf accents while keeping its two clear pathways and all content/destinations unchanged.
 - [x] Apply the same branded dark-green base to the signed-in utility footer so it remains cohesive with the new shared header; keep the existing compact marketing footer unchanged.
 - [x] Verify accessible contrast, focus/reduced-motion states, desktop/mobile public and signed-in variants, focused/full regressions (179 files / 2,007 tests with bounded external-network timeouts), build, TypeScript, cleanup, then save an unpublished checkpoint. Do not publish without explicit approval.
+
+## Explore advanced-filter helper-text contrast (unpublished)
+- [x] Scope the dark-hero copy selector to its own editorial heading and description so it does not recolor text inside the light advanced-filter panel.
+- [x] Explicitly style the free-estimate and emergency-filter descriptions with a readable brand-muted color and 14px size; keep their labels, checkboxes, search URL state, and filter behavior unchanged.
+- [x] Measure 5.91:1 WCAG AA normal-text contrast against the real panel background in both filter states at desktop/390px/320px, verify the visible checkbox boundary/focus and unchanged filter URLs; pass 179 test files / 2,008 tests, build, TypeScript, cleanup, and diff checks; save an unpublished checkpoint. Do not publish without approval.

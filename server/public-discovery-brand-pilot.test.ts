@@ -56,6 +56,28 @@ describe("two-page public discovery brand pilot", () => {
     ]) expect(explore).toContain(contract);
   });
 
+  it("keeps both advanced-filter descriptions at WCAG AA contrast on the light panel", () => {
+    // The hero's light-copy rule must target only its intro, never nested form help text.
+    expect(styles).not.toContain(".ology-explore-header header p:not(:first-child)");
+    expect(styles).toContain(".ology-explore-header > header > .relative.flex > div:first-child > p:last-child");
+    expect(styles).toMatch(/#explore-advanced-filters \.ology-filter-help\s*\{\s*color: var\(--ology-brand-muted\);/);
+    expect(styles).toContain('input[type="checkbox"] {\n  box-shadow: 0 0 0 1px var(--ology-brand-muted);');
+    for (const id of ["explore-filter-free-estimates-help", "explore-filter-emergency-help"]) {
+      expect(explore).toContain(`aria-describedby="${id}"`);
+      expect(explore).toContain(`id="${id}" className="ology-filter-help`);
+    }
+    const muted = tokens.match(/--ology-brand-muted:\s*(#[0-9a-fA-F]{6})/i)?.[1];
+    expect(muted).toBeTruthy();
+    const luminance = (hex: string) => {
+      const rgb = [1, 3, 5].map(index => parseInt(hex.slice(index, index + 2), 16) / 255);
+      return rgb.map(channel => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4)
+        .reduce((total, channel, index) => total + channel * [0.2126, 0.7152, 0.0722][index], 0);
+    };
+    const lightestPanel = luminance("#ffffff");
+    const ratio = (lightestPanel + 0.05) / (luminance(muted!) + 0.05);
+    expect(ratio).toBeGreaterThanOrEqual(4.5);
+  });
+
   it("uses the same tokens on genuine profiles while preserving all existing trust and action paths", () => {
     expect(routes).toContain('<Route path="/p/:slug" component={PublicProviderProfile} />');
     expect(routes).toContain('<Route path="/:slug" component={PublicProviderProfile} />');

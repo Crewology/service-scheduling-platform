@@ -35,11 +35,11 @@
   letter-spacing: -.055em;
   color: var(--ology-brand-surface);
 }
-.ology-discovery-page .ology-explore-header header p:first-child {
+.ology-discovery-page .ology-explore-header > header > .relative.flex > div:first-child > p:first-child {
   color: var(--ology-brand-leaf);
   letter-spacing: .15em;
 }
-.ology-discovery-page .ology-explore-header header p:not(:first-child) {
+.ology-discovery-page .ology-explore-header > header > .relative.flex > div:first-child > p:last-child {
   color: #e1e9dc;
 }
 .ology-discovery-page .ology-explore-header form {
@@ -63,6 +63,14 @@
 .ology-discovery-page .ology-explore-header button[type="submit"]:hover { background: var(--ology-brand-coral-hover); }
 .ology-discovery-page .ology-explore-header form button[aria-expanded] svg,
 .ology-discovery-page .ology-explore-header form label svg { color: var(--ology-brand-ink); }
+.ology-discovery-page #explore-advanced-filters .ology-filter-help {
+  color: var(--ology-brand-muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.ology-discovery-page #explore-advanced-filters input[type="checkbox"] {
+  box-shadow: 0 0 0 1px var(--ology-brand-muted);
+}
 .ology-discovery-page .ology-explore-header form > div:last-child button:not([type="submit"]):hover {
   background: rgba(255, 253, 247, .16);
 }
