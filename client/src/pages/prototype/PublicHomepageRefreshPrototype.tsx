@@ -45,7 +45,7 @@ export default function PublicHomepageRefreshPrototype() {
     <div className="min-h-screen bg-page text-slate-950">
       <div className="border-b border-sky-100 bg-sky-50 text-[#164468]">
         <div className="container flex flex-wrap items-center justify-between gap-2 py-2 text-xs font-semibold sm:text-sm">
-          <span><span className="mr-2 inline-block h-2 w-2 rounded-full bg-[#156a9a]" aria-hidden="true" />Homepage design preview · Live homepage unchanged</span>
+          <span><span className="mr-2 inline-block h-2 w-2 rounded-full bg-[#156a9a]" aria-hidden="true" />Homepage concept 1 · People-first blue comparison</span>
           <Link href="/" className="inline-flex items-center gap-1 underline decoration-sky-300 underline-offset-4 hover:text-blue-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#156a9a]">
             View current homepage <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
           </Link>

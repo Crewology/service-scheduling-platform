@@ -3422,3 +3422,11 @@
 - [x] Route hero search, category cards, sample cards, and CTA to existing non-mutating OlogyCrew discovery paths; create no sample bookings/payments/accounts.
 - [x] Add focused route, content, CSS-scope, data-integrity, and navigation regressions; review desktop, tablet, and 390px mobile layout and click-through.
 - [x] Complete TypeScript, full tests (176 files/1,993 tests), production build, diff checks, cleanup verification, and an unpublished checkpoint. Do not publish or replace `/`.
+
+## Approved Concept 3 public homepage integration (review before publication)
+- [x] Replace only the logged-out public `/` design with Concept 3, retaining the shared header, signed-in customer/provider home, and all three comparison routes.
+- [x] Use existing public category and provider tRPC data for six category cards and up to three real provider cards; never present sample numbers, names, ratings, prices, or verification badges as real.
+- [x] Preserve search, category, profile, pricing, referral, and legal navigation; show honest loading/error/empty states and no preview-only favorite control.
+- [x] Keep warm-paper/demo typography scoped to the new public-home design; preserve application-wide light-blue design elsewhere.
+- [x] Update legacy homepage source-contract tests intentionally and add rendered live-data, route, review, and search coverage.
+- [x] Review desktop, tablet, and mobile; pass full regression (177 files / 1,994 tests), TypeScript, production build, diff, and cleanup checks; save an unpublished checkpoint for approval. Do not publish.

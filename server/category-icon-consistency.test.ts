@@ -6,7 +6,6 @@ import { CATEGORY_ICONS } from "../client/src/lib/categoryIcons";
 const projectRoot = resolve(import.meta.dirname, "..");
 
 const categorySurfaces = [
-  "client/src/pages/Home.tsx",
   "client/src/pages/Search.tsx",
   "client/src/pages/CategoryDetail.tsx",
   "client/src/pages/ProviderOnboarding.tsx",
@@ -36,5 +35,13 @@ describe("Studio Space Rentals category icon consistency", () => {
     expect(seedSource).toContain(
       '{ id: 217, name: "STUDIO SPACE RENTALS", slug: "studio-space-rentals"',
     );
+  });
+
+  it("uses real category destinations for the new homepage's six editorial tiles; full category icon consistency stays on Explore", () => {
+    const home = readFileSync(resolve(projectRoot, "client/src/pages/PublicHomepageConceptThree.tsx"), "utf8");
+    expect(home).toContain("trpc.category.list.useQuery()");
+    expect(home).toContain("categoryTiles.flatMap");
+    expect(home).toContain('href={`/category/${category.slug}`}');
+    expect(home).not.toContain("CATEGORY_ICONS[217]");
   });
 });

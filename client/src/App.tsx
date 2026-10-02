@@ -272,7 +272,7 @@ function AppContent() {
         <TermsUpdateBanner />
         <Router />
       </RoleGuard>
-      {!hideFooter && <Footer />}
+      {!hideFooter && <Footer compactPublicHome={location === "/"} />}
       {!isPrototype && <PWAInstallBanner />}
       {!location.startsWith("/embed") && !isPrototype && <HelpChatWidget />}
     </>

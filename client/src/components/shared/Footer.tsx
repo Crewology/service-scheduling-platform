@@ -8,7 +8,7 @@ import { useViewMode } from "@/contexts/ViewModeContext";
 const footerLinkClass =
   "inline-flex min-h-9 items-center text-sm text-slate-300 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d2438]";
 
-export function Footer({ forcePublic = false }: { forcePublic?: boolean } = {}) {
+export function Footer({ forcePublic = false, compactPublicHome = false }: { forcePublic?: boolean; compactPublicHome?: boolean } = {}) {
   const { isInstalled: pwaInstalled, triggerInstall: pwaInstall } = usePWAInstallContext();
   const { isAuthenticated: accountAuthenticated } = useAuth();
   const isAuthenticated = accountAuthenticated && !forcePublic;
@@ -36,6 +36,25 @@ export function Footer({ forcePublic = false }: { forcePublic?: boolean } = {}) 
   const signedInDescription = isProviderView
     ? "Your workspace for managing services, bookings, payments, and customer relationships."
     : "Your workspace for finding services, managing bookings, and returning to providers you trust.";
+
+  // Only the new logged-out public homepage uses the demo's quiet footer treatment.
+  // Other public pages and signed-in workspaces retain the established shared footer.
+  if (compactPublicHome && !isAuthenticated) {
+    return (
+      <footer className="or-demo-footer" aria-label="OlogyCrew public footer">
+        <div className="or-demo-footer-inner or-live-footer-inner">
+          <div className="or-live-footer-identity">
+            <Link href="/" className="or-demo-footer-brand" aria-label="OlogyCrew homepage"><img src="/manus-storage/ologycrew-demo-mark_075b3913.png" alt="" /><span>Ology<span style={{ color: "#bd4b35" }}>Crew</span></span></Link>
+            <p>Independent service businesses, one good connection at a time.</p>
+          </div>
+          <nav className="or-live-footer-links" aria-label="Public footer navigation">
+            <Link href="/browse">Explore services</Link><Link href="/pricing">Provider plans</Link><Link href="/referral-program">Referral program</Link><Link href="/help">Help</Link><Link href="/terms">Terms</Link><Link href="/privacy">Privacy</Link>
+          </nav>
+          <small className="or-live-footer-copyright">© {new Date().getFullYear()} OlogyCrew</small>
+        </div>
+      </footer>
+    );
+  }
 
   return (
     <footer className="bg-[#0d2438] text-white">

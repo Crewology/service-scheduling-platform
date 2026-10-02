@@ -3,72 +3,61 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const root = resolve(import.meta.dirname, "..");
-const homeSource = readFileSync(resolve(root, "client/src/pages/Home.tsx"), "utf8");
-const footerSource = readFileSync(resolve(root, "client/src/components/shared/Footer.tsx"), "utf8");
+const home = readFileSync(resolve(root, "client/src/pages/Home.tsx"), "utf8");
+const concept = readFileSync(resolve(root, "client/src/pages/PublicHomepageConceptThree.tsx"), "utf8");
+const styles = readFileSync(resolve(root, "client/src/pages/prototype/PublicHomepageDemoPrototype.css"), "utf8");
+const footer = readFileSync(resolve(root, "client/src/components/shared/Footer.tsx"), "utf8");
 
-describe("public homepage design alignment", () => {
-  it("uses the shared page canvas and a flush edge-to-edge dark-blue hero", () => {
-    expect(homeSource).toContain('className="min-h-screen bg-page"');
-    expect(homeSource).toContain('<section className="w-full">');
-    expect(homeSource).toContain('bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 py-14');
-    expect(homeSource).toContain('sm:py-20 md:py-32');
-    expect(homeSource).not.toContain('rounded-[2rem] bg-[#123f63]');
-    expect(homeSource).not.toContain('w-full px-3 pt-5 sm:px-5 sm:pt-8 lg:px-8 2xl:px-10');
-    expect(homeSource).toContain('className="container relative grid items-center');
-    expect(homeSource).not.toContain("max-w-[1500px]");
-    expect(homeSource).toContain('lg:grid-cols-[1.05fr_0.95fr]');
+// The approved new design intentionally replaces the previous blue public homepage;
+// authenticated customer/provider dashboards and all other app canvases stay untouched.
+describe("public homepage Concept 3 design alignment", () => {
+  it("preserves the public/authenticated home split and uses the unchanged shared header", () => {
+    expect(home).toContain("if (isAuthenticated && user) return <LoggedInHome />");
+    expect(home).toContain("return <PublicHomepageConceptThree />");
+    expect(concept).toContain("<NavHeader />");
+    expect(concept).not.toContain("<NavHeader forcePublic />");
   });
 
-  it("places a clear Explore search composer inside the hero", () => {
-    expect(homeSource).toContain('aria-label="Find services"');
-    expect(homeSource).toContain('aria-label="Search services or providers"');
-    expect(homeSource).toContain("Describe what you need.");
-    expect(homeSource).toContain("Find services");
-    expect(homeSource).toContain("`/browse?q=${encodeURIComponent(searchTerm.trim())}`");
+  it("uses the approved warm-paper layout without changing global application theme tokens", () => {
+    expect(concept).toContain('className="min-h-screen bg-[#f5f2e9]"');
+    for (const section of ["or-hero-frame", "or-proof", "or-cats", "or-provider-grid", "or-craft", "or-steps", "or-business"]) expect(concept).toContain(section);
+    expect(styles).toContain("--or-paper: #f5f2e9");
+    expect(styles).toContain(".or-hero-frame{height:560px");
+    expect(styles).toContain("@media(max-width:640px)");
+    expect(styles).toContain("@media(prefers-reduced-motion:reduce)");
+    expect(styles).not.toContain(".or-site-header{");
   });
 
-  it("uses the current rounded card, eyebrow, and spacing system", () => {
-    expect(homeSource).toContain('className="container mt-8 space-y-8');
-    expect(homeSource).toContain("rounded-3xl border border-slate-200 bg-white");
-    expect(homeSource).toContain("uppercase tracking-[0.16em] text-blue-700");
-    expect(homeSource).toContain("shadow-[0_20px_60px_-48px_rgba(15,23,42,0.55)]");
+  it("retains the demo's content hierarchy with only truth-safe changes", () => {
+    for (const phrase of [
+      "Good work", "starts with", "people.", "Good people for", "the work at hand.",
+      "People who care about the details.", "Good work has a name, a face, and a story.",
+      "Find your person.", "Then make a plan.", "Your work deserves a home of its own.",
+    ]) expect(concept).toContain(phrase);
+    for (const invented of ["4,812", "4.83 / 5", "Harbor & Hearth Plumbing", "Stillwater Massage Studio", "Velvet & Vine Hair", "Verified"]) expect(concept).not.toContain(invented);
   });
 
-  it("preserves the complete homepage content and public destinations", () => {
-    for (const content of [
-      "Your Profile",
-      "Your Services",
-      "Your Availability",
-      "Your Bookings",
-      "Your Payments",
-      "Your Invoices",
-      "Everything in one place",
-      "No Gatekeeping",
-      "Explore 48+ Service Categories",
-      "Featured Professionals",
-      "Refer & Earn Rewards",
-    ]) {
-      expect(homeSource).toContain(content);
-    }
-
-    expect(homeSource).toContain('href="/browse"');
-    expect(homeSource).toContain('href="/referral-program"');
+  it("uses real category and public provider queries with no manufactured profile pricing or reviews", () => {
+    expect(concept).toContain("trpc.category.list.useQuery()");
+    expect(concept).toContain("trpc.provider.listFeatured.useQuery()");
+    expect(concept).toContain("!provider.isOfficial");
+    expect(concept).toContain("provider.profileSlug");
+    expect(concept).toContain("Number(provider.totalReviews) > 0");
+    expect(concept).toContain("provider.profilePhotoUrl");
+    expect(concept).toContain("categoriesLoading");
+    expect(concept).toContain("providersError");
+    expect(concept).not.toContain("sampleProviders");
   });
 
-  it("leaves the two-path conversion choice to the public footer", () => {
-    expect(homeSource).not.toContain("Ready to build your digital home?");
-    expect(homeSource).not.toContain("Get Started Free");
-    expect(homeSource).not.toContain("Start with the path that fits");
-    expect(footerSource).toContain("One platform, two clear paths");
-    expect(footerSource).toContain('href="/browse"');
-    expect(footerSource).toContain('href="/pricing"');
-  });
-
-  it("keeps mobile hierarchy compact and category cards consistent with Explore", () => {
-    expect(homeSource).toContain("mt-6 hidden flex-wrap gap-2");
-    expect(homeSource).toContain('aria-labelledby="home-categories-heading"');
-    expect(homeSource).toContain("CATEGORY_ICONS[category.id]");
-    expect(homeSource).toContain("grid grid-cols-2 gap-3");
-    expect(homeSource).toContain("rounded-2xl border border-slate-200 bg-white");
+  it("keeps Explore, genuine profile, pricing, referral, and legal destinations", () => {
+    expect(concept).toContain('role="search"');
+    expect(concept).toContain("navigate(query ? `/browse?q=${encodeURIComponent(query)}` : \"/browse\")");
+    expect(concept).toContain('href={`/category/${category.slug}`}');
+    expect(concept).toContain("const href = `/${provider.profileSlug}`");
+    expect(concept).toContain('href="/pricing"');
+    expect(footer).toContain('href="/referral-program"');
+    expect(footer).toContain('href="/terms"');
+    expect(footer).toContain('href="/privacy"');
+    expect(footer).toContain("compactPublicHome && !isAuthenticated");
   });
 });

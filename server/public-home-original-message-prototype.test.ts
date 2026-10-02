@@ -8,16 +8,17 @@ const first = readFileSync(resolve(root, "client/src/pages/prototype/PublicHomep
 const live = readFileSync(resolve(root, "client/src/pages/Home.tsx"), "utf8");
 const app = readFileSync(resolve(root, "client/src/App.tsx"), "utf8");
 
-function copyFromSource(value: string) {
-  expect(live).toContain(value);
+function originalMessageRemainsInComparison(value: string) {
   expect(original).toContain(value);
 }
 
 describe("second people-centric public homepage concept", () => {
-  it("registers a second isolated route while retaining both existing concepts and the live home", () => {
+  it("registers a second isolated route while retaining all comparisons and the approved public home", () => {
     expect(app).toContain('path="/preview/public-home-original" component={PublicHomepageOriginalMessagePrototype}');
     expect(app).toContain('path="/preview/public-home-refresh" component={PublicHomepageRefreshPrototype}');
+    expect(app).toContain('path="/preview/public-home-demo" component={PublicHomepageDemoPrototype}');
     expect(app.indexOf('path="/preview/public-home-original"')).toBeLessThan(app.indexOf('path="/" component={Home}'));
+    expect(live).toContain("return <PublicHomepageConceptThree />");
     expect(first).toContain("Good work starts with");
     expect(original).toContain('href="/preview/public-home-refresh"');
     expect(original).toContain('href="/"');
@@ -36,8 +37,8 @@ describe("second people-centric public homepage concept", () => {
       "OlogyCrew isn't here to become your business. We're here to help you build yours.",
       "We provide the infrastructure. You own the relationship.",
       "Explore 48+ Service Categories", "Refer & Earn Rewards",
-    ]) copyFromSource(value);
-    for (const label of ["Your Profile", "Your Services", "Your Availability", "Your Bookings", "Your Payments", "Your Invoices"]) copyFromSource(label);
+    ]) originalMessageRemainsInComparison(value);
+    for (const label of ["Your Profile", "Your Services", "Your Availability", "Your Bookings", "Your Payments", "Your Invoices"]) originalMessageRemainsInComparison(label);
     expect(original).toContain("promises.map");
     expect(original).toContain("referralSteps.map");
     expect(original).toContain("rewardTiers.map");

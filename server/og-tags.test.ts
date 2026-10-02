@@ -351,8 +351,12 @@ describe("OG Tags for Homepage", () => {
 
     expect(result).toContain('og:title');
     expect(result).toContain('OlogyCrew');
-    expect(result).toContain('The Digital Home for Your Business');
+    expect(result).toContain('Local work, well done');
     expect(result).toContain('og:description');
+    expect(result).toContain('compare available services and reviews');
+    expect(result).toContain('/manus-storage/ology-refined-hero_660dfae3.png');
+    expect(result).toContain('og:image:width" content="1024"');
+    expect(result).toContain('og:image:height" content="1024"');
     expect(result).toContain('og:url');
     expect(result).toContain('https://example.com');
     expect(result).toContain('og:type');

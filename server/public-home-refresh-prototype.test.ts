@@ -10,15 +10,15 @@ const footer = readFileSync(resolve(root, "client/src/components/shared/Footer.t
 const proxy = readFileSync(resolve(root, "server/_core/storageProxy.ts"), "utf8");
 const serverIndex = readFileSync(resolve(root, "server/_core/index.ts"), "utf8");
 
-// This is a review-only alternative, not a replacement for the current public homepage.
+// This remains a review-only comparison route after the public homepage changes.
 describe("public homepage refresh prototype", () => {
-  it("registers an isolated preview while keeping the existing live homepage and other prototypes", () => {
+  it("registers an isolated preview while keeping the public homepage and other prototypes", () => {
     expect(router).toContain('path="/preview/public-home-refresh" component={PublicHomepageRefreshPrototype}');
     expect(router).toContain('path="/" component={Home}');
     expect(router.indexOf('path="/preview/public-home-refresh"')).toBeLessThan(router.indexOf('path="/" component={Home}'));
     expect(router).toContain('path="/preview/customer-home"');
     expect(home).toContain("export default function Home");
-    expect(prototype).toContain("Homepage design preview · Live homepage unchanged");
+    expect(prototype).toContain("Homepage concept 1 · People-first blue comparison");
     expect(prototype).toContain('<NavHeader forcePublic />');
     expect(prototype).toContain('<Footer forcePublic />');
   });

@@ -5,6 +5,8 @@ import { describe, expect, it } from "vitest";
 const root = resolve(import.meta.dirname, "..");
 const navHeader = readFileSync(resolve(root, "client/src/components/shared/NavHeader.tsx"), "utf8");
 const homeSource = readFileSync(resolve(root, "client/src/pages/Home.tsx"), "utf8");
+const conceptSource = readFileSync(resolve(root, "client/src/pages/PublicHomepageConceptThree.tsx"), "utf8");
+const conceptStyles = readFileSync(resolve(root, "client/src/pages/prototype/PublicHomepageDemoPrototype.css"), "utf8");
 
 const desktopActions = navHeader.slice(
   navHeader.indexOf("{/* Right side actions */}"),
@@ -52,10 +54,12 @@ describe("header discovery shortcut", () => {
     );
   });
 
-  it("matches the public Get Started button to the hero search CTA", () => {
+  it("preserves the original Get Started header color while Concept 3 uses its own scoped coral hero CTA", () => {
     const matchingCtaClasses = 'bg-[#156a9a] text-white hover:bg-[#10577e]';
     expect(desktopRightSide).toContain(`${matchingCtaClasses}">Get Started</Button>`);
-    expect(homeSource).toContain('bg-[#156a9a] px-6 text-white hover:bg-[#10577e]');
+    expect(homeSource).toContain("return <PublicHomepageConceptThree />");
+    expect(conceptSource).toContain('className="or-search"');
+    expect(conceptStyles).toContain(".or-search button{border:0;background:#c74f38");
   });
 
   it("keeps Pricing out of the compact mobile header", () => {

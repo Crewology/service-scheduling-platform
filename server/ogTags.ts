@@ -1,5 +1,5 @@
 import * as db from "./db";
-import { generateProviderOgImage, generateServiceOgImage, generateHomepageOgImage } from "./ogImage";
+import { generateProviderOgImage, generateServiceOgImage } from "./ogImage";
 
 // In-memory cache for generated OG image URLs (key -> url)
 // This avoids regenerating the image on every social crawler visit
@@ -180,23 +180,19 @@ export async function getCategoryOgTags(categorySlug: string, origin: string): P
  * Build OG meta tag HTML for the homepage.
  */
 export async function getHomepageOgTags(origin: string): Promise<string> {
-  const title = "OlogyCrew — The Digital Home for Your Business";
-  const description = "Your business. Your customers. Your money. Get discovered, build your profile, get booked, get paid, send invoices, and keep your customers — all in one place. No gatekeeping.";
-
-  // Try to get/generate branded homepage OG image
-  let imageUrl: string = OLOGYCREW_LOGO;
-  try {
-    const generatedUrl = await getCachedOgImage("homepage", generateHomepageOgImage);
-    if (generatedUrl) imageUrl = generatedUrl;
-  } catch (e) {
-    console.error("[OG Tags] Error generating homepage OG image:", e);
-  }
+  const title = "OlogyCrew — Local work, well done";
+  const description = "Find independent local professionals on OlogyCrew. Explore real profiles, compare available services and reviews, then book or request a quote directly.";
+  // This approved editorial photograph illustrates the homepage, not a specific
+  // provider. A stable storage URL also avoids network-dependent OG generation.
+  const imageUrl = `${origin.replace(/\/$/, "")}/manus-storage/ology-refined-hero_660dfae3.png`;
 
   return buildOgTagsHtml({
     title,
     description,
     url: origin,
     imageUrl,
+    imageWidth: 1024,
+    imageHeight: 1024,
     type: "website",
   });
 }
@@ -246,6 +242,8 @@ function buildOgTagsHtml(opts: {
   description: string;
   url: string;
   imageUrl: string;
+  imageWidth?: number;
+  imageHeight?: number;
   type: string;
 }): string {
   const tags = [
@@ -255,8 +253,8 @@ function buildOgTagsHtml(opts: {
     `<meta property="og:type" content="${opts.type}" />`,
     `<meta property="og:site_name" content="OlogyCrew" />`,
     `<meta property="og:image" content="${escapeHtml(opts.imageUrl)}" />`,
-    `<meta property="og:image:width" content="1200" />`,
-    `<meta property="og:image:height" content="630" />`,
+    `<meta property="og:image:width" content="${opts.imageWidth ?? 1200}" />`,
+    `<meta property="og:image:height" content="${opts.imageHeight ?? 630}" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
     `<meta name="twitter:title" content="${opts.title}" />`,
     `<meta name="twitter:description" content="${opts.description}" />`,

@@ -3,44 +3,29 @@ import fs from "fs";
 import path from "path";
 
 describe("Referral Program Visibility Features", () => {
-  describe("Homepage Refer & Earn Section", () => {
+  describe("Public homepage referral path", () => {
     const homePath = path.resolve(__dirname, "../client/src/pages/Home.tsx");
     const homeContent = fs.readFileSync(homePath, "utf-8");
+    const conceptPath = path.resolve(__dirname, "../client/src/pages/PublicHomepageConceptThree.tsx");
+    const conceptContent = fs.readFileSync(conceptPath, "utf-8");
+    const footerPath = path.resolve(__dirname, "../client/src/components/shared/Footer.tsx");
+    const footerContent = fs.readFileSync(footerPath, "utf-8");
 
-    it("should have a Refer & Earn section on the homepage", () => {
-      expect(homeContent).toContain("Refer & Earn");
+    it("keeps the dedicated referral program reachable through the compact public footer", () => {
+      expect(homeContent).toContain("<PublicHomepageConceptThree />");
+      expect(footerContent).toContain('href="/referral-program"');
+      expect(footerContent).toContain("Referral program");
     });
 
-    it("should display the referral program badge", () => {
-      expect(homeContent).toContain("Referral Program");
+    it("preserves referral-code capture from shared homepage links", () => {
+      expect(homeContent).toContain('localStorage.setItem("customer_referral_code"');
+      expect(homeContent).toContain('url.searchParams.delete("ref")');
     });
 
-    it("should show the three-step process (Share, Sign Up, Earn)", () => {
-      expect(homeContent).toContain("Share Your Link");
-      expect(homeContent).toContain("They Sign Up & Book");
-      expect(homeContent).toContain("Earn & Level Up");
-    });
-
-    it("should display all four reward tiers", () => {
-      expect(homeContent).toContain("Bronze");
-      expect(homeContent).toContain("Silver");
-      expect(homeContent).toContain("Gold");
-      expect(homeContent).toContain("Platinum");
-    });
-
-    it("should show tier percentages", () => {
-      expect(homeContent).toContain("10%");
-      expect(homeContent).toContain("15%");
-      expect(homeContent).toContain("20%");
-      expect(homeContent).toContain("25%");
-    });
-
-    it("should link to the referral program landing page", () => {
-      expect(homeContent).toContain("/referral-program");
-    });
-
-    it("should have a CTA button to learn more", () => {
-      expect(homeContent).toContain("Learn More & Start Earning");
+    it("keeps Concept 3's end section focused while the referral program remains available", () => {
+      expect(conceptContent).toContain("Your work deserves a home of its own.");
+      expect(conceptContent).not.toContain("Refer & Earn Rewards");
+      expect(footerContent).toContain("compactPublicHome && !isAuthenticated");
     });
   });
 
