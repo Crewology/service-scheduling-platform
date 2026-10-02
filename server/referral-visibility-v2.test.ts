@@ -219,6 +219,10 @@ describe("Referral Program Link in Footer", () => {
     "../client/src/components/shared/Footer.tsx"
   );
   const content = fs.readFileSync(filePath, "utf-8");
+  const styles = fs.readFileSync(
+    path.resolve(__dirname, "../client/src/components/shared/BrandFooter.css"),
+    "utf-8"
+  );
 
   it("should have a Referral Program link in the Company & Support footer column", () => {
     expect(content).toContain('href="/referral-program"');
@@ -239,7 +243,8 @@ describe("Referral Program Link in Footer", () => {
 
   it("should have consistent hover styling with other footer links", () => {
     expect(content).toContain('href="/referral-program" className={footerLinkClass}');
-    expect(content).toContain("hover:text-white");
+    expect(content).toContain("ology-brand-footer-link inline-flex");
+    expect(styles).toContain(".ology-brand-footer .ology-brand-footer-link:hover { color: var(--ology-brand-leaf); }");
   });
 
   it("should be in the footer element", () => {

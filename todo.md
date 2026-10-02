@@ -3463,3 +3463,8 @@
 - [x] Give canonical `/browse` a warm-paper/deep-green editorial search and results treatment using real categories/providers/services; preserve query-state search, filters, promotions, save buttons, direct/quote CTAs, and signed-in navigation.
 - [x] Give real public provider profiles a matching editorial identity, service cards, trust/reviews/sidebar treatment; preserve real data, official-demo distinction, share, messaging, quotes, tips, and adaptive booking destinations.
 - [x] Validate logged-out and signed-in views at desktop/tablet/390px/320px, search/category/provider/service click-through, accessible focus and reduced motion; pass 179 test files / 2,006 tests with a bounded 30-second per-test allowance for legacy external SendGrid/Twilio checks, TypeScript, build, cleanup and diff checks; save an unpublished review checkpoint. Do not publish without explicit approval.
+
+## Shared full footer palette alignment (unpublished)
+- [x] Recolor the full public footer shown in the screenshot from navy/sky to warm sage, deep green, ivory, coral, and leaf accents while keeping its two clear pathways and all content/destinations unchanged.
+- [x] Apply the same branded dark-green base to the signed-in utility footer so it remains cohesive with the new shared header; keep the existing compact marketing footer unchanged.
+- [x] Verify accessible contrast, focus/reduced-motion states, desktop/mobile public and signed-in variants, focused/full regressions (179 files / 2,007 tests with bounded external-network timeouts), build, TypeScript, cleanup, then save an unpublished checkpoint. Do not publish without explicit approval.

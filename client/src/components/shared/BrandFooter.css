@@ -1,0 +1,92 @@
+@import "../../styles/publicBrandTokens.css";
+
+/* Full shared footer only. The compact homepage and For Providers footer is unchanged. */
+.ology-brand-footer {
+  background: var(--ology-brand-deep);
+  color: var(--ology-brand-surface);
+  font-family: var(--ology-brand-body);
+}
+.ology-brand-footer > .container { max-width: var(--ology-brand-content); }
+.ology-brand-footer .ology-brand-footer-cta {
+  background: #e8ece0;
+  border-color: #cbd8cb;
+  color: var(--ology-brand-ink);
+  box-shadow: none;
+}
+.ology-brand-footer .ology-brand-footer-kicker {
+  color: var(--ology-brand-coral-hover);
+}
+.ology-brand-footer .ology-brand-footer-title {
+  color: var(--ology-brand-ink);
+  font-family: var(--ology-brand-display);
+  letter-spacing: -.045em;
+}
+.ology-brand-footer .ology-brand-footer-lead { color: #425a50; }
+.ology-brand-footer .ology-brand-footer-path {
+  min-width: 0;
+  min-height: 92px;
+  text-decoration: none;
+  transition: transform .18s var(--ology-brand-ease), border-color .18s var(--ology-brand-ease), background-color .18s var(--ology-brand-ease);
+}
+.ology-brand-footer .ology-brand-footer-path:hover { transform: translateY(-2px); }
+.ology-brand-footer .ology-brand-footer-path:active { transform: scale(.98); }
+.ology-brand-footer .ology-brand-footer-path-customer {
+  background: var(--ology-brand-surface);
+  color: var(--ology-brand-ink);
+  border-color: #cbd8cb;
+}
+.ology-brand-footer .ology-brand-footer-path-customer:hover {
+  background: #fff;
+  border-color: var(--ology-brand-coral);
+}
+.ology-brand-footer .ology-brand-footer-path-provider {
+  background: var(--ology-brand-ink);
+  color: var(--ology-brand-surface);
+  border-color: var(--ology-brand-ink);
+}
+.ology-brand-footer .ology-brand-footer-path-provider:hover {
+  background: #254b45;
+  border-color: var(--ology-brand-leaf);
+}
+.ology-brand-footer .ology-brand-footer-path-customer .ology-brand-footer-path-icon {
+  background: #e8ece0;
+  color: var(--ology-brand-ink);
+}
+.ology-brand-footer .ology-brand-footer-path-provider .ology-brand-footer-path-icon {
+  background: var(--ology-brand-leaf);
+  color: var(--ology-brand-ink);
+}
+.ology-brand-footer .ology-brand-footer-path-customer .ology-brand-footer-path-copy { color: var(--ology-brand-muted); }
+.ology-brand-footer .ology-brand-footer-path-provider .ology-brand-footer-path-copy { color: #e2e9df; }
+.ology-brand-footer .ology-brand-footer-arrow {
+  color: var(--ology-brand-coral);
+  transition: transform .18s var(--ology-brand-ease);
+}
+.ology-brand-footer .ology-brand-footer-path-provider .ology-brand-footer-arrow { color: var(--ology-brand-leaf); }
+.ology-brand-footer .ology-brand-footer-path:hover .ology-brand-footer-arrow { transform: translateX(3px); }
+.ology-brand-footer .ology-brand-footer-muted { color: #cbded0; }
+.ology-brand-footer .ology-brand-footer-legal { border-color: rgba(255, 253, 247, .22); }
+.ology-brand-footer .ology-brand-footer-link {
+  color: #e4ebe1;
+  text-decoration: none;
+  transition: color .18s var(--ology-brand-ease);
+}
+.ology-brand-footer .ology-brand-footer-link:hover { color: var(--ology-brand-leaf); }
+.ology-brand-footer .ology-brand-footer-link:focus-visible,
+.ology-brand-footer .ology-brand-footer-path:focus-visible {
+  outline: 3px solid var(--ology-brand-leaf);
+  outline-offset: 3px;
+}
+.ology-brand-footer .ology-brand-footer-cta .ology-brand-footer-path:focus-visible {
+  outline-color: var(--ology-brand-coral-hover);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ology-brand-footer .ology-brand-footer-link,
+  .ology-brand-footer .ology-brand-footer-path,
+  .ology-brand-footer .ology-brand-footer-arrow {
+    transition-duration: .01ms !important;
+  }
+  .ology-brand-footer .ology-brand-footer-path:hover,
+  .ology-brand-footer .ology-brand-footer-path:active,
+  .ology-brand-footer .ology-brand-footer-path:hover .ology-brand-footer-arrow { transform: none; }
+}

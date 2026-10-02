@@ -7,6 +7,10 @@ const footerSource = readFileSync(
   resolve(root, "client/src/components/shared/Footer.tsx"),
   "utf8",
 );
+const brandStyles = readFileSync(
+  resolve(root, "client/src/components/shared/BrandFooter.css"),
+  "utf8",
+);
 
 describe("public footer", () => {
   it("opens with clear customer and provider acquisition paths", () => {
@@ -87,5 +91,24 @@ describe("public footer", () => {
     expect(footerSource).toContain("Install App");
     expect(footerSource).toContain("Secure checkout");
     expect(footerSource).toContain("<PaymentMethods");
+  });
+
+  it("uses the people-first palette only on the full public and signed-in footer", () => {
+    expect(footerSource).toContain('import "./BrandFooter.css";');
+    expect(footerSource).toContain('<footer className="ology-brand-footer">');
+    expect(footerSource).toContain('<footer className="or-demo-footer"');
+    expect(footerSource).toContain('className="ology-brand-footer-cta');
+    expect(footerSource).toContain('className="ology-brand-footer-path ology-brand-footer-path-customer');
+    expect(footerSource).toContain('className="ology-brand-footer-path ology-brand-footer-path-provider');
+    expect(brandStyles).toContain('@import "../../styles/publicBrandTokens.css"');
+    expect(brandStyles).toContain("background: var(--ology-brand-deep)");
+    expect(brandStyles).toContain("background: #e8ece0");
+    expect(brandStyles).toContain("background: var(--ology-brand-surface)");
+    expect(brandStyles).toContain("background: var(--ology-brand-ink)");
+    expect(brandStyles).toContain("var(--ology-brand-leaf)");
+    expect(brandStyles).toContain("var(--ology-brand-coral)");
+    expect(brandStyles).toContain(".ology-brand-footer .ology-brand-footer-path:focus-visible");
+    expect(brandStyles).toContain("@media (prefers-reduced-motion: reduce)");
+    expect(footerSource).not.toContain('bg-[#0d2438]');
   });
 });
