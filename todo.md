@@ -3478,3 +3478,9 @@
 - [x] Apply only when `provider.isOfficial`: condense the hero's category display, keep the DEMO identity and no-charge notice, remove low-value demo stats, and let visitors open booking guidance voluntarily rather than with an automatic modal.
 - [x] Surface four genuine demo service links first; keep the entire service catalog available through an obvious searchable category browser with complete counts and unchanged adaptive deep links.
 - [x] Keep normal provider profiles, booking/quote/payment/server behavior, and data unchanged. Verify 1440px/tablet/390px/320px samples, search/category filters, direct service links and normal-profile isolation; pass 180 test files / 2,012 tests, production build, TypeScript, diff and zero test-data residue; save an unpublished checkpoint. Do not publish without explicit approval.
+
+## Footer social sharing and approved combined publication
+- [x] Add Facebook/LinkedIn share links and a copy-link control to compact public and full public/signed-in footers; share only the canonical public OlogyCrew homepage, not private workspace URLs.
+- [x] Preserve footer acquisition/workspace/legal/payment content, create a concise Help Center article, and verify icon contrast, focus, mobile layout, link safety and copy feedback.
+- [x] Complete focused/full tests (180 files / 2,015 tests), TypeScript/build/cleanup/diff checks and checkpoint the combined staged changes for the approved publication.
+- [ ] Publish to the current domains and verify the exact bundle and live footer/demo interactions. This is an operational step after the source checkpoint.

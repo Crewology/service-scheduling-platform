@@ -4,6 +4,7 @@ import { usePWAInstallContext } from "@/contexts/PWAInstallContext";
 import { PaymentMethods } from "@/components/PaymentMethods";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useViewMode } from "@/contexts/ViewModeContext";
+import { FooterSocialShare } from "./FooterSocialShare";
 import "./BrandFooter.css";
 
 const footerLinkClass =
@@ -47,6 +48,7 @@ export function Footer({ forcePublic = false, compactPublicHome = false }: { for
           <div className="or-live-footer-identity">
             <Link href="/" className="or-demo-footer-brand" aria-label="OlogyCrew homepage"><img src="/manus-storage/ologycrew-demo-mark_075b3913.png" alt="" /><span>Ology<span style={{ color: "#bd4b35" }}>Crew</span></span></Link>
             <p>Independent service businesses, one good connection at a time.</p>
+            <FooterSocialShare />
           </div>
           <nav className="or-live-footer-links" aria-label="Public footer navigation">
             <Link href="/browse">Explore services</Link><Link href="/for-providers">For providers</Link><Link href="/pricing">Provider plans</Link><Link href="/referral-program">Referral program</Link><Link href="/help">Help</Link><Link href="/terms">Terms</Link><Link href="/privacy">Privacy</Link>
@@ -118,6 +120,7 @@ export function Footer({ forcePublic = false, compactPublicHome = false }: { for
               <p className="ology-brand-footer-muted mt-3 max-w-sm text-sm leading-6">
                 {signedInDescription}
               </p>
+              <FooterSocialShare />
             </div>
 
             <nav aria-label="Signed-in workspace footer navigation">
@@ -155,6 +158,7 @@ export function Footer({ forcePublic = false, compactPublicHome = false }: { for
               <p className="ology-brand-footer-muted mt-3 max-w-xs text-sm leading-6">
                 The digital home where customers find service professionals and providers manage the relationship from discovery through payment.
               </p>
+              <FooterSocialShare />
             </div>
 
             <nav aria-label="Explore footer navigation">

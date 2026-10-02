@@ -11,6 +11,14 @@ const brandStyles = readFileSync(
   resolve(root, "client/src/components/shared/BrandFooter.css"),
   "utf8",
 );
+const shareSource = readFileSync(
+  resolve(root, "client/src/components/shared/FooterSocialShare.tsx"),
+  "utf8",
+);
+const helpSource = readFileSync(
+  resolve(root, "client/src/pages/HelpCenter.tsx"),
+  "utf8",
+);
 
 describe("public footer", () => {
   it("opens with clear customer and provider acquisition paths", () => {
@@ -110,5 +118,31 @@ describe("public footer", () => {
     expect(brandStyles).toContain(".ology-brand-footer .ology-brand-footer-path:focus-visible");
     expect(brandStyles).toContain("@media (prefers-reduced-motion: reduce)");
     expect(footerSource).not.toContain('bg-[#0d2438]');
+  });
+
+  it("shares only the canonical public homepage in compact, full public and signed-in footers", () => {
+    expect(footerSource.match(/<FooterSocialShare \/>/g)).toHaveLength(3);
+    expect(shareSource).toContain('const siteUrl = ologyCrewPublicUrl("/")');
+    expect(shareSource).toContain("const encodedSiteUrl = encodeURIComponent(siteUrl)");
+    expect(shareSource).toContain("https://www.facebook.com/sharer/sharer.php?u=${encodedSiteUrl}");
+    expect(shareSource).toContain("https://www.linkedin.com/sharing/share-offsite/?url=${encodedSiteUrl}");
+    expect(shareSource).not.toContain("window.location");
+    expect(shareSource).toContain('rel="noopener noreferrer"');
+    expect(shareSource).toContain('target="_blank"');
+    expect(shareSource).toContain("await navigator.clipboard.writeText(siteUrl)");
+    expect(shareSource).toContain('toast.error("Copy unavailable.');
+    expect(shareSource).toContain('aria-label="Copy OlogyCrew homepage link"');
+  });
+
+  it("makes footer sharing keyboard-accessible and documents it for visitors", () => {
+    expect(shareSource).toContain('role="group" aria-label="Share OlogyCrew"');
+    expect(brandStyles).toContain(".ology-footer-social-actions :is(a, button)");
+    expect(brandStyles).toContain("width: 40px;");
+    expect(brandStyles).toContain(":focus-visible");
+    expect(brandStyles).toContain("@media (prefers-reduced-motion: reduce)");
+    expect(brandStyles).toContain(".ology-brand-footer .ology-footer-social-actions :is(a, button):hover,");
+    expect(brandStyles).toContain(".or-demo-footer .ology-footer-social-actions :is(a, button):hover { transform: none; }");
+    expect(helpSource).toContain('title: "Sharing OlogyCrew"');
+    expect(helpSource).toContain("never your account or private workspace");
   });
 });

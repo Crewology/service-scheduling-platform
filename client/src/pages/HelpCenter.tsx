@@ -88,6 +88,11 @@ const guideSections: GuideSection[] = [
         linkText: "Explore Services",
       },
       {
+        title: "Sharing OlogyCrew",
+        content:
+          "At the bottom of the site, use Share OlogyCrew to open a Facebook or LinkedIn sharing window, or select Copy link to copy the public homepage address. These controls share only https://ologycrew.com/ — never your account or private workspace. To recommend a particular professional instead, use Share on that provider's public profile.",
+      },
+      {
         title: "Making Your First Booking",
         content:
           "Find a service you need, click on it to view details including pricing, duration, and availability. Select your preferred date and time slot, add any notes for the provider, and confirm your booking. You'll receive a confirmation with all the details. The provider will then confirm or suggest an alternative time.",
