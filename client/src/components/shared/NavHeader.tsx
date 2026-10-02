@@ -226,7 +226,7 @@ function NotificationDropdown() {
       <Button
         variant="ghost"
         size="icon"
-        className="relative"
+        className="relative public-brand-icon"
         onClick={() => setOpen(!open)}
       >
         <Bell className="h-5 w-5 lg:h-4 lg:w-4" />
@@ -381,7 +381,7 @@ function UserMenuDropdown({ user }: { user: any }) {
       <Button
         variant="ghost"
         size="sm"
-        className="gap-1"
+        className="gap-1 public-brand-account"
         onClick={() => setOpen(!open)}
       >
         <User className="h-4 w-4" />
@@ -390,7 +390,7 @@ function UserMenuDropdown({ user }: { user: any }) {
       </Button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-xl border z-[100] overflow-hidden py-1">
+        <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-xl border z-[100] overflow-hidden py-1 public-brand-account-menu">
           <Link
             href="/account"
             className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors"
@@ -603,17 +603,17 @@ export function NavHeader({ forcePublic = false }: { forcePublic?: boolean } = {
   const { isInstalled: pwaInstalled, triggerInstall: pwaInstall } = usePWAInstallContext();
 
   return (
-    <header className={`border-b sticky top-0 z-50 ${isAuthenticated ? "bg-white" : "bg-[#fffdf7] public-brand-header"}`}>
-      <div className={isAuthenticated ? "container" : "public-brand-inner"}>
+    <header className="border-b sticky top-0 z-50 public-brand-header">
+      <div className="public-brand-inner">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 shrink-0" onClick={() => setMobileMenuOpen(false)}>
+          <Link href="/" aria-label="OlogyCrew homepage" className="public-brand-logo flex items-center gap-2.5 shrink-0" onClick={() => setMobileMenuOpen(false)}>
             <img
-              src="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png"
-              alt="OlogyCrew"
-              className="h-9 w-9 lg:h-8 lg:w-8 object-contain rounded-lg"
+              src="/manus-storage/ologycrew-demo-mark_075b3913.png"
+              alt=""
+              className="h-[34px] w-[34px] object-contain"
             />
-            <span className={`hidden lg:inline text-xl font-bold whitespace-nowrap ${isAuthenticated ? "gradient-text" : "public-brand-wordmark"}`}>OlogyCrew</span>
+            <span className="public-brand-wordmark whitespace-nowrap" aria-hidden="true">Ology<span className="public-brand-wordmark-accent">Crew</span></span>
           </Link>
 
           {/* Desktop Nav - hidden per user request */}
@@ -622,7 +622,7 @@ export function NavHeader({ forcePublic = false }: { forcePublic?: boolean } = {
           <div className="hidden lg:flex items-center gap-1">
             {/* Search / Explore */}
             <Link href="/browse" aria-label="Search services and providers">
-              <Button variant="ghost" size="icon" className={`relative h-9 w-9 ${isAuthenticated ? "" : "public-brand-icon"}`} title="Search">
+              <Button variant="ghost" size="icon" className="relative h-9 w-9 public-brand-icon" title="Search">
                 <Search className="h-4 w-4" />
               </Button>
             </Link>
@@ -643,7 +643,7 @@ export function NavHeader({ forcePublic = false }: { forcePublic?: boolean } = {
                 {/* Admin Dashboard */}
                 {isAdmin && (
                   <Link href="/admin">
-                    <Button variant="outline" size="sm" className="text-xs px-2.5 border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800">
+                    <Button variant="outline" size="sm" className="text-xs px-2.5 public-brand-admin">
                       <Shield className="h-3.5 w-3.5 mr-1" />
                       Admin
                     </Button>
@@ -672,7 +672,7 @@ export function NavHeader({ forcePublic = false }: { forcePublic?: boolean } = {
           <div className="flex lg:hidden items-center gap-1">
             {/* Search customer Explore (mobile) */}
             <Link href="/browse" aria-label="Search services and providers">
-              <Button variant="ghost" size="icon" className={`relative h-10 w-10 ${isAuthenticated ? "" : "public-brand-icon"}`} title="Search">
+              <Button variant="ghost" size="icon" className="relative h-10 w-10 public-brand-icon" title="Search">
                 <Search className="h-5 w-5" />
               </Button>
             </Link>
@@ -681,7 +681,7 @@ export function NavHeader({ forcePublic = false }: { forcePublic?: boolean } = {
             <Button
               variant="ghost"
               size="icon"
-              className={`relative h-10 w-10 ${isAuthenticated ? "" : "public-brand-icon"}`}
+              className="relative h-10 w-10 public-brand-icon"
               onClick={() => window.dispatchEvent(new Event('toggle-help-chat'))}
               title="AI Assistant"
             >
@@ -695,7 +695,7 @@ export function NavHeader({ forcePublic = false }: { forcePublic?: boolean } = {
             <Button
               variant="ghost"
               size="icon"
-              className={`h-10 w-10 ${isAuthenticated ? "" : "public-brand-icon"}`}
+              className="h-10 w-10 public-brand-icon"
               aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
               aria-expanded={mobileMenuOpen}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -707,7 +707,7 @@ export function NavHeader({ forcePublic = false }: { forcePublic?: boolean } = {
 
         {/* Mobile Full-Screen App Menu */}
         {mobileMenuOpen && (
-          <div className={`lg:hidden fixed inset-0 z-50 animate-in slide-in-from-right-full duration-200 overflow-y-auto ${isAuthenticated ? "top-[57px] bg-background" : "top-16 bg-[#fffdf7]"}`}>
+          <div className="lg:hidden fixed inset-0 top-16 z-50 bg-[#fffdf7] animate-in slide-in-from-right-full duration-200 overflow-y-auto">
             <div className="flex flex-col h-full">
               {/* User Profile Summary */}
               {isAuthenticated && user ? (

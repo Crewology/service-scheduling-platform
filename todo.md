@@ -3452,3 +3452,8 @@
 - [x] Widen only the public homepage and For Providers desktop content to a responsive 1600px maximum with familiar edge gutters; keep mobile/tablet layout stable.
 - [x] Align the shared public header to the widened content and Concept 3’s warm-paper, deep-green, editorial typography; retain Search, Pricing, Sign In, Get Started and mobile-menu destinations, and keep signed-in header styling and behavior unchanged.
 - [x] Update focused contracts; inspect 1920px/1440px, tablet, and 390px/320px plus signed-in header; pass 178 test files / 2,002 tests, production build, cleanup, TypeScript and diff checks; save an unpublished checkpoint. The previously stopped testimonial request is out of scope.
+
+## Shared header/footer brand alignment and release (approved)
+- [x] Use the compact public footer's exact mark and Ology/Crew coral wordmark treatment in the header on logged-out and signed-in pages; preserve logo Home destination and account controls.
+- [x] Apply warm-paper, deep-green, and coral header styling to signed-in and public modes, including measured, reduced-motion-aware link/control hover effects and visible keyboard focus.
+- [x] Check public, provider, customer, admin and mobile navigation; pass focused and full tests (178 files / 2,002 tests), production build, type/diff and cleanup checks; checkpoint the approved release. Publishing and production verification are separate follow-up actions.

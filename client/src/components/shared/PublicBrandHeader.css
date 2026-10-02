@@ -1,4 +1,5 @@
-/* Logged-out marketing header only. Workspace headers keep their existing classes. */
+/* Shared OlogyCrew header: same mark and split-color wordmark as the compact public footer.
+   Scope presentation to the header; menus and workspace actions keep their existing routes. */
 .public-brand-header {
   background: #fffdf7;
   border-bottom-color: #dfe4da;
@@ -9,21 +10,38 @@
   width: min(1600px, calc(100% - 64px));
   margin-inline: auto;
 }
-.public-brand-header .public-brand-wordmark {
+.public-brand-header .public-brand-logo {
   color: #183b3a;
-  font-family: "Manrope", sans-serif;
-  font-weight: 800;
+  text-decoration: none;
+  transition: opacity .18s cubic-bezier(.23,1,.32,1), transform .18s cubic-bezier(.23,1,.32,1);
+}
+.public-brand-header .public-brand-logo:hover { opacity: .8; transform: translateY(-1px); }
+.public-brand-header .public-brand-wordmark {
+  display: none;
+  color: #183b3a;
+  font-size: 19px;
+  font-weight: 700;
   letter-spacing: -.05em;
 }
-.public-brand-header .public-brand-icon,
-.public-brand-header .public-brand-nav-link {
+.public-brand-header .public-brand-wordmark-accent { color: #bd4b35; }
+.public-brand-header :is(.public-brand-icon, .public-brand-nav-link, .public-brand-account) {
   color: #183b3a;
+  transition: color .18s cubic-bezier(.23,1,.32,1), background-color .18s cubic-bezier(.23,1,.32,1), transform .18s cubic-bezier(.23,1,.32,1);
 }
-.public-brand-header .public-brand-icon:hover,
-.public-brand-header .public-brand-nav-link:hover {
+.public-brand-header :is(.public-brand-icon, .public-brand-nav-link, .public-brand-account):hover {
   color: #9e3e2d;
   background: #f5f2e9;
 }
+.public-brand-header :is(.public-brand-icon, .public-brand-nav-link, .public-brand-account):active { transform: scale(.97); }
+.public-brand-header .public-brand-admin {
+  border-color: #d4ddd3;
+  color: #183b3a;
+  transition: color .18s cubic-bezier(.23,1,.32,1), border-color .18s cubic-bezier(.23,1,.32,1), background-color .18s cubic-bezier(.23,1,.32,1);
+}
+.public-brand-header .public-brand-admin:hover { color: #9e3e2d; border-color: #bd4b35; background: #f5f2e9; }
+.public-brand-header .public-brand-account-menu a { transition: color .18s cubic-bezier(.23,1,.32,1), background-color .18s cubic-bezier(.23,1,.32,1); }
+.public-brand-header .public-brand-account-menu a:hover { color: #9e3e2d; background: #f5f2e9; }
+.public-brand-header [title^="Switch to"]:not(:disabled):hover { color: #183b3a; background: #f5f2e9; }
 .public-brand-header .public-brand-cta {
   background: #bd4b35;
   color: #fffdf7;
@@ -35,12 +53,10 @@
 .public-brand-header .public-brand-cta:hover { background: #a43d29; color: #fffdf7; }
 .public-brand-header .public-brand-cta:active { transform: scale(.97); }
 .public-brand-header :is(a, button):focus-visible { outline: 3px solid #a43d29; outline-offset: 3px; }
-@media (max-width: 1000px) {
-  .public-brand-header .public-brand-inner { width: calc(100% - 44px); }
-}
-@media (max-width: 640px) {
-  .public-brand-header .public-brand-inner { width: calc(100% - 36px); }
-}
+@media (min-width: 390px) { .public-brand-header .public-brand-wordmark { display: inline; } }
+@media (max-width: 1000px) { .public-brand-header .public-brand-inner { width: calc(100% - 44px); } }
+@media (max-width: 640px) { .public-brand-header .public-brand-inner { width: calc(100% - 36px); } }
 @media (prefers-reduced-motion: reduce) {
-  .public-brand-header .public-brand-cta { transition-duration: .01ms; }
+  .public-brand-header :is(a, button) { transition-duration: .01ms !important; }
+  .public-brand-header .public-brand-logo:hover { transform: none; }
 }
