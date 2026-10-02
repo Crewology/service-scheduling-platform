@@ -70,4 +70,11 @@ describe("official demo provider decluttering", () => {
     expect(app).toContain('!isPrototype && !isDemoProfile && <PWAInstallBanner />');
     expect(app).toContain('!location.startsWith("/embed") && !isPrototype && <PreviewEnvironmentBanner />');
   });
+
+  it("keeps the Powered by promotion on real providers but not the official demo", () => {
+    expect(profile).toMatch(/\{!provider\.isOfficial && \(\s*<div className="ology-provider-bottom/);
+    expect(profile).toContain('Powered by <Link href="/">');
+    expect(profile).toContain("Get your own page — it's free to start →");
+    expect(profile).toContain('<Link href="/provider/onboarding">');
+  });
 });

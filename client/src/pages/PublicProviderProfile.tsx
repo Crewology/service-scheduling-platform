@@ -1130,20 +1130,22 @@ export default function PublicProviderProfile() {
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="ology-provider-bottom border-t mt-12 bg-slate-50">
-        <div className="ology-provider-bottom-inner container max-w-5xl py-8 text-center">
-          <p className="text-sm text-muted-foreground mb-2">
-            Powered by <Link href="/"><span className="text-primary font-medium hover:underline">OlogyCrew</span></Link>
-          </p>
-          <p className="text-xs text-muted-foreground mb-3">The digital home for service professionals</p>
-          <Link href="/pricing">
-            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer">
-              Get your own page — it's free to start →
-            </span>
-          </Link>
+      {/* Real providers keep this attribution; the official demo already has a provider CTA above. */}
+      {!provider.isOfficial && (
+        <div className="ology-provider-bottom border-t mt-12 bg-slate-50">
+          <div className="ology-provider-bottom-inner container max-w-5xl py-8 text-center">
+            <p className="text-sm text-muted-foreground mb-2">
+              Powered by <Link href="/"><span className="text-primary font-medium hover:underline">OlogyCrew</span></Link>
+            </p>
+            <p className="text-xs text-muted-foreground mb-3">The digital home for service professionals</p>
+            <Link href="/pricing">
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer">
+                Get your own page — it's free to start →
+              </span>
+            </Link>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ================================================================ */}
       {/* REQUEST A QUOTE DIALOG                                           */}
