@@ -5,7 +5,7 @@ import { nanoid } from "nanoid";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import viteConfig from "../../vite.config";
-import { getProviderOgTags, getServiceOgTags, getCategoryOgTags, getHomepageOgTags } from "../ogTags";
+import { getProviderOgTags, getServiceOgTags, getCategoryOgTags, getHomepageOgTags, getProviderBenefitsOgTags } from "../ogTags";
 import { getCategoryJsonLd, getHomepageJsonLd, getProviderJsonLd, getServiceJsonLd } from "../structuredData";
 
 async function injectOgTags(url: string, template: string, origin: string): Promise<string> {
@@ -24,7 +24,7 @@ async function injectOgTags(url: string, template: string, origin: string): Prom
     const cleanSlugMatch = url.match(/^\/([a-z0-9][a-z0-9-]*[a-z0-9])(?:[/?#]|$)/);
     if (cleanSlugMatch) {
       // Only treat as provider slug if it's not a known app route
-      const knownRoutes = ['login','signup','forgot-password','reset-password','verify-email','select-role','browse','featured','search','category','provider','service','booking','bulk-booking','monthly-planner','my-bookings','messages','dm','admin','my-reviews','profile','account','notifications','notification-settings','unsubscribe','embed','receipts','referrals','saved-providers','my-quotes','my-waitlist','pricing','customer','analytics','privacy','terms','help','referral-program','404','experiences'];
+      const knownRoutes = ['login','signup','forgot-password','reset-password','verify-email','select-role','browse','featured','search','category','provider','service','booking','bulk-booking','monthly-planner','my-bookings','messages','dm','admin','my-reviews','profile','account','notifications','notification-settings','unsubscribe','embed','receipts','referrals','saved-providers','my-quotes','my-waitlist','pricing','for-providers','customer','analytics','privacy','terms','help','referral-program','404','experiences'];
       const slug = cleanSlugMatch[1];
       if (!knownRoutes.includes(slug) && !slug.startsWith('p/')) {
         ogTags = await getProviderOgTags(slug, origin);
@@ -135,6 +135,13 @@ async function injectOgTags(url: string, template: string, origin: string): Prom
       `<meta property="og:image:height" content="630" />`,
       `<meta name="twitter:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-compressed_d69712f3.jpg" />`,
     ].join("\n    ");
+  }
+
+  // Public provider benefits page (static marketing route, not a provider slug).
+  if (!ogTags && (url === "/for-providers" || url.startsWith("/for-providers?"))) {
+    ogTags = getProviderBenefitsOgTags(origin);
+    template = template.replace(/<title>[^<]*<\/title>/, "<title>For Service Providers | OlogyCrew</title>");
+    template = template.replace(/<meta name="description" content="[^"]*"\s*\/>/, '<meta name="description" content="Build a public home for your services on OlogyCrew. Help customers find your work, manage bookings and conversations, and compare plans for additional business tools." />');
   }
 
   // Homepage (exact match on / or /?)

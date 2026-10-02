@@ -37,7 +37,7 @@ export function Footer({ forcePublic = false, compactPublicHome = false }: { for
     ? "Your workspace for managing services, bookings, payments, and customer relationships."
     : "Your workspace for finding services, managing bookings, and returning to providers you trust.";
 
-  // Only the new logged-out public homepage uses the demo's quiet footer treatment.
+  // The logged-out people-first marketing pages use the quiet compact footer.
   // Other public pages and signed-in workspaces retain the established shared footer.
   if (compactPublicHome && !isAuthenticated) {
     return (
@@ -48,7 +48,7 @@ export function Footer({ forcePublic = false, compactPublicHome = false }: { for
             <p>Independent service businesses, one good connection at a time.</p>
           </div>
           <nav className="or-live-footer-links" aria-label="Public footer navigation">
-            <Link href="/browse">Explore services</Link><Link href="/pricing">Provider plans</Link><Link href="/referral-program">Referral program</Link><Link href="/help">Help</Link><Link href="/terms">Terms</Link><Link href="/privacy">Privacy</Link>
+            <Link href="/browse">Explore services</Link><Link href="/for-providers">For providers</Link><Link href="/pricing">Provider plans</Link><Link href="/referral-program">Referral program</Link><Link href="/help">Help</Link><Link href="/terms">Terms</Link><Link href="/privacy">Privacy</Link>
           </nav>
           <small className="or-live-footer-copyright">© {new Date().getFullYear()} OlogyCrew</small>
         </div>
@@ -167,7 +167,7 @@ export function Footer({ forcePublic = false, compactPublicHome = false }: { for
             <nav aria-label="Provider footer navigation">
               <h4 className="font-semibold text-white">For Providers</h4>
               <ul className="mt-3 space-y-1">
-                <li><Link href="/pricing" className={footerLinkClass}>Build Your Business Page</Link></li>
+                <li><Link href="/for-providers" className={footerLinkClass}>Build Your Business Page</Link></li>
                 <li><Link href="/pricing" className={footerLinkClass}>Provider Plans</Link></li>
                 <li><Link href="/login" className={footerLinkClass}>Sign In</Link></li>
               </ul>

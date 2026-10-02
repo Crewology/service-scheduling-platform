@@ -1,0 +1,94 @@
+/* Public provider-benefits marketing page. All component styling stays below this scope. */
+.provider-benefits-page{--pb-paper:#f5f2e9;--pb-ink:#183b3a;--pb-deep:#123332;--pb-muted:#53665d;--pb-line:#dbe2d7;--pb-coral:#bd4b35;--pb-white:#fffdf7;color:var(--pb-ink);background:var(--pb-paper);font-family:"DM Sans",sans-serif;overflow:hidden}
+.provider-benefits-page *{box-sizing:border-box}
+.provider-benefits-page :is(a,button):focus-visible{outline:3px solid var(--pb-coral);outline-offset:4px}
+.provider-marketing-wrap{width:min(1240px,calc(100% - 64px));margin-inline:auto}
+.provider-marketing-kicker{margin:0 0 16px;color:var(--pb-coral);font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+.provider-marketing-hero{width:min(1240px,calc(100% - 64px));margin:30px auto 0;min-height:580px;display:grid;grid-template-columns:1.02fr .98fr;border-radius:10px 10px 0 0;overflow:hidden;background:var(--pb-deep)}
+.provider-marketing-hero-copy{padding:65px clamp(30px,6vw,76px) 52px;color:var(--pb-white);display:flex;flex-direction:column;justify-content:center;min-width:0}
+.provider-marketing-hero-copy .provider-marketing-kicker{color:#d2e68a}
+.provider-marketing-hero h1{margin:0;font:600 clamp(46px,5.3vw,74px)/1.04 "Manrope",sans-serif;letter-spacing:-.06em;white-space:nowrap}
+.provider-marketing-hero h1 em{color:#e2edaf;font:italic 500 1.06em "Playfair Display",serif;letter-spacing:-.055em}
+.provider-marketing-hero-description{margin:26px 0 0;max-width:455px;color:#f2f4e9;font-size:16px;line-height:1.75}
+.provider-marketing-actions{margin-top:29px;display:flex;align-items:center;gap:14px 24px;flex-wrap:wrap}
+.provider-marketing-button{min-height:47px;display:inline-flex;align-items:center;justify-content:center;gap:10px;border-radius:5px;padding:12px 20px;font-size:13px;font-weight:700;text-decoration:none;transition:transform .18s cubic-bezier(.23,1,.32,1),background-color .18s cubic-bezier(.23,1,.32,1)}
+.provider-marketing-button:active{transform:scale(.97)}
+.provider-marketing-button svg,.provider-marketing-text-link svg,.provider-marketing-sample a svg{width:16px;height:16px}
+.provider-marketing-button-light{background:#fffdf7;color:var(--pb-deep)}
+.provider-marketing-button-light:hover{background:#dce8bf}
+.provider-marketing-text-link{min-height:44px;display:inline-flex;align-items:center;gap:7px;color:#eef2dc;font-size:12px;font-weight:700;text-underline-offset:5px}
+.provider-marketing-text-link:hover{color:#e2edaf}
+.provider-marketing-hero-note{max-width:465px;margin:23px 0 0;color:#dce4da;font-size:11px;line-height:1.65}
+.provider-marketing-hero-art{position:relative;min-height:420px;overflow:hidden;background:#61746c}
+.provider-marketing-hero-art:before{position:absolute;inset:0;z-index:1;content:"";background:linear-gradient(90deg,rgba(18,51,50,.4),transparent 45%),linear-gradient(0deg,rgba(18,51,50,.4),transparent 38%);pointer-events:none}
+.provider-marketing-hero-art img{width:100%;height:100%;position:absolute;inset:0;object-fit:cover;object-position:center 42%}
+.provider-marketing-hero-art>span{position:absolute;z-index:2;right:23px;bottom:22px;color:#fff;font-size:10px;font-weight:600;letter-spacing:.02em;text-shadow:0 1px 6px #122d2c}
+.provider-marketing-section{padding-top:96px;padding-bottom:96px}
+.provider-marketing-split-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:35px;margin-bottom:35px}
+.provider-marketing-split-heading>div{max-width:720px}
+.provider-marketing-split-heading h2,.provider-marketing-philosophy h2,.provider-marketing-closing h2{margin:0;font:600 clamp(36px,4.5vw,57px)/1.06 "Manrope",sans-serif;letter-spacing:-.055em}
+.provider-marketing-split-heading>p{width:320px;flex:none;margin:0 0 3px;color:var(--pb-muted);font-size:14px;line-height:1.75}
+.provider-marketing-value-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.provider-marketing-value-grid article{padding:28px 27px;background:#fffdf7;border:1px solid var(--pb-line);border-radius:5px}
+.provider-marketing-value-grid article>span{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:#e4e8d9;color:var(--pb-ink)}
+.provider-marketing-value-grid svg{width:20px;height:20px}
+.provider-benefits-page h3{font-family:"Manrope",sans-serif;letter-spacing:-.04em}
+.provider-marketing-value-grid h3{font-size:20px;margin:23px 0 8px}
+.provider-marketing-value-grid p,.provider-marketing-tool-grid p{margin:0;color:var(--pb-muted);font-size:13px;line-height:1.7}
+.provider-marketing-tools{background:#e8ece0}
+.provider-marketing-tool-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.provider-marketing-tool-grid article{min-height:194px;display:flex;flex-direction:column;padding:21px 22px 24px;background:var(--pb-white);border:1px solid #d9e0d4;border-radius:5px}
+.provider-marketing-tool-top{display:flex;align-items:flex-start;justify-content:space-between}
+.provider-marketing-tool-icon{width:42px;height:42px;display:grid;place-items:center;color:var(--pb-coral);background:#f5f2e9;border-radius:5px}
+.provider-marketing-tool-icon svg{width:20px;height:20px}
+.provider-marketing-number{color:#8a9a8d;font-size:11px;font-weight:700}
+.provider-marketing-tool-grid h3{font-size:18px;margin:17px 0 6px}
+.provider-marketing-url{display:grid;grid-template-columns:1fr auto;align-items:center;gap:24px;margin-top:15px;padding:27px 30px;background:#d8e0d2;border:1px solid #c9d6c3;border-radius:5px}
+.provider-marketing-url .provider-marketing-kicker{margin-bottom:5px}
+.provider-marketing-url h3{font-size:20px;margin:0 0 5px}
+.provider-marketing-url p:not(.provider-marketing-kicker){margin:0;color:var(--pb-muted);font-size:13px;line-height:1.6;max-width:545px}
+.provider-marketing-url-example{min-width:280px;padding:15px;background:var(--pb-white);border-radius:4px;color:var(--pb-ink);font-size:13px}
+.provider-marketing-url-example strong{color:var(--pb-coral)}
+.provider-marketing-url-example small{display:block;margin-top:6px;color:var(--pb-muted);font-size:10px;line-height:1.5}
+.provider-marketing-comparison-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}
+.provider-marketing-comparison-grid article{display:flex;flex-direction:column;gap:20px;min-height:203px;padding:23px;background:#fffdf7;border:1px solid var(--pb-line);border-radius:5px}
+.provider-marketing-comparison-grid article>span{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.provider-marketing-comparison-grid p{margin:0;color:var(--pb-muted);font-size:13px;line-height:1.6}
+.provider-marketing-comparison-grid strong{margin-top:auto;font-size:14px;font-family:"Manrope",sans-serif;line-height:1.4}
+.provider-marketing-comparison-us{background:var(--pb-ink)!important;color:var(--pb-white)}
+.provider-marketing-comparison-us p{color:#d8e6d9!important}
+.provider-marketing-comparison-us strong{display:flex;align-items:center;gap:5px;color:#e4ecac}
+.provider-marketing-comparison-us svg{width:16px;height:16px;flex:none}
+.provider-marketing-fineprint{margin:20px 0 0;color:var(--pb-muted);font-size:12px;line-height:1.6}
+.provider-marketing-fineprint a{color:#a43d29;font-weight:700;text-underline-offset:3px}
+.provider-marketing-philosophy{padding:94px 0;background:var(--pb-deep);color:var(--pb-white)}
+.provider-marketing-philosophy-inner{display:grid;grid-template-columns:1.03fr .97fr;align-items:center;gap:80px}
+.provider-marketing-philosophy .provider-marketing-kicker{display:inline-flex;align-items:center;gap:7px;color:#d3e59d}
+.provider-marketing-philosophy .provider-marketing-kicker svg{width:15px;height:15px}
+.provider-marketing-philosophy h2{max-width:630px}
+.provider-marketing-philosophy-inner>div:first-child>p:last-child{color:#d5e1d9;font-size:16px;line-height:1.7}
+.provider-marketing-philosophy-points{display:grid;gap:10px}
+.provider-marketing-philosophy-points p{display:flex;align-items:flex-start;gap:10px;margin:0;padding:17px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.1);border-radius:5px;font-size:13px;line-height:1.6}
+.provider-marketing-philosophy-points svg{width:16px;height:16px;flex:none;color:#d5e794;margin-top:2px}
+.provider-marketing-philosophy-points small{color:#d7dfd9;line-height:1.6;font-size:11px;margin-top:7px}
+.provider-marketing-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));list-style:none;margin:0;padding:0;border-top:1px solid var(--pb-line);border-bottom:1px solid var(--pb-line)}
+.provider-marketing-steps li{padding:26px 21px 32px;min-width:0}
+.provider-marketing-steps li+li{border-left:1px solid var(--pb-line)}
+.provider-marketing-steps span{color:var(--pb-coral);font-size:12px;font-weight:700}
+.provider-marketing-steps h3{margin:19px 0 8px;font-size:18px;line-height:1.25}
+.provider-marketing-steps p{margin:0;color:var(--pb-muted);font-size:12px;line-height:1.65}
+.provider-marketing-sample{margin-top:38px;display:flex;align-items:center;justify-content:space-between;gap:28px;padding:27px 30px;background:#e8ece0;border-radius:5px}
+.provider-marketing-sample .provider-marketing-kicker{margin-bottom:6px}
+.provider-marketing-sample h3{font-size:20px;margin:0 0 7px}
+.provider-marketing-sample p:not(.provider-marketing-kicker){font-size:12px;line-height:1.65;color:var(--pb-muted);margin:0;max-width:650px}
+.provider-marketing-sample a{flex:none;display:inline-flex;align-items:center;gap:7px;min-height:44px;color:#a43d29;font-size:13px;font-weight:700;text-decoration:none}
+.provider-marketing-sample a:hover{text-decoration:underline;text-underline-offset:4px}
+.provider-marketing-closing{background:#d8e3d1;padding:76px 0 84px}
+.provider-marketing-closing h2{max-width:640px}
+.provider-marketing-closing p:not(.provider-marketing-kicker){max-width:560px;margin:16px 0 25px;color:var(--pb-muted);font-size:15px;line-height:1.7}
+.provider-marketing-closing .provider-marketing-button{background:var(--pb-ink);color:#fffdf7}
+.provider-marketing-closing .provider-marketing-button:hover{background:#a43d29}
+@media(max-width:1000px){.provider-marketing-wrap,.provider-marketing-hero{width:calc(100% - 44px)}.provider-marketing-hero-copy{padding:55px 35px}.provider-marketing-hero h1{font-size:clamp(39px,5vw,56px)}.provider-marketing-hero-description{font-size:14px}.provider-marketing-hero{min-height:540px}.provider-marketing-philosophy-inner{gap:30px}.provider-marketing-comparison-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.provider-marketing-wrap,.provider-marketing-hero{width:calc(100% - 36px)}.provider-marketing-hero{margin-top:14px;grid-template-columns:1fr;min-height:0;border-radius:5px}.provider-marketing-hero-copy{padding:42px 25px 37px}.provider-marketing-hero h1{font-size:clamp(43px,11vw,66px)}.provider-marketing-hero-description{font-size:13px;margin-top:20px}.provider-marketing-actions{gap:4px 18px;margin-top:23px}.provider-marketing-hero-note{margin-top:17px}.provider-marketing-hero-art{height:290px;min-height:0}.provider-marketing-hero-art img{object-position:center 30%}.provider-marketing-section{padding-top:69px;padding-bottom:69px}.provider-marketing-split-heading{display:block;margin-bottom:25px}.provider-marketing-split-heading h2,.provider-marketing-philosophy h2,.provider-marketing-closing h2{font-size:clamp(34px,9vw,44px)}.provider-marketing-split-heading>p{width:auto;margin-top:17px}.provider-marketing-value-grid,.provider-marketing-tool-grid{grid-template-columns:1fr}.provider-marketing-tool-grid article{min-height:0}.provider-marketing-url{grid-template-columns:1fr;padding:22px}.provider-marketing-url-example{min-width:0;overflow-wrap:anywhere}.provider-marketing-comparison-grid{grid-template-columns:1fr 1fr}.provider-marketing-comparison-grid article{min-height:185px;padding:17px;gap:13px}.provider-marketing-philosophy{padding:68px 0}.provider-marketing-philosophy-inner{grid-template-columns:1fr;gap:25px}.provider-marketing-steps{grid-template-columns:1fr 1fr}.provider-marketing-steps li:nth-child(3){border-left:0;border-top:1px solid var(--pb-line)}.provider-marketing-steps li:nth-child(4){border-top:1px solid var(--pb-line)}.provider-marketing-sample{display:block;padding:23px}.provider-marketing-sample a{margin-top:17px}.provider-marketing-closing{padding:60px 0 67px}}
+@media(max-width:390px){.provider-marketing-comparison-grid{grid-template-columns:1fr}.provider-marketing-comparison-grid article{min-height:0}.provider-marketing-hero h1{font-size:clamp(40px,11vw,49px)}}
+@media(prefers-reduced-motion:reduce){.provider-benefits-page :is(a,button){transition-duration:.01ms!important}}

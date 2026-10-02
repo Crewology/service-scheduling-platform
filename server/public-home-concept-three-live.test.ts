@@ -62,7 +62,7 @@ describe("Concept 3 public homepage with actual OlogyCrew data", () => {
     expect(app).toContain('path="/preview/public-home-live" component={PublicHomepageLiveReview}');
     expect(live).toContain("<NavHeader forcePublic={forcePublicHeader} />");
     expect(preview).toContain("<NavHeader forcePublic />");
-    expect(app).toContain('<Footer compactPublicHome={location === "/"} />');
+    expect(app).toContain('<Footer compactPublicHome={location === "/" || location === "/for-providers"} />');
     expect(footer).toContain("compactPublicHome && !isAuthenticated");
     render(createElement(PublicHomepageConceptThree));
     expect(screen.getByTestId("shared-header")).toBeVisible();
@@ -89,6 +89,7 @@ describe("Concept 3 public homepage with actual OlogyCrew data", () => {
     expect(within(customer).getByText("01 / FOR CUSTOMERS")).toBeVisible();
     expect(within(customer).getByRole("link", { name: "Explore services" })).toHaveAttribute("href", "/browse");
     expect(within(provider).getByText("02 / FOR PROVIDERS")).toBeVisible();
+    expect(within(provider).getByRole("link", { name: "Why providers choose OlogyCrew" })).toHaveAttribute("href", "/for-providers");
     expect(within(provider).getByRole("link", { name: "See provider plans" })).toHaveAttribute("href", "/pricing");
     expect(within(provider).getByRole("link", { name: "Explore a sample profile" })).toHaveAttribute("href", "/demo-ologycrew");
     expect(within(paths).getAllByRole("article")).toHaveLength(2);
@@ -103,7 +104,7 @@ describe("Concept 3 public homepage with actual OlogyCrew data", () => {
     const cue = within(hero).getByLabelText("One platform, two clear paths");
     expect(within(cue).getByText("One platform. Two clear paths.")).toBeVisible();
     expect(within(cue).getByRole("link", { name: "Find a pro" })).toHaveAttribute("href", "/browse");
-    expect(within(cue).getByRole("link", { name: "Offer your services" })).toHaveAttribute("href", "/pricing");
+    expect(within(cue).getByRole("link", { name: "Offer your services" })).toHaveAttribute("href", "/for-providers");
     expect(search.compareDocumentPosition(cue) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 

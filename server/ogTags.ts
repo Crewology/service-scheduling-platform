@@ -197,6 +197,17 @@ export async function getHomepageOgTags(origin: string): Promise<string> {
   });
 }
 
+/** Static public benefits page for service providers; does not make tier promises. */
+export function getProviderBenefitsOgTags(origin: string): string {
+  return buildOgTagsHtml({
+    title: "For Service Providers | OlogyCrew",
+    description: "Build a public home for your services on OlogyCrew. Help customers find your work, manage bookings and conversations, and compare plans for additional business tools.",
+    url: `${origin.replace(/\/$/, "")}/for-providers`,
+    imageUrl: `${origin.replace(/\/$/, "")}/manus-storage/independent-designer-at-work_08f09cd1.jpg`,
+    type: "website",
+  });
+}
+
 /**
  * Invalidate the cached OG image for a provider (call when profile is updated).
  */

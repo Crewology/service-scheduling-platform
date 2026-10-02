@@ -3441,3 +3441,9 @@
 - [x] Keep the people-first headline, photo, and service search dominant; add a subordinate customer/provider path cue within the hero image.
 - [x] Link the customer cue to Explore and provider cue to provider plans; preserve the full two-card choice near the page end, the unchanged header, and all real-data behavior.
 - [x] Check desktop/tablet/mobile geometry, keyboard focus, focused/full regressions (177 files / 1,997 tests), build/cleanup, and save an unpublished checkpoint. Do not publish.
+
+## Public provider benefits page — review before publication
+- [x] Build `/for-providers` as a people-first provider acquisition page using the original tagline, feature inventory, no-lead-fees value proposition, and integrated-tools comparison; keep actual plan entitlements and visibility distinctions accurate.
+- [x] Reuse existing approved editorial image in WebDev storage; preserve global header, `/` design, all prototype routes, signed-in workspaces, plans, subscription behavior, bookings, payments, and onboarding.
+- [x] Route the public homepage provider path and a footer entry to the benefits page, with explicit pricing and sample-profile next steps; avoid duplicate closing conversion blocks.
+- [x] Add the public route, sitemap/reserved-slug and share metadata; cover content and route contracts, actual pricing/sample destinations, desktop/tablet/mobile and keyboard focus; pass 178 files / 2,002 tests, build, TypeScript, diff and cleanup; save an unpublished checkpoint. Do not publish without approval.

@@ -78,7 +78,7 @@ export default function PublicHomepageConceptThree({ forcePublicHeader = false }
                 <div className="or-hero-path-links">
                   <Link href="/browse">Find a pro</Link>
                   <span aria-hidden="true">·</span>
-                  <Link href="/pricing">Offer your services <ArrowRight aria-hidden="true" /></Link>
+                  <Link href="/for-providers">Offer your services <ArrowRight aria-hidden="true" /></Link>
                 </div>
               </div>
             </div>
@@ -167,8 +167,8 @@ export default function PublicHomepageConceptThree({ forcePublicHeader = false }
                 <span className="or-path-label">02 / FOR PROVIDERS</span>
                 <h3 id="home-provider-heading">Your work deserves a home of its own.</h3>
                 <p>Showcase your services, manage your availability, and build direct customer relationships—all from one home for your business.</p>
-                <Link className="or-path-link" href="/pricing">See provider plans <ArrowRight aria-hidden="true" /></Link>
-                <small>Want to see an example? <Link href="/demo-ologycrew">Explore a sample profile</Link></small>
+                <Link className="or-path-link" href="/for-providers">Why providers choose OlogyCrew <ArrowRight aria-hidden="true" /></Link>
+                <small><Link href="/pricing">See provider plans</Link> · <Link href="/demo-ologycrew">Explore a sample profile</Link></small>
               </article>
             </div>
           </div>

@@ -96,6 +96,7 @@ import HelpCenter from "./pages/HelpCenter";
 import ReferralProgram from "./pages/ReferralProgram";
 import FeaturedProfessionals from "./pages/FeaturedProfessionals";
 import PromotionDetail from "./pages/PromotionDetail";
+import ProviderBenefits from "./pages/ProviderBenefits";
 
 // Admin
 import AdminDashboard from "./pages/AdminDashboard";
@@ -158,6 +159,7 @@ function Router() {
       <Route path="/preview/public-home-demo" component={PublicHomepageDemoPrototype} />
       <Route path="/preview/public-home-live" component={PublicHomepageLiveReview} />
       <Route path="/" component={Home} />
+      <Route path="/for-providers" component={ProviderBenefits} />
       <Route path="/browse" component={Browse} />
       <Route path="/experiences" component={Experiences} />
       <Route path="/featured" component={FeaturedProfessionals} />
@@ -274,7 +276,7 @@ function AppContent() {
         <TermsUpdateBanner />
         <Router />
       </RoleGuard>
-      {!hideFooter && <Footer compactPublicHome={location === "/"} />}
+      {!hideFooter && <Footer compactPublicHome={location === "/" || location === "/for-providers"} />}
       {!isPrototype && <PWAInstallBanner />}
       {!location.startsWith("/embed") && !isPrototype && <HelpChatWidget />}
     </>
