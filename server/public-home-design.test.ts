@@ -20,7 +20,7 @@ describe("public homepage Concept 3 design alignment", () => {
 
   it("uses the approved warm-paper layout without changing global application theme tokens", () => {
     expect(concept).toContain('className="min-h-screen bg-[#f5f2e9]"');
-    for (const section of ["or-hero-frame", "or-proof", "or-cats", "or-provider-grid", "or-craft", "or-steps", "or-business"]) expect(concept).toContain(section);
+    for (const section of ["or-hero-frame", "or-proof", "or-cats", "or-provider-grid", "or-craft", "or-steps", "or-pathways-grid"]) expect(concept).toContain(section);
     expect(styles).toContain("--or-paper: #f5f2e9");
     expect(styles).toContain(".or-hero-frame{height:560px");
     expect(styles).toContain("@media(max-width:640px)");
@@ -32,7 +32,7 @@ describe("public homepage Concept 3 design alignment", () => {
     for (const phrase of [
       "Good work", "starts with", "people.", "Good people for", "the work at hand.",
       "People who care about the details.", "Good work has a name, a face, and a story.",
-      "Find your person.", "Then make a plan.", "Your work deserves a home of its own.",
+      "Find your person.", "Then make a plan.", "One platform, two clear paths", "Find your way in.", "Your work deserves a home of its own.",
     ]) expect(concept).toContain(phrase);
     for (const invented of ["4,812", "4.83 / 5", "Harbor & Hearth Plumbing", "Stillwater Massage Studio", "Velvet & Vine Hair", "Verified"]) expect(concept).not.toContain(invented);
   });
@@ -55,6 +55,9 @@ describe("public homepage Concept 3 design alignment", () => {
     expect(concept).toContain('href={`/category/${category.slug}`}');
     expect(concept).toContain("const href = `/${provider.profileSlug}`");
     expect(concept).toContain('href="/pricing"');
+    expect(concept).toContain('href="/browse">Explore services');
+    expect(concept).toContain('id="home-customer-path-heading"');
+    expect(concept).toContain('id="home-provider-heading"');
     expect(footer).toContain('href="/referral-program"');
     expect(footer).toContain('href="/terms"');
     expect(footer).toContain('href="/privacy"');

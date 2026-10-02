@@ -3431,3 +3431,8 @@
 - [x] Update legacy homepage source-contract tests intentionally and add rendered live-data, route, review, and search coverage.
 - [x] Review desktop, tablet, and mobile; pass full regression (177 files / 1,995 tests), TypeScript, production build, diff, and cleanup checks; save an unpublished checkpoint for approval. Do not publish.
 - [x] Verify the signed-in-accessible `/preview/public-home-live` review route renders the same real-data Concept 3 page with a preview banner and public header/footer; re-run validation and replace the unpublished checkpoint.
+
+## Concept 3 closing message: two clear paths (unpublished)
+- [x] Replace the single-sided provider closing CTA with a compact customer/provider choice using the existing warm-paper style.
+- [x] Route customer to canonical Explore and providers to existing provider plans, with the sample profile as a secondary link; retain genuine data and unchanged header.
+- [x] Cover both paths with focused tests, visually check desktop/tablet/mobile and keyboard focus, pass 177 test files / 1,996 tests, production build, cleanup, TypeScript and diff checks; save an unpublished checkpoint. Do not publish.

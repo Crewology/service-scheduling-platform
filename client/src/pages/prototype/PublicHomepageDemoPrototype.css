@@ -37,3 +37,28 @@
 .or-live-preview-banner nav{display:flex;gap:14px;flex-wrap:wrap}
 .or-live-preview-banner a{color:#98402c;font-weight:700;text-decoration:underline;text-underline-offset:3px}
 .or-live-preview-banner a:focus-visible{outline:3px solid #ad432f;outline-offset:3px}
+
+/* Live Concept 3 only: the former public footer's two-clear-paths message. */
+.ology-refined .or-pathways{background:#dbe3d3;padding:75px 0 84px}
+.ology-refined .or-pathways-intro{display:flex;justify-content:space-between;align-items:end;gap:30px;margin-bottom:28px;flex-wrap:wrap}
+.ology-refined .or-pathways-intro h2{font:600 clamp(34px,4vw,48px)/1.06 "Manrope",sans-serif;letter-spacing:-.055em;margin:0}
+.ology-refined .or-pathways-intro p{color:#465e54;font-size:13px;line-height:1.65;max-width:310px;margin:0}
+.ology-refined .or-pathways-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.ology-refined .or-path-card{min-width:0;min-height:315px;display:flex;flex-direction:column;align-items:flex-start;padding:34px 38px;border-radius:6px}
+.ology-refined .or-path-customer{background:#fffdf7;color:#183b3a;border:1px solid #cbd8cb}
+.ology-refined .or-path-provider{background:#183b3a;color:#fffdf7;border:1px solid #183b3a}
+.ology-refined .or-path-label{font-size:10px;font-weight:700;letter-spacing:.15em;color:#bd4b35}
+.ology-refined .or-path-provider .or-path-label{color:#c5d75d}
+.ology-refined .or-path-card h3{font:600 clamp(28px,3vw,37px)/1.1 "Manrope",sans-serif;letter-spacing:-.05em;max-width:450px;margin:23px 0 11px}
+.ology-refined .or-path-card p{color:#596d64;font-size:13px;line-height:1.7;max-width:455px;margin:0 0 23px}
+.ology-refined .or-path-provider p{color:#fffdf7d9}
+.ology-refined .or-path-link{margin-top:auto;min-height:44px;display:inline-flex;align-items:center;gap:9px;border-radius:50px;padding:11px 18px;background:#183b3a;color:#fffdf7;font-size:12px;font-weight:700;text-decoration:none;transition:transform .16s cubic-bezier(.23,1,.32,1),background .16s cubic-bezier(.23,1,.32,1)}
+.ology-refined .or-path-link svg{width:15px;height:15px}
+.ology-refined .or-path-customer .or-path-link:hover{background:#bd4b35;transform:translateY(-2px)}
+.ology-refined .or-path-provider .or-path-link{background:#c5d75d;color:#183b3a}
+.ology-refined .or-path-provider .or-path-link:hover{background:#e5edb4;transform:translateY(-2px)}
+.ology-refined .or-path-link:active{transform:scale(.97)}
+.ology-refined .or-path-card small{color:#fffdf7c7;font-size:11px;margin-top:13px}
+.ology-refined .or-path-card small a{color:#fffdf7;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+@media(max-width:900px){.ology-refined .or-path-card{padding:28px;min-height:350px}}
+@media(max-width:640px){.ology-refined .or-pathways{padding:56px 0 65px}.ology-refined .or-pathways-intro{display:block;margin-bottom:24px}.ology-refined .or-pathways-intro p{margin-top:12px}.ology-refined .or-pathways-grid{grid-template-columns:minmax(0,1fr);gap:11px}.ology-refined .or-path-card{min-height:0;padding:27px 25px}.ology-refined .or-path-card h3{font-size:30px;margin-top:18px}.ology-refined .or-path-card p{margin-bottom:24px}}

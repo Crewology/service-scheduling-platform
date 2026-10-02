@@ -141,8 +141,29 @@ export default function PublicHomepageConceptThree({ forcePublicHeader = false }
           <div className="or-steps">{steps.map((step) => <div className="or-step" key={step.number}><span className="or-step-no">{step.number}</span><h3>{step.title}</h3><p>{step.description}</p></div>)}</div>
         </section>
 
-        <section className="or-business" id="home-for-providers" aria-labelledby="home-provider-heading">
-          <div className="or-wrap or-business-inner"><div><div className="or-kicker">For the people doing the work</div><h2 id="home-provider-heading">Your work deserves a home of its own.</h2><p>Showcase your services, manage your availability, and build direct customer relationships—all from one home for your business.</p></div><div className="or-business-actions"><Link className="or-cta" href="/demo-ologycrew">Explore a sample profile <ArrowRight aria-hidden="true" /></Link><small>Want your own page? <Link href="/pricing">See provider plans</Link></small></div></div>
+        <section className="or-pathways" id="home-two-paths" aria-labelledby="home-pathways-heading">
+          <div className="or-wrap">
+            <div className="or-pathways-intro">
+              <div className="or-kicker">One platform, two clear paths</div>
+              <h2 id="home-pathways-heading">Find your way in.</h2>
+              <p>Whether you need the work done or you are the one doing it, start where you belong.</p>
+            </div>
+            <div className="or-pathways-grid">
+              <article className="or-path-card or-path-customer" aria-labelledby="home-customer-path-heading">
+                <span className="or-path-label">01 / FOR CUSTOMERS</span>
+                <h3 id="home-customer-path-heading">Find someone who knows their craft.</h3>
+                <p>Explore services, get to know the people behind them, and book or request a quote when you are ready.</p>
+                <Link className="or-path-link" href="/browse">Explore services <ArrowRight aria-hidden="true" /></Link>
+              </article>
+              <article className="or-path-card or-path-provider" id="home-for-providers" aria-labelledby="home-provider-heading">
+                <span className="or-path-label">02 / FOR PROVIDERS</span>
+                <h3 id="home-provider-heading">Your work deserves a home of its own.</h3>
+                <p>Showcase your services, manage your availability, and build direct customer relationships—all from one home for your business.</p>
+                <Link className="or-path-link" href="/pricing">See provider plans <ArrowRight aria-hidden="true" /></Link>
+                <small>Want to see an example? <Link href="/demo-ologycrew">Explore a sample profile</Link></small>
+              </article>
+            </div>
+          </div>
         </section>
       </main>
     </div>

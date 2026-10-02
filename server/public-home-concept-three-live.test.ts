@@ -80,6 +80,20 @@ describe("Concept 3 public homepage with actual OlogyCrew data", () => {
     expect(screen.getByRole("article", { name: "Chisolm Audio" })).toBeVisible();
   });
 
+  it("offers two clear customer and provider paths without a second generic conversion block", () => {
+    render(createElement(PublicHomepageConceptThree));
+    const paths = screen.getByRole("region", { name: "Find your way in." });
+    expect(within(paths).getByText("One platform, two clear paths")).toBeVisible();
+    const customer = within(paths).getByRole("article", { name: "Find someone who knows their craft." });
+    const provider = within(paths).getByRole("article", { name: "Your work deserves a home of its own." });
+    expect(within(customer).getByText("01 / FOR CUSTOMERS")).toBeVisible();
+    expect(within(customer).getByRole("link", { name: "Explore services" })).toHaveAttribute("href", "/browse");
+    expect(within(provider).getByText("02 / FOR PROVIDERS")).toBeVisible();
+    expect(within(provider).getByRole("link", { name: "See provider plans" })).toHaveAttribute("href", "/pricing");
+    expect(within(provider).getByRole("link", { name: "Explore a sample profile" })).toHaveAttribute("href", "/demo-ologycrew");
+    expect(within(paths).getAllByRole("article")).toHaveLength(2);
+  });
+
   it("renders only real categories and non-demo public provider records, without made-up prices or badges", () => {
     render(createElement(PublicHomepageConceptThree));
     expect(screen.getByLabelText("OlogyCrew discovery paths")).toHaveTextContent("6featured categories");
@@ -123,7 +137,7 @@ describe("Concept 3 public homepage with actual OlogyCrew data", () => {
     const result = render(createElement(PublicHomepageConceptThree));
     expect(screen.getAllByRole("status")).toHaveLength(2);
     expect(screen.getAllByRole("status")[0]).toHaveTextContent("Loading service categories");
-    expect(screen.queryByRole("article")).not.toBeInTheDocument();
+    expect(screen.queryByRole("article", { name: "Chisolm Audio" })).not.toBeInTheDocument();
     result.unmount();
     queries.category = { data: undefined, isLoading: false, isError: true };
     queries.provider = { data: undefined, isLoading: false, isError: true };
