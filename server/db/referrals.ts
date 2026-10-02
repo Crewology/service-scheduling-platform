@@ -1,7 +1,8 @@
 import { getDb } from "./connection";
-import { referralCodes, referrals, referralCredits, users } from "../../drizzle/schema";
-import { eq, and, sql, desc } from "drizzle-orm";
+import { bookings, notifications, payments, referralCodes, referrals, referralCredits, serviceProviders, users } from "../../drizzle/schema";
+import { eq, and, sql, desc, isNull } from "drizzle-orm";
 import crypto from "crypto";
+import { centsToDollars, netCapturedBookingCents, remainingCreditById, rewardCents } from "../referralRewardPolicy";
 
 // ============================================================================
 // REFERRAL CODE MANAGEMENT
@@ -122,28 +123,44 @@ export async function createReferral(data: {
 }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.insert(referrals).values({
-    referralCodeId: data.referralCodeId,
-    referrerId: data.referrerId,
-    refereeId: data.refereeId,
-    refereeBookingId: data.refereeBookingId,
-    refereeDiscountAmount: data.refereeDiscountAmount,
-    status: "pending",
+  await db.transaction(async tx => {
+    const [code] = await tx.select().from(referralCodes)
+      .where(eq(referralCodes.id, data.referralCodeId)).limit(1).for("update");
+    if (!code?.isActive || code.userId !== data.referrerId || code.userId === data.refereeId) {
+      throw new Error("Invalid referral code or referrer");
+    }
+    const [existing] = await tx.select({ id: referrals.id }).from(referrals)
+      .where(eq(referrals.refereeId, data.refereeId)).limit(1);
+    if (existing) throw new Error("Referral code already applied for this account");
+    if (code.maxReferrals) {
+      const [count] = await tx.select({ count: sql<number>`COUNT(*)` }).from(referrals)
+        .where(eq(referrals.referralCodeId, code.id));
+      if (Number(count?.count || 0) >= code.maxReferrals) throw new Error("Referral code usage limit reached");
+    }
+    if (data.refereeBookingId) {
+      const [booking] = await tx.select({ customerId: bookings.customerId, status: bookings.status }).from(bookings)
+        .where(eq(bookings.id, data.refereeBookingId)).limit(1);
+      if (booking?.customerId !== data.refereeId ||
+          ["completed", "cancelled", "refunded"].includes(booking.status)) {
+        throw new Error("Referral code cannot be applied to this booking");
+      }
+    }
+    await tx.insert(referrals).values({
+      referralCodeId: code.id,
+      referrerId: code.userId,
+      refereeId: data.refereeId,
+      refereeBookingId: data.refereeBookingId,
+      refereeDiscountAmount: data.refereeDiscountAmount,
+      status: "pending",
+    });
   });
 }
 
 export async function completeReferral(referralId: number, referrerRewardBookingId?: number, referrerDiscountAmount?: string) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db
-    .update(referrals)
-    .set({
-      status: "completed",
-      completedAt: new Date(),
-      referrerRewardBookingId,
-      referrerDiscountAmount,
-    })
-    .where(eq(referrals.id, referralId));
+  // Keep this legacy export for compatibility with older server imports, but
+  // never allow a status-only award without captured-payment verification.
+  void referralId; void referrerRewardBookingId; void referrerDiscountAmount;
+  throw new Error("Use fulfillReferralOnBookingComplete with an eligible paid booking");
 }
 
 export async function getReferralStats(userId: number) {
@@ -252,6 +269,7 @@ export async function addReferralCredit(data: {
 
   await db.insert(referralCredits).values({
     ...data,
+    earnedReferralId: data.type === "earned" ? data.referralId ?? null : null,
     expiresAt: expiresAt || null,
   });
 }
@@ -259,25 +277,17 @@ export async function addReferralCredit(data: {
 /**
  * Get the current credit balance for a user.
  * Excludes earned credits that have passed their expiresAt date.
- * Balance = (non-expired earned) - spent - expired_entries
+ * Expired entries are history markers, not another debit: expired earned
+ * amounts have already been excluded from the first term.
  */
 export async function getReferralCreditBalance(userId: number): Promise<string> {
   const db = await getDb();
   if (!db) return "0.00";
-
-  const result = await db
-    .select({
-      earned: sql<string>`COALESCE(SUM(CASE WHEN ${referralCredits.type} = 'earned' AND (${referralCredits.expiresAt} IS NULL OR ${referralCredits.expiresAt} > NOW()) THEN ${referralCredits.amount} ELSE 0 END), 0)`,
-      spent: sql<string>`COALESCE(SUM(CASE WHEN ${referralCredits.type} = 'spent' THEN ${referralCredits.amount} ELSE 0 END), 0)`,
-      expired: sql<string>`COALESCE(SUM(CASE WHEN ${referralCredits.type} = 'expired' THEN ${referralCredits.amount} ELSE 0 END), 0)`,
-    })
-    .from(referralCredits)
-    .where(eq(referralCredits.userId, userId));
-
-  const earned = parseFloat(result[0]?.earned || "0");
-  const spent = parseFloat(result[0]?.spent || "0");
-  const expired = parseFloat(result[0]?.expired || "0");
-  return Math.max(0, earned - spent - expired).toFixed(2);
+  const rows = await db.select({ id: referralCredits.id, type: referralCredits.type,
+    amount: referralCredits.amount, createdAt: referralCredits.createdAt, expiresAt: referralCredits.expiresAt })
+    .from(referralCredits).where(eq(referralCredits.userId, userId));
+  const available = Array.from(remainingCreditById(rows).values()).reduce((total, cents) => total + cents, 0);
+  return centsToDollars(available);
 }
 
 /**
@@ -286,23 +296,13 @@ export async function getReferralCreditBalance(userId: number): Promise<string> 
 export async function getNextCreditExpiration(userId: number): Promise<{ amount: string; expiresAt: Date } | null> {
   const db = await getDb();
   if (!db) return null;
-
-  const result = await db
-    .select({
-      amount: referralCredits.amount,
-      expiresAt: referralCredits.expiresAt,
-    })
-    .from(referralCredits)
-    .where(and(
-      eq(referralCredits.userId, userId),
-      eq(referralCredits.type, "earned"),
-      sql`${referralCredits.expiresAt} IS NOT NULL AND ${referralCredits.expiresAt} > NOW()`,
-    ))
-    .orderBy(referralCredits.expiresAt)
-    .limit(1);
-
-  if (!result[0] || !result[0].expiresAt) return null;
-  return { amount: result[0].amount, expiresAt: result[0].expiresAt };
+  const rows = await db.select({ id: referralCredits.id, type: referralCredits.type,
+    amount: referralCredits.amount, createdAt: referralCredits.createdAt, expiresAt: referralCredits.expiresAt })
+    .from(referralCredits).where(eq(referralCredits.userId, userId));
+  const available = remainingCreditById(rows);
+  const next = rows.filter(row => row.type === "earned" && row.expiresAt && (available.get(row.id) || 0) > 0)
+    .sort((a, b) => a.expiresAt!.getTime() - b.expiresAt!.getTime())[0];
+  return next?.expiresAt ? { amount: centsToDollars(available.get(next.id)!), expiresAt: next.expiresAt } : null;
 }
 
 /**
@@ -311,7 +311,7 @@ export async function getNextCreditExpiration(userId: number): Promise<{ amount:
  */
 export async function expireOldCredits(): Promise<number> {
   const db = await getDb();
-  if (!db) return 0;
+  if (!db) throw new Error("Database not available for referral credit expiry");
 
   // Find earned credits that have expired but don't have a matching "expired" entry yet
   const expiredCredits = await db
@@ -322,31 +322,30 @@ export async function expireOldCredits(): Promise<number> {
       sql`${referralCredits.expiresAt} IS NOT NULL AND ${referralCredits.expiresAt} <= NOW()`,
     ));
 
-  // For each expired earned credit, check if we already created an "expired" entry
   let count = 0;
   for (const credit of expiredCredits) {
-    // Check if an expired entry already exists for this credit
-    const existing = await db
-      .select({ id: referralCredits.id })
-      .from(referralCredits)
-      .where(and(
-        eq(referralCredits.userId, credit.userId),
-        eq(referralCredits.type, "expired"),
-        eq(referralCredits.referralId, credit.referralId!),
-        sql`${referralCredits.description} LIKE '%auto-expired%'`,
-      ))
-      .limit(1);
-
-    if (existing.length === 0) {
-      await addReferralCredit({
+    const created = await db.transaction(async tx => {
+      const [locked] = await tx.select({ id: referralCredits.id })
+        .from(referralCredits).where(eq(referralCredits.id, credit.id)).limit(1).for("update");
+      if (!locked) return false;
+      const [existing] = await tx.select({ id: referralCredits.id }).from(referralCredits)
+        .where(eq(referralCredits.expiredSourceCreditId, credit.id)).limit(1);
+      if (existing) return false;
+      const history = await tx.select({ id: referralCredits.id, type: referralCredits.type,
+        amount: referralCredits.amount, createdAt: referralCredits.createdAt, expiresAt: referralCredits.expiresAt })
+        .from(referralCredits).where(eq(referralCredits.userId, credit.userId));
+      const unused = remainingCreditById(history, new Date(credit.expiresAt!.getTime() - 1)).get(credit.id) || 0;
+      await tx.insert(referralCredits).values({
         userId: credit.userId,
-        amount: credit.amount,
+        amount: centsToDollars(unused),
         type: "expired",
-        referralId: credit.referralId || undefined,
+        referralId: credit.referralId,
+        expiredSourceCreditId: credit.id,
         description: `Credit auto-expired after ${CREDIT_EXPIRATION_DAYS} days`,
       });
-      count++;
-    }
+      return true;
+    });
+    if (created) count++;
   }
 
   return count;
@@ -355,12 +354,13 @@ export async function expireOldCredits(): Promise<number> {
 /**
  * Get credits expiring within the next N days (for warning notifications).
  */
-export async function getCreditsExpiringSoon(daysAhead: number = 7): Promise<Array<{ userId: number; amount: string; expiresAt: Date }>> {
+export async function getCreditsExpiringSoon(daysAhead: number = 7): Promise<Array<{ id: number; userId: number; amount: string; expiresAt: Date }>> {
   const db = await getDb();
-  if (!db) return [];
+  if (!db) throw new Error("Database not available for referral credit warnings");
 
   const results = await db
     .select({
+      id: referralCredits.id,
       userId: referralCredits.userId,
       amount: referralCredits.amount,
       expiresAt: referralCredits.expiresAt,
@@ -368,10 +368,56 @@ export async function getCreditsExpiringSoon(daysAhead: number = 7): Promise<Arr
     .from(referralCredits)
     .where(and(
       eq(referralCredits.type, "earned"),
+      isNull(referralCredits.warningNotifiedAt),
       sql`${referralCredits.expiresAt} IS NOT NULL AND ${referralCredits.expiresAt} > NOW() AND ${referralCredits.expiresAt} <= DATE_ADD(NOW(), INTERVAL ${daysAhead} DAY)`,
-    ));
+    )).orderBy(referralCredits.expiresAt).limit(500);
 
-  return results.filter(r => r.expiresAt !== null) as Array<{ userId: number; amount: string; expiresAt: Date }>;
+  return results.filter(r => r.expiresAt !== null) as Array<{ id: number; userId: number; amount: string; expiresAt: Date }>;
+}
+
+/** Atomic in-app warning and durable per-credit marker, safe under concurrent retries. */
+export async function warnExpiringCredit(creditId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available for referral credit warnings");
+  const warnedUser = await db.transaction(async tx => {
+    const [credit] = await tx.select().from(referralCredits)
+      .where(eq(referralCredits.id, creditId)).limit(1).for("update");
+    const now = new Date();
+    if (!credit || credit.type !== "earned" || credit.warningNotifiedAt ||
+        !credit.expiresAt || credit.expiresAt <= now ||
+        credit.expiresAt.getTime() > now.getTime() + 7 * 86_400_000) return null;
+    const ledger = await tx.select({ id: referralCredits.id, type: referralCredits.type,
+      amount: referralCredits.amount, createdAt: referralCredits.createdAt, expiresAt: referralCredits.expiresAt })
+      .from(referralCredits).where(eq(referralCredits.userId, credit.userId));
+    const remaining = remainingCreditById(ledger, now).get(credit.id) || 0;
+    if (remaining <= 0) {
+      // This credit cannot expire with value remaining. Record the evaluation
+      // without notifying; otherwise it occupies a 500-row scan slot forever.
+      await tx.update(referralCredits).set({ warningNotifiedAt: now })
+        .where(eq(referralCredits.id, credit.id));
+      return null;
+    }
+
+    await tx.insert(notifications).values({
+      userId: credit.userId,
+      notificationType: "referral_credit_expiring",
+      title: "Referral credits may expire soon",
+      message: `${centsToDollars(remaining)} in referral credits from ${credit.createdAt.toISOString().slice(0, 10)} is scheduled to expire on ${credit.expiresAt.toISOString().slice(0, 10)}. Use available credits toward an eligible booking before then.`,
+      actionUrl: "/referrals",
+    });
+    await tx.update(referralCredits).set({ warningNotifiedAt: now })
+      .where(eq(referralCredits.id, credit.id));
+    return credit.userId;
+  });
+  if (warnedUser === null) return false;
+  // The persisted notification is authoritative. SSE is best-effort only.
+  try {
+    const { sseManager } = await import("../sseManager");
+    sseManager.pushUnreadCount(warnedUser, await (await import("./notifications")).getUnreadCount(warnedUser));
+  } catch (error) {
+    console.warn("[CreditExpiration] SSE unread-count push failed", error);
+  }
+  return true;
 }
 
 /**
@@ -464,44 +510,79 @@ export async function getReferrerRewardPercent(userId: number): Promise<number> 
 }
 
 /**
- * Complete a referral and credit the referrer when the referee's booking completes.
- * Uses tier-based dynamic reward percentage.
- * Returns true if a referral was found and completed.
+ * Check both completion and capture: whichever event happens second awards a
+ * pending referral. Never trusts a caller-supplied amount or customer ID.
+ * A per-referee lock and unique earned-credit claim serialize webhook retries.
+ * Prior completed referrals and credits are not recalculated.
  */
-export async function fulfillReferralOnBookingComplete(bookingId: number, customerId: number, totalAmount: string): Promise<boolean> {
+export async function fulfillReferralOnBookingComplete(bookingId: number): Promise<boolean> {
   const db = await getDb();
-  if (!db) return false;
+  if (!db) throw new Error("Database not available for referral fulfillment");
+  return db.transaction(async (tx) => {
+    const [booking] = await tx.select().from(bookings).where(eq(bookings.id, bookingId)).limit(1);
+    if (!booking || booking.status !== "completed") return false;
 
-  // Find a pending referral for this customer
-  const pendingRef = await getPendingReferralForReferee(customerId);
-  if (!pendingRef) return false;
+    const [pendingRef] = await tx.select().from(referrals).where(and(
+      eq(referrals.refereeId, booking.customerId), eq(referrals.status, "pending"),
+    )).limit(1).for("update");
+    if (!pendingRef || (pendingRef.refereeBookingId !== bookingId &&
+        booking.createdAt.getTime() < pendingRef.createdAt.getTime())) return false;
 
-  // Get the referral code to determine base discount percentages
-  const refCode = await db
-    .select()
-    .from(referralCodes)
-    .where(eq(referralCodes.id, pendingRef.referralCodeId))
-    .limit(1);
-  if (!refCode[0]) return false;
+    // The first qualifying paid completion belongs to the referral. A demo or
+    // fully refunded earlier booking does not block the next eligible one.
+    // Bookings created in the same second use ID for a deterministic order.
+    const completedBookings = await tx.select({ id: bookings.id, providerId: bookings.providerId,
+      createdAt: bookings.createdAt }).from(bookings)
+      .where(and(eq(bookings.customerId, booking.customerId), eq(bookings.status, "completed")));
+    for (const prior of completedBookings) {
+      if (prior.id === bookingId || prior.createdAt.getTime() > booking.createdAt.getTime() ||
+          (prior.createdAt.getTime() === booking.createdAt.getTime() && prior.id > bookingId)) continue;
+      const [priorProvider] = await tx.select({ isOfficial: serviceProviders.isOfficial })
+        .from(serviceProviders).where(eq(serviceProviders.id, prior.providerId)).limit(1);
+      if (!priorProvider || priorProvider.isOfficial) continue;
+      const previousPayments = await tx.select().from(payments).where(eq(payments.bookingId, prior.id));
+      if (netCapturedBookingCents(previousPayments) > 0) return false;
+    }
 
-  // Use tier-based reward percentage instead of static code percentage
-  const tierRewardPercent = await getReferrerRewardPercent(pendingRef.referrerId);
-  const referrerCreditAmount = (parseFloat(totalAmount) * tierRewardPercent / 100).toFixed(2);
+    const [provider] = await tx.select({ isOfficial: serviceProviders.isOfficial })
+      .from(serviceProviders).where(eq(serviceProviders.id, booking.providerId)).limit(1);
+    if (!provider || provider.isOfficial) return false;
 
-  // Complete the referral
-  await completeReferral(pendingRef.id, undefined, referrerCreditAmount);
+    const paymentRows = await tx.select().from(payments).where(eq(payments.bookingId, bookingId));
+    const netCents = netCapturedBookingCents(paymentRows);
+    if (netCents <= 0) return false;
 
-  // Credit the referrer
-  await addReferralCredit({
-    userId: pendingRef.referrerId,
-    amount: referrerCreditAmount,
-    type: "earned",
-    referralId: pendingRef.id,
-    bookingId,
-    description: `Referral reward (${tierRewardPercent}% tier bonus) — referred user completed booking`,
+    // Serialize simultaneous tier-boundary awards for the same referrer.
+    const [referrer] = await tx.select({ id: users.id }).from(users)
+      .where(eq(users.id, pendingRef.referrerId)).limit(1).for("update");
+    if (!referrer) return false;
+    const [tierRows] = await tx.select({ count: sql<number>`COUNT(*)` }).from(referrals)
+      .where(and(eq(referrals.referrerId, pendingRef.referrerId), eq(referrals.status, "completed")));
+    const completedCount = Number(tierRows?.count || 0);
+    const tierPercent = [...REFERRAL_TIERS].reverse().find(t => completedCount >= t.minReferrals)!.rewardPercent;
+    const reward = rewardCents(netCents, tierPercent);
+    if (reward <= 0) return false;
+    const amount = centsToDollars(reward);
+
+    // Credit and referral status either commit together or roll back together.
+    await tx.insert(referralCredits).values({
+      userId: pendingRef.referrerId,
+      amount,
+      type: "earned",
+      referralId: pendingRef.id,
+      earnedReferralId: pendingRef.id,
+      bookingId,
+      expiresAt: new Date(Date.now() + CREDIT_EXPIRATION_DAYS * 86_400_000),
+      description: `Referral reward (${tierPercent}% of net captured payment)`,
+    });
+    await tx.update(referrals).set({
+      status: "completed",
+      completedAt: new Date(),
+      refereeBookingId: bookingId,
+      referrerDiscountAmount: amount,
+    }).where(and(eq(referrals.id, pendingRef.id), eq(referrals.status, "pending")));
+    return true;
   });
-
-  return true;
 }
 
 // ============================================================================

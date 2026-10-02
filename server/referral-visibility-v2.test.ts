@@ -109,6 +109,7 @@ describe("OG and Twitter Card Meta Tags", () => {
 
     it("should set canonical link", () => {
       expect(content).toContain('link[rel="canonical"]');
+      expect(content).toContain("OLOGYCREW_PUBLIC_ORIGIN");
     });
 
     it("should clean up meta tags on unmount", () => {
@@ -139,7 +140,8 @@ describe("OG and Twitter Card Meta Tags", () => {
 
     it("should inject og:description in HTML template", () => {
       expect(content).toContain('og:description');
-      expect(content).toContain("Refer friends to OlogyCrew");
+      expect(content).toContain("eligible paid booking");
+      expect(content).toContain("net captured payment");
     });
 
     it("should inject twitter:card in HTML template", () => {
@@ -149,6 +151,10 @@ describe("OG and Twitter Card Meta Tags", () => {
 
     it("should inject tags before closing head tag", () => {
       expect(content).toContain('template.replace("</head>"');
+    });
+
+    it("uses the public domain rather than the dev origin for social sharing", () => {
+      expect(content).toContain('https://ologycrew.com/referral-program');
     });
 
     it("should handle both dev and production modes", () => {

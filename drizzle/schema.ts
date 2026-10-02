@@ -769,6 +769,7 @@ export const referrals = mysqlTable("referrals", {
 }, (table) => ({
   referrerIdx: index("referral_referrer_idx").on(table.referrerId),
   refereeIdx: index("referral_referee_idx").on(table.refereeId),
+  refereeUnique: unique("referral_referee_unique").on(table.refereeId),
   codeIdx: index("referral_code_ref_idx").on(table.referralCodeId),
 }));
 export type Referral = typeof referrals.$inferSelect;
@@ -785,6 +786,11 @@ export const referralCredits = mysqlTable("referral_credits", {
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
   type: mysqlEnum("type", ["earned", "spent", "expired"]).notNull(),
   referralId: int("referralId").references(() => referrals.id),
+  // Nullable unique keys: only earned rows claim a referral, only expired rows
+  // refer to an earned row. Legacy and spent rows remain unchanged.
+  earnedReferralId: int("earnedReferralId"),
+  expiredSourceCreditId: int("expiredSourceCreditId"),
+  warningNotifiedAt: timestamp("warningNotifiedAt"),
   bookingId: int("bookingId"),
   description: varchar("description", { length: 500 }),
   expiresAt: timestamp("expiresAt"),
@@ -793,6 +799,8 @@ export const referralCredits = mysqlTable("referral_credits", {
   userIdx: index("referral_credit_user_idx").on(table.userId),
   typeIdx: index("referral_credit_type_idx").on(table.type),
   expiresIdx: index("referral_credit_expires_idx").on(table.expiresAt),
+  earnedReferralUnique: unique("referral_credit_earned_referral_unique").on(table.earnedReferralId),
+  expiredSourceUnique: unique("referral_credit_expired_source_unique").on(table.expiredSourceCreditId),
 }));
 export type ReferralCredit = typeof referralCredits.$inferSelect;
 export type InsertReferralCredit = typeof referralCredits.$inferInsert;

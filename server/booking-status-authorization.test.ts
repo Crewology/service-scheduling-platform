@@ -120,7 +120,7 @@ describe("clean booking status authorization lifecycle", () => {
     expect(mocks.updateBookingStatus).toHaveBeenCalledWith(77, "completed", {});
     expect(mocks.updateProviderTrustScore).toHaveBeenCalledWith(20);
     expect(mocks.sendNotification).toHaveBeenCalledWith(expect.objectContaining({ type: "booking_completed" }));
-    expect(mocks.fulfillReferralAndNotify).toHaveBeenCalledWith(77, expect.objectContaining({ id: 10 }), "Test Service");
+    expect(mocks.fulfillReferralAndNotify).toHaveBeenCalledWith(77);
   });
 
   it("records administrator cancellations as administrator actions", async () => {

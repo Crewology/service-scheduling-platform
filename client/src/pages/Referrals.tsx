@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { OLOGYCREW_PUBLIC_ORIGIN } from "@shared/publicUrls";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
@@ -110,12 +111,12 @@ export default function Referrals() {
 
   // Customer referral link (for booking discounts)
   const customerReferralLink = myCode
-    ? `${window.location.origin}?ref=${myCode.code}`
+    ? `${OLOGYCREW_PUBLIC_ORIGIN}/?ref=${encodeURIComponent(myCode.code)}`
     : "";
 
   // Provider referral link (for provider onboarding)
   const providerReferralLink = myCode
-    ? `${window.location.origin}/provider/onboarding?ref=${myCode.code}`
+    ? `${OLOGYCREW_PUBLIC_ORIGIN}/provider/onboarding?ref=${encodeURIComponent(myCode.code)}`
     : "";
 
   const copyCode = () => {
@@ -136,7 +137,7 @@ export default function Referrals() {
     if (!myCode) return;
     const link = type === "provider" ? providerReferralLink : customerReferralLink;
     const text = type === "provider"
-      ? `I'''ve been using OlogyCrew to manage my service bookings and it'''s great! Sign up as a provider with my referral link and we both earn credits.`
+      ? `Join OlogyCrew as a provider with my referral link. If you later complete an eligible paid booking as a customer, I can earn referral credits.`
       : `Use my referral code ${myCode.code} to get ${myCode.refereeDiscountPercent}% off your first booking on OlogyCrew!`;
     const title = type === "provider" ? "Join OlogyCrew as a Provider" : "Join OlogyCrew";
 
@@ -167,7 +168,7 @@ export default function Referrals() {
       <NavHeader />
       <PageHeader
         title="Referral Program"
-        subtitle="Share your code, earn rewards when friends book or join as providers"
+        subtitle="Share your code; earn credits when a referred account completes an eligible paid booking"
         backHref="/provider/dashboard"
         breadcrumbs={[{ label: "Dashboard", href: "/provider/dashboard" }, { label: "Referrals" }]}
       />
@@ -519,7 +520,7 @@ export default function Referrals() {
                 </CardTitle>
                 <CardDescription>
                   Know a talented service professional? Share your provider referral link.
-                  When they sign up and complete their first booking, you both earn credits!
+                  Their signup is tracked. You earn credits only if that account later completes an eligible paid booking as a customer; signup alone does not earn credits.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -570,7 +571,7 @@ export default function Referrals() {
                     <p className="text-xs text-muted-foreground">
                       Referral code: <span className="font-mono font-semibold">{myCode.code}</span>
                       {" "}&middot;{" "}
-                      You earn {tierInfo?.currentTier.rewardPercent || 10}% credit &middot; They get {myCode.refereeDiscountPercent}% off their first booking
+                      Your current tier earns {tierInfo?.currentTier.rewardPercent || 10}% of their first eligible paid booking as a customer
                     </p>
                   </div>
                 ) : (
@@ -637,9 +638,9 @@ export default function Referrals() {
                   </div>
                   <div className="text-center space-y-2">
                     <div className="w-10 h-10 rounded-full bg-green-100 text-green-600 font-bold flex items-center justify-center mx-auto">3</div>
-                    <h3 className="font-semibold">You Both Earn Credits</h3>
+                    <h3 className="font-semibold">Earn After an Eligible Booking</h3>
                     <p className="text-sm text-muted-foreground">
-                      When they complete their first booking, you earn {tierInfo?.currentTier.rewardPercent || 10}% credit. Credits are valid for 90 days.
+                      If they complete an eligible paid booking as a customer, you earn {tierInfo?.currentTier.rewardPercent || 10}% of the net captured amount in credits. Credits are valid for 90 days.
                     </p>
                   </div>
                 </div>
@@ -649,7 +650,7 @@ export default function Referrals() {
             {/* Provider Referral History (same data) */}
             <Card>
               <CardHeader>
-                <CardTitle>Provider Referral History</CardTitle>
+                <CardTitle>All Referral Activity</CardTitle>
               </CardHeader>
               <CardContent>
                 {historyLoading ? (

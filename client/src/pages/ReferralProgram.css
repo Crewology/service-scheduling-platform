@@ -1,0 +1,114 @@
+@import "../styles/publicBrandTokens.css";
+
+.ology-referral { background: var(--ology-brand-paper); color: var(--ology-brand-ink); font-family: var(--ology-brand-body); min-height: 100vh; }
+.ology-referral * { box-sizing: border-box; }
+.ology-referral-wrap { width: min(calc(100% - 2 * var(--ology-brand-gutter)), var(--ology-brand-content)); margin-inline: auto; }
+.ology-referral h1, .ology-referral h2, .ology-referral h3, .ology-referral p { margin: 0; }
+.ology-referral h1, .ology-referral h2, .ology-referral h3 { font-family: var(--ology-brand-display); letter-spacing: -.045em; }
+.ology-referral a:focus-visible, .ology-referral button:focus-visible, .ology-referral input:focus-visible, .ology-referral summary:focus-visible { outline: var(--ology-brand-focus); outline-offset: 3px; }
+.ology-referral-kicker { display: inline-flex; align-items: center; gap: .65rem; color: var(--ology-brand-coral-hover); font-size: .76rem; font-weight: 800; letter-spacing: .115em; text-transform: uppercase; }
+.ology-referral-hero { background: var(--ology-brand-paper); overflow: hidden; }
+.ology-referral-hero-grid { display: grid; grid-template-columns: minmax(0, 1.14fr) minmax(360px, .86fr); align-items: stretch; min-height: min(595px, 72vh); gap: clamp(32px, 5vw, 95px); }
+.ology-referral-intro { padding-block: clamp(52px, 6vw, 94px) 58px; align-self: center; }
+.ology-referral h1 { font-size: clamp(3.2rem, 5.6vw, 6.3rem); line-height: 1.03; max-width: 850px; margin-top: 19px; }
+.ology-referral h1 em { font-family: var(--ology-brand-editorial); font-weight: 400; letter-spacing: -.055em; color: var(--ology-brand-coral); }
+.ology-referral-lede { color: var(--ology-brand-muted); font-size: clamp(1.08rem, 1.5vw, 1.28rem); line-height: 1.58; max-width: 680px; margin-top: 23px !important; }
+.ology-referral-actions { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 12px 22px; align-items: center; }
+.ology-referral-button, .ology-referral-copy-row button { display: inline-flex; align-items: center; justify-content: center; gap: 10px; border: 0; border-radius: 7px; background: var(--ology-brand-coral); color: #fff; min-height: 50px; padding: 12px 19px; font-size: .93rem; font-weight: 800; text-decoration: none; cursor: pointer; }
+.ology-referral-button:hover, .ology-referral-copy-row button:hover { background: var(--ology-brand-coral-hover); color: #fff; }
+.ology-referral-text-link { display: inline-flex; align-items: center; gap: 7px; color: var(--ology-brand-ink); font-weight: 750; text-underline-offset: 4px; }
+.ology-referral-text-link:hover, .ology-referral-endnote a:hover { color: var(--ology-brand-coral-hover); }
+.ology-referral-copy-field { width: min(100%, 530px); background: var(--ology-brand-surface); border: 1px solid var(--ology-brand-line); border-radius: 10px; padding: 12px; }
+.ology-referral-copy-field label { display: block; font-size: .78rem; font-weight: 800; margin-bottom: 6px; }
+.ology-referral-copy-row { display: flex; gap: 7px; }
+.ology-referral-copy-row input { min-width: 0; flex: 1; border: 1px solid var(--ology-brand-line); border-radius: 6px; padding: 10px; background: #fff; color: var(--ology-brand-ink); font-size: .85rem; }
+.ology-referral-copy-row button { min-height: 42px; padding-inline: 12px; }
+.ology-referral-hero-note { display: flex; align-items: flex-start; gap: 8px; color: var(--ology-brand-muted); font-size: .9rem; line-height: 1.5; margin-top: 22px !important; }
+.ology-referral-hero-note svg { color: #2e6654; flex: 0 0 auto; margin-top: 2px; }
+.ology-referral-art { position: relative; min-height: 430px; isolation: isolate; background: radial-gradient(ellipse at 80% 15%, #345f51 0%, transparent 47%), linear-gradient(130deg, #123332, #23544a); overflow: hidden; }
+.ology-referral-art::before { content: ""; position: absolute; width: 460px; aspect-ratio: 1; border: 1px solid #ffffff36; border-radius: 50%; left: -30%; top: -33%; }
+.ology-referral-art::after { content: ""; position: absolute; width: 440px; aspect-ratio: 1; border-radius: 50%; background: #c5d75d; right: -31%; bottom: -50%; opacity: .9; }
+.ology-referral-orbit { position: absolute; border: 1px solid #ffffff44; border-radius: 50%; aspect-ratio: 1; }
+.ology-referral-orbit.orbit-one { width: 310px; left: 25%; top: 9%; }
+.ology-referral-orbit.orbit-two { width: 180px; left: 5%; bottom: 4%; border-color: #c5d75d80; }
+.ology-referral-art-card { position: absolute; z-index: 2; left: clamp(24px, 10%, 80px); bottom: clamp(32px, 12%, 94px); width: min(78%, 440px); min-height: 220px; background: var(--ology-brand-surface); padding: clamp(25px, 3.2vw, 41px); border-radius: 6px; transform: rotate(-4deg); box-shadow: 0 24px 45px #061d1e55; display: flex; flex-direction: column; align-items: flex-start; }
+.ology-referral-art-card svg { color: var(--ology-brand-coral); }
+.ology-referral-art-card span { font-family: var(--ology-brand-editorial); font-size: clamp(1.6rem, 2.6vw, 2.55rem); line-height: 1.18; margin-top: 22px; }
+.ology-referral-art-card b { color: var(--ology-brand-muted); font-size: .68rem; letter-spacing: .13em; margin-top: 22px; }
+.ology-referral-summary { background: var(--ology-brand-deep); color: #fff; }
+.ology-referral-summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); padding-block: 24px; }
+.ology-referral-summary-grid div { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 3px clamp(12px, 3vw, 46px); border-left: 1px solid #b2d0be66; }
+.ology-referral-summary-grid div:first-child { border-left: 0; padding-left: 0; }
+.ology-referral-summary-grid strong { font-family: var(--ology-brand-display); font-size: clamp(1.4rem, 2.2vw, 2.1rem); }
+.ology-referral-summary-grid span { color: #e0e9dc; font-size: .82rem; }
+.ology-referral-tiers { padding-block: clamp(48px, 5vw, 82px); }
+.ology-referral-section-intro { max-width: 850px; }
+.ology-referral h2 { font-size: clamp(2rem, 3.3vw, 3.55rem); line-height: 1.1; margin-top: 12px; }
+.ology-referral-section-intro > p:last-child { color: var(--ology-brand-muted); font-size: 1rem; line-height: 1.6; margin-top: 15px; }
+.ology-referral-tier-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: clamp(26px, 3vw, 43px); }
+.ology-referral-tier { background: var(--ology-brand-surface); border: 1px solid var(--ology-brand-line); padding: clamp(19px, 2.2vw, 31px); border-radius: 7px; min-width: 0; }
+.ology-referral-tier.is-current { border: 2px solid var(--ology-brand-coral); padding: calc(clamp(19px, 2.2vw, 31px) - 1px); box-shadow: 0 4px 20px #183b3a14; }
+.ology-referral-tier-index { display: flex; align-items: center; justify-content: space-between; color: var(--ology-brand-muted); font-size: .75rem; font-weight: 750; letter-spacing: .09em; }
+.ology-referral-tier-index b { font-size: .64rem; background: var(--ology-brand-coral); color: #fff; border-radius: 4px; padding: 4px 6px; }
+.ology-referral-tier h3 { font-size: clamp(1.17rem, 1.7vw, 1.6rem); margin-top: 24px; }
+.ology-referral-tier strong { font-family: var(--ology-brand-display); font-size: clamp(2.5rem, 4vw, 4rem); letter-spacing: -.065em; line-height: 1; display: block; margin-top: 9px; }
+.ology-referral-tier strong small { font-size: .43em; margin-left: 2px; }
+.ology-referral-tier p { color: var(--ology-brand-muted); font-size: .87rem; margin-top: 13px; }
+.ology-referral-tier-progress { color: var(--ology-brand-muted); font-size: .91rem; margin-top: 17px !important; }
+.ology-referral-how { background: #e8ede3; padding-block: clamp(52px, 6vw, 94px); }
+.ology-referral-how-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: clamp(32px, 9vw, 160px); }
+.ology-referral-steps { list-style: none; margin: 0; padding: 0; }
+.ology-referral-steps li { display: grid; grid-template-columns: 54px 1fr; gap: 20px; padding: 21px 0; border-bottom: 1px solid #bfcdbb; }
+.ology-referral-steps li:first-child { padding-top: 0; }
+.ology-referral-steps li:last-child { border: 0; padding-bottom: 0; }
+.ology-referral-steps li > span { background: var(--ology-brand-leaf); align-self: start; width: 43px; height: 43px; border-radius: 50%; display: grid; place-items: center; font-size: .82rem; font-weight: 800; }
+.ology-referral-steps h3 { font-size: 1.25rem; }
+.ology-referral-steps p { color: var(--ology-brand-muted); line-height: 1.55; margin-top: 6px; }
+.ology-referral-faq { padding-block: clamp(52px, 6vw, 94px); }
+.ology-referral-faq-grid { display: grid; grid-template-columns: .75fr 1.25fr; gap: clamp(35px, 7vw, 145px); }
+.ology-referral-faq-grid > div:first-child > p:last-child { margin-top: 14px; color: var(--ology-brand-muted); }
+.ology-referral-questions { border-top: 1px solid var(--ology-brand-line); }
+.ology-referral-questions details { border-bottom: 1px solid var(--ology-brand-line); }
+.ology-referral-questions summary { list-style: none; cursor: pointer; position: relative; font-weight: 750; font-size: 1.03rem; padding: 20px 38px 20px 0; }
+.ology-referral-questions summary::-webkit-details-marker { display: none; }
+.ology-referral-questions summary::after { content: "+"; position: absolute; right: 7px; top: 18px; color: var(--ology-brand-coral-hover); font-size: 1.3rem; }
+.ology-referral-questions details[open] summary::after { content: "−"; }
+.ology-referral-questions details p { color: var(--ology-brand-muted); line-height: 1.6; padding: 0 30px 20px 0; }
+.ology-referral-endnote { padding-block: 22px 36px; border-top: 1px solid var(--ology-brand-line); }
+.ology-referral-endnote p { font-size: 1.05rem; font-weight: 700; }
+.ology-referral-endnote a { display: inline-flex; align-items: center; gap: 5px; text-decoration: underline; text-underline-offset: 4px; color: var(--ology-brand-coral-hover); }
+@media (max-width: 900px) {
+  .ology-referral-hero-grid { grid-template-columns: 1fr .8fr; gap: 25px; min-height: 490px; }
+  .ology-referral-art { min-height: 420px; }
+  .ology-referral h1 { font-size: clamp(3rem, 5.5vw, 4.2rem); }
+  .ology-referral-art-card { width: 82%; }
+  .ology-referral-how-grid { gap: 36px; }
+}
+@media (max-width: 700px) {
+  .ology-referral-wrap { width: min(calc(100% - 36px), 560px); }
+  .ology-referral-hero-grid { display: block; min-height: 0; }
+  .ology-referral-intro { padding-block: 45px 42px; }
+  .ology-referral h1 { font-size: clamp(2.85rem, 11vw, 4.4rem); }
+  .ology-referral-lede { margin-top: 16px !important; font-size: 1.04rem; }
+  .ology-referral-art { display: none; }
+  .ology-referral-summary-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+  .ology-referral-summary-grid div { border-left: 0; padding-inline: 0; }
+  .ology-referral-tier-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ology-referral-how-grid, .ology-referral-faq-grid { grid-template-columns: 1fr; }
+  .ology-referral-faq-grid { gap: 25px; }
+}
+@media (max-width: 370px) {
+  .ology-referral-wrap { width: calc(100% - 28px); }
+  .ology-referral h1 { font-size: 2.7rem; }
+  .ology-referral-copy-row { flex-wrap: wrap; }
+  .ology-referral-copy-row input { flex-basis: 100%; }
+  .ology-referral-tier { padding: 15px; }
+  .ology-referral-tier.is-current { padding: 14px; }
+  .ology-referral-tier h3 { margin-top: 15px; }
+  .ology-referral-tier strong { font-size: 2.5rem; }
+  .ology-referral-tier p { font-size: .79rem; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ology-referral-button, .ology-referral-copy-row button { transition: background 180ms var(--ology-brand-ease), transform 160ms var(--ology-brand-ease); }
+  .ology-referral-button:active, .ology-referral-copy-row button:active { transform: scale(.97); }
+}

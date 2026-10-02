@@ -411,6 +411,14 @@ export const bookingRouter = router({
       await db.updateBookingStatus(input.id, input.status, additionalData);
       const updated = await db.getBookingById(input.id);
       queueCrmBookingProjection(input.id);
+      if (input.status === "completed") {
+        try {
+          const { fulfillReferralAndNotify } = await import("../referralFulfillment");
+          await fulfillReferralAndNotify(input.id);
+        } catch (refErr) {
+          console.error("[Referral] Fulfillment failed (non-blocking):", refErr);
+        }
+      }
 
       try {
         const { sendNotification } = await import("../notifications");
@@ -498,15 +506,6 @@ export const bookingRouter = router({
             actionUrl: `/booking/${booking.id}/detail`,
             relatedBookingId: booking.id,
           });
-        }
-        // Referral reward fulfillment: when booking completes, check if customer was referred
-        if (input.status === "completed" && customer) {
-          try {
-            const { fulfillReferralAndNotify } = await import("../referralFulfillment");
-            await fulfillReferralAndNotify(booking.id, customer, service?.name || "Service");
-          } catch (refErr) {
-            console.error("[Referral] Fulfillment failed (non-blocking):", refErr);
-          }
         }
         // Recalculate provider trust score on booking completion
         if (input.status === "completed") {

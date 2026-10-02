@@ -1,8 +1,8 @@
 import * as db from "./db";
 import { sendNotification } from "./notifications";
 import { getDb } from "./db/connection";
-import { referrals, users } from "../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { referrals } from "../drizzle/schema";
+import { and, eq } from "drizzle-orm";
 
 /**
  * Fulfills a referral when a booking is completed and sends notification emails.
@@ -15,18 +15,14 @@ import { eq } from "drizzle-orm";
  */
 export async function fulfillReferralAndNotify(
   bookingId: number,
-  customer: { id: number; name: string | null; email: string | null },
-  serviceName: string
+  customer?: { id: number; name: string | null; email: string | null },
+  serviceName?: string
 ): Promise<boolean> {
-  const fulfilled = await db.fulfillReferralOnBookingComplete(
-    bookingId,
-    customer.id,
-    "0.00" // Will be calculated inside fulfillReferralOnBookingComplete from the booking
-  );
+  const fulfilled = await db.fulfillReferralOnBookingComplete(bookingId);
 
   if (!fulfilled) return false;
 
-  console.log(`[Referral] Fulfilled referral for customer ${customer.id} on booking ${bookingId}`);
+  console.log(`[Referral] Fulfilled referral on booking ${bookingId}`);
 
   // Find the referrer for this customer
   const dbConn = await getDb();
@@ -38,13 +34,16 @@ export async function fulfillReferralAndNotify(
       referrerDiscountAmount: referrals.referrerDiscountAmount,
     })
     .from(referrals)
-    .where(eq(referrals.refereeId, customer.id))
+    .where(and(eq(referrals.refereeBookingId, bookingId), eq(referrals.status, "completed")))
     .limit(1);
 
   if (!refRecord[0]) return true;
 
   const referrer = await db.getUserById(refRecord[0].referrerId);
   if (!referrer) return true;
+  const booking = await db.getBookingById(bookingId);
+  const referee = customer || (booking ? await db.getUserById(booking.customerId) : null);
+  const service = serviceName || (booking ? (await db.getServiceById(booking.serviceId))?.name : null) || "Service";
 
   // Send email notification to the referrer
   if (referrer.email) {
@@ -55,9 +54,9 @@ export async function fulfillReferralAndNotify(
         recipient: { userId: referrer.id, email: referrer.email, name: referrer.name || "User" },
         data: {
           referrerName: referrer.name || "User",
-          refereeName: customer.name || "Customer",
+          refereeName: referee?.name || "Customer",
           creditAmount: refRecord[0].referrerDiscountAmount || "0.00",
-          serviceName,
+          serviceName: service,
         },
       });
     } catch (emailErr) {
@@ -71,7 +70,7 @@ export async function fulfillReferralAndNotify(
       userId: referrer.id,
       notificationType: "referral_completed",
       title: "Referral Reward Earned!",
-      message: `${customer.name || "Your referral"} completed a booking! You earned $${refRecord[0].referrerDiscountAmount || "0.00"} in referral credits.`,
+      message: `${referee?.name || "Your referral"} completed a paid booking! You earned $${refRecord[0].referrerDiscountAmount || "0.00"} in referral credits.`,
       actionUrl: "/referrals",
     });
   } catch (notifErr) {

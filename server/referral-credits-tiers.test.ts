@@ -143,12 +143,7 @@ describe("Credit Expiration System", () => {
     expect(Array.isArray(result)).toBe(true);
   });
 
-  it("expireOldCredits should return a number", async () => {
-    const { expireOldCredits } = await import("./db/referrals");
-    const result = await expireOldCredits();
-    expect(typeof result).toBe("number");
-    expect(result).toBeGreaterThanOrEqual(0);
-  });
+  // The mutating expiry job must not be run against shared credits from a unit test.
 });
 
 // ============================================================================
@@ -161,23 +156,10 @@ describe("Credit Expiration Job", () => {
     expect(typeof runCreditExpirationJob).toBe("function");
   });
 
-  it("runCreditExpirationJob should return expired and warnings counts", async () => {
-    const { runCreditExpirationJob } = await import("./jobs/creditExpiration");
-    const result = await runCreditExpirationJob();
-    expect(result).toHaveProperty("expired");
-    expect(result).toHaveProperty("warnings");
-    expect(typeof result.expired).toBe("number");
-    expect(typeof result.warnings).toBe("number");
-  });
-
-  it("startCreditExpirationScheduler should be an exported function", async () => {
-    const { startCreditExpirationScheduler } = await import("./jobs/creditExpiration");
-    expect(typeof startCreditExpirationScheduler).toBe("function");
-  });
-
-  it("stopCreditExpirationScheduler should be an exported function", async () => {
-    const { stopCreditExpirationScheduler } = await import("./jobs/creditExpiration");
-    expect(typeof stopCreditExpirationScheduler).toBe("function");
+  it("does not export a volatile process-level timer", async () => {
+    const job = await import("./jobs/creditExpiration");
+    expect("startCreditExpirationScheduler" in job).toBe(false);
+    expect("stopCreditExpirationScheduler" in job).toBe(false);
   });
 });
 
@@ -233,7 +215,7 @@ describe("Referral Fulfillment", () => {
 
   it("fulfillReferralOnBookingComplete should return false for non-existent booking", async () => {
     const { fulfillReferralOnBookingComplete } = await import("./db/referrals");
-    const result = await fulfillReferralOnBookingComplete(999999, 999999, "100.00");
+    const result = await fulfillReferralOnBookingComplete(999999);
     expect(result).toBe(false);
   });
 });

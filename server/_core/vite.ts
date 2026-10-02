@@ -86,14 +86,14 @@ async function injectOgTags(url: string, template: string, origin: string): Prom
   // Referral program page
   if (!ogTags && url.startsWith("/referral-program")) {
     ogTags = [
-      `<meta property="og:title" content="OlogyCrew Referral Program \u2014 Share & Earn Rewards" />`,
-      `<meta property="og:description" content="Refer friends to OlogyCrew and earn credits toward your next booking. Unlock Bronze, Silver, Gold, and Platinum tiers with escalating rewards up to 25%." />`,
-      `<meta property="og:url" content="${origin}/referral-program" />`,
+      `<meta property="og:title" content="OlogyCrew Referral Program \u2014 Share Good Work" />`,
+      `<meta property="og:description" content="Share OlogyCrew and earn booking credits when a referred account completes an eligible paid booking. Bronze through Platinum rewards are based on net captured payment." />`,
+      `<meta property="og:url" content="https://ologycrew.com/referral-program" />`,
       `<meta property="og:type" content="website" />`,
       `<meta property="og:site_name" content="OlogyCrew" />`,
       `<meta name="twitter:card" content="summary_large_image" />`,
-      `<meta name="twitter:title" content="OlogyCrew Referral Program \u2014 Share & Earn Rewards" />`,
-      `<meta name="twitter:description" content="Refer friends to OlogyCrew and earn credits toward your next booking. Unlock Bronze, Silver, Gold, and Platinum tiers with escalating rewards up to 25%." />`,
+      `<meta name="twitter:title" content="OlogyCrew Referral Program \u2014 Share Good Work" />`,
+      `<meta name="twitter:description" content="Share OlogyCrew and earn booking credits when a referred account completes an eligible paid booking, based on net captured payment." />`,
       `<meta property="og:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-compressed_d69712f3.jpg" />`,
       `<meta property="og:image:width" content="1200" />`,
       `<meta property="og:image:height" content="630" />`,

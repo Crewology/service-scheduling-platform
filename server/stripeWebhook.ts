@@ -12,7 +12,8 @@ import { getStripeSubscriptionPeriod, mapStripeSubscriptionStatus } from "./stri
 import { CUSTOMER_PLANS, PROVIDER_PLANS } from "../shared/entitlements";
 import { createSubscriptionInAppNotice } from "./subscriptionNotifications";
 import { queueCrmBookingProjection, queueCrmInvoiceProjection } from "./crm/sourceHooks";
-
+import { fulfillReferralAndNotify } from "./referralFulfillment";
+import { dollarsToCents } from "./referralRewardPolicy";
 const stripe = new Stripe(ENV.stripeSecretKey, {
   apiVersion: "2026-01-28.clover",
 });
@@ -188,12 +189,11 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   }
 
   const stripePaymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id;
-  if (stripePaymentIntentId) {
-    const fallbackAmount = paymentType === "deposit" ? booking.depositAmount || "0" : booking.totalAmount || "0";
+  if (stripePaymentIntentId && session.payment_status === "paid" && session.amount_total != null) {
     await db.upsertBookingPaymentByStripeIntent({
       bookingId: booking.id,
-      paymentType: paymentType === "deposit" ? "deposit" : "full",
-      amount: session.amount_total != null ? (session.amount_total / 100).toFixed(2) : fallbackAmount,
+      paymentType: paymentType === "deposit" ? "deposit" : paymentType === "final" ? "final" : "full",
+      amount: (session.amount_total / 100).toFixed(2),
       currency: session.currency || "usd",
       status: "captured",
       stripePaymentIntentId,
@@ -209,13 +209,16 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     });
     console.log(`[Stripe] Deposit payment recorded for booking ${bookingId}`);
   } else {
-    await db.updateBookingStatus(parseInt(bookingId), "confirmed", {
+    await db.updateBookingStatus(parseInt(bookingId), booking.status === "pending" ? "confirmed" : booking.status, {
       paidAt: new Date().toISOString(),
       stripePaymentIntentId: session.payment_intent as string,
     });
     console.log(`[Stripe] Full payment recorded for booking ${bookingId}`);
   }
   queueCrmBookingProjection(booking.id);
+  if (stripePaymentIntentId && session.payment_status === "paid" && session.amount_total != null) {
+    await fulfillReferralAndNotify(booking.id);
+  }
 
   // Send email notifications
   const customer = await db.getUserById(booking.customerId);
@@ -319,13 +322,14 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
   await db.upsertBookingPaymentByStripeIntent({
     bookingId,
     paymentType,
-    amount: ((paymentIntent.amount_received || paymentIntent.amount) / 100).toFixed(2),
+    amount: (paymentIntent.amount_received / 100).toFixed(2),
     currency: paymentIntent.currency,
     status: "captured",
     stripePaymentIntentId: paymentIntent.id,
     processedAt: new Date(),
   });
   queueCrmBookingProjection(bookingId);
+  await fulfillReferralAndNotify(bookingId);
 }
 
 async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
@@ -429,8 +433,9 @@ async function handleRefund(charge: Stripe.Charge) {
 
   const refundAmountDollars = (charge.amount_refunded / 100).toFixed(2);
 
-  // Update payment record if not already marked as refunded
-  if (payment.status !== "refunded") {
+  // Stripe reports cumulative amount_refunded. A replayed older partial
+  // refund must never decrease the locally recorded refund.
+  if (dollarsToCents(refundAmountDollars) > dollarsToCents(payment.refundAmount || "0.00")) {
     await db.updatePaymentRefund(payment.id, {
       status: "refunded",
       refundAmount: refundAmountDollars,

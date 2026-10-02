@@ -204,6 +204,8 @@ async function startServer() {
   // Scheduled task: trial expiry check (Heartbeat cron)
   const { handleScheduledTrialExpiry } = await import("../scheduledTrialExpiry");
   app.post("/api/scheduled/trial-expiry", handleScheduledTrialExpiry);
+  const { handleScheduledReferralCreditExpiry } = await import("../scheduledReferralCreditExpiry");
+  app.post("/api/scheduled/referral-credit-expiry", handleScheduledReferralCreditExpiry);
 
   // Scheduled task: social media auto-post (Heartbeat cron)
   const { handleScheduledSocialPost } = await import("../scheduledSocialPost");
@@ -271,12 +273,6 @@ async function startServer() {
       console.error("Failed to start review reminder service:", err);
     });
 
-    // Start the credit expiration scheduler (runs every 24 hours)
-    import("../jobs/creditExpiration").then(({ startCreditExpirationScheduler }) => {
-      startCreditExpirationScheduler();
-    }).catch(err => {
-      console.error("Failed to start credit expiration scheduler:", err);
-    });
   });
 }
 
