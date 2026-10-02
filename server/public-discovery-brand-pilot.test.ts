@@ -81,7 +81,7 @@ describe("two-page public discovery brand pilot", () => {
   it("uses the same tokens on genuine profiles while preserving all existing trust and action paths", () => {
     expect(routes).toContain('<Route path="/p/:slug" component={PublicProviderProfile} />');
     expect(routes).toContain('<Route path="/:slug" component={PublicProviderProfile} />');
-    expect(profile).toContain('className="ology-provider-profile min-h-screen bg-page"');
+    expect(profile).toContain('ology-provider-profile min-h-screen bg-page${provider.isOfficial ? " ology-official-demo" : ""}');
     expect(profile).toContain('href="#services-section"');
     expect(profile).toContain("See {services.length} service");
     for (const contract of [

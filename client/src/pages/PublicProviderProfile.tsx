@@ -44,17 +44,15 @@ import {
   AlertTriangle,
   Phone,
   Sparkles,
-  TrendingUp,
-  Users,
-  Layers,
   ArrowRight,
+  Search,
 } from "lucide-react";
-import { useState as useStateLocal, useEffect as useEffectLocal } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { toast } from "sonner";
 import { TrustBadge } from "@/components/TrustBadge";
 import { PaymentMethods } from "@/components/PaymentMethods";
+import { filterDemoServices, selectFeaturedDemoServices } from "@/lib/demoProfileCatalog";
 import "@/styles/publicDiscovery.css";
 
 function formatCurrency(value: string | number | null | undefined): string {
@@ -259,6 +257,8 @@ export default function PublicProviderProfile() {
 
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [showDemoWelcome, setShowDemoWelcome] = useState(false);
+  const [demoCatalogOpen, setDemoCatalogOpen] = useState(false);
+  const [demoSearch, setDemoSearch] = useState("");
   const [showQuoteDialog, setShowQuoteDialog] = useState(false);
   const [quoteTitle, setQuoteTitle] = useState("");
   const [quoteDescription, setQuoteDescription] = useState("");
@@ -339,10 +339,18 @@ export default function PublicProviderProfile() {
 
   const filteredServices = useMemo(() => {
     if (!data?.services) return [];
+    if (data.provider.isOfficial) {
+      return filterDemoServices(data.services, data.categories || [], activeCategory, demoSearch);
+    }
     if (activeCategory === "all") return data.services;
     const catId = parseInt(activeCategory);
     return data.services.filter((s: any) => s.categoryId === catId);
-  }, [data, activeCategory]);
+  }, [data, activeCategory, demoSearch]);
+
+  const featuredDemoServices = useMemo(
+    () => data?.provider?.isOfficial ? selectFeaturedDemoServices(data.services) : [],
+    [data],
+  );
 
   // These hooks MUST be called before any early returns to satisfy Rules of Hooks
   const providerId = data?.provider?.id;
@@ -358,17 +366,6 @@ export default function PublicProviderProfile() {
     { providerId: providerId! },
     { enabled: !!providerId }
   );
-
-  // Show demo welcome popup on first visit to demo provider
-  const isOfficial = data?.provider?.isOfficial;
-  useEffectLocal(() => {
-    if (isOfficial) {
-      const dismissed = sessionStorage.getItem('demo_welcome_dismissed');
-      if (!dismissed) {
-        setShowDemoWelcome(true);
-      }
-    }
-  }, [isOfficial]);
 
   if (isLoading) {
     return (
@@ -394,45 +391,32 @@ export default function PublicProviderProfile() {
     name.split(" ").map((w: string) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
 
   return (
-    <div className="ology-provider-profile min-h-screen bg-page">
+    <div className={`ology-provider-profile min-h-screen bg-page${provider.isOfficial ? " ology-official-demo" : ""}`}>
       <NavHeader />
 
-      {/* Demo Welcome Popup */}
-      <Dialog open={showDemoWelcome} onOpenChange={(open) => {
-        if (!open) {
-          setShowDemoWelcome(false);
-          sessionStorage.setItem('demo_welcome_dismissed', 'true');
-        }
-      }}>
+      {/* Booking guidance is available on demand rather than interrupting first visits. */}
+      <Dialog open={showDemoWelcome} onOpenChange={setShowDemoWelcome}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-xl">
               <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-100">
                 <Sparkles className="w-4 h-4 text-amber-600" />
               </span>
-              Welcome to the Demo Experience!
+              How a demo booking works
             </DialogTitle>
             <DialogDescription asChild>
               <div className="text-left space-y-3 pt-2">
                 <p className="text-sm text-foreground/80">
-                  This is a <strong>risk-free way to test the booking process</strong> on OlogyCrew. You can:
+                  This is a <strong>risk-free way to test the booking process</strong> on OlogyCrew.
                 </p>
-                <ul className="text-sm text-muted-foreground space-y-2 pl-1">
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
-                    <span>Browse and book any demo service completely free</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
-                    <span>Experience the full booking flow without entering payment info</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
-                    <span>Cancel demo bookings anytime with one click</span>
-                  </li>
-                </ul>
+                <div className="grid grid-cols-2 gap-2" aria-label="Four demo booking steps">
+                  <HowItWorksStep step={1} title="Browse Services" description="Find the service you need" />
+                  <HowItWorksStep step={2} title="Pick a Time" description="Choose an available time" />
+                  <HowItWorksStep step={3} title="Confirm Details" description="Submit your request" />
+                  <HowItWorksStep step={4} title="Get Confirmed" description="The demo booking is confirmed" />
+                </div>
                 <p className="text-xs text-muted-foreground pt-1">
-                  No credit card needed. No charges. Just a preview of how easy it is to book real services.
+                  No credit card needed. No charges. You can cancel a demo booking anytime.
                 </p>
               </div>
             </DialogDescription>
@@ -440,12 +424,9 @@ export default function PublicProviderProfile() {
           <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button
               className="w-full sm:w-auto"
-              onClick={() => {
-                setShowDemoWelcome(false);
-                sessionStorage.setItem('demo_welcome_dismissed', 'true');
-              }}
+              onClick={() => setShowDemoWelcome(false)}
             >
-              Got it, let me explore!
+              Explore free demo services
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -480,7 +461,7 @@ export default function PublicProviderProfile() {
               <div className="flex items-center gap-3 flex-wrap">
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">{provider.businessName}</h1>
                 {provider.isOfficial && <OfficialBadge size="lg" />}
-                {provider.trustLevel && provider.trustLevel !== "new" && (
+                {!provider.isOfficial && provider.trustLevel && provider.trustLevel !== "new" && (
                   <TrustBadge level={provider.trustLevel} size="md" />
                 )}
 
@@ -497,7 +478,9 @@ export default function PublicProviderProfile() {
               </div>
 
               {provider.description && (
-                <p className="text-muted-foreground mt-3 max-w-2xl leading-relaxed">{provider.description}</p>
+                <p className="text-muted-foreground mt-3 max-w-2xl leading-relaxed">
+                  {provider.isOfficial ? "Try a free demo service and see how booking works. No charge." : provider.description}
+                </p>
               )}
 
               {/* Response Time Badge */}
@@ -578,7 +561,12 @@ export default function PublicProviderProfile() {
               )}
 
               {/* Category Tags */}
-              {categories && categories.length > 0 && (
+              {provider.isOfficial && categories?.length > 0 && (
+                <p className="ology-demo-category-cue mt-4 text-sm">
+                  Explore {services.length} free demo services across {categories.length} categories.
+                </p>
+              )}
+              {!provider.isOfficial && categories && categories.length > 0 && (
                 <div className="flex gap-2 mt-4 flex-wrap">
                   {categories.map((cat: any) => (
                     <Badge key={cat.id} variant="secondary" className="gap-1 text-xs py-1">
@@ -590,7 +578,10 @@ export default function PublicProviderProfile() {
               )}
               {services.length > 0 && (
                 <a className="ology-provider-services-link" href="#services-section">
-                  See {services.length} service{services.length === 1 ? "" : "s"} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  {provider.isOfficial
+                    ? "Try free demo services"
+                    : <>See {services.length} service{services.length === 1 ? "" : "s"}</>}
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </a>
               )}
             </div>
@@ -602,42 +593,23 @@ export default function PublicProviderProfile() {
       {/* OFFICIAL PROVIDER — Interactive Showcase (only for isOfficial)   */}
       {/* ================================================================ */}
       {provider.isOfficial && (
-        <div className="border-b bg-gradient-to-r from-amber-50/50 via-orange-50/30 to-amber-50/50 dark:from-amber-950/20 dark:via-orange-950/10 dark:to-amber-950/20">
-          <div className="ology-provider-demo-inner container max-w-5xl py-8">
-            {/* Demo Provider Banner */}
-            <div className="flex items-center gap-3 mb-6 p-4 rounded-xl bg-white/70 dark:bg-card/50 border border-amber-300/40 shadow-sm">
-              <div className="p-2 rounded-lg bg-amber-500/10">
-                <Sparkles className="w-5 h-5 text-amber-600" />
+        <div className="border-b bg-[#f5f2e9]">
+          <div className="ology-provider-demo-inner container max-w-5xl py-5">
+            <div className="ology-demo-notice flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-2xl border bg-white">
+              <div className="p-2 rounded-xl bg-[#f5f2e9]" aria-hidden="true">
+                <Sparkles className="w-5 h-5 text-[#a94834]" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-sm text-foreground">Demo Provider — Free to Book</h3>
-                <p className="text-xs text-muted-foreground">This is a demo provider. Book any service below for free to experience how easy it is. No charges will be made.</p>
+                <h2 className="font-semibold text-sm text-[#183b3a]">Demo Provider — Free to Book</h2>
+                <p className="text-sm text-[#48615e]">Try any demo service for free. No payment or charges.</p>
               </div>
-              <Link href="/provider/onboarding">
-                <Button size="sm" className="gap-1.5 shrink-0">
-                  Become a Provider <ArrowRight className="w-3.5 h-3.5" />
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" variant="outline" className="ology-demo-guide-button" onClick={() => setShowDemoWelcome(true)}>
+                  How booking works
                 </Button>
-              </Link>
-            </div>
-
-            {/* Animated Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <AnimatedStatCard icon={<Layers className="w-5 h-5" />} label="Categories" value={categories?.length || 0} suffix="+" color="blue" />
-              <AnimatedStatCard icon={<Package className="w-5 h-5" />} label="Services" value={services.length} suffix="" color="purple" />
-              <AnimatedStatCard icon={<Users className="w-5 h-5" />} label="Bookings" value={provider.totalBookings || 0} suffix="+" color="green" />
-              <AnimatedStatCard icon={<TrendingUp className="w-5 h-5" />} label="Response" value={100} suffix="%" color="amber" />
-            </div>
-
-            {/* How It Works Steps */}
-            <div className="bg-white/70 dark:bg-card/50 rounded-xl border border-border/50 p-5">
-              <h3 className="font-semibold text-sm mb-4 flex items-center gap-2">
-                <Zap className="w-4 h-4 text-primary" /> How Booking Works
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                <HowItWorksStep step={1} title="Browse Services" description="Find the service you need from the list below" />
-                <HowItWorksStep step={2} title="Pick a Time" description="Choose a date and available time slot" />
-                <HowItWorksStep step={3} title="Confirm Details" description="Add your info and submit the request" />
-                <HowItWorksStep step={4} title="Get Confirmed" description="Provider confirms and you're all set" />
+                <Link href="/provider/onboarding">
+                  <Button size="sm" className="gap-1.5 shrink-0">Become a Provider <ArrowRight className="w-3.5 h-3.5" /></Button>
+                </Link>
               </div>
             </div>
           </div>
@@ -651,8 +623,44 @@ export default function PublicProviderProfile() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column — Services & Reviews */}
           <div id="services-section" className="lg:col-span-2 space-y-8">
+            {provider.isOfficial && demoCatalogOpen && (
+              <div className="ology-demo-catalog rounded-2xl border bg-white p-4 sm:p-5 space-y-4" aria-label="Browse all demo services">
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-widest">Full demo catalog</p>
+                    <p className="text-sm">Search or choose a category. Every demo service stays free to try.</p>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => {
+                    setDemoCatalogOpen(false);
+                    setDemoSearch("");
+                    setActiveCategory("all");
+                  }}>Back to featured</Button>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,230px)]">
+                  <div>
+                    <Label htmlFor="demo-service-search">Find a demo service</Label>
+                    <div className="relative mt-1.5">
+                      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#48615e]" aria-hidden="true" />
+                      <Input id="demo-service-search" type="search" className="pl-9" placeholder="Search services or categories" value={demoSearch} onChange={event => setDemoSearch(event.target.value)} />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="demo-category-filter">Category</Label>
+                    <select id="demo-category-filter" className="ology-demo-category-select mt-1.5 h-10 w-full rounded-md border px-3 text-sm" value={activeCategory} onChange={event => setActiveCategory(event.target.value)}>
+                      <option value="all">All categories ({services.length})</option>
+                      {categories.filter((cat): cat is NonNullable<typeof cat> => !!cat).map((cat) => {
+                        const count = services.filter((service: any) => service.categoryId === cat.id).length;
+                        return count > 0 ? <option key={cat.id} value={String(cat.id)}>{displayName(cat.name)} ({count})</option> : null;
+                      })}
+                    </select>
+                  </div>
+                </div>
+                <p role="status" className="text-sm">Showing {filteredServices.length} of {services.length} demo services</p>
+              </div>
+            )}
+
             {/* Category Filter Tabs */}
-            {categories && categories.length > 1 && (
+            {!provider.isOfficial && categories && categories.length > 1 && (
               <div className="flex gap-2 flex-wrap">
                 <button
                   onClick={() => setActiveCategory("all")}
@@ -687,23 +695,27 @@ export default function PublicProviderProfile() {
             {/* Services Grid */}
             <div>
               <h2 className="text-xl font-semibold text-foreground mb-4">
-                {activeCategory === "all"
-                  ? "All Services"
+                {provider.isOfficial && !demoCatalogOpen
+                  ? "Try a free demo service"
+                  : provider.isOfficial
+                    ? "All demo services"
+                  : activeCategory === "all"
+                    ? "All Services"
                   : (() => {
                       const cat = categories?.find((c: any) => c.id === parseInt(activeCategory));
                       return cat ? `${CATEGORY_ICONS[cat.id] || ""} ${displayName(cat.name)}` : "Services";
                     })()}
               </h2>
 
-              {filteredServices.length === 0 ? (
+              {(provider.isOfficial && !demoCatalogOpen ? featuredDemoServices : filteredServices).length === 0 ? (
                 <Card>
                   <CardContent className="py-8 text-center text-muted-foreground">
-                    No services listed yet.
+                    {provider.isOfficial && demoCatalogOpen ? "No matching demo services. Try another search or category." : "No services listed yet."}
                   </CardContent>
                 </Card>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {filteredServices.map((service: any) => {
+                  {(provider.isOfficial && !demoCatalogOpen ? featuredDemoServices : filteredServices).map((service: any) => {
                     const cat = categories?.find((c: any) => c.id === service.categoryId);
                     const decision = getAdaptiveBookingDecision(service);
                     const serviceHref = adaptiveServiceHref(service.id, {
@@ -750,6 +762,11 @@ export default function PublicProviderProfile() {
                     );
                   })}
                 </div>
+              )}
+              {provider.isOfficial && !demoCatalogOpen && services.length > 0 && (
+                <Button variant="outline" className="ology-demo-browse-button mt-5" onClick={() => setDemoCatalogOpen(true)}>
+                  Browse all {services.length} demo services <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Button>
               )}
             </div>
 
@@ -927,7 +944,7 @@ export default function PublicProviderProfile() {
                       Choose from {services.length} service{services.length !== 1 ? "s" : ""} across {categories?.length || 1} categor{(categories?.length || 1) !== 1 ? "ies" : "y"}
                     </p>
                     <div className="space-y-2">
-                      {services.slice(0, 3).map((service: any) => {
+                      {(provider.isOfficial ? featuredDemoServices : services).slice(0, 3).map((service: any) => {
                         const decision = getAdaptiveBookingDecision(service);
                         const serviceHref = adaptiveServiceHref(service.id, {
                           providerSlug: provider.profileSlug || provider.id,
@@ -1082,7 +1099,7 @@ export default function PublicProviderProfile() {
             <TipCard providerId={provider.id} providerName={provider.businessName} />
 
             {/* Categories Served */}
-            {categories && categories.length > 0 && (
+            {!provider.isOfficial && categories && categories.length > 0 && (
               <Card>
                 <CardContent className="p-5 space-y-3">
                   <h3 className="font-semibold">Categories Served</h3>
@@ -1345,58 +1362,6 @@ export default function PublicProviderProfile() {
 /* ================================================================ */
 /* HELPER COMPONENTS — Official Profile Interactive Elements         */
 /* ================================================================ */
-
-function AnimatedStatCard({ icon, label, value, suffix, color }: {
-  icon: React.ReactNode;
-  label: string;
-  value: number;
-  suffix: string;
-  color: "blue" | "purple" | "green" | "amber";
-}) {
-  const [displayValue, setDisplayValue] = useStateLocal(0);
-
-  useEffectLocal(() => {
-    if (value === 0) return;
-    const duration = 1200;
-    const steps = 30;
-    const increment = value / steps;
-    let current = 0;
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= value) {
-        setDisplayValue(value);
-        clearInterval(timer);
-      } else {
-        setDisplayValue(Math.floor(current));
-      }
-    }, duration / steps);
-    return () => clearInterval(timer);
-  }, [value]);
-
-  const colorMap = {
-    blue: "bg-blue-50 border-blue-100 dark:bg-blue-950/30 dark:border-blue-900/30",
-    purple: "bg-purple-50 border-purple-100 dark:bg-purple-950/30 dark:border-purple-900/30",
-    green: "bg-green-50 border-green-100 dark:bg-green-950/30 dark:border-green-900/30",
-    amber: "bg-amber-50 border-amber-100 dark:bg-amber-950/30 dark:border-amber-900/30",
-  };
-
-  const iconColorMap = {
-    blue: "text-blue-600 dark:text-blue-400",
-    purple: "text-purple-600 dark:text-purple-400",
-    green: "text-green-600 dark:text-green-400",
-    amber: "text-amber-600 dark:text-amber-400",
-  };
-
-  return (
-    <div className={`rounded-xl border p-4 text-center transition-all hover:scale-105 ${colorMap[color]}`}>
-      <div className={`inline-flex mb-2 ${iconColorMap[color]}`}>{icon}</div>
-      <div className="text-2xl font-bold text-foreground">
-        {displayValue}{suffix}
-      </div>
-      <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
-    </div>
-  );
-}
 
 function HowItWorksStep({ step, title, description }: {
   step: number;

@@ -233,3 +233,20 @@
     animation-duration: .01ms !important;
   }
 }
+
+/* Official demo only: preview a few genuine services before the opt-in full catalog. */
+.ology-provider-profile.ology-official-demo .ology-provider-hero-inner { padding-top: 28px; padding-bottom: 30px; }
+.ology-official-demo .ology-demo-category-cue { color: #e1e9dc; }
+.ology-official-demo .ology-demo-notice { border-color: var(--ology-brand-line); color: var(--ology-brand-ink); }
+.ology-official-demo .ology-demo-guide-button { border-color: var(--ology-brand-line); background: #fffdf7; color: var(--ology-brand-ink); }
+.ology-official-demo .ology-demo-guide-button:hover { background: #e8ece0; }
+.ology-official-demo .ology-demo-catalog { border-color: var(--ology-brand-line); }
+.ology-official-demo .ology-demo-catalog p { color: var(--ology-brand-muted); }
+.ology-official-demo .ology-demo-catalog p:first-child { color: var(--ology-brand-coral-hover); }
+.ology-official-demo .ology-demo-catalog :is(input, select) { border-color: #a8b9ab; background: #fffdf7; color: var(--ology-brand-ink); }
+.ology-official-demo .ology-demo-catalog select:focus-visible { outline: var(--ology-brand-focus); outline-offset: 3px; }
+.ology-official-demo .ology-demo-browse-button { min-height: 44px; border-color: var(--ology-brand-coral); background: #fffdf7; color: var(--ology-brand-coral-hover); font-weight: 700; }
+.ology-official-demo .ology-demo-browse-button:hover { background: #f7e8df; }
+@media (max-width: 639px) {
+  .ology-provider-profile.ology-official-demo .ology-provider-hero-inner { padding: 22px; }
+}

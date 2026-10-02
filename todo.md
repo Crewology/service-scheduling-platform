@@ -3473,3 +3473,8 @@
 - [x] Scope the dark-hero copy selector to its own editorial heading and description so it does not recolor text inside the light advanced-filter panel.
 - [x] Explicitly style the free-estimate and emergency-filter descriptions with a readable brand-muted color and 14px size; keep their labels, checkboxes, search URL state, and filter behavior unchanged.
 - [x] Measure 5.91:1 WCAG AA normal-text contrast against the real panel background in both filter states at desktop/390px/320px, verify the visible checkbox boundary/focus and unchanged filter URLs; pass 179 test files / 2,008 tests, build, TypeScript, cleanup, and diff checks; save an unpublished checkpoint. Do not publish without approval.
+
+## Official demo provider profile decluttering — review before publication
+- [x] Apply only when `provider.isOfficial`: condense the hero's category display, keep the DEMO identity and no-charge notice, remove low-value demo stats, and let visitors open booking guidance voluntarily rather than with an automatic modal.
+- [x] Surface four genuine demo service links first; keep the entire service catalog available through an obvious searchable category browser with complete counts and unchanged adaptive deep links.
+- [x] Keep normal provider profiles, booking/quote/payment/server behavior, and data unchanged. Verify 1440px/tablet/390px/320px samples, search/category filters, direct service links and normal-profile isolation; pass 180 test files / 2,012 tests, production build, TypeScript, diff and zero test-data residue; save an unpublished checkpoint. Do not publish without explicit approval.

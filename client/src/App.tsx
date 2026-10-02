@@ -247,6 +247,7 @@ function AppContent() {
 
   // Hide footer on embed pages and admin dashboard
   const isPrototype = location.startsWith("/preview/");
+  const isDemoProfile = location === "/demo-ologycrew" || location === "/p/demo-ologycrew";
   const hideFooter = location.startsWith("/embed") || location.startsWith("/admin") || isPrototype;
 
   // Scroll to top on route change
@@ -277,7 +278,7 @@ function AppContent() {
         <Router />
       </RoleGuard>
       {!hideFooter && <Footer compactPublicHome={location === "/" || location === "/for-providers"} />}
-      {!isPrototype && <PWAInstallBanner />}
+      {!isPrototype && !isDemoProfile && <PWAInstallBanner />}
       {!location.startsWith("/embed") && !isPrototype && <HelpChatWidget />}
     </>
   );
