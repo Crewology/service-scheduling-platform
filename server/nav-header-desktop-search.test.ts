@@ -7,6 +7,7 @@ const navHeader = readFileSync(resolve(root, "client/src/components/shared/NavHe
 const homeSource = readFileSync(resolve(root, "client/src/pages/Home.tsx"), "utf8");
 const conceptSource = readFileSync(resolve(root, "client/src/pages/PublicHomepageConceptThree.tsx"), "utf8");
 const conceptStyles = readFileSync(resolve(root, "client/src/pages/prototype/PublicHomepageDemoPrototype.css"), "utf8");
+const publicBrandStyles = readFileSync(resolve(root, "client/src/components/shared/PublicBrandHeader.css"), "utf8");
 
 const desktopActions = navHeader.slice(
   navHeader.indexOf("{/* Right side actions */}"),
@@ -48,15 +49,22 @@ describe("header discovery shortcut", () => {
   it("shows public Search followed by Pricing on desktop", () => {
     expect(desktopRightSide).toContain('<Link href="/browse" aria-label="Search services and providers">');
     expect(desktopRightSide).toContain('<Link href="/pricing">');
-    expect(desktopRightSide).toContain('variant="ghost" size="sm">Pricing</Button>');
+    expect(desktopRightSide).toContain('variant="ghost" size="sm" className="public-brand-nav-link">Pricing</Button>');
     expect(desktopRightSide.indexOf('href="/browse"')).toBeLessThan(
-      desktopRightSide.indexOf('variant="ghost" size="sm">Pricing</Button>'),
+      desktopRightSide.indexOf('variant="ghost" size="sm" className="public-brand-nav-link">Pricing</Button>'),
     );
   });
 
-  it("preserves the original Get Started header color while Concept 3 uses its own scoped coral hero CTA", () => {
-    const matchingCtaClasses = 'bg-[#156a9a] text-white hover:bg-[#10577e]';
-    expect(desktopRightSide).toContain(`${matchingCtaClasses}">Get Started</Button>`);
+  it("styles only the public header to match Concept 3 while leaving workspace chrome intact", () => {
+    expect(navHeader).toContain('isAuthenticated ? "bg-white" : "bg-[#fffdf7] public-brand-header"');
+    expect(navHeader).toContain('isAuthenticated ? "container" : "public-brand-inner"');
+    expect(navHeader).toContain('isAuthenticated ? "gradient-text" : "public-brand-wordmark"');
+    expect(desktopRightSide).toContain('className="public-brand-cta">Get Started</Button>');
+    expect(desktopRightSide).toContain('<Link href="/login">');
+    expect(publicBrandStyles).toContain('.public-brand-header .public-brand-inner');
+    expect(publicBrandStyles).toContain('width: min(1600px, calc(100% - 64px))');
+    expect(publicBrandStyles).toContain('background: #bd4b35');
+    expect(publicBrandStyles).toContain('prefers-reduced-motion: reduce');
     expect(homeSource).toContain("return <PublicHomepageConceptThree />");
     expect(conceptSource).toContain('className="or-search"');
     expect(conceptStyles).toContain(".or-search button{border:0;background:#c74f38");

@@ -3447,3 +3447,8 @@
 - [x] Reuse existing approved editorial image in WebDev storage; preserve global header, `/` design, all prototype routes, signed-in workspaces, plans, subscription behavior, bookings, payments, and onboarding.
 - [x] Route the public homepage provider path and a footer entry to the benefits page, with explicit pricing and sample-profile next steps; avoid duplicate closing conversion blocks.
 - [x] Add the public route, sitemap/reserved-slug and share metadata; cover content and route contracts, actual pricing/sample destinations, desktop/tablet/mobile and keyboard focus; pass 178 files / 2,002 tests, build, TypeScript, diff and cleanup; save an unpublished checkpoint. Do not publish without approval.
+
+## Public marketing width and header refinement (review before publication)
+- [x] Widen only the public homepage and For Providers desktop content to a responsive 1600px maximum with familiar edge gutters; keep mobile/tablet layout stable.
+- [x] Align the shared public header to the widened content and Concept 3’s warm-paper, deep-green, editorial typography; retain Search, Pricing, Sign In, Get Started and mobile-menu destinations, and keep signed-in header styling and behavior unchanged.
+- [x] Update focused contracts; inspect 1920px/1440px, tablet, and 390px/320px plus signed-in header; pass 178 test files / 2,002 tests, production build, cleanup, TypeScript and diff checks; save an unpublished checkpoint. The previously stopped testimonial request is out of scope.

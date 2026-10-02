@@ -11,7 +11,7 @@ const footer = readFileSync(resolve(root, "client/src/components/shared/Footer.t
 // The approved new design intentionally replaces the previous blue public homepage;
 // authenticated customer/provider dashboards and all other app canvases stay untouched.
 describe("public homepage Concept 3 design alignment", () => {
-  it("preserves the public/authenticated home split and uses the unchanged shared header", () => {
+  it("preserves the public/authenticated home split and uses the shared header", () => {
     expect(home).toContain("if (isAuthenticated && user) return <LoggedInHome />");
     expect(home).toContain("return <PublicHomepageConceptThree />");
     expect(concept).toContain("<NavHeader forcePublic={forcePublicHeader} />");
@@ -24,6 +24,9 @@ describe("public homepage Concept 3 design alignment", () => {
     expect(styles).toContain("--or-paper: #f5f2e9");
     expect(styles).toContain(".or-hero-frame{height:560px");
     expect(styles).toContain(".or-live-home .or-hero-pathways{");
+    expect(styles).toContain(".or-live-home .or-wrap,\n  .or-live-footer-inner { width: min(1600px, calc(100% - 64px)); }");
+    expect(styles).toContain(".or-wrap{width:min(1240px,calc(100% - 64px))");
+    expect(styles).toContain(".or-live-home .or-hero-frame { height: clamp(600px, 40vw, 640px); }");
     expect(styles).toContain("@media(max-width:640px)");
     expect(styles).toContain("@media(prefers-reduced-motion:reduce)");
     expect(styles).not.toContain(".or-site-header{");

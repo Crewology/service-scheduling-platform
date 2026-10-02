@@ -53,6 +53,7 @@ import { toast } from "sonner";
 import { ViewModeSwitcher, ViewModeSwitcherMobile } from "@/components/ViewModeSwitcher";
 import { useViewMode } from "@/contexts/ViewModeContext";
 import { usePWAInstallContext } from "@/contexts/PWAInstallContext";
+import "./PublicBrandHeader.css";
 
 function NotificationDropdown() {
   const { isAuthenticated } = useAuth();
@@ -602,8 +603,8 @@ export function NavHeader({ forcePublic = false }: { forcePublic?: boolean } = {
   const { isInstalled: pwaInstalled, triggerInstall: pwaInstall } = usePWAInstallContext();
 
   return (
-    <header className="border-b bg-white sticky top-0 z-50">
-      <div className="container">
+    <header className={`border-b sticky top-0 z-50 ${isAuthenticated ? "bg-white" : "bg-[#fffdf7] public-brand-header"}`}>
+      <div className={isAuthenticated ? "container" : "public-brand-inner"}>
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0" onClick={() => setMobileMenuOpen(false)}>
@@ -612,7 +613,7 @@ export function NavHeader({ forcePublic = false }: { forcePublic?: boolean } = {
               alt="OlogyCrew"
               className="h-9 w-9 lg:h-8 lg:w-8 object-contain rounded-lg"
             />
-            <span className="hidden lg:inline text-xl font-bold gradient-text whitespace-nowrap">OlogyCrew</span>
+            <span className={`hidden lg:inline text-xl font-bold whitespace-nowrap ${isAuthenticated ? "gradient-text" : "public-brand-wordmark"}`}>OlogyCrew</span>
           </Link>
 
           {/* Desktop Nav - hidden per user request */}
@@ -621,7 +622,7 @@ export function NavHeader({ forcePublic = false }: { forcePublic?: boolean } = {
           <div className="hidden lg:flex items-center gap-1">
             {/* Search / Explore */}
             <Link href="/browse" aria-label="Search services and providers">
-              <Button variant="ghost" size="icon" className="relative h-9 w-9" title="Search">
+              <Button variant="ghost" size="icon" className={`relative h-9 w-9 ${isAuthenticated ? "" : "public-brand-icon"}`} title="Search">
                 <Search className="h-4 w-4" />
               </Button>
             </Link>
@@ -655,13 +656,13 @@ export function NavHeader({ forcePublic = false }: { forcePublic?: boolean } = {
             ) : (
               <>
                 <Link href="/pricing">
-                  <Button variant="ghost" size="sm">Pricing</Button>
+                  <Button variant="ghost" size="sm" className="public-brand-nav-link">Pricing</Button>
                 </Link>
                 <Link href="/login">
-                  <Button variant="ghost" size="sm">Sign In</Button>
+                  <Button variant="ghost" size="sm" className="public-brand-nav-link">Sign In</Button>
                 </Link>
                 <Link href="/pricing">
-                  <Button size="sm" className="bg-[#156a9a] text-white hover:bg-[#10577e]">Get Started</Button>
+                  <Button size="sm" className="public-brand-cta">Get Started</Button>
                 </Link>
               </>
             )}
@@ -671,7 +672,7 @@ export function NavHeader({ forcePublic = false }: { forcePublic?: boolean } = {
           <div className="flex lg:hidden items-center gap-1">
             {/* Search customer Explore (mobile) */}
             <Link href="/browse" aria-label="Search services and providers">
-              <Button variant="ghost" size="icon" className="relative h-10 w-10" title="Search">
+              <Button variant="ghost" size="icon" className={`relative h-10 w-10 ${isAuthenticated ? "" : "public-brand-icon"}`} title="Search">
                 <Search className="h-5 w-5" />
               </Button>
             </Link>
@@ -680,7 +681,7 @@ export function NavHeader({ forcePublic = false }: { forcePublic?: boolean } = {
             <Button
               variant="ghost"
               size="icon"
-              className="relative h-10 w-10"
+              className={`relative h-10 w-10 ${isAuthenticated ? "" : "public-brand-icon"}`}
               onClick={() => window.dispatchEvent(new Event('toggle-help-chat'))}
               title="AI Assistant"
             >
@@ -694,7 +695,9 @@ export function NavHeader({ forcePublic = false }: { forcePublic?: boolean } = {
             <Button
               variant="ghost"
               size="icon"
-              className="h-10 w-10"
+              className={`h-10 w-10 ${isAuthenticated ? "" : "public-brand-icon"}`}
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileMenuOpen}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -704,7 +707,7 @@ export function NavHeader({ forcePublic = false }: { forcePublic?: boolean } = {
 
         {/* Mobile Full-Screen App Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden fixed inset-0 top-[57px] z-50 bg-background animate-in slide-in-from-right-full duration-200 overflow-y-auto">
+          <div className={`lg:hidden fixed inset-0 z-50 animate-in slide-in-from-right-full duration-200 overflow-y-auto ${isAuthenticated ? "top-[57px] bg-background" : "top-16 bg-[#fffdf7]"}`}>
             <div className="flex flex-col h-full">
               {/* User Profile Summary */}
               {isAuthenticated && user ? (
@@ -737,7 +740,7 @@ export function NavHeader({ forcePublic = false }: { forcePublic?: boolean } = {
               ) : (
                 <div className="px-6 py-5 border-b">
                   <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                    <Button className="w-full h-12 text-base">Sign In to Get Started</Button>
+                    <Button className={`w-full h-12 text-base ${isAuthenticated ? "" : "public-brand-cta"}`}>Sign In to Get Started</Button>
                   </Link>
                 </div>
               )}

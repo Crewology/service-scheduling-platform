@@ -92,3 +92,20 @@
 @media(max-width:700px){.provider-marketing-wrap,.provider-marketing-hero{width:calc(100% - 36px)}.provider-marketing-hero{margin-top:14px;grid-template-columns:1fr;min-height:0;border-radius:5px}.provider-marketing-hero-copy{padding:42px 25px 37px}.provider-marketing-hero h1{font-size:clamp(43px,11vw,66px)}.provider-marketing-hero-description{font-size:13px;margin-top:20px}.provider-marketing-actions{gap:4px 18px;margin-top:23px}.provider-marketing-hero-note{margin-top:17px}.provider-marketing-hero-art{height:290px;min-height:0}.provider-marketing-hero-art img{object-position:center 30%}.provider-marketing-section{padding-top:69px;padding-bottom:69px}.provider-marketing-split-heading{display:block;margin-bottom:25px}.provider-marketing-split-heading h2,.provider-marketing-philosophy h2,.provider-marketing-closing h2{font-size:clamp(34px,9vw,44px)}.provider-marketing-split-heading>p{width:auto;margin-top:17px}.provider-marketing-value-grid,.provider-marketing-tool-grid{grid-template-columns:1fr}.provider-marketing-tool-grid article{min-height:0}.provider-marketing-url{grid-template-columns:1fr;padding:22px}.provider-marketing-url-example{min-width:0;overflow-wrap:anywhere}.provider-marketing-comparison-grid{grid-template-columns:1fr 1fr}.provider-marketing-comparison-grid article{min-height:185px;padding:17px;gap:13px}.provider-marketing-philosophy{padding:68px 0}.provider-marketing-philosophy-inner{grid-template-columns:1fr;gap:25px}.provider-marketing-steps{grid-template-columns:1fr 1fr}.provider-marketing-steps li:nth-child(3){border-left:0;border-top:1px solid var(--pb-line)}.provider-marketing-steps li:nth-child(4){border-top:1px solid var(--pb-line)}.provider-marketing-sample{display:block;padding:23px}.provider-marketing-sample a{margin-top:17px}.provider-marketing-closing{padding:60px 0 67px}}
 @media(max-width:390px){.provider-marketing-comparison-grid{grid-template-columns:1fr}.provider-marketing-comparison-grid article{min-height:0}.provider-marketing-hero h1{font-size:clamp(40px,11vw,49px)}}
 @media(prefers-reduced-motion:reduce){.provider-benefits-page :is(a,button){transition-duration:.01ms!important}}
+
+/* Match the live homepage's wider editorial rhythm; keep the mobile layout untouched. */
+@media (min-width: 1001px) {
+  .provider-benefits-page .provider-marketing-wrap,
+  .provider-benefits-page .provider-marketing-hero {
+    width: min(1600px, calc(100% - 64px));
+  }
+  .provider-benefits-page .provider-marketing-hero {
+    min-height: clamp(580px, 35vw, 640px);
+  }
+}
+@media (min-width: 1001px) and (max-width: 1200px) {
+  .provider-benefits-page .provider-marketing-hero h1 { font-size: clamp(45px, 4.8vw, 55px); }
+}
+@media (max-width: 390px) {
+  .provider-benefits-page .provider-marketing-hero h1 { font-size: clamp(32px, 10vw, 39px); }
+}

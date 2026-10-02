@@ -73,6 +73,9 @@ describe("public provider-benefits page", () => {
     expect(css).toContain('@media(max-width:1000px)');
     expect(css).toContain('@media(max-width:700px)');
     expect(css).toContain('@media(prefers-reduced-motion:reduce)');
+    expect(css).toContain('.provider-benefits-page .provider-marketing-wrap,\n  .provider-benefits-page .provider-marketing-hero');
+    expect(css).toContain('width: min(1600px, calc(100% - 64px));');
+    expect(css).toContain('@media (min-width: 1001px)');
     expect(css).not.toMatch(/(?:^|\n)\s*(?:body|html|\.or-hero|\.or-provider-card|\.or-demo-footer)\s*\{/);
     expect(page).toContain('alt="Illustrative photograph of an independent designer at work"');
   });

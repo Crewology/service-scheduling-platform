@@ -75,3 +75,14 @@
 @media(max-width:640px){.or-live-home .or-hero-content{padding-top:53px}.or-live-home .or-hero-pathways{width:100%;margin-top:13px;padding-top:9px}.or-live-home .or-hero-path-links{gap:8px}.or-live-home .or-hero-path-links a{min-height:40px}}
 
 @media(min-width:901px){.or-live-home .or-hero h1{margin-top:17px;margin-bottom:11px}.or-live-home .or-search{margin-top:16px}}
+
+/* Public release only: let the editorial homepage breathe on wide screens.
+   The isolated reference comparison keeps its original 1240px geometry. */
+@media (min-width: 1001px) {
+  .or-live-home .or-wrap,
+  .or-live-footer-inner { width: min(1600px, calc(100% - 64px)); }
+  .or-live-home .or-provider-media { height: clamp(210px, 17vw, 260px); }
+}
+@media (min-width: 1400px) {
+  .or-live-home .or-hero-frame { height: clamp(600px, 40vw, 640px); }
+}
