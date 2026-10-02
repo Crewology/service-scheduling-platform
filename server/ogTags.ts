@@ -197,13 +197,16 @@ export async function getHomepageOgTags(origin: string): Promise<string> {
   });
 }
 
-/** Static public benefits page for service providers; does not make tier promises. */
-export function getProviderBenefitsOgTags(origin: string): string {
+/** Static public benefits page for service providers; do not expose an internal deployment host. */
+export function getProviderBenefitsOgTags(_origin: string): string {
+  const canonicalOrigin = "https://ologycrew.com";
   return buildOgTagsHtml({
     title: "For Service Providers | OlogyCrew",
     description: "Build a public home for your services on OlogyCrew. Help customers find your work, manage bookings and conversations, and compare plans for additional business tools.",
-    url: `${origin.replace(/\/$/, "")}/for-providers`,
-    imageUrl: `${origin.replace(/\/$/, "")}/manus-storage/independent-designer-at-work_08f09cd1.jpg`,
+    url: `${canonicalOrigin}/for-providers`,
+    imageUrl: `${canonicalOrigin}/manus-storage/independent-designer-at-work_08f09cd1.jpg`,
+    imageWidth: 3000,
+    imageHeight: 1688,
     type: "website",
   });
 }

@@ -78,10 +78,13 @@ describe("public provider-benefits page", () => {
   });
 
   it("renders a canonical provider-benefits share card rather than a fake provider profile", () => {
-    const tags = getProviderBenefitsOgTags("https://ologycrew.com/");
+    const tags = getProviderBenefitsOgTags("https://internal-container.a.run.app");
     expect(tags).toContain('og:title" content="For Service Providers | OlogyCrew"');
     expect(tags).toContain('og:url" content="https://ologycrew.com/for-providers"');
-    expect(tags).toContain('independent-designer-at-work_08f09cd1.jpg');
+    expect(tags).toContain('og:image" content="https://ologycrew.com/manus-storage/independent-designer-at-work_08f09cd1.jpg"');
+    expect(tags).toContain('og:image:width" content="3000"');
+    expect(tags).toContain('og:image:height" content="1688"');
+    expect(tags).not.toContain("internal-container.a.run.app");
     expect(htmlRouter).toContain("'for-providers'");
     expect(htmlRouter).toContain('getProviderBenefitsOgTags(origin)');
     expect(htmlRouter).toContain('For Service Providers | OlogyCrew</title>');
