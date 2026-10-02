@@ -1,0 +1,21 @@
+/* Passive design-system tokens for the people-first brand. Pages opt in via .ology-discovery-page
+   or .ology-provider-profile; existing workspace and global semantic variables are unchanged. */
+:root {
+  --ology-brand-paper: #f5f2e9;
+  --ology-brand-surface: #fffdf7;
+  --ology-brand-ink: #183b3a;
+  --ology-brand-deep: #123332;
+  --ology-brand-muted: #53665d;
+  --ology-brand-line: #dbe2d7;
+  --ology-brand-coral: #bd4b35;
+  --ology-brand-coral-hover: #a43d29;
+  --ology-brand-leaf: #c5d75d;
+  --ology-brand-body: "DM Sans", sans-serif;
+  --ology-brand-display: "Manrope", sans-serif;
+  --ology-brand-editorial: "Playfair Display", serif;
+  --ology-brand-content: 1600px;
+  --ology-brand-gutter: 32px;
+  --ology-brand-radius: 10px;
+  --ology-brand-focus: 3px solid #a43d29;
+  --ology-brand-ease: cubic-bezier(.23, 1, .32, 1);
+}

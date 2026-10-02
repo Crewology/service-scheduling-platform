@@ -66,7 +66,7 @@ describe("shared Customer Workspace visual system", () => {
   it("hides Explore workspace navigation for public visitors and retains it after sign-in", () => {
     expect(searchSource).toContain("const { isAuthenticated } = useAuth();");
     expect(searchSource).toContain(
-      '<CustomerWorkspaceShell active="explore" showNavigation={isAuthenticated}>',
+      '<CustomerWorkspaceShell active="explore" showNavigation={isAuthenticated} maxWidth="max-w-[1600px]">',
     );
     expect(shellSource).toContain("showNavigation = true");
     expect(shellSource).toContain("{showNavigation ? (");

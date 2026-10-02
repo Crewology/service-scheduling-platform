@@ -3457,3 +3457,9 @@
 - [x] Use the compact public footer's exact mark and Ology/Crew coral wordmark treatment in the header on logged-out and signed-in pages; preserve logo Home destination and account controls.
 - [x] Apply warm-paper, deep-green, and coral header styling to signed-in and public modes, including measured, reduced-motion-aware link/control hover effects and visible keyboard focus.
 - [x] Check public, provider, customer, admin and mobile navigation; pass focused and full tests (178 files / 2,002 tests), production build, type/diff and cleanup checks; checkpoint the approved release. Publishing and production verification are separate follow-up actions.
+
+## Public discovery design-system pilot — Explore and provider profiles (unpublished)
+- [x] Add passive, reusable OlogyCrew brand color/type/spacing tokens and scoped pilot CSS without replacing global light-blue workspace/theme tokens.
+- [x] Give canonical `/browse` a warm-paper/deep-green editorial search and results treatment using real categories/providers/services; preserve query-state search, filters, promotions, save buttons, direct/quote CTAs, and signed-in navigation.
+- [x] Give real public provider profiles a matching editorial identity, service cards, trust/reviews/sidebar treatment; preserve real data, official-demo distinction, share, messaging, quotes, tips, and adaptive booking destinations.
+- [x] Validate logged-out and signed-in views at desktop/tablet/390px/320px, search/category/provider/service click-through, accessible focus and reduced motion; pass 179 test files / 2,006 tests with a bounded 30-second per-test allowance for legacy external SendGrid/Twilio checks, TypeScript, build, cleanup and diff checks; save an unpublished review checkpoint. Do not publish without explicit approval.

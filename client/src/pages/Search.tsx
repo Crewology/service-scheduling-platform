@@ -30,6 +30,7 @@ import { CustomerWorkspacePageHeader, CustomerWorkspaceShell } from "@/component
 import { TrustBadge } from "@/components/TrustBadge";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
+import "@/styles/publicDiscovery.css";
 
 function renderAdvancedFilters(opts: {
   priceRange: number[];
@@ -303,7 +304,7 @@ export default function Explore() {
   ) : null;
 
   const providerResultSection = hasProviderResults ? (
-    <section aria-labelledby="provider-results-heading">
+    <section aria-labelledby="provider-results-heading" className="ology-explore-provider-results">
       <div className="mb-3 flex items-end justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">Provider matches</p>
@@ -365,7 +366,7 @@ export default function Explore() {
   ) : null;
 
   const serviceResultSection = hasServiceResults ? (
-    <section aria-labelledby="service-results-heading">
+    <section aria-labelledby="service-results-heading" className="ology-explore-service-results">
       <div className="mb-3">
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">Book or request a quote</p>
         <h2 id="service-results-heading" className="mt-1 text-2xl font-bold tracking-tight">Services ({services?.length ?? 0})</h2>
@@ -417,9 +418,10 @@ export default function Explore() {
   ) : null;
 
   return (
-    <div className="min-h-screen bg-page">
+    <div className="ology-discovery-page min-h-screen bg-page">
       <NavHeader />
-      <CustomerWorkspaceShell active="explore" showNavigation={isAuthenticated}>
+      <CustomerWorkspaceShell active="explore" showNavigation={isAuthenticated} maxWidth="max-w-[1600px]">
+        <div className="ology-explore-header">
         <CustomerWorkspacePageHeader
           variant="discovery"
           eyebrow="Find the right service without guessing the category"
@@ -516,7 +518,7 @@ export default function Explore() {
                 <Button type="button" variant="ghost" size="sm" className="h-8 rounded-full text-blue-100 hover:bg-white/10 hover:text-white" onClick={clearAllFilters}>Reset</Button>
               </div>
             ) : (
-              <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-blue-100">
+              <div className="ology-explore-suggestions mt-4 flex flex-wrap items-center gap-2 text-sm text-blue-100">
                 <span className="font-semibold">Try:</span>
                 {EXPLORE_SUGGESTIONS.map((suggestion) => (
                   <button key={suggestion} type="button" className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-left text-xs font-medium text-white transition-colors hover:bg-white/20" onClick={() => applyCriteria({ ...draftCriteria, keyword: suggestion }, { scroll: true })}>
@@ -527,6 +529,7 @@ export default function Explore() {
             )}
           </form>
         </CustomerWorkspacePageHeader>
+        </div>
 
       <div ref={resultsRef} className="mt-7 scroll-mt-24">
         {!hasSearchIntent ? (

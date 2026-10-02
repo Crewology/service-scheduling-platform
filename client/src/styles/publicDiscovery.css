@@ -1,0 +1,227 @@
+@import "./publicBrandTokens.css";
+
+/* Phase-one brand pilot: discovery surfaces only. No global utility or workspace overrides. */
+.ology-discovery-page,
+.ology-provider-profile {
+  background: var(--ology-brand-paper);
+  color: var(--ology-brand-ink);
+  font-family: var(--ology-brand-body);
+}
+.ology-discovery-page :is(a, button, input, [role="combobox"]):focus-visible,
+.ology-provider-profile :is(a, button, input, [role="combobox"]):focus-visible {
+  outline: var(--ology-brand-focus);
+  outline-offset: 3px;
+}
+
+/* Explore: preserve the one-composer search, filters, and actual result contracts. */
+.ology-discovery-page > .bg-page,
+.ology-discovery-page .bg-page {
+  background: var(--ology-brand-paper);
+}
+.ology-discovery-page .ology-explore-header > header {
+  border-radius: var(--ology-brand-radius);
+  background: var(--ology-brand-deep);
+  box-shadow: none;
+  color: var(--ology-brand-surface);
+  padding: clamp(26px, 4.2vw, 56px);
+}
+.ology-discovery-page .ology-explore-header > header > .pointer-events-none {
+  background-image: radial-gradient(circle at 86% 15%, rgba(197, 215, 93, .16), transparent 34%),
+    radial-gradient(circle at 4% 100%, rgba(255, 253, 247, .08), transparent 40%);
+}
+.ology-discovery-page .ology-explore-header h1 {
+  max-width: 900px;
+  font: 600 clamp(33px, 4.5vw, 62px)/1.08 var(--ology-brand-display);
+  letter-spacing: -.055em;
+  color: var(--ology-brand-surface);
+}
+.ology-discovery-page .ology-explore-header header p:first-child {
+  color: var(--ology-brand-leaf);
+  letter-spacing: .15em;
+}
+.ology-discovery-page .ology-explore-header header p:not(:first-child) {
+  color: #e1e9dc;
+}
+.ology-discovery-page .ology-explore-header form {
+  max-width: 1120px;
+}
+.ology-discovery-page .ology-explore-header form > div:first-child {
+  border-radius: 6px;
+  box-shadow: 0 12px 34px rgba(6, 30, 27, .22);
+}
+.ology-discovery-page .ology-explore-header form > div:first-child :is(input, button):focus-visible,
+.ology-discovery-page .ology-explore-header form > div:first-child [role="combobox"]:focus-visible {
+  outline: var(--ology-brand-focus);
+  outline-offset: -3px;
+}
+.ology-discovery-page .ology-explore-header button[type="submit"] {
+  background: var(--ology-brand-coral);
+  color: white;
+  border-radius: 4px;
+  font-weight: 700;
+}
+.ology-discovery-page .ology-explore-header button[type="submit"]:hover { background: var(--ology-brand-coral-hover); }
+.ology-discovery-page .ology-explore-header form button[aria-expanded] svg,
+.ology-discovery-page .ology-explore-header form label svg { color: var(--ology-brand-ink); }
+.ology-discovery-page .ology-explore-header form > div:last-child button:not([type="submit"]):hover {
+  background: rgba(255, 253, 247, .16);
+}
+.ology-discovery-page #browse-categories-heading,
+.ology-discovery-page #matching-categories-heading,
+.ology-discovery-page #provider-results-heading,
+.ology-discovery-page #service-results-heading {
+  font-family: var(--ology-brand-display);
+  font-weight: 700;
+  letter-spacing: -.045em;
+  color: var(--ology-brand-ink);
+}
+.ology-discovery-page #browse-categories-heading { font-size: clamp(28px, 3vw, 43px); }
+.ology-discovery-page #browse-categories-heading ~ p,
+.ology-discovery-page #matching-categories-heading ~ p { color: var(--ology-brand-muted); }
+.ology-discovery-page section > div:first-child p:first-child,
+.ology-discovery-page #browse-categories-heading + p { color: var(--ology-brand-muted); }
+.ology-discovery-page section > div:first-child p:first-child[class*="uppercase"] { color: var(--ology-brand-coral); }
+.ology-discovery-page [data-slot="card"] {
+  background: var(--ology-brand-surface);
+  border-color: var(--ology-brand-line);
+  color: var(--ology-brand-ink);
+  border-radius: 7px;
+  box-shadow: none;
+}
+.ology-discovery-page a.group [data-slot="card"] {
+  min-height: 192px;
+  transition: border-color .18s var(--ology-brand-ease), transform .18s var(--ology-brand-ease), box-shadow .18s var(--ology-brand-ease);
+}
+.ology-discovery-page a.group:hover [data-slot="card"],
+.ology-discovery-page a.group:focus-visible [data-slot="card"] {
+  border-color: #9aaa93;
+  box-shadow: 0 16px 36px -26px rgba(24, 59, 58, .3);
+}
+.ology-discovery-page a.group [data-slot="card-content"] > div:first-child > span {
+  background: #e8ece0;
+  border-radius: 6px;
+}
+.ology-discovery-page a.group h3 { color: var(--ology-brand-ink); font-family: var(--ology-brand-display); letter-spacing: -.025em; }
+.ology-discovery-page a.group:hover h3 { color: var(--ology-brand-coral-hover); }
+.ology-discovery-page a.group p { color: var(--ology-brand-muted); }
+.ology-discovery-page #provider-results-heading + p,
+.ology-discovery-page #service-results-heading + p { color: var(--ology-brand-muted); }
+.ology-discovery-page a[href^="/browse?category="],
+.ology-discovery-page a[href^="/category/"] { text-underline-offset: 3px; }
+.ology-discovery-page a[href^="/browse?category="]:hover { border-color: var(--ology-brand-line); background: #e8ece0; color: var(--ology-brand-ink); }
+.ology-discovery-page .ology-explore-provider-results a.inline-flex { color: var(--ology-brand-coral-hover); text-underline-offset: 3px; }
+.ology-discovery-page [data-slot="card"] a:hover { color: var(--ology-brand-coral-hover); }
+.ology-discovery-page .ology-explore-service-results [data-slot="button"] {
+  border-radius: 5px;
+  background: var(--ology-brand-coral);
+  color: #fff;
+}
+.ology-discovery-page .ology-explore-service-results [data-slot="button"]:hover {
+  background: var(--ology-brand-coral-hover);
+}
+.ology-discovery-page .ology-explore-service-results [data-slot="button"]:focus-visible { outline-offset: 3px; }
+
+/* Public profiles: give the real provider and existing work the editorial foreground. */
+.ology-provider-profile .ology-provider-hero {
+  width: min(var(--ology-brand-content), calc(100% - 2 * var(--ology-brand-gutter)));
+  margin: 30px auto 0;
+  border: 0;
+  border-radius: var(--ology-brand-radius);
+  background: var(--ology-brand-deep);
+  color: var(--ology-brand-surface);
+  box-shadow: none;
+}
+.ology-provider-profile .ology-provider-hero-inner,
+.ology-provider-profile .ology-provider-demo-inner,
+.ology-provider-profile .ology-provider-main,
+.ology-provider-profile .ology-provider-bottom-inner {
+  max-width: var(--ology-brand-content);
+}
+.ology-provider-profile .ology-provider-hero-inner { padding: clamp(26px, 4.2vw, 58px); }
+.ology-provider-profile .ology-provider-hero-inner > button:first-child { color: #e2eadf; }
+.ology-provider-profile .ology-provider-hero-inner > button:first-child:hover { color: white; background: rgba(255,255,255,.1); }
+.ology-provider-profile .ology-provider-portrait {
+  width: clamp(112px, 11vw, 152px);
+  height: clamp(112px, 11vw, 152px);
+  border-radius: 7px;
+  border-color: rgba(255, 253, 247, .82);
+}
+.ology-provider-profile .ology-provider-hero h1 {
+  font: 600 clamp(33px, 4.4vw, 61px)/1.09 var(--ology-brand-display);
+  letter-spacing: -.055em;
+  color: var(--ology-brand-surface);
+  overflow-wrap: anywhere;
+}
+.ology-provider-profile .ology-provider-hero .text-muted-foreground { color: #d8e5db; }
+.ology-provider-profile .ology-provider-hero [data-slot="badge"][class*="border"]:not([class*="border-red"]):not([class*="border-green"]) {
+  color: var(--ology-brand-ink);
+  background: #eef0e7;
+}
+.ology-provider-profile .ology-provider-hero .text-green-600:not(.rounded-full) { color: #c5d75d; }
+.ology-provider-profile .ology-provider-services-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 11px 16px;
+  margin-top: 19px;
+  border-radius: 5px;
+  background: var(--ology-brand-coral);
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color .18s var(--ology-brand-ease), transform .18s var(--ology-brand-ease);
+}
+.ology-provider-profile .ology-provider-services-link:hover { background: var(--ology-brand-coral-hover); transform: translateY(-1px); }
+.ology-provider-profile .ology-provider-services-link:active { transform: scale(.97); }
+.ology-provider-profile .ology-provider-main { padding-top: clamp(28px, 4vw, 52px); }
+.ology-provider-profile .ology-provider-main h2,
+.ology-provider-profile .ology-provider-main h3 { color: var(--ology-brand-ink); font-family: var(--ology-brand-display); letter-spacing: -.035em; }
+.ology-provider-profile .ology-provider-main h2 { font-size: clamp(23px, 2.5vw, 32px); }
+.ology-provider-profile .ology-provider-main [data-slot="card"]:not([class*="border-red"]):not([class*="border-pink"]) {
+  background: var(--ology-brand-surface);
+  border-color: var(--ology-brand-line);
+  color: var(--ology-brand-ink);
+  border-radius: 7px;
+  box-shadow: none;
+}
+.ology-provider-profile .ology-provider-main .ology-provider-service-card {
+  transition: transform .18s var(--ology-brand-ease), border-color .18s var(--ology-brand-ease), box-shadow .18s var(--ology-brand-ease);
+}
+.ology-provider-profile .ology-provider-main a:hover .ology-provider-service-card,
+.ology-provider-profile .ology-provider-main a:focus-visible .ology-provider-service-card {
+  border-color: #9aaa93;
+  box-shadow: 0 14px 30px -24px rgba(24,59,58,.35);
+}
+.ology-provider-profile .ology-provider-main .ology-provider-service-card .text-primary,
+.ology-provider-profile .ology-provider-main [data-testid="provider-quick-book-card"] .text-primary { color: var(--ology-brand-ink); }
+.ology-provider-profile .ology-provider-main [data-testid="provider-quick-book-card"] { border-top: 4px solid var(--ology-brand-coral); }
+.ology-provider-profile .ology-provider-book-button { background: var(--ology-brand-coral); color: white; border-radius: 5px; font-weight: 700; }
+.ology-provider-profile .ology-provider-book-button:hover { background: var(--ology-brand-coral-hover); }
+.ology-provider-profile .ology-provider-bottom { background: #e8ece0; border-color: var(--ology-brand-line); }
+.ology-provider-profile .ology-provider-bottom a { color: var(--ology-brand-coral-hover); }
+
+@media (min-width: 1024px) {
+  .ology-discovery-page .ology-explore-header > header { min-height: 350px; }
+}
+@media (max-width: 639px) {
+  .ology-discovery-page .ology-explore-header > header { padding: 29px 19px; }
+  .ology-discovery-page .ology-explore-header h1 { font-size: clamp(31px, 9vw, 39px); }
+  .ology-discovery-page .ology-explore-suggestions button:nth-of-type(n+3) { display: none; }
+  .ology-discovery-page a.group [data-slot="card"] { min-height: 165px; }
+  .ology-provider-profile .ology-provider-hero {
+    width: calc(100% - 36px);
+    margin-top: 14px;
+  }
+  .ology-provider-profile .ology-provider-hero-inner { padding: 22px; }
+  .ology-provider-profile .ology-provider-portrait { width: 108px; height: 108px; }
+  .ology-provider-profile .ology-provider-main h2 { font-size: 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ology-discovery-page *, .ology-provider-profile * {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}

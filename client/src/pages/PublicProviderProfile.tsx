@@ -55,6 +55,7 @@ import { getLoginUrl } from "@/const";
 import { toast } from "sonner";
 import { TrustBadge } from "@/components/TrustBadge";
 import { PaymentMethods } from "@/components/PaymentMethods";
+import "@/styles/publicDiscovery.css";
 
 function formatCurrency(value: string | number | null | undefined): string {
   const num = typeof value === "string" ? parseFloat(value) : (value ?? 0);
@@ -393,7 +394,7 @@ export default function PublicProviderProfile() {
     name.split(" ").map((w: string) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
 
   return (
-    <div className="min-h-screen bg-page">
+    <div className="ology-provider-profile min-h-screen bg-page">
       <NavHeader />
 
       {/* Demo Welcome Popup */}
@@ -452,20 +453,20 @@ export default function PublicProviderProfile() {
       {/* ================================================================ */}
       {/* HERO — Profile Photo + Name + Bio + Stats                        */}
       {/* ================================================================ */}
-      <div className="relative bg-gradient-to-br from-primary/15 via-primary/5 to-background border-b overflow-hidden">
+      <div className="ology-provider-hero relative bg-gradient-to-br from-primary/15 via-primary/5 to-background border-b overflow-hidden">
         {/* Subtle pattern overlay */}
         <div className="absolute inset-0 opacity-[0.03]" style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }} />
 
-        <div className="container max-w-5xl py-10 relative">
+        <div className="ology-provider-hero-inner container max-w-5xl py-10 relative">
           <Button variant="ghost" size="sm" className="mb-6 text-muted-foreground hover:text-foreground" onClick={() => window.history.length > 1 ? window.history.back() : setLocation('/')}>
             <ArrowLeft className="w-4 h-4 mr-2" /> Back
           </Button>
 
           <div className="flex flex-col md:flex-row gap-6 items-start">
             {/* Profile Photo */}
-            <div className="w-28 h-28 md:w-32 md:h-32 rounded-2xl bg-muted border-2 border-background shadow-lg overflow-hidden shrink-0">
+            <div className="ology-provider-portrait w-28 h-28 md:w-32 md:h-32 rounded-2xl bg-muted border-2 border-background shadow-lg overflow-hidden shrink-0">
               {profilePhoto ? (
                 <img src={profilePhoto} alt={provider.businessName} className="w-full h-full object-cover" />
               ) : (
@@ -581,11 +582,16 @@ export default function PublicProviderProfile() {
                 <div className="flex gap-2 mt-4 flex-wrap">
                   {categories.map((cat: any) => (
                     <Badge key={cat.id} variant="secondary" className="gap-1 text-xs py-1">
-                      <span>{CATEGORY_ICONS[cat.id] || "\ud83d\udce6"}</span>
+                      <span>{CATEGORY_ICONS[cat.id] || "📦"}</span>
                       {displayName(cat.name)}
                     </Badge>
                   ))}
                 </div>
+              )}
+              {services.length > 0 && (
+                <a className="ology-provider-services-link" href="#services-section">
+                  See {services.length} service{services.length === 1 ? "" : "s"} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </a>
               )}
             </div>
           </div>
@@ -597,7 +603,7 @@ export default function PublicProviderProfile() {
       {/* ================================================================ */}
       {provider.isOfficial && (
         <div className="border-b bg-gradient-to-r from-amber-50/50 via-orange-50/30 to-amber-50/50 dark:from-amber-950/20 dark:via-orange-950/10 dark:to-amber-950/20">
-          <div className="container max-w-5xl py-8">
+          <div className="ology-provider-demo-inner container max-w-5xl py-8">
             {/* Demo Provider Banner */}
             <div className="flex items-center gap-3 mb-6 p-4 rounded-xl bg-white/70 dark:bg-card/50 border border-amber-300/40 shadow-sm">
               <div className="p-2 rounded-lg bg-amber-500/10">
@@ -641,7 +647,7 @@ export default function PublicProviderProfile() {
       {/* ================================================================ */}
       {/* MAIN CONTENT                                                     */}
       {/* ================================================================ */}
-      <div className="container max-w-5xl py-8">
+      <div className="ology-provider-main container max-w-5xl py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column — Services & Reviews */}
           <div id="services-section" className="lg:col-span-2 space-y-8">
@@ -705,7 +711,7 @@ export default function PublicProviderProfile() {
                     });
                     return (
                       <Link key={service.id} href={serviceHref}>
-                        <Card className="hover:border-primary/30 hover:shadow-md transition-all cursor-pointer overflow-hidden h-full">
+                        <Card className="ology-provider-service-card hover:border-primary/30 hover:shadow-md transition-all cursor-pointer overflow-hidden h-full">
                           <ServiceCardPhoto serviceId={service.id} />
                           <CardContent className="p-4">
                             {/* Category tag */}
@@ -952,7 +958,7 @@ export default function PublicProviderProfile() {
                     )}
                     <Separator />
                     <Button 
-                      className="w-full min-h-10 h-auto py-2 whitespace-normal text-center"
+                      className="ology-provider-book-button w-full min-h-10 h-auto py-2 whitespace-normal text-center"
                       onClick={() => {
                         const action = getProviderBrowseAndBookAction(
                           services,
@@ -1108,8 +1114,8 @@ export default function PublicProviderProfile() {
       </div>
 
       {/* Footer */}
-      <div className="border-t mt-12 bg-slate-50">
-        <div className="container max-w-5xl py-8 text-center">
+      <div className="ology-provider-bottom border-t mt-12 bg-slate-50">
+        <div className="ology-provider-bottom-inner container max-w-5xl py-8 text-center">
           <p className="text-sm text-muted-foreground mb-2">
             Powered by <Link href="/"><span className="text-primary font-medium hover:underline">OlogyCrew</span></Link>
           </p>
