@@ -135,9 +135,22 @@
   margin: 30px auto 0;
   border: 0;
   border-radius: var(--ology-brand-radius);
-  background: var(--ology-brand-deep);
+  background: radial-gradient(ellipse 70% 95% at 100% 0%, rgba(197, 215, 93, .075), transparent 70%),
+    linear-gradient(120deg, var(--ology-brand-deep) 12%, #19413c 63%, #235149 100%);
   color: var(--ology-brand-surface);
   box-shadow: none;
+}
+.ology-provider-profile .ology-provider-hero::before {
+  content: "";
+  position: absolute;
+  width: min(47vw, 640px);
+  aspect-ratio: 1;
+  top: -210px;
+  right: -120px;
+  border: 1px solid rgba(197, 215, 93, .18);
+  border-radius: 50%;
+  box-shadow: 0 0 0 70px rgba(197, 215, 93, .025), 0 0 0 145px rgba(197, 215, 93, .012);
+  pointer-events: none;
 }
 .ology-provider-profile .ology-provider-hero-inner,
 .ology-provider-profile .ology-provider-demo-inner,
@@ -145,9 +158,10 @@
 .ology-provider-profile .ology-provider-bottom-inner {
   max-width: var(--ology-brand-content);
 }
-.ology-provider-profile .ology-provider-hero-inner { padding: clamp(26px, 4.2vw, 58px); }
+.ology-provider-profile .ology-provider-hero-inner { position: relative; z-index: 1; padding: clamp(26px, 4.2vw, 58px); }
 .ology-provider-profile .ology-provider-hero-inner > button:first-child { color: #e2eadf; }
 .ology-provider-profile .ology-provider-hero-inner > button:first-child:hover { color: white; background: rgba(255,255,255,.1); }
+.ology-provider-profile .ology-provider-biography { max-width: none; overflow-wrap: anywhere; }
 .ology-provider-profile .ology-provider-portrait {
   width: clamp(112px, 11vw, 152px);
   height: clamp(112px, 11vw, 152px);
@@ -221,6 +235,12 @@
   .ology-provider-profile .ology-provider-hero {
     width: calc(100% - 36px);
     margin-top: 14px;
+  }
+  .ology-provider-profile .ology-provider-hero::before {
+    width: 320px;
+    top: -85px;
+    right: -180px;
+    box-shadow: 0 0 0 38px rgba(197, 215, 93, .025), 0 0 0 82px rgba(197, 215, 93, .012);
   }
   .ology-provider-profile .ology-provider-hero-inner { padding: 22px; }
   .ology-provider-profile .ology-provider-portrait { width: 108px; height: 108px; }

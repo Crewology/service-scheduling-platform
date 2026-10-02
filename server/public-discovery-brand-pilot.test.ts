@@ -105,6 +105,25 @@ describe("two-page public discovery brand pilot", () => {
     expect(profile).not.toContain("4,812 independent pros");
   });
 
+  it("lets genuine and demo-provider biographies use the full available hero text column", () => {
+    expect(profile).toContain('className="ology-provider-biography text-muted-foreground mt-3 leading-relaxed"');
+    expect(profile).not.toContain('text-muted-foreground mt-3 max-w-2xl');
+    expect(styles).toContain('.ology-provider-profile .ology-provider-biography { max-width: none; overflow-wrap: anywhere; }');
+    expect(profile).toContain('provider.isOfficial ? "Try a free demo service and see how booking works. No charge." : provider.description');
+    expect(profile).toContain('<ShareProfile');
+    expect(profile).toContain('<TrustBadge');
+    expect(profile).toContain('href="#services-section"');
+  });
+
+  it("adds an accessible, responsive CSS-only gradient and abstract rings behind provider hero content", () => {
+    expect(styles).toContain('linear-gradient(120deg, var(--ology-brand-deep)');
+    expect(styles).toContain('.ology-provider-profile .ology-provider-hero::before');
+    expect(styles).toContain('pointer-events: none;');
+    expect(styles).toContain('.ology-provider-profile .ology-provider-hero-inner { position: relative; z-index: 1;');
+    expect(styles).toMatch(/@media \(max-width: 639px\)[\s\S]*\.ology-provider-profile \.ology-provider-hero::before/);
+    expect(profile).not.toContain('data:image/svg+xml');
+  });
+
   it("keeps colored statuses distinct, responsive, and accessible without changing global dialogs", () => {
     expect(styles).toContain(".ology-explore-service-results [data-slot=\"button\"]");
     expect(styles).toContain(".ology-provider-services-link");

@@ -3484,3 +3484,8 @@
 - [x] Preserve footer acquisition/workspace/legal/payment content, create a concise Help Center article, and verify icon contrast, focus, mobile layout, link safety and copy feedback.
 - [x] Complete focused/full tests (180 files / 2,015 tests), TypeScript/build/cleanup/diff checks and checkpoint the combined staged changes for the approved publication.
 - [x] Publish to both current OlogyCrew domains; verify the exact `/assets/index-CUWQYD3t.js` bundle, live footer sharing/copying, Help Center guide and official demo profile with no promotional strip. Management UI confirms Published.
+
+## Public provider hero width and green background treatment (unpublished)
+- [x] Let the provider biography fill the available hero text column rather than stopping at 672px; keep the avatar, heading, trust badges, location, service CTA and mobile stacking unchanged.
+- [x] Add a subtle deep-green gradient and CSS-only abstract leaf-accent ring behind the content; no new media or provider data, and maintain AA text contrast.
+- [x] Review long/short/official-demo profiles at 1920px/1440px/1024px/tablet/390px/320px; verify services/share and keyboard focus; pass 180 test files / 2,017 tests, TypeScript/build/cleanup/diff checks; save an unpublished checkpoint. Do not publish without approval.

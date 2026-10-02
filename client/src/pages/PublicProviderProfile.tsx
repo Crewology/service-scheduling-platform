@@ -434,11 +434,7 @@ export default function PublicProviderProfile() {
       {/* ================================================================ */}
       {/* HERO — Profile Photo + Name + Bio + Stats                        */}
       {/* ================================================================ */}
-      <div className="ology-provider-hero relative bg-gradient-to-br from-primary/15 via-primary/5 to-background border-b overflow-hidden">
-        {/* Subtle pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }} />
+      <div className="ology-provider-hero relative overflow-hidden">
 
         <div className="ology-provider-hero-inner container max-w-5xl py-10 relative">
           <Button variant="ghost" size="sm" className="mb-6 text-muted-foreground hover:text-foreground" onClick={() => window.history.length > 1 ? window.history.back() : setLocation('/')}>
@@ -478,7 +474,7 @@ export default function PublicProviderProfile() {
               </div>
 
               {provider.description && (
-                <p className="text-muted-foreground mt-3 max-w-2xl leading-relaxed">
+                <p className="ology-provider-biography text-muted-foreground mt-3 leading-relaxed">
                   {provider.isOfficial ? "Try a free demo service and see how booking works. No charge." : provider.description}
                 </p>
               )}
