@@ -3489,3 +3489,8 @@
 - [x] Let the provider biography fill the available hero text column rather than stopping at 672px; keep the avatar, heading, trust badges, location, service CTA and mobile stacking unchanged.
 - [x] Add a subtle deep-green gradient and CSS-only abstract leaf-accent ring behind the content; no new media or provider data, and maintain AA text contrast.
 - [x] Review long/short/official-demo profiles at 1920px/1440px/1024px/tablet/390px/320px; verify services/share and keyboard focus; pass 180 test files / 2,017 tests, TypeScript/build/cleanup/diff checks; save an unpublished checkpoint. Do not publish without approval.
+
+## Remove provider-profile promotional strip everywhere (unpublished)
+- [x] Remove the pictured three-line “Powered by OlogyCrew / digital home / Get your own page” strip from all public provider profiles, not just the official demo.
+- [x] Preserve the normal shared footer, the demo's free-booking safety notice, profile actions, and the separate single-line embed-widget attribution; avoid changing booking/payment or provider data.
+- [x] Verify normal/official-demo profiles at 1440px/390px/320px, update focused regression contracts, pass 180 files / 2,017 tests, production build, TypeScript, diff and zero-residue cleanup, then save an unpublished checkpoint. Do not publish without explicit approval.

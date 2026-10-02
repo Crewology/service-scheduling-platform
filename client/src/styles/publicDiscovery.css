@@ -154,8 +154,7 @@
 }
 .ology-provider-profile .ology-provider-hero-inner,
 .ology-provider-profile .ology-provider-demo-inner,
-.ology-provider-profile .ology-provider-main,
-.ology-provider-profile .ology-provider-bottom-inner {
+.ology-provider-profile .ology-provider-main {
   max-width: var(--ology-brand-content);
 }
 .ology-provider-profile .ology-provider-hero-inner { position: relative; z-index: 1; padding: clamp(26px, 4.2vw, 58px); }
@@ -221,8 +220,6 @@
 .ology-provider-profile .ology-provider-main [data-testid="provider-quick-book-card"] { border-top: 4px solid var(--ology-brand-coral); }
 .ology-provider-profile .ology-provider-book-button { background: var(--ology-brand-coral); color: white; border-radius: 5px; font-weight: 700; }
 .ology-provider-profile .ology-provider-book-button:hover { background: var(--ology-brand-coral-hover); }
-.ology-provider-profile .ology-provider-bottom { background: #e8ece0; border-color: var(--ology-brand-line); }
-.ology-provider-profile .ology-provider-bottom a { color: var(--ology-brand-coral-hover); }
 
 @media (min-width: 1024px) {
   .ology-discovery-page .ology-explore-header > header { min-height: 350px; }

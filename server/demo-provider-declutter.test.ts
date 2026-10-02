@@ -7,6 +7,7 @@ const project = resolve(import.meta.dirname, "..");
 const profile = readFileSync(resolve(project, "client/src/pages/PublicProviderProfile.tsx"), "utf8");
 const css = readFileSync(resolve(project, "client/src/styles/publicDiscovery.css"), "utf8");
 const app = readFileSync(resolve(project, "client/src/App.tsx"), "utf8");
+const embed = readFileSync(resolve(project, "client/src/pages/EmbedBooking.tsx"), "utf8");
 
 const services = Array.from({ length: 54 }, (_, index) => ({
   id: 1600000 + index,
@@ -71,10 +72,17 @@ describe("official demo provider decluttering", () => {
     expect(app).toContain('!location.startsWith("/embed") && !isPrototype && <PreviewEnvironmentBanner />');
   });
 
-  it("keeps the Powered by promotion on real providers but not the official demo", () => {
-    expect(profile).toMatch(/\{!provider\.isOfficial && \(\s*<div className="ology-provider-bottom/);
-    expect(profile).toContain('Powered by <Link href="/">');
-    expect(profile).toContain("Get your own page — it's free to start →");
+  it("omits the pictured promotion from every public provider profile without removing core actions", () => {
+    expect(profile).not.toContain("ology-provider-bottom");
+    expect(profile).not.toContain('Powered by <Link href="/">');
+    expect(profile).not.toContain("The digital home for service professionals");
+    expect(profile).not.toContain("Get your own page — it's free to start →");
+    expect(css).not.toContain("ology-provider-bottom");
+    expect(profile).toContain('id="services-section"');
+    expect(profile).toContain("adaptiveServiceHref(service.id");
+    expect(profile).toContain("Demo Provider — Free to Book");
     expect(profile).toContain('<Link href="/provider/onboarding">');
+    expect(app).toContain("<Footer");
+    expect(embed).toContain("Powered by OlogyCrew"); // Separate booking-widget attribution, not the pictured strip.
   });
 });
