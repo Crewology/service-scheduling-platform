@@ -1,0 +1,150 @@
+@import "../styles/publicBrandTokens.css";
+
+/* Pricing opts into the public editorial brand; workspace tokens remain unchanged. */
+.ology-pricing-page {
+  min-height: 100vh;
+  background: var(--ology-brand-paper);
+  color: var(--ology-brand-ink);
+  font-family: var(--ology-brand-body);
+}
+.ology-pricing-page .ology-pricing-content {
+  max-width: 1320px;
+  padding-block: 54px 82px;
+}
+.ology-pricing-page :is(button, a):focus-visible {
+  outline: var(--ology-brand-focus);
+  outline-offset: 3px;
+}
+.ology-pricing-intro { margin-bottom: 23px; }
+.ology-pricing-eyebrow {
+  background: #e5eacd;
+  color: var(--ology-brand-ink);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.ology-pricing-heading {
+  max-width: 1120px;
+  margin-inline: auto;
+  font-family: var(--ology-brand-display);
+  font-size: clamp(32px, 3.4vw, 48px);
+  line-height: 1.14;
+  letter-spacing: -.048em;
+}
+.ology-pricing-intro-copy {
+  color: var(--ology-brand-muted);
+  line-height: 1.55;
+}
+.ology-pricing-page .ology-pricing-audience { margin-bottom: 12px; }
+.ology-pricing-audience > [role="group"] {
+  background: #e4e9dd;
+  border: 1px solid var(--ology-brand-line);
+}
+.ology-pricing-audience button,
+.ology-pricing-billing button {
+  min-height: 42px;
+  color: var(--ology-brand-ink);
+  transition: background-color .18s var(--ology-brand-ease), color .18s var(--ology-brand-ease), transform .18s var(--ology-brand-ease);
+}
+.ology-pricing-audience button[aria-pressed="true"] {
+  background: var(--ology-brand-deep);
+  color: var(--ology-brand-surface);
+}
+.ology-pricing-audience button[aria-pressed="false"]:hover,
+.ology-pricing-billing button[aria-pressed="false"]:hover { background: #d3dec9; }
+.ology-pricing-billing { margin-bottom: 18px; }
+.ology-pricing-billing button[aria-pressed="true"] {
+  background: #dce6cf;
+  color: var(--ology-brand-ink);
+}
+.ology-pricing-savings { background: #dce6cf; border-color: #bdd0b6; color: var(--ology-brand-ink); }
+.ology-pricing-context {
+  max-width: 690px;
+  margin: 0 auto 20px;
+  color: var(--ology-brand-muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.ology-pricing-page .ology-pricing-grid { gap: 15px; }
+.ology-pricing-page .ology-pricing-plan {
+  background: var(--ology-brand-surface);
+  color: var(--ology-brand-ink);
+  border: 1px solid var(--ology-brand-line);
+  border-radius: 8px;
+  box-shadow: 0 8px 28px rgba(18, 51, 50, .04);
+}
+.ology-pricing-page .ology-pricing-plan[data-popular="true"] {
+  border: 2px solid var(--ology-brand-coral);
+  box-shadow: 0 14px 38px rgba(18, 51, 50, .09);
+}
+.ology-pricing-page .ology-pricing-plan.ring-2 {
+  --tw-ring-color: var(--ology-brand-ink);
+}
+.ology-pricing-page .ology-pricing-popular { background: var(--ology-brand-coral); color: #fff; }
+.ology-pricing-page .ology-pricing-current { background: var(--ology-brand-ink); color: #fff; }
+.ology-pricing-plan [data-slot="card-header"] { padding-bottom: 11px; }
+.ology-pricing-plan [data-slot="card-content"] { padding-top: 2px; }
+.ology-pricing-plan-icon { background: #e5eacd; color: var(--ology-brand-ink); }
+.ology-pricing-plan-icon svg { color: var(--ology-brand-ink); }
+.ology-pricing-plan [data-slot="card-title"] {
+  font-family: var(--ology-brand-display);
+  font-weight: 700;
+  letter-spacing: -.03em;
+}
+.ology-pricing-plan [data-slot="card-header"] p,
+.ology-pricing-plan .ology-pricing-billing-note { color: var(--ology-brand-muted); }
+.ology-pricing-plan-price { color: var(--ology-brand-ink); }
+.ology-pricing-plan-action { margin-bottom: 17px; }
+.ology-pricing-page .ology-pricing-plan-action button {
+  min-height: 43px;
+  border-color: var(--ology-brand-ink);
+  color: var(--ology-brand-ink);
+  background: transparent;
+  transition: background-color .18s var(--ology-brand-ease), color .18s var(--ology-brand-ease), transform .18s var(--ology-brand-ease);
+}
+.ology-pricing-page .ology-pricing-plan-action button:not(:disabled):hover { background: #e8ede2; }
+.ology-pricing-page .ology-pricing-plan[data-popular="true"] .ology-pricing-plan-action[data-acquisition="true"] button:not(:disabled) {
+  background: var(--ology-brand-coral);
+  border-color: var(--ology-brand-coral);
+  color: #fff;
+}
+.ology-pricing-page .ology-pricing-plan[data-popular="true"] .ology-pricing-plan-action[data-acquisition="true"] button:not(:disabled):hover {
+  background: var(--ology-brand-coral-hover);
+  border-color: var(--ology-brand-coral-hover);
+}
+.ology-pricing-page .ology-pricing-plan-action button:not(:disabled):active { transform: scale(.98); }
+.ology-pricing-page .ology-pricing-highlights {
+  background: #f2f4eb;
+  border-color: var(--ology-brand-line);
+  margin-bottom: 17px;
+}
+.ology-pricing-highlights svg { color: var(--ology-brand-ink); }
+.ology-pricing-plan-features { margin-bottom: 0; }
+.ology-pricing-plan-features li { line-height: 1.45; }
+.ology-pricing-plan-features svg { color: var(--ology-brand-ink); }
+.ology-pricing-plan-features .ology-pricing-excluded {
+  color: var(--ology-brand-muted);
+  text-decoration: line-through;
+  text-decoration-color: #a5ada3;
+  text-decoration-thickness: 1px;
+}
+.ology-pricing-plan-features .ology-pricing-excluded-icon { color: var(--ology-brand-muted); opacity: 1; }
+.ology-pricing-faq h2 { font-family: var(--ology-brand-display); letter-spacing: -.035em; }
+.ology-pricing-faq [data-slot="card"] { background: var(--ology-brand-surface); border-color: var(--ology-brand-line); }
+.ology-pricing-faq h3 { color: var(--ology-brand-ink); }
+.ology-pricing-faq p { color: var(--ology-brand-muted); line-height: 1.6; }
+@media (max-width: 640px) {
+  .ology-pricing-page .ology-pricing-content { padding-top: 25px; padding-bottom: 58px; }
+  .ology-pricing-intro { margin-bottom: 14px; }
+  .ology-pricing-eyebrow { margin-bottom: 12px; }
+  .ology-pricing-heading { font-size: clamp(27px, 7.1vw, 34px); line-height: 1.16; }
+  .ology-pricing-intro-copy { font-size: 14px; margin-top: 12px; }
+  .ology-pricing-billing { margin-bottom: 12px; gap: 7px; }
+  .ology-pricing-context { font-size: 13px; margin-bottom: 19px; }
+  .ology-pricing-page .ology-pricing-grid { gap: 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ology-pricing-page :is(a, button) { transition-duration: .01ms !important; }
+}

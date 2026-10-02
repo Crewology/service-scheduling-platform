@@ -68,7 +68,7 @@ describe("official demo provider decluttering", () => {
     expect(profile).toContain('trustProfile.isOfficialDemo');
     expect(profile).toContain('!provider.isOfficial && provider.trustLevel');
     expect(app).toContain('const isDemoProfile = location === "/demo-ologycrew" || location === "/p/demo-ologycrew"');
-    expect(app).toContain('!isPrototype && !isDemoProfile && <PWAInstallBanner />');
+    expect(app).toContain('!isPrototype && !isDemoProfile && !isPricingPage && <PWAInstallBanner />');
     expect(app).toContain('!location.startsWith("/embed") && !isPrototype && <PreviewEnvironmentBanner />');
   });
 

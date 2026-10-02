@@ -3494,3 +3494,10 @@
 - [x] Remove the pictured three-line “Powered by OlogyCrew / digital home / Get your own page” strip from all public provider profiles, not just the official demo.
 - [x] Preserve the normal shared footer, the demo's free-booking safety notice, profile actions, and the separate single-line embed-widget attribution; avoid changing booking/payment or provider data.
 - [x] Verify normal/official-demo profiles at 1440px/390px/320px, update focused regression contracts, pass 180 files / 2,017 tests, production build, TypeScript, diff and zero-residue cleanup, then save an unpublished checkpoint. Do not publish without explicit approval.
+
+## Pricing-page people-first design pass (unpublished review)
+- [x] Scope warm-paper/deep-green/coral styling to `/pricing`, preserving shared header/footer and global workspace tokens.
+- [x] Make the hero headline and description provider/customer-aware; add a main landmark and stateful accessible labels to audience and billing toggles.
+- [x] Move existing tier CTA blocks immediately below each price without changing handler bodies, prices, plans, trials, checkout or downgrade rules.
+- [x] Raise excluded-feature text to WCAG AA 4.5:1; keep the install-app overlay from covering pricing cards only on this route.
+- [x] Verify desktop/tablet/390px/320px, monthly/yearly and both audience views without charging; excluded-feature text measures 6.03:1, keyboard focus 3px; 181 files / 2,022 tests, build, TypeScript, diff and protected-record cleanup pass; save an unpublished review checkpoint. Do not publish without approval.

@@ -24,6 +24,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CUSTOMER_PLANS, PROVIDER_PLANS } from "@shared/entitlements";
+import "./CustomerPricing.css";
 
 // ─── PROVIDER PLANS ────────────────────────────────────────────────────────────
 
@@ -303,26 +304,31 @@ export default function CustomerPricing() {
   const isProvider = !!providerSubInfo || user?.role === "provider";
 
   return (
-    <div className="min-h-screen bg-page">
+    <div className="min-h-screen ology-pricing-page">
       <NavHeader />
-      <div className="container py-12 max-w-6xl mx-auto px-4">
+      <main className="ology-pricing-content container py-12 max-w-6xl mx-auto px-4">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-800 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
+        <div className="ology-pricing-intro text-center mb-8">
+          <div className="ology-pricing-eyebrow inline-flex items-center gap-2 bg-emerald-100 text-emerald-800 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
             <Shield className="h-4 w-4" />
-            No Gatekeeping
+            {audience === "provider" ? "No Gatekeeping" : "Local work, well done"}
           </div>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3">Your business. Your profile. Your customers. Your money.</h1>
-          <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto">
-            OlogyCrew provides the infrastructure — you own the relationship. Choose the plan that fits where you are today.
+          <h1 className="ology-pricing-heading text-2xl sm:text-3xl md:text-4xl font-bold mb-3">
+            {audience === "provider" ? "Your business. Your profile. Your customers. Your money." : "Find good people for the work you need."}
+          </h1>
+          <p className="ology-pricing-intro-copy text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto">
+            {audience === "provider"
+              ? "OlogyCrew provides the infrastructure — you own the relationship. Choose the plan that fits where you are today."
+              : "Find independent local professionals, compare services, then book or request a quote directly. Choose the plan that fits how you book."}
           </p>
         </div>
 
         {/* Audience Toggle */}
-        <div className="flex justify-center mb-8">
-          <div className="inline-flex items-center bg-muted rounded-lg p-1 gap-1">
+        <div className="ology-pricing-audience flex justify-center mb-8">
+          <div role="group" aria-label="Choose your pricing plans" className="inline-flex items-center bg-muted rounded-lg p-1 gap-1">
             <button
               onClick={() => setAudience("provider")}
+              aria-pressed={audience === "provider"}
               className={`px-5 py-2.5 rounded-md text-sm font-medium transition-all ${
                 audience === "provider"
                   ? "bg-background text-foreground shadow-sm"
@@ -334,6 +340,7 @@ export default function CustomerPricing() {
             </button>
             <button
               onClick={() => setAudience("customer")}
+              aria-pressed={audience === "customer"}
               className={`px-5 py-2.5 rounded-md text-sm font-medium transition-all ${
                 audience === "customer"
                   ? "bg-background text-foreground shadow-sm"
@@ -347,9 +354,10 @@ export default function CustomerPricing() {
         </div>
 
         {/* Billing toggle */}
-        <div className="flex items-center justify-center gap-3 mb-10">
+        <div role="group" aria-label="Choose billing interval" className="ology-pricing-billing flex items-center justify-center gap-3 mb-10">
           <button
             onClick={() => setYearly(false)}
+            aria-pressed={!yearly}
             className={`text-sm font-medium px-3 py-1.5 rounded-md transition-colors ${
               !yearly ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
             }`}
@@ -358,6 +366,7 @@ export default function CustomerPricing() {
           </button>
           <button
             onClick={() => setYearly(true)}
+            aria-pressed={yearly}
             className={`text-sm font-medium px-3 py-1.5 rounded-md transition-colors ${
               yearly ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
             }`}
@@ -365,7 +374,7 @@ export default function CustomerPricing() {
             Yearly
           </button>
           {yearly && (
-            <Badge variant="secondary" className="text-green-600 bg-green-500/10 border-green-500/20">
+            <Badge variant="secondary" className="ology-pricing-savings text-green-600 bg-green-500/10 border-green-500/20">
               Save up to 20%
             </Badge>
           )}
@@ -375,12 +384,12 @@ export default function CustomerPricing() {
         {audience === "provider" && (
           <>
             <div className="text-center mb-8">
-              <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
+              <p className="ology-pricing-context text-sm text-muted-foreground max-w-2xl mx-auto">
                 Build your digital home on OlogyCrew. Every plan includes your profile, booking management, and customer messaging. Pro and Business add secure payment collection and invoicing — with no lead fees.
               </p>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-3 mb-16">
+            <div className="ology-pricing-grid grid gap-6 md:grid-cols-3 mb-16">
               {providerPlans.map((plan) => {
                 const isCurrent = providerCurrentTier === plan.tier && isProvider;
                 const isDowngrade = isProvider && (
@@ -392,24 +401,25 @@ export default function CustomerPricing() {
                 return (
                   <Card
                     key={plan.tier}
-                    className={`relative flex flex-col overflow-visible ${
+                    data-popular={!!plan.popular}
+                    className={`ology-pricing-plan relative flex flex-col overflow-visible ${
                       plan.popular ? `${plan.borderColor} border-2 shadow-lg` : ""
                     } ${isCurrent ? "ring-2 ring-primary" : ""}`}
                   >
                     {plan.popular && (
-                      <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 bg-blue-500 text-white border-0 px-4 py-1 shadow-sm">
+                      <Badge className="ology-pricing-popular absolute -top-3 left-1/2 -translate-x-1/2 z-10 bg-blue-500 text-white border-0 px-4 py-1 shadow-sm">
                         Most Popular
                       </Badge>
                     )}
                     {isCurrent && (
-                      <Badge className={`absolute ${plan.popular ? "top-4" : "-top-3"} left-1/2 -translate-x-1/2 z-10 bg-green-600 text-white border-0 px-3 py-1 shadow-sm whitespace-nowrap`}>
+                      <Badge className={`ology-pricing-current absolute ${plan.popular ? "top-4" : "-top-3"} left-1/2 -translate-x-1/2 z-10 bg-green-600 text-white border-0 px-3 py-1 shadow-sm whitespace-nowrap`}>
                         Current Plan
                       </Badge>
                     )}
 
                     <CardHeader className="pb-3">
                       <div className="flex items-center gap-2 mb-2">
-                        <div className={`p-2 rounded-lg ${plan.bgColor}`}>
+                        <div className={`ology-pricing-plan-icon p-2 rounded-lg ${plan.bgColor}`}>
                           <plan.icon className={`h-5 w-5 ${plan.color}`} />
                         </div>
                         <CardTitle className="text-xl">{plan.name}</CardTitle>
@@ -419,7 +429,7 @@ export default function CustomerPricing() {
 
                     <CardContent className="flex-1 flex flex-col">
                       {/* Price */}
-                      <div className="mb-5">
+                      <div className="ology-pricing-plan-price mb-5">
                         {price === 0 ? (
                           <div className="text-3xl font-bold">Free</div>
                         ) : (
@@ -427,7 +437,7 @@ export default function CustomerPricing() {
                             <span className="text-3xl font-bold">{formatPrice(price)}</span>
                             <span className="text-muted-foreground">/mo</span>
                             {yearly && (
-                              <div className="text-xs text-muted-foreground mt-1">
+                              <div className="ology-pricing-billing-note text-xs text-muted-foreground mt-1">
                                 Billed {formatPrice(price * 12)}/year
                               </div>
                             )}
@@ -435,33 +445,8 @@ export default function CustomerPricing() {
                         )}
                       </div>
 
-                      {/* Key highlights */}
-                      <div className="rounded-lg border p-3 mb-5 space-y-2">
-                        {plan.highlights.map((h, i) => (
-                          <div key={i} className="flex items-center gap-2 text-sm">
-                            <h.icon className={`h-4 w-4 shrink-0 ${plan.color}`} />
-                            <span className="font-medium">{h.text}</span>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Feature list */}
-                      <ul className="space-y-2 mb-6 flex-1">
-                        {plan.features.map((feature, i) => (
-                          <li key={i} className="flex items-center gap-2.5 text-sm">
-                            {feature.included ? (
-                              <Check className={`h-4 w-4 shrink-0 ${plan.color}`} />
-                            ) : (
-                              <X className="h-4 w-4 shrink-0 text-muted-foreground/40" />
-                            )}
-                            <span className={feature.included ? "" : "text-muted-foreground/60"}>
-                              {feature.text}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-
-                      {/* CTA */}
+                      {/* CTA — same tier action and handler, now adjacent to the price */}
+                      <div data-acquisition={!isCurrent && !isDowngrade} className="ology-pricing-plan-action">
                       {plan.tier === "free" ? (
                         isCurrent ? (
                           <Button variant="outline" disabled className="w-full">
@@ -536,6 +521,34 @@ export default function CustomerPricing() {
                          </Button>
                        
                      )}
+                      </div>
+
+                      {/* Key highlights */}
+                      <div className="ology-pricing-highlights rounded-lg border p-3 mb-5 space-y-2">
+                        {plan.highlights.map((h, i) => (
+                          <div key={i} className="flex items-center gap-2 text-sm">
+                            <h.icon className={`h-4 w-4 shrink-0 ${plan.color}`} />
+                            <span className="font-medium">{h.text}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Feature list */}
+                      <ul className="ology-pricing-plan-features space-y-2 mb-6 flex-1">
+                        {plan.features.map((feature, i) => (
+                          <li key={i} className="flex items-center gap-2.5 text-sm">
+                            {feature.included ? (
+                              <Check className={`h-4 w-4 shrink-0 ${plan.color}`} />
+                            ) : (
+                              <X className="ology-pricing-excluded-icon h-4 w-4 shrink-0 text-muted-foreground/40" />
+                            )}
+                            <span className={feature.included ? "" : "ology-pricing-excluded text-muted-foreground/60"}>
+                              {feature.text}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+
                    </CardContent>
                   </Card>
                 );
@@ -548,12 +561,12 @@ export default function CustomerPricing() {
         {audience === "customer" && (
           <>
             <div className="text-center mb-8">
-              <p className="text-sm text-muted-foreground max-w-xl mx-auto">
+              <p className="ology-pricing-context text-sm text-muted-foreground max-w-xl mx-auto">
                 Booking services on OlogyCrew is always free. Upgrade for priority access, organization tools, and analytics when you're managing multiple providers or large crews.
               </p>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-3 mb-16">
+            <div className="ology-pricing-grid grid gap-6 md:grid-cols-3 mb-16">
               {customerPlans.map((plan) => {
                 const isCurrent = customerCurrentTier === plan.tier;
                 const isDowngrade = (customerCurrentTier === "business" && plan.tier !== "business") ||
@@ -563,24 +576,25 @@ export default function CustomerPricing() {
                 return (
                   <Card
                     key={plan.tier}
-                    className={`relative flex flex-col overflow-visible ${
+                    data-popular={!!plan.popular}
+                    className={`ology-pricing-plan relative flex flex-col overflow-visible ${
                       plan.popular ? `${plan.borderColor} border-2 shadow-lg` : ""
                     } ${isCurrent && user ? "ring-2 ring-primary" : ""}`}
                   >
                     {plan.popular && (
-                      <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 bg-blue-500 text-white border-0 px-4 py-1 shadow-sm">
+                      <Badge className="ology-pricing-popular absolute -top-3 left-1/2 -translate-x-1/2 z-10 bg-blue-500 text-white border-0 px-4 py-1 shadow-sm">
                         Most Popular
                       </Badge>
                     )}
                     {isCurrent && user && (
-                      <Badge className={`absolute ${plan.popular ? "top-4" : "-top-3"} left-1/2 -translate-x-1/2 z-10 bg-green-600 text-white border-0 px-3 py-1 shadow-sm whitespace-nowrap`}>
+                      <Badge className={`ology-pricing-current absolute ${plan.popular ? "top-4" : "-top-3"} left-1/2 -translate-x-1/2 z-10 bg-green-600 text-white border-0 px-3 py-1 shadow-sm whitespace-nowrap`}>
                         Current Plan
                       </Badge>
                     )}
 
                     <CardHeader className="pb-3">
                       <div className="flex items-center gap-2 mb-2">
-                        <div className={`p-2 rounded-lg ${plan.bgColor}`}>
+                        <div className={`ology-pricing-plan-icon p-2 rounded-lg ${plan.bgColor}`}>
                           <plan.icon className={`h-5 w-5 ${plan.color}`} />
                         </div>
                         <CardTitle className="text-xl">{plan.name}</CardTitle>
@@ -590,7 +604,7 @@ export default function CustomerPricing() {
 
                     <CardContent className="flex-1 flex flex-col">
                       {/* Price */}
-                      <div className="mb-5">
+                      <div className="ology-pricing-plan-price mb-5">
                         {price === 0 ? (
                           <div className="text-3xl font-bold">Free</div>
                         ) : (
@@ -598,7 +612,7 @@ export default function CustomerPricing() {
                             <span className="text-3xl font-bold">{formatPrice(price)}</span>
                             <span className="text-muted-foreground">/mo</span>
                             {yearly && (
-                              <div className="text-xs text-muted-foreground mt-1">
+                              <div className="ology-pricing-billing-note text-xs text-muted-foreground mt-1">
                                 Billed {formatPrice(price * 12)}/year
                               </div>
                             )}
@@ -606,33 +620,8 @@ export default function CustomerPricing() {
                         )}
                       </div>
 
-                      {/* Key highlights */}
-                      <div className="rounded-lg border p-3 mb-5 space-y-2">
-                        {plan.highlights.map((h, i) => (
-                          <div key={i} className="flex items-center gap-2 text-sm">
-                            <h.icon className={`h-4 w-4 shrink-0 ${plan.color}`} />
-                            <span className="font-medium">{h.text}</span>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Feature list */}
-                      <ul className="space-y-2 mb-6 flex-1">
-                        {plan.features.map((feature, i) => (
-                          <li key={i} className="flex items-center gap-2.5 text-sm">
-                            {feature.included ? (
-                              <Check className={`h-4 w-4 shrink-0 ${plan.color}`} />
-                            ) : (
-                              <X className="h-4 w-4 shrink-0 text-muted-foreground/40" />
-                            )}
-                            <span className={feature.included ? "" : "text-muted-foreground/60"}>
-                              {feature.text}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-
-                      {/* CTA */}
+                      {/* CTA — same tier action and handler, now adjacent to the price */}
+                      <div data-acquisition={!isCurrent && !isDowngrade} className="ology-pricing-plan-action">
                       {plan.tier === "free" ? (
                         isCurrent && user ? (
                           <Button variant="outline" disabled className="w-full">
@@ -706,6 +695,34 @@ export default function CustomerPricing() {
                           </Button>
                         
                       )}
+                      </div>
+
+                      {/* Key highlights */}
+                      <div className="ology-pricing-highlights rounded-lg border p-3 mb-5 space-y-2">
+                        {plan.highlights.map((h, i) => (
+                          <div key={i} className="flex items-center gap-2 text-sm">
+                            <h.icon className={`h-4 w-4 shrink-0 ${plan.color}`} />
+                            <span className="font-medium">{h.text}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Feature list */}
+                      <ul className="ology-pricing-plan-features space-y-2 mb-6 flex-1">
+                        {plan.features.map((feature, i) => (
+                          <li key={i} className="flex items-center gap-2.5 text-sm">
+                            {feature.included ? (
+                              <Check className={`h-4 w-4 shrink-0 ${plan.color}`} />
+                            ) : (
+                              <X className="ology-pricing-excluded-icon h-4 w-4 shrink-0 text-muted-foreground/40" />
+                            )}
+                            <span className={feature.included ? "" : "ology-pricing-excluded text-muted-foreground/60"}>
+                              {feature.text}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+
                     </CardContent>
                   </Card>
                 );
@@ -715,7 +732,7 @@ export default function CustomerPricing() {
         )}
 
         {/* ─── FAQ ────────────────────────────────────────────────────────── */}
-        <div>
+        <div className="ology-pricing-faq">
           <h2 className="text-2xl font-bold text-center mb-8">Frequently Asked Questions</h2>
           <div className="grid md:grid-cols-2 gap-4">
             {audience === "provider" ? (
@@ -799,7 +816,7 @@ export default function CustomerPricing() {
         </div>
 
 
-      </div>
+      </main>
 
       {/* ─── DOWNGRADE DIALOG ───────────────────────────────────────────── */}
       <Dialog open={showDowngradeDialog} onOpenChange={setShowDowngradeDialog}>
