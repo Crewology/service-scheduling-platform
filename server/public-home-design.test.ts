@@ -14,8 +14,8 @@ describe("public homepage Concept 3 design alignment", () => {
   it("preserves the public/authenticated home split and uses the unchanged shared header", () => {
     expect(home).toContain("if (isAuthenticated && user) return <LoggedInHome />");
     expect(home).toContain("return <PublicHomepageConceptThree />");
-    expect(concept).toContain("<NavHeader />");
-    expect(concept).not.toContain("<NavHeader forcePublic />");
+    expect(concept).toContain("<NavHeader forcePublic={forcePublicHeader} />");
+    expect(concept).toContain("forcePublicHeader = false");
   });
 
   it("uses the approved warm-paper layout without changing global application theme tokens", () => {

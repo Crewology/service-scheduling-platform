@@ -3429,4 +3429,5 @@
 - [x] Preserve search, category, profile, pricing, referral, and legal navigation; show honest loading/error/empty states and no preview-only favorite control.
 - [x] Keep warm-paper/demo typography scoped to the new public-home design; preserve application-wide light-blue design elsewhere.
 - [x] Update legacy homepage source-contract tests intentionally and add rendered live-data, route, review, and search coverage.
-- [x] Review desktop, tablet, and mobile; pass full regression (177 files / 1,994 tests), TypeScript, production build, diff, and cleanup checks; save an unpublished checkpoint for approval. Do not publish.
+- [x] Review desktop, tablet, and mobile; pass full regression (177 files / 1,995 tests), TypeScript, production build, diff, and cleanup checks; save an unpublished checkpoint for approval. Do not publish.
+- [x] Verify the signed-in-accessible `/preview/public-home-live` review route renders the same real-data Concept 3 page with a preview banner and public header/footer; re-run validation and replace the unpublished checkpoint.

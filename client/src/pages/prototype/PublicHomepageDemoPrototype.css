@@ -32,3 +32,8 @@
 .or-live-footer-links a:focus-visible,.or-demo-footer-brand:focus-visible{outline:3px solid #ad432f;outline-offset:3px}
 .or-live-footer-copyright{flex-basis:100%;font-size:10px;color:#596d64}
 @media(max-width:640px){.or-live-footer-inner{gap:12px}.or-live-footer-links{gap:2px 14px}}
+
+.or-live-preview-banner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px 20px;padding:9px max(18px,calc((100% - 1240px)/2));background:#e8ece0;border-bottom:1px solid #d2dacd;color:#183b3a;font:500 12px/1.55 "DM Sans",sans-serif}
+.or-live-preview-banner nav{display:flex;gap:14px;flex-wrap:wrap}
+.or-live-preview-banner a{color:#98402c;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.or-live-preview-banner a:focus-visible{outline:3px solid #ad432f;outline-offset:3px}

@@ -14,13 +14,15 @@ vi.mock("wouter", () => ({
   Link: ({ href, children, ...rest }: { href: string; children: ReactNode }) => createElement("a", { href, ...rest }, children),
   useLocation: () => ["/", navigate],
 }));
-vi.mock("@/components/shared/NavHeader", () => ({ NavHeader: () => createElement("header", { "data-testid": "shared-header" }, "OlogyCrew header") }));
+vi.mock("@/components/shared/NavHeader", () => ({ NavHeader: ({ forcePublic = false }: { forcePublic?: boolean }) => createElement("header", { "data-testid": "shared-header", "data-public": forcePublic }, "OlogyCrew header") }));
+vi.mock("@/components/shared/Footer", () => ({ Footer: ({ forcePublic, compactPublicHome }: { forcePublic?: boolean; compactPublicHome?: boolean }) => createElement("footer", { "data-testid": "shared-footer", "data-public": forcePublic, "data-compact": compactPublicHome }) }));
 vi.mock("@/lib/trpc", () => ({ trpc: {
   category: { list: { useQuery: () => queries.category } },
   provider: { listFeatured: { useQuery: () => queries.provider } },
 } }));
 
 import PublicHomepageConceptThree from "../client/src/pages/PublicHomepageConceptThree";
+import PublicHomepageLiveReview from "../client/src/pages/prototype/PublicHomepageLiveReview";
 
 const root = resolve(import.meta.dirname, "..");
 const home = readFileSync(resolve(root, "client/src/pages/Home.tsx"), "utf8");
@@ -57,14 +59,25 @@ describe("Concept 3 public homepage with actual OlogyCrew data", () => {
     expect(home).toContain('localStorage.setItem("customer_referral_code"');
     expect(app).toContain('path="/" component={Home}');
     for (const path of ["public-home-demo", "public-home-refresh", "public-home-original"]) expect(app).toContain(`/preview/${path}`);
-    expect(live).toContain("<NavHeader />");
+    expect(app).toContain('path="/preview/public-home-live" component={PublicHomepageLiveReview}');
+    expect(live).toContain("<NavHeader forcePublic={forcePublicHeader} />");
     expect(preview).toContain("<NavHeader forcePublic />");
     expect(app).toContain('<Footer compactPublicHome={location === "/"} />');
     expect(footer).toContain("compactPublicHome && !isAuthenticated");
     render(createElement(PublicHomepageConceptThree));
     expect(screen.getByTestId("shared-header")).toBeVisible();
+    expect(screen.getByTestId("shared-header")).toHaveAttribute("data-public", "false");
     expect(screen.getByRole("heading", { level: 1, name: /good work starts with people/i })).toBeVisible();
     expect(document.title).toBe("OlogyCrew — Local work, well done");
+  });
+
+  it("opens the same real-data homepage on a review route even while signed in", () => {
+    render(createElement(PublicHomepageLiveReview));
+    expect(screen.getByLabelText("Unpublished public homepage review notice")).toHaveTextContent("live OlogyCrew data");
+    expect(screen.getByTestId("shared-header")).toHaveAttribute("data-public", "true");
+    expect(screen.getByTestId("shared-footer")).toHaveAttribute("data-public", "true");
+    expect(screen.getByTestId("shared-footer")).toHaveAttribute("data-compact", "true");
+    expect(screen.getByRole("article", { name: "Chisolm Audio" })).toBeVisible();
   });
 
   it("renders only real categories and non-demo public provider records, without made-up prices or badges", () => {

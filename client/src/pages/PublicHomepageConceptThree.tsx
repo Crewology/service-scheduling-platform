@@ -27,7 +27,7 @@ const steps = [
   { number: "03 / CONNECT DIRECTLY", title: "Book with confidence", description: "Choose a bookable service or request a conversation for a custom quote." },
 ] as const;
 
-export default function PublicHomepageConceptThree() {
+export default function PublicHomepageConceptThree({ forcePublicHeader = false }: { forcePublicHeader?: boolean } = {}) {
   const [, navigate] = useLocation();
   const [search, setSearch] = useState("");
   const { data: categories, isLoading: categoriesLoading, isError: categoriesError } = trpc.category.list.useQuery();
@@ -58,7 +58,7 @@ export default function PublicHomepageConceptThree() {
 
   return (
     <div className="min-h-screen bg-[#f5f2e9]">
-      <NavHeader />
+      <NavHeader forcePublic={forcePublicHeader} />
       <main className="ology-refined" id="public-homepage">
         <section className="or-hero or-wrap" aria-labelledby="public-hero-heading">
           <div className="or-hero-frame">

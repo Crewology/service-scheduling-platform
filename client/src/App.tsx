@@ -109,6 +109,7 @@ import AdaptiveBookingPrototype from "./pages/prototype/AdaptiveBookingPrototype
 import PublicHomepageRefreshPrototype from "./pages/prototype/PublicHomepageRefreshPrototype";
 import PublicHomepageOriginalMessagePrototype from "./pages/prototype/PublicHomepageOriginalMessagePrototype";
 import PublicHomepageDemoPrototype from "./pages/prototype/PublicHomepageDemoPrototype";
+import PublicHomepageLiveReview from "./pages/prototype/PublicHomepageLiveReview";
 
 // Not Found
 import NotFound from "./pages/NotFound";
@@ -155,6 +156,7 @@ function Router() {
       <Route path="/preview/public-home-refresh" component={PublicHomepageRefreshPrototype} />
       <Route path="/preview/public-home-original" component={PublicHomepageOriginalMessagePrototype} />
       <Route path="/preview/public-home-demo" component={PublicHomepageDemoPrototype} />
+      <Route path="/preview/public-home-live" component={PublicHomepageLiveReview} />
       <Route path="/" component={Home} />
       <Route path="/browse" component={Browse} />
       <Route path="/experiences" component={Experiences} />
