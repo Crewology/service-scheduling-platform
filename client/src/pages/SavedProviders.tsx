@@ -239,7 +239,7 @@ export default function SavedProviders() {
           {/* Folders Sidebar */}
           {canUseFolders && (
             <div className="w-64 shrink-0 hidden md:block">
-              <div className="sticky top-24 space-y-2">
+              <div className="ology-customer-saved-folders sticky top-24 space-y-2">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Folders</h3>
                   <Button
@@ -254,6 +254,7 @@ export default function SavedProviders() {
 
                 {/* All Providers */}
                 <button
+                  aria-pressed={activeFolder === null}
                   onClick={() => setActiveFolder(null)}
                   className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
                     activeFolder === null ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted text-foreground"
@@ -266,6 +267,7 @@ export default function SavedProviders() {
 
                 {/* Unfiled */}
                 <button
+                  aria-pressed={activeFolder === -1}
                   onClick={() => setActiveFolder(-1)}
                   className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
                     activeFolder === -1 ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted text-foreground"
@@ -310,6 +312,7 @@ export default function SavedProviders() {
                       </div>
                     ) : (
                       <button
+                        aria-pressed={activeFolder === folder.id}
                         onClick={() => setActiveFolder(folder.id)}
                         className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
                           activeFolder === folder.id ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted text-foreground"

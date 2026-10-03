@@ -338,6 +338,9 @@ export default function MonthlyPlanner() {
                     return (
                       <button
                         key={day.date}
+                        data-planner-day
+                        aria-pressed={isSelected}
+                        aria-current={isToday ? "date" : undefined}
                         className={`relative p-1 min-h-[60px] rounded-lg text-left transition-all ${
                           !day.isCurrentMonth
                             ? "opacity-30"

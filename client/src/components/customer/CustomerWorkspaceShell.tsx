@@ -10,6 +10,7 @@ import {
 import { Link } from "wouter";
 import { MobileRoleViewToggle } from "@/components/shared/MobileRoleViewToggle";
 import { cn } from "@/lib/utils";
+import "./CustomerWorkspaceTheme.css";
 
 export type CustomerWorkspaceSection =
   | "home"
@@ -48,7 +49,7 @@ export function CustomerWorkspaceShell({
   showNavigation?: boolean;
 }) {
   return (
-    <div className={cn("min-h-[calc(100vh-4rem)] bg-page", showNavigation ? "pb-28 md:pb-12" : "pb-12")}>
+    <div data-customer-workspace={active} className={cn("ology-customer-workspace-surface min-h-[calc(100vh-4rem)] bg-page", showNavigation ? "pb-28 md:pb-12" : "pb-12")}>
       <div className={cn("container py-5 sm:py-7", maxWidth, contentClassName)}>
         <MobileRoleViewToggle active="customer" />
 
@@ -131,6 +132,7 @@ export function CustomerWorkspacePageHeader({
     <header
       className={cn(
         "relative overflow-hidden rounded-[28px] bg-[#123f63] px-5 py-6 text-white shadow-[0_24px_65px_-42px_rgba(14,60,95,0.9)] sm:px-7 sm:py-7 lg:px-9",
+        variant === "workspace" && "ology-customer-workspace-heading",
         variant === "discovery" && "sm:py-8 lg:py-9",
       )}
     >

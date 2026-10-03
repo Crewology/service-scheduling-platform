@@ -1,0 +1,219 @@
+@import "../../styles/publicBrandTokens.css";
+
+/* Customer-only workspace surfaces. Keep the global bg-page token and other roles unchanged. */
+.ology-customer-workspace-surface:not([data-customer-workspace="explore"]) {
+  background: var(--ology-brand-paper);
+  color: var(--ology-brand-ink);
+  font-family: var(--ology-brand-body);
+}
+.ology-customer-workspace-surface nav[aria-label="Customer workspace navigation"],
+.ology-customer-workspace-surface nav[aria-label="Customer mobile navigation"] {
+  border-color: var(--ology-brand-line);
+  background: rgb(255 253 247 / 96%);
+  box-shadow: 0 12px 34px -27px rgb(18 51 50 / 38%);
+}
+.ology-customer-workspace-surface nav[aria-label="Customer workspace navigation"] a[aria-current="page"],
+.ology-customer-workspace-surface nav[aria-label="Customer mobile navigation"] a[aria-current="page"] {
+  background: #e6edd8;
+  color: var(--ology-brand-deep);
+  font-weight: 700;
+}
+.ology-customer-workspace-surface nav[aria-label="Customer workspace navigation"] a:not([aria-current="page"]):hover,
+.ology-customer-workspace-surface nav[aria-label="Customer mobile navigation"] a:not([aria-current="page"]):hover {
+  background: #eef2e7;
+  color: var(--ology-brand-deep);
+}
+.ology-customer-workspace-surface [role="group"][aria-label="Choose provider or customer view"] button[aria-pressed="true"] {
+  background: var(--ology-brand-deep);
+  color: #fff;
+}
+
+/* Shared workspace headings, not the separately approved Explore discovery hero. */
+.ology-customer-workspace-heading {
+  isolation: isolate;
+  background: radial-gradient(circle at 94% 10%, rgb(197 215 93 / 13%), transparent 34%),
+    linear-gradient(125deg, #123332 6%, #1b4842 94%);
+  box-shadow: 0 22px 48px -34px rgb(18 51 50 / 62%);
+}
+.ology-customer-workspace-heading h1 { font-family: var(--ology-brand-display); }
+.ology-customer-workspace-heading p:first-child { color: #dce89b; }
+.ology-customer-workspace-heading h1 + p { color: #e1e9df; }
+.ology-customer-workspace-heading [data-slot="button"].bg-white {
+  border: 1px solid var(--ology-brand-leaf);
+  background: var(--ology-brand-leaf);
+  color: var(--ology-brand-deep);
+}
+.ology-customer-workspace-heading [data-slot="button"].bg-white:hover {
+  background: #dce89b;
+  color: var(--ology-brand-deep);
+}
+.ology-customer-workspace-heading [data-slot="button"]:focus-visible { outline-color: var(--ology-brand-leaf); }
+
+/* Restyle neutral cards only; preserve status, warnings, checkout and booking-color meaning. */
+.ology-customer-workspace-surface:not([data-customer-workspace="explore"]) [data-slot="card"].bg-card:not([class*="bg-amber"]):not([class*="bg-red"]):not([class*="bg-green"]):not([class*="bg-emerald"]):not([class*="bg-blue"]):not([class*="bg-primary"]) {
+  border-color: var(--ology-brand-line);
+  background: var(--ology-brand-surface);
+  box-shadow: 0 16px 42px -36px rgb(18 51 50 / 45%);
+}
+.ology-customer-workspace-surface:not([data-customer-workspace="explore"]) [data-testid="customer-empty-state"] {
+  border-color: var(--ology-brand-line);
+  background: var(--ology-brand-surface);
+}
+.ology-customer-workspace-surface:not([data-customer-workspace="explore"]) [data-testid="customer-empty-state"] p {
+  color: var(--ology-brand-muted);
+}
+.ology-customer-workspace-surface:not([data-customer-workspace="explore"]) [data-slot="tabs-list"] {
+  border: 1px solid var(--ology-brand-line);
+  background: #e9ede3;
+}
+.ology-customer-workspace-surface:not([data-customer-workspace="explore"]) [data-slot="tabs-trigger"][data-state="active"] {
+  background: var(--ology-brand-surface);
+  color: var(--ology-brand-deep);
+}
+.ology-customer-workspace-surface:not([data-customer-workspace="explore"]) [data-slot="button"].bg-primary {
+  background: var(--ology-brand-deep);
+  color: #fff;
+}
+.ology-customer-workspace-surface:not([data-customer-workspace="explore"]) [data-slot="button"].bg-primary:hover {
+  background: #1b4842;
+  color: #fff;
+}
+.ology-customer-workspace-surface:not([data-customer-workspace="explore"]) :is(a, button, input, select, textarea, [role="tab"]):focus-visible,
+.ology-customer-workspace-surface nav :is(a, button):focus-visible {
+  outline: 3px solid var(--ology-brand-coral-hover);
+  outline-offset: 3px;
+}
+
+/* The customer landing keeps the approved need-first search and real action card. */
+.ology-customer-home-hero {
+  isolation: isolate;
+  background: radial-gradient(circle at 96% 4%, rgb(197 215 93 / 14%), transparent 34%),
+    linear-gradient(120deg, #123332 4%, #1b4842 93%);
+  box-shadow: 0 24px 52px -34px rgb(18 51 50 / 59%);
+}
+.ology-customer-home-hero > div.absolute {
+  background-image: radial-gradient(circle at 4% 85%, rgb(255 253 247 / 8%), transparent 35%);
+}
+.ology-customer-home-hero h1 { font-family: var(--ology-brand-display); }
+.ology-customer-home-hero [class*="text-blue-"] { color: #e1e9df; }
+.ology-customer-home-hero > div > div:first-child > p:first-of-type,
+.ology-customer-home-hero .ology-customer-home-primary-action p:first-child {
+  color: #dce89b;
+}
+.ology-customer-home-hero form svg { color: var(--ology-brand-deep); }
+.ology-customer-home-hero form input::placeholder {
+  color: var(--ology-brand-muted);
+  opacity: 1;
+}
+.ology-customer-home-hero button[type="submit"] {
+  background: var(--ology-brand-coral);
+  color: #fff;
+}
+.ology-customer-home-hero button[type="submit"]:hover { background: var(--ology-brand-coral-hover); }
+.ology-customer-home-hero .ology-customer-home-primary-action [data-slot="button"] {
+  background: var(--ology-brand-leaf);
+  color: var(--ology-brand-deep);
+}
+.ology-customer-home-hero .ology-customer-home-primary-action [data-slot="button"]:hover {
+  background: #dce89b;
+}
+.ology-customer-home-hero :is(a, button, input, select):focus-visible {
+  outline-color: var(--ology-brand-leaf);
+}
+.ology-customer-home-hero form :is(input, select):focus-visible { outline-color: var(--ology-brand-coral-hover); }
+.ology-customer-home-content section h2 { font-family: var(--ology-brand-display); color: var(--ology-brand-ink); }
+.ology-customer-home-content section p[class*="text-blue-700"],
+.ology-customer-home-content section p[class*="text-violet-700"] { color: var(--ology-brand-coral-hover); }
+.ology-customer-home-content section a[class*="text-[#174a73]"] { color: var(--ology-brand-deep); }
+.ology-customer-upcoming-date { background: #e6edd8; color: var(--ology-brand-deep); }
+.ology-customer-home-content button.group:hover { border-color: #9aaa93; }
+.ology-customer-home-content button.group > span:first-child { background: #e8ece0; color: var(--ology-brand-deep); }
+.ology-customer-home-content button.group > svg { color: var(--ology-brand-muted); }
+.ology-customer-home-tools a { background: #eef2e7; color: var(--ology-brand-deep); }
+.ology-customer-home-tools a:hover { background: #e6edd8; color: var(--ology-brand-deep); }
+.ology-customer-home-trust > div { background: #eef2e7; }
+.ology-customer-home-trust > div > span { color: var(--ology-brand-deep); }
+
+/* Planner selection: do not recolor booked/error event pills. */
+.ology-customer-workspace-surface[data-customer-workspace="bookings"] button[aria-pressed="true"][data-planner-day] {
+  box-shadow: inset 0 0 0 2px var(--ology-brand-deep);
+  background: #e6edd8;
+}
+.ology-customer-workspace-surface[data-customer-workspace="bookings"] button[aria-current="date"][data-planner-day] {
+  background: #eef2e7;
+}
+.ology-customer-workspace-surface[data-customer-workspace="bookings"] button[aria-current="date"][data-planner-day] > span:first-child {
+  color: var(--ology-brand-deep);
+}
+.ology-customer-bulk-progress [aria-current="step"] {
+  background: var(--ology-brand-deep);
+  color: #fff;
+}
+.ology-customer-saved-folders button[aria-pressed="true"] {
+  background: #e6edd8;
+  color: var(--ology-brand-deep);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ology-customer-workspace-surface :is(a, button, input, select, textarea, [role="tab"]) {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Secondary customer-only tools do not use the five-destination shell. Match its neutral canvas
+   without importing nav chrome or altering financial, quote or waitlist states. */
+.ology-customer-utility-surface {
+  background: var(--ology-brand-paper);
+  color: var(--ology-brand-ink);
+  font-family: var(--ology-brand-body);
+}
+.ology-customer-utility-surface .container h1 {
+  color: var(--ology-brand-deep);
+  font-family: var(--ology-brand-display);
+  letter-spacing: -.035em;
+}
+.ology-customer-utility-surface [data-slot="card"].bg-card:not([class*="bg-amber"]):not([class*="bg-red"]):not([class*="bg-green"]):not([class*="bg-emerald"]):not([class*="bg-blue"]):not([class*="bg-primary"]):not([class*="bg-gradient"]) {
+  border-color: var(--ology-brand-line);
+  background: var(--ology-brand-surface);
+  box-shadow: 0 16px 42px -36px rgb(18 51 50 / 45%);
+}
+.ology-customer-utility-surface [data-slot="button"].bg-primary {
+  background: var(--ology-brand-deep);
+  color: #fff;
+}
+.ology-customer-utility-surface [data-slot="button"].bg-primary:hover {
+  background: #1b4842;
+  color: #fff;
+}
+.ology-customer-utility-surface :is(a, button, input, select, textarea, [role="tab"]):focus-visible {
+  outline: 3px solid var(--ology-brand-coral-hover);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ology-customer-utility-surface :is(a, button, input, select, textarea, [role="tab"]) {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Subscription display accents only: tier prices, billing calls, trial warnings and plan state remain authoritative. */
+.ology-customer-utility-surface .ology-customer-plan-neutral-icon,
+.ology-customer-utility-surface .ology-customer-plan-current [class*="text-primary"] {
+  color: var(--ology-brand-deep);
+}
+.ology-customer-utility-surface .ology-customer-plan-billing-toggle button[aria-pressed="true"] {
+  background: var(--ology-brand-deep);
+  color: #fff;
+}
+.ology-customer-utility-surface .ology-customer-plan-usage-bar[data-state="available"] {
+  background: var(--ology-brand-deep);
+}
+.ology-customer-utility-surface .ology-customer-plan-icon {
+  background: #e6edd8;
+}
+.ology-customer-utility-surface .ology-customer-plan-icon svg {
+  color: var(--ology-brand-deep);
+}
+.ology-customer-utility-surface .ology-customer-plan-popular-badge {
+  background: var(--ology-brand-coral);
+  color: #fff;
+}

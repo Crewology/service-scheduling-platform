@@ -1669,10 +1669,10 @@ export default function BulkBooking() {
         />
 
         <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
-          <ol className="grid grid-cols-4 gap-2" aria-label="Bulk booking progress">
+          <ol className="ology-customer-bulk-progress grid grid-cols-4 gap-2" aria-label="Bulk booking progress">
             {planningSteps.map((step, index) => (
               <li key={step.label} className="flex min-w-0 flex-col items-center gap-1 text-center sm:flex-row sm:text-left">
-                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${step.complete ? "bg-emerald-100 text-emerald-700" : index === planningSteps.findIndex((item) => !item.complete) ? "bg-[#174a73] text-white" : "bg-slate-100 text-slate-400"}`}>
+                <span aria-current={!step.complete && index === planningSteps.findIndex((item) => !item.complete) ? "step" : undefined} className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${step.complete ? "bg-emerald-100 text-emerald-700" : index === planningSteps.findIndex((item) => !item.complete) ? "bg-[#174a73] text-white" : "bg-slate-100 text-slate-400"}`}>
                   {step.complete ? <CheckCircle2 className="h-4 w-4" /> : index + 1}
                 </span>
                 <span className={`text-[10px] font-semibold sm:text-xs ${step.complete ? "text-emerald-700" : "text-slate-500"}`}>{step.label}</span>

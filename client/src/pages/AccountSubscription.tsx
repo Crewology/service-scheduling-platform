@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import { NavHeader } from "@/components/shared/NavHeader";
+import "@/components/customer/CustomerWorkspaceTheme.css";
 import { formatPrice as formatPriceUtil } from "@shared/formatPrice";
 import {
   Dialog,
@@ -209,7 +210,7 @@ export default function AccountSubscription() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-page">
+      <div className="ology-customer-utility-surface min-h-screen bg-page">
         <NavHeader />
         <div className="container py-16 text-center">
           <h1 className="text-2xl sm:text-3xl font-bold mb-4">My Customer Plan Subscription</h1>
@@ -220,7 +221,7 @@ export default function AccountSubscription() {
   }
 
   return (
-    <div className="min-h-screen bg-page">
+    <div className="ology-customer-utility-surface min-h-screen bg-page">
       <NavHeader />
 
       <div className="container py-8 max-w-6xl mx-auto">
@@ -231,7 +232,7 @@ export default function AccountSubscription() {
             Back
           </Button>
           <div className="flex items-center gap-2 mb-2">
-            <ShoppingBag className="h-5 w-5 text-blue-600" />
+            <ShoppingBag className="ology-customer-plan-neutral-icon h-5 w-5 text-blue-600" />
             <h1 className="text-2xl sm:text-3xl font-bold">My Customer Plan Subscription</h1>
           </div>
           <p className="text-muted-foreground text-lg">
@@ -240,8 +241,9 @@ export default function AccountSubscription() {
         </div>
 
         {/* Annual/Monthly Toggle */}
-        <div className="flex items-center justify-center gap-3 mb-8">
+        <div className="ology-customer-plan-billing-toggle flex items-center justify-center gap-3 mb-8">
           <button
+            aria-pressed={billingInterval === "month"}
             onClick={() => setBillingInterval("month")}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
               billingInterval === "month"
@@ -252,6 +254,7 @@ export default function AccountSubscription() {
             Monthly
           </button>
           <button
+            aria-pressed={billingInterval === "year"}
             onClick={() => setBillingInterval("year")}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${
               billingInterval === "year"
@@ -333,7 +336,7 @@ export default function AccountSubscription() {
 
         {/* Current Plan Badge */}
         {currentTier !== "free" && (
-          <div className="mb-8 p-4 rounded-lg bg-primary/5 border border-primary/20">
+          <div className="ology-customer-plan-current mb-8 p-4 rounded-lg bg-primary/5 border border-primary/20">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <Crown className="h-5 w-5 text-primary" />
@@ -430,19 +433,18 @@ export default function AccountSubscription() {
         {subData?.usage && currentTier !== "free" && (
           <div className="mb-8 p-4 rounded-lg border bg-card">
             <h3 className="font-semibold mb-3 flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-primary" />
+              <BarChart3 className="ology-customer-plan-neutral-icon h-5 w-5 text-primary" />
               Your Usage
             </h3>
             <div>
               <p className="text-sm text-muted-foreground mb-1">Saved Providers</p>
               <div className="flex items-center gap-2">
                 <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
-                  <div 
-                    className={`h-full rounded-full transition-all ${
-                      subData.usage.isAtLimit
-                        ? "bg-red-500"
-                        : "bg-primary"
+                  <div
+                    className={`ology-customer-plan-usage-bar h-full rounded-full transition-all ${
+                      subData.usage.isAtLimit ? "bg-red-500" : "bg-primary"
                     }`}
+                    data-state={subData.usage.isAtLimit ? "limit" : "available"}
                     style={{ width: `${subData.usage.savedProviderLimit === -1 ? 10 : Math.min(100, (subData.usage.savedProviders / subData.usage.savedProviderLimit) * 100)}%` }}
                   />
                 </div>
@@ -477,7 +479,7 @@ export default function AccountSubscription() {
                 {/* Plan tags */}
                 {plan.tier === "pro" && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                    <Badge className="bg-primary text-primary-foreground px-3 shadow-sm">Most Popular</Badge>
+                    <Badge className="ology-customer-plan-popular-badge bg-primary text-primary-foreground px-3 shadow-sm">Most Popular</Badge>
                   </div>
                 )}
                 {plan.tier === "business" && !isCurrent && (
@@ -495,7 +497,7 @@ export default function AccountSubscription() {
                 )}
 
                 <CardHeader className="text-center pb-4">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                  <div className="ology-customer-plan-icon w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
                     <Icon className="h-6 w-6 text-primary" />
                   </div>
                   <CardTitle className="text-xl">{plan.name}</CardTitle>

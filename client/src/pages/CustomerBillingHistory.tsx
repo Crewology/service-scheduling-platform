@@ -2,6 +2,7 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { NavHeader } from "@/components/shared/NavHeader";
+import "@/components/customer/CustomerWorkspaceTheme.css";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -130,7 +131,7 @@ export default function CustomerBillingHistory() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-page">
+      <div className="ology-customer-utility-surface min-h-screen bg-page">
         <NavHeader />
         <div className="container py-12 text-center">
           <p className="text-muted-foreground">Please log in to view billing history.</p>
@@ -148,7 +149,7 @@ export default function CustomerBillingHistory() {
   };
 
   return (
-    <div className="min-h-screen bg-page">
+    <div className="ology-customer-utility-surface min-h-screen bg-page">
       <NavHeader />
       <div className="container max-w-4xl py-6 px-4">
         {/* Header */}
