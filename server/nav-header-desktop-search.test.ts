@@ -57,7 +57,7 @@ describe("header discovery shortcut", () => {
   });
 
   it("matches the compact footer's brand mark and wordmark in both public and authenticated headers", () => {
-    expect(navHeader).toContain('<header className="border-b sticky top-0 z-50 public-brand-header">');
+    expect(navHeader).toContain('<header ref={mobileHeaderRef} className={`border-b sticky top-0 public-brand-header ${mobileMenuOpen ? "z-[60]" : "z-50"}`}>');
     expect(navHeader).toContain('<div className="public-brand-inner">');
     const footerMark = '/manus-storage/ologycrew-demo-mark_075b3913.png';
     expect(footer).toContain(footerMark);

@@ -54,6 +54,7 @@ import { ViewModeSwitcher, ViewModeSwitcherMobile } from "@/components/ViewModeS
 import { useViewMode } from "@/contexts/ViewModeContext";
 import { usePWAInstallContext } from "@/contexts/PWAInstallContext";
 import "./PublicBrandHeader.css";
+import "./MobileAccountMenu.css";
 
 function NotificationDropdown() {
   const { isAuthenticated } = useAuth();
@@ -583,6 +584,20 @@ export function NavHeader({ forcePublic = false }: { forcePublic?: boolean } = {
   const isAuthenticated = accountAuthenticated && !forcePublic;
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const mobileHeaderRef = useRef<HTMLElement>(null);
+  const [mobileMenuTop, setMobileMenuTop] = useState(64);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const positionBelowHeader = () => setMobileMenuTop(mobileHeaderRef.current?.getBoundingClientRect().bottom ?? 64);
+    positionBelowHeader();
+    window.addEventListener("resize", positionBelowHeader);
+    window.addEventListener("scroll", positionBelowHeader, { passive: true });
+    return () => {
+      window.removeEventListener("resize", positionBelowHeader);
+      window.removeEventListener("scroll", positionBelowHeader);
+    };
+  }, [mobileMenuOpen]);
 
   // Poll slowly as a fallback; SSE invalidates this query immediately for new messages.
   const { data: unreadCount } = trpc.message.unreadCount.useQuery(undefined, {
@@ -603,7 +618,7 @@ export function NavHeader({ forcePublic = false }: { forcePublic?: boolean } = {
   const { isInstalled: pwaInstalled, triggerInstall: pwaInstall } = usePWAInstallContext();
 
   return (
-    <header className="border-b sticky top-0 z-50 public-brand-header">
+    <header ref={mobileHeaderRef} className={`border-b sticky top-0 public-brand-header ${mobileMenuOpen ? "z-[60]" : "z-50"}`}>
       <div className="public-brand-inner">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -698,6 +713,7 @@ export function NavHeader({ forcePublic = false }: { forcePublic?: boolean } = {
               className="h-10 w-10 public-brand-icon"
               aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
               aria-expanded={mobileMenuOpen}
+              aria-controls={mobileMenuOpen ? "ology-mobile-account-menu" : undefined}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -707,60 +723,60 @@ export function NavHeader({ forcePublic = false }: { forcePublic?: boolean } = {
 
         {/* Mobile Full-Screen App Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden fixed inset-0 top-16 z-50 bg-[#fffdf7] animate-in slide-in-from-right-full duration-200 overflow-y-auto">
+          <div id="ology-mobile-account-menu" role="navigation" aria-label="Mobile menu" className="ology-mobile-menu lg:hidden fixed inset-x-0 bottom-0 z-50 overflow-y-auto" style={{ top: mobileMenuTop }}>
             <div className="flex flex-col h-full">
               {/* User Profile Summary */}
               {isAuthenticated && user ? (
-                <div className="px-6 py-5 border-b bg-muted/30">
+                <div className="ology-mobile-menu-identity px-6 py-5 border-b">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-12 w-12">
                       {user.profilePhotoUrl ? (
                         <AvatarImage src={user.profilePhotoUrl} alt={user.name || ""} className="object-cover" />
                       ) : null}
-                      <AvatarFallback className="text-lg font-semibold bg-primary/10 text-primary">
+                      <AvatarFallback className="ology-mobile-menu-avatar text-lg font-semibold">
                         {(user.name || user.email || "?")[0].toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div className="min-w-0">
-                      <p className="font-semibold text-base truncate">{user.name || "User"}</p>
-                      <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                      <p className="ology-mobile-menu-name font-semibold text-base truncate">{user.name || "User"}</p>
+                      <p className="ology-mobile-menu-email text-sm truncate">{user.email}</p>
                       {(isProvider || isAdmin) && (
                         <div className="flex gap-1.5 mt-1">
-                          {isProvider && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Provider</Badge>}
-                          {isAdmin && <Badge variant="default" className="text-[10px] px-1.5 py-0">Admin</Badge>}
+                          {isProvider && <Badge variant="secondary" className="ology-mobile-menu-provider-badge text-[10px] px-1.5 py-0">Provider</Badge>}
+                          {isAdmin && <Badge variant="default" className="ology-mobile-menu-admin-badge text-[10px] px-1.5 py-0">Admin</Badge>}
                         </div>
                       )}
                     </div>
                   </div>
                   {/* View Mode Switcher */}
-                  <div className="mt-3">
+                  <div className="ology-mobile-menu-mode mt-3">
                     <ViewModeSwitcherMobile />
                   </div>
                 </div>
               ) : (
-                <div className="px-6 py-5 border-b">
+                <div className="ology-mobile-menu-identity px-6 py-5 border-b">
                   <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
                     <Button className={`w-full h-12 text-base ${isAuthenticated ? "" : "public-brand-cta"}`}>Sign In to Get Started</Button>
                   </Link>
                 </div>
               )}
               {/* Tile Grid Navigation */}
-              <div className="flex-1 px-5 py-5 overflow-y-auto">
+              <div className="ology-mobile-menu-content flex-1 px-5 py-5 overflow-y-auto">
                 {isAuthenticated ? (
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="ology-mobile-menu-grid grid grid-cols-4 gap-2">
                     <Link href="/account" onClick={() => setMobileMenuOpen(false)}>
-                      <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                        <div className="h-11 w-11 rounded-2xl bg-slate-100 flex items-center justify-center">
-                          <User className="h-6 w-6 text-slate-600" />
+                      <div className="ology-mobile-menu-tile flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl">
+                        <div className="ology-mobile-menu-tile-icon h-11 w-11 rounded-2xl flex items-center justify-center" data-tone="neutral">
+                          <User className="h-6 w-6" />
                         </div>
                         <span className="text-[11px] font-medium text-center leading-tight">My Account</span>
                       </div>
                     </Link>
                     {myProfile?.profileSlug && (
                       <Link href={`/${myProfile.profileSlug}`} onClick={() => setMobileMenuOpen(false)}>
-                        <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                          <div className="h-11 w-11 rounded-2xl bg-teal-100 flex items-center justify-center">
-                            <ExternalLink className="h-6 w-6 text-teal-600" />
+                        <div className="ology-mobile-menu-tile flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl">
+                          <div className="ology-mobile-menu-tile-icon h-11 w-11 rounded-2xl flex items-center justify-center" data-tone="leaf">
+                            <ExternalLink className="h-6 w-6" />
                           </div>
                           <span className="text-[11px] font-medium text-center leading-tight">My Page</span>
                         </div>
@@ -768,51 +784,51 @@ export function NavHeader({ forcePublic = false }: { forcePublic?: boolean } = {
                     )}
                     {myProfile && (
                       <Link href="/provider/calendar" onClick={() => setMobileMenuOpen(false)}>
-                        <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                          <div className="h-11 w-11 rounded-2xl bg-blue-100 flex items-center justify-center">
-                            <Calendar className="h-6 w-6 text-blue-600" />
+                        <div className="ology-mobile-menu-tile flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl">
+                          <div className="ology-mobile-menu-tile-icon h-11 w-11 rounded-2xl flex items-center justify-center" data-tone="sage">
+                            <Calendar className="h-6 w-6" />
                           </div>
                           <span className="text-[11px] font-medium text-center leading-tight">My Calendar</span>
                         </div>
                       </Link>
                     )}
                     <Link href={isProviderView ? "/provider/subscription" : "/customer/subscription"} onClick={() => setMobileMenuOpen(false)}>
-                      <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                        <div className="h-11 w-11 rounded-2xl bg-emerald-100 flex items-center justify-center">
-                          <CreditCard className="h-6 w-6 text-emerald-600" />
+                      <div className="ology-mobile-menu-tile flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl">
+                        <div className="ology-mobile-menu-tile-icon h-11 w-11 rounded-2xl flex items-center justify-center" data-tone="leaf">
+                          <CreditCard className="h-6 w-6" />
                         </div>
                         <span className="text-[11px] font-medium text-center leading-tight">My Subscription</span>
                       </div>
                     </Link>
                     <Link href={isProviderView ? "/provider/billing" : "/customer/billing"} onClick={() => setMobileMenuOpen(false)}>
-                      <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                        <div className="h-11 w-11 rounded-2xl bg-orange-100 flex items-center justify-center">
-                          <FileText className="h-6 w-6 text-orange-600" />
+                      <div className="ology-mobile-menu-tile flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl">
+                        <div className="ology-mobile-menu-tile-icon h-11 w-11 rounded-2xl flex items-center justify-center" data-tone="coral">
+                          <FileText className="h-6 w-6" />
                         </div>
                         <span className="text-[11px] font-medium text-center leading-tight">Billing History</span>
                       </div>
                     </Link>
                     <Link href="/notification-settings" onClick={() => setMobileMenuOpen(false)}>
-                      <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                        <div className="h-11 w-11 rounded-2xl bg-gray-100 flex items-center justify-center">
-                          <Settings className="h-6 w-6 text-gray-600" />
+                      <div className="ology-mobile-menu-tile flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl">
+                        <div className="ology-mobile-menu-tile-icon h-11 w-11 rounded-2xl flex items-center justify-center" data-tone="neutral">
+                          <Settings className="h-6 w-6" />
                         </div>
                         <span className="text-[11px] font-medium text-center leading-tight">Settings</span>
                       </div>
                     </Link>
                     <Link href="/help" onClick={() => setMobileMenuOpen(false)}>
-                      <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                        <div className="h-11 w-11 rounded-2xl bg-cyan-100 flex items-center justify-center">
-                          <HelpCircle className="h-6 w-6 text-cyan-600" />
+                      <div className="ology-mobile-menu-tile flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl">
+                        <div className="ology-mobile-menu-tile-icon h-11 w-11 rounded-2xl flex items-center justify-center" data-tone="sage">
+                          <HelpCircle className="h-6 w-6" />
                         </div>
                         <span className="text-[11px] font-medium text-center leading-tight">Help</span>
                       </div>
                     </Link>
                     {!pwaInstalled && (
                       <button onClick={() => { setMobileMenuOpen(false); pwaInstall(); }} className="w-full">
-                        <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                          <div className="h-11 w-11 rounded-2xl bg-indigo-100 flex items-center justify-center">
-                            <Download className="h-6 w-6 text-indigo-600" />
+                        <div className="ology-mobile-menu-tile flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl">
+                          <div className="ology-mobile-menu-tile-icon h-11 w-11 rounded-2xl flex items-center justify-center" data-tone="leaf">
+                            <Download className="h-6 w-6" />
                           </div>
                           <span className="text-[11px] font-medium text-center leading-tight">Install App</span>
                         </div>
@@ -820,35 +836,35 @@ export function NavHeader({ forcePublic = false }: { forcePublic?: boolean } = {
                     )}
                   </div>
                 ) : (
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="ology-mobile-menu-grid grid grid-cols-4 gap-2">
                     <Link href="/browse" onClick={() => setMobileMenuOpen(false)}>
-                      <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                        <div className="h-11 w-11 rounded-2xl bg-blue-100 flex items-center justify-center">
-                          <Compass className="h-6 w-6 text-blue-600" />
+                      <div className="ology-mobile-menu-tile flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl">
+                        <div className="ology-mobile-menu-tile-icon h-11 w-11 rounded-2xl flex items-center justify-center" data-tone="sage">
+                          <Compass className="h-6 w-6" />
                         </div>
                         <span className="text-[11px] font-medium text-center leading-tight">Browse</span>
                       </div>
                     </Link>
                     <Link href="/platform" onClick={() => setMobileMenuOpen(false)}>
-                      <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                        <div className="h-11 w-11 rounded-2xl bg-emerald-100 flex items-center justify-center">
-                          <Grid3X3 className="h-6 w-6 text-emerald-700" />
+                      <div className="ology-mobile-menu-tile flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl">
+                        <div className="ology-mobile-menu-tile-icon h-11 w-11 rounded-2xl flex items-center justify-center" data-tone="leaf">
+                          <Grid3X3 className="h-6 w-6" />
                         </div>
                         <span className="text-[11px] font-medium text-center leading-tight">Platform</span>
                       </div>
                     </Link>
                     <Link href="/pricing" onClick={() => setMobileMenuOpen(false)}>
-                      <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                        <div className="h-11 w-11 rounded-2xl bg-emerald-100 flex items-center justify-center">
-                          <CreditCard className="h-6 w-6 text-emerald-600" />
+                      <div className="ology-mobile-menu-tile flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl">
+                        <div className="ology-mobile-menu-tile-icon h-11 w-11 rounded-2xl flex items-center justify-center" data-tone="leaf">
+                          <CreditCard className="h-6 w-6" />
                         </div>
                         <span className="text-[11px] font-medium text-center leading-tight">Pricing</span>
                       </div>
                     </Link>
                     <Link href="/help" onClick={() => setMobileMenuOpen(false)}>
-                      <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
-                        <div className="h-11 w-11 rounded-2xl bg-cyan-100 flex items-center justify-center">
-                          <HelpCircle className="h-6 w-6 text-cyan-600" />
+                      <div className="ology-mobile-menu-tile flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl">
+                        <div className="ology-mobile-menu-tile-icon h-11 w-11 rounded-2xl flex items-center justify-center" data-tone="sage">
+                          <HelpCircle className="h-6 w-6" />
                         </div>
                         <span className="text-[11px] font-medium text-center leading-tight">Help</span>
                       </div>
@@ -858,7 +874,7 @@ export function NavHeader({ forcePublic = false }: { forcePublic?: boolean } = {
               </div>
               {/* Log Out */}
               {isAuthenticated && (
-                <div className="px-4 py-4 border-t mt-auto">
+                <div className="ology-mobile-menu-footer px-4 py-4 border-t mt-auto">
                   <MobileLogoutButton onClose={() => setMobileMenuOpen(false)} />
                 </div>
               )}

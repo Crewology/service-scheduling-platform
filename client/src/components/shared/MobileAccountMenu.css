@@ -1,0 +1,106 @@
+@import "../../styles/publicBrandTokens.css";
+
+/* The account drawer alone opts into the people-first palette. Header controls and
+   the desktop account dropdown keep their established appearance and behavior. */
+.public-brand-header .ology-mobile-menu {
+  background: var(--ology-brand-paper);
+  color: var(--ology-brand-ink);
+  font-family: var(--ology-brand-body);
+}
+
+.public-brand-header .ology-mobile-menu-identity,
+.public-brand-header .ology-mobile-menu-footer {
+  background: var(--ology-brand-surface);
+  border-color: var(--ology-brand-line);
+}
+
+.public-brand-header .ology-mobile-menu-name { color: var(--ology-brand-ink); }
+.public-brand-header .ology-mobile-menu-email { color: var(--ology-brand-muted); }
+.public-brand-header .ology-mobile-menu-avatar {
+  background: #e5ede4;
+  color: var(--ology-brand-deep);
+}
+.public-brand-header .ology-mobile-menu-provider-badge {
+  background: #e5ede4;
+  border-color: #cbd9c7;
+  color: var(--ology-brand-deep);
+}
+.public-brand-header .ology-mobile-menu-admin-badge {
+  background: var(--ology-brand-deep);
+  border-color: var(--ology-brand-deep);
+  color: var(--ology-brand-surface);
+}
+
+.public-brand-header .ology-mobile-menu-mode > div {
+  background: #e8ede2;
+}
+.public-brand-header .ology-mobile-menu-mode button {
+  color: var(--ology-brand-muted);
+  box-shadow: none;
+}
+.public-brand-header .ology-mobile-menu-mode button[aria-pressed="true"] {
+  background: var(--ology-brand-surface);
+  color: var(--ology-brand-deep);
+  box-shadow: 0 1px 3px rgb(18 51 50 / .14);
+}
+.public-brand-header .ology-mobile-menu-mode button[aria-pressed="false"]:hover {
+  background: #dce6d5;
+  color: var(--ology-brand-deep);
+}
+
+.public-brand-header .ology-mobile-menu-content { background: var(--ology-brand-paper); }
+.public-brand-header .ology-mobile-menu-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.public-brand-header .ology-mobile-menu-grid :is(a, button) {
+  display: block;
+  min-width: 0;
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--ology-brand-ink);
+}
+.public-brand-header .ology-mobile-menu-tile {
+  min-height: 88px;
+  color: var(--ology-brand-ink);
+  transition: background-color .18s var(--ology-brand-ease), transform .16s var(--ology-brand-ease);
+}
+.public-brand-header .ology-mobile-menu-grid :is(a, button):hover .ology-mobile-menu-tile,
+.public-brand-header .ology-mobile-menu-grid :is(a, button):focus-visible .ology-mobile-menu-tile {
+  background: #e8ede2;
+}
+.public-brand-header .ology-mobile-menu-grid :is(a, button):active .ology-mobile-menu-tile {
+  transform: scale(.97);
+}
+.public-brand-header .ology-mobile-menu-tile-icon {
+  background: #e5ede4;
+  color: var(--ology-brand-deep);
+}
+.public-brand-header .ology-mobile-menu-tile-icon[data-tone="leaf"] {
+  background: var(--ology-brand-leaf);
+  color: var(--ology-brand-deep);
+}
+.public-brand-header .ology-mobile-menu-tile-icon[data-tone="coral"] {
+  background: #f7e3db;
+  color: var(--ology-brand-coral-hover);
+}
+.public-brand-header .ology-mobile-menu-tile-icon[data-tone="sage"] {
+  background: #dfeae0;
+  color: var(--ology-brand-ink);
+}
+
+.public-brand-header .ology-mobile-menu-footer {
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+}
+.public-brand-header .ology-mobile-menu-footer button:hover { background: #f7e3db; }
+.public-brand-header .ology-mobile-menu-footer button :is(svg, span) { color: var(--ology-brand-coral-hover); }
+
+@media (max-width: 359px) {
+  .public-brand-header .ology-mobile-menu-content { padding-inline: 12px; }
+  .public-brand-header .ology-mobile-menu-grid { gap: 4px; }
+  .public-brand-header .ology-mobile-menu-grid :is(a, button) { font-size: 11px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .public-brand-header .ology-mobile-menu { animation: none; }
+  .public-brand-header .ology-mobile-menu-tile { transition: none; }
+  .public-brand-header .ology-mobile-menu-grid :is(a, button):active .ology-mobile-menu-tile { transform: none; }
+}

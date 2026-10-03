@@ -88,6 +88,8 @@ export function ViewModeSwitcherMobile({ onSwitch }: { onSwitch?: () => void }) 
   return (
     <div className="flex items-center bg-gray-100 rounded-lg p-1 gap-1">
       <button
+        type="button"
+        aria-pressed={viewMode === "provider"}
         onClick={() => handleSwitch("provider")}
         className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
           viewMode === "provider"
@@ -99,6 +101,8 @@ export function ViewModeSwitcherMobile({ onSwitch }: { onSwitch?: () => void }) 
         Provider
       </button>
       <button
+        type="button"
+        aria-pressed={viewMode === "customer"}
         onClick={() => handleSwitch("customer")}
         className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
           viewMode === "customer"
