@@ -628,7 +628,7 @@ export default function ProviderCalendar() {
 
         {/* Calendar Sync Panel */}
         {showSyncPanel && feedData && (
-          <Card className="mt-5 mb-6 border-primary/20 bg-primary/5">
+          <Card className="ology-provider-workspace-info mt-5 mb-6 border-primary/20 bg-primary/5">
             <CardContent className="py-4 px-5">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold flex items-center gap-2">

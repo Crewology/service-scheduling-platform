@@ -38,7 +38,7 @@ export function CustomersWelcomePopover({
   return (
     <Popover open={open} onOpenChange={(nextOpen) => nextOpen ? setOpen(true) : dismiss()}>
       <PopoverAnchor asChild>
-        <Badge className="border-white/20 bg-white/10 text-blue-50 hover:bg-white/10">
+        <Badge className="border-white/20 bg-white/10 text-[#f4f6ed] hover:bg-white/10">
           Provider-owned relationships
         </Badge>
       </PopoverAnchor>
@@ -48,19 +48,19 @@ export function CustomersWelcomePopover({
         role="dialog"
         aria-labelledby="customers-welcome-title"
         aria-describedby="customers-welcome-description"
-        className="w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border-blue-100 p-0 shadow-[0_22px_60px_-24px_rgba(15,23,42,0.5)]"
+        className="w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border-[#dbe2d7] p-0 shadow-[0_22px_60px_-24px_rgba(18,51,50,0.45)]"
       >
-        <div className="bg-[#123f63] px-5 py-4 text-white">
+        <div className="bg-[#123332] px-5 py-4 text-white">
           <div className="flex items-start justify-between gap-4">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-blue-100">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-[#e1e9df]">
               <Sparkles className="h-5 w-5" aria-hidden="true" />
             </span>
-            <button type="button" onClick={dismiss} className="rounded-lg p-1.5 text-blue-100 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white" aria-label="Dismiss Customers welcome">
+            <button type="button" onClick={dismiss} className="rounded-lg p-1.5 text-[#e1e9df] transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white" aria-label="Dismiss Customers welcome">
               <X className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
           <h2 id="customers-welcome-title" className="mt-3 text-xl font-bold">Welcome to Customers</h2>
-          <p id="customers-welcome-description" className="mt-1 text-sm leading-6 text-blue-100">A private place to understand and follow up with people who connect with your business on OlogyCrew.</p>
+          <p id="customers-welcome-description" className="mt-1 text-sm leading-6 text-[#e1e9df]">A private place to understand and follow up with people who connect with your business on OlogyCrew.</p>
         </div>
 
         <div className="space-y-4 p-5">
@@ -69,10 +69,10 @@ export function CustomersWelcomePopover({
           <WelcomeItem icon={MessageSquareText} title="Messages stay deliberate" description={draftSendingEnabled ? "A message sends only after you review a draft, confirm it, and the customer currently allows it." : "Nothing sends automatically. Draft and messaging access follows your plan and customer permission."} />
 
           <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:items-center sm:justify-between">
-            <Button asChild variant="ghost" size="sm" className="justify-center text-[#174a73]">
+            <Button asChild variant="ghost" size="sm" className="justify-center text-[#123332]">
               <Link href="/help">Learn more</Link>
             </Button>
-            <Button type="button" size="sm" onClick={dismiss} className="bg-[#174a73] hover:bg-[#123f63]">Got it</Button>
+            <Button type="button" size="sm" onClick={dismiss} className="bg-[#123332] hover:bg-[#1b4842]">Got it</Button>
           </div>
         </div>
       </PopoverContent>
@@ -91,7 +91,7 @@ function WelcomeItem({
 }) {
   return (
     <div className="flex items-start gap-3">
-      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#174a73]">
+      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#eef2e7] text-[#123332]">
         <Icon className="h-4 w-4" aria-hidden="true" />
       </span>
       <div>

@@ -12,6 +12,7 @@ import {
 import { Link } from "wouter";
 import { MobileRoleViewToggle } from "@/components/shared/MobileRoleViewToggle";
 import { cn } from "@/lib/utils";
+import "./ProviderWorkspaceTheme.css";
 
 export type ProviderWorkspaceSection =
   | "overview"
@@ -27,7 +28,7 @@ const providerWorkspaceBackground =
   "min-h-[calc(100vh-4rem)] bg-page";
 
 export function ProviderWorkspaceBackground({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn(providerWorkspaceBackground, className)}>{children}</div>;
+  return <div className={cn(providerWorkspaceBackground, "ology-provider-workspace-surface", className)}>{children}</div>;
 }
 
 interface ProviderWorkspaceShellProps {
@@ -175,8 +176,8 @@ interface ProviderWorkspacePageHeaderProps {
 
 export function ProviderWorkspacePageHeader({ eyebrow, title, description, actions }: ProviderWorkspacePageHeaderProps) {
   return (
-    <section className="relative overflow-hidden rounded-[26px] bg-[#123f63] px-5 py-5 text-white shadow-[0_24px_70px_-38px_rgba(18,63,99,0.8)] sm:px-7 sm:py-6">
-      <div className="absolute -right-12 -top-20 h-48 w-48 rounded-full bg-cyan-300/10 blur-2xl" />
+    <section className="ology-provider-workspace-heading relative overflow-hidden rounded-[26px] bg-[#123f63] px-5 py-5 text-white shadow-[0_24px_70px_-38px_rgba(18,63,99,0.8)] sm:px-7 sm:py-6">
+      <div className="ology-provider-workspace-heading-glow absolute -right-12 -top-20 h-48 w-48 rounded-full bg-cyan-300/10 blur-2xl" />
       <div className="relative flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-200">{eyebrow}</p>

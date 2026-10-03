@@ -1,6 +1,6 @@
 @import "../styles/publicBrandTokens.css";
 
-/* Only the signed-in provider home opts in; customer/admin and other provider pages keep bg-page. */
+/* Overview-only accents complement ProviderWorkspaceTheme; customer and admin surfaces remain unchanged. */
 .ology-provider-overview-surface {
   background: var(--ology-brand-paper);
   color: var(--ology-brand-ink);

@@ -1,0 +1,28 @@
+@import "../styles/publicBrandTokens.css";
+
+/* The read-only Analytics report predates ProviderWorkspaceShell. Keep its routing/data intact. */
+.ology-provider-analytics-page {
+  background: var(--ology-brand-paper);
+  color: var(--ology-brand-ink);
+  font-family: var(--ology-brand-body);
+}
+.ology-provider-analytics-page > div.bg-white.border-b {
+  border-color: var(--ology-brand-line);
+  background: var(--ology-brand-surface);
+}
+.ology-provider-analytics-page > div.bg-white.border-b h1 {
+  color: var(--ology-brand-deep);
+  font-family: var(--ology-brand-display);
+}
+.ology-provider-analytics-page [data-slot="card"].bg-card {
+  border-color: var(--ology-brand-line);
+  background: var(--ology-brand-surface);
+  box-shadow: 0 16px 42px -36px rgb(18 51 50 / 48%);
+}
+.ology-provider-analytics-page :is(a, button):focus-visible {
+  outline: 3px solid var(--ology-brand-coral-hover);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ology-provider-analytics-page :is(a, button) { transition-duration: 0.01ms !important; }
+}

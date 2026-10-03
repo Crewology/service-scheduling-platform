@@ -128,7 +128,7 @@ export default function ProviderCustomers() {
         actions={<CustomersWelcomePopover providerId={access.data.providerId} hasPrivateTools={access.data.providerWritesEnabled} draftSendingEnabled={access.data.draftSendingEnabled} />}
       />
 
-          <section className="mt-5 rounded-2xl border border-blue-100 bg-white/90 px-4 py-3 text-sm leading-6 text-slate-700 shadow-sm">
+          <section className="ology-provider-workspace-info mt-5 rounded-2xl border border-blue-100 bg-white/90 px-4 py-3 text-sm leading-6 text-slate-700 shadow-sm">
             <LockKeyhole className="mr-2 inline h-4 w-4 text-[#174a73]" />
             {access.data.draftSendingEnabled ? "Notes and follow-ups stay private. In-app messages send only from a reviewed draft after confirmation and current customer permission. Nothing runs automatically or changes a booking." : "Notes, follow-ups, and drafts stay private. Nothing sends automatically or changes a booking."}
           </section>
@@ -183,7 +183,7 @@ function EmptyState() {
 
 function FollowUpsPanel({ tasks, readOnlyReason }: { tasks: CustomerFollowUpTask[]; readOnlyReason: string | null }) {
   const groups = groupTasks(tasks);
-  return <section className="mt-5 space-y-5"><div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-950"><strong>Manual and private.</strong> Follow-ups are reminders you manage yourself. They do not send a message, change a booking, or run automatically.</div>{tasks.length === 0 ? <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center"><Clock3 className="mx-auto h-9 w-9 text-slate-400" /><h2 className="mt-4 text-lg font-bold text-slate-900">No follow-ups yet</h2><p className="mt-2 text-sm text-slate-500">Open a customer relationship to create a private reminder for your next action.</p>{readOnlyReason ? <p className="mt-3 text-sm text-slate-500">{readOnlyReason}</p> : null}</div> : groups.map(({ key, ...group }) => <TaskGroup key={key} {...group} />)}</section>;
+  return <section className="mt-5 space-y-5"><div className="ology-provider-workspace-info rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-950"><strong>Manual and private.</strong> Follow-ups are reminders you manage yourself. They do not send a message, change a booking, or run automatically.</div>{tasks.length === 0 ? <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center"><Clock3 className="mx-auto h-9 w-9 text-slate-400" /><h2 className="mt-4 text-lg font-bold text-slate-900">No follow-ups yet</h2><p className="mt-2 text-sm text-slate-500">Open a customer relationship to create a private reminder for your next action.</p>{readOnlyReason ? <p className="mt-3 text-sm text-slate-500">{readOnlyReason}</p> : null}</div> : groups.map(({ key, ...group }) => <TaskGroup key={key} {...group} />)}</section>;
 }
 
 function groupTasks(tasks: CustomerFollowUpTask[]) {

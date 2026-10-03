@@ -9,10 +9,12 @@ const shell = source("client/src/components/provider/ProviderWorkspaceShell.tsx"
 const home = source("client/src/pages/LoggedInHome.tsx");
 
 describe("provider home people-first visual pilot", () => {
-  it("opts in only the provider Overview, leaving customer home and other provider pages on their existing workspace background", () => {
+  it("keeps the large Overview accents unique while provider pages share a palette and customer home remains independent", () => {
     expect(home).toContain("<ProviderWorkspaceOverview />");
     expect(home).toContain("<CustomerWorkspaceHome />");
     expect(shell).toContain('"min-h-[calc(100vh-4rem)] bg-page"');
+    expect(shell).toContain('"ology-provider-workspace-surface"');
+    expect(shell).toContain('import "./ProviderWorkspaceTheme.css"');
     expect(shell).toContain('active === "overview" ? "ology-provider-overview-surface" : undefined');
     expect(overview).toContain('contentClassName="ology-provider-overview-content"');
     expect(overview).toContain('import "./ProviderWorkspaceOverview.css"');
@@ -38,7 +40,7 @@ describe("provider home people-first visual pilot", () => {
     expect(overview).toContain('trpc.providerOverview.get.useQuery');
   });
 
-  it("uses visible focus and reduced motion without recoloring other workspace pages or success feedback", () => {
+  it("uses visible focus and reduced motion without recoloring customer/admin surfaces or success feedback", () => {
     expect(css).toContain('a[aria-current="page"]');
     expect(css).toContain('nav[aria-label="Provider mobile navigation"] a[aria-current="page"]');
     expect(css).toContain('button[aria-pressed="true"]');

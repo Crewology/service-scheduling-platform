@@ -1,0 +1,127 @@
+@import "../../styles/publicBrandTokens.css";
+
+/* Every ProviderWorkspaceShell uses this surface; the global bg-page token is unchanged. */
+.ology-provider-workspace-surface {
+  background: var(--ology-brand-paper);
+  color: var(--ology-brand-ink);
+  font-family: var(--ology-brand-body);
+}
+
+.ology-provider-workspace-surface [data-provider-workspace] aside > div {
+  border-color: var(--ology-brand-line);
+  background: var(--ology-brand-surface);
+  box-shadow: 0 18px 42px -34px rgb(18 51 50 / 38%);
+}
+.ology-provider-workspace-surface [data-provider-workspace] aside p:first-child {
+  color: var(--ology-brand-muted);
+}
+.ology-provider-workspace-surface [data-provider-workspace] aside a[aria-current="page"],
+.ology-provider-workspace-surface nav[aria-label="Provider mobile navigation"] a[aria-current="page"] {
+  background: #e6edd8;
+  color: var(--ology-brand-deep);
+  font-weight: 700;
+}
+.ology-provider-workspace-surface [data-provider-workspace] aside a:not([aria-current="page"]):hover,
+.ology-provider-workspace-surface nav[aria-label="Provider mobile navigation"] a:not([aria-current="page"]):hover {
+  background: #f0f3e9;
+  color: var(--ology-brand-deep);
+}
+.ology-provider-workspace-surface nav[aria-label="Provider mobile navigation"] {
+  border-color: var(--ology-brand-line);
+  background: rgb(255 253 247 / 96%);
+  box-shadow: 0 12px 36px rgb(18 51 50 / 15%);
+}
+.ology-provider-workspace-surface [role="group"][aria-label="Choose provider or customer view"] button[aria-pressed="true"] {
+  background: var(--ology-brand-deep);
+  color: #fff;
+}
+
+.ology-provider-workspace-heading {
+  isolation: isolate;
+  background: radial-gradient(circle at 96% 8%, rgb(197 215 93 / 13%), transparent 35%),
+    linear-gradient(125deg, #123332 6%, #1b4842 92%);
+  box-shadow: 0 22px 48px -35px rgb(18 51 50 / 65%);
+}
+.ology-provider-workspace-heading::after {
+  content: "";
+  position: absolute;
+  right: -7rem;
+  bottom: -11rem;
+  width: 24rem;
+  height: 24rem;
+  border: 1px solid rgb(197 215 93 / 20%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.ology-provider-workspace-heading-glow {
+  background: radial-gradient(circle, rgb(197 215 93 / 19%), transparent 70%);
+  pointer-events: none;
+}
+.ology-provider-workspace-heading h1 { font-family: var(--ology-brand-display); }
+.ology-provider-workspace-heading p:first-child { color: #dce89b; }
+.ology-provider-workspace-heading h1 + p { color: #e1e9df; }
+.ology-provider-workspace-heading [data-slot="button"] {
+  border: 1px solid var(--ology-brand-leaf);
+  background: var(--ology-brand-leaf);
+  color: var(--ology-brand-deep);
+}
+.ology-provider-workspace-heading [data-slot="button"]:hover {
+  background: #dce89b;
+  color: var(--ology-brand-deep);
+}
+.ology-provider-workspace-heading [data-slot="badge"] { color: #f4f6ed; }
+
+/* Restyle neutral workspace chrome only. Colored status, trust, warning and error surfaces are excluded. */
+.ology-provider-workspace-surface [data-provider-workspace] main [data-slot="card"].bg-card {
+  border-color: var(--ology-brand-line);
+  background: var(--ology-brand-surface);
+  box-shadow: 0 16px 42px -36px rgb(18 51 50 / 48%);
+}
+.ology-provider-workspace-surface [data-provider-workspace] main .ology-provider-workspace-info {
+  border-color: #cbdac7;
+  background: #eef2e7;
+  color: var(--ology-brand-ink);
+}
+.ology-provider-workspace-surface [data-provider-workspace] main .ology-provider-workspace-info svg {
+  color: var(--ology-brand-deep);
+}
+.ology-provider-workspace-surface [data-provider-workspace] main [data-slot="tabs-list"] {
+  border: 1px solid var(--ology-brand-line);
+  background: #e9ede3;
+}
+.ology-provider-workspace-surface [data-provider-workspace] main [data-slot="tabs-trigger"][data-state="active"] {
+  background: var(--ology-brand-surface);
+  color: var(--ology-brand-deep);
+}
+.ology-provider-workspace-surface [data-provider-workspace="customers"] main nav[aria-label="Customers sections"] a[aria-current="page"] {
+  background: #e6edd8;
+  color: var(--ology-brand-deep);
+}
+.ology-provider-workspace-surface [data-provider-workspace] main :is(button, a)[data-slot="button"].bg-primary,
+.ology-provider-workspace-surface [data-provider-workspace] main :is(button, a)[data-slot="button"][class*="bg-[#174a73]"],
+.ology-provider-workspace-surface [data-provider-workspace] main :is(button, a)[data-slot="button"].bg-blue-600 {
+  background: var(--ology-brand-deep);
+  color: #fff;
+}
+.ology-provider-workspace-surface [data-provider-workspace] main :is(button, a)[data-slot="button"].bg-primary:hover,
+.ology-provider-workspace-surface [data-provider-workspace] main :is(button, a)[data-slot="button"][class*="bg-[#174a73]"]:hover,
+.ology-provider-workspace-surface [data-provider-workspace] main :is(button, a)[data-slot="button"].bg-blue-600:hover {
+  background: #1b4842;
+  color: #fff;
+}
+
+.ology-provider-workspace-surface [data-provider-workspace] :is(a, button, input, select, textarea, [role="tab"]):focus-visible {
+  outline: 3px solid var(--ology-brand-coral-hover);
+  outline-offset: 3px;
+}
+.ology-provider-workspace-heading :is(a, button):focus-visible { outline-color: var(--ology-brand-leaf); }
+
+@media (max-width: 640px) {
+  .ology-provider-workspace-heading { border-radius: 20px; }
+  .ology-provider-workspace-heading::after { right: -12rem; bottom: -12rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ology-provider-workspace-surface [data-provider-workspace] :is(a, button, input, select, textarea, [role="tab"]) {
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { formatCurrency } from "@/lib/dateUtils";
 import { formatPrice } from "@shared/formatPrice";
+import "./ProviderAnalyticsPage.css";
 
 export default function ProviderAnalyticsPage() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -32,12 +33,12 @@ export default function ProviderAnalyticsPage() {
 
   if (loading || providerLoading) {
     return (
-      <div className="min-h-screen bg-page">
+      <div className="min-h-screen bg-page ology-provider-analytics-page">
         <NavHeader />
         <PageHeader
           title="Business Analytics"
           subtitle="Track your performance, revenue trends, and customer insights"
-          breadcrumbs={[{ label: "Home", href: "/" }, { label: "Analytics" }]}
+          breadcrumbs={[{ label: "Analytics" }]}
         />
         <div className="container py-8">
           <div className="flex items-center justify-center py-16">
@@ -50,12 +51,12 @@ export default function ProviderAnalyticsPage() {
 
   if (!isAuthenticated || !provider) {
     return (
-      <div className="min-h-screen bg-page">
+      <div className="min-h-screen bg-page ology-provider-analytics-page">
         <NavHeader />
         <PageHeader
           title="Business Analytics"
           subtitle="Track your performance, revenue trends, and customer insights"
-          breadcrumbs={[{ label: "Home", href: "/" }, { label: "Analytics" }]}
+          breadcrumbs={[{ label: "Analytics" }]}
         />
         <div className="container py-8 text-center">
           <p className="text-muted-foreground">Please sign in as a provider to view analytics.</p>
@@ -65,13 +66,13 @@ export default function ProviderAnalyticsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-page">
+    <div className="min-h-screen bg-page ology-provider-analytics-page">
       <NavHeader />
       <div className="container px-4 pt-4"><TrialStatusBanner /></div>
       <PageHeader
         title="Business Analytics"
         subtitle="Track your performance, revenue trends, and customer insights"
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Analytics" }]}
+        breadcrumbs={[{ label: "Analytics" }]}
       />
       <div className="container py-8 space-y-6">
         {analyticsLoading ? (
@@ -177,8 +178,8 @@ export default function ProviderAnalyticsPage() {
                       }))}>
                         <defs>
                           <linearGradient id="revenueGradientStandalone" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                            <stop offset="5%" stopColor="#1b4842" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="#1b4842" stopOpacity={0} />
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
@@ -188,7 +189,7 @@ export default function ProviderAnalyticsPage() {
                           contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }}
                           formatter={(value: number) => [`${formatPrice(value)}`, "Revenue"]}
                         />
-                        <Area type="monotone" dataKey="revenue" stroke="#6366f1" fill="url(#revenueGradientStandalone)" strokeWidth={2} />
+                        <Area type="monotone" dataKey="revenue" stroke="#1b4842" fill="url(#revenueGradientStandalone)" strokeWidth={2} />
                       </AreaChart>
                     </ResponsiveContainer>
                   </div>

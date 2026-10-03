@@ -242,7 +242,7 @@ export default function ProviderCustomerDetail() {
             />
           </div>
 
-          <section className="mt-5 rounded-2xl border border-blue-100 bg-white/90 px-4 py-3 text-sm leading-6 text-slate-700 shadow-sm"><LockKeyhole className="mr-2 inline h-4 w-4 text-[#174a73]" />Notes, reminders, and drafts stay private until you deliberately confirm an eligible in-app message. Nothing changes a booking.</section>
+          <section className="ology-provider-workspace-info mt-5 rounded-2xl border border-blue-100 bg-white/90 px-4 py-3 text-sm leading-6 text-slate-700 shadow-sm"><LockKeyhole className="mr-2 inline h-4 w-4 text-[#174a73]" />Notes, reminders, and drafts stay private until you deliberately confirm an eligible in-app message. Nothing changes a booking.</section>
 
           {access.data.readOnly ? <section className="mt-5 flex flex-col gap-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-amber-950 sm:flex-row sm:items-center sm:justify-between"><div className="flex min-w-0 items-start gap-3"><LockKeyhole className="mt-0.5 h-5 w-5 shrink-0" /><div><h2 className="font-semibold">Private tools are paused on your current plan</h2><p className="mt-1 text-sm leading-6 text-amber-900">{access.data.readOnlyReason}</p></div></div><Button asChild variant="outline" className="shrink-0 border-amber-300 bg-white text-amber-950 hover:bg-amber-100"><Link href="/provider/subscription">Review plans</Link></Button></section> : null}
 
