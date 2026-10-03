@@ -82,7 +82,7 @@ export function ProviderWorkspaceShell({
   ];
 
   return (
-    <ProviderWorkspaceBackground>
+    <ProviderWorkspaceBackground className={active === "overview" ? "ology-provider-overview-surface" : undefined}>
       <div className="container max-w-7xl py-5 pb-28 sm:py-8 lg:pb-10" data-provider-workspace={active}>
         <MobileRoleViewToggle active="provider" />
         <div className="grid gap-6 lg:grid-cols-[232px_minmax(0,1fr)]">

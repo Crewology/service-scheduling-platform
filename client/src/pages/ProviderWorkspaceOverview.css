@@ -1,0 +1,187 @@
+@import "../styles/publicBrandTokens.css";
+
+/* Only the signed-in provider home opts in; customer/admin and other provider pages keep bg-page. */
+.ology-provider-overview-surface {
+  background: var(--ology-brand-paper);
+  color: var(--ology-brand-ink);
+  font-family: var(--ology-brand-body);
+}
+
+.ology-provider-overview-surface [data-provider-workspace="overview"] aside > div {
+  border-color: var(--ology-brand-line);
+  background: var(--ology-brand-surface);
+  box-shadow: 0 18px 42px -34px rgb(18 51 50 / 38%);
+}
+
+.ology-provider-overview-surface [data-provider-workspace="overview"] aside p:first-child {
+  color: var(--ology-brand-muted);
+}
+
+.ology-provider-overview-surface [data-provider-workspace="overview"] aside nav a[aria-current="page"],
+.ology-provider-overview-surface [data-provider-workspace="overview"] aside a[aria-current="page"] {
+  background: #e6edd8;
+  color: var(--ology-brand-deep);
+  font-weight: 700;
+}
+
+.ology-provider-overview-surface [data-provider-workspace="overview"] aside a:not([aria-current="page"]):hover {
+  background: #f0f3e9;
+  color: var(--ology-brand-deep);
+}
+
+.ology-provider-overview-surface nav[aria-label="Provider mobile navigation"] {
+  border-color: var(--ology-brand-line);
+  background: rgb(255 253 247 / 96%);
+  box-shadow: 0 12px 36px rgb(18 51 50 / 15%);
+}
+
+.ology-provider-overview-surface nav[aria-label="Provider mobile navigation"] a[aria-current="page"] {
+  background: #e6edd8;
+  color: var(--ology-brand-deep);
+}
+
+.ology-provider-overview-surface [role="group"][aria-label="Choose provider or customer view"] button[aria-pressed="true"] {
+  background: var(--ology-brand-deep);
+  color: #fff;
+}
+
+.ology-provider-overview-content { min-width: 0; }
+
+.ology-provider-hero {
+  isolation: isolate;
+  background: radial-gradient(circle at 93% 8%, rgb(197 215 93 / 12%), transparent 36%),
+    linear-gradient(125deg, #123332 6%, #1b4842 92%);
+  box-shadow: 0 22px 48px -35px rgb(18 51 50 / 65%);
+}
+
+.ology-provider-hero::after {
+  content: "";
+  position: absolute;
+  right: -7rem;
+  bottom: -11rem;
+  width: 24rem;
+  height: 24rem;
+  border: 1px solid rgb(197 215 93 / 20%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.ology-provider-hero-ornament {
+  background: radial-gradient(circle, rgb(197 215 93 / 19%), transparent 70%);
+  pointer-events: none;
+}
+
+.ology-provider-hero h1 { font-family: var(--ology-brand-display); }
+.ology-provider-hero-copy { color: #e1e9df; line-height: 1.55; }
+.ology-provider-hero-status {
+  border: 1px solid rgb(255 255 255 / 26%);
+  background: rgb(255 255 255 / 10%);
+  color: #f4f6ed;
+}
+
+.ology-provider-hero .ology-provider-hero-secondary {
+  border: 1px solid rgb(255 255 255 / 48%);
+  background: transparent;
+  color: #fff;
+}
+.ology-provider-hero .ology-provider-hero-secondary:hover { background: rgb(255 255 255 / 14%); color: #fff; }
+.ology-provider-hero .ology-provider-hero-primary {
+  border: 1px solid var(--ology-brand-leaf);
+  background: var(--ology-brand-leaf);
+  color: var(--ology-brand-deep);
+}
+.ology-provider-hero .ology-provider-hero-primary:hover {
+  border-color: #dce89b;
+  background: #dce89b;
+  color: var(--ology-brand-deep);
+}
+
+.ology-provider-overview-content .ology-provider-kicker {
+  color: var(--ology-brand-muted);
+  font-family: var(--ology-brand-body);
+}
+.ology-provider-overview-content .ology-provider-kicker-alert { color: #a43d29; }
+.ology-provider-overview-content .ology-provider-section-title,
+.ology-provider-overview-content .ology-provider-panel h2 { color: var(--ology-brand-deep); font-family: var(--ology-brand-display); }
+
+.ology-provider-overview-content .ology-provider-panel {
+  border-color: var(--ology-brand-line);
+  background: var(--ology-brand-surface);
+  box-shadow: 0 16px 42px -36px rgb(18 51 50 / 48%);
+}
+.ology-provider-overview-content .ology-provider-count {
+  border-color: var(--ology-brand-line);
+  background: var(--ology-brand-surface);
+  color: var(--ology-brand-muted);
+}
+
+.ology-provider-overview-content .ology-provider-attention-item {
+  box-shadow: 0 6px 22px -20px rgb(18 51 50 / 36%);
+}
+.ology-provider-overview-content .ology-provider-attention-item[data-tone="operational"] {
+  border-color: var(--ology-brand-line);
+  background: var(--ology-brand-surface);
+}
+.ology-provider-overview-content .ology-provider-attention-action,
+.ology-provider-overview-content .ology-provider-text-link { color: var(--ology-brand-deep); }
+.ology-provider-overview-content .ology-provider-attention-item:hover,
+.ology-provider-overview-content .ology-provider-action:hover { border-color: #9fb39d; }
+.ology-provider-overview-content .ology-provider-caughtup {
+  border-color: #b9d6c3;
+  background: #e9f4e9;
+}
+
+.ology-provider-overview-content .ology-provider-action {
+  border-color: var(--ology-brand-line);
+  background: #f7f8f1;
+}
+.ology-provider-overview-content .ology-provider-action-icon:not(.bg-emerald-100),
+.ology-provider-overview-content .ology-provider-action .bg-blue-50 {
+  background: #e6edd8;
+  color: var(--ology-brand-deep);
+}
+.ology-provider-overview-content .ology-provider-panel[aria-labelledby="today-heading"] .border-dashed { border-color: var(--ology-brand-line); background: #f7f8f1; }
+.ology-provider-overview-content [data-testid="provider-pulse-stat"] {
+  background: #eef2e7;
+  border: 1px solid #e0e8d9;
+}
+.ology-provider-overview-content [data-testid="provider-pulse-stat"] p,
+.ology-provider-overview-content [data-testid="provider-pulse-stat"] div { color: var(--ology-brand-ink); }
+.ology-provider-overview-content [data-testid="provider-pulse-stat"] div,
+.ology-provider-overview-content [data-testid="provider-pulse-stat"] p:last-child { color: var(--ology-brand-muted); }
+
+/* The setup widget is mounted only on this page; keep its state machine and destinations intact. */
+.ology-provider-overview-content [data-provider-setup-checklist] {
+  border-color: var(--ology-brand-line);
+  background: var(--ology-brand-surface);
+}
+.ology-provider-overview-content [data-provider-setup-checklist] svg circle:nth-of-type(2) { color: var(--ology-brand-coral); }
+.ology-provider-overview-content [data-provider-setup-checklist] [role="progressbar"] > div { background: var(--ology-brand-coral); }
+.ology-provider-overview-content [data-provider-setup-checklist] > button:first-of-type {
+  border-color: #c5d4bb;
+  background: #f0f4e7;
+}
+.ology-provider-overview-content [data-provider-setup-checklist] > button:first-of-type:hover { background: #e8eedb; }
+.ology-provider-overview-content [data-provider-setup-checklist] > button:first-of-type > span:last-of-type {
+  background: var(--ology-brand-deep);
+  color: #fff;
+}
+
+.ology-provider-overview-surface [data-provider-workspace="overview"] :is(a, button):focus-visible {
+  outline: 3px solid var(--ology-brand-coral-hover);
+  outline-offset: 3px;
+}
+.ology-provider-hero :is(a, button):focus-visible { outline-color: var(--ology-brand-leaf); }
+
+@media (max-width: 640px) {
+  .ology-provider-hero { border-radius: 20px; }
+  .ology-provider-hero::after { right: -12rem; bottom: -12rem; }
+  .ology-provider-overview-content .ology-provider-panel { border-radius: 22px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ology-provider-overview-surface [data-provider-workspace="overview"] :is(a, button),
+  .ology-provider-overview-content [data-provider-setup-checklist] * { transition-duration: 0.01ms !important; }
+  .ology-provider-overview-content .ology-provider-attention-item:hover,
+  .ology-provider-overview-content .ology-provider-action:hover { transform: none; }
+}

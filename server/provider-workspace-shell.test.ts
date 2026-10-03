@@ -47,10 +47,10 @@ describe("shared Provider Workspace visual system", () => {
     expect(dashboardSource).toContain("<ProviderWorkspacePageHeader");
   });
 
-  it("owns the full-page background once so all workspace pages share the same treatment", () => {
+  it("keeps the shared bg-page surface and opts only Overview into its local brand treatment", () => {
     expect(shellSource).toContain("const providerWorkspaceBackground");
     expect(shellSource).toContain('"min-h-[calc(100vh-4rem)] bg-page"');
-    expect(shellSource).toContain("<ProviderWorkspaceBackground>");
+    expect(shellSource).toContain('<ProviderWorkspaceBackground className={active === "overview" ? "ology-provider-overview-surface" : undefined}>');
     expect(calendarSource).toContain("<ProviderWorkspaceBackground>");
     expect(customersSource).toContain("<ProviderWorkspaceBackground>");
     expect(customerDetailSource).toContain("<ProviderWorkspaceBackground>");

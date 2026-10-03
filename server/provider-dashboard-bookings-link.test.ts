@@ -23,7 +23,7 @@ describe("Provider Dashboard Bookings navigation", () => {
 
   it("uses Bookings instead of Share page in the Provider Overview header at every breakpoint", () => {
     const overviewHeader = providerWorkspace.slice(
-      providerWorkspace.indexOf('<section className="relative overflow-hidden'),
+      providerWorkspace.indexOf('<section className="ology-provider-hero'),
       providerWorkspace.indexOf("<ProviderSetupChecklist"),
     );
 
