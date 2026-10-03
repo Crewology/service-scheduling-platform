@@ -97,6 +97,7 @@ import ReferralProgram from "./pages/ReferralProgram";
 import FeaturedProfessionals from "./pages/FeaturedProfessionals";
 import PromotionDetail from "./pages/PromotionDetail";
 import ProviderBenefits from "./pages/ProviderBenefits";
+import PlatformProducts from "./pages/PlatformProducts";
 
 // Admin
 import AdminDashboard from "./pages/AdminDashboard";
@@ -160,6 +161,7 @@ function Router() {
       <Route path="/preview/public-home-live" component={PublicHomepageLiveReview} />
       <Route path="/" component={Home} />
       <Route path="/for-providers" component={ProviderBenefits} />
+      <Route path="/platform" component={PlatformProducts} />
       <Route path="/browse" component={Browse} />
       <Route path="/experiences" component={Experiences} />
       <Route path="/featured" component={FeaturedProfessionals} />
@@ -250,6 +252,7 @@ function AppContent() {
   const isDemoProfile = location === "/demo-ologycrew" || location === "/p/demo-ologycrew";
   const isPricingPage = location === "/pricing";
   const isHelpPage = location === "/help";
+  const isPlatformPage = location === "/platform";
   const hideFooter = location.startsWith("/embed") || location.startsWith("/admin") || isPrototype;
 
   // Scroll to top on route change
@@ -279,8 +282,8 @@ function AppContent() {
         <TermsUpdateBanner />
         <Router />
       </RoleGuard>
-      {!hideFooter && <Footer compactPublicHome={location === "/" || location === "/for-providers"} />}
-      {!isPrototype && !isDemoProfile && !isPricingPage && !isHelpPage && <PWAInstallBanner />}
+      {!hideFooter && <Footer compactPublicHome={location === "/" || location === "/for-providers" || isPlatformPage} />}
+      {!isPrototype && !isDemoProfile && !isPricingPage && !isHelpPage && !isPlatformPage && <PWAInstallBanner />}
       {!location.startsWith("/embed") && !isPrototype && <HelpChatWidget />}
     </>
   );

@@ -62,7 +62,7 @@ describe("Concept 3 public homepage with actual OlogyCrew data", () => {
     expect(app).toContain('path="/preview/public-home-live" component={PublicHomepageLiveReview}');
     expect(live).toContain("<NavHeader forcePublic={forcePublicHeader} />");
     expect(preview).toContain("<NavHeader forcePublic />");
-    expect(app).toContain('<Footer compactPublicHome={location === "/" || location === "/for-providers"} />');
+    expect(app).toContain('<Footer compactPublicHome={location === "/" || location === "/for-providers" || isPlatformPage} />');
     expect(footer).toContain("compactPublicHome && !isAuthenticated");
     render(createElement(PublicHomepageConceptThree));
     expect(screen.getByTestId("shared-header")).toBeVisible();

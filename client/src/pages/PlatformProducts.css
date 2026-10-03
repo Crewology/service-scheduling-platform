@@ -1,0 +1,241 @@
+@import "../styles/publicBrandTokens.css";
+
+.ology-platform {
+  min-height: 100vh;
+  overflow-x: clip;
+  color: var(--ology-brand-ink);
+  background: var(--ology-brand-paper);
+  font-family: var(--ology-brand-body);
+}
+.ology-platform *, .ology-platform *::before, .ology-platform *::after { box-sizing: border-box; }
+.ology-platform-wrap {
+  width: min(calc(100% - 64px), var(--ology-brand-content));
+  margin-inline: auto;
+}
+.ology-platform-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 0.96fr) minmax(0, 1.04fr);
+  width: min(calc(100% - 64px), var(--ology-brand-content));
+  min-height: 580px;
+  margin: 30px auto 0;
+  overflow: hidden;
+  border-radius: 10px 10px 0 0;
+  background: var(--ology-brand-deep);
+  color: #fffdf7;
+}
+.ology-platform-hero-copy {
+  align-self: center;
+  padding: clamp(42px, 5vw, 88px) clamp(28px, 5.2vw, 88px);
+  position: relative;
+  isolation: isolate;
+}
+.ology-platform-hero-copy::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: 290px;
+  height: 290px;
+  right: -70px;
+  bottom: -120px;
+  border: 1px solid rgba(197,215,93,.22);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.ology-platform-kicker, .ology-platform-eyebrow, .ology-platform-audience {
+  margin: 0;
+  font-size: .76rem;
+  font-weight: 750;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.ology-platform-kicker { color: var(--ology-brand-leaf); }
+.ology-platform-kicker span { padding: 0 .45rem; opacity: .8; }
+.ology-platform h1, .ology-platform h2, .ology-platform h3 { font-family: var(--ology-brand-display); letter-spacing: -.045em; }
+.ology-platform-hero h1 {
+  margin: 26px 0 20px;
+  max-width: 670px;
+  font-size: clamp(2.65rem, 4.5vw, 5.1rem);
+  font-weight: 760;
+  line-height: 1.055;
+}
+.ology-platform-hero h1 em { color: var(--ology-brand-leaf); font-family: var(--ology-brand-editorial); font-weight: 500; }
+.ology-platform-hero-lead {
+  max-width: 570px;
+  margin: 0;
+  color: #f3f5eb;
+  font-size: clamp(1rem, 1.2vw, 1.13rem);
+  line-height: 1.75;
+}
+.ology-platform-hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+.ology-platform-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 52px;
+  gap: 13px;
+  border-radius: 6px;
+  padding: 12px 20px;
+  text-decoration: none;
+  font-size: .91rem;
+  font-weight: 750;
+  transition: background-color .18s ease, color .18s ease, border-color .18s ease, transform .18s ease;
+}
+.ology-platform-button svg { width: 17px; height: 17px; flex: none; }
+.ology-platform-button-primary { background: var(--ology-brand-coral); color: white; }
+.ology-platform-button-primary:hover { background: var(--ology-brand-coral-hover); color: white; transform: translateY(-2px); }
+.ology-platform-button-outline { border: 1px solid #a2b3a3; color: #fffdf7; }
+.ology-platform-button-outline:hover { background: #fffdf7; border-color: #fffdf7; color: var(--ology-brand-deep); transform: translateY(-2px); }
+.ology-platform-hero-detail { margin: 19px 0 0; color: #d3e3d4; font-size: .85rem; line-height: 1.55; }
+.ology-platform-hero-media { position: relative; min-width: 0; min-height: 580px; margin: 0; background: #dbcbb5; }
+.ology-platform-hero-media img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 54% center; }
+.ology-platform-hero-media figcaption, .ology-platform-work-image figcaption {
+  position: absolute;
+  bottom: 18px;
+  left: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 9px 13px;
+  border-radius: 4px;
+  background: rgba(18, 51, 50, .94);
+  color: white;
+  font-size: .76rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+.ology-platform-hero-media figcaption span, .ology-platform-work-image figcaption span { color: #e0eab3; font-size: .72rem; font-weight: 550; }
+.ology-platform-section { padding-block: clamp(76px, 8vw, 132px); }
+.ology-platform-section-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1.22fr) minmax(0, .78fr);
+  align-items: end;
+  gap: clamp(28px, 6vw, 110px);
+  margin-bottom: 35px;
+}
+.ology-platform-eyebrow { color: var(--ology-brand-coral-hover); }
+.ology-platform-section-heading h2, .ology-platform-work-copy h2, .ology-platform-closing h2 {
+  margin: 12px 0 0;
+  max-width: 790px;
+  font-size: clamp(2.15rem, 3.6vw, 4rem);
+  line-height: 1.14;
+  font-weight: 750;
+}
+.ology-platform-section-heading > p {
+  max-width: 470px;
+  margin: 0;
+  color: var(--ology-brand-muted);
+  font-size: 1.04rem;
+  line-height: 1.75;
+}
+.ology-platform-product-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 16px; }
+.ology-platform-product {
+  grid-column: span 2;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 380px;
+  padding: clamp(25px, 3vw, 42px);
+  border: 1px solid var(--ology-brand-line);
+  border-radius: 9px;
+  background: var(--ology-brand-surface);
+}
+.ology-platform-product-discovery, .ology-platform-product-booking { grid-column: span 3; min-height: 425px; }
+.ology-platform-product-discovery { background: #e7ecdc; }
+.ology-platform-product-booking { background: #f6eae0; }
+.ology-platform-product-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.ology-platform-product-icon { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border: 1px solid #b3c5b2; border-radius: 50%; color: var(--ology-brand-deep); }
+.ology-platform-product-icon svg { width: 23px; height: 23px; }
+.ology-platform-number { color: var(--ology-brand-muted); font-size: .77rem; font-weight: 750; letter-spacing: .12em; }
+.ology-platform-audience { margin-top: 29px; color: var(--ology-brand-coral-hover); font-size: .68rem; }
+.ology-platform-product h3 { margin: 6px 0 12px; font-size: clamp(1.65rem, 2.2vw, 2.5rem); line-height: 1.18; }
+.ology-platform-product > p:not(.ology-platform-audience) { max-width: 555px; margin: 0; color: #344b43; font-size: .98rem; line-height: 1.68; }
+.ology-platform-product ul { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 22px; padding: 0; list-style: none; }
+.ology-platform-product li { padding: 6px 10px; border: 1px solid #c3cfbe; border-radius: 4px; color: #304840; font-size: .77rem; font-weight: 650; }
+.ology-platform-product-link { display: inline-flex; width: fit-content; align-items: center; gap: 10px; margin-top: auto; color: var(--ology-brand-deep); font-size: .93rem; font-weight: 780; text-decoration: underline; text-underline-offset: 5px; }
+.ology-platform-product-link:hover, .ology-platform-text-link:hover { color: var(--ology-brand-coral-hover); }
+.ology-platform-product-link svg { width: 17px; height: 17px; transition: transform .18s ease; }
+.ology-platform-product-link:hover svg { transform: translateX(4px); }
+.ology-platform-product-note { display: flex; align-items: flex-start; gap: 9px; max-width: 920px; margin: 20px 0 0; color: var(--ology-brand-muted); font-size: .86rem; line-height: 1.55; }
+.ology-platform-product-note svg { flex: none; width: 17px; height: 17px; margin-top: 2px; }
+.ology-platform-product-note a { color: var(--ology-brand-deep); text-decoration: underline; font-weight: 700; text-underline-offset: 3px; }
+.ology-platform-journey { padding-block: clamp(76px, 8vw, 115px); background: #e6ebe1; }
+.ology-platform-journey-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: 0; padding: 0; list-style: none; }
+.ology-platform-journey-grid li { min-width: 0; padding: 25px clamp(15px, 2.8vw, 42px) 0; border-top: 1px solid #9db0a2; }
+.ology-platform-journey-grid li:first-child { padding-left: 0; }
+.ology-platform-journey-grid li + li { border-left: 1px solid #b2c1b2; }
+.ology-platform-journey-grid li > span { color: var(--ology-brand-coral-hover); font-family: var(--ology-brand-editorial); font-size: 1.35rem; }
+.ology-platform-journey-grid h3 { margin: 24px 0 11px; font-size: 1.43rem; }
+.ology-platform-journey-grid p { max-width: 300px; margin: 0; color: #344b43; font-size: .91rem; line-height: 1.7; }
+.ology-platform-work { display: grid; grid-template-columns: minmax(0, 1.06fr) minmax(0, .94fr); align-items: center; gap: clamp(38px, 6vw, 110px); padding-block: clamp(80px, 9vw, 150px); }
+.ology-platform-work-image { position: relative; min-width: 0; margin: 0; overflow: hidden; border-radius: 8px; aspect-ratio: 4/3; background: #d5decf; }
+.ology-platform-work-image img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.ology-platform-work-copy h2 { max-width: 620px; margin-bottom: 20px; }
+.ology-platform-work-copy > p:not(.ology-platform-eyebrow) { max-width: 620px; margin: 0; color: var(--ology-brand-muted); font-size: 1.04rem; line-height: 1.78; }
+.ology-platform-work-details { display: grid; gap: 14px; margin: 29px 0; padding: 24px 0; border-block: 1px solid var(--ology-brand-line); }
+.ology-platform-work-details p { display: flex; align-items: flex-start; gap: 13px; margin: 0; font-weight: 720; line-height: 1.45; }
+.ology-platform-work-details svg { flex: none; width: 21px; height: 21px; color: var(--ology-brand-coral-hover); }
+.ology-platform-text-link { display: inline-flex; align-items: center; gap: 10px; color: var(--ology-brand-deep); font-weight: 780; text-decoration: underline; text-underline-offset: 5px; }
+.ology-platform-text-link svg { width: 17px; height: 17px; }
+.ology-platform-closing { padding-block: clamp(70px, 8vw, 120px); background: var(--ology-brand-deep); color: #fffdf7; }
+.ology-platform-closing .ology-platform-eyebrow { color: var(--ology-brand-leaf); }
+.ology-platform-closing h2 { max-width: 740px; margin-bottom: 28px; }
+.ology-platform-paths { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.ology-platform-path { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 7px 22px; min-height: 145px; padding: clamp(22px, 3vw, 34px); border: 1px solid #99aca1; border-radius: 6px; color: white; text-decoration: none; transition: background-color .18s ease, transform .18s ease; }
+.ology-platform-path:hover { color: white; background: #254b42; transform: translateY(-2px); }
+.ology-platform-path > span { font-family: var(--ology-brand-display); font-size: clamp(1.3rem, 2vw, 1.85rem); font-weight: 750; letter-spacing: -.04em; }
+.ology-platform-path small { grid-column: 1; color: #d8e8db; font-size: .9rem; line-height: 1.5; }
+.ology-platform-path svg { grid-column: 2; grid-row: 1 / span 2; width: 24px; height: 24px; color: var(--ology-brand-leaf); }
+.ology-platform a:focus-visible { outline: 3px solid var(--ology-brand-coral-hover); outline-offset: 4px; }
+.ology-platform-hero a:focus-visible, .ology-platform-closing a:focus-visible { outline-color: var(--ology-brand-leaf); }
+@media (max-width: 1050px) {
+  .ology-platform-hero { grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); min-height: 520px; }
+  .ology-platform-hero-media { min-height: 520px; }
+  .ology-platform-hero-copy { padding-inline: 38px; }
+  .ology-platform-product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ology-platform-product { grid-column: span 1; }
+  .ology-platform-product-money { grid-column: span 2; min-height: 290px; }
+}
+@media (max-width: 900px) {
+  .ology-platform-wrap, .ology-platform-hero { width: calc(100% - 44px); }
+  .ology-platform-hero { display: flex; flex-direction: column; }
+  .ology-platform-hero-copy { padding: 54px 38px 45px; }
+  .ology-platform-hero h1 { max-width: 660px; font-size: clamp(2.8rem, 8vw, 4.5rem); }
+  .ology-platform-hero-media { height: 380px; min-height: 0; }
+  .ology-platform-hero-media img { object-position: center 40%; }
+  .ology-platform-section-heading { grid-template-columns: 1fr; gap: 16px; }
+  .ology-platform-section-heading > p { max-width: 650px; }
+  .ology-platform-journey-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+  .ology-platform-journey-grid li, .ology-platform-journey-grid li:first-child { padding-left: 0; }
+  .ology-platform-journey-grid li + li { border-left: 0; }
+  .ology-platform-work { grid-template-columns: 1fr; gap: 38px; }
+  .ology-platform-work-image { max-height: 520px; }
+}
+@media (max-width: 540px) {
+  .ology-platform-wrap, .ology-platform-hero { width: calc(100% - 36px); }
+  .ology-platform-hero { margin-top: 12px; border-radius: 5px; }
+  .ology-platform-hero-copy { padding: 46px 23px 38px; }
+  .ology-platform-kicker { font-size: .67rem; }
+  .ology-platform-hero h1 { margin-top: 20px; font-size: clamp(2.45rem, 10.4vw, 3.55rem); }
+  .ology-platform-hero-lead { font-size: .95rem; }
+  .ology-platform-hero-actions { margin-top: 24px; }
+  .ology-platform-button { width: 100%; }
+  .ology-platform-hero-media { height: 280px; }
+  .ology-platform-hero-media img { object-position: 55% center; }
+  .ology-platform-hero-media figcaption, .ology-platform-work-image figcaption { bottom: 12px; left: 12px; font-size: .7rem; }
+  .ology-platform-section { padding-block: 72px; }
+  .ology-platform-section-heading h2, .ology-platform-work-copy h2, .ology-platform-closing h2 { font-size: clamp(2.05rem, 8.4vw, 2.8rem); }
+  .ology-platform-product-grid { grid-template-columns: 1fr; }
+  .ology-platform-product, .ology-platform-product-money { grid-column: auto; min-height: 0; padding: 28px 24px; }
+  .ology-platform-product h3 { font-size: 1.8rem; }
+  .ology-platform-product ul { margin-bottom: 28px; }
+  .ology-platform-journey-grid { grid-template-columns: 1fr; gap: 26px; }
+  .ology-platform-journey-grid h3 { margin-top: 14px; }
+  .ology-platform-work { padding-block: 75px; }
+  .ology-platform-work-image { aspect-ratio: 1.05; }
+  .ology-platform-paths { grid-template-columns: 1fr; }
+  .ology-platform-path { min-height: 125px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ology-platform a, .ology-platform svg { transition: none !important; transform: none !important; scroll-behavior: auto !important; }
+}

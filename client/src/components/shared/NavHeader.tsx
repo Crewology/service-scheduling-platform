@@ -829,6 +829,14 @@ export function NavHeader({ forcePublic = false }: { forcePublic?: boolean } = {
                         <span className="text-[11px] font-medium text-center leading-tight">Browse</span>
                       </div>
                     </Link>
+                    <Link href="/platform" onClick={() => setMobileMenuOpen(false)}>
+                      <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
+                        <div className="h-11 w-11 rounded-2xl bg-emerald-100 flex items-center justify-center">
+                          <Grid3X3 className="h-6 w-6 text-emerald-700" />
+                        </div>
+                        <span className="text-[11px] font-medium text-center leading-tight">Platform</span>
+                      </div>
+                    </Link>
                     <Link href="/pricing" onClick={() => setMobileMenuOpen(false)}>
                       <div className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl hover:bg-muted/50 active:bg-muted active:scale-95 transition-all">
                         <div className="h-11 w-11 rounded-2xl bg-emerald-100 flex items-center justify-center">

@@ -28,7 +28,7 @@ describe("public provider-benefits page", () => {
   it("is an independently routed marketing page with the existing header and people-first compact footer", () => {
     expect(app).toContain('path="/for-providers" component={ProviderBenefits}');
     expect(app.indexOf('path="/for-providers"')).toBeLessThan(app.indexOf('path="/:slug"'));
-    expect(app).toContain('<Footer compactPublicHome={location === "/" || location === "/for-providers"} />');
+    expect(app).toContain('<Footer compactPublicHome={location === "/" || location === "/for-providers" || isPlatformPage} />');
     expect(liveHome).toContain('href="/for-providers">Offer your services');
     expect(footer).toContain('href="/for-providers">For providers');
     expect(footer).toContain('href="/pricing">Provider plans');

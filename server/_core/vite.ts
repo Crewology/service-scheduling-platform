@@ -28,7 +28,7 @@ export async function injectOgTags(url: string, template: string, _requestOrigin
     const cleanSlugMatch = url.match(/^\/([a-z0-9][a-z0-9-]*[a-z0-9])(?:[/?#]|$)/);
     if (cleanSlugMatch) {
       // Only treat as provider slug if it's not a known app route
-      const knownRoutes = ['login','signup','forgot-password','reset-password','verify-email','select-role','browse','featured','search','category','provider','service','booking','bulk-booking','monthly-planner','my-bookings','messages','dm','admin','my-reviews','profile','account','notifications','notification-settings','unsubscribe','embed','receipts','referrals','saved-providers','my-quotes','my-waitlist','pricing','for-providers','customer','analytics','privacy','terms','help','referral-program','404','experiences'];
+      const knownRoutes = ['login','signup','forgot-password','reset-password','verify-email','select-role','browse','featured','search','category','provider','service','booking','bulk-booking','monthly-planner','my-bookings','messages','dm','admin','my-reviews','profile','account','notifications','notification-settings','unsubscribe','embed','receipts','referrals','saved-providers','my-quotes','my-waitlist','pricing','platform','for-providers','customer','analytics','privacy','terms','help','referral-program','404','experiences'];
       const slug = cleanSlugMatch[1];
       if (!knownRoutes.includes(slug) && !slug.startsWith('p/')) {
         ogTags = await getProviderOgTags(slug, origin);
@@ -78,6 +78,17 @@ export async function injectOgTags(url: string, template: string, _requestOrigin
         console.error("[OG Tags] Error generating embed provider OG tags:", e);
       }
     }
+  }
+
+  // Public overview of the customer and provider platform
+  if (!ogTags && pathname === "/platform") {
+    ogTags = getPublicPageOgTags(
+      "/platform",
+      "The OlogyCrew Platform — Services, Bookings & Business Tools",
+      "Explore service professionals, book or request a quote, and keep the work connected. Providers can manage their pages, schedules and customer relationships with tools available to their plan."
+    );
+    template = template.replace(/<title>[^<]*<\/title>/, "<title>The OlogyCrew Platform | Services, Bookings & Business Tools</title>");
+    template = template.replace(/<meta name="description" content="[^"]*"\s*\/>/, '<meta name="description" content="Discover how OlogyCrew connects service discovery, direct bookings or quotes, and provider business tools on one platform." />');
   }
 
   // Public Help & Resources library

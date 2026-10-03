@@ -77,7 +77,7 @@ describe("public pricing people-first design pilot", () => {
   it("keeps the install-app banner off pricing cards and the Help hero, but on other eligible pages", () => {
     expect(app).toContain('const isPricingPage = location === "/pricing"');
     expect(app).toContain('const isHelpPage = location === "/help"');
-    expect(app).toContain('!isPrototype && !isDemoProfile && !isPricingPage && !isHelpPage && <PWAInstallBanner />');
-    expect(app).toContain('<Footer compactPublicHome={location === "/" || location === "/for-providers"} />');
+    expect(app).toContain('!isPrototype && !isDemoProfile && !isPricingPage && !isHelpPage && !isPlatformPage && <PWAInstallBanner />');
+    expect(app).toContain('<Footer compactPublicHome={location === "/" || location === "/for-providers" || isPlatformPage} />');
   });
 });

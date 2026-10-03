@@ -470,6 +470,9 @@ export const providerRouter = router({
   updateSlug: protectedProcedure
     .input(z.object({ slug: z.string().min(3).max(100).regex(/^[a-z0-9-]+$/) }))
     .mutation(async ({ ctx, input }) => {
+      if (input.slug === "platform") {
+        throw new TRPCError({ code: "CONFLICT", message: "This URL is reserved for OlogyCrew" });
+      }
       const provider = await db.getProviderByUserId(ctx.user.id);
       if (!provider) throw new TRPCError({ code: "FORBIDDEN", message: "Must be a provider" });
       const tier = await db.getProviderTier(provider.id);

@@ -20,6 +20,7 @@ const sampleData: PublicSitemapData = {
     { slug: "gary & studios", updatedAt: "2026-09-01T02:00:00.000Z" },
     { slug: "admin", updatedAt: "2026-09-01T02:00:00.000Z" },
     { slug: "for-providers", updatedAt: "2026-09-01T02:00:00.000Z" },
+    { slug: "platform", updatedAt: "2026-09-01T02:00:00.000Z" },
     { slug: null },
   ],
   services: [
@@ -55,6 +56,7 @@ describe("dynamic public sitemap", () => {
     expect(xml).toContain(`<loc>${SITEMAP_CANONICAL_ORIGIN}/experiences</loc>`);
     expect(xml).toContain(`<loc>${SITEMAP_CANONICAL_ORIGIN}/featured</loc>`);
     expect(xml).toContain(`<loc>${SITEMAP_CANONICAL_ORIGIN}/for-providers</loc>`);
+    expect(xml.match(/<loc>https:\/\/ologycrew\.com\/platform<\/loc>/g)).toHaveLength(1);
     expect(xml).toContain(`<loc>${SITEMAP_CANONICAL_ORIGIN}/category/audio-visual-crew</loc>`);
     expect(xml).toContain(`<loc>${SITEMAP_CANONICAL_ORIGIN}/category/barber%20shop</loc>`);
     expect(xml).toContain(`<loc>${SITEMAP_CANONICAL_ORIGIN}/chisolm-audio</loc>`);

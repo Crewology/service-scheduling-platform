@@ -124,7 +124,7 @@ describe("Help Center public navigation", () => {
     expect(styles).toContain('.ology-help-hero::after');
     expect(styles).toContain('@media (max-width: 600px)');
     expect(shell).toContain('const isHelpPage = location === "/help"');
-    expect(shell).toContain('!isPricingPage && !isHelpPage && <PWAInstallBanner />');
+    expect(shell).toContain('!isPricingPage && !isHelpPage && !isPlatformPage && <PWAInstallBanner />');
   });
 
   it("frames the Help photo with the homepage hero's rounded corners and responsive gutters", () => {

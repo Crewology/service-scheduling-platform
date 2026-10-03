@@ -51,7 +51,7 @@ export function Footer({ forcePublic = false, compactPublicHome = false }: { for
             <FooterSocialShare />
           </div>
           <nav className="or-live-footer-links" aria-label="Public footer navigation">
-            <Link href="/browse">Explore services</Link><Link href="/for-providers">For providers</Link><Link href="/pricing">Provider plans</Link><Link href="/referral-program">Referral program</Link><Link href="/help">Help</Link><Link href="/terms">Terms</Link><Link href="/privacy">Privacy</Link>
+            <Link href="/browse">Explore services</Link><Link href="/platform">The platform</Link><Link href="/for-providers">For providers</Link><Link href="/pricing">Provider plans</Link><Link href="/referral-program">Referral program</Link><Link href="/help">Help</Link><Link href="/terms">Terms</Link><Link href="/privacy">Privacy</Link>
           </nav>
           <small className="or-live-footer-copyright">© {new Date().getFullYear()} OlogyCrew</small>
         </div>
@@ -165,6 +165,7 @@ export function Footer({ forcePublic = false, compactPublicHome = false }: { for
               <h4 className="font-semibold text-white">Explore</h4>
               <ul className="mt-3 space-y-1">
                 <li><Link href="/browse" className={footerLinkClass}>Explore Services</Link></li>
+                <li><Link href="/platform" className={footerLinkClass}>The Platform</Link></li>
                 <li><Link href="/pricing" className={footerLinkClass}>Pricing</Link></li>
               </ul>
             </nav>
