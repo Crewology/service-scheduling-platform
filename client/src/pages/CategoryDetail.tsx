@@ -1,19 +1,14 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { formatDuration } from "../../../shared/duration";
 import { getServiceTypeLabel } from "../../../shared/serviceTypeLabels";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
-import { MapPin, Star, Clock, DollarSign, ArrowLeft, User, SlidersHorizontal, X, Search, CalendarDays, Heart, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, Clock, MapPin, Search, SlidersHorizontal, Sparkles, Star, User, X } from "lucide-react";
 import { Link, useParams } from "wouter";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { OfficialBadge } from "@/components/OfficialBadge";
-import { useAuth } from "@/_core/hooks/useAuth";
-import { toast } from "sonner";
 import { SaveProviderButton } from "@/components/SaveProviderButton";
 import { CATEGORY_ICONS } from "@/lib/categoryIcons";
+import "./CategoryDetail.css";
 
 function formatCurrency(value: string | number | null | undefined): string {
   const num = typeof value === "string" ? parseFloat(value) : (value ?? 0);
@@ -32,15 +27,7 @@ function formatTime12(time: string): string {
 function ResponseTimeBadge({ providerId }: { providerId: number }) {
   const { data } = trpc.provider.getResponseTime.useQuery({ providerId });
   if (!data || data.avgMinutes === null) return null;
-  return (
-    <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-blue-50 border-blue-200 text-blue-700">
-      Responds in ~{data.label}
-    </Badge>
-  );
-}
-
-function FavoriteButton({ providerId }: { providerId: number }) {
-  return <SaveProviderButton providerId={providerId} />;
+  return <span className="ology-category-response">Responds in ~{data.label}</span>;
 }
 
 function AvailabilityQuickView({ providerId }: { providerId: number }) {
@@ -48,48 +35,83 @@ function AvailabilityQuickView({ providerId }: { providerId: number }) {
   if (!data || !data.hasAvailability) return null;
 
   return (
-    <div className="mt-3 pt-3 border-t overflow-hidden">
-      <p className="text-xs font-medium text-muted-foreground flex items-center gap-1 mb-2">
-        <CalendarDays className="w-3.5 h-3.5 shrink-0" /> Next Available
-      </p>
-      <div className="flex flex-wrap gap-1.5">
+    <div className="ology-category-availability">
+      <span className="ology-category-availability-label"><CalendarDays size={16} aria-hidden="true" /> Next available</span>
+      <div className="ology-category-slots">
         {data.slots.map((slot, i) => (
-          <Badge key={i} variant="outline" className="text-[11px] px-2 py-0.5 bg-green-50 border-green-200 text-green-700">
+          <span className="ology-category-slot" key={`${slot.dayName}-${slot.startTime}-${i}`}>
             {slot.dayName.slice(0, 3)} {formatTime12(slot.startTime)}
-          </Badge>
+          </span>
         ))}
       </div>
     </div>
   );
 }
 
+function ServicePrice({ service, isOfficial }: { service: any; isOfficial?: boolean }) {
+  if (isOfficial) return <span className="ology-category-price">FREE DEMO</span>;
+  if (service.pricingModel === "custom_quote") return <span className="ology-category-price">Request quote</span>;
+  if (service.pricingModel === "consultation") return <span className="ology-category-price">Free consultation</span>;
+  if (service.pricingModel === "hourly" && service.hourlyRate) {
+    return <span className="ology-category-price">{formatCurrency(service.hourlyRate)}/hr</span>;
+  }
+  if ((service.pricingModel === "fixed" || service.pricingModel === "package") && service.basePrice) {
+    return <span className="ology-category-price">{formatCurrency(service.basePrice)}</span>;
+  }
+  return null;
+}
+
+function ServiceTile({ service, isOfficial = false }: { service: any; isOfficial?: boolean }) {
+  return (
+    <Link href={`/service/${service.id}`} className="ology-category-service">
+      <span className="ology-category-service-top">
+        <span className="ology-category-service-name">{service.name}</span>
+        <ServicePrice service={service} isOfficial={isOfficial} />
+      </span>
+      {service.description && <span className="ology-category-service-description">{service.description}</span>}
+      <span className="ology-category-service-details">
+        <span className="ology-category-type">{getServiceTypeLabel(service.serviceType, service.categoryId)}</span>
+        {service.durationMinutes && <span className="ology-category-duration"><Clock size={14} aria-hidden="true" /> {formatDuration(service.durationMinutes)}</span>}
+      </span>
+      <span className="ology-category-service-action">
+        {service.pricingModel === "custom_quote" ? "View Service & Request Quote" : "View service"}
+        <ArrowRight size={15} aria-hidden="true" />
+      </span>
+    </Link>
+  );
+}
+
 export default function CategoryDetail() {
   const { slug } = useParams<{ slug: string }>();
-  const { data: category } = trpc.category.getBySlug.useQuery({ slug: slug! });
-  const { data: services } = trpc.service.listByCategory.useQuery(
+  const { data: category, isLoading: categoryLoading, isError: categoryError } = trpc.category.getBySlug.useQuery({ slug: slug! });
+  const { data: services, isLoading: servicesLoading, isError: servicesError } = trpc.service.listByCategory.useQuery(
     { categoryId: category?.id! },
-    { enabled: !!category?.id }
+    { enabled: !!category?.id },
   );
-  const { data: providers } = trpc.provider.listByCategory.useQuery(
+  const { data: providers, isLoading: providersLoading, isError: providersError } = trpc.provider.listByCategory.useQuery(
     { categoryId: category?.id! },
-    { enabled: !!category?.id }
+    { enabled: !!category?.id },
   );
   const { data: activePromotions } = trpc.promotion.getActiveForDisplay.useQuery();
-  const promotedProviderIds = useMemo(() => {
-    if (!activePromotions) return new Set<number>();
-    return new Set(activePromotions.map((p: any) => p.promotion.providerId));
-  }, [activePromotions]);
+  const promotedProviderIds = useMemo(() => new Set<number>(activePromotions?.map((p: any) => p.promotion.providerId) ?? []), [activePromotions]);
 
-  // Filter state
   const [showFilters, setShowFilters] = useState(false);
   const [locationFilter, setLocationFilter] = useState("");
   const [minRating, setMinRating] = useState(0);
   const [maxPrice, setMaxPrice] = useState<number | null>(null);
-  const [serviceTypeFilter, setServiceTypeFilter] = useState<string>("all");
+  const [serviceTypeFilter, setServiceTypeFilter] = useState("all");
   const [visibleCount, setVisibleCount] = useState(12);
 
-  const hasActiveFilters = locationFilter || minRating > 0 || maxPrice !== null || serviceTypeFilter !== "all";
+  useEffect(() => {
+    setShowFilters(false);
+    setLocationFilter("");
+    setMinRating(0);
+    setMaxPrice(null);
+    setServiceTypeFilter("all");
+    setVisibleCount(12);
+  }, [slug]);
 
+  const hasActiveFilters = !!locationFilter || minRating > 0 || maxPrice !== null || serviceTypeFilter !== "all";
   const clearFilters = () => {
     setLocationFilter("");
     setMinRating(0);
@@ -97,416 +119,186 @@ export default function CategoryDetail() {
     setServiceTypeFilter("all");
   };
 
-  // Group services by provider, then filter
+  // Keep the existing provider, price, location, rating, promotion and type semantics.
   const servicesByProvider = useMemo(() => {
-    if (!services || !providers) return new Map();
+    const sorted = new Map<number, { provider: any; services: any[] }>();
+    if (!services || !providers) return sorted;
     const map = new Map<number, { provider: any; services: any[] }>();
     for (const service of services) {
-      // Price filter
       if (maxPrice !== null) {
         const price = parseFloat(service.basePrice || service.hourlyRate || "0");
         if (price > maxPrice && price > 0) continue;
       }
-      // Service type filter
       if (serviceTypeFilter !== "all" && service.serviceType !== serviceTypeFilter) continue;
-
       if (!map.has(service.providerId)) {
-        const prov = providers.find((p: any) => p.id === service.providerId);
-        if (prov) map.set(service.providerId, { provider: prov, services: [] });
+        const provider = providers.find((p: any) => p.id === service.providerId);
+        if (provider) map.set(service.providerId, { provider, services: [] });
       }
       map.get(service.providerId)?.services.push(service);
     }
-
-    // Now filter by provider-level criteria
-    const filtered = new Map<number, { provider: any; services: any[] }>();
-    for (const [id, entry] of Array.from(map.entries())) {
-      const prov = entry.provider;
-      // Location filter
-      if (locationFilter) {
-        const loc = [prov.city, prov.state, prov.zipCode].filter(Boolean).join(" ").toLowerCase();
-        if (!loc.includes(locationFilter.toLowerCase())) continue;
-      }
-      // Rating filter
-      if (minRating > 0) {
-        const rating = parseFloat(prov.averageRating || "0");
-        if (rating < minRating) continue;
-      }
-      filtered.set(id, entry);
-    }
-    // Sort promoted providers to the top
-    const sorted = new Map<number, { provider: any; services: any[] }>();
     const promoted: [number, { provider: any; services: any[] }][] = [];
     const regular: [number, { provider: any; services: any[] }][] = [];
-    for (const [id, entry] of Array.from(filtered.entries())) {
-      if (promotedProviderIds.has(id)) {
-        promoted.push([id, entry]);
-      } else {
-        regular.push([id, entry]);
+    for (const [id, entry] of Array.from(map.entries())) {
+      const provider = entry.provider;
+      if (locationFilter) {
+        const loc = [provider.city, provider.state, provider.zipCode].filter(Boolean).join(" ").toLowerCase();
+        if (!loc.includes(locationFilter.toLowerCase())) continue;
       }
+      if (minRating > 0 && parseFloat(provider.averageRating || "0") < minRating) continue;
+      (promotedProviderIds.has(id) ? promoted : regular).push([id, entry]);
     }
-    for (const [id, entry] of [...promoted, ...regular]) {
-      sorted.set(id, entry);
-    }
+    for (const [id, entry] of [...promoted, ...regular]) sorted.set(id, entry);
     return sorted;
   }, [services, providers, locationFilter, minRating, maxPrice, serviceTypeFilter, promotedProviderIds]);
 
-  if (!category) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
-      </div>
-    );
-  }
-
-  const icon = CATEGORY_ICONS[category.id] || "\ud83d\udce6";
+  const dataLoading = categoryLoading || (category && (servicesLoading || providersLoading));
+  const icon = category ? CATEGORY_ICONS[category.id] || "📦" : "📦";
+  const realProviders = providers?.filter((provider: any) => !provider.isOfficial && provider.profileSlug).slice(0, 3) ?? [];
+  const liveProviderCount = providers?.filter((provider: any) => !provider.isOfficial).length ?? 0;
+  const hasOfficialDemo = providers?.some((provider: any) => provider.isOfficial) ?? false;
+  const matchingLiveProviders = Array.from(servicesByProvider.values()).filter(({ provider }) => !provider.isOfficial).length;
+  const matchingDemo = Array.from(servicesByProvider.values()).some(({ provider }) => provider.isOfficial);
+  const ungroupedServices = !hasActiveFilters && servicesByProvider.size === 0 && !!services?.length && !dataLoading;
 
   return (
-    <div className="min-h-screen bg-page">
+    <div className="ology-category-page">
       <NavHeader />
-
-      {/* Page Header */}
-      <section className="py-12 bg-gradient-to-br from-primary/5 to-accent/5">
-        <div className="container">
-          <Button variant="ghost" className="mb-4" onClick={() => window.history.back()}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
-          
-          <div className="flex items-center gap-3 mb-4">
-            <span className="text-2xl sm:text-4xl">{icon}</span>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold">{category.name}</h1>
-          </div>
-          <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6">
-            {category.description}
-          </p>
-          
-          <div className="flex flex-wrap gap-2">
-            {category.isMobileEnabled && (
-              <Badge variant="secondary" className="text-sm">Mobile Services Available</Badge>
+      <main id="category-main">
+        {!category ? (
+          <section className="ology-category-state" role={categoryError ? "alert" : "status"}>
+            {categoryLoading ? (
+              <p>Loading category…</p>
+            ) : (
+              <>
+                <h1>{categoryError ? "We couldn’t load this category" : "Category not found"}</h1>
+                <p>Browse available services and find someone who can help.</p>
+                <Link href="/browse">Explore services <ArrowRight size={16} aria-hidden="true" /></Link>
+              </>
             )}
-            {category.isFixedLocationEnabled && (
-              <Badge variant="secondary" className="text-sm">In-Shop Services Available</Badge>
-            )}
-            {category.isVirtualEnabled && (
-              <Badge variant="secondary" className="text-sm">Virtual Services Available</Badge>
-            )}
-            {services && services.length > 0 && <Badge variant="outline" className="text-sm">{services.length} service{services.length !== 1 ? "s" : ""}</Badge>}
-            {providers && providers.length > 0 && <Badge variant="outline" className="text-sm">{providers.length} provider{providers.length !== 1 ? "s" : ""}</Badge>}
-          </div>
-        </div>
-      </section>
-
-      {/* Filter Bar */}
-      <section className="py-4 border-b bg-card/50 sticky top-0 z-10 backdrop-blur-sm">
-        <div className="container">
-          <div className="flex items-center gap-3 flex-wrap">
-            <Button
-              variant={showFilters ? "default" : "outline"}
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-              className="gap-1.5"
-            >
-              <SlidersHorizontal className="w-4 h-4" />
-              Filters
-              {hasActiveFilters && (
-                <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-[10px] rounded-full">
-                  !
-                </Badge>
-              )}
-            </Button>
-
-            {/* Quick filter chips */}
-            <div className="flex items-center gap-2 flex-wrap flex-1">
-              <div className="relative flex-1 max-w-xs">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                <Input
-                  placeholder="Filter by city, state, or zip..."
-                  value={locationFilter}
-                  onChange={(e) => setLocationFilter(e.target.value)}
-                  className="h-8 pl-8 text-sm"
-                />
-              </div>
-
-              {/* Rating quick filters */}
-              {[3, 4, 4.5].map((r) => (
-                <Button
-                  key={r}
-                  variant={minRating === r ? "default" : "outline"}
-                  size="sm"
-                  className="h-8 text-xs gap-1"
-                  onClick={() => setMinRating(minRating === r ? 0 : r)}
-                >
-                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {r}+
-                </Button>
-              ))}
-            </div>
-
-            {hasActiveFilters && (
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 text-xs gap-1 text-muted-foreground">
-                <X className="w-3.5 h-3.5" /> Clear
-              </Button>
-            )}
-          </div>
-
-          {/* Expanded filter panel */}
-          {showFilters && (
-            <div className="mt-3 pt-3 border-t grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">Max Price</label>
-                <div className="flex items-center gap-2">
-                  <DollarSign className="w-3.5 h-3.5 text-muted-foreground" />
-                  <Input
-                    type="number"
-                    placeholder="Any"
-                    value={maxPrice ?? ""}
-                    onChange={(e) => setMaxPrice(e.target.value ? Number(e.target.value) : null)}
-                    className="h-8 text-sm"
-                    min={0}
-                  />
+          </section>
+        ) : (
+          <>
+            <section className="ology-category-hero" aria-labelledby="category-title">
+              <div className="ology-category-hero-inner">
+                <div className="ology-category-intro">
+                  <Link href="/browse" className="ology-category-breadcrumb"><ArrowLeft size={16} aria-hidden="true" /> Explore all services</Link>
+                  <p className="ology-category-eyebrow">FIND YOUR PERSON · EXPLORE THE WORK</p>
+                  <div className="ology-category-heading"><span className="ology-category-icon" aria-hidden="true">{icon}</span><h1 id="category-title">{category.name}</h1></div>
+                  {category.description && <p className="ology-category-description">{category.description}</p>}
+                  <div className="ology-category-hero-facts" aria-label="Category details">
+                    {category.isMobileEnabled && <span>Mobile services available</span>}
+                    {category.isFixedLocationEnabled && <span>In-shop services available</span>}
+                    {category.isVirtualEnabled && <span>Virtual services available</span>}
+                    {services && <span>{services.length} service{services.length !== 1 ? "s" : ""}</span>}
+                    {providers && <span>{liveProviderCount ? `${liveProviderCount} provider${liveProviderCount !== 1 ? "s" : ""}` : "No live providers yet"}</span>}
+                    {hasOfficialDemo && <span>Official demo available</span>}
+                  </div>
+                  <a className="ology-category-hero-link" href="#category-results">{liveProviderCount ? "Explore providers" : hasOfficialDemo ? "Explore the demo" : "Explore services"} <ArrowRight size={17} aria-hidden="true" /></a>
                 </div>
-              </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">Service Type</label>
-                <select
-                  className="w-full h-8 rounded-md border border-input bg-background px-2 text-sm"
-                  value={serviceTypeFilter}
-                  onChange={(e) => setServiceTypeFilter(e.target.value)}
-                >
-                  <option value="all">All Types</option>
-                  <option value="fixed_location">At My Location</option>
-                  <option value="mobile">Mobile</option>
-                  <option value="virtual">Virtual</option>
-                  <option value="hybrid">Flexible</option>
-                  <option value="flexible">Flexible</option>
-                  <option value="teams">Microsoft Teams</option>
-                  <option value="zoom">Zoom</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">Min Rating</label>
-                <select
-                  className="w-full h-8 rounded-md border border-input bg-background px-2 text-sm"
-                  value={minRating}
-                  onChange={(e) => setMinRating(Number(e.target.value))}
-                >
-                  <option value={0}>Any Rating</option>
-                  <option value={3}>3+ Stars</option>
-                  <option value={3.5}>3.5+ Stars</option>
-                  <option value={4}>4+ Stars</option>
-                  <option value={4.5}>4.5+ Stars</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">Location</label>
-                <Input
-                  placeholder="City, state, or zip"
-                  value={locationFilter}
-                  onChange={(e) => setLocationFilter(e.target.value)}
-                  className="h-8 text-sm"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Providers & Services */}
-      <section className="py-12">
-        <div className="container">
-          {/* Active filter summary */}
-          {hasActiveFilters && (
-            <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
-              <span>Showing {servicesByProvider.size} provider{servicesByProvider.size !== 1 ? "s" : ""}</span>
-              {locationFilter && <Badge variant="secondary" className="text-xs">Near \"{locationFilter}\"</Badge>}
-              {minRating > 0 && <Badge variant="secondary" className="text-xs"><Star className="w-3 h-3 mr-0.5 fill-amber-400 text-amber-400" /> {minRating}+</Badge>}
-              {maxPrice !== null && <Badge variant="secondary" className="text-xs">Under ${maxPrice}</Badge>}
-              {serviceTypeFilter !== "all" && <Badge variant="secondary" className="text-xs">{getServiceTypeLabel(serviceTypeFilter, category?.id)}</Badge>}
-            </div>
-          )}
-          {servicesByProvider.size > 0 ? (
-            <>
-            {/* Provider count */}
-            <div className="mb-4 flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
-                Showing {Math.min(visibleCount, servicesByProvider.size)} of {servicesByProvider.size} provider{servicesByProvider.size !== 1 ? "s" : ""}
-              </p>
-            </div>
-            <div className="space-y-8">
-              {Array.from(servicesByProvider.entries()).slice(0, visibleCount).map(([providerId, { provider, services: provServices }]) => (
-                <Card key={providerId} className="overflow-hidden">
-                  {/* Provider Header */}
-                  <CardHeader className="bg-muted/30 border-b">
-                    <Link href={provider.profileSlug ? `/${provider.profileSlug}` : "#"}>
-                      <div className="flex items-center gap-3 sm:gap-4 cursor-pointer hover:opacity-80 transition-opacity min-w-0">
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                          {provider.profilePhotoUrl ? (
-                            <img src={provider.profilePhotoUrl} alt={provider.businessName} className="w-full h-full rounded-xl object-cover" />
-                          ) : (
-                            <User className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <CardTitle className="text-base sm:text-lg hover:text-primary transition-colors truncate">
-                              {provider.businessName}
-                            </CardTitle>
-                            {provider.isOfficial && <OfficialBadge size="sm" />}
-                            {promotedProviderIds.has(providerId) && (
-                              <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10px] px-1.5 py-0 gap-0.5 shrink-0">
-                                <Sparkles className="h-2.5 w-2.5" /> Promoted
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-3 text-sm text-muted-foreground mt-0.5">
-                            {(provider.city || provider.state) && (
-                              <span className="flex items-center gap-1">
-                                <MapPin className="w-3.5 h-3.5" />
-                                {[provider.city, provider.state].filter(Boolean).join(", ")}
-                              </span>
-                            )}
-                            {parseFloat(provider.averageRating || "0") > 0 && (
-                              <span className="flex items-center gap-1">
-                                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                                {parseFloat(provider.averageRating).toFixed(1)}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <FavoriteButton providerId={providerId} />
-                        <Button variant="outline" size="sm" className="hidden sm:inline-flex">View Profile</Button>
-                      </div>
-                    </Link>
-                    <div className="flex items-center gap-2 mt-2 px-4">
-                      <ResponseTimeBadge providerId={providerId} />
-                    </div>
-                    <AvailabilityQuickView providerId={providerId} />
-                  </CardHeader>
-
-                  {/* Provider's Services in this category */}
-                  <CardContent className="p-4">
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {provServices.map((service: any) => (
-                        <Link key={service.id} href={`/service/${service.id}`}>
-                          <div className="p-3 rounded-lg border hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="min-w-0 flex-1">
-                                <p className="font-medium text-sm truncate">{service.name}</p>
-                                {service.description && (
-                                  <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{service.description}</p>
-                                )}
-                              </div>
-                              <span className={`font-bold text-sm flex-shrink-0 ${provider.isOfficial ? 'text-amber-700' : 'text-primary'}`}>
-                                {provider.isOfficial ? "FREE" : (
-                                  <>
-                                    {service.pricingModel === "fixed" && service.basePrice && formatCurrency(service.basePrice)}
-                                    {service.pricingModel === "hourly" && service.hourlyRate && `${formatCurrency(service.hourlyRate)}/hr`}
-                                    {service.pricingModel === "package" && service.basePrice && formatCurrency(service.basePrice)}
-                                    {service.pricingModel === "custom_quote" && "Quote"}
-                                    {service.pricingModel === "consultation" && "Free"}
-                                  </>
-                                )}
-                              </span>
-                            </div>
-                            {/* Provider name and photo on each service tile */}
-                            <div className="flex items-center gap-2 mt-2">
-                              {provider.profilePhotoUrl ? (
-                                <img src={provider.profilePhotoUrl} alt={provider.businessName} className="w-5 h-5 rounded-full object-cover flex-shrink-0" />
-                              ) : (
-                                <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                                  <User className="h-2.5 w-2.5 text-muted-foreground" />
-                                </div>
-                              )}
-                              <span className="text-xs text-muted-foreground truncate">{provider.businessName}</span>
-                            </div>
-                            <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                              <Badge variant="outline" className="text-xs">
-                                {getServiceTypeLabel(service.serviceType, service.categoryId)}
-                              </Badge>
-                              {service.durationMinutes && (
-                                <span className="flex items-center gap-1">
-                                  <Clock className="w-3 h-3" /> {formatDuration(service.durationMinutes)}
-                                </span>
-                              )}
-                            </div>
-                          </div>
+                <div className="ology-category-feature" aria-label="Providers in this category">
+                  <div className="ology-category-feature-glow" aria-hidden="true" />
+                  <span className="ology-category-feature-kicker">THE PEOPLE BEHIND THE WORK</span>
+                  {realProviders.length > 0 ? (
+                    <div className="ology-category-feature-people">
+                      {realProviders.map((provider: any) => (
+                        <Link className="ology-category-feature-person" href={`/${provider.profileSlug}`} key={provider.id}>
+                          {provider.profilePhotoUrl ? <img src={provider.profilePhotoUrl} alt="" loading="lazy" /> : <span aria-hidden="true"><User size={22} /></span>}
+                          <span>{provider.businessName}</span>
                         </Link>
                       ))}
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            {/* Load More button */}
-            {visibleCount < servicesByProvider.size && (
-              <div className="mt-8 text-center">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={() => setVisibleCount(prev => prev + 12)}
-                  className="px-8"
-                >
-                  Load More Providers ({servicesByProvider.size - visibleCount} remaining)
-                </Button>
+                  ) : <span className="ology-category-feature-icon" aria-hidden="true">{icon}</span>}
+                  <p>{realProviders.length ? "See real provider profiles, compare services, and choose the next step that fits." : hasOfficialDemo ? "Try a sample booking flow here. The official demo is not a live service provider." : "No provider profiles here yet. Explore more categories as professionals join."}</p>
+                </div>
               </div>
-            )}
-            </>
-          ) : !services || services.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <p className="text-muted-foreground">
-                  No services available in this category yet. Check back soon!
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            /* Fallback: show services without provider grouping */
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {services.map((service: any) => {
-                const prov = providers?.find((p: any) => p.id === service.providerId);
-                return (
-                  <Card key={service.id} className="hover:shadow-medium transition-all group h-full">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <Link href={`/service/${service.id}`}>
-                          <CardTitle className="text-xl group-hover:text-primary transition-colors cursor-pointer">
-                            {service.name}
-                          </CardTitle>
-                        </Link>
-                        {prov && <FavoriteButton providerId={prov.id} />}
-                      </div>
-                      {prov && (
-                        <Link href={prov.profileSlug ? `/${prov.profileSlug}` : "#"}>
-                          <div className="flex items-center gap-2 mt-1 cursor-pointer hover:opacity-80 transition-opacity">
-                            {prov.profilePhotoUrl ? (
-                              <img src={prov.profilePhotoUrl} alt={prov.businessName} className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
-                            ) : (
-                              <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                                <User className="h-3 w-3 text-muted-foreground" />
+            </section>
+
+            <section className="ology-category-content" id="category-results" aria-labelledby="category-results-title">
+              <div className="ology-category-section-head">
+                <div><span className="ology-category-section-kicker">PEOPLE & SERVICES</span><h2 id="category-results-title">Find the right fit.</h2><p>Explore a provider or open a service to see its details before booking or requesting a quote.</p></div>
+                {servicesByProvider.size > 0 && <span className="ology-category-result-count" aria-live="polite">{matchingLiveProviders ? `${matchingLiveProviders} provider${matchingLiveProviders !== 1 ? "s" : ""} available${matchingDemo ? " · official demo" : ""}` : "Official demo only"}</span>}
+              </div>
+
+              <div className="ology-category-filters" aria-label="Filter category providers">
+                <div className="ology-category-filter-row">
+                  <label className="ology-category-location">
+                    <Search size={18} aria-hidden="true" />
+                    <span className="sr-only">Filter by city, state, or ZIP code</span>
+                    <input type="search" placeholder="City, state or ZIP" value={locationFilter} onChange={(event) => setLocationFilter(event.target.value)} />
+                  </label>
+                  <button type="button" className="ology-category-filter-toggle" aria-expanded={showFilters} aria-controls="category-advanced-filters" onClick={() => setShowFilters(!showFilters)}>
+                    <SlidersHorizontal size={17} aria-hidden="true" /> Filters {hasActiveFilters && <span className="ology-category-filter-indicator" aria-label="Active filters" />}
+                  </button>
+                  <div className="ology-category-rating-quick" role="group" aria-label="Minimum provider rating">
+                    {[3, 4, 4.5].map((rating) => (
+                      <button type="button" key={rating} aria-pressed={minRating === rating} onClick={() => setMinRating(minRating === rating ? 0 : rating)}><Star size={14} aria-hidden="true" /> {rating}+</button>
+                    ))}
+                  </div>
+                  {hasActiveFilters && <button type="button" className="ology-category-filter-clear" onClick={clearFilters}><X size={15} aria-hidden="true" /> Clear filters</button>}
+                </div>
+                {showFilters && (
+                  <div className="ology-category-advanced" id="category-advanced-filters">
+                    <label htmlFor="category-max-price">Maximum listed price<input id="category-max-price" type="number" placeholder="Any price" min={0} value={maxPrice ?? ""} onChange={(event) => setMaxPrice(event.target.value ? Number(event.target.value) : null)} /></label>
+                    <label htmlFor="category-service-type">Service type<select id="category-service-type" value={serviceTypeFilter} onChange={(event) => setServiceTypeFilter(event.target.value)}>
+                      <option value="all">All types</option><option value="fixed_location">At my location</option><option value="mobile">Mobile</option><option value="virtual">Virtual</option><option value="hybrid">Hybrid</option><option value="flexible">Flexible</option><option value="teams">Microsoft Teams</option><option value="zoom">Zoom</option>
+                    </select></label>
+                    <label htmlFor="category-min-rating">Minimum rating<select id="category-min-rating" value={minRating} onChange={(event) => setMinRating(Number(event.target.value))}>
+                      <option value={0}>Any rating</option><option value={3}>3+ stars</option><option value={3.5}>3.5+ stars</option><option value={4}>4+ stars</option><option value={4.5}>4.5+ stars</option>
+                    </select></label>
+                    <p>Filters narrow this category’s current listings. Open a service for availability and booking details.</p>
+                  </div>
+                )}
+              </div>
+
+              {servicesError || providersError ? (
+                <div className="ology-category-empty" role="alert"><h3>We couldn’t load these listings</h3><p>Please try again to see the latest providers and services.</p><button type="button" onClick={() => window.location.reload()}>Try again</button></div>
+              ) : dataLoading ? (
+                <p className="ology-category-empty" role="status">Finding providers and services…</p>
+              ) : servicesByProvider.size > 0 ? (
+                <>
+                  <div className="ology-category-list">
+                    {Array.from(servicesByProvider.entries()).slice(0, visibleCount).map(([providerId, { provider, services: providerServices }]) => {
+                      const profileUrl = provider.profileSlug ? `/${provider.profileSlug}` : null;
+                      const providerIdentity = <><span className="ology-category-avatar">{provider.profilePhotoUrl ? <img src={provider.profilePhotoUrl} alt="" loading="lazy" /> : <User size={27} aria-hidden="true" />}</span><span className="ology-category-provider-name">{provider.businessName}</span></>;
+                      return (
+                        <article className="ology-category-provider" key={providerId}>
+                          <div className="ology-category-provider-header">
+                            <div className="ology-category-provider-info">
+                              <div className="ology-category-provider-title">
+                                {profileUrl ? <Link href={profileUrl} className="ology-category-provider-identity">{providerIdentity}</Link> : <span className="ology-category-provider-identity">{providerIdentity}</span>}
+                                {provider.isOfficial && <OfficialBadge size="sm" />}
+                                {promotedProviderIds.has(providerId) && <span className="ology-category-promoted"><Sparkles size={12} aria-hidden="true" /> Promoted</span>}
                               </div>
-                            )}
-                            <span className="text-sm text-muted-foreground hover:text-primary transition-colors">{prov.businessName}</span>
+                              <div className="ology-category-provider-meta">
+                                {(provider.city || provider.state) && <span><MapPin size={15} aria-hidden="true" /> {[provider.city, provider.state].filter(Boolean).join(", ")}</span>}
+                                {parseFloat(provider.averageRating || "0") > 0 && <span><Star size={15} aria-hidden="true" /> {parseFloat(provider.averageRating).toFixed(1)}</span>}
+                                <ResponseTimeBadge providerId={providerId} />
+                              </div>
+                            </div>
+                            <div className="ology-category-provider-actions"><SaveProviderButton providerId={providerId} />{profileUrl && <Link href={profileUrl} className="ology-category-profile-link">View profile <ArrowRight size={16} aria-hidden="true" /></Link>}</div>
                           </div>
-                        </Link>
-                      )}
-                    </CardHeader>
-                    <CardContent>
-                      <Link href={`/service/${service.id}`}>
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-4 cursor-pointer">{service.description}</p>
-                        <div className="font-semibold text-primary">
-                          {service.pricingModel === "fixed" && service.basePrice && formatCurrency(service.basePrice)}
-                          {service.pricingModel === "hourly" && service.hourlyRate && `${formatCurrency(service.hourlyRate)}/hr`}
-                          {service.pricingModel === "custom_quote" && "Get Quote"}
-                          {service.pricingModel === "consultation" && "Free Consultation"}
-                        </div>
-                      </Link>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </section>
+                          <AvailabilityQuickView providerId={providerId} />
+                          <div className="ology-category-provider-services"><h3>Services from {provider.businessName}</h3><div className="ology-category-service-grid">{providerServices.map((service: any) => <ServiceTile key={service.id} service={service} isOfficial={!!provider.isOfficial} />)}</div></div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                  {visibleCount < servicesByProvider.size && <div className="ology-category-more"><button type="button" onClick={() => setVisibleCount((count) => count + 12)}>Load more providers ({servicesByProvider.size - visibleCount} remaining)</button></div>}
+                </>
+              ) : ungroupedServices ? (
+                <div className="ology-category-ungrouped"><p>Explore the available services in this category.</p><div className="ology-category-service-grid">{services?.map((service: any) => <ServiceTile key={service.id} service={service} />)}</div></div>
+              ) : (
+                <div className="ology-category-empty" role="status">
+                  <span aria-hidden="true">{icon}</span>
+                  <h3>{hasActiveFilters ? "No providers match these filters" : "No services here yet"}</h3>
+                  <p>{hasActiveFilters ? "Try a different location or broaden your filters." : "Explore other categories while providers add services here."}</p>
+                  {hasActiveFilters ? <button type="button" onClick={clearFilters}>Clear filters</button> : <Link href="/browse">Explore all services <ArrowRight size={16} aria-hidden="true" /></Link>}
+                </div>
+              )}
+            </section>
+          </>
+        )}
+      </main>
     </div>
   );
 }
