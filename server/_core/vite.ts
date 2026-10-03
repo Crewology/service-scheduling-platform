@@ -5,10 +5,14 @@ import { nanoid } from "nanoid";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import viteConfig from "../../vite.config";
-import { getProviderOgTags, getServiceOgTags, getCategoryOgTags, getHomepageOgTags, getProviderBenefitsOgTags } from "../ogTags";
+import { getProviderOgTags, getServiceOgTags, getCategoryOgTags, getHomepageOgTags, getProviderBenefitsOgTags, getPublicPageOgTags } from "../ogTags";
 import { getCategoryJsonLd, getHomepageJsonLd, getProviderJsonLd, getServiceJsonLd } from "../structuredData";
+import { OLOGYCREW_PUBLIC_ORIGIN } from "../../shared/publicUrls";
 
-async function injectOgTags(url: string, template: string, origin: string): Promise<string> {
+export async function injectOgTags(url: string, template: string, _requestOrigin: string): Promise<string> {
+  // Never let preview or internal deployment hosts leak into public share cards.
+  const origin = OLOGYCREW_PUBLIC_ORIGIN;
+  const pathname = url.split(/[?#]/)[0];
   let ogTags = "";
   let jsonLd = "";
 
@@ -64,18 +68,11 @@ async function injectOgTags(url: string, template: string, origin: string): Prom
         } else if (provider) {
           // Fallback: build basic OG tags for the provider
           const businessName = provider.businessName || "Service Provider";
-          ogTags = [
-            `<meta property="og:title" content="Book Services from ${businessName} on OlogyCrew" />`,
-            `<meta property="og:description" content="Browse and book services from ${businessName}. Choose a service, pick a time, and book instantly." />`,
-            `<meta property="og:url" content="${origin}/embed/provider/${embedProviderMatch[1]}" />`,
-            `<meta property="og:type" content="website" />`,
-            `<meta property="og:site_name" content="OlogyCrew" />`,
-            `<meta name="twitter:card" content="summary_large_image" />`,
-            `<meta name="twitter:title" content="Book Services from ${businessName} on OlogyCrew" />`,
-            `<meta name="twitter:description" content="Browse and book services from ${businessName}. Choose a service, pick a time, and book instantly." />`,
-            `<meta property="og:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png" />`,
-            `<meta name="twitter:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png" />`,
-          ].join("\n    ");
+          ogTags = getPublicPageOgTags(
+            `/embed/provider/${embedProviderMatch[1]}`,
+            `Services from ${businessName} — OlogyCrew`,
+            `Explore available services from ${businessName}, then book or request a quote when the service allows it.`
+          );
         }
       } catch (e) {
         console.error("[OG Tags] Error generating embed provider OG tags:", e);
@@ -84,71 +81,39 @@ async function injectOgTags(url: string, template: string, origin: string): Prom
   }
 
   // Public Help & Resources library
-  if (!ogTags && url.split(/[?#]/)[0] === "/help") {
-    ogTags = [
-      `<meta property="og:title" content="OlogyCrew Help &amp; Resources — Find the Right Guide" />`,
-      `<meta property="og:description" content="Browse practical guides for bookings, provider tools, payments and account settings, or contact OlogyCrew Support." />`,
-      `<meta property="og:url" content="https://ologycrew.com/help" />`,
-      `<meta property="og:type" content="website" />`,
-      `<meta property="og:site_name" content="OlogyCrew" />`,
-      `<meta name="twitter:card" content="summary" />`,
-      `<meta name="twitter:title" content="OlogyCrew Help &amp; Resources — Find the Right Guide" />`,
-      `<meta name="twitter:description" content="Browse OlogyCrew guides or contact support about bookings, providers, payments and accounts." />`,
-    ].join("\n    ");
+  if (!ogTags && pathname === "/help") {
+    ogTags = getPublicPageOgTags(
+      "/help",
+      "OlogyCrew Help & Resources — Find the Right Guide",
+      "Practical guides for finding a service, managing bookings, growing your business and getting help when you need it."
+    );
   }
 
   // Referral program page
-  if (!ogTags && url.startsWith("/referral-program")) {
-    ogTags = [
-      `<meta property="og:title" content="OlogyCrew Referral Program \u2014 Share Good Work" />`,
-      `<meta property="og:description" content="Share OlogyCrew and earn booking credits when a referred account completes an eligible paid booking. Bronze through Platinum rewards are based on net captured payment." />`,
-      `<meta property="og:url" content="https://ologycrew.com/referral-program" />`,
-      `<meta property="og:type" content="website" />`,
-      `<meta property="og:site_name" content="OlogyCrew" />`,
-      `<meta name="twitter:card" content="summary_large_image" />`,
-      `<meta name="twitter:title" content="OlogyCrew Referral Program \u2014 Share Good Work" />`,
-      `<meta name="twitter:description" content="Share OlogyCrew and earn booking credits when a referred account completes an eligible paid booking, based on net captured payment." />`,
-      `<meta property="og:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-compressed_d69712f3.jpg" />`,
-      `<meta property="og:image:width" content="1200" />`,
-      `<meta property="og:image:height" content="630" />`,
-      `<meta name="twitter:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-compressed_d69712f3.jpg" />`,
-    ].join("\n    ");
+  if (!ogTags && pathname === "/referral-program") {
+    ogTags = getPublicPageOgTags(
+      "/referral-program",
+      "Share Good Work — OlogyCrew Referral Program",
+      "Share a referral link. When a referred account completes an eligible paid booking, the referrer can earn credits based on net captured payment."
+    );
   }
 
   // Provider onboarding referral page (/provider/onboarding?ref=...)
-  if (!ogTags && url.startsWith("/provider/onboarding")) {
-    ogTags = [
-      `<meta property="og:title" content="Build Your Digital Home on OlogyCrew" />`,
-      `<meta property="og:description" content="Your business deserves a digital home. Get discovered, get booked, get paid — no gatekeeping, no lead fees. Set up your profile in minutes." />`,
-      `<meta property="og:url" content="${origin}/provider/onboarding" />`,
-      `<meta property="og:type" content="website" />`,
-      `<meta property="og:site_name" content="OlogyCrew" />`,
-      `<meta name="twitter:card" content="summary_large_image" />`,
-      `<meta name="twitter:title" content="Build Your Digital Home on OlogyCrew" />`,
-      `<meta name="twitter:description" content="Your business deserves a digital home. Get discovered, get booked, get paid — no gatekeeping, no lead fees." />`,
-      `<meta property="og:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-compressed_d69712f3.jpg" />`,
-      `<meta property="og:image:width" content="1200" />`,
-      `<meta property="og:image:height" content="630" />`,
-      `<meta name="twitter:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-compressed_d69712f3.jpg" />`,
-    ].join("\n    ");
+  if (!ogTags && pathname === "/provider/onboarding") {
+    ogTags = getPublicPageOgTags(
+      "/provider/onboarding",
+      "Bring Your Work to OlogyCrew",
+      "Set up a public profile, share your services and choose the business tools that fit the way you work."
+    );
   }
 
   // Signup referral page (/signup?ref=...)
-  if (!ogTags && url.startsWith("/signup")) {
-    ogTags = [
-      `<meta property="og:title" content="Join OlogyCrew — The Digital Home for Your Business" />`,
-      `<meta property="og:description" content="Get discovered, get booked, get paid. OlogyCrew gives you a professional profile, booking system, and payment infrastructure — all in one place." />`,
-      `<meta property="og:url" content="${origin}/signup" />`,
-      `<meta property="og:type" content="website" />`,
-      `<meta property="og:site_name" content="OlogyCrew" />`,
-      `<meta name="twitter:card" content="summary_large_image" />`,
-      `<meta name="twitter:title" content="Join OlogyCrew — The Digital Home for Your Business" />`,
-      `<meta name="twitter:description" content="Get discovered, get booked, get paid. OlogyCrew gives you a professional profile, booking system, and payment infrastructure — all in one place." />`,
-      `<meta property="og:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-compressed_d69712f3.jpg" />`,
-      `<meta property="og:image:width" content="1200" />`,
-      `<meta property="og:image:height" content="630" />`,
-      `<meta name="twitter:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-compressed_d69712f3.jpg" />`,
-    ].join("\n    ");
+  if (!ogTags && pathname === "/signup") {
+    ogTags = getPublicPageOgTags(
+      "/signup",
+      "Join OlogyCrew — Find Your People",
+      "Create an account to find a service professional or introduce your work as an independent provider."
+    );
   }
 
   // Public provider benefits page (static marketing route, not a provider slug).
@@ -158,27 +123,42 @@ async function injectOgTags(url: string, template: string, origin: string): Prom
     template = template.replace(/<meta name="description" content="[^"]*"\s*\/>/, '<meta name="description" content="Build a public home for your services on OlogyCrew. Help customers find your work, manage bookings and conversations, and compare plans for additional business tools." />');
   }
 
-  // Homepage (exact match on / or /?)
-  if (!ogTags && (url === "/" || url === "/?")) {
+  if (!ogTags && (pathname === "/browse" || pathname === "/search")) {
+    ogTags = getPublicPageOgTags(
+      "/browse",
+      "Find Your Person — Explore OlogyCrew",
+      "Explore service categories and real professional profiles. Compare available services, then book or request a quote when you are ready."
+    );
+  }
+
+  if (!ogTags && pathname === "/pricing") {
+    ogTags = getPublicPageOgTags(
+      "/pricing",
+      "Plans for Customers and Providers — OlogyCrew",
+      "Compare customer and provider options, from getting started to the business tools that fit your work."
+    );
+  }
+
+  const otherPublicPages: Record<string, [string, string]> = {
+    "/featured": ["Featured Professionals — OlogyCrew", "Get to know independent professionals and explore their public profiles, services and available reviews."],
+    "/experiences": ["Explore Experiences — OlogyCrew", "Find group classes and experiences offered by independent service professionals on OlogyCrew."],
+    "/terms": ["Terms of Service — OlogyCrew", "Read the OlogyCrew Terms of Service."],
+    "/privacy": ["Privacy Policy — OlogyCrew", "Read the OlogyCrew Privacy Policy."],
+  };
+  if (!ogTags && otherPublicPages[pathname]) {
+    const [title, description] = otherPublicPages[pathname];
+    ogTags = getPublicPageOgTags(pathname, title, description);
+  }
+
+  // Referral parameters on the homepage must not change the public share card.
+  if (!ogTags && pathname === "/") {
     ogTags = await getHomepageOgTags(origin);
   }
 
-  // Fallback OG tags for any page that doesn't have specific ones
+  // Unknown or account-only pages must not advertise a provider-only promise
+  // or leak internal deployment hosts in their social previews.
   if (!ogTags) {
-    ogTags = [
-      `<meta property="og:title" content="OlogyCrew \u2014 The Digital Home for Your Business" />`,
-      `<meta property="og:description" content="Your business. Your customers. Your money. Get discovered, get booked, get paid — no gatekeeping." />`,
-      `<meta property="og:url" content="${origin}${url.split('?')[0]}" />`,
-      `<meta property="og:type" content="website" />`,
-      `<meta property="og:site_name" content="OlogyCrew" />`,
-      `<meta name="twitter:card" content="summary" />`,
-      `<meta name="twitter:title" content="OlogyCrew \u2014 The Digital Home for Your Business" />`,
-      `<meta name="twitter:description" content="Your business. Your customers. Your money. Get discovered, get booked, get paid — no gatekeeping." />`,
-      `<meta property="og:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png" />`,
-      `<meta property="og:image:width" content="200" />`,
-      `<meta property="og:image:height" content="50" />`,
-      `<meta name="twitter:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png" />`,
-    ].join("\n    ");
+    ogTags = await getHomepageOgTags(origin);
   }
 
   if (ogTags) {
@@ -190,7 +170,7 @@ async function injectOgTags(url: string, template: string, origin: string): Prom
   }
 
   // Inject JSON-LD structured data for AI agent discoverability
-  if (!jsonLd && (url === "/" || url === "/?")) {
+  if (!jsonLd && pathname === "/") {
     jsonLd = getHomepageJsonLd(origin);
   }
   if (jsonLd) {

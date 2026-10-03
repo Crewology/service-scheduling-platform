@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import fs from "fs";
 import path from "path";
+import { getPublicPageOgTags, PEOPLE_FIRST_OG_IMAGE } from "./ogTags";
 
 describe("Post-Booking Share & Earn Card", () => {
   const filePath = path.resolve(
@@ -130,23 +131,23 @@ describe("OG and Twitter Card Meta Tags", () => {
     const content = fs.readFileSync(filePath, "utf-8");
 
     it("should inject OG tags for /referral-program route in dev mode", () => {
-      expect(content).toContain('url.startsWith("/referral-program")');
+      expect(content).toContain('pathname === "/referral-program"');
+      expect(content).toContain('getPublicPageOgTags(\n      "/referral-program"');
     });
 
     it("should inject og:title in HTML template", () => {
-      expect(content).toContain('og:title');
-      expect(content).toContain("OlogyCrew Referral Program");
+      expect(content).toContain("Share Good Work — OlogyCrew Referral Program");
+      expect(getPublicPageOgTags("/referral-program", "Share Good Work — OlogyCrew Referral Program", "Eligible paid booking")).toContain('og:title');
     });
 
     it("should inject og:description in HTML template", () => {
-      expect(content).toContain('og:description');
       expect(content).toContain("eligible paid booking");
       expect(content).toContain("net captured payment");
+      expect(content).not.toContain("credits on every referral");
     });
 
     it("should inject twitter:card in HTML template", () => {
-      expect(content).toContain('twitter:card');
-      expect(content).toContain("summary_large_image");
+      expect(getPublicPageOgTags("/referral-program", "Referral", "Eligible paid booking")).toContain('twitter:card" content="summary_large_image"');
     });
 
     it("should inject tags before closing head tag", () => {
@@ -154,7 +155,7 @@ describe("OG and Twitter Card Meta Tags", () => {
     });
 
     it("uses the public domain rather than the dev origin for social sharing", () => {
-      expect(content).toContain('https://ologycrew.com/referral-program');
+      expect(getPublicPageOgTags("/referral-program", "Referral", "Eligible paid booking")).toContain('og:url" content="https://ologycrew.com/referral-program"');
     });
 
     it("should handle both dev and production modes", () => {
@@ -166,24 +167,17 @@ describe("OG and Twitter Card Meta Tags", () => {
       expect(prodSection).toContain("injectOgTags(url, html, origin)");
     });
 
-    it("should inject og:image with CDN URL in server-side HTML", () => {
-      expect(content).toContain('og:image');
-      expect(content).toContain("d2xsxph8kpxj0f.cloudfront.net");
-      expect(content).toContain("ologycrew-referral-og");
+    it("uses the same 1200x630 people-first card as other public pages", () => {
+      const tags = getPublicPageOgTags("/referral-program", "Referral", "Eligible paid booking");
+      expect(tags).toContain(`og:image" content="${PEOPLE_FIRST_OG_IMAGE}"`);
+      expect(tags).not.toContain("ologycrew-referral-og");
+      expect(tags).toContain('og:image:width" content="1200"');
+      expect(tags).toContain('og:image:height" content="630"');
+      expect(tags).toContain(`twitter:image" content="${PEOPLE_FIRST_OG_IMAGE}"`);
     });
 
-    it("should inject og:image:width and og:image:height", () => {
-      expect(content).toContain('og:image:width');
-      expect(content).toContain('"1200"');
-      expect(content).toContain('og:image:height');
-      expect(content).toContain('"630"');
-    });
-
-    it("should inject twitter:image with CDN URL", () => {
-      expect(content).toContain('twitter:image');
-      // Count occurrences of the CDN URL (should appear in both dev and prod sections)
-      const cdnMatches = content.match(/ologycrew-referral-og/g);
-      expect(cdnMatches!.length).toBeGreaterThanOrEqual(2);
+    it("does not refer to the retired gift-and-tier artwork in the server route", () => {
+      expect(content).not.toContain("ologycrew-referral-og");
     });
   });
 
@@ -194,10 +188,11 @@ describe("OG and Twitter Card Meta Tags", () => {
     );
     const content = fs.readFileSync(filePath, "utf-8");
 
-    it("should define OG_IMAGE_URL constant with CDN URL", () => {
+    it("should define the same canonical people-first OG image URL", () => {
       expect(content).toContain("const OG_IMAGE_URL");
-      expect(content).toContain("d2xsxph8kpxj0f.cloudfront.net");
-      expect(content).toContain("ologycrew-referral-og");
+      expect(content).toContain("ologycrew-people-first-social-1200x630_05d25d5b.jpg");
+      expect(content).toContain("OLOGYCREW_PUBLIC_ORIGIN");
+      expect(content).not.toContain("ologycrew-referral-og");
     });
 
     it("should set og:image meta tag in useMetaTags", () => {

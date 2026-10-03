@@ -9,10 +9,10 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import "./ReferralProgram.css";
 
-const OG_IMAGE_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/ologycrew-referral-og-compressed_d69712f3.jpg";
+const OG_IMAGE_URL = `${OLOGYCREW_PUBLIC_ORIGIN}/manus-storage/ologycrew-people-first-social-1200x630_05d25d5b.jpg`;
 const META_TAGS = {
-  title: "OlogyCrew Referral Program — Share Good Work",
-  description: "Share OlogyCrew with someone you know. Earn 10–25% in booking credits when their eligible paid booking is completed, based on the net payment captured.",
+  title: "Share Good Work — OlogyCrew Referral Program",
+  description: "Share a referral link. When a referred account completes an eligible paid booking, the referrer can earn credits based on net captured payment.",
   url: "/referral-program",
   image: OG_IMAGE_URL,
 };

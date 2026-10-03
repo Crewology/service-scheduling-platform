@@ -1,12 +1,14 @@
 import * as db from "./db";
 import { generateProviderOgImage, generateServiceOgImage } from "./ogImage";
+import { OLOGYCREW_PUBLIC_ORIGIN } from "../shared/publicUrls";
 
 // In-memory cache for generated OG image URLs (key -> url)
 // This avoids regenerating the image on every social crawler visit
 const ogImageCache = new Map<string, { url: string; timestamp: number }>();
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
-const OLOGYCREW_LOGO = "https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD7eHrqop9F5cN2Q4sYGpD/logo-navbar_38427c60.png";
+export const PEOPLE_FIRST_OG_IMAGE_PATH = "/manus-storage/ologycrew-people-first-social-1200x630_05d25d5b.jpg";
+export const PEOPLE_FIRST_OG_IMAGE = `${OLOGYCREW_PUBLIC_ORIGIN}${PEOPLE_FIRST_OG_IMAGE_PATH}`;
 
 /**
  * Build OG meta tag HTML for a provider profile page (/p/:slug).
@@ -63,7 +65,7 @@ export async function getProviderOgTags(slug: string, origin: string): Promise<s
     // Generate or retrieve cached OG image
     let imageUrl = await getCachedOgImage(`provider:${slug}`, () => generateProviderOgImage(slug));
 
-    // Fallback: use profile photo or OlogyCrew logo
+    // Fallback: use the real profile portrait, then the branded social card.
     if (!imageUrl) {
       try {
         const user = await db.getUserById(provider.userId);
@@ -73,7 +75,7 @@ export async function getProviderOgTags(slug: string, origin: string): Promise<s
       } catch { /* ignore */ }
     }
     if (!imageUrl) {
-      imageUrl = OLOGYCREW_LOGO;
+      imageUrl = PEOPLE_FIRST_OG_IMAGE;
     }
 
     return buildOgTagsHtml({ title, description, url, imageUrl, type: "profile" });
@@ -132,7 +134,7 @@ export async function getServiceOgTags(serviceId: number, origin: string): Promi
     let imageUrl = await getCachedOgImage(`service:${serviceId}`, () => generateServiceOgImage(serviceId));
 
     if (!imageUrl) {
-      imageUrl = OLOGYCREW_LOGO;
+      imageUrl = PEOPLE_FIRST_OG_IMAGE;
     }
 
     return buildOgTagsHtml({ title, description, url, imageUrl, type: "product" });
@@ -167,7 +169,8 @@ export async function getCategoryOgTags(categorySlug: string, origin: string): P
       title,
       description,
       url,
-      imageUrl: category.iconUrl || OLOGYCREW_LOGO,
+      // Small category icons do not make legible social preview images.
+      imageUrl: PEOPLE_FIRST_OG_IMAGE,
       type: "website",
     });
   } catch (error) {
@@ -179,20 +182,24 @@ export async function getCategoryOgTags(categorySlug: string, origin: string): P
 /**
  * Build OG meta tag HTML for the homepage.
  */
-export async function getHomepageOgTags(origin: string): Promise<string> {
-  const title = "OlogyCrew — Local work, well done";
-  const description = "Find independent local professionals on OlogyCrew. Explore real profiles, compare available services and reviews, then book or request a quote directly.";
-  // This approved editorial photograph illustrates the homepage, not a specific
-  // provider. A stable storage URL also avoids network-dependent OG generation.
-  const imageUrl = `${origin.replace(/\/$/, "")}/manus-storage/ology-refined-hero_660dfae3.png`;
+export async function getHomepageOgTags(_origin: string): Promise<string> {
+  return getPublicPageOgTags(
+    "/",
+    "OlogyCrew — Good work starts with people",
+    "Meet the people behind the work. Explore independent service professionals, see their profiles and services, then book or request a quote directly."
+  );
+}
 
+/** Static public pages share a coherent visual but retain their own honest copy. */
+export function getPublicPageOgTags(path: string, title: string, description: string): string {
+  const canonicalPath = path.startsWith("/") ? path : `/${path}`;
   return buildOgTagsHtml({
-    title,
-    description,
-    url: origin,
-    imageUrl,
-    imageWidth: 1024,
-    imageHeight: 1024,
+    title: escapeHtml(title),
+    description: escapeHtml(description),
+    url: `${OLOGYCREW_PUBLIC_ORIGIN}${canonicalPath}`,
+    imageUrl: PEOPLE_FIRST_OG_IMAGE,
+    imageWidth: 1200,
+    imageHeight: 630,
     type: "website",
   });
 }

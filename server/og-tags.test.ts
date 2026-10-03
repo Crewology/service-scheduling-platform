@@ -4,6 +4,8 @@ import {
   getServiceOgTags,
   getCategoryOgTags,
   getHomepageOgTags,
+  getPublicPageOgTags,
+  PEOPLE_FIRST_OG_IMAGE,
   invalidateOgImageCache,
   invalidateServiceOgImageCache,
 } from "./ogTags";
@@ -351,14 +353,15 @@ describe("OG Tags for Homepage", () => {
 
     expect(result).toContain('og:title');
     expect(result).toContain('OlogyCrew');
-    expect(result).toContain('Local work, well done');
+    expect(result).toContain('Good work starts with people');
     expect(result).toContain('og:description');
-    expect(result).toContain('compare available services and reviews');
-    expect(result).toContain('/manus-storage/ology-refined-hero_660dfae3.png');
-    expect(result).toContain('og:image:width" content="1024"');
-    expect(result).toContain('og:image:height" content="1024"');
+    expect(result).toContain('independent service professionals');
+    expect(result).toContain(PEOPLE_FIRST_OG_IMAGE);
+    expect(result).toContain('og:image:width" content="1200"');
+    expect(result).toContain('og:image:height" content="630"');
     expect(result).toContain('og:url');
-    expect(result).toContain('https://example.com');
+    expect(result).toContain('og:url" content="https://ologycrew.com/"');
+    expect(result).not.toContain('https://example.com');
     expect(result).toContain('og:type');
     expect(result).toContain('website');
     expect(result).toContain('og:site_name');
@@ -372,5 +375,16 @@ describe("OG Tags for Homepage", () => {
     const result = await getHomepageOgTags("https://ologycrew.com");
     expect(result).toContain('https://ologycrew.com');
     expect(result).not.toContain('localhost');
+  });
+
+  it("builds public previews on the canonical domain, escapes page copy and preserves their specific titles", () => {
+    const result = getPublicPageOgTags("/help", "Help & Resources", 'Find a pro or ask about "bookings".');
+    expect(result).toContain('og:title" content="Help &amp; Resources"');
+    expect(result).toContain('og:description" content="Find a pro or ask about &quot;bookings&quot;."');
+    expect(result).toContain('og:url" content="https://ologycrew.com/help"');
+    expect(result).toContain(`og:image" content="${PEOPLE_FIRST_OG_IMAGE}"`);
+    expect(result).toContain('og:image:width" content="1200"');
+    expect(result).toContain('og:image:height" content="630"');
+    expect(result).toContain('twitter:card" content="summary_large_image"');
   });
 });

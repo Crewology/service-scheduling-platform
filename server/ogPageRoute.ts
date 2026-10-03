@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { getProviderOgTags, getServiceOgTags, getCategoryOgTags, getHomepageOgTags } from "./ogTags";
+import { OLOGYCREW_PUBLIC_ORIGIN } from "../shared/publicUrls";
 
 /**
  * Dedicated OG page route: /api/og/:type/:id
@@ -25,7 +26,8 @@ const FAVICON_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663275372790/QD
 
 export async function handleOgPage(req: Request, res: Response) {
   const { type, id } = req.params;
-  const origin = `${req.protocol}://${req.get("host")}`;
+  const origin = OLOGYCREW_PUBLIC_ORIGIN;
+  const requestOrigin = `${req.protocol}://${req.get("host")}`;
 
   let ogTags = "";
   let canonicalPath = "/";
@@ -63,6 +65,8 @@ export async function handleOgPage(req: Request, res: Response) {
   }
 
   const canonicalUrl = `${origin}${canonicalPath}`;
+  // Keep preview links usable for humans while crawlers see one stable domain.
+  const humanUrl = `${requestOrigin}${canonicalPath}`;
 
   // Override the og:url to point to the canonical SPA page (not the /api/og/ URL)
   ogTags = ogTags.replace(
@@ -77,13 +81,13 @@ export async function handleOgPage(req: Request, res: Response) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/x-icon" href="${FAVICON_URL}" />
   <link rel="canonical" href="${escapeHtml(canonicalUrl)}" />
-  <meta http-equiv="refresh" content="0;url=${escapeHtml(canonicalUrl)}" />
+  <meta http-equiv="refresh" content="0;url=${escapeHtml(humanUrl)}" />
   ${ogTags}
   <title>Redirecting to OlogyCrew...</title>
 </head>
 <body>
-  <p>Redirecting to <a href="${escapeHtml(canonicalUrl)}">${escapeHtml(canonicalUrl)}</a>...</p>
-  <script>window.location.replace(${JSON.stringify(canonicalUrl)});</script>
+  <p>Redirecting to <a href="${escapeHtml(humanUrl)}">${escapeHtml(humanUrl)}</a>...</p>
+  <script>window.location.replace(${JSON.stringify(humanUrl)});</script>
 </body>
 </html>`;
 

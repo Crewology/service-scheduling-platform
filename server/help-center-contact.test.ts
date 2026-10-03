@@ -147,8 +147,8 @@ describe("Help Center public navigation", () => {
     }
     expect(styles).toContain(".ology-help");
     expect(styles).toContain("prefers-reduced-motion");
-    expect(metadata).toContain('content="https://ologycrew.com/help"');
-    expect(metadata).toContain('OlogyCrew Help &amp; Resources');
+    expect(metadata).toContain('getPublicPageOgTags(\n      "/help"');
+    expect(metadata).toContain('OlogyCrew Help & Resources');
     expect(page).toContain('`${OLOGYCREW_PUBLIC_ORIGIN}/help`');
     expect(readFileSync(resolve(root, "server/contactRouter.ts"), "utf8")).not.toContain("garychisolm30@gmail.com");
   });

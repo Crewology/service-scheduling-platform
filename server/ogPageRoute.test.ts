@@ -89,9 +89,10 @@ describe("OG Page Route", () => {
     expect(body).toContain("<!DOCTYPE html>");
     expect(body).toContain('og:title" content="Test Provider on OlogyCrew"');
     expect(body).toContain('twitter:card" content="summary_large_image"');
-    expect(body).toContain('rel="canonical" href="https://example.com/test-provider"');
+    expect(body).toContain('rel="canonical" href="https://ologycrew.com/test-provider"');
     expect(body).toContain("window.location.replace");
-    expect(body).toContain("https://example.com/test-provider");
+    expect(body).toContain("https://ologycrew.com/test-provider");
+    expect(body).toContain('window.location.replace("https://example.com/test-provider")');
   });
 
   it("should return HTML with service OG tags for /api/og/service/:id", async () => {
@@ -101,7 +102,7 @@ describe("OG Page Route", () => {
 
     expect(body).toContain("<!DOCTYPE html>");
     expect(body).toContain('og:title" content="Test Service on OlogyCrew"');
-    expect(body).toContain('rel="canonical" href="https://example.com/service/42"');
+    expect(body).toContain('rel="canonical" href="https://ologycrew.com/service/42"');
   });
 
   it("should return HTML with category OG tags for /api/og/category/:slug", async () => {
@@ -111,7 +112,7 @@ describe("OG Page Route", () => {
 
     expect(body).toContain("<!DOCTYPE html>");
     expect(body).toContain('og:title" content="Barber Shop Services on OlogyCrew"');
-    expect(body).toContain('rel="canonical" href="https://example.com/category/barber-shop"');
+    expect(body).toContain('rel="canonical" href="https://ologycrew.com/category/barber-shop"');
   });
 
   it("should fall back to homepage OG tags for unknown type", async () => {
@@ -121,7 +122,7 @@ describe("OG Page Route", () => {
 
     expect(body).toContain("<!DOCTYPE html>");
     expect(body).toContain('og:title" content="OlogyCrew"');
-    expect(body).toContain('rel="canonical" href="https://example.com/"');
+    expect(body).toContain('rel="canonical" href="https://ologycrew.com/"');
   });
 
   it("should fall back to homepage OG tags when provider not found", async () => {
@@ -148,15 +149,16 @@ describe("OG Page Route", () => {
     const body = getBody();
 
     // The og:url should point to the canonical root-level provider page, not /api/og/provider/test-provider.
-    expect(body).toContain('og:url" content="https://example.com/test-provider"');
-    expect(body).not.toContain('og:url" content="https://example.com/api/og/');
+    expect(body).toContain('og:url" content="https://ologycrew.com/test-provider"');
+    expect(body).not.toContain('og:url" content="https://ologycrew.com/api/og/');
   });
 
-  it("should include meta refresh and JS redirect to canonical URL", async () => {
+  it("should redirect human visitors on their request host while keeping the canonical OG URL", async () => {
     const { req, res, getBody } = createMockReqRes("provider", "test-provider");
     await handleOgPage(req, res);
     const body = getBody();
 
+    expect(body).toContain('og:url" content="https://ologycrew.com/test-provider"');
     expect(body).toContain('http-equiv="refresh" content="0;url=https://example.com/test-provider"');
     expect(body).toContain('window.location.replace("https://example.com/test-provider")');
   });
@@ -167,6 +169,6 @@ describe("OG Page Route", () => {
     const body = getBody();
 
     expect(body).toContain('og:title" content="Test Provider on OlogyCrew"');
-    expect(body).toContain('rel="canonical" href="https://example.com/test-provider"');
+    expect(body).toContain('rel="canonical" href="https://ologycrew.com/test-provider"');
   });
 });
