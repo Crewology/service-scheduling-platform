@@ -21,7 +21,7 @@
 .ology-help h1, .ology-help h2, .ology-help h3, .ology-help p { margin-top: 0; }
 .ology-help h1, .ology-help h2 { letter-spacing: -.045em; }
 .ology-help-eyebrow { display: inline-flex; align-items: center; gap: 9px; color: #8d3828; font-size: 12px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
-.ology-help-hero { position: relative; isolation: isolate; min-height: 510px; background: #1d3127; color: #fffdf7; border-bottom: 1px solid var(--help-line); overflow: hidden; }
+.ology-help-hero { position: relative; isolation: isolate; width: min(1600px, calc(100% - 64px)); margin: 30px auto 0; min-height: 510px; background: #1d3127; color: #fffdf7; border-radius: 10px 10px 0 0; overflow: hidden; }
 .ology-help-hero-photo, .ology-help-hero-photo img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 .ology-help-hero-photo img { object-fit: cover; object-position: center center; }
 .ology-help-hero::after { content: ""; position: absolute; z-index: 0; inset: 0; background: linear-gradient(90deg, rgba(16,36,30,.82), rgba(16,36,30,.76) 42%, rgba(16,36,30,.4) 64%, rgba(16,36,30,.12)); pointer-events: none; }
@@ -122,7 +122,9 @@
 .ology-help .ology-help-contact-form .ology-help-submit:hover { background: var(--ology-brand-coral-hover); }
 .ology-help .ology-help-contact-form .ology-help-reset { border-color: #99aaa1; color: var(--help-deep); background: var(--help-surface); }
 @media (max-width: 1120px) { .ology-help-collection-grid { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+@media (max-width: 900px) { .ology-help-hero { width: calc(100% - 44px); } }
 @media (max-width: 760px) { .ology-help-contact-grid { grid-template-columns: 1fr; } .ology-help-hero, .ology-help-hero-content { min-height: 470px; } .ology-help-hero-content { padding-block: 50px; } .ology-help-hero::after { background: rgba(14,33,26,.67); } .ology-help-featured-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .ology-help-library-grid { grid-template-columns: 1fr; } .ology-help-reader { position: static; min-height: 260px; } }
+@media (max-width: 640px) { .ology-help-hero { width: calc(100% - 36px); margin-top: 12px; border-radius: 5px; } }
 @media (max-width: 600px) { .ology-help-hero, .ology-help-hero-content { min-height: 620px; } .ology-help-hero-content { justify-content: flex-start; padding-block: 62px 220px; } .ology-help-hero-photo img { object-position: center bottom; } .ology-help-hero::after { background: linear-gradient(180deg, rgba(13,33,26,.78) 0%, rgba(13,33,26,.76) 42%, rgba(13,33,26,.34) 70%, rgba(13,33,26,.08) 100%); } }
 @media (max-width: 520px) { .ology-help-shell { width: min(100% - 32px, 1320px); } .ology-help h1 { font-size: clamp(39px, 11vw, 50px); } .ology-help-hero, .ology-help-hero-content { min-height: 630px; } .ology-help-hero-content { padding-top: 65px; } .ology-help-featured-grid { grid-template-columns: 1fr; } .ology-help-featured-card { min-height: 188px; } .ology-help-featured-label { margin-top: 16px; } .ology-help-featured-action { margin-top: 14px; } .ology-help-collection-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .ology-help-collection-card { min-height: 190px; padding: 15px; } .ology-help-collection-card strong { font-size: 15px; } .ology-help-collection-card > span:nth-last-of-type(1) { font-size: 12px; } .ology-help-resource-index-heading { padding: 18px; } .ology-help-resource-item { padding: 14px 17px; } .ology-help-faq-item { margin-inline: 14px; } }
 @media (max-width: 350px) { .ology-help-collection-grid { grid-template-columns: 1fr; } .ology-help-collection-card { min-height: 146px; } }

@@ -80,6 +80,7 @@ describe("Help Center public navigation", () => {
   const root = resolve(import.meta.dirname, "..");
   const page = readFileSync(resolve(root, "client/src/pages/HelpCenter.tsx"), "utf8");
   const styles = readFileSync(resolve(root, "client/src/pages/HelpCenter.css"), "utf8");
+  const homepageStyles = readFileSync(resolve(root, "client/src/pages/prototype/PublicHomepageDemoPrototype.css"), "utf8");
   const shell = readFileSync(resolve(root, "client/src/App.tsx"), "utf8");
   const metadata = readFileSync(resolve(root, "server/_core/vite.ts"), "utf8");
 
@@ -124,6 +125,16 @@ describe("Help Center public navigation", () => {
     expect(styles).toContain('@media (max-width: 600px)');
     expect(shell).toContain('const isHelpPage = location === "/help"');
     expect(shell).toContain('!isPricingPage && !isHelpPage && <PWAInstallBanner />');
+  });
+
+  it("frames the Help photo with the homepage hero's rounded corners and responsive gutters", () => {
+    expect(homepageStyles).toContain('border-radius:10px 10px 0 0');
+    expect(homepageStyles).toContain('.or-hero-frame{height:650px;border-radius:5px}');
+    expect(styles).toContain('width: min(1600px, calc(100% - 64px)); margin: 30px auto 0;');
+    expect(styles).toContain('border-radius: 10px 10px 0 0; overflow: hidden;');
+    expect(styles).toContain('@media (max-width: 900px) { .ology-help-hero { width: calc(100% - 44px); } }');
+    expect(styles).toContain('@media (max-width: 640px) { .ology-help-hero { width: calc(100% - 36px); margin-top: 12px; border-radius: 5px; } }');
+    expect(page).toContain('<section className="ology-help-hero" aria-labelledby="help-title">');
   });
 
   it("removes unsupported referral/copy claims and only scopes its brand styles", () => {
