@@ -1,0 +1,148 @@
+@import "../styles/publicBrandTokens.css";
+
+/* My Provider Plan only. Do not change global workspace tokens or customer plan styling. */
+.ology-provider-plan-page {
+  background: var(--ology-brand-paper);
+  color: var(--ology-brand-ink);
+  font-family: var(--ology-brand-body);
+}
+.ology-provider-plan-page .ology-provider-plan-intro h1 {
+  color: var(--ology-brand-deep);
+  font-family: var(--ology-brand-display);
+  letter-spacing: -.035em;
+}
+.ology-provider-plan-page .ology-provider-plan-intro-icon,
+.ology-provider-plan-page .ology-provider-plan-current-icon,
+.ology-provider-plan-page .ology-provider-plan-usage-icon {
+  color: var(--ology-brand-deep);
+}
+.ology-provider-plan-page .ology-provider-plan-intro p,
+.ology-provider-plan-page .ology-provider-plan-usage p.text-muted-foreground,
+.ology-provider-plan-page .ology-provider-plan-card [data-slot="card-description"] {
+  color: var(--ology-brand-muted);
+}
+.ology-provider-plan-page .ology-provider-plan-billing-toggle button[aria-pressed="true"] {
+  background: var(--ology-brand-deep);
+  color: #fff;
+}
+.ology-provider-plan-page .ology-provider-plan-billing-toggle button[aria-pressed="false"] {
+  background: #e9ede3;
+  color: var(--ology-brand-deep);
+}
+.ology-provider-plan-page .ology-provider-plan-billing-toggle button:hover {
+  box-shadow: 0 0 0 1px #839b82;
+}
+.ology-provider-plan-page .ology-provider-plan-billing-toggle button[aria-pressed="false"] span {
+  background: #e6edd8;
+  color: var(--ology-brand-deep);
+}
+
+.ology-provider-plan-page .ology-provider-plan-trial--active,
+.ology-provider-plan-page .ology-provider-plan-trial-offer {
+  border-color: #cbdac7;
+  background: #eef2e7;
+  color: var(--ology-brand-ink);
+}
+.ology-provider-plan-page .ology-provider-plan-trial--active svg,
+.ology-provider-plan-page .ology-provider-plan-trial-offer svg {
+  color: var(--ology-brand-deep);
+}
+.ology-provider-plan-page .ology-provider-plan-trial--active .text-muted-foreground,
+.ology-provider-plan-page .ology-provider-plan-trial-offer .text-muted-foreground {
+  color: var(--ology-brand-muted);
+}
+/* An expiring trial is a warning, not a neutral informational callout. */
+.ology-provider-plan-page .ology-provider-plan-trial--urgent {
+  border-color: #d8ae72;
+  background: #fff4df;
+  color: #603d17;
+}
+.ology-provider-plan-page .ology-provider-plan-trial--urgent svg { color: #86541c; }
+.ology-provider-plan-page .ology-provider-plan-trial--urgent .text-muted-foreground,
+.ology-provider-plan-page .bg-amber-50 .text-muted-foreground {
+  color: #603d17;
+}
+.ology-provider-plan-page .ology-provider-plan-trial-action {
+  border-color: #829e84;
+  background: var(--ology-brand-surface);
+  color: var(--ology-brand-deep);
+}
+.ology-provider-plan-page .ology-provider-plan-trial-action:hover {
+  background: #e6edd8;
+  color: var(--ology-brand-deep);
+}
+.ology-provider-plan-page .ology-provider-plan-current {
+  border-color: #cbdac7;
+  background: #eef2e7;
+  color: var(--ology-brand-ink);
+}
+.ology-provider-plan-page .ology-provider-plan-current .text-primary { color: var(--ology-brand-deep); }
+.ology-provider-plan-page .ology-provider-plan-usage {
+  border-color: var(--ology-brand-line);
+  background: var(--ology-brand-surface);
+}
+.ology-provider-plan-page .ology-provider-plan-usage-bar.bg-primary { background: var(--ology-brand-deep); }
+/* The original red at-limit usage bar, amber pause/expiry and destructive confirmation stay unchanged. */
+
+.ology-provider-plan-page .ology-provider-plan-card {
+  border-color: var(--ology-brand-line);
+  background: var(--ology-brand-surface);
+  box-shadow: 0 16px 42px -36px rgb(18 51 50 / 48%);
+}
+.ology-provider-plan-page .ology-provider-plan-card[data-provider-plan="basic"] { border-color: #abc1a8; }
+.ology-provider-plan-page .ology-provider-plan-card[data-current-plan="true"] {
+  border-color: var(--ology-brand-deep);
+  box-shadow: 0 0 0 2px var(--ology-brand-deep), 0 16px 42px -36px rgb(18 51 50 / 48%);
+}
+.ology-provider-plan-page .ology-provider-plan-card-icon { background: #e6edd8; }
+.ology-provider-plan-page .ology-provider-plan-card-icon svg,
+.ology-provider-plan-page .ology-provider-plan-card li svg.text-primary {
+  color: var(--ology-brand-deep);
+}
+.ology-provider-plan-page .ology-provider-plan-card .ology-provider-plan-popular {
+  background: var(--ology-brand-coral);
+  color: #fff;
+}
+.ology-provider-plan-page .ology-provider-plan-card .ology-provider-plan-unavailable {
+  color: var(--ology-brand-muted);
+}
+.ology-provider-plan-page [data-slot="button"].bg-primary {
+  background: var(--ology-brand-deep);
+  color: #fff;
+}
+.ology-provider-plan-page [data-slot="button"].bg-primary:hover { background: #1b4842; }
+.ology-provider-plan-page :is(a, button, input, select):focus-visible,
+.ology-provider-plan-dialog :is(a, button, input, select):focus-visible {
+  outline: 3px solid var(--ology-brand-coral-hover);
+  outline-offset: 3px;
+}
+.ology-provider-plan-dialog {
+  border-color: var(--ology-brand-line);
+  background: var(--ology-brand-surface);
+  color: var(--ology-brand-ink);
+}
+.ology-provider-plan-dialog button[aria-pressed="true"] {
+  border-color: var(--ology-brand-deep);
+  background: var(--ology-brand-deep);
+  color: #fff;
+}
+
+@media (max-width: 640px) {
+  .ology-provider-plan-page .ology-provider-plan-trial-offer > div,
+  .ology-provider-plan-page .ology-provider-plan-current > div {
+    align-items: flex-start;
+  }
+  .ology-provider-plan-page .ology-provider-plan-trial-offer > div {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .ology-provider-plan-page .ology-provider-plan-card[data-provider-plan="basic"] {
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ology-provider-plan-page :is(a, button, input, select),
+  .ology-provider-plan-dialog :is(a, button, input, select) {
+    transition-duration: .01ms !important;
+  }
+}

@@ -37,6 +37,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { PROVIDER_PLANS } from "@shared/entitlements";
+import "./SubscriptionManagement.css";
 
 const PLANS = [
   {
@@ -237,7 +238,7 @@ export default function SubscriptionManagement() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-page">
+      <div className="min-h-screen bg-page ology-provider-plan-page">
         <NavHeader />
         <div className="container py-16 text-center">
           <h1 className="text-2xl sm:text-3xl font-bold mb-4">My Provider Plan Subscription</h1>
@@ -248,18 +249,18 @@ export default function SubscriptionManagement() {
   }
 
   return (
-    <div className="min-h-screen bg-page">
+    <div className="min-h-screen bg-page ology-provider-plan-page">
       <NavHeader />
 
       <div className="container py-8 max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-8 ology-provider-plan-intro">
           <Button variant="ghost" size="sm" className="mb-4" onClick={() => window.history.back()}>
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back
           </Button>
           <div className="flex items-center gap-2 mb-2">
-            <Briefcase className="h-5 w-5 text-purple-600" />
+            <Briefcase className="h-5 w-5 ology-provider-plan-intro-icon" />
             <h1 className="text-2xl sm:text-3xl font-bold">My Provider Plan Subscription</h1>
           </div>
           <p className="text-muted-foreground text-lg">
@@ -268,8 +269,10 @@ export default function SubscriptionManagement() {
         </div>
 
         {/* Annual/Monthly Toggle */}
-        <div className="flex items-center justify-center gap-3 mb-8">
+        <div className="flex items-center justify-center gap-3 mb-8 ology-provider-plan-billing-toggle" role="group" aria-label="Provider billing interval">
           <button
+            type="button"
+            aria-pressed={billingInterval === "month"}
             onClick={() => setBillingInterval("month")}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
               billingInterval === "month"
@@ -280,6 +283,9 @@ export default function SubscriptionManagement() {
             Monthly
           </button>
           <button
+            type="button"
+            aria-label="Annual billing — save up to 20%"
+            aria-pressed={billingInterval === "year"}
             onClick={() => setBillingInterval("year")}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${
               billingInterval === "year"
@@ -300,10 +306,10 @@ export default function SubscriptionManagement() {
 
         {/* Trial Status Banner */}
         {trialStatus?.isTrialing && (
-          <div className="mb-6 p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+          <div className={`mb-6 p-4 rounded-lg border ology-provider-plan-trial ${trialStatus.showUrgentNudge ? "ology-provider-plan-trial--urgent" : "ology-provider-plan-trial--active"}`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Zap className="h-5 w-5 text-blue-500" />
+                <Zap className="h-5 w-5 shrink-0" />
                 <div>
                   <p className="font-medium text-sm">
                     Pro Trial — {trialStatus.daysRemaining} day{trialStatus.daysRemaining !== 1 ? 's' : ''} remaining
@@ -335,10 +341,10 @@ export default function SubscriptionManagement() {
 
         {/* Start Trial CTA for free users who haven't tried yet */}
         {currentTier === "free" && !trialStatus?.isTrialing && !trialStatus?.trialExpired && !trialStatus?.hasUsedTrial && (
-          <div className="mb-6 p-4 rounded-lg bg-gradient-to-r from-blue-500/10 to-primary/10 border border-blue-500/20">
+          <div className="mb-6 p-4 rounded-lg border ology-provider-plan-trial-offer">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Zap className="h-5 w-5 text-blue-500" />
+                <Zap className="h-5 w-5 shrink-0" />
                 <div>
                   <p className="font-medium text-sm">Try Pro free for 14 days</p>
                   <p className="text-xs text-muted-foreground">
@@ -349,7 +355,7 @@ export default function SubscriptionManagement() {
               <Button
                 size="sm"
                 variant="outline"
-                className="shrink-0 border-blue-500/30 text-blue-600 dark:text-blue-400 hover:bg-blue-500/10"
+                className="shrink-0 ology-provider-plan-trial-action"
                 onClick={() => startTrial.mutate()}
                 disabled={startTrial.isPending}
               >
@@ -361,10 +367,10 @@ export default function SubscriptionManagement() {
 
         {/* Current Plan Badge */}
         {currentTier !== "free" && (
-          <div className="mb-8 p-4 rounded-lg bg-primary/5 border border-primary/20">
+          <div className="mb-8 p-4 rounded-lg border ology-provider-plan-current">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
-                <Crown className="h-5 w-5 text-primary" />
+                <Crown className="h-5 w-5 ology-provider-plan-current-icon" />
                 <div>
                   <p className="font-medium">
                     Current Plan: <span className="text-primary capitalize">{currentTier === "basic" ? "Pro" : "Business"}</span>
@@ -442,11 +448,9 @@ export default function SubscriptionManagement() {
                         "Manage Billing"
                       )}
                     </Button>
-                    <Link href="/provider/billing">
-                      <Button variant="ghost" size="sm">
-                        Billing History
-                      </Button>
-                    </Link>
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href="/provider/billing">Billing History</Link>
+                    </Button>
                   </>
                 ) : null}
               </div>
@@ -456,9 +460,9 @@ export default function SubscriptionManagement() {
 
         {/* Usage Stats - side by side with current plan */}
         {currentSub?.usage && currentTier !== "free" && (
-          <div className="mb-8 p-4 rounded-lg border bg-card">
+          <div className="mb-8 p-4 rounded-lg border bg-card ology-provider-plan-usage">
             <h3 className="font-semibold mb-3 flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-primary" />
+              <BarChart3 className="h-5 w-5 ology-provider-plan-usage-icon" />
               Your Usage
             </h3>
             <div>
@@ -470,7 +474,7 @@ export default function SubscriptionManagement() {
                       currentSub.usage.servicesUsed >= currentSub.usage.servicesLimit
                         ? "bg-red-500"
                         : "bg-primary"
-                    }`}
+                    } ology-provider-plan-usage-bar`}
                     style={{ width: `${Math.min(100, (currentSub.usage.servicesUsed / currentSub.usage.servicesLimit) * 100)}%` }}
                   />
                 </div>
@@ -496,7 +500,9 @@ export default function SubscriptionManagement() {
             return (
               <Card 
                 key={plan.tier}
-                className={`relative flex flex-col overflow-visible ${
+                data-provider-plan={plan.tier}
+                data-current-plan={isCurrent && (currentTier === "free" || billingInterval === (currentSub?.currentInterval || "month")) ? "true" : "false"}
+                className={`relative flex flex-col overflow-visible ology-provider-plan-card ${
                   plan.highlight 
                     ? "border-primary shadow-lg shadow-primary/10 scale-[1.02]" 
                     : ""
@@ -505,7 +511,7 @@ export default function SubscriptionManagement() {
                 {/* Plan tags: Most Popular for Pro, Recommended for Business */}
                 {plan.tier === "basic" && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                    <Badge className="bg-primary text-primary-foreground px-3 shadow-sm">Most Popular</Badge>
+                    <Badge className="bg-primary text-primary-foreground px-3 shadow-sm ology-provider-plan-popular">Most Popular</Badge>
                   </div>
                 )}
                 {plan.tier === "premium" && !isCurrent && (
@@ -524,7 +530,7 @@ export default function SubscriptionManagement() {
                 )}
 
                 <CardHeader className="text-center pb-4">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3 ology-provider-plan-card-icon">
                     <Icon className="h-6 w-6 text-primary" />
                   </div>
                   <CardTitle className="text-xl">{plan.name}</CardTitle>
@@ -552,7 +558,7 @@ export default function SubscriptionManagement() {
                         <Check className={`h-4 w-4 mt-0.5 shrink-0 ${
                           feature.included ? "text-primary" : "text-muted-foreground/30"
                         }`} />
-                        <span className={`text-sm ${
+                        <span className={`text-sm ${!feature.included ? "ology-provider-plan-unavailable" : ""} ${
                           feature.included ? "" : "text-muted-foreground/50 line-through"
                         }`}>
                           {feature.text}
@@ -607,7 +613,7 @@ export default function SubscriptionManagement() {
                   ) : (
                     <Button 
                       className={`w-full ${plan.tier === "basic" ? "" : ""}`}
-                      variant={plan.tier === "basic" ? "default" : "outline"}
+                      variant={isDowngrade ? "outline" : plan.tier === "basic" ? "default" : "outline"}
                       onClick={() => {
                         if (isDowngrade) {
                           setDowngradeTarget(plan.tier as "basic");
@@ -645,13 +651,14 @@ export default function SubscriptionManagement() {
 
       {/* Pause Subscription Dialog */}
       <Dialog open={showPauseDialog} onOpenChange={setShowPauseDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md ology-provider-plan-dialog">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Pause className="h-5 w-5 text-amber-600" />
               Pause Your Subscription
             </DialogTitle>
-            <DialogDescription className="text-left space-y-3 pt-2">
+            <DialogDescription asChild className="text-left space-y-3 pt-2">
+              <div>
               <p>
                 Pausing your subscription will temporarily stop billing. Your profile and data will be preserved, but:
               </p>
@@ -670,6 +677,8 @@ export default function SubscriptionManagement() {
                   {(["7", "14", "30"] as const).map((days) => (
                     <button
                       key={days}
+                      type="button"
+                      aria-pressed={pauseDuration === days}
                       onClick={() => setPauseDuration(days)}
                       className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
                         pauseDuration === days
@@ -681,6 +690,7 @@ export default function SubscriptionManagement() {
                     </button>
                   ))}
                 </div>
+              </div>
               </div>
             </DialogDescription>
           </DialogHeader>
@@ -714,13 +724,14 @@ export default function SubscriptionManagement() {
 
       {/* Downgrade Confirmation Dialog */}
       <Dialog open={showDowngradeDialog} onOpenChange={setShowDowngradeDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md ology-provider-plan-dialog">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-amber-600" />
               Confirm Downgrade
             </DialogTitle>
-            <DialogDescription className="text-left space-y-3 pt-2">
+            <DialogDescription asChild className="text-left space-y-3 pt-2">
+              <div>
               <p>
                 You're about to downgrade from <strong>{currentTier === "premium" ? "Business" : "Pro"}</strong> to{" "}
                 <strong>{downgradeTarget === "free" ? "Starter (Free)" : "Pro"}</strong>.
@@ -754,6 +765,7 @@ export default function SubscriptionManagement() {
                   </ul>
                 </div>
               )}
+              </div>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex gap-2 sm:gap-2">
