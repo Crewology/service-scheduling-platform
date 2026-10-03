@@ -83,6 +83,20 @@ async function injectOgTags(url: string, template: string, origin: string): Prom
     }
   }
 
+  // Public Help Center
+  if (!ogTags && url.split(/[?#]/)[0] === "/help") {
+    ogTags = [
+      `<meta property="og:title" content="OlogyCrew Help Center — Find Your Way Forward" />`,
+      `<meta property="og:description" content="Find answers about bookings, provider tools, payments and account settings. Search help guides or contact OlogyCrew Support." />`,
+      `<meta property="og:url" content="https://ologycrew.com/help" />`,
+      `<meta property="og:type" content="website" />`,
+      `<meta property="og:site_name" content="OlogyCrew" />`,
+      `<meta name="twitter:card" content="summary" />`,
+      `<meta name="twitter:title" content="OlogyCrew Help Center — Find Your Way Forward" />`,
+      `<meta name="twitter:description" content="Search OlogyCrew help guides or contact support about bookings, providers, payments and accounts." />`,
+    ].join("\n    ");
+  }
+
   // Referral program page
   if (!ogTags && url.startsWith("/referral-program")) {
     ogTags = [

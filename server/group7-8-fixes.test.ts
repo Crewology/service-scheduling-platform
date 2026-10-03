@@ -33,8 +33,9 @@ describe("Group 7: UI/Display Fixes", () => {
         "utf-8"
       );
       expect(helpContent).not.toContain("mailto:garychisolm30@gmail.com");
-      // Should still have phone support
-      expect(helpContent).toContain("Phone Support");
+      // The redesigned page still exposes the public telephone support action.
+      expect(helpContent).toContain("Call us");
+      expect(helpContent).toContain('href={`tel:${contactPhone.replace(/[^+\\d]/g, "")}`}');
       expect(helpContent).toContain("(678) 525-0891");
     });
   });

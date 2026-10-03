@@ -1,6 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useId } from "react";
 import { Link } from "wouter";
 import { NavHeader } from "@/components/shared/NavHeader";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { OLOGYCREW_PUBLIC_ORIGIN } from "@shared/publicUrls";
+import "./HelpCenter.css";
 import {
   Search,
   ChevronDown,
@@ -238,14 +241,16 @@ const guideSections: GuideSection[] = [
       {
         title: "Provider Onboarding",
         content:
-          "There are two ways to become a provider: (1) Choose \"Provider\" when you first sign up and see the role selection screen, or (2) Click \"Become a Provider\" from your profile page if you initially signed up as a customer. Either way, you'll enter the onboarding wizard — a simple 5-step process:\n\n1. Profile — Set up your business profile with a description, location, and contact info\n2. Skills — Choose your service categories from our 48+ options\n3. Services — Add your services with pricing and duration\n4. Your Plan — Choose your subscription tier (Starter, Pro, or Business) or start a free 14-day Pro trial\n5. Get Paid — Connect your Stripe account to receive payments\n\nYour dashboard shows a checklist of what's complete.",
+          "There are two ways to become a provider: (1) Choose \"Provider\" when you first sign up and see the role selection screen, or (2) Click \"Become a Provider\" from your profile page if you initially signed up as a customer. Either way, you'll enter the onboarding wizard — a simple 5-step process:\n\n1. Profile — Set up your business profile with a description, location, and contact info\n2. Skills — Choose your service categories from the current directory\n3. Services — Add your services with pricing and duration\n4. Your Plan — Choose your subscription tier (Starter, Pro, or Business) or start a free 14-day Pro trial\n5. Get Paid — Connect your Stripe account to receive payments\n\nYour dashboard shows a checklist of what's complete.",
         link: "/provider/onboarding",
         linkText: "Start Onboarding",
       },
       {
         title: "Managing Your Services",
         content:
-          "From My Dashboard, you can add, edit, or remove services at any time. Each service includes a name, description, category, pricing (fixed, hourly, or custom), duration, and location type (mobile, in-shop, or virtual). Your tier determines your limits: Starter gets 1 category and up to 3 services, Pro gets up to 5 categories and 10 services, and Business gets unlimited categories and services.",
+          "From the Services page in your provider workspace, you can add, edit, or remove services at any time. Each service includes a name, description, category, pricing (fixed, hourly, or custom), duration, and location type (mobile, in-shop, or virtual). Your tier determines your limits: Starter gets 1 category and up to 3 services, Pro gets up to 5 categories and 10 services, and Business gets unlimited categories and services.",
+        link: "/provider/services",
+        linkText: "Manage Services",
       },
       {
         title: "Setting Your Availability",
@@ -286,7 +291,9 @@ const guideSections: GuideSection[] = [
       {
         title: "Responding to Quote Requests",
         content:
-          "Customers may send you quote requests for custom work. You'll see these on your dashboard under the Quotes tab. Review the request details and respond with your pricing, estimated timeline, and any notes. Quick responses improve your chances of winning the job.",
+          "Customers may send you quote requests for custom work. Review them on your provider Quotes page and respond with your pricing, estimated timeline, and any notes. Quick responses help customers decide how to proceed.",
+        link: "/provider/quotes",
+        linkText: "Open Provider Quotes",
       },
       {
         title: "Using Customers for Your Provider Business",
@@ -298,7 +305,9 @@ const guideSections: GuideSection[] = [
       {
         title: "Building Your Portfolio",
         content:
-          "Showcase your best work by uploading photos to your portfolio from My Dashboard. You can add single photos or before/after comparisons. A strong portfolio helps attract more customers and build trust.",
+          "Showcase your work on your provider Portfolio page. You can add single photos or before/after comparisons so potential customers can see your services in action.",
+        link: "/provider/portfolio",
+        linkText: "Open Portfolio",
       },
       {
         title: "Your Public Profile",
@@ -405,7 +414,7 @@ const guideSections: GuideSection[] = [
       {
         title: "Referral Program",
         content:
-          "Earn rewards by referring friends to OlogyCrew! Share your unique referral code or link, and when someone signs up and completes their first booking, both of you receive a reward. Track your referrals and earnings from the Referrals page.",
+          "Share your unique referral link with a friend or provider. A signup is tracked, but it does not earn a reward on its own. When the referred account completes an eligible paid booking as a customer, you earn a tier-based credit on the net amount captured at award time. Unpaid, fully refunded, and official demo bookings do not qualify. See your referral activity, balance, and expiry dates on the Referrals page; credits expire 90 days after they're earned.",
         link: "/referrals",
         linkText: "View Referrals",
       },
@@ -470,7 +479,7 @@ const faqItems: FAQItem[] = [
   {
     question: "What service categories are available?",
     answer:
-      "OlogyCrew supports 48+ service categories including Barber Shop, Salon, Massage Therapist, Personal Trainer, Handyman, Photography, DJ & Music, Event Planning, Home Cleaning, Auto Detailing, Tech Support, Cybersecurity, Dance Lessons, Pet Care, and many more.",
+      "Explore the current service directory for categories including Barber Shop, Salon, Massage Therapist, Personal Trainer, Handyman, Photography, DJ & Music, Event Planning, Home Cleaning, Auto Detailing, Tech Support, Cybersecurity, Dance Lessons, and Pet Care. The available categories and services may change as providers join.",
     category: "General",
   },
   {
@@ -668,7 +677,7 @@ const faqItems: FAQItem[] = [
   {
     question: "How does search ranking work?",
     answer:
-      "Search results are ranked by a combination of your Trust Score and subscription tier. Your Trust Score is the primary factor — providers with higher trust levels appear first. Subscription tier provides a secondary boost: Business gets the highest boost, Pro gets a moderate boost, and Starter gets no boost. This means a Trusted provider on the free plan can still rank above a New provider on a paid plan, keeping the system merit-based.",
+      "Provider standing reflects profile completeness and activity on OlogyCrew; it is not credential verification. Search placement can also reflect the visibility benefits of a provider's current plan. Check the public Pricing page for current plan benefits. A paid plan does not guarantee a specific position in every search result.",
     category: "Providers",
   },
   {
@@ -694,83 +703,71 @@ const faqItems: FAQItem[] = [
 // ─── FAQ Accordion Item ───────────────────────────────────────────────────────
 
 function FAQAccordionItem({ item }: { item: FAQItem }) {
-  const [isOpen, setIsOpen] = useState(false);
   return (
-    <div className="border-b border-border last:border-0">
-      <button
-        className="w-full flex items-center justify-between py-4 px-1 text-left hover:text-primary transition-colors"
-        onClick={() => setIsOpen(!isOpen)}
-      >
+    <details className="ology-help-faq-item">
+      <summary>
         <span className="font-medium pr-4">{item.question}</span>
-        <ChevronDown
-          className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${
-            isOpen ? "rotate-180" : ""
-          }`}
-        />
-      </button>
-      {isOpen && (
-        <div className="pb-4 px-1 text-sm text-muted-foreground leading-relaxed">
-          {item.answer}
-        </div>
-      )}
-    </div>
+        <ChevronDown className="h-4 w-4 shrink-0" aria-hidden="true" />
+      </summary>
+      <div className="ology-help-answer whitespace-pre-line">{item.answer}</div>
+    </details>
   );
 }
 
 // ─── Guide Section Component ──────────────────────────────────────────────────
 
-function GuideSectionCard({ section }: { section: GuideSection }) {
+function GuideSectionCard({ section, expanded, onToggle }: { section: GuideSection; expanded: boolean; onToggle: () => void }) {
   const [expandedArticle, setExpandedArticle] = useState<number | null>(null);
+  const id = useId();
 
   return (
-    <Card id={section.id}>
-      <CardHeader>
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10 text-primary">
+    <section id={section.id} className="ology-help-guide-section" aria-labelledby={`${id}-heading`}>
+      <button type="button" className="ology-help-guide-toggle" aria-expanded={expanded} aria-controls={`${id}-articles`} onClick={onToggle}>
+        <span className="ology-help-guide-title">
+          <span className="ology-help-guide-icon" aria-hidden="true">
             {section.icon}
-          </div>
-          <div>
-            <CardTitle className="text-xl">{section.title}</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">
-              {section.description}
-            </p>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-1">
-        {section.articles.map((article, idx) => (
-          <div key={idx} className="border border-border rounded-lg">
+          </span>
+          <span>
+            <span id={`${id}-heading`} className="ology-help-guide-heading">{section.title}</span>
+            <span className="ology-help-guide-description">{section.description}</span>
+          </span>
+        </span>
+        <span className="ology-help-guide-count">{section.articles.length} {section.articles.length === 1 ? "guide" : "guides"}</span>
+        <ChevronDown className={`h-5 w-5 shrink-0 ${expanded ? "rotate-180" : ""}`} aria-hidden="true" />
+      </button>
+      <div id={`${id}-articles`} className="ology-help-articles" hidden={!expanded}>
+        {expanded && section.articles.map((article, idx) => {
+          const articleId = `${id}-article-${idx}`;
+          return <div key={article.title} className="ology-help-article">
             <button
-              className="w-full flex items-center justify-between p-4 text-left hover:bg-muted/50 transition-colors rounded-lg"
+              type="button" className="ology-help-article-toggle" aria-expanded={expandedArticle === idx} aria-controls={expandedArticle === idx ? articleId : undefined}
               onClick={() =>
                 setExpandedArticle(expandedArticle === idx ? null : idx)
               }
             >
-              <span className="font-medium text-sm pr-4">{article.title}</span>
+              <span className="pr-4">{article.title}</span>
               <ChevronRight
-                className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${
+                className={`h-4 w-4 shrink-0 transition-transform duration-200 ${
                   expandedArticle === idx ? "rotate-90" : ""
-                }`}
+                }`} aria-hidden="true"
               />
             </button>
             {expandedArticle === idx && (
-              <div className="px-4 pb-4">
-                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+              <div id={articleId} className="ology-help-answer">
+                <p className="whitespace-pre-line">
                   {article.content}
                 </p>
                 {article.link && (
-                  <Link href={article.link}>
-                    <Button variant="link" size="sm" className="mt-2 px-0 h-auto">
-                      {article.linkText} <ArrowRight className="h-3 w-3 ml-1" />
-                    </Button>
+                  <Link href={article.link} className="ology-help-inline-link">
+                    {article.linkText} <ArrowRight className="h-4 w-4" aria-hidden="true" />
                   </Link>
                 )}
               </div>
             )}
-          </div>
-        ))}
-      </CardContent>
-    </Card>
+          </div>;
+        })}
+      </div>
+    </section>
   );
 }
 
@@ -778,7 +775,7 @@ function GuideSectionCard({ section }: { section: GuideSection }) {
 
 const quickLinks = [
   { icon: <Calendar className="h-5 w-5" />, label: "My Bookings", href: "/my-bookings" },
-  { icon: <MessageSquare className="h-5 w-5" />, label: "Messages", href: "/my-bookings" },
+  { icon: <MessageSquare className="h-5 w-5" />, label: "Messages", href: "/messages" },
   { icon: <Heart className="h-5 w-5" />, label: "Saved Providers", href: "/saved-providers" },
   { icon: <FileText className="h-5 w-5" />, label: "My Quotes", href: "/my-quotes" },
   { icon: <Star className="h-5 w-5" />, label: "Browse Services", href: "/browse" },
@@ -836,22 +833,19 @@ function ContactForm() {
 
   if (submitted) {
     return (
-      <Card className="border-green-200 bg-green-50/50">
+      <Card className="ology-help-contact-form">
         <CardContent className="py-8 text-center">
-          <div className="mx-auto w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
-            <CheckCircle2 className="h-8 w-8 text-green-600" />
+          <div className="mx-auto w-16 h-16 rounded-full bg-[#e8eecd] flex items-center justify-center mb-4">
+            <CheckCircle2 className="h-8 w-8 text-[#123332]" />
           </div>
-          <h3 className="text-xl font-semibold text-green-800 mb-2">Message Sent Successfully!</h3>
-          <p className="text-green-700 mb-1">
-            Thank you for reaching out. We've received your message and will respond within 24-48 hours.
+          <h3 className="text-xl font-semibold text-[#123332] mb-2">We received your message.</h3>
+          <p className="mb-1">
+            Thank you for reaching out. Please keep your reference number for follow-up.
           </p>
           {refId && (
-            <p className="text-sm text-green-600 mb-4">Reference #: {refId}</p>
+            <p className="text-sm font-bold text-[#123332] mb-4">Reference #: {refId}</p>
           )}
-          <p className="text-sm text-muted-foreground mb-6">
-            A confirmation email has been sent to your inbox.
-          </p>
-          <Button variant="outline" onClick={handleReset} className="gap-2">
+          <Button variant="outline" onClick={handleReset} className="ology-help-reset gap-2 mt-4">
             <Send className="h-4 w-4" />
             Send Another Message
           </Button>
@@ -861,7 +855,7 @@ function ContactForm() {
   }
 
   return (
-    <Card>
+    <Card className="ology-help-contact-form">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Send className="h-5 w-5 text-primary" />
@@ -950,7 +944,7 @@ function ContactForm() {
           <Button
             type="submit"
             disabled={submitMutation.isPending}
-            className="w-full sm:w-auto gap-2"
+            className="ology-help-submit w-full sm:w-auto gap-2"
           >
             {submitMutation.isPending ? (
               <>
@@ -973,304 +967,199 @@ function ContactForm() {
 export default function HelpCenter() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [showAllFAQ, setShowAllFAQ] = useState(false);
+  const { isAuthenticated } = useAuth();
 
-  // Fetch platform contact info from admin settings
   const { data: platformContactInfo } = trpc.platformSettings.getAll.useQuery();
   const contactPhone = platformContactInfo?.contact_phone || "(678) 525-0891";
   const contactEmail = platformContactInfo?.contact_email || "info@ologycrew.com";
   const businessHours = platformContactInfo?.business_hours || "Mon-Fri 9:00 AM - 6:00 PM EST";
   const contactAddress = platformContactInfo?.contact_address || "";
 
-  // Filter FAQ items based on search and category
   const filteredFAQ = useMemo(() => {
-    return faqItems.filter((item) => {
-      const matchesSearch =
-        !searchQuery ||
-        item.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.answer.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory =
-        activeCategory === "all" || item.category === activeCategory;
-      return matchesSearch && matchesCategory;
-    });
+    const query = searchQuery.trim().toLowerCase();
+    return faqItems.filter((item) =>
+      (activeCategory === "all" || item.category === activeCategory) &&
+      (!query || item.question.toLowerCase().includes(query) || item.answer.toLowerCase().includes(query))
+    );
   }, [searchQuery, activeCategory]);
 
-  // Filter guide sections based on search
   const filteredSections = useMemo(() => {
-    if (!searchQuery) return guideSections;
-    const q = searchQuery.toLowerCase();
-    return guideSections
-      .map((section) => ({
-        ...section,
-        articles: section.articles.filter(
-          (a) =>
-            a.title.toLowerCase().includes(q) ||
-            a.content.toLowerCase().includes(q)
-        ),
-      }))
-      .filter((section) => section.articles.length > 0);
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return guideSections;
+    return guideSections.map((section) => ({
+      ...section,
+      articles: section.articles.filter((article) =>
+        article.title.toLowerCase().includes(query) || article.content.toLowerCase().includes(query)
+      ),
+    })).filter((section) => section.articles.length > 0);
   }, [searchQuery]);
-
+  const searching = Boolean(searchQuery.trim());
+  const guideCount = filteredSections.reduce((count, section) => count + section.articles.length, 0);
+  const shownFAQ = searching || activeCategory !== "all" || showAllFAQ ? filteredFAQ : filteredFAQ.slice(0, 8);
   const faqCategories = ["all", "General", "Bookings", "Providers", "Payments"];
 
+  useEffect(() => {
+    const oldTitle = document.title;
+    document.title = "OlogyCrew Help Center — Find Your Way Forward";
+    let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    const createdCanonical = !canonical;
+    const oldCanonical = canonical?.href;
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.rel = "canonical";
+      document.head.appendChild(canonical);
+    }
+    canonical.href = `${OLOGYCREW_PUBLIC_ORIGIN}/help`;
+    return () => {
+      document.title = oldTitle;
+      if (createdCanonical) canonical?.remove();
+      else if (canonical && oldCanonical) canonical.href = oldCanonical;
+    };
+  }, []);
+
+  useEffect(() => {
+    const scrollToHash = () => {
+      const hash = decodeURIComponent(window.location.hash.slice(1));
+      if (guideSections.some((section) => section.id === hash)) setExpandedSection(hash);
+      if (hash === "contact" || hash === "faq" || guideSections.some((section) => section.id === hash)) {
+        requestAnimationFrame(() => document.getElementById(hash)?.scrollIntoView({ behavior: "auto", block: "start" }));
+      }
+    };
+    scrollToHash();
+    window.addEventListener("hashchange", scrollToHash);
+    return () => window.removeEventListener("hashchange", scrollToHash);
+  }, []);
+
+  const openSection = (id: string) => {
+    setExpandedSection(id);
+    window.history.replaceState(null, "", `#${id}`);
+    requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      block: "start",
+    }));
+  };
+
   return (
-    <div className="min-h-screen bg-page">
+    <>
       <NavHeader />
-      {/* Hero Section */}
-      <div className="bg-primary/5 border-b">
-        <div className="container max-w-5xl py-10 md:py-16">
-          <div className="text-center">
-            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary rounded-full px-4 py-1.5 text-sm font-medium mb-4">
-              <HelpCircle className="h-4 w-4" />
-              Help Center
-            </div>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
-              How can we help you?
-            </h1>
-            <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto mb-8">
-              Find answers to common questions, learn how to use OlogyCrew, and get
-              the most out of the platform.
-            </p>
-            {/* Search */}
-            <div className="max-w-xl mx-auto relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input
-                placeholder="Search for help articles, FAQs, or topics..."
-                className="pl-10 h-12 text-base"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="container max-w-5xl py-8 md:py-12 space-y-10 md:space-y-14">
-        {/* Quick Links */}
-        {!searchQuery && (
-          <div>
-            <h2 className="text-lg font-semibold mb-4">Quick Links</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-              {quickLinks.map((link) => (
-                <Link key={link.href + link.label} href={link.href}>
-                  <Card className="hover:border-primary/30 hover:shadow-md transition-all cursor-pointer h-full">
-                    <CardContent className="flex flex-col items-center justify-center py-4 px-2 text-center gap-2">
-                      <div className="text-primary">{link.icon}</div>
-                      <span className="text-xs font-medium">{link.label}</span>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Section Navigation (when not searching) */}
-        {!searchQuery && (
-          <div>
-            <h2 className="text-lg font-semibold mb-4">Browse by Topic</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {guideSections.map((section) => (
-                <a
-                  key={section.id}
-                  href={`#${section.id}`}
-                  className="block"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    document
-                      .getElementById(section.id)
-                      ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                  }}
-                >
-                  <Card className="hover:border-primary/30 hover:shadow-md transition-all cursor-pointer h-full">
-                    <CardContent className="flex items-start gap-3 py-4">
-                      <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
-                        {section.icon}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-medium text-sm">{section.title}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                          {section.description}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Guide Sections */}
-        <div className="space-y-8">
-          {searchQuery && filteredSections.length === 0 && filteredFAQ.length === 0 && (
-            <div className="text-center py-12">
-              <HelpCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No results found</h3>
-              <p className="text-muted-foreground mb-4">
-                We couldn't find anything matching "{searchQuery}". Try a different search term or browse the topics below.
-              </p>
-              <Button variant="outline" onClick={() => setSearchQuery("")}>
-                Clear Search
-              </Button>
-            </div>
-          )}
-
-          {filteredSections.map((section) => (
-            <GuideSectionCard key={section.id} section={section} />
-          ))}
-        </div>
-
-        {/* FAQ Section */}
-        <div id="faq">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <main className="ology-help">
+        <section className="ology-help-hero" aria-labelledby="help-title">
+          <div className="ology-help-shell ology-help-hero-grid">
             <div>
-              <h2 className="text-2xl font-bold">Frequently Asked Questions</h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                Quick answers to the most common questions
-              </p>
+              <span className="ology-help-eyebrow"><HelpCircle className="h-4 w-4" aria-hidden="true" /> OlogyCrew Help Center</span>
+              <h1 id="help-title">Find your way <em>forward.</em></h1>
+              <p className="ology-help-hero-copy">Answers for booking a service, running your business, and everything in between. Start with a question or choose a path below.</p>
+              <div className="ology-help-search">
+                <label htmlFor="help-search" className="sr-only">Search Help Center guides and questions</label>
+                <Search className="ology-help-search-icon" aria-hidden="true" />
+                <input id="help-search" type="search" autoComplete="off" placeholder="Search help articles and questions" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} />
+                {searchQuery && <button type="button" className="ology-help-search-clear" aria-label="Clear help search" onClick={() => setSearchQuery("")}>Clear</button>}
+              </div>
+              <p className="ology-help-hero-tip">Try “booking,” “provider,” or “payment”.</p>
             </div>
+            <aside className="ology-help-assist" aria-label="Contact support">
+              <span className="ology-help-assist-icon"><MessageSquare className="h-5 w-5" aria-hidden="true" /></span>
+              <div>
+                <h2>Need a person?</h2>
+                <p>Send the team a note if you can't find the answer here. No account is needed to contact us.</p>
+              </div>
+              <a href="#contact" className="ology-help-action">Contact support <ArrowRight className="h-4 w-4" aria-hidden="true" /></a>
+            </aside>
           </div>
+        </section>
 
-          {/* Category Filter */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            {faqCategories.map((cat) => (
-              <Button
-                key={cat}
-                variant={activeCategory === cat ? "default" : "outline"}
-                size="sm"
-                onClick={() => setActiveCategory(cat)}
-                className="capitalize"
-              >
-                {cat === "all" ? "All Topics" : cat}
-              </Button>
-            ))}
-          </div>
+        <div className="ology-help-shell ology-help-body">
+          {!searching && <section className="ology-help-section" aria-labelledby="help-paths-title">
+            <div className="ology-help-section-heading">
+              <span className="ology-help-eyebrow">Start here</span>
+              <h2 id="help-paths-title">What can we help you do?</h2>
+              <p>Choose the questions that fit where you are today.</p>
+            </div>
+            <div className="ology-help-start-grid">
+              <a href="#for-customers" className="ology-help-start-card" onClick={(event) => { event.preventDefault(); openSection("for-customers"); }}>
+                <Users className="h-6 w-6" aria-hidden="true" /><strong>Book a service</strong><span>Explore services, requests, bookings and saved providers.</span><ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </a>
+              <a href="#for-providers" className="ology-help-start-card" onClick={(event) => { event.preventDefault(); openSection("for-providers"); }}>
+                <Briefcase className="h-6 w-6" aria-hidden="true" /><strong>Run your business</strong><span>Set up your profile, availability, services and customer relationships.</span><ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </a>
+              <a href="#payments" className="ology-help-start-card" onClick={(event) => { event.preventDefault(); openSection("payments"); }}>
+                <CreditCard className="h-6 w-6" aria-hidden="true" /><strong>Payments & plans</strong><span>Learn about checkout, subscriptions, billing and refunds.</span><ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </a>
+            </div>
+            <nav className="ology-help-quick" aria-label="Popular help shortcuts">
+              <span className="ology-help-quick-label">Quick links</span>
+              {quickLinks.map((link) => <Link key={link.label} href={link.href} className="ology-help-quick-link">
+                {link.icon}<span>{link.label}</span>
+              </Link>)}
+              {!isAuthenticated && <span className="text-sm" style={{ color: "var(--ology-brand-muted)" }}>Account pages require sign-in.</span>}
+            </nav>
+          </section>}
 
-          <Card>
-            <CardContent className="py-2">
-              {filteredFAQ.length === 0 ? (
-                <div className="py-8 text-center text-muted-foreground">
-                  No FAQs match your current filters. Try adjusting your search or category.
-                </div>
-              ) : (
-                filteredFAQ.map((item, idx) => (
-                  <FAQAccordionItem key={idx} item={item} />
-                ))
-              )}
-            </CardContent>
-          </Card>
+          {searching && <div className="ology-help-section-heading" aria-live="polite">
+            <h2>Search results</h2>
+            <p>{guideCount} {guideCount === 1 ? "guide" : "guides"} and {filteredFAQ.length} {filteredFAQ.length === 1 ? "question" : "questions"} for “{searchQuery.trim()}”.</p>
+          </div>}
+          {searching && filteredSections.length === 0 && filteredFAQ.length === 0 &&
+            <div className="ology-help-empty" role="status">
+              <HelpCircle className="h-8 w-8 mx-auto mb-3" aria-hidden="true" />
+              <h3>No matching answers yet</h3>
+              <p>Try a different search or send us a message below.</p>
+              <button type="button" className="ology-help-more" onClick={() => { setSearchQuery(""); setActiveCategory("all"); }}>Clear search</button>
+            </div>}
+
+          {filteredSections.length > 0 && <section className="ology-help-section" aria-labelledby="help-guides-title">
+            <div className="ology-help-section-heading">
+              <span className="ology-help-eyebrow">The guides</span>
+              <h2 id="help-guides-title">{searching ? "Matching guides" : "Explore by topic"}</h2>
+              {!searching && <p>Open a topic to see its guides. Everything stays searchable without a wall of links.</p>}
+            </div>
+            <div className="ology-help-guide-list">
+              {filteredSections.map((section) => <GuideSectionCard key={section.id} section={section}
+                expanded={searching || expandedSection === section.id}
+                onToggle={() => setExpandedSection(expandedSection === section.id ? null : section.id)} />)}
+            </div>
+          </section>}
+
+          {(!searching || filteredFAQ.length > 0) && <section id="faq" className="ology-help-section" aria-labelledby="help-faq-title" style={{ scrollMarginTop: 94 }}>
+            <div className="ology-help-section-heading">
+              <span className="ology-help-eyebrow">Common questions</span>
+              <h2 id="help-faq-title">Good to know.</h2>
+              <p>Short answers to common questions. Use the topic filters to narrow the list.</p>
+            </div>
+            <div className="ology-help-filter-row" aria-label="Filter frequently asked questions">
+              {faqCategories.map((cat) => <button key={cat} type="button" className="ology-help-filter"
+                aria-pressed={activeCategory === cat} onClick={() => { setActiveCategory(cat); setShowAllFAQ(false); }}>
+                {cat === "all" ? "All topics" : cat}
+              </button>)}
+            </div>
+            {shownFAQ.length > 0 ? <div className="ology-help-faq-list">
+              {shownFAQ.map((item) => <FAQAccordionItem key={item.question} item={item} />)}
+            </div> : <div className="ology-help-empty" role="status">No questions match this topic and search. Try another filter.</div>}
+            {!searching && activeCategory === "all" && filteredFAQ.length > shownFAQ.length &&
+              <button type="button" className="ology-help-more" onClick={() => setShowAllFAQ(true)}>
+                Show all {filteredFAQ.length} questions <ArrowRight className="h-4 w-4 inline ml-1" aria-hidden="true" />
+              </button>}
+          </section>}
+
+          <section id="contact" className="ology-help-section" aria-labelledby="help-contact-title" style={{ scrollMarginTop: 94 }}>
+            <div className="ology-help-section-heading">
+              <span className="ology-help-eyebrow">Talk to us</span>
+              <h2 id="help-contact-title">Still need a hand?</h2>
+              <p>Tell us what's happening. The contact form works whether or not you're signed in.</p>
+            </div>
+            <div className="ology-help-contact-grid">
+              <ContactForm />
+              <div className="ology-help-contact-card">
+                <div><Phone className="h-5 w-5 mb-3" aria-hidden="true" /><h3>Call us</h3><p>{businessHours}</p><a href={`tel:${contactPhone.replace(/[^+\d]/g, "")}`}>{contactPhone}</a></div>
+                <div><MessageSquare className="h-5 w-5 mb-3" aria-hidden="true" /><h3>Email support</h3><p>Prefer email? Write to our support address.</p><a href={`mailto:${contactEmail}`}>{contactEmail}</a></div>
+                {contactAddress && <div><MapPin className="h-5 w-5 mb-3" aria-hidden="true" /><h3>Our location</h3><p>{contactAddress}</p></div>}
+              </div>
+            </div>
+          </section>
         </div>
-
-        {/* Contact & Support Section */}
-        <div id="contact">
-          <h2 className="text-2xl font-bold mb-6">Still Need Help?</h2>
-
-          {/* Contact Form */}
-          <ContactForm />
-
-          {/* Direct Contact Info */}
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="border-primary/20">
-              <CardContent className="py-6">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-xl bg-primary/10 text-primary shrink-0">
-                    <Phone className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg mb-1">Phone Support</h3>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      {businessHours}
-                    </p>
-                    <a
-                      href={`tel:${contactPhone.replace(/[^+\d]/g, "")}`}
-                      className="inline-flex items-center gap-2 text-primary font-medium text-sm hover:underline"
-                    >
-                      {contactPhone}
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="border-primary/20">
-              <CardContent className="py-6">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-xl bg-primary/10 text-primary shrink-0">
-                    <MessageSquare className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg mb-1">Email Support</h3>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      We typically respond within 24 hours.
-                    </p>
-                    <a
-                      href={`mailto:${contactEmail}`}
-                      className="inline-flex items-center gap-2 text-primary font-medium text-sm hover:underline"
-                    >
-                      {contactEmail}
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            {contactAddress && (
-              <Card className="border-primary/20 md:col-span-2">
-                <CardContent className="py-6">
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 rounded-xl bg-primary/10 text-primary shrink-0">
-                      <MapPin className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-lg mb-1">Our Location</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {contactAddress}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          {/* Additional Resources */}
-          <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Link href="/terms">
-              <Card className="hover:shadow-md transition-all cursor-pointer h-full">
-                <CardContent className="flex items-center gap-3 py-4">
-                  <Shield className="h-5 w-5 text-muted-foreground shrink-0" />
-                  <div>
-                    <p className="font-medium text-sm">Terms of Service</p>
-                    <p className="text-xs text-muted-foreground">Platform rules & policies</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-            <Link href="/privacy">
-              <Card className="hover:shadow-md transition-all cursor-pointer h-full">
-                <CardContent className="flex items-center gap-3 py-4">
-                  <Shield className="h-5 w-5 text-muted-foreground shrink-0" />
-                  <div>
-                    <p className="font-medium text-sm">Privacy Policy</p>
-                    <p className="text-xs text-muted-foreground">How we protect your data</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-            <Link href="/browse">
-              <Card className="hover:shadow-md transition-all cursor-pointer h-full">
-                <CardContent className="flex items-center gap-3 py-4">
-                  <Star className="h-5 w-5 text-muted-foreground shrink-0" />
-                  <div>
-                    <p className="font-medium text-sm">Browse Services</p>
-                    <p className="text-xs text-muted-foreground">Explore 48+ categories</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          </div>
-        </div>
-      </div>
-    </div>
+      </main>
+    </>
   );
 }

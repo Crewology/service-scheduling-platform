@@ -32,7 +32,7 @@ function getSenderForType(type?: string): { email: string; name: string } {
   if (!type) return EMAIL_SENDERS.noreply;
 
   // Support-related emails
-  const supportTypes = ['payment_failed', 'refund_processed', 'subscription_cancelled', 'subscription_payment_failed'];
+  const supportTypes = ['payment_failed', 'refund_processed', 'subscription_cancelled', 'subscription_payment_failed', 'contact_received', 'contact_reply'];
   if (supportTypes.includes(type)) return EMAIL_SENDERS.support;
 
   // General/informational emails

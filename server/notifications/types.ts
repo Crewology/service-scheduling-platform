@@ -8,6 +8,8 @@ export type NotificationChannel = 'email' | 'sms' | 'push' | 'in_app';
 export type NotificationType =
   | 'booking_created'
   | 'booking_confirmed'
+  | 'contact_received'
+  | 'contact_reply'
   | 'booking_cancelled'
   | 'booking_completed'
   | 'payment_received'

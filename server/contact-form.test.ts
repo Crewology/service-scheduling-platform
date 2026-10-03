@@ -140,20 +140,18 @@ describe("Contact Form Feature", () => {
       expect(confirmationLine).toContain("123");
     });
 
-    it("should include contact info in confirmation email", () => {
-      const emailContent = [
-        `If you need immediate assistance, you can reach us at:`,
-        `- **Email:** garychisolm30@gmail.com`,
-        `- **Phone:** (678) 525-0891`,
-      ].join("\n");
-
-      expect(emailContent).toContain("garychisolm30@gmail.com");
-      expect(emailContent).toContain("(678) 525-0891");
+    it("uses the public support address rather than a private owner inbox", async () => {
+      const { getTemplate } = await import("./notifications/templates");
+      const email = getTemplate("contact_received", { referenceId: 123 });
+      expect(email.body).toContain("info@ologycrew.com");
+      expect(email.body).not.toContain("garychisolm30@gmail.com");
     });
 
-    it("should include response time expectation", () => {
-      const message = "We typically respond within 24-48 hours.";
-      expect(message).toContain("24-48 hours");
+    it("does not promise a guaranteed support response time", async () => {
+      const { getTemplate } = await import("./notifications/templates");
+      const email = getTemplate("contact_received", { referenceId: 123 });
+      expect(email.body).toContain("respond as soon as we can");
+      expect(email.body).not.toContain("24-48 hours");
     });
   });
 

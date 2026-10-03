@@ -52,6 +52,16 @@ OlogyCrew Team
       smsBody: `Your ${data.serviceName} booking is confirmed for ${data.date} at ${data.time}. See you then!`,
     },
 
+    contact_received: {
+      subject: `OlogyCrew Support received your message (#${data.referenceId})`,
+      body: `Hello,\n\nWe received your message to OlogyCrew Support. Please keep reference #${data.referenceId} if you need to follow up. We'll respond as soon as we can.\n\nFor another question, visit [Help Center](/help) or email info@ologycrew.com.\n\nOlogyCrew Support`,
+    },
+
+    contact_reply: {
+      subject: `OlogyCrew Support reply (#${data.referenceId})`,
+      body: `Hello,\n\nA member of OlogyCrew Support replied to your message (reference #${data.referenceId}):\n\n${data.message || ''}\n\nTo follow up, email info@ologycrew.com with your reference number or visit [Help Center](/help).\n\nOlogyCrew Support`,
+    },
+
     booking_cancelled: {
       subject: `Booking Cancelled #${data.bookingNumber}`,
       body: `

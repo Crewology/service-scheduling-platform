@@ -58,7 +58,7 @@ export const contactRouter = router({
       // Send confirmation email to the submitter
       try {
         await sendNotification({
-          type: "booking_confirmed",
+          type: "contact_received",
           channel: "email",
           recipient: {
             userId: userId ?? 0,
@@ -66,23 +66,7 @@ export const contactRouter = router({
             name: input.name,
           },
           data: {
-            customerName: input.name,
-            message: [
-              `Thank you for contacting OlogyCrew Support!`,
-              ``,
-              `We've received your message and will get back to you as soon as possible.`,
-              ``,
-              `**Your submission details:**`,
-              `- **Subject:** ${input.subject}`,
-              `- **Category:** ${categoryLabel}`,
-              `- **Reference #:** ${result.id}`,
-              ``,
-              `If you need immediate assistance, you can reach us at:`,
-              `- **Email:** garychisolm30@gmail.com`,
-              `- **Phone:** (678) 525-0891`,
-              ``,
-              `We typically respond within 24-48 hours.`,
-            ].join("\n"),
+            referenceId: result.id,
           },
         });
       } catch (err) {
@@ -189,7 +173,7 @@ export const contactRouter = router({
       let emailSent = false;
       try {
         const result = await sendNotification({
-          type: "booking_confirmed", // reuse generic email type
+          type: "contact_reply",
           channel: "email",
           recipient: {
             userId: submission.userId ?? 0,
@@ -197,26 +181,8 @@ export const contactRouter = router({
             name: submission.name,
           },
           data: {
-            customerName: submission.name,
-            message: [
-              `Hello ${submission.name},`,
-              ``,
-              `Thank you for reaching out to OlogyCrew Support. Here is our response to your inquiry:`,
-              ``,
-              `---`,
-              ``,
-              input.message,
-              ``,
-              `---`,
-              ``,
-              `**Original inquiry:** ${submission.subject}`,
-              `**Reference #:** ${submission.id}`,
-              ``,
-              `If you have further questions, simply reply to this email or submit a new inquiry at our Help Center.`,
-              ``,
-              `Best regards,`,
-              `OlogyCrew Support Team`,
-            ].join("\n"),
+            referenceId: submission.id,
+            message: input.message,
           },
         });
         emailSent = result;
