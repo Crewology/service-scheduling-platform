@@ -8,7 +8,11 @@ export const ENV = {
   isProduction: process.env.NODE_ENV === "production",
   forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
   forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
-  stripeSecretKey: process.env.STRIPE_SECRET_KEY ?? "",
+  // The built-in Stripe key cannot be rotated through WebDev secrets. A validated
+  // test-mode override is strictly preview-only; production always keeps its key.
+  stripeSecretKey: process.env.NODE_ENV === "development" && /^sk_test_[A-Za-z0-9]+$/.test(process.env.STRIPE_DEV_SECRET_KEY ?? "")
+    ? process.env.STRIPE_DEV_SECRET_KEY!
+    : process.env.STRIPE_SECRET_KEY ?? "",
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? "",
   twilioAccountSid: process.env.TWILIO_ACCOUNT_SID ?? "",
   twilioAuthToken: process.env.TWILIO_AUTH_TOKEN ?? "",
