@@ -80,6 +80,7 @@ describe("Help Center public navigation", () => {
   const root = resolve(import.meta.dirname, "..");
   const page = readFileSync(resolve(root, "client/src/pages/HelpCenter.tsx"), "utf8");
   const styles = readFileSync(resolve(root, "client/src/pages/HelpCenter.css"), "utf8");
+  const shell = readFileSync(resolve(root, "client/src/App.tsx"), "utf8");
   const metadata = readFileSync(resolve(root, "server/_core/vite.ts"), "utf8");
 
   it("keeps the public contact form, accessible search, FAQ and account shortcuts available", () => {
@@ -109,6 +110,20 @@ describe("Help Center public navigation", () => {
     expect(styles).toContain('.ology-help-featured-grid');
     expect(styles).toContain('.ology-help-collection-grid');
     expect(styles).toContain('.ology-help-library-grid');
+  });
+
+  it("centers real Help search and copy over responsive people-first photography", () => {
+    expect(page).toContain('<picture className="ology-help-hero-photo" aria-hidden="true">');
+    expect(page).toContain('srcSet="/manus-storage/ology-help-people-mobile_40581fc7.webp"');
+    expect(page).toContain('src="/manus-storage/ology-help-people-desktop_4322e033.webp" alt=""');
+    expect(page).toContain('className="ology-help-shell ology-help-hero-content"');
+    expect(page).toContain('id="help-search" type="search"');
+    expect(page).toContain('href="#contact" className="ology-help-hero-support"');
+    expect(styles).toContain('.ology-help-hero-content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center;');
+    expect(styles).toContain('.ology-help-hero::after');
+    expect(styles).toContain('@media (max-width: 600px)');
+    expect(shell).toContain('const isHelpPage = location === "/help"');
+    expect(shell).toContain('!isPricingPage && !isHelpPage && <PWAInstallBanner />');
   });
 
   it("removes unsupported referral/copy claims and only scopes its brand styles", () => {

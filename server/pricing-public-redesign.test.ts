@@ -74,9 +74,10 @@ describe("public pricing people-first design pilot", () => {
     expect(styles).toContain('.ology-pricing-plan-action[data-acquisition="true"] button:not(:disabled)');
   });
 
-  it("keeps the install-app banner off pricing cards but unchanged on other non-prototype pages", () => {
+  it("keeps the install-app banner off pricing cards and the Help hero, but on other eligible pages", () => {
     expect(app).toContain('const isPricingPage = location === "/pricing"');
-    expect(app).toContain('!isPrototype && !isDemoProfile && !isPricingPage && <PWAInstallBanner />');
+    expect(app).toContain('const isHelpPage = location === "/help"');
+    expect(app).toContain('!isPrototype && !isDemoProfile && !isPricingPage && !isHelpPage && <PWAInstallBanner />');
     expect(app).toContain('<Footer compactPublicHome={location === "/" || location === "/for-providers"} />');
   });
 });

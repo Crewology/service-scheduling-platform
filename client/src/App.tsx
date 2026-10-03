@@ -249,6 +249,7 @@ function AppContent() {
   const isPrototype = location.startsWith("/preview/");
   const isDemoProfile = location === "/demo-ologycrew" || location === "/p/demo-ologycrew";
   const isPricingPage = location === "/pricing";
+  const isHelpPage = location === "/help";
   const hideFooter = location.startsWith("/embed") || location.startsWith("/admin") || isPrototype;
 
   // Scroll to top on route change
@@ -279,7 +280,7 @@ function AppContent() {
         <Router />
       </RoleGuard>
       {!hideFooter && <Footer compactPublicHome={location === "/" || location === "/for-providers"} />}
-      {!isPrototype && !isDemoProfile && !isPricingPage && <PWAInstallBanner />}
+      {!isPrototype && !isDemoProfile && !isPricingPage && !isHelpPage && <PWAInstallBanner />}
       {!location.startsWith("/embed") && !isPrototype && <HelpChatWidget />}
     </>
   );

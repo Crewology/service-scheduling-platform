@@ -62,7 +62,7 @@ describe("focused UX prototype", () => {
 
     it("keeps prototype pages free from live install and help overlays", () => {
       expect(appSource).toContain('const isPrototype = location.startsWith("/preview/")');
-      expect(appSource).toContain("!isPrototype && !isDemoProfile && !isPricingPage && <PWAInstallBanner />");
+      expect(appSource).toContain("!isPrototype && !isDemoProfile && !isPricingPage && !isHelpPage && <PWAInstallBanner />");
       expect(appSource).toContain("!isPrototype && <HelpChatWidget />");
     });
 

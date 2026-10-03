@@ -1039,27 +1039,22 @@ export default function HelpCenter() {
       <NavHeader />
       <main className="ology-help">
         <section className="ology-help-hero" aria-labelledby="help-title">
-          <div className="ology-help-shell ology-help-hero-grid">
-            <div>
+          <picture className="ology-help-hero-photo" aria-hidden="true">
+            <source media="(max-width: 600px)" srcSet="/manus-storage/ology-help-people-mobile_40581fc7.webp" />
+            <img src="/manus-storage/ology-help-people-desktop_4322e033.webp" alt="" width="2400" height="1029" loading="eager" fetchPriority="high" />
+          </picture>
+          <div className="ology-help-shell ology-help-hero-content">
               <span className="ology-help-eyebrow"><BookOpen className="h-4 w-4" aria-hidden="true" /> OlogyCrew Help &amp; Resources</span>
               <h1 id="help-title">Find the right <em>resource.</em></h1>
               <p className="ology-help-hero-copy">Practical guides for finding a service, managing bookings, and growing your business. Explore a collection or search the library.</p>
               <div className="ology-help-search">
                 <label htmlFor="help-search" className="sr-only">Search help guides and common questions</label>
                 <Search className="ology-help-search-icon" aria-hidden="true" />
-                <input id="help-search" type="search" autoComplete="off" placeholder="Search guides and common questions" value={searchQuery} onChange={(event) => { setSearchQuery(event.target.value); setActiveArticleTitle(null); }} />
+                <input id="help-search" type="search" autoComplete="off" placeholder="Search help resources" value={searchQuery} onChange={(event) => { setSearchQuery(event.target.value); setActiveArticleTitle(null); }} />
                 {searchQuery && <button type="button" className="ology-help-search-clear" aria-label="Clear help search" onClick={() => setSearchQuery("")}>Clear</button>}
               </div>
               <p className="ology-help-hero-tip">Not sure where to start? Try “booking,” “provider,” or “payment”.</p>
-            </div>
-            <aside className="ology-help-assist" aria-label="Contact support">
-              <span className="ology-help-assist-icon"><MessageSquare className="h-5 w-5" aria-hidden="true" /></span>
-              <div>
-                <h2>Need a person?</h2>
-                <p>Send the team a note if you can't find the answer here. No account is needed to contact us.</p>
-              </div>
-              <a href="#contact" className="ology-help-action">Contact support <ArrowRight className="h-4 w-4" aria-hidden="true" /></a>
-            </aside>
+              <a href="#contact" className="ology-help-hero-support">Need a person? Contact support <ArrowRight className="h-4 w-4" aria-hidden="true" /></a>
           </div>
         </section>
 
