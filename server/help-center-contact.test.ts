@@ -82,16 +82,33 @@ describe("Help Center public navigation", () => {
   const styles = readFileSync(resolve(root, "client/src/pages/HelpCenter.css"), "utf8");
   const metadata = readFileSync(resolve(root, "server/_core/vite.ts"), "utf8");
 
-  it("keeps the public contact form, accessible search and expandable guides available", () => {
+  it("keeps the public contact form, accessible search, FAQ and account shortcuts available", () => {
     expect(page).toContain("trpc.contact.submit.useMutation");
     expect(page).toContain('href="#contact"');
     expect(page).toContain('id="contact"');
     expect(page).toContain('id="help-search"');
-    expect(page).toContain('aria-expanded={expanded}');
-    expect(page).toContain('hidden={!expanded}');
     expect(page).toContain('aria-pressed={activeCategory === cat}');
+    expect(page).toContain('<FAQAccordionItem key={item.question} item={item} />');
     expect(page).toContain('href: "/messages"');
     expect(page).not.toContain('label: "Messages", href: "/my-bookings"');
+  });
+
+  it("leads with real featured articles and lets visitors browse all five resource collections", () => {
+    for (const title of ["How Bookings Work", "Provider Onboarding", "How Payments Work"]) {
+      expect(page).toContain(`title: "${title}"`);
+    }
+    expect(page).toContain('featuredResources.map((resource, index)');
+    expect(page).toContain('openResource(resource.sectionId, resource.title)');
+    expect(page).toContain('guideSections.map((section) => <button');
+    expect(page).toContain('aria-pressed={activeSectionId === section.id}');
+    expect(page).toContain('<ResourceReader match={selectedResource} />');
+    expect(page).toContain('match.article.content');
+    expect(page).toContain('id="resource-library"');
+    expect(page).toContain('id="help-resource-reader"');
+    expect(page).toContain('hash === "contact" || hash === "faq"');
+    expect(styles).toContain('.ology-help-featured-grid');
+    expect(styles).toContain('.ology-help-collection-grid');
+    expect(styles).toContain('.ology-help-library-grid');
   });
 
   it("removes unsupported referral/copy claims and only scopes its brand styles", () => {
@@ -105,6 +122,7 @@ describe("Help Center public navigation", () => {
     expect(styles).toContain(".ology-help");
     expect(styles).toContain("prefers-reduced-motion");
     expect(metadata).toContain('content="https://ologycrew.com/help"');
+    expect(metadata).toContain('OlogyCrew Help &amp; Resources');
     expect(page).toContain('`${OLOGYCREW_PUBLIC_ORIGIN}/help`');
     expect(readFileSync(resolve(root, "server/contactRouter.ts"), "utf8")).not.toContain("garychisolm30@gmail.com");
   });

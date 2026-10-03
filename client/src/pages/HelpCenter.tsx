@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useId } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link } from "wouter";
 import { NavHeader } from "@/components/shared/NavHeader";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -714,61 +714,31 @@ function FAQAccordionItem({ item }: { item: FAQItem }) {
   );
 }
 
-// ─── Guide Section Component ──────────────────────────────────────────────────
+// Featured resources point into the same articles used by the collection browser.
+const featuredResources = [
+  { sectionId: "for-customers", title: "How Bookings Work", label: "FOR CUSTOMERS", icon: <Calendar aria-hidden="true" /> },
+  { sectionId: "for-providers", title: "Provider Onboarding", label: "FOR PROVIDERS", icon: <Briefcase aria-hidden="true" /> },
+  { sectionId: "payments", title: "How Payments Work", label: "PAYMENTS & BILLING", icon: <CreditCard aria-hidden="true" /> },
+] as const;
 
-function GuideSectionCard({ section, expanded, onToggle }: { section: GuideSection; expanded: boolean; onToggle: () => void }) {
-  const [expandedArticle, setExpandedArticle] = useState<number | null>(null);
-  const id = useId();
+type ResourceArticle = GuideSection["articles"][number];
+type ResourceMatch = { section: GuideSection; article: ResourceArticle };
 
-  return (
-    <section id={section.id} className="ology-help-guide-section" aria-labelledby={`${id}-heading`}>
-      <button type="button" className="ology-help-guide-toggle" aria-expanded={expanded} aria-controls={`${id}-articles`} onClick={onToggle}>
-        <span className="ology-help-guide-title">
-          <span className="ology-help-guide-icon" aria-hidden="true">
-            {section.icon}
-          </span>
-          <span>
-            <span id={`${id}-heading`} className="ology-help-guide-heading">{section.title}</span>
-            <span className="ology-help-guide-description">{section.description}</span>
-          </span>
-        </span>
-        <span className="ology-help-guide-count">{section.articles.length} {section.articles.length === 1 ? "guide" : "guides"}</span>
-        <ChevronDown className={`h-5 w-5 shrink-0 ${expanded ? "rotate-180" : ""}`} aria-hidden="true" />
-      </button>
-      <div id={`${id}-articles`} className="ology-help-articles" hidden={!expanded}>
-        {expanded && section.articles.map((article, idx) => {
-          const articleId = `${id}-article-${idx}`;
-          return <div key={article.title} className="ology-help-article">
-            <button
-              type="button" className="ology-help-article-toggle" aria-expanded={expandedArticle === idx} aria-controls={expandedArticle === idx ? articleId : undefined}
-              onClick={() =>
-                setExpandedArticle(expandedArticle === idx ? null : idx)
-              }
-            >
-              <span className="pr-4">{article.title}</span>
-              <ChevronRight
-                className={`h-4 w-4 shrink-0 transition-transform duration-200 ${
-                  expandedArticle === idx ? "rotate-90" : ""
-                }`} aria-hidden="true"
-              />
-            </button>
-            {expandedArticle === idx && (
-              <div id={articleId} className="ology-help-answer">
-                <p className="whitespace-pre-line">
-                  {article.content}
-                </p>
-                {article.link && (
-                  <Link href={article.link} className="ology-help-inline-link">
-                    {article.linkText} <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                  </Link>
-                )}
-              </div>
-            )}
-          </div>;
-        })}
-      </div>
-    </section>
-  );
+function ResourceReader({ match }: { match: ResourceMatch | null }) {
+  return <div className="ology-help-reader" aria-live="polite">
+    {match ? <article aria-labelledby="help-active-article-title">
+      <span className="ology-help-eyebrow">{match.section.title} / Guide</span>
+      <h3 id="help-active-article-title">{match.article.title}</h3>
+      <p className="ology-help-reader-content whitespace-pre-line">{match.article.content}</p>
+      {match.article.link && <Link href={match.article.link} className="ology-help-inline-link">
+        {match.article.linkText} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+      </Link>}
+    </article> : <div className="ology-help-reader-empty">
+      <BookOpen className="h-8 w-8" aria-hidden="true" />
+      <h3>Choose a guide to read</h3>
+      <p>Select a resource from the list. Its full instructions will open here without taking you away from the library.</p>
+    </div>}
+  </div>;
 }
 
 // ─── Quick Links ──────────────────────────────────────────────────────────────
@@ -967,7 +937,8 @@ function ContactForm() {
 export default function HelpCenter() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("all");
-  const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [activeSectionId, setActiveSectionId] = useState("getting-started");
+  const [activeArticleTitle, setActiveArticleTitle] = useState<string | null>(null);
   const [showAllFAQ, setShowAllFAQ] = useState(false);
   const { isAuthenticated } = useAuth();
 
@@ -999,10 +970,38 @@ export default function HelpCenter() {
   const guideCount = filteredSections.reduce((count, section) => count + section.articles.length, 0);
   const shownFAQ = searching || activeCategory !== "all" || showAllFAQ ? filteredFAQ : filteredFAQ.slice(0, 8);
   const faqCategories = ["all", "General", "Bookings", "Providers", "Payments"];
+  const activeSection = guideSections.find((section) => section.id === activeSectionId) ?? guideSections[0];
+  const selectedResource: ResourceMatch | null = searching
+    ? filteredSections.flatMap((section) => section.articles.map((article) => ({ section, article })))
+        .find((match) => match.section.id === activeSectionId && match.article.title === activeArticleTitle) ?? null
+    : activeSection.articles.map((article) => ({ section: activeSection, article }))
+        .find((match) => match.article.title === activeArticleTitle) ?? null;
+
+  const selectCollection = (id: string) => {
+    setSearchQuery("");
+    setActiveSectionId(id);
+    setActiveArticleTitle(null);
+    window.history.replaceState(null, "", `#${id}`);
+    requestAnimationFrame(() => document.getElementById("resource-library")?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      block: "start",
+    }));
+  };
+
+  const openResource = (sectionId: string, articleTitle: string) => {
+    setSearchQuery("");
+    setActiveSectionId(sectionId);
+    setActiveArticleTitle(articleTitle);
+    window.history.replaceState(null, "", `#${sectionId}`);
+    requestAnimationFrame(() => document.getElementById("help-resource-reader")?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      block: "start",
+    }));
+  };
 
   useEffect(() => {
     const oldTitle = document.title;
-    document.title = "OlogyCrew Help Center — Find Your Way Forward";
+    document.title = "OlogyCrew Help & Resources — Find the Right Guide";
     let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     const createdCanonical = !canonical;
     const oldCanonical = canonical?.href;
@@ -1022,24 +1021,18 @@ export default function HelpCenter() {
   useEffect(() => {
     const scrollToHash = () => {
       const hash = decodeURIComponent(window.location.hash.slice(1));
-      if (guideSections.some((section) => section.id === hash)) setExpandedSection(hash);
+      if (guideSections.some((section) => section.id === hash)) {
+        setActiveSectionId(hash);
+        setActiveArticleTitle(null);
+      }
       if (hash === "contact" || hash === "faq" || guideSections.some((section) => section.id === hash)) {
-        requestAnimationFrame(() => document.getElementById(hash)?.scrollIntoView({ behavior: "auto", block: "start" }));
+        requestAnimationFrame(() => document.getElementById(hash === "contact" || hash === "faq" ? hash : "resource-library")?.scrollIntoView({ behavior: "auto", block: "start" }));
       }
     };
     scrollToHash();
     window.addEventListener("hashchange", scrollToHash);
     return () => window.removeEventListener("hashchange", scrollToHash);
   }, []);
-
-  const openSection = (id: string) => {
-    setExpandedSection(id);
-    window.history.replaceState(null, "", `#${id}`);
-    requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({
-      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-      block: "start",
-    }));
-  };
 
   return (
     <>
@@ -1048,16 +1041,16 @@ export default function HelpCenter() {
         <section className="ology-help-hero" aria-labelledby="help-title">
           <div className="ology-help-shell ology-help-hero-grid">
             <div>
-              <span className="ology-help-eyebrow"><HelpCircle className="h-4 w-4" aria-hidden="true" /> OlogyCrew Help Center</span>
-              <h1 id="help-title">Find your way <em>forward.</em></h1>
-              <p className="ology-help-hero-copy">Answers for booking a service, running your business, and everything in between. Start with a question or choose a path below.</p>
+              <span className="ology-help-eyebrow"><BookOpen className="h-4 w-4" aria-hidden="true" /> OlogyCrew Help &amp; Resources</span>
+              <h1 id="help-title">Find the right <em>resource.</em></h1>
+              <p className="ology-help-hero-copy">Practical guides for finding a service, managing bookings, and growing your business. Explore a collection or search the library.</p>
               <div className="ology-help-search">
-                <label htmlFor="help-search" className="sr-only">Search Help Center guides and questions</label>
+                <label htmlFor="help-search" className="sr-only">Search help guides and common questions</label>
                 <Search className="ology-help-search-icon" aria-hidden="true" />
-                <input id="help-search" type="search" autoComplete="off" placeholder="Search help articles and questions" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} />
+                <input id="help-search" type="search" autoComplete="off" placeholder="Search guides and common questions" value={searchQuery} onChange={(event) => { setSearchQuery(event.target.value); setActiveArticleTitle(null); }} />
                 {searchQuery && <button type="button" className="ology-help-search-clear" aria-label="Clear help search" onClick={() => setSearchQuery("")}>Clear</button>}
               </div>
-              <p className="ology-help-hero-tip">Try “booking,” “provider,” or “payment”.</p>
+              <p className="ology-help-hero-tip">Not sure where to start? Try “booking,” “provider,” or “payment”.</p>
             </div>
             <aside className="ology-help-assist" aria-label="Contact support">
               <span className="ology-help-assist-icon"><MessageSquare className="h-5 w-5" aria-hidden="true" /></span>
@@ -1073,28 +1066,20 @@ export default function HelpCenter() {
         <div className="ology-help-shell ology-help-body">
           {!searching && <section className="ology-help-section" aria-labelledby="help-paths-title">
             <div className="ology-help-section-heading">
-              <span className="ology-help-eyebrow">Start here</span>
-              <h2 id="help-paths-title">What can we help you do?</h2>
-              <p>Choose the questions that fit where you are today.</p>
+              <span className="ology-help-eyebrow">Featured resources</span>
+              <h2 id="help-paths-title">A good place to begin.</h2>
+              <p>Start with one of these guides, then explore the full library below.</p>
             </div>
-            <div className="ology-help-start-grid">
-              <a href="#for-customers" className="ology-help-start-card" onClick={(event) => { event.preventDefault(); openSection("for-customers"); }}>
-                <Users className="h-6 w-6" aria-hidden="true" /><strong>Book a service</strong><span>Explore services, requests, bookings and saved providers.</span><ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </a>
-              <a href="#for-providers" className="ology-help-start-card" onClick={(event) => { event.preventDefault(); openSection("for-providers"); }}>
-                <Briefcase className="h-6 w-6" aria-hidden="true" /><strong>Run your business</strong><span>Set up your profile, availability, services and customer relationships.</span><ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </a>
-              <a href="#payments" className="ology-help-start-card" onClick={(event) => { event.preventDefault(); openSection("payments"); }}>
-                <CreditCard className="h-6 w-6" aria-hidden="true" /><strong>Payments & plans</strong><span>Learn about checkout, subscriptions, billing and refunds.</span><ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </a>
+            <div className="ology-help-featured-grid">
+              {featuredResources.map((resource, index) => <button type="button" key={resource.title}
+                className={`ology-help-featured-card ology-help-featured-card-${index + 1}`}
+                onClick={() => openResource(resource.sectionId, resource.title)}>
+                <span className="ology-help-featured-icon">{resource.icon}</span>
+                <span className="ology-help-featured-label">{resource.label} · GUIDE</span>
+                <strong>{resource.title}</strong>
+                <span className="ology-help-featured-action">Read guide <ArrowRight className="h-4 w-4" aria-hidden="true" /></span>
+              </button>)}
             </div>
-            <nav className="ology-help-quick" aria-label="Popular help shortcuts">
-              <span className="ology-help-quick-label">Quick links</span>
-              {quickLinks.map((link) => <Link key={link.label} href={link.href} className="ology-help-quick-link">
-                {link.icon}<span>{link.label}</span>
-              </Link>)}
-              {!isAuthenticated && <span className="text-sm" style={{ color: "var(--ology-brand-muted)" }}>Account pages require sign-in.</span>}
-            </nav>
           </section>}
 
           {searching && <div className="ology-help-section-heading" aria-live="polite">
@@ -1109,24 +1094,62 @@ export default function HelpCenter() {
               <button type="button" className="ology-help-more" onClick={() => { setSearchQuery(""); setActiveCategory("all"); }}>Clear search</button>
             </div>}
 
-          {filteredSections.length > 0 && <section className="ology-help-section" aria-labelledby="help-guides-title">
+          {(!searching || filteredSections.length > 0) && <section id="resource-library" className="ology-help-section" aria-labelledby="help-guides-title">
             <div className="ology-help-section-heading">
-              <span className="ology-help-eyebrow">The guides</span>
-              <h2 id="help-guides-title">{searching ? "Matching guides" : "Explore by topic"}</h2>
-              {!searching && <p>Open a topic to see its guides. Everything stays searchable without a wall of links.</p>}
+              <span className="ology-help-eyebrow">The resource library</span>
+              <h2 id="help-guides-title">{searching ? "Guides matching your search" : "Browse by topic."}</h2>
+              <p>{searching ? "Choose a result to read it here." : "Choose a collection, then select a guide to open the full answer. All collections are free to browse."}</p>
             </div>
-            <div className="ology-help-guide-list">
-              {filteredSections.map((section) => <GuideSectionCard key={section.id} section={section}
-                expanded={searching || expandedSection === section.id}
-                onToggle={() => setExpandedSection(expandedSection === section.id ? null : section.id)} />)}
+            {!searching && <div className="ology-help-collection-grid" role="group" aria-label="Resource collections">
+              {guideSections.map((section) => <button type="button" key={section.id} className="ology-help-collection-card"
+                aria-pressed={activeSectionId === section.id} onClick={() => selectCollection(section.id)}>
+                <span className="ology-help-collection-icon">{section.icon}</span>
+                <strong>{section.title}</strong>
+                <span>{section.description}</span>
+                <small>{section.articles.length} {section.articles.length === 1 ? "guide" : "guides"} <ArrowRight className="h-4 w-4" aria-hidden="true" /></small>
+              </button>)}
+            </div>}
+            <div className="ology-help-library-grid" id="help-resource-reader">
+              <div className="ology-help-resource-index">
+                <div className="ology-help-resource-index-heading">
+                  <span className="ology-help-eyebrow">{searching ? "Search results" : "Selected collection"}</span>
+                  <h3>{searching ? `${guideCount} ${guideCount === 1 ? "guide" : "guides"}` : activeSection.title}</h3>
+                  {!searching && <p>{activeSection.description}</p>}
+                </div>
+                {(searching ? filteredSections.flatMap((section) => section.articles.map((article) => ({ section, article })))
+                  : activeSection.articles.map((article) => ({ section: activeSection, article }))).map(({ section, article }) =>
+                  <button type="button" key={`${section.id}-${article.title}`} className="ology-help-resource-item"
+                    aria-pressed={selectedResource?.article.title === article.title && selectedResource?.section.id === section.id}
+                    onClick={() => {
+                      setActiveArticleTitle(article.title);
+                      setActiveSectionId(section.id);
+                      if (window.matchMedia("(max-width: 760px)").matches) {
+                        requestAnimationFrame(() => document.getElementById("help-resource-reader")?.scrollIntoView({
+                          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+                          block: "start",
+                        }));
+                      }
+                    }}>
+                    <span>{article.title}<small>{searching ? section.title : "Guide"}</small></span>
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </button>)}
+              </div>
+              <ResourceReader match={selectedResource} />
             </div>
+            {!searching && <nav className="ology-help-quick" aria-label="Popular help shortcuts">
+              <span className="ology-help-quick-label">Go to a tool</span>
+              {quickLinks.map((link) => <Link key={link.label} href={link.href} className="ology-help-quick-link">
+                {link.icon}<span>{link.label}</span>
+              </Link>)}
+              {!isAuthenticated && <span className="text-sm" style={{ color: "var(--ology-brand-muted)" }}>Account pages require sign-in.</span>}
+            </nav>}
           </section>}
 
           {(!searching || filteredFAQ.length > 0) && <section id="faq" className="ology-help-section" aria-labelledby="help-faq-title" style={{ scrollMarginTop: 94 }}>
             <div className="ology-help-section-heading">
               <span className="ology-help-eyebrow">Common questions</span>
-              <h2 id="help-faq-title">Good to know.</h2>
-              <p>Short answers to common questions. Use the topic filters to narrow the list.</p>
+              <h2 id="help-faq-title">Quick answers.</h2>
+              <p>Looking for a short answer? Choose a topic or open a question below.</p>
             </div>
             <div className="ology-help-filter-row" aria-label="Filter frequently asked questions">
               {faqCategories.map((cat) => <button key={cat} type="button" className="ology-help-filter"
