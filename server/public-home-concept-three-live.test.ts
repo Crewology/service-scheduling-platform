@@ -108,6 +108,14 @@ describe("Concept 3 public homepage with actual OlogyCrew data", () => {
     expect(search.compareDocumentPosition(cue) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
+  it("uses the requested provider invitation on the craft photograph without hiding that it is illustrative", () => {
+    render(createElement(PublicHomepageConceptThree));
+    const craft = screen.getByRole("region", { name: "Independent professionals deserve a better home" });
+    expect(within(craft).getByText("THE PEOPLE BEHIND THE CRAFT • PROVIDERS NEEDED")).toBeVisible();
+    expect(within(craft).getByRole("img", { name: "Illustrative photograph of a plumber at work" })).toBeVisible();
+    expect(craft).not.toHaveTextContent("THE PERSON BEHIND THE CRAFT · ILLUSTRATIVE PHOTO");
+  });
+
   it("renders only real categories and non-demo public provider records, without made-up prices or badges", () => {
     render(createElement(PublicHomepageConceptThree));
     expect(screen.getByLabelText("OlogyCrew discovery paths")).toHaveTextContent("6featured categories");

@@ -140,7 +140,7 @@ export default function PublicHomepageConceptThree({ forcePublicHeader = false }
         </section>
 
         <section className="or-craft" aria-label="Independent professionals deserve a better home">
-          <div className="or-craft-art"><img src={storyImage} alt="Illustrative photograph of a plumber at work" loading="lazy" /><div className="or-craft-caption">THE PERSON BEHIND THE CRAFT · ILLUSTRATIVE PHOTO</div></div>
+          <div className="or-craft-art"><img src={storyImage} alt="Illustrative photograph of a plumber at work" loading="lazy" /><div className="or-craft-caption">THE PEOPLE BEHIND THE CRAFT • PROVIDERS NEEDED</div></div>
           <div className="or-craft-copy"><div className="or-kicker">More than a listing</div><h2>Good work has a name, a face, and a story.</h2><p>OlogyCrew brings independent service businesses and the people who need them together. Browse real services, see the available details before you book, and build a direct relationship with your pro.</p><div className="or-craft-signoff"><img src={markImage} alt="" /><span>Local expertise. Direct connection. Every time.</span></div></div>
         </section>
 
