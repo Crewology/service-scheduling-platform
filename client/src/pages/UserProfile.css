@@ -1,0 +1,145 @@
+@import "../styles/publicBrandTokens.css";
+
+/* The shared /account route opts in; navigation, customer/provider workspaces and global colors do not. */
+.ology-account-page {
+  background: var(--ology-brand-paper);
+  color: var(--ology-brand-ink);
+  font-family: var(--ology-brand-body);
+}
+
+.ology-account-content {
+  padding-bottom: 4rem;
+}
+
+.ology-account-title {
+  color: var(--ology-brand-deep);
+  font-family: var(--ology-brand-display);
+  letter-spacing: -.035em;
+}
+
+.ology-account-content [data-slot="card"]:not(.ology-account-danger) {
+  border-color: var(--ology-brand-line);
+  background: var(--ology-brand-surface);
+  box-shadow: 0 16px 42px -36px rgb(18 51 50 / 45%);
+}
+
+.ology-account-content [data-slot="card-title"],
+.ology-account-security h3,
+.ology-account-onboarding h3 {
+  color: var(--ology-brand-deep);
+}
+
+.ology-account-content [data-slot="card-description"],
+.ology-account-content .text-muted-foreground,
+.ology-account-onboarding p,
+.ology-account-security p {
+  color: var(--ology-brand-muted);
+}
+
+/* Progress and guidance are reassuring rather than warning-colored. */
+.ology-account-content [data-slot="card"].ology-account-completion {
+  border-color: #cbdac7;
+  background: #eef2e7;
+}
+.ology-account-completion .text-primary,
+.ology-account-completion svg.text-primary {
+  color: var(--ology-brand-deep);
+}
+.ology-account-completion .bg-primary {
+  background: var(--ology-brand-deep);
+}
+.ology-account-content .ology-account-tip {
+  border-color: #cbdac7;
+  background: #eef2e7;
+  color: var(--ology-brand-ink);
+  border-radius: 10px;
+}
+.ology-account-tip svg { color: var(--ology-brand-deep); }
+
+.ology-account-profile [data-slot="card-header"] [data-slot="badge"] {
+  background: #e6edd8;
+  color: var(--ology-brand-deep);
+}
+.ology-account-profile .bg-primary\/10 {
+  background: #e6edd8;
+}
+.ology-account-profile .text-primary { color: var(--ology-brand-deep); }
+.ology-account-profile [data-slot="card-content"] .font-medium { overflow-wrap: anywhere; }
+.ology-account-profile [data-slot="card-content"] .flex.items-center.gap-3 > div { min-width: 0; }
+.ology-account-profile [data-slot="card-content"] .border-b { border-color: var(--ology-brand-line); }
+
+.ology-account-content input:not([type="file"]):not([type="checkbox"]) {
+  border-color: #aebfad;
+  background: #fff;
+  color: var(--ology-brand-deep);
+}
+.ology-account-content input::placeholder { color: var(--ology-brand-muted); opacity: 1; }
+.ology-account-content input:disabled { opacity: .65; }
+
+/* Primary/outline actions remain easy to identify, while destructive and strength semantics stay red/amber/green. */
+.ology-account-content [data-slot="button"].bg-primary {
+  background: var(--ology-brand-deep);
+  color: #fff;
+}
+.ology-account-content [data-slot="button"].bg-primary:hover {
+  background: #1b4842;
+  color: #fff;
+}
+.ology-account-content [data-slot="button"].border.bg-transparent:not(.text-red-600):not(.text-destructive) {
+  border-color: #aebfad;
+  background: var(--ology-brand-surface);
+  color: var(--ology-brand-deep);
+}
+.ology-account-content [data-slot="button"].border.bg-transparent:not(.text-red-600):not(.text-destructive):hover {
+  background: #e6edd8;
+}
+.ology-account-content [data-slot="button"].text-destructive { color: #a1282d; }
+
+/* Optional customer path uses the same welcoming palette, not the old blue gradient. */
+.ology-account-content [data-slot="card"].ology-account-onboarding {
+  border-color: #cbdac7;
+  background: linear-gradient(120deg, #fffdf7 0%, #eef2e7 100%);
+}
+.ology-account-onboarding-icon { background: #e6edd8; color: var(--ology-brand-deep); }
+.ology-account-onboarding [data-slot="button"].ology-account-onboarding-action {
+  background: var(--ology-brand-leaf);
+  color: var(--ology-brand-deep);
+}
+.ology-account-onboarding [data-slot="button"].ology-account-onboarding-action:hover {
+  background: #dce89b;
+  color: var(--ology-brand-deep);
+}
+
+/* Password and 2FA are neutral panels; enabled security stays green and disabling stays red. */
+.ology-account-password [data-slot="card-title"] svg { color: var(--ology-brand-deep); }
+.ology-account-security {
+  border-color: var(--ology-brand-line);
+  background: var(--ology-brand-surface);
+  box-shadow: 0 16px 42px -36px rgb(18 51 50 / 45%);
+}
+.ology-account-security .ology-account-2fa-enable {
+  background: var(--ology-brand-deep);
+  color: #fff;
+}
+.ology-account-security .ology-account-2fa-enable:hover { background: #1b4842; }
+.ology-account-content [data-slot="card"].ology-account-danger {
+  border-color: #efb8b7;
+  background: var(--ology-brand-surface);
+}
+.ology-account-danger [data-slot="card-title"] { color: #a1282d; }
+
+.ology-account-content :is(a, button, input, select, textarea):focus-visible {
+  outline: 3px solid var(--ology-brand-coral-hover);
+  outline-offset: 3px;
+}
+.ology-account-content .ology-account-danger :is(button, input):focus-visible { outline-color: #a1282d; }
+
+@media (max-width: 480px) {
+  .ology-account-security-header { flex-direction: column; align-items: stretch; gap: 1rem; }
+  .ology-account-security-header > button { align-self: flex-start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ology-account-content :is(a, button, input, select, textarea),
+  .ology-account-security button { transition-duration: 0.01ms !important; }
+}

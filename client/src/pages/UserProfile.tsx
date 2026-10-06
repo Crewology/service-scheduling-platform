@@ -24,6 +24,7 @@ import { useLocation } from "wouter";
 import { Building2 } from "lucide-react";
 import { HelpBanner } from "@/components/shared/HelpTip";
 import { ImageCropper } from "@/components/ImageCropper";
+import "./UserProfile.css";
 
 // Profile completion fields definition
 interface CompletionField {
@@ -49,7 +50,7 @@ function ProfileCompletionCard({ user, onEditClick }: { user: any; onEditClick: 
   if (isComplete) return null;
 
   return (
-    <Card className="border-primary/20 bg-primary/5">
+    <Card className="ology-account-completion border-primary/20 bg-primary/5">
       <CardContent className="pt-6">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-semibold text-sm">Complete Your Profile</h3>
@@ -95,11 +96,11 @@ function BecomeProviderCard() {
   const [, navigate] = useLocation();
 
   return (
-    <Card className="border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
+    <Card className="ology-account-onboarding">
       <CardContent className="pt-6">
         <div className="flex items-start gap-4">
-          <div className="h-12 w-12 rounded-xl bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shrink-0">
-            <Briefcase className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+          <div className="ology-account-onboarding-icon h-12 w-12 rounded-xl flex items-center justify-center shrink-0">
+            <Briefcase className="h-6 w-6" />
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="font-semibold text-base mb-1">Become a Service Provider</h3>
@@ -108,7 +109,7 @@ function BecomeProviderCard() {
             </p>
             <Button
               onClick={() => navigate("/provider/onboarding")}
-              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white"
+              className="ology-account-onboarding-action w-full sm:w-auto"
             >
               Get Started
               <ArrowRight className="h-4 w-4 ml-2" />
@@ -138,11 +139,11 @@ function TwoFactorSection() {
   if (isLoading) return null;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 mt-6">
-      <div className="flex items-center justify-between">
+    <div className="ology-account-security rounded-xl border p-6 mt-6">
+      <div className="ology-account-security-header flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Two-Factor Authentication</h3>
-          <p className="text-sm text-gray-500 mt-1">
+          <h3 className="text-lg font-semibold">Two-Factor Authentication</h3>
+          <p className="text-sm mt-1">
             {status?.enabled
               ? "Your account is protected with email verification codes"
               : "Add an extra layer of security to your account"}
@@ -154,7 +155,7 @@ function TwoFactorSection() {
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             status?.enabled
               ? "bg-red-50 text-red-600 hover:bg-red-100"
-              : "bg-blue-600 text-white hover:bg-blue-700"
+              : "ology-account-2fa-enable"
           } disabled:opacity-50`}
         >
           {enable2FA.isPending || disable2FA.isPending
@@ -231,7 +232,7 @@ function PasswordSection() {
   if (isLoading) return null;
 
   return (
-    <Card>
+    <Card className="ology-account-password">
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
           <Lock className="h-4 w-4" />
@@ -354,7 +355,7 @@ function DeleteAccountSection() {
   };
 
   return (
-    <Card className="border-red-200 dark:border-red-900/50">
+    <Card className="ology-account-danger border-red-200 dark:border-red-900/50">
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2 text-red-600 dark:text-red-400">
           <Trash2 className="h-4 w-4" />
@@ -380,15 +381,17 @@ function DeleteAccountSection() {
                     <AlertTriangle className="h-5 w-5 text-amber-600" />
                     Are you sure?
                   </DialogTitle>
-                  <DialogDescription className="text-left space-y-3 pt-2">
-                    <p>Deleting your account will:</p>
-                    <ul className="list-disc pl-5 space-y-1 text-sm">
-                      <li>Remove your personal information (name, email, phone, photo)</li>
-                      <li>Deactivate your provider profile and all listed services</li>
-                      <li>Cancel any active subscriptions</li>
-                      <li>Remove you from all future bookings</li>
-                    </ul>
-                    <p className="font-medium text-foreground">Your booking history will be preserved for record-keeping, but your identity will be anonymized.</p>
+                  <DialogDescription asChild>
+                    <div className="text-left space-y-3 pt-2">
+                      <p>Deleting your account will:</p>
+                      <ul className="list-disc pl-5 space-y-1 text-sm">
+                        <li>Remove your personal information (name, email, phone, photo)</li>
+                        <li>Deactivate your provider profile and all listed services</li>
+                        <li>Cancel any active subscriptions</li>
+                        <li>Remove you from all future bookings</li>
+                      </ul>
+                      <p className="font-medium text-foreground">Your booking history will be preserved for record-keeping, but your identity will be anonymized.</p>
+                    </div>
                   </DialogDescription>
                 </DialogHeader>
                 <DialogFooter className="flex-col gap-2 sm:flex-col">
@@ -413,8 +416,10 @@ function DeleteAccountSection() {
                     <AlertTriangle className="h-5 w-5 text-red-500" />
                     Final Confirmation
                   </DialogTitle>
-                  <DialogDescription className="text-left pt-2">
-                    <p className="mb-4">This action is <strong className="text-foreground">permanent and cannot be undone</strong>. To confirm, type <strong className="text-foreground">DELETE</strong> in the box below.</p>
+                  <DialogDescription asChild>
+                    <div className="text-left pt-2">
+                      <p className="mb-4">This action is <strong className="text-foreground">permanent and cannot be undone</strong>. To confirm, type <strong className="text-foreground">DELETE</strong> in the box below.</p>
+                    </div>
                   </DialogDescription>
                 </DialogHeader>
                 <div className="py-2">
@@ -575,11 +580,11 @@ export default function UserProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-page">
+    <div className="min-h-screen bg-page ology-account-page">
       <NavHeader />
 
-      <div className="container max-w-2xl py-8 space-y-6">
-        <h1 className="text-2xl sm:text-3xl font-bold">My Account</h1>
+      <div className="ology-account-content container max-w-2xl py-8 space-y-6">
+        <h1 className="ology-account-title text-2xl sm:text-3xl font-bold">My Account</h1>
 
         {/* Profile Completion Indicator */}
         <ProfileCompletionCard user={user} onEditClick={() => setEditing(true)} />
@@ -588,10 +593,11 @@ export default function UserProfile() {
         <HelpBanner
           text="A complete profile helps providers communicate with you and builds trust. Add your name, phone number, and a profile photo so providers know who to expect."
           variant="tip"
+          className="ology-account-tip"
         />
 
         {/* Main Profile Card */}
-        <Card>
+        <Card className="ology-account-profile">
           <CardHeader className="space-y-4">
             {/* Profile info row */}
             <div className="flex items-center gap-4">
